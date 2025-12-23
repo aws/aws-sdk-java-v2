@@ -285,6 +285,7 @@
             <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
             <Class name="software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler"/>
             <Class name="software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper"/>
             <Class name="software.amazon.awssdk.eventnotifications.s3.internal.DefaultS3EventNotificationWriter"/>
             <Class name="software.amazon.awssdk.policybuilder.iam.internal.DefaultIamPolicyWriter"/>
         </Or>
@@ -301,14 +302,12 @@
     </Match>
 
     <!-- Retrieves and updates crc value in update() -->
-     <Match>
-         <Or>
-             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32CChecksum"/>
-             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32Checksum"/>
-             <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C"/>
-             <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
-         </Or>
-         <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32CChecksum"/>
+            <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32Checksum"/>
+        </Or>
+        <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
     </Match>
 
     <!-- Suppress existing blocking call. -->
@@ -337,6 +336,7 @@
             <Class name="~software\.amazon\.awssdk\.utils\.CompletableFutureUtils" />
             <Class name="~software\.amazon\.awssdk\.metrics\.publishers\.cloudwatch\.CloudWatchMetricPublisher" />
             <Class name="~software\.amazon\.awssdk\.http\.apache\.internal\.conn\.IdleConnectionReaper\$ReaperTask" />
+            <Class name="~software\.amazon\.awssdk\.http\.apache5\.internal\.conn\.IdleConnectionReaper\$ReaperTask" />
             <Class name="~software\.amazon\.awssdk\.core\.internal\.retry\.RateLimitingTokenBucket" />
             <Class name="~software\.amazon\.awssdk\.core\.internal\.waiters\.WaiterExecutor" />
             <Class name="~software\.amazon\.awssdk\.regions\.internal\.util\.EC2MetadataUtils" />
@@ -353,10 +353,14 @@
         </Or>
         <Bug pattern="ASYNC_BLOCKING_CALL"/>
     </Match>
-  
+
     <!-- False positive -->
     <Match>
         <Class name="software.amazon.awssdk.v2migration.EnumCasingToV2$Visitor"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.utils.uri.SdkUri" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 </FindBugsFilter>

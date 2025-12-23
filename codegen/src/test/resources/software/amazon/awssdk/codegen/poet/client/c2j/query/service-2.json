@@ -297,7 +297,7 @@
       ],
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -313,7 +313,7 @@
       ],
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -329,7 +329,7 @@
       ],
       "members": {
         "NestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>A structure containing nested members</p>"
         }
       },
@@ -350,7 +350,7 @@
       },
       "exception": true
     },
-    "nestedMember": {
+    "NestedMember": {
       "type": "structure",
       "required": [
         "SubMember",

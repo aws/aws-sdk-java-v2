@@ -46,7 +46,7 @@ class UserAgentProviderTest {
     private MockSyncHttpClient mockHttpClient;
 
     @BeforeEach
-    public void setup() throws UnsupportedEncodingException {
+    public void setup() {
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockResponse());
     }
@@ -74,8 +74,8 @@ class UserAgentProviderTest {
 
     private static Stream<Arguments> credentialProviders() {
         return Stream.of(
-            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "stat"),
-            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "stat")
+            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "m/D,e"),
+            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "m/D,e")
         );
     }
 

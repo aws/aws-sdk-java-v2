@@ -39,8 +39,8 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.SignerChecksumParams;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -397,5 +397,33 @@ public class Aws4SignerTest {
         assertThat(signed.firstMatchingHeader("x-amz-trailer")).contains("x-amzn-header-crc");
         assertThat(signed.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
         assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+    }
+
+    @Test
+    public void TransferEncodingIsNotSigned_NotSigned() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+        SdkHttpFullRequest.Builder request = generateBasicRequest();
+        request.putHeader("Transfer-Encoding", "chunked");
+
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+
+        assertThat(actual.firstMatchingHeader("Authorization"))
+            .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +
+                      "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                      "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
+    }
+
+    @Test
+    public void XForwardedForIsNotSigned_NotSigned() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
+        SdkHttpFullRequest.Builder request = generateBasicRequest();
+        request.putHeader("X-Forwarded-For", "127.0.0.1");
+
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+
+        assertThat(actual.firstMatchingHeader("Authorization"))
+            .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +
+                      "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                      "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
     }
 }

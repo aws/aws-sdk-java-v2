@@ -38,9 +38,11 @@ public final class DefaultCustomizationProcessor {
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
                 new NewAndLegacyEventStreamProcessor(),
+                new EventStreamSharedEventProcessor(config.getDuplicateAndRenameSharedEvents()),
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),
-                new ExplicitStringPayloadQueryProtocolProcessor()
+                new ExplicitStringPayloadQueryProtocolProcessor(),
+                new LowercaseShapeValidatorProcessor()
                 );
     }
 }

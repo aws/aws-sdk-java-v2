@@ -121,7 +121,7 @@ public interface ProtocolSpec {
 
     default CodeBlock credentialType(OperationModel opModel, IntermediateModel model) {
 
-        if (AuthUtils.isOpBearerAuth(model, opModel)) {
+        if (AuthUtils.isOpBearerAuthPreferred(model, opModel)) {
             return CodeBlock.of(".credentialType($T.TOKEN)\n", CredentialType.class);
         } else {
             return CodeBlock.of("");
@@ -158,7 +158,7 @@ public interface ProtocolSpec {
             builder.add(".requiresLength(true)");
         }
 
-        if (opModel.getAuthType() == AuthType.V4_UNSIGNED_BODY) {
+        if (opModel.getAuthType() == AuthType.V4_UNSIGNED_BODY || opModel.isUnsignedPayload()) {
             builder.add(".transferEncoding(true)");
         }
 

@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.query.auth.scheme.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -20,6 +21,7 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -28,7 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
     private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
 
-    private static final QueryAuthSchemeProvider MODELED_RESOLVER = ModeledQueryAuthSchemeProvider.create();
+    private static final QueryAuthSchemeProvider FALLBACK_RESOLVER = FallbackQueryAuthSchemeProvider.create();
 
     private static final QueryEndpointProvider DELEGATE = QueryEndpointProvider.defaultProvider();
 
@@ -52,7 +54,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
         Endpoint endpoint = CompletableFutureUtils.joinLikeSync(endpointProvider(params).resolveEndpoint(endpointParameters));
         List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {
-            return MODELED_RESOLVER.resolveAuthScheme(params);
+            return FALLBACK_RESOLVER.resolveAuthScheme(params);
         }
         List<AuthSchemeOption> options = new ArrayList<>();
         for (EndpointAuthScheme authScheme : authSchemes) {
@@ -72,7 +74,9 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                     SigV4aAuthScheme sigv4aAuthScheme = Validate.isInstanceOf(SigV4aAuthScheme.class, authScheme,
                                                                               "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
                                                                                                                                                                           .getName());
-                    RegionSet regionSet = RegionSet.create(sigv4aAuthScheme.signingRegionSet());
+                    RegionSet regionSet = Optional.ofNullable(params.regionSet()).orElseGet(
+                        () -> Optional.ofNullable(sigv4aAuthScheme.signingRegionSet())
+                                      .filter(set -> !CollectionUtils.isNullOrEmpty(set)).map(RegionSet::create).orElse(null));
                     AuthSchemeOption sigv4aAuthSchemeOption = AuthSchemeOption.builder().schemeId(AwsV4aAuthScheme.SCHEME_ID)
                                                                               .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())
                                                                               .putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)

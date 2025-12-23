@@ -2,16 +2,15 @@
   "version":"2.0",
   "metadata":{
     "apiVersion":"2020-07-08",
+    "auth":["aws.auth#sigv4"],
     "endpointPrefix":"workspaces-web",
-    "jsonVersion":"1.1",
     "protocol":"rest-json",
     "protocols":["rest-json"],
     "serviceFullName":"Amazon WorkSpaces Web",
     "serviceId":"WorkSpaces Web",
     "signatureVersion":"v4",
     "signingName":"workspaces-web",
-    "uid":"workspaces-web-2020-07-08",
-    "auth":["aws.auth#sigv4"]
+    "uid":"workspaces-web-2020-07-08"
   },
   "operations":{
     "AssociateBrowserSettings":{
@@ -92,6 +91,26 @@
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Associates a network settings resource with a web portal.</p>",
+      "idempotent":true
+    },
+    "AssociateSessionLogger":{
+      "name":"AssociateSessionLogger",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/portals/{portalArn+}/sessionLogger",
+        "responseCode":200
+      },
+      "input":{"shape":"AssociateSessionLoggerRequest"},
+      "output":{"shape":"AssociateSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Associates a session logger with a portal.</p>",
       "idempotent":true
     },
     "AssociateTrustStore":{
@@ -272,6 +291,25 @@
       ],
       "documentation":"<p>Creates a web portal.</p>"
     },
+    "CreateSessionLogger":{
+      "name":"CreateSessionLogger",
+      "http":{
+        "method":"POST",
+        "requestUri":"/sessionLoggers",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateSessionLoggerRequest"},
+      "output":{"shape":"CreateSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Creates a session logger.</p>"
+    },
     "CreateTrustStore":{
       "name":"CreateTrustStore",
       "http":{
@@ -321,6 +359,7 @@
       "output":{"shape":"CreateUserSettingsResponse"},
       "errors":[
         {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
         {"shape":"ServiceQuotaExceededException"},
@@ -441,6 +480,25 @@
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Deletes a web portal.</p>",
+      "idempotent":true
+    },
+    "DeleteSessionLogger":{
+      "name":"DeleteSessionLogger",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/sessionLoggers/{sessionLoggerArn+}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteSessionLoggerRequest"},
+      "output":{"shape":"DeleteSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Deletes a session logger resource.</p>",
       "idempotent":true
     },
     "DeleteTrustStore":{
@@ -580,6 +638,25 @@
       "documentation":"<p>Disassociates network settings from a web portal.</p>",
       "idempotent":true
     },
+    "DisassociateSessionLogger":{
+      "name":"DisassociateSessionLogger",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/portals/{portalArn+}/sessionLogger",
+        "responseCode":200
+      },
+      "input":{"shape":"DisassociateSessionLoggerRequest"},
+      "output":{"shape":"DisassociateSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Disassociates a session logger from a portal.</p>",
+      "idempotent":true
+    },
     "DisassociateTrustStore":{
       "name":"DisassociateTrustStore",
       "http":{
@@ -675,7 +752,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets browser settings.</p>"
+      "documentation":"<p>Gets browser settings.</p>",
+      "readonly":true
     },
     "GetDataProtectionSettings":{
       "name":"GetDataProtectionSettings",
@@ -693,7 +771,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the data protection settings.</p>"
+      "documentation":"<p>Gets the data protection settings.</p>",
+      "readonly":true
     },
     "GetIdentityProvider":{
       "name":"GetIdentityProvider",
@@ -711,7 +790,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the identity provider.</p>"
+      "documentation":"<p>Gets the identity provider.</p>",
+      "readonly":true
     },
     "GetIpAccessSettings":{
       "name":"GetIpAccessSettings",
@@ -729,7 +809,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the IP access settings.</p>"
+      "documentation":"<p>Gets the IP access settings.</p>",
+      "readonly":true
     },
     "GetNetworkSettings":{
       "name":"GetNetworkSettings",
@@ -747,7 +828,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the network settings.</p>"
+      "documentation":"<p>Gets the network settings.</p>",
+      "readonly":true
     },
     "GetPortal":{
       "name":"GetPortal",
@@ -765,7 +847,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the web portal.</p>"
+      "documentation":"<p>Gets the web portal.</p>",
+      "readonly":true
     },
     "GetPortalServiceProviderMetadata":{
       "name":"GetPortalServiceProviderMetadata",
@@ -783,7 +866,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the service provider metadata.</p>"
+      "documentation":"<p>Gets the service provider metadata.</p>",
+      "readonly":true
     },
     "GetSession":{
       "name":"GetSession",
@@ -801,7 +885,27 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets information for a secure browser session.</p>"
+      "documentation":"<p>Gets information for a secure browser session.</p>",
+      "readonly":true
+    },
+    "GetSessionLogger":{
+      "name":"GetSessionLogger",
+      "http":{
+        "method":"GET",
+        "requestUri":"/sessionLoggers/{sessionLoggerArn+}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetSessionLoggerRequest"},
+      "output":{"shape":"GetSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Gets details about a specific session logger resource.</p>",
+      "readonly":true
     },
     "GetTrustStore":{
       "name":"GetTrustStore",
@@ -819,7 +923,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the trust store.</p>"
+      "documentation":"<p>Gets the trust store.</p>",
+      "readonly":true
     },
     "GetTrustStoreCertificate":{
       "name":"GetTrustStoreCertificate",
@@ -837,7 +942,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets the trust store certificate.</p>"
+      "documentation":"<p>Gets the trust store certificate.</p>",
+      "readonly":true
     },
     "GetUserAccessLoggingSettings":{
       "name":"GetUserAccessLoggingSettings",
@@ -855,7 +961,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets user access logging settings.</p>"
+      "documentation":"<p>Gets user access logging settings.</p>",
+      "readonly":true
     },
     "GetUserSettings":{
       "name":"GetUserSettings",
@@ -873,7 +980,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Gets user settings.</p>"
+      "documentation":"<p>Gets user settings.</p>",
+      "readonly":true
     },
     "ListBrowserSettings":{
       "name":"ListBrowserSettings",
@@ -890,7 +998,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of browser settings.</p>"
+      "documentation":"<p>Retrieves a list of browser settings.</p>",
+      "readonly":true
     },
     "ListDataProtectionSettings":{
       "name":"ListDataProtectionSettings",
@@ -907,7 +1016,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of data protection settings.</p>"
+      "documentation":"<p>Retrieves a list of data protection settings.</p>",
+      "readonly":true
     },
     "ListIdentityProviders":{
       "name":"ListIdentityProviders",
@@ -924,7 +1034,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of identity providers for a specific web portal.</p>"
+      "documentation":"<p>Retrieves a list of identity providers for a specific web portal.</p>",
+      "readonly":true
     },
     "ListIpAccessSettings":{
       "name":"ListIpAccessSettings",
@@ -941,7 +1052,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of IP access settings.</p>"
+      "documentation":"<p>Retrieves a list of IP access settings.</p>",
+      "readonly":true
     },
     "ListNetworkSettings":{
       "name":"ListNetworkSettings",
@@ -958,7 +1070,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of network settings.</p>"
+      "documentation":"<p>Retrieves a list of network settings.</p>",
+      "readonly":true
     },
     "ListPortals":{
       "name":"ListPortals",
@@ -975,7 +1088,26 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list or web portals.</p>"
+      "documentation":"<p>Retrieves a list or web portals.</p>",
+      "readonly":true
+    },
+    "ListSessionLoggers":{
+      "name":"ListSessionLoggers",
+      "http":{
+        "method":"GET",
+        "requestUri":"/sessionLoggers",
+        "responseCode":200
+      },
+      "input":{"shape":"ListSessionLoggersRequest"},
+      "output":{"shape":"ListSessionLoggersResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Lists all available session logger resources.</p>",
+      "readonly":true
     },
     "ListSessions":{
       "name":"ListSessions",
@@ -993,7 +1125,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Lists information for multiple secure browser sessions from a specific portal.</p>"
+      "documentation":"<p>Lists information for multiple secure browser sessions from a specific portal.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1011,7 +1144,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of tags for a resource.</p>"
+      "documentation":"<p>Retrieves a list of tags for a resource.</p>",
+      "readonly":true
     },
     "ListTrustStoreCertificates":{
       "name":"ListTrustStoreCertificates",
@@ -1029,7 +1163,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of trust store certificates.</p>"
+      "documentation":"<p>Retrieves a list of trust store certificates.</p>",
+      "readonly":true
     },
     "ListTrustStores":{
       "name":"ListTrustStores",
@@ -1046,7 +1181,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of trust stores.</p>"
+      "documentation":"<p>Retrieves a list of trust stores.</p>",
+      "readonly":true
     },
     "ListUserAccessLoggingSettings":{
       "name":"ListUserAccessLoggingSettings",
@@ -1063,7 +1199,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of user access logging settings.</p>"
+      "documentation":"<p>Retrieves a list of user access logging settings.</p>",
+      "readonly":true
     },
     "ListUserSettings":{
       "name":"ListUserSettings",
@@ -1080,7 +1217,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves a list of user settings.</p>"
+      "documentation":"<p>Retrieves a list of user settings.</p>",
+      "readonly":true
     },
     "TagResource":{
       "name":"TagResource",
@@ -1231,6 +1369,24 @@
       "documentation":"<p>Updates a web portal.</p>",
       "idempotent":true
     },
+    "UpdateSessionLogger":{
+      "name":"UpdateSessionLogger",
+      "http":{
+        "method":"POST",
+        "requestUri":"/sessionLoggers/{sessionLoggerArn+}",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateSessionLoggerRequest"},
+      "output":{"shape":"UpdateSessionLoggerResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Updates the details of a session logger.</p>"
+    },
     "UpdateTrustStore":{
       "name":"UpdateTrustStore",
       "http":{
@@ -1292,7 +1448,7 @@
       "type":"string",
       "max":2048,
       "min":20,
-      "pattern":"^arn:[\\w+=\\/,.@-]+:[a-zA-Z0-9\\-]+:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\\/[a-fA-F0-9\\-]{36})+$"
+      "pattern":"arn:[\\w+=\\/,.@-]+:[a-zA-Z0-9\\-]+:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\\/[a-fA-F0-9\\-]{36})+"
     },
     "AccessDeniedException":{
       "type":"structure",
@@ -1313,152 +1469,190 @@
     "AssociateBrowserSettingsRequest":{
       "type":"structure",
       "required":[
-        "browserSettingsArn",
-        "portalArn"
+        "portalArn",
+        "browserSettingsArn"
       ],
       "members":{
-        "browserSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the browser settings.</p>",
-          "location":"querystring",
-          "locationName":"browserSettingsArn"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>",
           "location":"uri",
           "locationName":"portalArn"
+        },
+        "browserSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the browser settings.</p>",
+          "location":"querystring",
+          "locationName":"browserSettingsArn"
         }
       }
     },
     "AssociateBrowserSettingsResponse":{
       "type":"structure",
       "required":[
-        "browserSettingsArn",
-        "portalArn"
+        "portalArn",
+        "browserSettingsArn"
       ],
       "members":{
-        "browserSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the browser settings.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
+        },
+        "browserSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the browser settings.</p>"
         }
       }
     },
     "AssociateDataProtectionSettingsRequest":{
       "type":"structure",
       "required":[
-        "dataProtectionSettingsArn",
-        "portalArn"
+        "portalArn",
+        "dataProtectionSettingsArn"
       ],
       "members":{
-        "dataProtectionSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the data protection settings.</p>",
-          "location":"querystring",
-          "locationName":"dataProtectionSettingsArn"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>",
           "location":"uri",
           "locationName":"portalArn"
+        },
+        "dataProtectionSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the data protection settings.</p>",
+          "location":"querystring",
+          "locationName":"dataProtectionSettingsArn"
         }
       }
     },
     "AssociateDataProtectionSettingsResponse":{
       "type":"structure",
       "required":[
-        "dataProtectionSettingsArn",
-        "portalArn"
+        "portalArn",
+        "dataProtectionSettingsArn"
       ],
       "members":{
-        "dataProtectionSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the data protection settings resource.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
+        },
+        "dataProtectionSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the data protection settings resource.</p>"
         }
       }
     },
     "AssociateIpAccessSettingsRequest":{
       "type":"structure",
       "required":[
-        "ipAccessSettingsArn",
-        "portalArn"
+        "portalArn",
+        "ipAccessSettingsArn"
       ],
       "members":{
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the IP access settings.</p>",
-          "location":"querystring",
-          "locationName":"ipAccessSettingsArn"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>",
           "location":"uri",
           "locationName":"portalArn"
+        },
+        "ipAccessSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the IP access settings.</p>",
+          "location":"querystring",
+          "locationName":"ipAccessSettingsArn"
         }
       }
     },
     "AssociateIpAccessSettingsResponse":{
       "type":"structure",
       "required":[
-        "ipAccessSettingsArn",
-        "portalArn"
+        "portalArn",
+        "ipAccessSettingsArn"
       ],
       "members":{
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the IP access settings resource.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
+        },
+        "ipAccessSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the IP access settings resource.</p>"
         }
       }
     },
     "AssociateNetworkSettingsRequest":{
       "type":"structure",
       "required":[
-        "networkSettingsArn",
-        "portalArn"
+        "portalArn",
+        "networkSettingsArn"
       ],
       "members":{
-        "networkSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the network settings.</p>",
-          "location":"querystring",
-          "locationName":"networkSettingsArn"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>",
           "location":"uri",
           "locationName":"portalArn"
+        },
+        "networkSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the network settings.</p>",
+          "location":"querystring",
+          "locationName":"networkSettingsArn"
         }
       }
     },
     "AssociateNetworkSettingsResponse":{
       "type":"structure",
       "required":[
-        "networkSettingsArn",
-        "portalArn"
+        "portalArn",
+        "networkSettingsArn"
       ],
       "members":{
-        "networkSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the network settings.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
+        },
+        "networkSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the network settings.</p>"
+        }
+      }
+    },
+    "AssociateSessionLoggerRequest":{
+      "type":"structure",
+      "required":[
+        "portalArn",
+        "sessionLoggerArn"
+      ],
+      "members":{
+        "portalArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the portal to associate to the session logger ARN.</p>",
+          "location":"uri",
+          "locationName":"portalArn"
+        },
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger to associate to the portal ARN.</p>",
+          "location":"querystring",
+          "locationName":"sessionLoggerArn"
+        }
+      }
+    },
+    "AssociateSessionLoggerResponse":{
+      "type":"structure",
+      "required":[
+        "portalArn",
+        "sessionLoggerArn"
+      ],
+      "members":{
+        "portalArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the portal.</p>"
+        },
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger.</p>"
         }
       }
     },
@@ -1583,6 +1777,116 @@
         "IAM_Identity_Center"
       ]
     },
+    "BlockedCategories":{
+      "type":"list",
+      "member":{"shape":"Category"},
+      "max":100,
+      "min":1
+    },
+    "BrandingConfiguration":{
+      "type":"structure",
+      "required":[
+        "logo",
+        "wallpaper",
+        "favicon",
+        "localizedStrings",
+        "colorTheme"
+      ],
+      "members":{
+        "logo":{
+          "shape":"ImageMetadata",
+          "documentation":"<p>Metadata for the logo image file, including the MIME type, file extension, and upload timestamp.</p>"
+        },
+        "wallpaper":{
+          "shape":"ImageMetadata",
+          "documentation":"<p>Metadata for the wallpaper image file, including the MIME type, file extension, and upload timestamp.</p>"
+        },
+        "favicon":{
+          "shape":"ImageMetadata",
+          "documentation":"<p>Metadata for the favicon image file, including the MIME type, file extension, and upload timestamp.</p>"
+        },
+        "localizedStrings":{
+          "shape":"LocalizedBrandingStringMap",
+          "documentation":"<p>A map of localized text strings for different languages, allowing the portal to display content in the user's preferred language.</p>"
+        },
+        "colorTheme":{
+          "shape":"ColorTheme",
+          "documentation":"<p>The color theme for components on the web portal.</p>"
+        },
+        "termsOfService":{
+          "shape":"Markdown",
+          "documentation":"<p>The terms of service text in Markdown format that users must accept before accessing the portal.</p>"
+        }
+      },
+      "documentation":"<p>The branding configuration output including custom images metadata, localized strings, color theme, and terms of service.</p>"
+    },
+    "BrandingConfigurationCreateInput":{
+      "type":"structure",
+      "required":[
+        "logo",
+        "wallpaper",
+        "favicon",
+        "localizedStrings",
+        "colorTheme"
+      ],
+      "members":{
+        "logo":{
+          "shape":"IconImageInput",
+          "documentation":"<p>The logo image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 100 KB in JPEG, PNG, or ICO format.</p>"
+        },
+        "wallpaper":{
+          "shape":"WallpaperImageInput",
+          "documentation":"<p>The wallpaper image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 5 MB in JPEG or PNG format.</p>"
+        },
+        "favicon":{
+          "shape":"IconImageInput",
+          "documentation":"<p>The favicon image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 100 KB in JPEG, PNG, or ICO format.</p>"
+        },
+        "localizedStrings":{
+          "shape":"LocalizedBrandingStringMap",
+          "documentation":"<p>A map of localized text strings for different supported languages. Each locale must provide the required fields <code>browserTabTitle</code> and <code>welcomeText</code>.</p>"
+        },
+        "colorTheme":{
+          "shape":"ColorTheme",
+          "documentation":"<p>The color theme for components on the web portal. Choose <code>Light</code> if you upload a dark wallpaper, or <code>Dark</code> for a light wallpaper.</p>"
+        },
+        "termsOfService":{
+          "shape":"Markdown",
+          "documentation":"<p>The terms of service text in Markdown format. Users will be presented with the terms of service after successfully signing in.</p>"
+        }
+      },
+      "documentation":"<p>The input configuration for creating branding settings.</p>"
+    },
+    "BrandingConfigurationUpdateInput":{
+      "type":"structure",
+      "members":{
+        "logo":{
+          "shape":"IconImageInput",
+          "documentation":"<p>The logo image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 100 KB in JPEG, PNG, or ICO format.</p>"
+        },
+        "wallpaper":{
+          "shape":"WallpaperImageInput",
+          "documentation":"<p>The wallpaper image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 5 MB in JPEG or PNG format.</p>"
+        },
+        "favicon":{
+          "shape":"IconImageInput",
+          "documentation":"<p>The favicon image for the portal. Provide either a binary image file or an S3 URI pointing to the image file. Maximum 100 KB in JPEG, PNG, or ICO format.</p>"
+        },
+        "localizedStrings":{
+          "shape":"LocalizedBrandingStringMap",
+          "documentation":"<p>A map of localized text strings for different supported languages. Each locale must provide the required fields <code>browserTabTitle</code> and <code>welcomeText</code>.</p>"
+        },
+        "colorTheme":{
+          "shape":"ColorTheme",
+          "documentation":"<p>The color theme for components on the web portal. Choose <code>Light</code> if you upload a dark wallpaper, or <code>Dark</code> for a light wallpaper.</p>"
+        },
+        "termsOfService":{
+          "shape":"Markdown",
+          "documentation":"<p>The terms of service text in Markdown format. To remove existing terms of service, provide an empty string.</p>"
+        }
+      },
+      "documentation":"<p>The input configuration for updating branding settings. All fields are optional when updating existing branding.</p>"
+    },
     "BrowserPolicy":{
       "type":"string",
       "max":131072,
@@ -1594,9 +1898,9 @@
       "type":"structure",
       "required":["browserSettingsArn"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the browser settings.</p>"
+        "browserSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the browser settings.</p>"
         },
         "associatedPortalArns":{
           "shape":"ArnList",
@@ -1606,13 +1910,17 @@
           "shape":"BrowserPolicy",
           "documentation":"<p>A JSON string containing Chrome Enterprise policies that will be applied to all streaming sessions.</p>"
         },
-        "browserSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the browser settings.</p>"
-        },
         "customerManagedKey":{
           "shape":"keyArn",
           "documentation":"<p>The customer managed key used to encrypt sensitive information in the browser settings.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the browser settings.</p>"
+        },
+        "webContentFilteringPolicy":{
+          "shape":"WebContentFilteringPolicy",
+          "documentation":"<p>The policy that specifies which URLs end users are allowed to access or which URLs or domain categories they are restricted from accessing for enhanced security.</p>"
         }
       },
       "documentation":"<p>The browser settings resource that can be associated with a web portal. Once associated with a web portal, browser settings control how the browser will behave once a user starts a streaming session for the web portal. </p>"
@@ -1640,40 +1948,76 @@
       "type":"string",
       "max":50,
       "min":1,
-      "pattern":"^[_\\-\\d\\w]+$",
+      "pattern":"[_\\-\\d\\w]+",
       "sensitive":true
+    },
+    "Category":{
+      "type":"string",
+      "enum":[
+        "Cults",
+        "Gambling",
+        "Nudity",
+        "Pornography",
+        "SexEducation",
+        "Tasteless",
+        "Violence",
+        "DownloadSites",
+        "ImageSharing",
+        "PeerToPeer",
+        "StreamingMediaAndDownloads",
+        "GenerativeAI",
+        "CriminalActivity",
+        "Hacking",
+        "HateAndIntolerance",
+        "IllegalDrug",
+        "IllegalSoftware",
+        "SchoolCheating",
+        "SelfHarm",
+        "Weapons",
+        "Chat",
+        "Games",
+        "InstantMessaging",
+        "ProfessionalNetwork",
+        "SocialNetworking",
+        "WebBasedEmail",
+        "ParkedDomains"
+      ]
     },
     "Certificate":{
       "type":"structure",
       "members":{
-        "body":{
-          "shape":"CertificateAuthorityBody",
-          "documentation":"<p>The body of the certificate.</p>"
-        },
-        "issuer":{
-          "shape":"CertificatePrincipal",
-          "documentation":"<p>The entity that issued the certificate.</p>"
-        },
-        "notValidAfter":{
-          "shape":"Timestamp",
-          "documentation":"<p>The certificate is not valid after this date.</p>"
-        },
-        "notValidBefore":{
-          "shape":"Timestamp",
-          "documentation":"<p>The certificate is not valid before this date.</p>"
+        "thumbprint":{
+          "shape":"CertificateThumbprint",
+          "documentation":"<p>A hexadecimal identifier for the certificate.</p>"
         },
         "subject":{
           "shape":"CertificatePrincipal",
           "documentation":"<p>The entity the certificate belongs to.</p>"
         },
-        "thumbprint":{
-          "shape":"CertificateThumbprint",
-          "documentation":"<p>A hexadecimal identifier for the certificate.</p>"
+        "issuer":{
+          "shape":"CertificatePrincipal",
+          "documentation":"<p>The entity that issued the certificate.</p>"
+        },
+        "notValidBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>The certificate is not valid before this date.</p>"
+        },
+        "notValidAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>The certificate is not valid after this date.</p>"
+        },
+        "body":{
+          "shape":"CertificateAuthorityBody",
+          "documentation":"<p>The body of the certificate.</p>"
         }
       },
       "documentation":"<p>The certificate.</p>"
     },
-    "CertificateAuthorityBody":{"type":"blob"},
+    "CertificateAuthorityBody":{
+      "type":"blob",
+      "max":32768,
+      "min":1
+    },
     "CertificateList":{
       "type":"list",
       "member":{"shape":"CertificateAuthorityBody"}
@@ -1682,30 +2026,30 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"^\\S+$"
+      "pattern":"\\S+"
     },
     "CertificateSummary":{
       "type":"structure",
       "members":{
-        "issuer":{
-          "shape":"CertificatePrincipal",
-          "documentation":"<p>The entity that issued the certificate.</p>"
-        },
-        "notValidAfter":{
-          "shape":"Timestamp",
-          "documentation":"<p>The certificate is not valid after this date.</p>"
-        },
-        "notValidBefore":{
-          "shape":"Timestamp",
-          "documentation":"<p>The certificate is not valid before this date.</p>"
+        "thumbprint":{
+          "shape":"CertificateThumbprint",
+          "documentation":"<p>A hexadecimal identifier for the certificate.</p>"
         },
         "subject":{
           "shape":"CertificatePrincipal",
           "documentation":"<p>The entity the certificate belongs to.</p>"
         },
-        "thumbprint":{
-          "shape":"CertificateThumbprint",
-          "documentation":"<p>A hexadecimal identifier for the certificate.</p>"
+        "issuer":{
+          "shape":"CertificatePrincipal",
+          "documentation":"<p>The entity that issued the certificate.</p>"
+        },
+        "notValidBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>The certificate is not valid before this date.</p>"
+        },
+        "notValidAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>The certificate is not valid after this date.</p>"
         }
       },
       "documentation":"<p>The summary of the certificate.</p>"
@@ -1718,7 +2062,7 @@
       "type":"string",
       "max":64,
       "min":64,
-      "pattern":"^[A-Fa-f0-9]{64}$"
+      "pattern":"[A-Fa-f0-9]{64}"
     },
     "CertificateThumbprintList":{
       "type":"list",
@@ -1728,6 +2072,13 @@
       "type":"string",
       "max":512,
       "min":1
+    },
+    "ColorTheme":{
+      "type":"string",
+      "enum":[
+        "Light",
+        "Dark"
+      ]
     },
     "ConfidenceLevel":{
       "type":"integer",
@@ -1755,11 +2106,15 @@
       },
       "exception":true
     },
+    "ContactLinkUrl":{
+      "type":"string",
+      "pattern":"(https://|mailto:).*"
+    },
     "CookieDomain":{
       "type":"string",
       "max":253,
       "min":0,
-      "pattern":"^(\\.?)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)*[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
+      "pattern":"(\\.?)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)*[a-z0-9][a-z0-9-]{0,61}[a-z0-9]",
       "sensitive":true
     },
     "CookieName":{
@@ -1772,7 +2127,7 @@
       "type":"string",
       "max":2000,
       "min":0,
-      "pattern":"^/(\\S)*$",
+      "pattern":"/(\\S)*",
       "sensitive":true
     },
     "CookieSpecification":{
@@ -1818,8 +2173,15 @@
     },
     "CreateBrowserSettingsRequest":{
       "type":"structure",
-      "required":["browserPolicy"],
       "members":{
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the browser settings resource. A tag is a key-value pair.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The custom managed key of the browser settings.</p>"
+        },
         "additionalEncryptionContext":{
           "shape":"EncryptionContextMap",
           "documentation":"<p>Additional encryption context of the browser settings.</p>"
@@ -1833,13 +2195,9 @@
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request.</p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK. </p>",
           "idempotencyToken":true
         },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The custom managed key of the browser settings.</p>"
-        },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the browser settings resource. A tag is a key-value pair.</p>"
+        "webContentFilteringPolicy":{
+          "shape":"WebContentFilteringPolicy",
+          "documentation":"<p>The policy that specifies which URLs end users are allowed to access or which URLs or domain categories they are restricted from accessing for enhanced security.</p>"
         }
       }
     },
@@ -1856,34 +2214,34 @@
     "CreateDataProtectionSettingsRequest":{
       "type":"structure",
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>Additional encryption context of the data protection settings.</p>"
-        },
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The custom managed key of the data protection settings.</p>"
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The display name of the data protection settings.</p>"
         },
         "description":{
           "shape":"DescriptionSafe",
           "documentation":"<p>The description of the data protection settings.</p>"
         },
-        "displayName":{
-          "shape":"DisplayNameSafe",
-          "documentation":"<p>The display name of the data protection settings.</p>"
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the data protection settings resource. A tag is a key-value pair.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The custom managed key of the data protection settings.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>Additional encryption context of the data protection settings.</p>"
         },
         "inlineRedactionConfiguration":{
           "shape":"InlineRedactionConfiguration",
           "documentation":"<p>The inline redaction configuration of the data protection settings that will be applied to all sessions.</p>"
         },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the data protection settings resource. A tag is a key-value pair.</p>"
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -1900,20 +2258,15 @@
     "CreateIdentityProviderRequest":{
       "type":"structure",
       "required":[
-        "identityProviderDetails",
+        "portalArn",
         "identityProviderName",
         "identityProviderType",
-        "portalArn"
+        "identityProviderDetails"
       ],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request.</p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "identityProviderDetails":{
-          "shape":"IdentityProviderDetails",
-          "documentation":"<p>The identity provider details. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
+        "portalArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the web portal.</p>"
         },
         "identityProviderName":{
           "shape":"IdentityProviderName",
@@ -1923,9 +2276,14 @@
           "shape":"IdentityProviderType",
           "documentation":"<p>The identity provider type.</p>"
         },
-        "portalArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the web portal.</p>"
+        "identityProviderDetails":{
+          "shape":"IdentityProviderDetails",
+          "documentation":"<p>The identity provider details. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request.</p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         },
         "tags":{
           "shape":"TagList",
@@ -1947,34 +2305,34 @@
       "type":"structure",
       "required":["ipRules"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>Additional encryption context of the IP access settings.</p>"
-        },
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The custom managed key of the IP access settings.</p>"
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The display name of the IP access settings.</p>"
         },
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the IP access settings.</p>"
         },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p>The display name of the IP access settings.</p>"
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the IP access settings resource. A tag is a key-value pair.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The custom managed key of the IP access settings.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>Additional encryption context of the IP access settings.</p>"
         },
         "ipRules":{
           "shape":"IpRuleList",
           "documentation":"<p>The IP rules of the IP access settings.</p>"
         },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the IP access settings resource. A tag is a key-value pair.</p>"
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -1991,31 +2349,31 @@
     "CreateNetworkSettingsRequest":{
       "type":"structure",
       "required":[
-        "securityGroupIds",
+        "vpcId",
         "subnetIds",
-        "vpcId"
+        "securityGroupIds"
       ],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "securityGroupIds":{
-          "shape":"SecurityGroupIdList",
-          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC.</p>"
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
         },
         "subnetIds":{
           "shape":"SubnetIdList",
           "documentation":"<p>The subnets in which network interfaces are created to connect streaming instances to your VPC. At least two of these subnets must be in different availability zones.</p>"
         },
+        "securityGroupIds":{
+          "shape":"SecurityGroupIdList",
+          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC.</p>"
+        },
         "tags":{
           "shape":"TagList",
           "documentation":"<p>The tags to add to the network settings resource. A tag is a key-value pair.</p>"
         },
-        "vpcId":{
-          "shape":"VpcId",
-          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -2032,26 +2390,30 @@
     "CreatePortalRequest":{
       "type":"structure",
       "members":{
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The name of the web portal. This is not visible to users who log into the web portal.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the web portal. A tag is a key-value pair.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The customer managed key of the web portal.</p>"
+        },
         "additionalEncryptionContext":{
           "shape":"EncryptionContextMap",
           "documentation":"<p>The additional encryption context of the portal.</p>"
-        },
-        "authenticationType":{
-          "shape":"AuthenticationType",
-          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
           "idempotencyToken":true
         },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The customer managed key of the web portal.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p>The name of the web portal. This is not visible to users who log into the web portal.</p>"
+        "authenticationType":{
+          "shape":"AuthenticationType",
+          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
         },
         "instanceType":{
           "shape":"InstanceType",
@@ -2060,10 +2422,6 @@
         "maxConcurrentSessions":{
           "shape":"MaxConcurrentSessions",
           "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
-        },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the web portal. A tag is a key-value pair.</p>"
         }
       }
     },
@@ -2084,6 +2442,54 @@
         }
       }
     },
+    "CreateSessionLoggerRequest":{
+      "type":"structure",
+      "required":[
+        "eventFilter",
+        "logConfiguration"
+      ],
+      "members":{
+        "eventFilter":{
+          "shape":"EventFilter",
+          "documentation":"<p>The filter that specifies the events to monitor.</p>"
+        },
+        "logConfiguration":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The configuration that specifies where logs are delivered.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The human-readable display name for the session logger resource.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The custom managed key of the session logger.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the session logger.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the session logger.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. If you do not specify a client token, one is automatically generated by the AWS SDK.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateSessionLoggerResponse":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
+      "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger.</p>"
+        }
+      }
+    },
     "CreateTrustStoreRequest":{
       "type":"structure",
       "required":["certificateList"],
@@ -2092,14 +2498,14 @@
           "shape":"CertificateList",
           "documentation":"<p>A list of CA certificates to be added to the trust store.</p>"
         },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the trust store. A tag is a key-value pair.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
           "idempotencyToken":true
-        },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the trust store. A tag is a key-value pair.</p>"
         }
       }
     },
@@ -2117,11 +2523,6 @@
       "type":"structure",
       "required":["kinesisStreamArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
         "kinesisStreamArn":{
           "shape":"KinesisStreamArn",
           "documentation":"<p>The ARN of the Kinesis stream.</p>"
@@ -2129,6 +2530,11 @@
         "tags":{
           "shape":"TagList",
           "documentation":"<p>The tags to add to the user settings resource. A tag is a key-value pair.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -2146,15 +2552,43 @@
       "type":"structure",
       "required":[
         "copyAllowed",
-        "downloadAllowed",
         "pasteAllowed",
-        "printAllowed",
-        "uploadAllowed"
+        "downloadAllowed",
+        "uploadAllowed",
+        "printAllowed"
       ],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the user settings.</p>"
+        "copyAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
+        },
+        "pasteAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
+        },
+        "downloadAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
+        },
+        "uploadAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
+        },
+        "printAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to add to the user settings resource. A tag is a key-value pair.</p>"
+        },
+        "disconnectTimeoutInMinutes":{
+          "shape":"DisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+        },
+        "idleDisconnectTimeoutInMinutes":{
+          "shape":"IdleDisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -2165,45 +2599,29 @@
           "shape":"CookieSynchronizationConfiguration",
           "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p>"
         },
-        "copyAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
-        },
         "customerManagedKey":{
           "shape":"keyArn",
           "documentation":"<p>The customer managed key used to encrypt sensitive information in the user settings.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the user settings.</p>"
         },
         "deepLinkAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
         },
-        "disconnectTimeoutInMinutes":{
-          "shape":"DisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+        "toolbarConfiguration":{
+          "shape":"ToolbarConfiguration",
+          "documentation":"<p>The configuration of the toolbar. This allows administrators to select the toolbar type and visual mode, set maximum display resolution for sessions, and choose which items are visible to end users during their sessions. If administrators do not modify these settings, end users retain control over their toolbar preferences.</p>"
         },
-        "downloadAllowed":{
+        "brandingConfigurationInput":{
+          "shape":"BrandingConfigurationCreateInput",
+          "documentation":"<p>The branding configuration input that customizes the appearance of the web portal for end users. This includes a custom logo, favicon, wallpaper, localized strings, color theme, and an optional terms of service.</p>"
+        },
+        "webAuthnAllowed":{
           "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
-        },
-        "idleDisconnectTimeoutInMinutes":{
-          "shape":"IdleDisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
-        },
-        "pasteAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
-        },
-        "printAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
-        },
-        "tags":{
-          "shape":"TagList",
-          "documentation":"<p>The tags to add to the user settings resource. A tag is a key-value pair.</p>"
-        },
-        "uploadAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
+          "documentation":"<p>Specifies whether the user can use WebAuthn redirection for passwordless login to websites within the streaming session.</p>"
         }
       }
     },
@@ -2224,14 +2642,6 @@
         "patternRegex"
       ],
       "members":{
-        "keywordRegex":{
-          "shape":"Regex",
-          "documentation":"<p>The keyword regex for the customer pattern. After there is a match to the pattern regex, the keyword regex is used to search within the proximity of the match. If there is a keyword match, then the match is confirmed. If no keyword regex is provided, the pattern regex match will automatically be confirmed. The format must follow JavaScript regex format. The pattern must be enclosed between slashes, and can have flags behind the second slash. For example, “/ab+c/gi”</p>"
-        },
-        "patternDescription":{
-          "shape":"DescriptionSafe",
-          "documentation":"<p>The pattern description for the customer pattern.</p>"
-        },
         "patternName":{
           "shape":"PatternName",
           "documentation":"<p>The pattern name for the custom pattern.</p>"
@@ -2239,6 +2649,14 @@
         "patternRegex":{
           "shape":"Regex",
           "documentation":"<p>The pattern regex for the customer pattern. The format must follow JavaScript regex format. The pattern must be enclosed between slashes, and can have flags behind the second slash. For example: “/ab+c/gi”.</p>"
+        },
+        "patternDescription":{
+          "shape":"DescriptionSafe",
+          "documentation":"<p>The pattern description for the customer pattern.</p>"
+        },
+        "keywordRegex":{
+          "shape":"Regex",
+          "documentation":"<p>The keyword regex for the customer pattern. After there is a match to the pattern regex, the keyword regex is used to search within the proximity of the match. If there is a keyword match, then the match is confirmed. If no keyword regex is provided, the pattern regex match will automatically be confirmed. The format must follow JavaScript regex format. The pattern must be enclosed between slashes, and can have flags behind the second slash. For example, “/ab+c/gi”</p>"
         }
       },
       "documentation":"<p>The pattern configuration for redacting custom data types in session.</p>"
@@ -2247,13 +2665,25 @@
       "type":"structure",
       "required":["dataProtectionSettingsArn"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the data protection settings.</p>"
+        "dataProtectionSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the data protection settings resource.</p>"
+        },
+        "inlineRedactionConfiguration":{
+          "shape":"InlineRedactionConfiguration",
+          "documentation":"<p>The inline redaction configuration for the data protection settings.</p>"
         },
         "associatedPortalArns":{
           "shape":"ArnList",
           "documentation":"<p>A list of web portal ARNs that this data protection settings resource is associated with.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The display name of the data protection settings.</p>"
+        },
+        "description":{
+          "shape":"DescriptionSafe",
+          "documentation":"<p>The description of the data protection settings.</p>"
         },
         "creationDate":{
           "shape":"Timestamp",
@@ -2263,21 +2693,9 @@
           "shape":"keyArn",
           "documentation":"<p>The customer managed key used to encrypt sensitive information in the data protection settings.</p>"
         },
-        "dataProtectionSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the data protection settings resource.</p>"
-        },
-        "description":{
-          "shape":"DescriptionSafe",
-          "documentation":"<p>The description of the data protection settings.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayNameSafe",
-          "documentation":"<p>The display name of the data protection settings.</p>"
-        },
-        "inlineRedactionConfiguration":{
-          "shape":"InlineRedactionConfiguration",
-          "documentation":"<p>The inline redaction configuration for the data protection settings.</p>"
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the data protection settings.</p>"
         }
       },
       "documentation":"<p>The data protection settings resource that can be associated with a web portal.</p>"
@@ -2290,21 +2708,21 @@
       "type":"structure",
       "required":["dataProtectionSettingsArn"],
       "members":{
-        "creationDate":{
-          "shape":"Timestamp",
-          "documentation":"<p>The creation date timestamp of the data protection settings.</p>"
-        },
         "dataProtectionSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the data protection settings.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The display name of the data protection settings.</p>"
         },
         "description":{
           "shape":"DescriptionSafe",
           "documentation":"<p>The description of the data protection settings.</p>"
         },
-        "displayName":{
-          "shape":"DisplayNameSafe",
-          "documentation":"<p>The display name of the data protection settings.</p>"
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation date timestamp of the data protection settings.</p>"
         }
       },
       "documentation":"<p>The summary of the data protection settings.</p>"
@@ -2323,8 +2741,7 @@
     },
     "DeleteBrowserSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDataProtectionSettingsRequest":{
       "type":"structure",
@@ -2340,8 +2757,7 @@
     },
     "DeleteDataProtectionSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteIdentityProviderRequest":{
       "type":"structure",
@@ -2357,8 +2773,7 @@
     },
     "DeleteIdentityProviderResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteIpAccessSettingsRequest":{
       "type":"structure",
@@ -2374,8 +2789,7 @@
     },
     "DeleteIpAccessSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteNetworkSettingsRequest":{
       "type":"structure",
@@ -2391,8 +2805,7 @@
     },
     "DeleteNetworkSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePortalRequest":{
       "type":"structure",
@@ -2408,8 +2821,23 @@
     },
     "DeletePortalResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "DeleteSessionLoggerRequest":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
       "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger.</p>",
+          "location":"uri",
+          "locationName":"sessionLoggerArn"
+        }
       }
+    },
+    "DeleteSessionLoggerResponse":{
+      "type":"structure",
+      "members":{}
     },
     "DeleteTrustStoreRequest":{
       "type":"structure",
@@ -2425,8 +2853,7 @@
     },
     "DeleteTrustStoreResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteUserAccessLoggingSettingsRequest":{
       "type":"structure",
@@ -2442,8 +2869,7 @@
     },
     "DeleteUserAccessLoggingSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteUserSettingsRequest":{
       "type":"structure",
@@ -2459,21 +2885,20 @@
     },
     "DeleteUserSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Description":{
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"^.+$",
+      "pattern":".+",
       "sensitive":true
     },
     "DescriptionSafe":{
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"^[ _\\-\\d\\w]+$",
+      "pattern":"[ _\\-\\d\\w]+",
       "sensitive":true
     },
     "DisassociateBrowserSettingsRequest":{
@@ -2490,8 +2915,7 @@
     },
     "DisassociateBrowserSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisassociateDataProtectionSettingsRequest":{
       "type":"structure",
@@ -2507,8 +2931,7 @@
     },
     "DisassociateDataProtectionSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisassociateIpAccessSettingsRequest":{
       "type":"structure",
@@ -2524,8 +2947,7 @@
     },
     "DisassociateIpAccessSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisassociateNetworkSettingsRequest":{
       "type":"structure",
@@ -2541,8 +2963,23 @@
     },
     "DisassociateNetworkSettingsResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "DisassociateSessionLoggerRequest":{
+      "type":"structure",
+      "required":["portalArn"],
       "members":{
+        "portalArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the portal to disassociate from the a session logger.</p>",
+          "location":"uri",
+          "locationName":"portalArn"
+        }
       }
+    },
+    "DisassociateSessionLoggerResponse":{
+      "type":"structure",
+      "members":{}
     },
     "DisassociateTrustStoreRequest":{
       "type":"structure",
@@ -2558,8 +2995,7 @@
     },
     "DisassociateTrustStoreResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisassociateUserAccessLoggingSettingsRequest":{
       "type":"structure",
@@ -2575,8 +3011,7 @@
     },
     "DisassociateUserAccessLoggingSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisassociateUserSettingsRequest":{
       "type":"structure",
@@ -2592,8 +3027,7 @@
     },
     "DisassociateUserSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisconnectTimeoutInMinutes":{
       "type":"integer",
@@ -2605,14 +3039,14 @@
       "type":"string",
       "max":64,
       "min":1,
-      "pattern":"^.+$",
+      "pattern":".+",
       "sensitive":true
     },
     "DisplayNameSafe":{
       "type":"string",
       "max":64,
       "min":1,
-      "pattern":"^[ _\\-\\d\\w]+$",
+      "pattern":"[ _\\-\\d\\w]+",
       "sensitive":true
     },
     "EnabledType":{
@@ -2626,6 +3060,49 @@
       "type":"map",
       "key":{"shape":"StringType"},
       "value":{"shape":"StringType"}
+    },
+    "Event":{
+      "type":"string",
+      "enum":[
+        "WebsiteInteract",
+        "FileDownloadFromSecureBrowserToRemoteDisk",
+        "FileTransferFromRemoteToLocalDisk",
+        "FileTransferFromLocalToRemoteDisk",
+        "FileUploadFromRemoteDiskToSecureBrowser",
+        "ContentPasteToWebsite",
+        "ContentTransferFromLocalToRemoteClipboard",
+        "ContentCopyFromWebsite",
+        "UrlLoad",
+        "TabOpen",
+        "TabClose",
+        "PrintJobSubmit",
+        "SessionConnect",
+        "SessionStart",
+        "SessionDisconnect",
+        "SessionEnd",
+        "UrlBlockByContentFilter"
+      ]
+    },
+    "EventFilter":{
+      "type":"structure",
+      "members":{
+        "all":{
+          "shape":"Unit",
+          "documentation":"<p>The filter that monitors all of the available events, including any new events emitted in the future.</p>"
+        },
+        "include":{
+          "shape":"Events",
+          "documentation":"<p>The filter that monitors only the listed set of events. New events are not auto-monitored.</p>"
+        }
+      },
+      "documentation":"<p>The filter that specifies the events to monitor.</p>",
+      "union":true
+    },
+    "Events":{
+      "type":"list",
+      "member":{"shape":"Event"},
+      "max":100,
+      "min":1
     },
     "ExceptionMessage":{"type":"string"},
     "ExpireSessionRequest":{
@@ -2651,10 +3128,16 @@
     },
     "ExpireSessionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "FieldName":{"type":"string"},
+    "FolderStructure":{
+      "type":"string",
+      "enum":[
+        "Flat",
+        "NestedByDate"
+      ]
+    },
     "GetBrowserSettingsRequest":{
       "type":"structure",
       "required":["browserSettingsArn"],
@@ -2807,6 +3290,27 @@
         }
       }
     },
+    "GetSessionLoggerRequest":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
+      "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger.</p>",
+          "location":"uri",
+          "locationName":"sessionLoggerArn"
+        }
+      }
+    },
+    "GetSessionLoggerResponse":{
+      "type":"structure",
+      "members":{
+        "sessionLogger":{
+          "shape":"SessionLogger",
+          "documentation":"<p>The session logger details.</p>"
+        }
+      }
+    },
     "GetSessionRequest":{
       "type":"structure",
       "required":[
@@ -2840,21 +3344,21 @@
     "GetTrustStoreCertificateRequest":{
       "type":"structure",
       "required":[
-        "thumbprint",
-        "trustStoreArn"
+        "trustStoreArn",
+        "thumbprint"
       ],
       "members":{
-        "thumbprint":{
-          "shape":"CertificateThumbprint",
-          "documentation":"<p>The thumbprint of the trust store certificate.</p>",
-          "location":"querystring",
-          "locationName":"thumbprint"
-        },
         "trustStoreArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the trust store certificate.</p>",
           "location":"uri",
           "locationName":"trustStoreArn"
+        },
+        "thumbprint":{
+          "shape":"CertificateThumbprint",
+          "documentation":"<p>The thumbprint of the trust store certificate.</p>",
+          "location":"querystring",
+          "locationName":"thumbprint"
         }
       }
     },
@@ -2862,13 +3366,13 @@
       "type":"structure",
       "required":["trustStoreArn"],
       "members":{
-        "certificate":{
-          "shape":"Certificate",
-          "documentation":"<p>The certificate of the trust store certificate.</p>"
-        },
         "trustStoreArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the trust store certificate.</p>"
+        },
+        "certificate":{
+          "shape":"Certificate",
+          "documentation":"<p>The certificate of the trust store certificate.</p>"
         }
       }
     },
@@ -2941,6 +3445,30 @@
       "max":100,
       "min":1
     },
+    "HiddenToolbarItemList":{
+      "type":"list",
+      "member":{"shape":"ToolbarItem"}
+    },
+    "IconImage":{
+      "type":"blob",
+      "max":102400,
+      "min":0
+    },
+    "IconImageInput":{
+      "type":"structure",
+      "members":{
+        "blob":{
+          "shape":"IconImage",
+          "documentation":"<p>The image provided as a binary image file.</p>"
+        },
+        "s3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>The S3 URI pointing to the image file. The URI must use the format <code>s3://bucket-name/key-name</code>. You must have read access to the S3 object.</p>"
+        }
+      },
+      "documentation":"<p>The input for an icon image (logo or favicon). Provide either a binary image file or an S3 URI pointing to the image file. Maximum 100 KB in JPEG, PNG, or ICO format.</p>",
+      "union":true
+    },
     "IdentityProvider":{
       "type":"structure",
       "required":["identityProviderArn"],
@@ -2949,10 +3477,6 @@
           "shape":"SubresourceARN",
           "documentation":"<p>The ARN of the identity provider.</p>"
         },
-        "identityProviderDetails":{
-          "shape":"IdentityProviderDetails",
-          "documentation":"<p>The identity provider details. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
-        },
         "identityProviderName":{
           "shape":"IdentityProviderName",
           "documentation":"<p>The identity provider name.</p>"
@@ -2960,6 +3484,10 @@
         "identityProviderType":{
           "shape":"IdentityProviderType",
           "documentation":"<p>The identity provider type.</p>"
+        },
+        "identityProviderDetails":{
+          "shape":"IdentityProviderDetails",
+          "documentation":"<p>The identity provider details. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by oidc_issuer key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
         }
       },
       "documentation":"<p>The identity provider.</p>"
@@ -2978,7 +3506,7 @@
       "type":"string",
       "max":32,
       "min":1,
-      "pattern":"^[^_][\\p{L}\\p{M}\\p{S}\\p{N}\\p{P}][^_]+$",
+      "pattern":"[^_][\\p{L}\\p{M}\\p{S}\\p{N}\\p{P}][^_]+",
       "sensitive":true
     },
     "IdentityProviderSummary":{
@@ -3017,13 +3545,36 @@
       "max":60,
       "min":0
     },
+    "ImageMetadata":{
+      "type":"structure",
+      "required":[
+        "mimeType",
+        "fileExtension",
+        "lastUploadTimestamp"
+      ],
+      "members":{
+        "mimeType":{
+          "shape":"MimeType",
+          "documentation":"<p>The MIME type of the image.</p>"
+        },
+        "fileExtension":{
+          "shape":"StringType",
+          "documentation":"<p>The file extension of the image.</p>"
+        },
+        "lastUploadTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the image was last uploaded.</p>"
+        }
+      },
+      "documentation":"<p>Metadata information about an uploaded image file.</p>"
+    },
     "InlineRedactionConfiguration":{
       "type":"structure",
       "required":["inlineRedactionPatterns"],
       "members":{
-        "globalConfidenceLevel":{
-          "shape":"ConfidenceLevel",
-          "documentation":"<p>The global confidence level for the inline redaction configuration. This indicates the certainty of data type matches in the redaction process. Confidence level 3 means high confidence, and requires a formatted text pattern match in order for content to be redacted. Confidence level 2 means medium confidence, and redaction considers both formatted and unformatted text, and adds keyword associate to the logic. Confidence level 1 means low confidence, and redaction is enforced for both formatted pattern + unformatted pattern without keyword. This is applied to patterns that do not have a pattern-level confidence level. Defaults to confidence level 2.</p>"
+        "inlineRedactionPatterns":{
+          "shape":"InlineRedactionPatterns",
+          "documentation":"<p>The inline redaction patterns to be enabled for the inline redaction configuration.</p>"
         },
         "globalEnforcedUrls":{
           "shape":"GlobalInlineRedactionUrls",
@@ -3033,9 +3584,9 @@
           "shape":"GlobalInlineRedactionUrls",
           "documentation":"<p>The global exempt URL configuration for the inline redaction configuration. This is applied to patterns that do not have a pattern-level exempt URL list.</p>"
         },
-        "inlineRedactionPatterns":{
-          "shape":"InlineRedactionPatterns",
-          "documentation":"<p>The inline redaction patterns to be enabled for the inline redaction configuration.</p>"
+        "globalConfidenceLevel":{
+          "shape":"ConfidenceLevel",
+          "documentation":"<p>The global confidence level for the inline redaction configuration. This indicates the certainty of data type matches in the redaction process. Confidence level 3 means high confidence, and requires a formatted text pattern match in order for content to be redacted. Confidence level 2 means medium confidence, and redaction considers both formatted and unformatted text, and adds keyword associate to the logic. Confidence level 1 means low confidence, and redaction is enforced for both formatted pattern + unformatted pattern without keyword. This is applied to patterns that do not have a pattern-level confidence level. Defaults to confidence level 2.</p>"
         }
       },
       "documentation":"<p>The configuration for in-session inline redaction.</p>"
@@ -3048,13 +3599,13 @@
           "shape":"BuiltInPatternId",
           "documentation":"<p>The built-in pattern from the list of preconfigured patterns. Either a customPattern or builtInPatternId is required.</p>"
         },
-        "confidenceLevel":{
-          "shape":"ConfidenceLevel",
-          "documentation":"<p>The confidence level for inline redaction pattern. This indicates the certainty of data type matches in the redaction process. Confidence level 3 means high confidence, and requires a formatted text pattern match in order for content to be redacted. Confidence level 2 means medium confidence, and redaction considers both formatted and unformatted text, and adds keyword associate to the logic. Confidence level 1 means low confidence, and redaction is enforced for both formatted pattern + unformatted pattern without keyword. This overrides the global confidence level.</p>"
-        },
         "customPattern":{
           "shape":"CustomPattern",
           "documentation":"<p>&gt;The configuration for a custom pattern. Either a customPattern or builtInPatternId is required.</p>"
+        },
+        "redactionPlaceHolder":{
+          "shape":"RedactionPlaceHolder",
+          "documentation":"<p>The redaction placeholder that will replace the redacted text in session for the inline redaction pattern.</p>"
         },
         "enforcedUrls":{
           "shape":"InlineRedactionUrls",
@@ -3064,9 +3615,9 @@
           "shape":"InlineRedactionUrls",
           "documentation":"<p>The exempt URL configuration for the inline redaction pattern. This will override the global exempt URL configuration for the inline redaction pattern.</p>"
         },
-        "redactionPlaceHolder":{
-          "shape":"RedactionPlaceHolder",
-          "documentation":"<p>The redaction placeholder that will replace the redacted text in session for the inline redaction pattern.</p>"
+        "confidenceLevel":{
+          "shape":"ConfidenceLevel",
+          "documentation":"<p>The confidence level for inline redaction pattern. This indicates the certainty of data type matches in the redaction process. Confidence level 3 means high confidence, and requires a formatted text pattern match in order for content to be redacted. Confidence level 2 means medium confidence, and redaction considers both formatted and unformatted text, and adds keyword associate to the logic. Confidence level 1 means low confidence, and redaction is enforced for both formatted pattern + unformatted pattern without keyword. This overrides the global confidence level.</p>"
         }
       },
       "documentation":"<p>The set of patterns that determine the data types redacted in session.</p>"
@@ -3079,7 +3630,7 @@
     },
     "InlineRedactionUrl":{
       "type":"string",
-      "pattern":"^((([a-zA-Z][a-zA-Z0-9+.-]*):\\/\\/(\\*|[\\w%._\\-\\+~#=@]+)?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?)|(\\*|[\\w%._\\-\\+~#=@]+\\.[\\w%._\\-\\+~#=@]+)(?::(\\d{1,5}))?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?|(([a-zA-Z][a-zA-Z0-9+.-]*):(\\/\\/)?\\*))$",
+      "pattern":"((([a-zA-Z][a-zA-Z0-9+.-]*):\\/\\/(\\*|[\\w%._\\-\\+~#=@]+)?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?)|(\\*|[\\w%._\\-\\+~#=@]+\\.[\\w%._\\-\\+~#=@]+)(?::(\\d{1,5}))?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?|(([a-zA-Z][a-zA-Z0-9+.-]*):(\\/\\/)?\\*))",
       "sensitive":true
     },
     "InlineRedactionUrls":{
@@ -3116,13 +3667,25 @@
       "type":"structure",
       "required":["ipAccessSettingsArn"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the IP access settings.</p>"
+        "ipAccessSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the IP access settings resource.</p>"
         },
         "associatedPortalArns":{
           "shape":"ArnList",
           "documentation":"<p>A list of web portal ARNs that this IP access settings resource is associated with.</p>"
+        },
+        "ipRules":{
+          "shape":"IpRuleList",
+          "documentation":"<p>The IP rules of the IP access settings.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p> The display name of the IP access settings.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the IP access settings.</p>"
         },
         "creationDate":{
           "shape":"Timestamp",
@@ -3132,21 +3695,9 @@
           "shape":"keyArn",
           "documentation":"<p>The customer managed key used to encrypt sensitive information in the IP access settings.</p>"
         },
-        "description":{
-          "shape":"Description",
-          "documentation":"<p>The description of the IP access settings.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p> The display name of the IP access settings.</p>"
-        },
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the IP access settings resource.</p>"
-        },
-        "ipRules":{
-          "shape":"IpRuleList",
-          "documentation":"<p>The IP rules of the IP access settings.</p>"
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the IP access settings.</p>"
         }
       },
       "documentation":"<p>The IP access settings resource that can be associated with a web portal. </p>"
@@ -3159,21 +3710,21 @@
       "type":"structure",
       "required":["ipAccessSettingsArn"],
       "members":{
-        "creationDate":{
-          "shape":"Timestamp",
-          "documentation":"<p>The creation date timestamp of the IP access settings.</p>"
-        },
-        "description":{
-          "shape":"Description",
-          "documentation":"<p>The description of the IP access settings.</p>"
+        "ipAccessSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of IP access settings.</p>"
         },
         "displayName":{
           "shape":"DisplayName",
           "documentation":"<p>The display name of the IP access settings.</p>"
         },
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of IP access settings.</p>"
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the IP access settings.</p>"
+        },
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation date timestamp of the IP access settings.</p>"
         }
       },
       "documentation":"<p>The summary of IP access settings.</p>"
@@ -3182,7 +3733,7 @@
       "type":"string",
       "max":15,
       "min":1,
-      "pattern":"^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))$|^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$",
+      "pattern":"((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))$|^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))",
       "sensitive":true
     },
     "IpAddressList":{
@@ -3194,20 +3745,20 @@
     "IpRange":{
       "type":"string",
       "documentation":"<p>A single IP address or an IP address range in CIDR notation</p>",
-      "pattern":"^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(?:/([0-9]|[12][0-9]|3[0-2])|)$",
+      "pattern":"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(?:/([0-9]|[12][0-9]|3[0-2])|)",
       "sensitive":true
     },
     "IpRule":{
       "type":"structure",
       "required":["ipRange"],
       "members":{
-        "description":{
-          "shape":"Description",
-          "documentation":"<p>The description of the IP rule.</p>"
-        },
         "ipRange":{
           "shape":"IpRange",
           "documentation":"<p>The IP range of the IP rule.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the IP rule.</p>"
         }
       },
       "documentation":"<p>The IP rules of the IP access settings.</p>"
@@ -3229,17 +3780,17 @@
     "ListBrowserSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
@@ -3259,17 +3810,17 @@
     "ListDataProtectionSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
@@ -3290,17 +3841,17 @@
       "type":"structure",
       "required":["portalArn"],
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         },
         "portalArn":{
           "shape":"ARN",
@@ -3313,30 +3864,30 @@
     "ListIdentityProvidersResponse":{
       "type":"structure",
       "members":{
-        "identityProviders":{
-          "shape":"IdentityProviderList",
-          "documentation":"<p>The identity providers.</p>"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
+        },
+        "identityProviders":{
+          "shape":"IdentityProviderList",
+          "documentation":"<p>The identity providers.</p>"
         }
       }
     },
     "ListIpAccessSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
@@ -3356,17 +3907,17 @@
     "ListNetworkSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
@@ -3386,30 +3937,60 @@
     "ListPortalsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
     "ListPortalsResponse":{
       "type":"structure",
       "members":{
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>"
-        },
         "portals":{
           "shape":"PortalList",
           "documentation":"<p>The portals in the list.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>"
+        }
+      }
+    },
+    "ListSessionLoggersRequest":{
+      "type":"structure",
+      "members":{
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListSessionLoggersResponse":{
+      "type":"structure",
+      "members":{
+        "sessionLoggers":{
+          "shape":"SessionLoggerList",
+          "documentation":"<p>The list of session loggers, including summaries of their details.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
         }
       }
     },
@@ -3417,23 +3998,17 @@
       "type":"structure",
       "required":["portalId"],
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
-          "location":"querystring",
-          "locationName":"nextToken"
-        },
         "portalId":{
           "shape":"PortalId",
           "documentation":"<p>The ID of the web portal for the sessions.</p>",
           "location":"uri",
           "locationName":"portalId"
+        },
+        "username":{
+          "shape":"Username",
+          "documentation":"<p>The username of the session.</p>",
+          "location":"querystring",
+          "locationName":"username"
         },
         "sessionId":{
           "shape":"SessionId",
@@ -3453,11 +4028,17 @@
           "location":"querystring",
           "locationName":"status"
         },
-        "username":{
-          "shape":"Username",
-          "documentation":"<p>The username of the session.</p>",
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
           "location":"querystring",
-          "locationName":"username"
+          "locationName":"maxResults"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
         }
       }
     },
@@ -3465,13 +4046,13 @@
       "type":"structure",
       "required":["sessions"],
       "members":{
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
-        },
         "sessions":{
           "shape":"SessionSummaryList",
           "documentation":"<p>The sessions in a list.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
         }
       }
     },
@@ -3500,11 +4081,11 @@
       "type":"structure",
       "required":["trustStoreArn"],
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
+        "trustStoreArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the trust store</p>",
+          "location":"uri",
+          "locationName":"trustStoreArn"
         },
         "nextToken":{
           "shape":"PaginationToken",
@@ -3512,11 +4093,11 @@
           "location":"querystring",
           "locationName":"nextToken"
         },
-        "trustStoreArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the trust store</p>",
-          "location":"uri",
-          "locationName":"trustStoreArn"
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
@@ -3528,105 +4109,233 @@
           "shape":"CertificateSummaryList",
           "documentation":"<p>The certificate list.</p>"
         },
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.&gt;</p>"
-        },
         "trustStoreArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the trust store.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.&gt;</p>"
         }
       }
     },
     "ListTrustStoresRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
     "ListTrustStoresResponse":{
       "type":"structure",
       "members":{
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
-        },
         "trustStores":{
           "shape":"TrustStoreSummaryList",
           "documentation":"<p>The trust stores.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
         }
       }
     },
     "ListUserAccessLoggingSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
     "ListUserAccessLoggingSettingsResponse":{
       "type":"structure",
       "members":{
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
-        },
         "userAccessLoggingSettings":{
           "shape":"UserAccessLoggingSettingsList",
           "documentation":"<p>The user access logging settings.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation.</p>"
         }
       }
     },
     "ListUserSettingsRequest":{
       "type":"structure",
       "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
-          "location":"querystring",
-          "locationName":"maxResults"
-        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be included in the next page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         }
       }
     },
     "ListUserSettingsResponse":{
       "type":"structure",
       "members":{
-        "nextToken":{
-          "shape":"PaginationToken",
-          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>"
-        },
         "userSettings":{
           "shape":"UserSettingsList",
           "documentation":"<p>The user settings.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token used to retrieve the next page of results for this operation. </p>"
         }
       }
+    },
+    "Locale":{
+      "type":"string",
+      "enum":[
+        "de-DE",
+        "en-US",
+        "es-ES",
+        "fr-FR",
+        "id-ID",
+        "it-IT",
+        "ja-JP",
+        "ko-KR",
+        "pt-BR",
+        "zh-CN",
+        "zh-TW"
+      ]
+    },
+    "LocalizedBrandingStringMap":{
+      "type":"map",
+      "key":{"shape":"Locale"},
+      "value":{"shape":"LocalizedBrandingStrings"}
+    },
+    "LocalizedBrandingStrings":{
+      "type":"structure",
+      "required":[
+        "browserTabTitle",
+        "welcomeText"
+      ],
+      "members":{
+        "browserTabTitle":{
+          "shape":"LocalizedBrandingStringsBrowserTabTitleString",
+          "documentation":"<p>The text displayed in the browser tab title.</p>"
+        },
+        "welcomeText":{
+          "shape":"LocalizedBrandingStringsWelcomeTextString",
+          "documentation":"<p>The welcome text displayed on the sign-in page.</p>"
+        },
+        "loginTitle":{
+          "shape":"LocalizedBrandingStringsLoginTitleString",
+          "documentation":"<p>The title text for the login section. This field is optional and defaults to \"Sign In\".</p>"
+        },
+        "loginDescription":{
+          "shape":"LocalizedBrandingStringsLoginDescriptionString",
+          "documentation":"<p>The description text for the login section. This field is optional and defaults to \"Sign in to your session\".</p>"
+        },
+        "loginButtonText":{
+          "shape":"LocalizedBrandingStringsLoginButtonTextString",
+          "documentation":"<p>The text displayed on the login button. This field is optional and defaults to \"Sign In\".</p>"
+        },
+        "contactLink":{
+          "shape":"ContactLinkUrl",
+          "documentation":"<p>A contact link URL. The URL must start with <code>https://</code> or <code>mailto:</code>. If not provided, the contact button will be hidden from the web portal screen.</p>"
+        },
+        "contactButtonText":{
+          "shape":"LocalizedBrandingStringsContactButtonTextString",
+          "documentation":"<p>The text displayed on the contact button. This field is optional and defaults to \"Contact us\".</p>"
+        },
+        "loadingText":{
+          "shape":"LocalizedBrandingStringsLoadingTextString",
+          "documentation":"<p>The text displayed during session loading. This field is optional and defaults to \"Loading your session\".</p>"
+        }
+      },
+      "documentation":"<p>Localized text strings for a specific language that customize the web portal.</p>"
+    },
+    "LocalizedBrandingStringsBrowserTabTitleString":{
+      "type":"string",
+      "max":25,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsContactButtonTextString":{
+      "type":"string",
+      "max":30,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsLoadingTextString":{
+      "type":"string",
+      "max":300,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsLoginButtonTextString":{
+      "type":"string",
+      "max":30,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsLoginDescriptionString":{
+      "type":"string",
+      "max":250,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsLoginTitleString":{
+      "type":"string",
+      "max":100,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LocalizedBrandingStringsWelcomeTextString":{
+      "type":"string",
+      "max":150,
+      "min":0,
+      "pattern":"[^<>&'`~\\\\]*"
+    },
+    "LogConfiguration":{
+      "type":"structure",
+      "members":{
+        "s3":{
+          "shape":"S3LogConfiguration",
+          "documentation":"<p>The configuration for delivering the logs to S3.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the log.</p>"
+    },
+    "LogFileFormat":{
+      "type":"string",
+      "enum":[
+        "JSONLines",
+        "Json"
+      ]
+    },
+    "Markdown":{
+      "type":"string",
+      "max":153600,
+      "min":0,
+      "sensitive":true
     },
     "MaxConcurrentSessions":{
       "type":"integer",
@@ -3634,34 +4343,55 @@
       "max":5000,
       "min":1
     },
+    "MaxDisplayResolution":{
+      "type":"string",
+      "enum":[
+        "size4096X2160",
+        "size3840X2160",
+        "size3440X1440",
+        "size2560X1440",
+        "size1920X1080",
+        "size1280X720",
+        "size1024X768",
+        "size800X600"
+      ]
+    },
     "MaxResults":{
       "type":"integer",
       "box":true,
       "min":1
     },
+    "MimeType":{
+      "type":"string",
+      "enum":[
+        "image/png",
+        "image/jpeg",
+        "image/x-icon"
+      ]
+    },
     "NetworkSettings":{
       "type":"structure",
       "required":["networkSettingsArn"],
       "members":{
-        "associatedPortalArns":{
-          "shape":"ArnList",
-          "documentation":"<p>A list of web portal ARNs that this network settings is associated with.</p>"
-        },
         "networkSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the network settings.</p>"
         },
-        "securityGroupIds":{
-          "shape":"SecurityGroupIdList",
-          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC. </p>"
+        "associatedPortalArns":{
+          "shape":"ArnList",
+          "documentation":"<p>A list of web portal ARNs that this network settings is associated with.</p>"
+        },
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
         },
         "subnetIds":{
           "shape":"SubnetIdList",
           "documentation":"<p>The subnets in which network interfaces are created to connect streaming instances to your VPC. At least two of these subnets must be in different availability zones.</p>"
         },
-        "vpcId":{
-          "shape":"VpcId",
-          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
+        "securityGroupIds":{
+          "shape":"SecurityGroupIdList",
+          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC. </p>"
         }
       },
       "documentation":"<p>A network settings resource that can be associated with a web portal. Once associated with a web portal, network settings define how streaming instances will connect with your specified VPC. </p>"
@@ -3689,98 +4419,102 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^\\S+$"
+      "pattern":"\\S+"
     },
     "PatternName":{
       "type":"string",
       "max":20,
       "min":1,
-      "pattern":"^[_\\-\\d\\w]+$",
+      "pattern":"[_\\-\\d\\w]+",
       "sensitive":true
     },
     "Portal":{
       "type":"structure",
       "required":["portalArn"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the portal.</p>"
-        },
-        "authenticationType":{
-          "shape":"AuthenticationType",
-          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
-        },
-        "browserSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the browser settings that is associated with this web portal.</p>"
-        },
-        "browserType":{
-          "shape":"BrowserType",
-          "documentation":"<p>The browser that users see when using a streaming session.</p>"
-        },
-        "creationDate":{
-          "shape":"Timestamp",
-          "documentation":"<p>The creation date of the web portal.</p>"
-        },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The customer managed key used to encrypt sensitive information in the portal.</p>"
-        },
-        "dataProtectionSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the data protection settings.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p>The name of the web portal.</p>"
-        },
-        "instanceType":{
-          "shape":"InstanceType",
-          "documentation":"<p>The type and resources of the underlying instance.</p>"
-        },
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the IP access settings.</p>"
-        },
-        "maxConcurrentSessions":{
-          "shape":"MaxConcurrentSessions",
-          "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
-        },
-        "networkSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the network settings that is associated with the web portal.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
-        },
-        "portalEndpoint":{
-          "shape":"PortalEndpoint",
-          "documentation":"<p>The endpoint URL of the web portal that users access in order to start streaming sessions.</p>"
-        },
-        "portalStatus":{
-          "shape":"PortalStatus",
-          "documentation":"<p>The status of the web portal.</p>"
         },
         "rendererType":{
           "shape":"RendererType",
           "documentation":"<p>The renderer that is used in streaming sessions.</p>"
         },
-        "statusReason":{
-          "shape":"StatusReason",
-          "documentation":"<p>A message that explains why the web portal is in its current status.</p>"
+        "browserType":{
+          "shape":"BrowserType",
+          "documentation":"<p>The browser that users see when using a streaming session.</p>"
+        },
+        "portalStatus":{
+          "shape":"PortalStatus",
+          "documentation":"<p>The status of the web portal.</p>"
+        },
+        "portalEndpoint":{
+          "shape":"PortalEndpoint",
+          "documentation":"<p>The endpoint URL of the web portal that users access in order to start streaming sessions.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The name of the web portal.</p>"
+        },
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation date of the web portal.</p>"
+        },
+        "browserSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the browser settings that is associated with this web portal.</p>"
+        },
+        "dataProtectionSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the data protection settings.</p>"
+        },
+        "userSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user settings that is associated with the web portal.</p>"
+        },
+        "networkSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the network settings that is associated with the web portal.</p>"
+        },
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger that is assocaited with the portal.</p>"
         },
         "trustStoreArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the trust store that is associated with the web portal.</p>"
         },
+        "statusReason":{
+          "shape":"StatusReason",
+          "documentation":"<p>A message that explains why the web portal is in its current status.</p>"
+        },
         "userAccessLoggingSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the user access logging settings that is associated with the web portal.</p>"
         },
-        "userSettingsArn":{
+        "authenticationType":{
+          "shape":"AuthenticationType",
+          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
+        },
+        "ipAccessSettingsArn":{
           "shape":"ARN",
-          "documentation":"<p>The ARN of the user settings that is associated with the web portal.</p>"
+          "documentation":"<p>The ARN of the IP access settings.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The customer managed key used to encrypt sensitive information in the portal.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the portal.</p>"
+        },
+        "instanceType":{
+          "shape":"InstanceType",
+          "documentation":"<p>The type and resources of the underlying instance.</p>"
+        },
+        "maxConcurrentSessions":{
+          "shape":"MaxConcurrentSessions",
+          "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
         }
       },
       "documentation":"<p>The web portal.</p>"
@@ -3789,13 +4523,13 @@
       "type":"string",
       "max":253,
       "min":1,
-      "pattern":"^[a-zA-Z0-9]?((?!-)([A-Za-z0-9-]*[A-Za-z0-9])\\.)+[a-zA-Z0-9]+$"
+      "pattern":"[a-zA-Z0-9]?((?!-)([A-Za-z0-9-]*[A-Za-z0-9])\\.)+[a-zA-Z0-9]+"
     },
     "PortalId":{
       "type":"string",
       "max":36,
       "min":36,
-      "pattern":"^[a-zA-Z0-9\\-]+$"
+      "pattern":"[a-zA-Z0-9\\-]+"
     },
     "PortalList":{
       "type":"list",
@@ -3813,61 +4547,53 @@
       "type":"structure",
       "required":["portalArn"],
       "members":{
-        "authenticationType":{
-          "shape":"AuthenticationType",
-          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
-        },
-        "browserSettingsArn":{
+        "portalArn":{
           "shape":"ARN",
-          "documentation":"<p>The ARN of the browser settings that is associated with the web portal.</p>"
+          "documentation":"<p>The ARN of the web portal.</p>"
+        },
+        "rendererType":{
+          "shape":"RendererType",
+          "documentation":"<p>The renderer that is used in streaming sessions.</p>"
         },
         "browserType":{
           "shape":"BrowserType",
           "documentation":"<p>The browser type of the web portal.</p>"
         },
-        "creationDate":{
-          "shape":"Timestamp",
-          "documentation":"<p>The creation date of the web portal.</p>"
-        },
-        "dataProtectionSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the data protection settings.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p>The name of the web portal.</p>"
-        },
-        "instanceType":{
-          "shape":"InstanceType",
-          "documentation":"<p>The type and resources of the underlying instance.</p>"
-        },
-        "ipAccessSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the IP access settings.</p>"
-        },
-        "maxConcurrentSessions":{
-          "shape":"MaxConcurrentSessions",
-          "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
-        },
-        "networkSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the network settings that is associated with the web portal.</p>"
-        },
-        "portalArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the web portal.</p>"
+        "portalStatus":{
+          "shape":"PortalStatus",
+          "documentation":"<p>The status of the web portal.</p>"
         },
         "portalEndpoint":{
           "shape":"PortalEndpoint",
           "documentation":"<p>The endpoint URL of the web portal that users access in order to start streaming sessions.</p>"
         },
-        "portalStatus":{
-          "shape":"PortalStatus",
-          "documentation":"<p>The status of the web portal.</p>"
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The name of the web portal.</p>"
         },
-        "rendererType":{
-          "shape":"RendererType",
-          "documentation":"<p>The renderer that is used in streaming sessions.</p>"
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The creation date of the web portal.</p>"
+        },
+        "browserSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the browser settings that is associated with the web portal.</p>"
+        },
+        "dataProtectionSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the data protection settings.</p>"
+        },
+        "userSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user settings that is associated with the web portal.</p>"
+        },
+        "networkSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the network settings that is associated with the web portal.</p>"
+        },
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger that is assocaited with the portal.</p>"
         },
         "trustStoreArn":{
           "shape":"ARN",
@@ -3877,9 +4603,21 @@
           "shape":"ARN",
           "documentation":"<p>The ARN of the user access logging settings that is associated with the web portal.</p>"
         },
-        "userSettingsArn":{
+        "authenticationType":{
+          "shape":"AuthenticationType",
+          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
+        },
+        "ipAccessSettingsArn":{
           "shape":"ARN",
-          "documentation":"<p>The ARN of the user settings that is associated with the web portal.</p>"
+          "documentation":"<p>The ARN of the IP access settings.</p>"
+        },
+        "instanceType":{
+          "shape":"InstanceType",
+          "documentation":"<p>The type and resources of the underlying instance.</p>"
+        },
+        "maxConcurrentSessions":{
+          "shape":"MaxConcurrentSessions",
+          "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
         }
       },
       "documentation":"<p>The summary of the portal.</p>"
@@ -3889,13 +4627,13 @@
       "type":"structure",
       "required":["redactionPlaceHolderType"],
       "members":{
-        "redactionPlaceHolderText":{
-          "shape":"RedactionPlaceHolderText",
-          "documentation":"<p>The redaction placeholder text that will replace the redacted text in session for the custom text redaction placeholder type.</p>"
-        },
         "redactionPlaceHolderType":{
           "shape":"RedactionPlaceHolderType",
           "documentation":"<p>The redaction placeholder type that will replace the redacted text in session.</p>"
+        },
+        "redactionPlaceHolderText":{
+          "shape":"RedactionPlaceHolderText",
+          "documentation":"<p>The redaction placeholder text that will replace the redacted text in session for the custom text redaction placeholder type.</p>"
         }
       },
       "documentation":"<p>The redaction placeholder that will replace the redacted text in session.</p>"
@@ -3904,7 +4642,7 @@
       "type":"string",
       "max":20,
       "min":1,
-      "pattern":"^[*_\\-\\d\\w]+$",
+      "pattern":"[*_\\-\\d\\w]+",
       "sensitive":true
     },
     "RedactionPlaceHolderType":{
@@ -3915,7 +4653,7 @@
       "type":"string",
       "max":300,
       "min":0,
-      "pattern":"^\\/((?:[^\\n])+)\\/([gimsuyvd]{0,8})$",
+      "pattern":"\\/((?:[^\\n])+)\\/([gimsuyvd]{0,8})",
       "sensitive":true
     },
     "RendererType":{
@@ -3945,17 +4683,70 @@
     },
     "ResourceType":{"type":"string"},
     "RetryAfterSeconds":{"type":"integer"},
+    "S3Bucket":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[a-z0-9][\\.\\-a-z0-9]{1,61}[a-z0-9]",
+      "sensitive":true
+    },
+    "S3BucketOwner":{
+      "type":"string",
+      "pattern":"[0-9]{12}"
+    },
+    "S3KeyPrefix":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[\\d\\w\\-_/!().*']+",
+      "sensitive":true
+    },
+    "S3LogConfiguration":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "logFileFormat",
+        "folderStructure"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"S3Bucket",
+          "documentation":"<p>The S3 bucket name where logs are delivered.</p>"
+        },
+        "keyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The S3 path prefix that determines where log files are stored.</p>"
+        },
+        "bucketOwner":{
+          "shape":"S3BucketOwner",
+          "documentation":"<p>The expected bucket owner of the target S3 bucket. The caller must have permissions to write to the target bucket.</p>"
+        },
+        "logFileFormat":{
+          "shape":"LogFileFormat",
+          "documentation":"<p>The format of the LogFile that is written to S3.</p>"
+        },
+        "folderStructure":{
+          "shape":"FolderStructure",
+          "documentation":"<p>The folder structure that defines the organizational structure for log files in S3.</p>"
+        }
+      },
+      "documentation":"<p>The S3 log configuration.</p>"
+    },
+    "S3Uri":{
+      "type":"string",
+      "pattern":"s3://[a-z0-9][a-z0-9\\.\\-]{1,61}[a-z0-9]/.+"
+    },
     "SamlMetadata":{
       "type":"string",
       "max":204800,
       "min":1,
-      "pattern":"^.+$"
+      "pattern":".+"
     },
     "SecurityGroupId":{
       "type":"string",
       "max":128,
       "min":1,
-      "pattern":"^[\\w+\\-]+$"
+      "pattern":"[\\w+\\-]+"
     },
     "SecurityGroupIdList":{
       "type":"list",
@@ -3968,10 +4759,6 @@
       "type":"structure",
       "members":{
         "message":{"shape":"ExceptionMessage"},
-        "quotaCode":{
-          "shape":"QuotaCode",
-          "documentation":"<p>The originating quota.</p>"
-        },
         "resourceId":{
           "shape":"ResourceId",
           "documentation":"<p>Identifier of the resource affected.</p>"
@@ -3983,6 +4770,10 @@
         "serviceCode":{
           "shape":"ServiceCode",
           "documentation":"<p>The originating service.</p>"
+        },
+        "quotaCode":{
+          "shape":"QuotaCode",
+          "documentation":"<p>The originating quota.</p>"
         }
       },
       "documentation":"<p>The service quota has been exceeded.</p>",
@@ -3995,14 +4786,6 @@
     "Session":{
       "type":"structure",
       "members":{
-        "clientIpAddresses":{
-          "shape":"IpAddressList",
-          "documentation":"<p>The IP address of the client.</p>"
-        },
-        "endTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The end time of the session.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
@@ -4011,17 +4794,25 @@
           "shape":"StringType",
           "documentation":"<p>The ID of the session.</p>"
         },
-        "startTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The start time of the session.</p>"
+        "username":{
+          "shape":"Username",
+          "documentation":"<p>The username of the session.</p>"
+        },
+        "clientIpAddresses":{
+          "shape":"IpAddressList",
+          "documentation":"<p>The IP address of the client.</p>"
         },
         "status":{
           "shape":"SessionStatus",
           "documentation":"<p>The status of the session.</p>"
         },
-        "username":{
-          "shape":"Username",
-          "documentation":"<p>The username of the session.</p>"
+        "startTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start time of the session.</p>"
+        },
+        "endTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end time of the session.</p>"
         }
       },
       "documentation":"<p>Information about a secure browser session.</p>"
@@ -4030,7 +4821,73 @@
       "type":"string",
       "max":36,
       "min":36,
-      "pattern":"^[a-zA-Z0-9\\-]+$"
+      "pattern":"[a-zA-Z0-9\\-]+"
+    },
+    "SessionLogger":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
+      "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger resource.</p>"
+        },
+        "eventFilter":{
+          "shape":"EventFilter",
+          "documentation":"<p>The filter that specifies which events to monitor.</p>"
+        },
+        "logConfiguration":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The configuration that specifies where logs are fowarded.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The custom managed key of the session logger.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the session logger.</p>"
+        },
+        "associatedPortalArns":{
+          "shape":"ArnList",
+          "documentation":"<p>The associated portal ARN.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The human-readable display name.</p>"
+        },
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date the session logger resource was created.</p>"
+        }
+      },
+      "documentation":"<p>The session logger resource.</p>"
+    },
+    "SessionLoggerList":{
+      "type":"list",
+      "member":{"shape":"SessionLoggerSummary"}
+    },
+    "SessionLoggerSummary":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
+      "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger resource.</p>"
+        },
+        "logConfiguration":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The configuration that specifies where the logs are fowarded.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The human-readable display name.</p>"
+        },
+        "creationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date the session logger resource was created.</p>"
+        }
+      },
+      "documentation":"<p>The summary of the session logger resource.</p>"
     },
     "SessionSortBy":{
       "type":"string",
@@ -4049,10 +4906,6 @@
     "SessionSummary":{
       "type":"structure",
       "members":{
-        "endTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The end time of the session.</p>"
-        },
         "portalArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the web portal.</p>"
@@ -4061,17 +4914,21 @@
           "shape":"StringType",
           "documentation":"<p>The ID of the session.</p>"
         },
-        "startTime":{
-          "shape":"Timestamp",
-          "documentation":"<p>The start time of the session.</p>"
+        "username":{
+          "shape":"Username",
+          "documentation":"<p>The username of the session.</p>"
         },
         "status":{
           "shape":"SessionStatus",
           "documentation":"<p>The status of the session.</p>"
         },
-        "username":{
-          "shape":"Username",
-          "documentation":"<p>The username of the session.</p>"
+        "startTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start time of the session.</p>"
+        },
+        "endTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end time of the session.</p>"
         }
       },
       "documentation":"<p>Summary information about a secure browser session.</p>"
@@ -4090,13 +4947,13 @@
       "type":"string",
       "max":131072,
       "min":0,
-      "pattern":"^[\\s\\S]*$"
+      "pattern":"[\\s\\S]*"
     },
     "SubnetId":{
       "type":"string",
       "max":32,
       "min":1,
-      "pattern":"^subnet-([0-9a-f]{8}|[0-9a-f]{17})$"
+      "pattern":"subnet-([0-9a-f]{8}|[0-9a-f]{17})"
     },
     "SubnetIdList":{
       "type":"list",
@@ -4108,7 +4965,7 @@
       "type":"string",
       "max":2048,
       "min":20,
-      "pattern":"^arn:[\\w+=\\/,.@-]+:[a-zA-Z0-9\\-]+:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\\/[a-fA-F0-9\\-]{36}){2,}$"
+      "pattern":"arn:[\\w+=\\/,.@-]+:[a-zA-Z0-9\\-]+:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:[a-zA-Z]+(\\/[a-fA-F0-9\\-]{36}){2,}"
     },
     "Tag":{
       "type":"structure",
@@ -4134,7 +4991,7 @@
       "type":"string",
       "max":128,
       "min":1,
-      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+      "pattern":"([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)",
       "sensitive":true
     },
     "TagKeyList":{
@@ -4156,11 +5013,6 @@
         "tags"
       ],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
         "resourceArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the resource.</p>",
@@ -4170,25 +5022,33 @@
         "tags":{
           "shape":"TagList",
           "documentation":"<p>The tags of the resource.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token returns the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
       "max":256,
       "min":0,
-      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$",
+      "pattern":"([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)",
       "sensitive":true
     },
     "ThrottlingException":{
       "type":"structure",
       "members":{
         "message":{"shape":"ExceptionMessage"},
+        "serviceCode":{
+          "shape":"ServiceCode",
+          "documentation":"<p>The originating service.</p>"
+        },
         "quotaCode":{
           "shape":"QuotaCode",
           "documentation":"<p>The originating quota.</p>"
@@ -4198,10 +5058,6 @@
           "documentation":"<p>Advice to clients on when the call can be safely retried.</p>",
           "location":"header",
           "locationName":"Retry-After"
-        },
-        "serviceCode":{
-          "shape":"ServiceCode",
-          "documentation":"<p>The originating service.</p>"
         }
       },
       "documentation":"<p>There is a throttling error.</p>",
@@ -4227,6 +5083,45 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "ToolbarConfiguration":{
+      "type":"structure",
+      "members":{
+        "toolbarType":{
+          "shape":"ToolbarType",
+          "documentation":"<p>The type of toolbar displayed during the session.</p>"
+        },
+        "visualMode":{
+          "shape":"VisualMode",
+          "documentation":"<p>The visual mode of the toolbar.</p>"
+        },
+        "hiddenToolbarItems":{
+          "shape":"HiddenToolbarItemList",
+          "documentation":"<p>The list of toolbar items to be hidden.</p>"
+        },
+        "maxDisplayResolution":{
+          "shape":"MaxDisplayResolution",
+          "documentation":"<p>The maximum display resolution that is allowed for the session.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the toolbar. This allows administrators to select the toolbar type and visual mode, set maximum display resolution for sessions, and choose which items are visible to end users during their sessions. If administrators do not modify these settings, end users retain control over their toolbar preferences.</p>"
+    },
+    "ToolbarItem":{
+      "type":"string",
+      "enum":[
+        "Windows",
+        "DualMonitor",
+        "FullScreen",
+        "Webcam",
+        "Microphone"
+      ]
+    },
+    "ToolbarType":{
+      "type":"string",
+      "enum":[
+        "Floating",
+        "Docked"
+      ]
     },
     "TrustStore":{
       "type":"structure",
@@ -4257,6 +5152,10 @@
       "type":"list",
       "member":{"shape":"TrustStoreSummary"}
     },
+    "Unit":{
+      "type":"structure",
+      "members":{}
+    },
     "UntagResourceRequest":{
       "type":"structure",
       "required":[
@@ -4280,27 +5179,30 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateBrowserSettingsRequest":{
       "type":"structure",
       "required":["browserSettingsArn"],
       "members":{
-        "browserPolicy":{
-          "shape":"BrowserPolicy",
-          "documentation":"<p>A JSON string containing Chrome Enterprise policies that will be applied to all streaming sessions. </p>"
-        },
         "browserSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the browser settings.</p>",
           "location":"uri",
           "locationName":"browserSettingsArn"
         },
+        "browserPolicy":{
+          "shape":"BrowserPolicy",
+          "documentation":"<p>A JSON string containing Chrome Enterprise policies that will be applied to all streaming sessions. </p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
           "idempotencyToken":true
+        },
+        "webContentFilteringPolicy":{
+          "shape":"WebContentFilteringPolicy",
+          "documentation":"<p>The policy that specifies which URLs end users are allowed to access or which URLs or domain categories they are restricted from accessing for enhanced security.</p>"
         }
       }
     },
@@ -4318,28 +5220,28 @@
       "type":"structure",
       "required":["dataProtectionSettingsArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
         "dataProtectionSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the data protection settings.</p>",
           "location":"uri",
           "locationName":"dataProtectionSettingsArn"
         },
-        "description":{
-          "shape":"DescriptionSafe",
-          "documentation":"<p>The description of the data protection settings.</p>"
+        "inlineRedactionConfiguration":{
+          "shape":"InlineRedactionConfiguration",
+          "documentation":"<p>The inline redaction configuration of the data protection settings that will be applied to all sessions.</p>"
         },
         "displayName":{
           "shape":"DisplayNameSafe",
           "documentation":"<p>The display name of the data protection settings.</p>"
         },
-        "inlineRedactionConfiguration":{
-          "shape":"InlineRedactionConfiguration",
-          "documentation":"<p>The inline redaction configuration of the data protection settings that will be applied to all sessions.</p>"
+        "description":{
+          "shape":"DescriptionSafe",
+          "documentation":"<p>The description of the data protection settings.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -4357,20 +5259,11 @@
       "type":"structure",
       "required":["identityProviderArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
         "identityProviderArn":{
           "shape":"SubresourceARN",
           "documentation":"<p>The ARN of the identity provider.</p>",
           "location":"uri",
           "locationName":"identityProviderArn"
-        },
-        "identityProviderDetails":{
-          "shape":"IdentityProviderDetails",
-          "documentation":"<p>The details of the identity provider. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
         },
         "identityProviderName":{
           "shape":"IdentityProviderName",
@@ -4379,6 +5272,15 @@
         "identityProviderType":{
           "shape":"IdentityProviderType",
           "documentation":"<p>The type of the identity provider.</p>"
+        },
+        "identityProviderDetails":{
+          "shape":"IdentityProviderDetails",
+          "documentation":"<p>The details of the identity provider. The following list describes the provider detail keys for each identity provider type. </p> <ul> <li> <p>For Google and Login with Amazon:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For Facebook:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>api_version</code> </p> </li> </ul> </li> <li> <p>For Sign in with Apple:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>team_id</code> </p> </li> <li> <p> <code>key_id</code> </p> </li> <li> <p> <code>private_key</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> </ul> </li> <li> <p>For OIDC providers:</p> <ul> <li> <p> <code>client_id</code> </p> </li> <li> <p> <code>client_secret</code> </p> </li> <li> <p> <code>attributes_request_method</code> </p> </li> <li> <p> <code>oidc_issuer</code> </p> </li> <li> <p> <code>authorize_scopes</code> </p> </li> <li> <p> <code>authorize_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>token_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>attributes_url</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> <li> <p> <code>jwks_uri</code> <i>if not available from discovery URL specified by <code>oidc_issuer</code> key</i> </p> </li> </ul> </li> <li> <p>For SAML providers:</p> <ul> <li> <p> <code>MetadataFile</code> OR <code>MetadataURL</code> </p> </li> <li> <p> <code>IDPSignout</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>IDPInit</code> (boolean) <i>optional</i> </p> </li> <li> <p> <code>RequestSigningAlgorithm</code> (string) <i>optional</i> - Only accepts <code>rsa-sha256</code> </p> </li> <li> <p> <code>EncryptedResponses</code> (boolean) <i>optional</i> </p> </li> </ul> </li> </ul>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -4396,28 +5298,28 @@
       "type":"structure",
       "required":["ipAccessSettingsArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "description":{
-          "shape":"Description",
-          "documentation":"<p>The description of the IP access settings.</p>"
-        },
-        "displayName":{
-          "shape":"DisplayName",
-          "documentation":"<p>The display name of the IP access settings.</p>"
-        },
         "ipAccessSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the IP access settings.</p>",
           "location":"uri",
           "locationName":"ipAccessSettingsArn"
         },
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The display name of the IP access settings.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the IP access settings.</p>"
+        },
         "ipRules":{
           "shape":"IpRuleList",
           "documentation":"<p>The updated IP rules of the IP access settings.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -4435,28 +5337,28 @@
       "type":"structure",
       "required":["networkSettingsArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
         "networkSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the network settings.</p>",
           "location":"uri",
           "locationName":"networkSettingsArn"
         },
-        "securityGroupIds":{
-          "shape":"SecurityGroupIdList",
-          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC.</p>"
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
         },
         "subnetIds":{
           "shape":"SubnetIdList",
           "documentation":"<p>The subnets in which network interfaces are created to connect streaming instances to your VPC. At least two of these subnets must be in different availability zones.</p>"
         },
-        "vpcId":{
-          "shape":"VpcId",
-          "documentation":"<p>The VPC that streaming instances will connect to.</p>"
+        "securityGroupIds":{
+          "shape":"SecurityGroupIdList",
+          "documentation":"<p>One or more security groups used to control access from streaming instances to your VPC.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -4474,13 +5376,19 @@
       "type":"structure",
       "required":["portalArn"],
       "members":{
-        "authenticationType":{
-          "shape":"AuthenticationType",
-          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
+        "portalArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the web portal.</p>",
+          "location":"uri",
+          "locationName":"portalArn"
         },
         "displayName":{
           "shape":"DisplayName",
           "documentation":"<p>The name of the web portal. This is not visible to users who log into the web portal.</p>"
+        },
+        "authenticationType":{
+          "shape":"AuthenticationType",
+          "documentation":"<p>The type of authentication integration points used when signing into the web portal. Defaults to <code>Standard</code>.</p> <p> <code>Standard</code> web portals are authenticated directly through your identity provider. You need to call <code>CreateIdentityProvider</code> to integrate your identity provider with your web portal. User and group access to your web portal is controlled through your identity provider.</p> <p> <code>IAM Identity Center</code> web portals are authenticated through IAM Identity Center. Identity sources (including external identity provider integration), plus user and group access to your web portal, can be configured in the IAM Identity Center.</p>"
         },
         "instanceType":{
           "shape":"InstanceType",
@@ -4489,12 +5397,6 @@
         "maxConcurrentSessions":{
           "shape":"MaxConcurrentSessions",
           "documentation":"<p>The maximum number of concurrent sessions for the portal.</p>"
-        },
-        "portalArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the web portal.</p>",
-          "location":"uri",
-          "locationName":"portalArn"
         }
       }
     },
@@ -4507,10 +5409,50 @@
         }
       }
     },
+    "UpdateSessionLoggerRequest":{
+      "type":"structure",
+      "required":["sessionLoggerArn"],
+      "members":{
+        "sessionLoggerArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the session logger to update.</p>",
+          "location":"uri",
+          "locationName":"sessionLoggerArn"
+        },
+        "eventFilter":{
+          "shape":"EventFilter",
+          "documentation":"<p>The updated eventFilter.</p>"
+        },
+        "logConfiguration":{
+          "shape":"LogConfiguration",
+          "documentation":"<p>The updated logConfiguration.</p>"
+        },
+        "displayName":{
+          "shape":"DisplayNameSafe",
+          "documentation":"<p>The updated display name.</p>"
+        }
+      }
+    },
+    "UpdateSessionLoggerResponse":{
+      "type":"structure",
+      "required":["sessionLogger"],
+      "members":{
+        "sessionLogger":{
+          "shape":"SessionLogger",
+          "documentation":"<p>The updated details of the session logger.</p>"
+        }
+      }
+    },
     "UpdateTrustStoreRequest":{
       "type":"structure",
       "required":["trustStoreArn"],
       "members":{
+        "trustStoreArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the trust store.</p>",
+          "location":"uri",
+          "locationName":"trustStoreArn"
+        },
         "certificatesToAdd":{
           "shape":"CertificateList",
           "documentation":"<p>A list of CA certificates to add to the trust store.</p>"
@@ -4523,12 +5465,6 @@
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
           "idempotencyToken":true
-        },
-        "trustStoreArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the trust store.</p>",
-          "location":"uri",
-          "locationName":"trustStoreArn"
         }
       }
     },
@@ -4546,20 +5482,20 @@
       "type":"structure",
       "required":["userAccessLoggingSettingsArn"],
       "members":{
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
-          "idempotencyToken":true
-        },
-        "kinesisStreamArn":{
-          "shape":"KinesisStreamArn",
-          "documentation":"<p>The ARN of the Kinesis stream.</p>"
-        },
         "userAccessLoggingSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the user access logging settings.</p>",
           "location":"uri",
           "locationName":"userAccessLoggingSettingsArn"
+        },
+        "kinesisStreamArn":{
+          "shape":"KinesisStreamArn",
+          "documentation":"<p>The ARN of the Kinesis stream.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -4577,6 +5513,40 @@
       "type":"structure",
       "required":["userSettingsArn"],
       "members":{
+        "userSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user settings.</p>",
+          "location":"uri",
+          "locationName":"userSettingsArn"
+        },
+        "copyAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
+        },
+        "pasteAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
+        },
+        "downloadAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
+        },
+        "uploadAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
+        },
+        "printAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
+        },
+        "disconnectTimeoutInMinutes":{
+          "shape":"DisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+        },
+        "idleDisconnectTimeoutInMinutes":{
+          "shape":"IdleDisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. Idempotency ensures that an API request completes only once. With an idempotent request, if the original request completes successfully, subsequent retries with the same client token return the result from the original successful request. </p> <p>If you do not specify a client token, one is automatically generated by the Amazon Web Services SDK.</p>",
@@ -4586,43 +5556,21 @@
           "shape":"CookieSynchronizationConfiguration",
           "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p> <p>If the allowlist and blocklist are empty, the configuration becomes null.</p>"
         },
-        "copyAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
-        },
         "deepLinkAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
         },
-        "disconnectTimeoutInMinutes":{
-          "shape":"DisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+        "toolbarConfiguration":{
+          "shape":"ToolbarConfiguration",
+          "documentation":"<p>The configuration of the toolbar. This allows administrators to select the toolbar type and visual mode, set maximum display resolution for sessions, and choose which items are visible to end users during their sessions. If administrators do not modify these settings, end users retain control over their toolbar preferences.</p>"
         },
-        "downloadAllowed":{
+        "brandingConfigurationInput":{
+          "shape":"BrandingConfigurationUpdateInput",
+          "documentation":"<p>The branding configuration that customizes the appearance of the web portal for end users. When updating user settings without an existing branding configuration, all fields (logo, favicon, wallpaper, localized strings, and color theme) are required except for terms of service. When updating user settings with an existing branding configuration, all fields are optional.</p>"
+        },
+        "webAuthnAllowed":{
           "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
-        },
-        "idleDisconnectTimeoutInMinutes":{
-          "shape":"IdleDisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
-        },
-        "pasteAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
-        },
-        "printAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
-        },
-        "uploadAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
-        },
-        "userSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the user settings.</p>",
-          "location":"uri",
-          "locationName":"userSettingsArn"
+          "documentation":"<p>Specifies whether the user can use WebAuthn redirection for passwordless login to websites within the streaming session.</p>"
         }
       }
     },
@@ -4636,10 +5584,25 @@
         }
       }
     },
+    "UrlPattern":{
+      "type":"string",
+      "pattern":"((([a-zA-Z][a-zA-Z0-9+.-]*):\\/\\/(\\*|[\\w%._\\-\\+~#=@]+)?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?)|(\\*|[\\w%._\\-\\+~#=@]+\\.[\\w%._\\-\\+~#=@]+)(?::(\\d{1,5}))?(\\/[^@\\s]*)?(?:\\?([^*\\s]+(?:\\*?)))?|(([a-zA-Z][a-zA-Z0-9+.-]*):(\\/\\/)?\\*))",
+      "sensitive":true
+    },
+    "UrlPatternList":{
+      "type":"list",
+      "member":{"shape":"UrlPattern"},
+      "max":1000,
+      "min":1
+    },
     "UserAccessLoggingSettings":{
       "type":"structure",
       "required":["userAccessLoggingSettingsArn"],
       "members":{
+        "userAccessLoggingSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user access logging settings.</p>"
+        },
         "associatedPortalArns":{
           "shape":"ArnList",
           "documentation":"<p>A list of web portal ARNs that this user access logging settings is associated with.</p>"
@@ -4647,10 +5610,6 @@
         "kinesisStreamArn":{
           "shape":"KinesisStreamArn",
           "documentation":"<p>The ARN of the Kinesis stream.</p>"
-        },
-        "userAccessLoggingSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the user access logging settings.</p>"
         }
       },
       "documentation":"<p>A user access logging settings resource that can be associated with a web portal.</p>"
@@ -4663,13 +5622,13 @@
       "type":"structure",
       "required":["userAccessLoggingSettingsArn"],
       "members":{
-        "kinesisStreamArn":{
-          "shape":"KinesisStreamArn",
-          "documentation":"<p>The ARN of the Kinesis stream.</p>"
-        },
         "userAccessLoggingSettingsArn":{
           "shape":"ARN",
           "documentation":"<p>The ARN of the user access logging settings.</p>"
+        },
+        "kinesisStreamArn":{
+          "shape":"KinesisStreamArn",
+          "documentation":"<p>The ARN of the Kinesis stream.</p>"
         }
       },
       "documentation":"<p>The summary of user access logging settings.</p>"
@@ -4678,57 +5637,69 @@
       "type":"structure",
       "required":["userSettingsArn"],
       "members":{
-        "additionalEncryptionContext":{
-          "shape":"EncryptionContextMap",
-          "documentation":"<p>The additional encryption context of the user settings.</p>"
+        "userSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user settings.</p>"
         },
         "associatedPortalArns":{
           "shape":"ArnList",
           "documentation":"<p>A list of web portal ARNs that this user settings is associated with.</p>"
         },
-        "cookieSynchronizationConfiguration":{
-          "shape":"CookieSynchronizationConfiguration",
-          "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p>"
-        },
         "copyAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
-        },
-        "customerManagedKey":{
-          "shape":"keyArn",
-          "documentation":"<p>The customer managed key used to encrypt sensitive information in the user settings.</p>"
-        },
-        "deepLinkAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
-        },
-        "disconnectTimeoutInMinutes":{
-          "shape":"DisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
-        },
-        "downloadAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
-        },
-        "idleDisconnectTimeoutInMinutes":{
-          "shape":"IdleDisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
         },
         "pasteAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
         },
-        "printAllowed":{
+        "downloadAllowed":{
           "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
+          "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
         },
         "uploadAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
         },
-        "userSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the user settings.</p>"
+        "printAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can print to the local device.</p>"
+        },
+        "disconnectTimeoutInMinutes":{
+          "shape":"DisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+        },
+        "idleDisconnectTimeoutInMinutes":{
+          "shape":"IdleDisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
+        },
+        "cookieSynchronizationConfiguration":{
+          "shape":"CookieSynchronizationConfiguration",
+          "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p>"
+        },
+        "customerManagedKey":{
+          "shape":"keyArn",
+          "documentation":"<p>The customer managed key used to encrypt sensitive information in the user settings.</p>"
+        },
+        "additionalEncryptionContext":{
+          "shape":"EncryptionContextMap",
+          "documentation":"<p>The additional encryption context of the user settings.</p>"
+        },
+        "deepLinkAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
+        },
+        "toolbarConfiguration":{
+          "shape":"ToolbarConfiguration",
+          "documentation":"<p>The configuration of the toolbar. This allows administrators to select the toolbar type and visual mode, set maximum display resolution for sessions, and choose which items are visible to end users during their sessions. If administrators do not modify these settings, end users retain control over their toolbar preferences.</p>"
+        },
+        "brandingConfiguration":{
+          "shape":"BrandingConfiguration",
+          "documentation":"<p>The branding configuration output that customizes the appearance of the web portal for end users.</p>"
+        },
+        "webAuthnAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can use WebAuthn redirection for passwordless login to websites within the streaming session.</p>"
         }
       },
       "documentation":"<p>A user settings resource that can be associated with a web portal. Once associated with a web portal, user settings control how users can transfer data between a streaming session and the their local devices. </p>"
@@ -4741,45 +5712,57 @@
       "type":"structure",
       "required":["userSettingsArn"],
       "members":{
-        "cookieSynchronizationConfiguration":{
-          "shape":"CookieSynchronizationConfiguration",
-          "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p>"
+        "userSettingsArn":{
+          "shape":"ARN",
+          "documentation":"<p>The ARN of the user settings.</p>"
         },
         "copyAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can copy text from the streaming session to the local device.</p>"
         },
-        "deepLinkAllowed":{
+        "pasteAllowed":{
           "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
-        },
-        "disconnectTimeoutInMinutes":{
-          "shape":"DisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
+          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
         },
         "downloadAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can download files from the streaming session to the local device.</p>"
         },
-        "idleDisconnectTimeoutInMinutes":{
-          "shape":"IdleDisconnectTimeoutInMinutes",
-          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
-        },
-        "pasteAllowed":{
+        "uploadAllowed":{
           "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can paste text from the local device to the streaming session.</p>"
+          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
         },
         "printAllowed":{
           "shape":"EnabledType",
           "documentation":"<p>Specifies whether the user can print to the local device.</p>"
         },
-        "uploadAllowed":{
-          "shape":"EnabledType",
-          "documentation":"<p>Specifies whether the user can upload files from the local device to the streaming session.</p>"
+        "disconnectTimeoutInMinutes":{
+          "shape":"DisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that a streaming session remains active after users disconnect.</p>"
         },
-        "userSettingsArn":{
-          "shape":"ARN",
-          "documentation":"<p>The ARN of the user settings.</p>"
+        "idleDisconnectTimeoutInMinutes":{
+          "shape":"IdleDisconnectTimeoutInMinutes",
+          "documentation":"<p>The amount of time that users can be idle (inactive) before they are disconnected from their streaming session and the disconnect timeout interval begins.</p>"
+        },
+        "cookieSynchronizationConfiguration":{
+          "shape":"CookieSynchronizationConfiguration",
+          "documentation":"<p>The configuration that specifies which cookies should be synchronized from the end user's local browser to the remote browser.</p>"
+        },
+        "deepLinkAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can use deep links that open automatically when connecting to a session.</p>"
+        },
+        "toolbarConfiguration":{
+          "shape":"ToolbarConfiguration",
+          "documentation":"<p>The configuration of the toolbar. This allows administrators to select the toolbar type and visual mode, set maximum display resolution for sessions, and choose which items are visible to end users during their sessions. If administrators do not modify these settings, end users retain control over their toolbar preferences.</p>"
+        },
+        "brandingConfiguration":{
+          "shape":"BrandingConfiguration",
+          "documentation":"<p>The branding configuration output that customizes the appearance of the web portal for end users.</p>"
+        },
+        "webAuthnAllowed":{
+          "shape":"EnabledType",
+          "documentation":"<p>Specifies whether the user can use WebAuthn redirection for passwordless login to websites within the streaming session.</p>"
         }
       },
       "documentation":"<p>The summary of user settings.</p>"
@@ -4788,20 +5771,20 @@
       "type":"string",
       "max":256,
       "min":0,
-      "pattern":"^[\\s\\S]*$",
+      "pattern":"[\\s\\S]*",
       "sensitive":true
     },
     "ValidationException":{
       "type":"structure",
       "members":{
-        "fieldList":{
-          "shape":"ValidationExceptionFieldList",
-          "documentation":"<p>The field that caused the error.</p>"
-        },
         "message":{"shape":"ExceptionMessage"},
         "reason":{
           "shape":"ValidationExceptionReason",
           "documentation":"<p>Reason the request failed validation</p>"
+        },
+        "fieldList":{
+          "shape":"ValidationExceptionFieldList",
+          "documentation":"<p>The field that caused the error.</p>"
         }
       },
       "documentation":"<p>There is a validation error.</p>",
@@ -4814,17 +5797,17 @@
     "ValidationExceptionField":{
       "type":"structure",
       "required":[
-        "message",
-        "name"
+        "name",
+        "message"
       ],
       "members":{
-        "message":{
-          "shape":"ExceptionMessage",
-          "documentation":"<p>The message describing why the field failed validation.</p>"
-        },
         "name":{
           "shape":"FieldName",
           "documentation":"<p>The name of the field that failed validation.</p>"
+        },
+        "message":{
+          "shape":"ExceptionMessage",
+          "documentation":"<p>The message describing why the field failed validation.</p>"
         }
       },
       "documentation":"<p>Information about a field passed inside a request that resulted in an exception.</p>"
@@ -4842,17 +5825,62 @@
         "other"
       ]
     },
+    "VisualMode":{
+      "type":"string",
+      "enum":[
+        "Dark",
+        "Light"
+      ]
+    },
     "VpcId":{
       "type":"string",
       "max":255,
       "min":1,
-      "pattern":"^vpc-[0-9a-z]*$"
+      "pattern":"vpc-[0-9a-z]*"
+    },
+    "WallpaperImage":{
+      "type":"blob",
+      "max":5242880,
+      "min":0
+    },
+    "WallpaperImageInput":{
+      "type":"structure",
+      "members":{
+        "blob":{
+          "shape":"WallpaperImage",
+          "documentation":"<p>The image provided as a binary image file.</p>"
+        },
+        "s3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>The S3 URI pointing to the image file. The URI must use the format <code>s3://bucket-name/key-name</code>. You must have read access to the S3 object.</p>"
+        }
+      },
+      "documentation":"<p>The input for a wallpaper image. Provide the image as either a binary image file or an S3 URI. Maximum 5 MB in JPEG or PNG format.</p>",
+      "union":true
+    },
+    "WebContentFilteringPolicy":{
+      "type":"structure",
+      "members":{
+        "blockedCategories":{
+          "shape":"BlockedCategories",
+          "documentation":"<p>Categories of websites that are blocked on the end user’s browsers.</p>"
+        },
+        "allowedUrls":{
+          "shape":"UrlPatternList",
+          "documentation":"<p>URLs and domains that are always accessible to end users.</p>"
+        },
+        "blockedUrls":{
+          "shape":"UrlPatternList",
+          "documentation":"<p>URLs and domains that end users cannot access.</p>"
+        }
+      },
+      "documentation":"<p>The policy that specifies which URLs end users are allowed to access or which URLs or domain categories they are restricted from accessing for enhanced security.</p>"
     },
     "keyArn":{
       "type":"string",
       "max":2048,
       "min":20,
-      "pattern":"^arn:[\\w+=\\/,.@-]+:kms:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:key\\/[a-zA-Z0-9-]+$"
+      "pattern":"arn:[\\w+=\\/,.@-]+:kms:[a-zA-Z0-9\\-]*:[a-zA-Z0-9]{1,12}:key\\/[a-zA-Z0-9-]+"
     }
   },
   "documentation":"<p>Amazon WorkSpaces Secure Browser is a low cost, fully managed WorkSpace built specifically to facilitate secure, web-based workloads. WorkSpaces Secure Browser makes it easy for customers to safely provide their employees with access to internal websites and SaaS web applications without the administrative burden of appliances or specialized client software. WorkSpaces Secure Browser provides simple policy tools tailored for user interactions, while offloading common tasks like capacity management, scaling, and maintaining browser images.</p>"

@@ -17,8 +17,10 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.envBearerTokenServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.internalConfigModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.operationWithNoAuth;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
@@ -34,89 +36,58 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
  * Validate BaseClientBuilderClass generation.
  */
 public class BaseClientBuilderClassTest {
+
     @Test
-    public void baseClientBuilderClass() {
+    void baseClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(restJsonServiceModels(), "test-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithBearerAuth() {
+    void baseClientBuilderClassWithBearerAuth_sra() {
         validateBaseClientBuilderClassGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-class.java");
     }
 
     @Test
-    public void baseClientBuilderClassWithNoAuthOperation() {
-        validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java");
-    }
-
-    @Test
-    public void baseClientBuilderClassWithNoAuthService() {
-        validateBaseClientBuilderClassGeneration(serviceWithNoAuth(), "test-no-auth-service-client-builder-class.java");
-    }
-
-    @Test
-    public void baseClientBuilderClassWithInternalUserAgent() {
-        validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java");
-    }
-
-    @Test
-    public void baseQueryClientBuilderClass() {
-        validateBaseClientBuilderClassGeneration(queryServiceModels(), "test-query-client-builder-class.java");
-    }
-
-    @Test
-    public void baseClientBuilderClassWithEndpointsAuthParams() {
-        validateBaseClientBuilderClassGeneration(queryServiceModelsEndpointAuthParamsWithAllowList(),
-                                                 "test-client-builder-endpoints-auth-params.java");
-    }
-
-    @Test
-    public void syncComposedDefaultClientBuilderClass() {
-        validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
-                                                 "test-composed-sync-default-client-builder.java");
-    }
-    
-    @Test
-    void baseClientBuilderClass_sra() {
-        validateBaseClientBuilderClassGeneration(restJsonServiceModels(), "test-client-builder-class.java", true);
-    }
-
-    @Test
-    void baseClientBuilderClassWithBearerAuth_sra() {
-        validateBaseClientBuilderClassGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-class.java", true);
+    void baseClientBuilderClassWithEnvBearerToken_sra() {
+        validateBaseClientBuilderClassGeneration(envBearerTokenServiceModels(),
+                                                 "test-env-bearer-token-client-builder-class.java");
     }
 
     @Test
     void baseClientBuilderClassWithNoAuthOperation_sra() {
-        validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java", true);
+        validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java");
+    }
+
+    @Test
+    void baseClientBuilderClassWithMultiAuthSigv4a() {
+        validateBaseClientBuilderClassGeneration(opsWithSigv4a(), "test-multi-auth-sigv4a-client-builder-class.java");
     }
 
     @Test
     void baseClientBuilderClassWithNoAuthService_sra() {
-        validateBaseClientBuilderClassGeneration(serviceWithNoAuth(), "test-no-auth-service-client-builder-class.java", true);
+        validateBaseClientBuilderClassGeneration(serviceWithNoAuth(), "test-no-auth-service-client-builder-class.java");
     }
 
     @Test
     void baseClientBuilderClassWithInternalUserAgent_sra() {
-        validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java",
-                                                 true);
+        validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java");
     }
 
     @Test
     void baseQueryClientBuilderClass_sra() {
-        validateBaseClientBuilderClassGeneration(queryServiceModels(), "test-query-client-builder-class.java", true);
+        validateBaseClientBuilderClassGeneration(queryServiceModels(), "test-query-client-builder-class.java");
     }
 
     @Test
     void baseClientBuilderClassWithEndpointsAuthParams_sra() {
         validateBaseClientBuilderClassGeneration(queryServiceModelsEndpointAuthParamsWithAllowList(),
-                                                 "test-client-builder-endpoints-auth-params.java", true);
+                                                 "test-client-builder-endpoints-auth-params.java");
     }
 
     @Test
     void syncComposedDefaultClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
-                                                 "test-composed-sync-default-client-builder.java", true);
+                                                 "test-composed-sync-default-client-builder.java");
     }
 
     @Test
@@ -130,16 +101,6 @@ public class BaseClientBuilderClassTest {
     }
 
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
-        validateBaseClientBuilderClassGeneration(model, expectedClassName, false);
-    }
-
-    private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName, boolean sra) {
-        if (sra) {
-            model.getCustomizationConfig().setUseSraAuth(true);
-            validateGeneration(BaseClientBuilderClass::new, model, "sra/" + expectedClassName);
-        } else {
-            model.getCustomizationConfig().setUseSraAuth(false);
-            validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
-        }
+        validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
     }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -24,12 +25,14 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 @SuppressWarnings("unchecked")
 public interface BeanAttributeGetter<BeanT, GetterT> extends Function<BeanT, GetterT> {
-    static <BeanT, GetterT> BeanAttributeGetter<BeanT, GetterT> create(Class<BeanT> beanClass, Method getter) {
+    static <BeanT, GetterT> BeanAttributeGetter<BeanT, GetterT> create(Class<BeanT> beanClass, Method getter,
+                                                                       MethodHandles.Lookup lookup) {
         Validate.isTrue(getter.getParameterCount() == 0,
                         "%s.%s has parameters, despite being named like a getter.",
                         beanClass, getter.getName());
 
         return LambdaToMethodBridgeBuilder.create(BeanAttributeGetter.class)
+                                          .lookup(lookup)
                                           .lambdaMethodName("apply")
                                           .runtimeLambdaSignature(Object.class, Object.class)
                                           .compileTimeLambdaSignature(getter.getReturnType(), beanClass)

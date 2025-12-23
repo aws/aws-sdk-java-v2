@@ -37,8 +37,30 @@ class CrtChecksumUtilsTest {
         checksumAlgorithms.add(ChecksumAlgorithm.SHA256);
         checksumAlgorithms.add(ChecksumAlgorithm.SHA1);
         return Stream.of(
-            // DEFAULT request, should set default algorithm CRC32 in header
+            // DEFAULT request, operation w/o checksum required, WHEN_SUPPORTED config, should set default algorithm CRC32 in
+            // header
             Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.DEFAULT,
+                         RequestChecksumCalculation.WHEN_SUPPORTED, ResponseChecksumValidation.WHEN_SUPPORTED,
+                         new ChecksumConfig().withChecksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                             .withChecksumLocation(ChecksumConfig.ChecksumLocation.HEADER)),
+
+            // DEFAULT request, operation w/o checksum required, WHEN_REQUIRED config, should pass empty config
+            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.DEFAULT,
+                         RequestChecksumCalculation.WHEN_REQUIRED, ResponseChecksumValidation.WHEN_SUPPORTED,
+                         new ChecksumConfig()),
+
+            // DEFAULT request, operation w/ checksum required, WHEN_REQUIRED config, should set default algorithm CRC32 in
+            // header
+            Arguments.of(HttpChecksum.builder().requestChecksumRequired(true).build(),
+                         S3MetaRequestOptions.MetaRequestType.DEFAULT,
+                         RequestChecksumCalculation.WHEN_REQUIRED, ResponseChecksumValidation.WHEN_SUPPORTED,
+                         new ChecksumConfig().withChecksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                             .withChecksumLocation(ChecksumConfig.ChecksumLocation.HEADER)),
+
+            // DEFAULT request, operation w/ checksum required, WHEN_SUPPORTED config, should set default algorithm CRC32 in
+            // header
+            Arguments.of(HttpChecksum.builder().requestChecksumRequired(true).build(),
+                         S3MetaRequestOptions.MetaRequestType.DEFAULT,
                          RequestChecksumCalculation.WHEN_SUPPORTED, ResponseChecksumValidation.WHEN_SUPPORTED,
                          new ChecksumConfig().withChecksumAlgorithm(ChecksumAlgorithm.CRC32)
                                              .withChecksumLocation(ChecksumConfig.ChecksumLocation.HEADER)),

@@ -22,18 +22,23 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.MapUtils;
 
 class DefaultS3CrtAsyncClientTest {
 
@@ -99,7 +104,7 @@ class DefaultS3CrtAsyncClientTest {
     void crtClient_with_crossRegionAccessEnabled_asTrue() {
         try (S3AsyncClient crossRegionCrtClient = S3AsyncClient.crtBuilder().crossRegionAccessEnabled(true).build()) {
             assertThat(crossRegionCrtClient).isInstanceOf(DefaultS3CrtAsyncClient.class);
-            assertThat(((DelegatingS3AsyncClient)crossRegionCrtClient).delegate()).isInstanceOf(S3CrossRegionAsyncClient.class);
+            assertThat(((DelegatingS3AsyncClient) crossRegionCrtClient).delegate()).isInstanceOf(S3CrossRegionAsyncClient.class);
         }
     }
 
@@ -112,8 +117,48 @@ class DefaultS3CrtAsyncClientTest {
 
         try (S3AsyncClient defaultCrtClient = S3AsyncClient.crtBuilder().build()) {
             assertThat(defaultCrtClient).isInstanceOf(DefaultS3CrtAsyncClient.class);
-            assertThat(((DelegatingS3AsyncClient)defaultCrtClient).delegate()).isNotInstanceOf(S3CrossRegionAsyncClient.class);
+            assertThat(((DelegatingS3AsyncClient) defaultCrtClient).delegate()).isNotInstanceOf(S3CrossRegionAsyncClient.class);
         }
     }
 
+    @Test
+    void defaultClient_credentialsProvidersNotSingleton() {
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder().build();
+             S3AsyncClient anotherClient = S3AsyncClient.crtBuilder().build()) {
+
+            IdentityProvider<? extends AwsCredentialsIdentity> identityProvider =
+                client.serviceClientConfiguration().credentialsProvider();
+
+            IdentityProvider<? extends AwsCredentialsIdentity> identityProviderFromAnotherClient =
+                anotherClient.serviceClientConfiguration().credentialsProvider();
+
+            assertThat(identityProvider)
+                .isNotEqualTo(identityProviderFromAnotherClient);
+            assertThat(identityProvider)
+                .isInstanceOf(DefaultCredentialsProvider.class);
+            assertThat(identityProvider)
+                .isNotEqualTo(DefaultCredentialsProvider.create());
+            assertThat(identityProviderFromAnotherClient)
+                .isNotEqualTo(DefaultCredentialsProvider.create());
+        }
+    }
+
+    @Test
+    void build_withAdvancedOptions() {
+        try (DefaultS3CrtAsyncClient client = (DefaultS3CrtAsyncClient) S3AsyncClient
+            .crtBuilder()
+            .advancedOption(SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED, true)
+            .build()) {
+            assertThat(client).isNotNull();
+            assertThat(client).isInstanceOf(DefaultS3CrtAsyncClient.class);
+        }
+
+        try (DefaultS3CrtAsyncClient client = (DefaultS3CrtAsyncClient) S3AsyncClient
+            .crtBuilder()
+            .advancedOptions(MapUtils.of(SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED, true))
+            .build()) {
+            assertThat(client).isNotNull();
+            assertThat(client).isInstanceOf(DefaultS3CrtAsyncClient.class);
+        }
+    }
 }

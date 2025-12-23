@@ -122,49 +122,11 @@ class BufferingContentStreamProviderTest {
     }
 
     @Test
-    public void newStream_lengthKnown_readUpToLengthThenClosed_newStreamUsesBufferedData() throws IOException {
+    public void newStream_lengthKnown_doesNotBuffer() throws IOException {
         ByteArrayInputStream stream = new ByteArrayInputStream(TEST_DATA);
         requestBody = RequestBody.fromContentProvider(() -> stream, TEST_DATA.length, "text/plain");
-
-        int totalRead = 0;
-        int read;
-
-        InputStream stream1 = requestBody.contentStreamProvider().newStream();
-        do {
-            read = stream1.read();
-            if (read != -1) {
-                ++totalRead;
-            }
-        } while (read != -1);
-
-        assertThat(totalRead).isEqualTo(TEST_DATA.length);
-
-        stream1.close();
-
         assertThat(requestBody.contentStreamProvider().newStream())
-            .isInstanceOf(BufferingContentStreamProvider.ByteArrayStream.class);
-    }
-
-    @Test
-    public void newStream_lengthKnown_partialRead_close_doesNotBufferData() throws IOException {
-        // We need a large buffer because BufferedInputStream buffers data in chunks. If the buffer is small enough, a single
-        // read() on the BufferedInputStream might actually buffer all the delegate's data.
-
-        byte[] newData = new byte[16536];
-        new Random().nextBytes(newData);
-        ByteArrayInputStream stream = new ByteArrayInputStream(newData);
-        requestBody = RequestBody.fromContentProvider(() -> stream, newData.length, "text/plain");
-
-        InputStream stream1 = requestBody.contentStreamProvider().newStream();
-        int read = stream1.read();
-        assertThat(read).isNotEqualTo(-1);
-
-        stream1.close();
-
-        InputStream stream2 = requestBody.contentStreamProvider().newStream();
-        assertThat(stream2).isInstanceOf(BufferingContentStreamProvider.BufferStream.class);
-
-        assertThat(getCrc32(stream2)).isEqualTo(getCrc32(new ByteArrayInputStream(newData)));
+            .isInstanceOf(ByteArrayInputStream.class);
     }
 
     @Test

@@ -17,7 +17,9 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWordBoundaries;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -35,6 +37,15 @@ public class EnumCasingToV2 extends Recipe {
 
     private static Set<String> ENUMS = new HashSet<>();
 
+    private static final Map<String, String> SPECIAL_CASES = new HashMap<>();
+
+    static {
+        SPECIAL_CASES.put("StandardInfrequentAccess", "STANDARD_IA");
+        SPECIAL_CASES.put("OneZoneInfrequentAccess", "ONEZONE_IA");
+        SPECIAL_CASES.put("GlacierInstantRetrieval", "GLACIER_IR");
+        SPECIAL_CASES.put("textORcsv", "TEXT_OR_CSV");
+    }
+
     @Override
     public String getDisplayName() {
         return "V1 Enum Casing to V2";
@@ -51,8 +62,11 @@ public class EnumCasingToV2 extends Recipe {
     }
 
     private static String v2Casing(String enumValue) {
+        if (SPECIAL_CASES.containsKey(enumValue)) {
+            return SPECIAL_CASES.get(enumValue);
+        }
+
         String result = enumValue;
-        result = result.replaceAll("textORcsv", "TEXT_OR_CSV");
         result = String.join("_", splitOnWordBoundaries(result));
         return StringUtils.upperCase(result);
     }
@@ -64,6 +78,9 @@ public class EnumCasingToV2 extends Recipe {
 
             if (isV2EnumValue(fa)) {
                 String v2Casing = v2Casing(fa.getSimpleName());
+                if (isS3EventsEnum(fa)) {
+                    v2Casing = "S3_" + v2Casing;
+                }
                 ENUMS.add(v2Casing);
                 return fa.withName(fa.getName().withSimpleName(v2Casing));
             }
@@ -96,5 +113,14 @@ public class EnumCasingToV2 extends Recipe {
             }
             return false;
         }
+
+        private boolean isS3EventsEnum(J.FieldAccess fa) {
+            JavaType javaType = fa.getTarget().getType();
+            JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(javaType);
+            return fullyQualified != null && fullyQualified.getClassName().equals("Event")
+                && fullyQualified.getPackageName().equals("software.amazon.awssdk.services.s3.model")
+                && !fa.getSimpleName().startsWith("S3_");
+        }
+
     }
 }

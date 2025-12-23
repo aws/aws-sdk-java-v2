@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.builder;
 import java.net.URI;
 import java.util.List;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -80,10 +79,31 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
     }
 
     /**
-     * Adds a plugin to the client builder. The plugins will be invoked when building the client to allow them to change the
-     * configuration of the built client.
+     * Adds a plugin to the client builder that will modify the client configuration when the client is built.
+     *
+     * <p>Plugins are invoked after all default configuration is applied, allowing them to override SDK defaults.
+     * Multiple plugins can be added and are executed in the order they were added. The configuration changes made
+     * by plugins apply to all requests made by the built client.
+     *
+     * <p><b>Important:</b> Plugin settings have the highest precedence and will override any configuration set directly
+     * on the client builder (e.g., via {@code overrideConfiguration()}).
+     *
+     * <p>Example:
+     * {@snippet :
+     *   SdkPlugin customPlugin = config -> {
+     *       config.endpointOverride(URI.create("https://localhost:8080"))
+     *             .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofSeconds(30)));
+     *   };
+     *
+     *   S3Client client = S3Client.builder()
+     *       .addPlugin(customPlugin)
+     *       .build();
+     * }
+     *
+     * @param plugin the plugin to add
+     * @return this builder for method chaining
+     * @see SdkPlugin
      */
-    @SdkPreviewApi
     default B addPlugin(SdkPlugin plugin) {
         throw new UnsupportedOperationException();
     }
@@ -91,7 +111,6 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
     /**
      * Returns the list of  plugins configured on the client builder.
      */
-    @SdkPreviewApi
     default List<SdkPlugin> plugins() {
         throw new UnsupportedOperationException();
     }

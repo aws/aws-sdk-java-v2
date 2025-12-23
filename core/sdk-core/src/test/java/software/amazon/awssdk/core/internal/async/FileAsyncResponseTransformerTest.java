@@ -44,14 +44,17 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
 
 /**
  * Tests for {@link FileAsyncResponseTransformer}.
@@ -192,7 +195,7 @@ class FileAsyncResponseTransformerTest {
             Files.write(testPath, "foobar".getBytes(StandardCharsets.UTF_8));
         }
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, configuration);
-        stubException(RandomStringUtils.random(200), transformer);
+        stubException(transformer);
         if (configuration.failureBehavior() == LEAVE) {
             assertThat(testPath).exists();
         } else {
@@ -325,18 +328,17 @@ class FileAsyncResponseTransformerTest {
         assertThat(future.isCompletedExceptionally()).isFalse();
     }
 
-    private static void stubException(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
+    private static void stubException(FileAsyncResponseTransformer<String> transformer) throws Exception {
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
 
         RuntimeException runtimeException = new RuntimeException("oops");
-        ByteBuffer content = ByteBuffer.wrap(newContent.getBytes(StandardCharsets.UTF_8));
-        transformer.onStream(SdkPublisher.adapt(Flowable.just(content, content)));
+        transformer.onStream(s -> s.onSubscribe(new NoopSubscription(s)));
         transformer.exceptionOccurred(runtimeException);
 
         assertThat(future).failsWithin(1, TimeUnit.SECONDS)
-            .withThrowableOfType(ExecutionException.class)
-            .withCause(runtimeException);
+                          .withThrowableOfType(ExecutionException.class)
+                          .withCause(runtimeException);
     }
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {

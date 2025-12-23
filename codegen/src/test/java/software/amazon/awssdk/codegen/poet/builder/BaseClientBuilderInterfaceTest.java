@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.builder.BuilderClassTestUtils.validateGeneration;
@@ -47,6 +48,11 @@ public class BaseClientBuilderInterfaceTest {
     public void syncHasCrossRegionAccessEnabledPropertyBuilderClass() {
         validateBaseClientBuilderInterfaceGeneration(composedClientJsonServiceModels(),
                                                      "test-customcontextparams-sync-client-builder-class.java");
+    }
+
+    @Test
+    void baseClientBuilderInterfaceWithMultiAuth() {
+        validateBaseClientBuilderInterfaceGeneration(opsWithSigv4a(), "test-multi-auth-sigv4a-client-builder-interface.java");
     }
 
     private void validateBaseClientBuilderInterfaceGeneration(IntermediateModel model, String expectedClassName) {

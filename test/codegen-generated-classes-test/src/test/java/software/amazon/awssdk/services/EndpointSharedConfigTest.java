@@ -76,6 +76,13 @@ public class EndpointSharedConfigTest {
                                   .append("  endpoint_url = ").append(testCase.serviceProfileSetting).append("\n");
             }
 
+            if (testCase.serviceSectionProfileSetting != null) {
+                profileFileContent.append("services = dev\n\n");
+                profileFileContent.append("[services dev] \n")
+                                  .append("amazonprotocolrestjson =\n")
+                                  .append("  endpoint_url = ").append(testCase.serviceSectionProfileSetting).append("\n");
+            }
+
             ProfileFile profileFile =
                 ProfileFile.builder()
                            .type(ProfileFile.Type.CONFIGURATION)
@@ -119,6 +126,7 @@ public class EndpointSharedConfigTest {
                           "Global system property",
                           "Service environment variable",
                           "Global environment variable",
+                          "Services Section profile file",
                           "Service profile file",
                           "Global profile file");
 
@@ -209,6 +217,7 @@ public class EndpointSharedConfigTest {
                           "https://global-system-property-endpoint.com",
                           "https://service-env-var-endpoint.com",
                           "https://global-env-var-endpoint.com",
+                          "https://service-section-endpoint.com",
                           "https://service-profile-endpoint.com",
                           "https://global-profile-endpoint.com");
 
@@ -219,12 +228,13 @@ public class EndpointSharedConfigTest {
         private final String globalEnvVarSetting;
         private final String serviceProfileSetting;
         private final String globalProfileSetting;
+        private final String serviceSectionProfileSetting;
         private final String caseName;
         private final String expectedEndpoint;
 
         public TestCase(boolean[] settings, Integer expectedEndpointIndex, String caseName) {
             this(endpoint(settings, 0), endpoint(settings, 1), endpoint(settings, 2), endpoint(settings, 3),
-                 endpoint(settings, 4), endpoint(settings, 5), endpoint(settings, 6),
+                 endpoint(settings, 4), endpoint(settings, 5), endpoint(settings, 6), endpoint(settings, 7),
                  endpointForIndex(expectedEndpointIndex), caseName);
         }
 
@@ -244,6 +254,7 @@ public class EndpointSharedConfigTest {
                          String globalSystemPropSetting,
                          String serviceEnvVarSetting,
                          String globalEnvVarSetting,
+                         String serviceSectionProfileSetting,
                          String serviceProfileSetting,
                          String globalProfileSetting,
                          String expectedEndpoint,
@@ -255,6 +266,7 @@ public class EndpointSharedConfigTest {
             this.globalEnvVarSetting = globalEnvVarSetting;
             this.serviceProfileSetting = serviceProfileSetting;
             this.globalProfileSetting = globalProfileSetting;
+            this.serviceSectionProfileSetting = serviceSectionProfileSetting;
             this.expectedEndpoint = expectedEndpoint;
             this.caseName = caseName;
         }

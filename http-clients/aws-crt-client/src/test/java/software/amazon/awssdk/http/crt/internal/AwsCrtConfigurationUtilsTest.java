@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PREF_PQ_TLSv1_0_2021_05;
+import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PQ_DEFAULT;
 import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
 
 import java.time.Duration;
@@ -33,24 +33,18 @@ import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 
 class AwsCrtConfigurationUtilsTest {
-
-    @AfterAll
-    public static void tearDown() {
-        CrtResource.waitForNoResources();
-    }
-
     @ParameterizedTest
     @MethodSource("cipherPreferences")
     void resolveCipherPreference_pqNotSupported_shouldFallbackToSystemDefault(Boolean preferPqTls,
                                                                               TlsCipherPreference tlsCipherPreference) {
-        Assumptions.assumeFalse(TLS_CIPHER_PREF_PQ_TLSv1_0_2021_05.isSupported());
+        Assumptions.assumeFalse(TLS_CIPHER_PQ_DEFAULT.isSupported());
         assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(preferPqTls)).isEqualTo(tlsCipherPreference);
     }
 
     @Test
     void resolveCipherPreference_pqSupported_shouldHonor() {
-        Assumptions.assumeTrue(TLS_CIPHER_PREF_PQ_TLSv1_0_2021_05.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(true)).isEqualTo(TLS_CIPHER_PREF_PQ_TLSv1_0_2021_05);
+        Assumptions.assumeTrue(TLS_CIPHER_PQ_DEFAULT.isSupported());
+        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(true)).isEqualTo(TLS_CIPHER_PQ_DEFAULT);
     }
 
     private static Stream<Arguments> cipherPreferences() {

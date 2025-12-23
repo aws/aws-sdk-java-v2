@@ -24,6 +24,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.security.Permission;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,11 +41,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class ProfileFileSupplierTest {
 
@@ -539,6 +546,72 @@ class ProfileFileSupplierTest {
         supplier.get();
 
         assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_16)
+    void credentialsFileLocation_securityException_returnsEmpty() throws IOException {
+        SecurityManager originalSecurityManager = System.getSecurityManager();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            // Set up security manager that blocks access to credentials file
+            SecurityManager securityManager = new SecurityManager() {
+                @Override
+                public void checkPermission(Permission perm) {
+                    if (perm instanceof java.io.FilePermission) {
+                        String path = perm.getName();
+                        if (path.contains(".aws") && path.contains("credentials")) {
+                            throw new SecurityException("Access to AWS credentials denied");
+                        }
+                    }
+                }
+            };
+
+            System.setSecurityManager(securityManager);
+
+            // Test the method behavior
+            assertThat(ProfileFileLocation.credentialsFileLocation()).isEmpty();
+
+            // Verify logging behavior
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).hasSize(1);
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                .contains("Security restrictions prevented access to profile file: Access to AWS credentials denied");
+        } finally {
+            System.setSecurityManager(originalSecurityManager);
+        }
+    }
+
+    @Test
+    public void defaultSupplier_noCredentialsFiles_returnsEmptyProvider() {
+        EnvironmentVariableHelper.run(environmentVariableHelper -> {
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "no-such-file");
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "no-such-file");
+            ProfileFileSupplier supplier = ProfileFileSupplier.defaultSupplier();
+            assertThat(supplier.get().profiles()).isEmpty();
+        });
+    }
+
+    @Test
+    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() throws IOException {
+        Path credentialsFilePath = getTestCredentialsFilePath();
+        Files.deleteIfExists(credentialsFilePath);
+
+        AdjustableClock clock = new AdjustableClock();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
+            .build();
+
+        assertThat(supplier.get().profiles()).isEmpty();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
+        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+        clock.tickForward(Duration.ofSeconds(10));
+
+        // supplied ProfileFile should refreshed and now have data under the `default` profile
+        Optional<Profile> fileOptional = supplier.get().profile("default");
+        assertThat(fileOptional).isPresent();
     }
 
     private Path writeTestFile(String contents, Path path) {

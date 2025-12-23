@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -30,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
@@ -38,21 +38,24 @@ import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Represents the body of an HTTP request. Must be provided for operations that have a streaming input.
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc).
+ *
+ * <p>
+ * This class is NOT intended to be overridden.
  */
 @SdkPublicApi
-public final class RequestBody {
+public class RequestBody {
 
     // TODO Handle stream management (progress listener, orig input stream tracking, etc
     private final ContentStreamProvider contentStreamProvider;
     private final Long contentLength;
     private final String contentType;
 
-    private RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
+    @SdkInternalApi
+    protected RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
         this.contentStreamProvider = paramNotNull(contentStreamProvider, "contentStreamProvider");
         this.contentLength = contentLength != null ? isNotNegative(contentLength, "Content-length") : null;
         this.contentType = paramNotNull(contentType, "contentType");
@@ -61,7 +64,7 @@ public final class RequestBody {
     /**
      * @return RequestBody as an {@link InputStream}.
      */
-    public ContentStreamProvider contentStreamProvider() {
+    public final ContentStreamProvider contentStreamProvider() {
         return contentStreamProvider;
     }
 
@@ -70,7 +73,7 @@ public final class RequestBody {
      * @return Content length of {@link RequestBody}.
      */
     @Deprecated
-    public long contentLength() {
+    public final long contentLength() {
         validState(this.contentLength != null,
                    "Content length is invalid, please use optionalContentLength() for your case.");
         return contentLength;
@@ -79,14 +82,14 @@ public final class RequestBody {
     /**
      * @return Optional object of content length of {@link RequestBody}.
      */
-    public Optional<Long> optionalContentLength() {
+    public final Optional<Long> optionalContentLength() {
         return Optional.ofNullable(contentLength);
     }
 
     /**
      * @return Content type of {@link RequestBody}.
      */
-    public String contentType() {
+    public final String contentType() {
         return contentType;
     }
 
@@ -116,36 +119,29 @@ public final class RequestBody {
      * Creates a {@link RequestBody} from an input stream. {@value Header#CONTENT_LENGTH} must
      * be provided so that the SDK does not have to make two passes of the data.
      * <p>
-     * The stream will not be closed by the SDK. It is up to to caller of this method to close the stream. The stream
-     * should not be read outside of the SDK (by another thread) as it will change the state of the {@link InputStream} and
+     * The stream will not be closed by the SDK. It is up to caller of this method to close the stream. The stream
+     * should not be read outside the SDK (by another thread) as it will change the state of the {@link InputStream} and
      * could tamper with the sending of the request.
      * <p>
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
+     *
      * <p>
-     * <b>Important:</b> If {@code inputStream} does not support mark and reset, the stream will be buffered.
+     * It is recommended to provide a stream that supports mark and reset for retry. If the stream does not support mark and
+     * reset, an {@link IllegalStateException} will be thrown during retry.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
-     * @param contentLength Content length of data in input stream.
+     * @param contentLength Content length of data in input stream. If a content length smaller than the actual size of the
+     *                      object is set, the client will truncate the stream to the specified content length and only send
+     *                      exactly the number of bytes equal to the content length.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        // NOTE: does not have an effect if mark not supported
-        IoUtils.markStreamWithMaxReadLimit(inputStream);
-        InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        ContentStreamProvider provider;
-        if (nonCloseable.markSupported()) {
-            // stream supports mark + reset
-            provider = () -> {
-                invokeSafely(nonCloseable::reset);
-                return nonCloseable;
-            };
-        } else {
-            // stream doesn't support mark + reset, make sure to buffer it
-            provider = new BufferingContentStreamProvider(() -> nonCloseable, contentLength);
-        }
-        return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+        ContentStreamProvider contentStreamProvider = ContentStreamProvider.fromInputStream(
+            nonCloseableInputStream(inputStream));
+        return fromContentProvider(contentStreamProvider,
+                                   contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -219,22 +215,24 @@ public final class RequestBody {
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
      * <p>
-     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
-     * cause increased memory usage.
-     * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
      * S3's documentation for
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
      * methods</a>.
+     * <p>
+     * If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
+     * specified content length and only send exactly the number of bytes equal to the content length.
      *
      * @param provider The content provider.
-     * @param contentLength The content length.
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
      * @param mimeType The MIME type of the content.
      *
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
-        return new RequestBody(new BufferingContentStreamProvider(provider, contentLength), contentLength, mimeType);
+        return new RequestBody(provider, contentLength, mimeType);
     }
 
     /**
@@ -268,7 +266,7 @@ public final class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
-        return new RequestBody(() -> new ByteArrayInputStream(bytes), (long) bytes.length, mimetype);
+        return new RequestBody(ContentStreamProvider.fromByteArrayUnsafe(bytes), (long) bytes.length, mimetype);
     }
 
     private static InputStream nonCloseableInputStream(InputStream inputStream) {

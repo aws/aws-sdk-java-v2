@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import java.io.File;
@@ -51,5 +52,11 @@ public class ServiceClientConfigurationBuilderSpecTest {
     public void testGeneration() {
         ServiceClientConfigurationBuilderClass spec = new ServiceClientConfigurationBuilderClass(intermediateModel);
         MatcherAssert.assertThat(spec, generatesTo("serviceclientconfiguration-builder.java"));
+    }
+
+    @Test
+    public void testGenerationWithChecksumCalulationEnabled() {
+        ServiceClientConfigurationBuilderClass spec = new ServiceClientConfigurationBuilderClass(restJsonServiceModels());
+        MatcherAssert.assertThat(spec, generatesTo("serviceclientconfiguration-withchecksum-builder.java"));
     }
 }

@@ -31,48 +31,32 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class AwsServiceExceptionSerializationTest {
 
     @Test
-    public void serializeServiceException() throws Exception {
+    public void serializeBasicServiceException() throws Exception {
         AwsServiceException expectedException = createException();
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-        objectOutputStream.writeObject(expectedException);
-        objectOutputStream.flush();
-        objectOutputStream.close();
-
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
-        AwsServiceException resultException = (AwsServiceException) ois.readObject();
-
+        AwsServiceException resultException = serializeServiceException(expectedException);
         assertSameValues(resultException, expectedException);
     }
 
-    private void assertSameValues(AwsServiceException resultException, AwsServiceException expectedException) {
-        assertThat(resultException.getMessage()).isEqualTo(expectedException.getMessage());
-        assertThat(resultException.requestId()).isEqualTo(expectedException.requestId());
-        assertThat(resultException.extendedRequestId()).isEqualTo(expectedException.extendedRequestId());
-        assertThat(resultException.toBuilder().clockSkew()).isEqualTo(expectedException.toBuilder().clockSkew());
-        assertThat(resultException.toBuilder().cause().getMessage()).isEqualTo(expectedException.toBuilder().cause().getMessage());
-        assertThat(resultException.awsErrorDetails()).isEqualTo(expectedException.awsErrorDetails());
+    @Test
+    public void serializeRetryableServiceException() throws Exception {
+        AwsServiceException expectedException = createRetryableServiceException();
+        AwsServiceException resultException = serializeServiceException(expectedException);
+        assertSameValues(resultException, expectedException);
     }
 
+    private void assertSameValues(AwsServiceException result, AwsServiceException expected) {
+        assertThat(result.getMessage()).isEqualTo(expected.getMessage());
+        assertThat(result.requestId()).isEqualTo(expected.requestId());
+        assertThat(result.extendedRequestId()).isEqualTo(expected.extendedRequestId());
+        assertThat(result.toBuilder().clockSkew()).isEqualTo(expected.toBuilder().clockSkew());
+        assertThat(result.toBuilder().cause().getMessage()).isEqualTo(expected.toBuilder().cause().getMessage());
+        assertThat(result.awsErrorDetails()).isEqualTo(expected.awsErrorDetails());
+        assertThat(result.numAttempts()).isEqualTo(expected.numAttempts());
+    }
 
     private AwsServiceException createException() {
-        AbortableInputStream contentStream = AbortableInputStream.create(new StringInputStream("some content"));
-        SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
-                                                          .statusCode(403)
-                                                          .statusText("SomeText")
-                                                          .content(contentStream)
-                                                          .build();
-
-        AwsErrorDetails errorDetails = AwsErrorDetails.builder()
-                                                      .errorCode("someCode")
-                                                      .errorMessage("message")
-                                                      .serviceName("someService")
-                                                      .sdkHttpResponse(httpResponse)
-                                                      .build();
-
         return AwsServiceException.builder()
-                                  .awsErrorDetails(errorDetails)
+                                  .awsErrorDetails(createErrorDetails(403, "SomeText"))
                                   .statusCode(403)
                                   .cause(new RuntimeException("someThrowable"))
                                   .clockSkew(Duration.ofSeconds(2))
@@ -80,5 +64,45 @@ public class AwsServiceExceptionSerializationTest {
                                   .extendedRequestId("extendedRequestId")
                                   .message("message")
                                   .build();
+    }
+
+    private AwsServiceException createRetryableServiceException() {
+        return AwsServiceException.builder()
+                                  .awsErrorDetails(createErrorDetails(429, "Throttling"))
+                                  .statusCode(429)
+                                  .cause(new RuntimeException("someThrowable"))
+                                  .clockSkew(Duration.ofSeconds(2))
+                                  .requestId("requestId")
+                                  .extendedRequestId("extendedRequestId")
+                                  .message("message")
+                                  .numAttempts(3)
+                                  .build();
+    }
+
+    private AwsErrorDetails createErrorDetails(int statusCode, String statusText) {
+        AbortableInputStream contentStream = AbortableInputStream.create(new StringInputStream("some content"));
+        SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
+                                                          .statusCode(statusCode)
+                                                          .statusText(statusText)
+                                                          .content(contentStream)
+                                                          .build();
+
+        return AwsErrorDetails.builder()
+                              .errorCode("someCode")
+                              .errorMessage("message")
+                              .serviceName("someService")
+                              .sdkHttpResponse(httpResponse)
+                              .build();
+    }
+
+    private AwsServiceException serializeServiceException(AwsServiceException exception) throws Exception {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+        objectOutputStream.writeObject(exception);
+        objectOutputStream.flush();
+        objectOutputStream.close();
+
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
+        return (AwsServiceException) ois.readObject();
     }
 }

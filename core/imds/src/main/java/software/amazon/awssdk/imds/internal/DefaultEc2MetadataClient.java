@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
@@ -149,6 +151,19 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         throw sdkClientExceptionBuilder.build();
     }
 
+    private void handleUnsuccessfulResponse(int statusCode, Optional<AbortableInputStream> responseBody,
+                                            HttpExecuteResponse response, Supplier<String> errorMessageSupplier) {
+        String responseContent = responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
+                                             .orElse("");
+
+        throw Ec2MetadataClientException.builder()
+                                        .statusCode(statusCode)
+                                        .sdkHttpResponse(response.httpResponse())
+                                        .rawResponse(SdkBytes.fromUtf8String(responseContent))
+                                        .message(errorMessageSupplier.get())
+                                        .build();
+    }
+
     private Ec2MetadataResponse sendRequest(String path, String token) throws IOException {
 
         HttpExecuteRequest httpExecuteRequest =
@@ -170,12 +185,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
-                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
-            throw SdkClientException
-                .builder()
-                .message(String.format("The requested metadata at path '%s' returned Http code %s", path, statusCode))
-                .build();
+            handleUnsuccessfulResponse(statusCode, responseBody, response,
+                () -> String.format("The requested metadata at path '%s' returned Http code %s", path, statusCode)
+            );
         }
 
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
@@ -219,11 +231,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            response.responseBody().map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
-                    .ifPresent(body -> log.debug(() -> "Token request response body: " + body));
-            throw SdkClientException.builder()
-                                    .message("Could not retrieve token, " + statusCode + " error occurred.")
-                                    .build();
+            handleUnsuccessfulResponse(statusCode, response.responseBody(), response,
+                () -> String.format("Could not retrieve token, %d error occurred", statusCode)
+            );
         }
 
         String ttl = response.httpResponse()

@@ -78,7 +78,8 @@ public final class CrtChecksumUtils {
                                                           RequestChecksumCalculation requestChecksumCalculation) {
 
         if (httpChecksum.requestAlgorithm() == null) {
-            if (requestChecksumCalculation == RequestChecksumCalculation.WHEN_REQUIRED) {
+            if (!httpChecksum.isRequestChecksumRequired() &&
+                requestChecksumCalculation == RequestChecksumCalculation.WHEN_REQUIRED) {
                 return ChecksumAlgorithm.NONE;
             }
             return DEFAULT_CHECKSUM_ALGO;

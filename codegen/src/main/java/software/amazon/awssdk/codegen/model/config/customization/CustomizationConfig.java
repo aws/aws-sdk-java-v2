@@ -211,6 +211,12 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to duplicate and rename an event that is shared
+     * by multiple EventStreams.
+     */
+    private Map<String, Map<String, String>> duplicateAndRenameSharedEvents = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -282,11 +288,6 @@ public class CustomizationConfig {
     private boolean requiredTraitValidationEnabled = false;
 
     /**
-     * Whether SRA based auth logic should be used.
-     */
-    private boolean useSraAuth = true;
-
-    /**
      * Whether to generate auth scheme params based on endpoint params.
      */
     private boolean enableEndpointAuthSchemeParams = false;
@@ -325,13 +326,6 @@ public class CustomizationConfig {
     private String rootPackageName;
 
     /**
-     * Set to true to read from c2j multi-auth values. Currently defaults to false.
-     *
-     * TODO(multi-auth): full multi-auth support is not implemented
-     */
-    private boolean useMultiAuth;
-
-    /**
      * Special case for a service where model changes for endpoint params were not updated .
      * This should be removed once the service updates its models
      */
@@ -356,6 +350,18 @@ public class CustomizationConfig {
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
     private boolean enableFastUnmarshaller;
+
+    /**
+     * A boolean flag to indicate if support for configuring a bearer token sourced from the environment should be added to the
+     * generated service. When enabled, the generated client will use bearer auth with the token sourced from the
+     * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
+     */
+    private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
 
     private CustomizationConfig() {
     }
@@ -661,6 +667,14 @@ public class CustomizationConfig {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 
+    public Map<String, Map<String, String>> getDuplicateAndRenameSharedEvents() {
+        return duplicateAndRenameSharedEvents;
+    }
+
+    public void  setDuplicateAndRenameSharedEvents(Map<String, Map<String, String>> duplicateAndRenameSharedEvents) {
+        this.duplicateAndRenameSharedEvents = duplicateAndRenameSharedEvents;
+    }
+
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
         return underscoresInNameBehavior;
     }
@@ -815,16 +829,6 @@ public class CustomizationConfig {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
     }
 
-    public void setUseSraAuth(boolean useSraAuth) {
-        this.useSraAuth = useSraAuth;
-    }
-
-    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
-    //  useSraAuth==true branch going forward.
-    public boolean useSraAuth() {
-        return useSraAuth;
-    }
-
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
         this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
     }
@@ -891,14 +895,6 @@ public class CustomizationConfig {
         return this;
     }
 
-    public void setUseMultiAuth(boolean useMultiAuth) {
-        this.useMultiAuth = useMultiAuth;
-    }
-
-    public boolean useMultiAuth() {
-        return useMultiAuth;
-    }
-
     public Map<String, ParameterModel> getEndpointParameters() {
         return endpointParameters;
     }
@@ -938,5 +934,21 @@ public class CustomizationConfig {
 
     public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
         this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean isEnableEnvironmentBearerToken() {
+        return enableEnvironmentBearerToken;
+    }
+
+    public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
+        this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
     }
 }

@@ -29,6 +29,7 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 public class ChangeConfigTypesTest implements RewriteTest {
 
@@ -46,7 +47,8 @@ public class ChangeConfigTypesTest implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"));
+        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"))
+            .typeValidationOptions(TypeValidation.all().immutableExecutionContext(false));
     }
 
     @Test
@@ -162,7 +164,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .connectionTimeout(Duration.ofMillis(1000))\n"
                 + "                        .maxConnections(1000))\n"
                 + "                .overrideConfiguration(clientConfiguration)\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "    }\n"
                 + "}"
             )
@@ -216,7 +218,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .connectionTimeout(Duration.ofMillis(3000))\n"
                 + "                        .maxConnections(2000))\n"
                 + "                .overrideConfiguration(clientConfiguration)\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "    }\n"
                 + "}"
             )
@@ -271,7 +273,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                    .connectionTimeout(Duration.ofMillis(3000))\n"
                 + "                    .maxConnections(2000))\n"
                 + "            .overrideConfiguration(CONFIGURATION)\n"
-                + "            .build();\n"
+                + "                                       .build();\n"
                 + "\n"
                 + "    public void test() {\n"
                 + "        SqsClient sqs = SqsClient.builder()\n"
@@ -283,7 +285,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .connectionTimeout(Duration.ofMillis(3000))\n"
                 + "                        .maxConnections(2000))\n"
                 + "                .overrideConfiguration(CONFIGURATION)\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "    }\n"
                 + "}"
             )
@@ -369,7 +371,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .tcpKeepAlive(true)\n"
                 + "                        .maxConnections(1000))\n"
                 + "                .overrideConfiguration(configuration())\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "    }\n"
                 + "}"
             )
@@ -423,7 +425,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .connectionTimeToLive(Duration.ofMillis(1000))\n"
                 + "                        .connectionTimeout(Duration.ofMillis(1000)))\n"
                 + "                .overrideConfiguration(clientConfiguration)\n"
-                + "                .build();\n"
+                + "                                                 .build();\n"
                 + "\n"
                 + "\n"
                 + "    }\n"
@@ -480,13 +482,13 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                        .socketTimeout(Duration.ofMillis(1000))\n"
                 + "                        .maxConnections(100))\n"
                 + "                .overrideConfiguration(clientConfiguration1)\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "\n"
                 + "        SqsClient sqs2 = SqsClient.builder()\n"
                 + "                .httpClientBuilder(ApacheHttpClient.builder()\n"
                 + "                        .connectionTimeout(Duration.ofMillis(2000)))\n"
                 + "                .overrideConfiguration(clientConfiguration2)\n"
-                + "                .build();\n"
+                + "                                       .build();\n"
                 + "    }\n"
                 + "}"
             )

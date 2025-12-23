@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.MET
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +48,9 @@ import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
@@ -62,6 +66,12 @@ class BusinessMetricsUserAgentTest {
     private static final String USER_AGENT_HEADER_NAME = "User-Agent";
     private static final StaticCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    private static final StaticCredentialsProvider CREDENTIALS_PROVIDER_WITH_ACCOUNTID =
+        StaticCredentialsProvider.create(
+            AwsBasicCredentials.builder()
+                               .accessKeyId("akid").secretAccessKey("skid")
+                               .accountId("012345678901")
+                               .build());
 
     @BeforeEach
     public void setup() {
@@ -75,10 +85,10 @@ class BusinessMetricsUserAgentTest {
 
     private static Stream<Arguments> inputValues() {
         return Stream.of(
-            Arguments.of("Default values", null, Arrays.asList("D", "N", "P", "T")),
-            Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Arrays.asList("P", "T")),
-            Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Arrays.asList("Q", "T")),
-            Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Arrays.asList("R", "T"))
+            Arguments.of("Default values", null, Arrays.asList("D", "N", "P")),
+            Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Collections.singletonList("P")),
+            Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Collections.singletonList("Q")),
+            Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Collections.singletonList("R"))
         );
     }
 
@@ -98,6 +108,28 @@ class BusinessMetricsUserAgentTest {
 
         String userAgent = assertAndGetUserAgentString();
         expectedMetrics.forEach(expectedMetric -> assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedMetric)));
+    }
+
+    @Test
+    void when_accountIdNotResolved_noMetricIsAdded() {
+        RestJsonEndpointProvidersAsyncClientBuilder clientBuilder = asyncClientBuilderForEndpointProvider();
+        clientBuilder.credentialsProvider(CREDENTIALS_PROVIDER);
+
+        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("T"));
+    }
+
+    @Test
+    void when_accountIdResolved_correctMetricIsAdded() {
+        RestJsonEndpointProvidersAsyncClientBuilder clientBuilder = asyncClientBuilderForEndpointProvider();
+        clientBuilder.credentialsProvider(CREDENTIALS_PROVIDER_WITH_ACCOUNTID);
+
+        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("T"));
     }
 
     @Test
@@ -132,7 +164,7 @@ class BusinessMetricsUserAgentTest {
     }
 
     @Test
-    void when_compressedOperationIsCalled_metricIsRecordedButNotAddedToUserAgentString() throws Exception {
+    void when_asyncCompressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
         ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
 
         assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
@@ -143,7 +175,22 @@ class BusinessMetricsUserAgentTest {
         BusinessMetricCollection attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         assertThat(attribute).isNotNull();
         assertThat(attribute.recordedMetrics()).contains(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
+    }
+
+    @Test
+    void when_syncCompressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
+        ProtocolRestJsonClientBuilder clientBuilder = syncClientBuilderForProtocolRestJson();
+
+        assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
+            "whoo")).overrideConfiguration(o -> o.compressionConfiguration(c -> c.minimumCompressionThresholdInBytes(1)))))
+            .hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        BusinessMetricCollection attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(attribute).isNotNull();
+        assertThat(attribute.recordedMetrics()).contains(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
     }
 
     private String assertAndGetUserAgentString() {
@@ -166,6 +213,13 @@ class BusinessMetricsUserAgentTest {
                                           .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
     }
 
+    private ProtocolRestJsonClientBuilder syncClientBuilderForProtocolRestJson() {
+        return ProtocolRestJsonClient.builder()
+                                     .region(Region.US_WEST_2)
+                                     .credentialsProvider(CREDENTIALS_PROVIDER)
+                                     .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
+    }
+
     public static class CapturingInterceptor implements ExecutionInterceptor {
         private Context.BeforeTransmission context;
         private ExecutionAttributes executionAttributes;
@@ -181,4 +235,24 @@ class BusinessMetricsUserAgentTest {
             return executionAttributes;
         }
     }
+
+    @Test
+    void validate_serviceUserAgent_format() {
+        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
+
+        ProtocolRestJsonAsyncClient client = clientBuilder
+            .region(Region.US_WEST_2)
+            .credentialsProvider(CREDENTIALS_PROVIDER)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .build();
+
+        client.headOperation();
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).contains("AmazonProtocolRestJson#" + ServiceVersionInfo.VERSION);
+        String version = ServiceVersionInfo.VERSION;
+        assertThat(ServiceVersionInfo.VERSION.endsWith(".x") ||
+                   ServiceVersionInfo.VERSION.endsWith(".x-SNAPSHOT")).isTrue();
+    }
+
 }

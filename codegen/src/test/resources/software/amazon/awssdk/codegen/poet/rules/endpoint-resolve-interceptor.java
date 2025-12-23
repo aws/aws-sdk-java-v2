@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperat
 import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -56,7 +57,8 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             long resolveEndpointStart = System.nanoTime();
-            Endpoint endpoint = provider.resolveEndpoint(ruleParams(result, executionAttributes)).join();
+            QueryEndpointParams endpointParams = ruleParams(result, executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
             Duration resolveEndpointDuration = Duration.ofNanos(System.nanoTime() - resolveEndpointStart);
             Optional<MetricCollector> metricCollector = executionAttributes
                 .getOptionalAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
@@ -76,6 +78,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
+            setMetricValues(endpoint, executionAttributes);
             return result;
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
@@ -167,7 +170,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (v4aAuthScheme.signingRegionSet() != null) {
+                if (!CollectionUtils.isNullOrEmpty(v4aAuthScheme.signingRegionSet())) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
@@ -237,8 +240,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
         String accountId = accountIdFromIdentity(executionAttributes
                                                      .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
-        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
-            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        if (accountId != null) {
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
+                BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        }
         return accountId;
     }
 
@@ -256,5 +261,11 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
             m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
         return mode.name().toLowerCase();
+    }
+
+    private void setMetricValues(Endpoint endpoint, ExecutionAttributes executionAttributes) {
+        if (endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES) != null) {
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(metrics -> endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES).forEach(v -> metrics.addMetric(v)));
+        }
     }
 }

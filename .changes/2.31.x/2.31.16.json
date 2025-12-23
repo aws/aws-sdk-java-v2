@@ -1,0 +1,36 @@
+{
+    "version": "2.31.16",
+    "date": "2025-04-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Directory Service Data",
+            "contributor": "",
+            "description": "Doc only update - fixed broken links."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Updated max size of Prefixes parameter of Scope data type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Doc-only updates for Amazon EC2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Amazon EventBridge adds support for customer-managed keys on Archives and validations for two fields: eventSourceArn and kmsKeyIdentifier."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

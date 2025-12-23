@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -34,8 +34,10 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal client configuration resolver
@@ -51,7 +53,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
-    private final long partSizeInBytes;
+    private final Long partSizeInBytes;
     private final long thresholdInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
@@ -64,6 +66,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final HttpMonitoringOptions httpMonitoringOptions;
     private final Boolean useEnvironmentVariableProxyOptionsValues;
     private final long maxNativeMemoryLimitInBytes;
+    private final Boolean memoryBufferDisabled;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -80,17 +83,13 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             clientTlsContextOptions.withVerifyPeer(!builder.httpConfiguration.trustAllCertificatesEnabled());
         }
         this.tlsContext = new TlsContext(clientTlsContextOptions);
-        this.credentialProviderAdapter =
-            builder.credentialsProvider == null ?
-            new CrtCredentialsProviderAdapter(DefaultCredentialsProvider.create()) :
-            new CrtCredentialsProviderAdapter(builder.credentialsProvider);
+        this.credentialProviderAdapter = new CrtCredentialsProviderAdapter(
+            Validate.paramNotNull(builder.credentialsProvider, "credentialsProvider"));
 
         this.credentialsProvider = credentialProviderAdapter.crtCredentials();
 
-        this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
-                               builder.partSizeInBytes;
-        this.thresholdInBytes = builder.thresholdInBytes == null ? this.partSizeInBytes :
-                                builder.thresholdInBytes;
+        this.partSizeInBytes = builder.partSizeInBytes;
+        this.thresholdInBytes = resolveThresholdInBytes(builder);
         this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
                                       DEFAULT_TARGET_THROUGHPUT_IN_GBPS : builder.targetThroughputInGbps;
 
@@ -100,8 +99,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.endpointOverride = builder.endpointOverride;
 
-        this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
-                                     partSizeInBytes * 10 : builder.readBufferSizeInBytes;
+        this.readBufferSizeInBytes = resolveReadBufferSizeInBytes(builder);
 
         if (builder.httpConfiguration != null) {
             this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
@@ -115,6 +113,23 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+        this.memoryBufferDisabled =
+            builder.advancedOptions == null ? null : builder.advancedOptions.get(CRT_MEMORY_BUFFER_DISABLED);
+    }
+
+    private Long resolveReadBufferSizeInBytes(Builder builder) {
+        if (builder.readBufferSizeInBytes != null) {
+            return builder.readBufferSizeInBytes;
+        }
+        long partSize = this.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES : this.partSizeInBytes;
+        return partSize * 10;
+    }
+
+    private long resolveThresholdInBytes(Builder builder) {
+        if (builder.thresholdInBytes != null) {
+            return builder.thresholdInBytes;
+        }
+        return this.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES : this.partSizeInBytes;
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -161,7 +176,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return tlsContext;
     }
 
-    public long partSizeBytes() {
+    public Long partSizeBytes() {
         return partSizeInBytes;
     }
 
@@ -193,6 +208,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return readBufferSizeInBytes;
     }
 
+    public Boolean memoryBufferDisabled() {
+        return memoryBufferDisabled;
+    }
+
     @Override
     public void close() {
         clientBootstrap.close();
@@ -214,6 +233,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
+
+        private AttributeMap advancedOptions;
 
         private Builder() {
         }
@@ -274,6 +295,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
+            return this;
+        }
+
+        public Builder advancedOptions(AttributeMap advancedOptions) {
+            this.advancedOptions = advancedOptions;
             return this;
         }
     }

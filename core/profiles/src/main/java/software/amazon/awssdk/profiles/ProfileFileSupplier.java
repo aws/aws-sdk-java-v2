@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.profiles;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,7 +39,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
 
     /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects by aggregating the default
-     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} abd
+     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} and
      * {@link ProfileFileLocation#configurationFileLocation()}. This supplier will return a new ProfileFile instance only once
      * either disk file has been modified. Multiple calls to the supplier while both disk files are unchanged will return the
      * same object.
@@ -55,13 +56,15 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
             = ProfileFileLocation.configurationFileLocation()
                                  .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
 
-        ProfileFileSupplier supplier = () -> ProfileFile.builder().build();
+        ProfileFileSupplier supplier;
         if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
             supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
         } else if (credentialsSupplierOptional.isPresent()) {
             supplier = credentialsSupplierOptional.get();
         } else if (configurationSupplierOptional.isPresent()) {
             supplier = configurationSupplierOptional.get();
+        } else {
+            supplier = fixedProfileFile(ProfileFile.empty());
         }
 
         return supplier;
@@ -79,13 +82,17 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
      */
     static ProfileFileSupplier reloadWhenModified(Path path, ProfileFile.Type type) {
         return new ProfileFileSupplier() {
-
-            final ProfileFile.Builder builder = ProfileFile.builder()
-                                                           .content(path)
-                                                           .type(type);
+            Supplier<ProfileFile> profileFileSupplier = () -> {
+                if (Files.isRegularFile(path) && Files.isReadable(path)) {
+                    return ProfileFile.builder()
+                                      .content(path)
+                                      .type(type).build();
+                }
+                return ProfileFile.empty();
+            };
 
             final ProfileFileRefresher refresher = ProfileFileRefresher.builder()
-                                                                       .profileFile(builder::build)
+                                                                       .profileFile(profileFileSupplier)
                                                                        .profileFilePath(path)
                                                                        .build();
 

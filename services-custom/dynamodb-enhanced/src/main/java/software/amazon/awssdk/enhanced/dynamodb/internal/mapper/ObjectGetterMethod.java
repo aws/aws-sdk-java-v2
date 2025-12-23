@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -23,8 +24,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 @SuppressWarnings("unchecked")
 public interface ObjectGetterMethod<BeanT, GetterT> extends Function<BeanT, GetterT> {
-    static <BeanT, GetterT> ObjectGetterMethod<BeanT, GetterT> create(Class<BeanT> beanClass, Method buildMethod) {
+    static <BeanT, GetterT> ObjectGetterMethod<BeanT, GetterT> create(Class<BeanT> beanClass, Method buildMethod,
+                                                                      MethodHandles.Lookup lookup) {
         return LambdaToMethodBridgeBuilder.create(ObjectGetterMethod.class)
+                                          .lookup(lookup)
                                           .lambdaMethodName("apply")
                                           .runtimeLambdaSignature(Object.class, Object.class)
                                           .compileTimeLambdaSignature(buildMethod.getReturnType(), beanClass)

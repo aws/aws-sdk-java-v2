@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -173,14 +174,33 @@ public class S3CrtResponseHandlerAdapterTest {
         when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
 
         responseHandlerAdapter.onFinished(errorContext);
-        Throwable actualException = sdkResponseHandler.error;
-        assertThat(actualException).isInstanceOf(S3Exception.class);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
 
-        assertThat(((S3Exception) actualException).statusCode()).isEqualTo(404);
-        assertThat(((S3Exception) actualException).requestId()).isEqualTo("1234");
-        assertThat(((S3Exception) actualException).extendedRequestId()).isEqualTo("5678");
+        assertThat(exceptionFromResponseHandler).isInstanceOf(S3Exception.class);
+        assertThat(((S3Exception) exceptionFromResponseHandler).statusCode()).isEqualTo(404);
+        assertThat(((S3Exception) exceptionFromResponseHandler).requestId()).isEqualTo("1234");
+        assertThat(((S3Exception) exceptionFromResponseHandler).extendedRequestId()).isEqualTo("5678");
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
 
-        assertThatThrownBy(() -> future.join()).hasRootCause(actualException);
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void requestFailedMidwayDueToIoError_shouldInvokeOnError() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1079, 0, "".getBytes());
+        responseHandlerAdapter.onFinished(errorContext);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
+
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
+        assertThat(exceptionFromResponseHandler).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
         assertThat(future).isCompletedExceptionally();
         verify(s3MetaRequest).close();
     }
@@ -217,6 +237,8 @@ public class S3CrtResponseHandlerAdapterTest {
     private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
         private SdkHttpResponse sdkHttpResponse;
         private Throwable error;
+        private TestSubscriber subscriber = new TestSubscriber();
+
         @Override
         public void onHeaders(SdkHttpResponse headers) {
             this.sdkHttpResponse = headers;
@@ -224,12 +246,21 @@ public class S3CrtResponseHandlerAdapterTest {
 
         @Override
         public void onStream(Publisher<ByteBuffer> stream) {
-            stream.subscribe(new DrainingSubscriber<>());
+            stream.subscribe(subscriber);
         }
 
         @Override
         public void onError(Throwable error) {
             this.error = error;
+        }
+    }
+
+    private static class TestSubscriber extends DrainingSubscriber {
+        private Throwable error;
+        @Override
+        public void onError(Throwable throwable) {
+            error = throwable;
+            super.onError(throwable);
         }
     }
 }

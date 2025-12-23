@@ -33,4 +33,20 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSche
 @Retention(RetentionPolicy.RUNTIME)
 @BeanTableSchemaAttributeTag(VersionRecordAttributeTags.class)
 public @interface DynamoDbVersionAttribute {
+    /**
+     * The starting value for the version attribute.
+     * Default value - {@code 0}.
+     *
+     * @return the starting value
+     */
+    long startAt() default 0;
+
+    /**
+     * The amount to increment the version by with each update.
+     * Default value - {@code 1}.
+     *
+     * @return the increment value
+     */
+    long incrementBy() default 1;
+
 }

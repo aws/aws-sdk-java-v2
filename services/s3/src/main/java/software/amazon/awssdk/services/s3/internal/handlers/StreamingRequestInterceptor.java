@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -29,12 +30,42 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 @SdkInternalApi
 //TODO: This should be generalized for all streaming requests
 public final class StreamingRequestInterceptor implements ExecutionInterceptor {
+
+    private static final String DECODED_CONTENT_LENGTH_HEADER = "x-amz-decoded-content-length";
+    private static final String CONTENT_LENGTH_HEADER = "Content-Length";
+
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        if (context.request() instanceof PutObjectRequest || context.request() instanceof UploadPartRequest) {
+        if (shouldAddExpectContinueHeader(context)) {
             return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }
         return context.httpRequest();
+    }
+
+    private boolean shouldAddExpectContinueHeader(Context.ModifyHttpRequest context) {
+        // Only applies to streaming operations
+        if (!(context.request() instanceof PutObjectRequest
+              || context.request() instanceof UploadPartRequest)) {
+            return false;
+        }
+        return getContentLengthHeader(context.httpRequest())
+            .map(Long::parseLong)
+            .map(length -> length != 0L)
+            .orElse(true);
+    }
+
+    /**
+     * Retrieves content length header value.
+     * Checks x-amz-decoded-content-length first, then falls back to Content-Length.
+     *
+     * @param httpRequest the HTTP request
+     * @return Optional containing the content length header value, or empty if not present
+     */
+    private Optional<String> getContentLengthHeader(SdkHttpRequest httpRequest) {
+        Optional<String> decodedLength = httpRequest.firstMatchingHeader(DECODED_CONTENT_LENGTH_HEADER);
+        return decodedLength.isPresent()
+               ? decodedLength
+               : httpRequest.firstMatchingHeader(CONTENT_LENGTH_HEADER);
     }
 }

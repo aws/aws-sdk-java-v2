@@ -42,6 +42,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.net.SocketTimeoutException;
+import java.security.Permission;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -54,12 +55,15 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -141,13 +145,19 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
+    void testClassName() {
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        assertThat(provider.toString()).contains("InstanceProfileCredentialsProvider");
+    }
+
+    @Test
     void resolveCredentials_usesTokenByDefault() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
     }
 
@@ -159,7 +169,7 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
     }
 
@@ -183,7 +193,7 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentialsIdentity credentialsIdentity = provider.resolveIdentity().join();
         assertThat(credentialsIdentity.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentialsIdentity.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentialsIdentity.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentialsIdentity.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
     }
 
@@ -646,9 +656,44 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
         WireMock.verify(exactly(1), getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_16)
+    void resolveCredentialsFromInstanceProfile_when_defaultProfileHasSecurityException() {
+        SecurityManager originalSecurityManager = System.getSecurityManager();
+        SecurityManager securityManager = new SecurityManager() {
+            @Override
+            public void checkPermission(Permission perm) {
+                if (perm instanceof java.io.FilePermission) {
+                    String path = perm.getName();
+                    if (path.contains(".aws") && path.contains("credentials") &&
+                        (perm.getActions().contains("read") || perm.getActions().contains("execute"))) {
+                        throw new SecurityException("Access to AWS credentials denied");
+                    }
+                }
+            }
+        };
+
+        System.setSecurityManager(securityManager);
+        try {
+            stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+            AwsCredentials credentials = provider.resolveCredentials();
+
+            // Verify credentials are correctly resolved from instance profile
+            assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+            assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+            assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
+
+            // Verify IMDS was called
+            verifyImdsCallWithToken();
+        } finally {
+            System.setSecurityManager(originalSecurityManager);
+        }
     }
 
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {

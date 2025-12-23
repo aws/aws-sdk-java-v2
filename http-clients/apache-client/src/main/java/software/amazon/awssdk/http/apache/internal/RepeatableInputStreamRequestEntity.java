@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * Custom implementation of {@link org.apache.http.HttpEntity} that delegates to an
- * {@link RepeatableInputStreamRequestEntity}, with the one notable difference, that if
+ * {@link InputStreamEntity}, with the one notable difference, that if
  * the underlying InputStream supports being reset, this RequestEntity will
  * report that it is repeatable and will reset the stream on all subsequent
  * attempts to write out the request.

@@ -19,11 +19,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
 import software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -60,12 +62,15 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
      * @param config          The configuration allows the user to customize chunk size and buffer size.
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
-    private AwsSignedChunkedEncodingInputStream(InputStream in, SdkChecksum sdkChecksum,
+    private AwsSignedChunkedEncodingInputStream(InputStream in,
+                                                ChecksumAlgorithm checksumAlgorithm,
+                                                SdkChecksum sdkChecksum,
+                                                PayloadChecksumStore checksumStore,
                                                 String checksumHeaderForTrailer,
                                                 String headerSignature,
                                                 AwsChunkSigner chunkSigner,
                                                 AwsChunkedEncodingConfig config) {
-        super(in, sdkChecksum, checksumHeaderForTrailer, config);
+        super(in, checksumAlgorithm, sdkChecksum, checksumStore, checksumHeaderForTrailer, config);
         this.chunkSigner = chunkSigner;
         this.previousChunkSignature = headerSignature;
         this.headerSignature = headerSignature;
@@ -103,9 +108,14 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
 
         public AwsSignedChunkedEncodingInputStream build() {
 
-            return new AwsSignedChunkedEncodingInputStream(this.inputStream, this.sdkChecksum, this.checksumHeaderForTrailer,
+            return new AwsSignedChunkedEncodingInputStream(this.inputStream,
+                                                           this.checksumAlgorithm,
+                                                           this.sdkChecksum,
+                                                           this.checksumStore,
+                                                           this.checksumHeaderForTrailer,
                                                            this.headerSignature,
-                                                           this.awsChunkSigner, this.awsChunkedEncodingConfig);
+                                                           this.awsChunkSigner,
+                                                           this.awsChunkedEncodingConfig);
         }
     }
 

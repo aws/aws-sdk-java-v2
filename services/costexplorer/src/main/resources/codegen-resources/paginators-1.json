@@ -1,5 +1,35 @@
 {
   "pagination": {
+    "GetAnomalies": {
+      "input_token": "NextPageToken",
+      "output_token": "NextPageToken",
+      "limit_key": "MaxResults",
+      "result_key": "Anomalies"
+    },
+    "GetAnomalyMonitors": {
+      "input_token": "NextPageToken",
+      "output_token": "NextPageToken",
+      "limit_key": "MaxResults",
+      "result_key": "AnomalyMonitors"
+    },
+    "GetAnomalySubscriptions": {
+      "input_token": "NextPageToken",
+      "output_token": "NextPageToken",
+      "limit_key": "MaxResults",
+      "result_key": "AnomalySubscriptions"
+    },
+    "GetCostAndUsageComparisons": {
+      "input_token": "NextPageToken",
+      "output_token": "NextPageToken",
+      "limit_key": "MaxResults",
+      "result_key": "CostAndUsageComparisons"
+    },
+    "GetCostComparisonDrivers": {
+      "input_token": "NextPageToken",
+      "output_token": "NextPageToken",
+      "limit_key": "MaxResults",
+      "result_key": "CostComparisonDrivers"
+    },
     "GetSavingsPlansCoverage": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -13,17 +43,26 @@
     "ListCostAllocationTagBackfillHistory": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults"
+      "limit_key": "MaxResults",
+      "result_key": "BackfillRequests"
     },
     "ListCostAllocationTags": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults"
+      "limit_key": "MaxResults",
+      "result_key": "CostAllocationTags"
     },
     "ListCostCategoryDefinitions": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults"
+      "limit_key": "MaxResults",
+      "result_key": "CostCategoryReferences"
+    },
+    "ListCostCategoryResourceAssociations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "CostCategoryResourceAssociations"
     }
   }
 }

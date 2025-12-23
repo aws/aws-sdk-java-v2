@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.ec2.transform.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_NAME;
+
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -59,6 +62,7 @@ public class GeneratePreSignUrlInterceptorTest {
 
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("foo", "bar"));
+        attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
 
         SdkHttpRequest modifiedRequest = INTERCEPTOR.modifyHttpRequest(mockContext, attrs);
 
@@ -82,8 +86,8 @@ public class GeneratePreSignUrlInterceptorTest {
                 "&X-Amz-Algorithm=AWS4-HMAC-SHA256" +
                 "&X-Amz-Date=20200107T205609Z" +
                 "&X-Amz-SignedHeaders=host" +
-                "&X-Amz-Expires=604800" +
                 "&X-Amz-Credential=akid%2F20200107%2Fus-west-2%2Fec2%2Faws4_request" +
+                "&X-Amz-Expires=604800" +
                 "&X-Amz-Signature=c1f5e34834292a86ff2b46b5e97cebaf2967b09641b4e2e60a382a37d137a03b";
 
         ZoneId utcZone = ZoneId.of("UTC").normalized();
@@ -111,6 +115,7 @@ public class GeneratePreSignUrlInterceptorTest {
 
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("akid", "skid"));
+        attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
 
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(mockContext, attrs);
 

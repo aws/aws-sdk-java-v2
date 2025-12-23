@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.squareup.javapoet.ClassName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class JmesPathAcceptorGeneratorTest {
     private JmesPathAcceptorGenerator acceptorGenerator;
@@ -42,9 +44,10 @@ class JmesPathAcceptorGeneratorTest {
     @Test
     void testEcsComplexExpression() {
         testConversion("length(services[?!(length(deployments) == `1` && runningCount == desiredCount)]) == `0`",
-                       "input.field(\"services\").filter(x0 -> x0.constant(x0.field(\"deployments\").length().compare(\"==\", "
-                       + "x0.constant(1)).and(x0.field(\"runningCount\").compare(\"==\", x0.field(\"desiredCount\"))).not()))"
-                       + ".length().compare(\"==\", input.constant(0))");
+                       "input.field(\"services\").filter(x0 -> x0.constant(x0.field(\"deployments\")"
+                       + ".length().compare(\"==\", x0.constant(new java.math.BigDecimal(\"1\")))"
+                       + ".and(x0.field(\"runningCount\").compare(\"==\", x0.field(\"desiredCount\")))"
+                       + ".not())).length().compare(\"==\", input.constant(new java.math.BigDecimal(\"0\")))");
     }
 
     @Test
@@ -324,6 +327,24 @@ class JmesPathAcceptorGeneratorTest {
     @Test
     void testNegativeNumber() {
         testConversion("foo[-10]", "input.field(\"foo\").index(-10)");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "123132.81289319837183771465876127837183719837123, 123132.81289319837183771465876127837183719837123",
+        "42,                    42",
+        "127,                   127",
+        "32767,                 32767",
+        "9223372036854775807,   9223372036854775807",
+        "42.5,                  42.5",
+        "-42,                   -42",
+        "0,                     0",
+        "1e-10,                 1E-10"
+    })
+    void testNumericValues(String input, String expectedNumber) {
+        String jmesPath = String.format("value == `%s`", input);
+        String expected = String.format("input.field(\"value\").compare(\"==\", input.constant(new java.math.BigDecimal(\"%s\")))", expectedNumber);
+        testConversion(jmesPath, expected);
     }
 
     private void testConversion(String jmesPathString, String expectedCode) {
