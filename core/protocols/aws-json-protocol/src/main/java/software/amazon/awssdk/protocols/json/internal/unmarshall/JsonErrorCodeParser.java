@@ -92,10 +92,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
 
     private String parseErrorCodeFromXAmzErrorType(String headerValue) {
         if (headerValue != null) {
-            int separator = headerValue.indexOf(':');
-            if (separator != -1) {
-                headerValue = headerValue.substring(0, separator);
-            }
+            return parseErrorCode(headerValue);
         }
         return headerValue;
     }
@@ -119,30 +116,14 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         if (errorCodeField == null) {
             return null;
         }
-        String code = errorCodeField.text();
-        // now extract the error code from the field contents following the smithy defined rules:
-        // 1) If a : character is present, then take only the contents before the first : character in the value.
-        // 2) If a # character is present, then take only the contents after the first # character in the value.
-        // see: https://smithy.io/2.0/aws/protocols/aws-json-1_1-protocol.html#operation-error-serialization
-        int start = 0;
-        int end = code.length();
-
-        // 1 - everything before the first ':'
-        int colonIndex = code.indexOf(':');
-        if (colonIndex >= 0) {
-            end = colonIndex;
-        }
-
-        // 2 - everything after the first '#'
-        int hashIndex = code.indexOf('#');
-        if (hashIndex >= 0 && hashIndex + 1 < end) {
-            start = hashIndex + 1;
-        }
-
-        return code.substring(start, end);
+        return parseErrorCode(errorCodeField.text());
     }
 
-    public static String parseErrorCode(String value) {
+    // Extract the error code from the error code contents following the smithy defined rules:
+    // 1) If a : character is present, then take only the contents before the first : character in the value.
+    // 2) If a # character is present, then take only the contents after the first # character in the value.
+    // see: https://smithy.io/2.0/aws/protocols/aws-json-1_1-protocol.html#operation-error-serialization
+    private static String parseErrorCode(String value) {
         if (value == null || value.isEmpty()) {
             return value;
         }
@@ -150,19 +131,19 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         int start = 0;
         int end = value.length();
 
-        // Step 1: everything before the first ':'
+        // 1 - everything before the first ':'
         int colonIndex = value.indexOf(':');
         if (colonIndex >= 0) {
             end = colonIndex;
         }
 
-        // Step 2: everything after the first '#'
+        // 2 - everything after the first '#'
         int hashIndex = value.indexOf('#');
         if (hashIndex >= 0 && hashIndex + 1 < end) {
             start = hashIndex + 1;
         }
 
-        // Fast-path: return original string if unchanged
+        // return original string if unchanged
         if (start == 0 && end == value.length()) {
             return value;
         }
