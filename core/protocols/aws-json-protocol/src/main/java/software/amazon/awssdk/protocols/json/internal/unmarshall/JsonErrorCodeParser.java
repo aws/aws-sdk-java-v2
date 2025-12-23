@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -37,15 +38,18 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
 
     static final String EXCEPTION_TYPE_HEADER = ":exception-type";
 
+    static final List<String> ERROR_CODE_FIELDS = Collections.unmodifiableList(Arrays.asList("__type", "code"));
+
     /**
      * List of header keys that represent the error code sent by service.
      * Response should only contain one of these headers
      */
     private final List<String> errorCodeHeaders;
-    private final String errorCodeFieldName;
+    private final List<String> errorCodeFieldNames;
 
-    public JsonErrorCodeParser(String errorCodeFieldName) {
-        this.errorCodeFieldName = errorCodeFieldName == null ? "__type" : errorCodeFieldName;
+    public JsonErrorCodeParser(String customErrorCodeFieldName) {
+        this.errorCodeFieldNames = customErrorCodeFieldName == null ?
+                                   ERROR_CODE_FIELDS : Collections.singletonList(customErrorCodeFieldName);
         this.errorCodeHeaders = Arrays.asList(X_AMZN_ERROR_TYPE, ERROR_CODE_HEADER, EXCEPTION_TYPE_HEADER);
     }
 
@@ -106,12 +110,63 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         if (jsonContents == null) {
             return null;
         }
-        JsonNode errorCodeField = jsonContents.field(errorCodeFieldName).orElse(null);
+        JsonNode errorCodeField = errorCodeFieldNames.stream()
+                                                     .map(jsonContents::field)
+                                                     .filter(Optional::isPresent)
+                                                     .map(Optional::get)
+                                                     .findFirst()
+                                                     .orElse(null);
         if (errorCodeField == null) {
             return null;
         }
         String code = errorCodeField.text();
-        int separator = code.lastIndexOf('#');
-        return code.substring(separator + 1);
+        // now extract the error code from the field contents following the smithy defined rules:
+        // 1) If a : character is present, then take only the contents before the first : character in the value.
+        // 2) If a # character is present, then take only the contents after the first # character in the value.
+        // see: https://smithy.io/2.0/aws/protocols/aws-json-1_1-protocol.html#operation-error-serialization
+        int start = 0;
+        int end = code.length();
+
+        // 1 - everything before the first ':'
+        int colonIndex = code.indexOf(':');
+        if (colonIndex >= 0) {
+            end = colonIndex;
+        }
+
+        // 2 - everything after the first '#'
+        int hashIndex = code.indexOf('#');
+        if (hashIndex >= 0 && hashIndex + 1 < end) {
+            start = hashIndex + 1;
+        }
+
+        return code.substring(start, end);
+    }
+
+    public static String parseErrorCode(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+
+        int start = 0;
+        int end = value.length();
+
+        // Step 1: everything before the first ':'
+        int colonIndex = value.indexOf(':');
+        if (colonIndex >= 0) {
+            end = colonIndex;
+        }
+
+        // Step 2: everything after the first '#'
+        int hashIndex = value.indexOf('#');
+        if (hashIndex >= 0 && hashIndex + 1 < end) {
+            start = hashIndex + 1;
+        }
+
+        // Fast-path: return original string if unchanged
+        if (start == 0 && end == value.length()) {
+            return value;
+        }
+
+        return value.substring(start, end);
     }
 }
