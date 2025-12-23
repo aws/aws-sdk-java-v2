@@ -118,6 +118,45 @@ public final class PresignedUrlDownloadRequest
 }
 ```
 
+## Transfer Manager Integration
+
+The S3TransferManager extends support for presigned URL downloads, providing high-level benefits like progress tracking and multipart optimization while building on the existing AsyncPresignedUrlExtension infrastructure.
+
+### New Transfer Manager APIs
+
+```java
+// File-based presigned URL download
+FileDownload download = transferManager.downloadFileWithPresignedUrl(
+    PresignedDownloadFileRequest.builder()
+        .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
+            .presignedUrl(presignedUrl)
+            .build())
+        .destination(Paths.get("downloaded-file.txt"))
+        .addTransferListener(LoggingTransferListener.create())
+        .build());
+
+// Generic download with custom response transformer
+Download<ResponseBytes<GetObjectResponse>> download = transferManager.downloadWithPresignedUrl(
+    PresignedDownloadRequest.builder()
+        .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
+            .presignedUrl(presignedUrl)
+            .build())
+        .responseTransformer(AsyncResponseTransformer.toBytes())
+        .build());
+```
+
+### Key Features
+
+- **Progress Tracking**: Full TransferListener support with bytesTransferred callbacks
+- **Multipart Downloads**: Automatic multipart for large objects using HTTP Range headers
+- **Consistent API**: Same FileDownload/Download return types as regular transfers
+- **Error Handling**: Comprehensive validation of Content-Range headers and response integrity
+
+### Limitations
+
+- **No Pause/Resume**: Presigned URL downloads do not support pause/resume functionality due to URL expiration and authentication constraints
+- **S3CrtTransferManager**: Not supported due to signing conflicts with presigned URLs
+
 ## FAQ
 
 ### Why don't we implement presigned URL download/GET feature directly on the S3AsyncClient?
