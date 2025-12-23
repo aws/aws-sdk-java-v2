@@ -3,6 +3,7 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+    - Remove `elastictranscoder`.
 
 ## __Amazon Location Service Places V2__
   - ### Features

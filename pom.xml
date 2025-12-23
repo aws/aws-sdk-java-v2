@@ -1300,10 +1300,6 @@
                                     <packages>software.amazon.awssdk.services.elasticache*</packages>
                                 </group>
                                 <group>
-                                    <title>Elastic Transcoder</title>
-                                    <packages>software.amazon.awssdk.services.elastictranscoder*</packages>
-                                </group>
-                                <group>
                                     <title>CloudFormation</title>
                                     <packages>software.amazon.awssdk.services.cloudformation*</packages>
                                 </group>

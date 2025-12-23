@@ -65,7 +65,6 @@
         <module>elasticloadbalancing</module>
         <module>elasticloadbalancingv2</module>
         <module>elasticsearch</module>
-        <module>elastictranscoder</module>
         <module>emr</module>
         <module>cloudwatchevents</module>
         <module>gamelift</module>
