@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adds links to AWS Code Library examples in package summary documentation and to individual methods documentation in Java SDK API Reference guide."
+}

@@ -19,8 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 
@@ -28,28 +32,36 @@ public class OperationDocProviderTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
 
-    @AfterEach
-    void cleanupCache() {
+    @AfterAll
+    static void cleanupCache() {
         ExampleMetadataProvider.clearCache();
     }
 
-    @Test
-    public void exampleMetadataService_createLinkToCodeExample_withValidExample_returnsCorrectLink() {
+    @ParameterizedTest
+    @MethodSource("createLinkToCodeExampleTestCases")
+    public void exampleMetadataService_createLinkToCodeExample_returnsExpectedResult(
+            String serviceName, String operationName, String expectedUrl) {
         ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
 
-        Optional<String> result = provider.createLinkToCodeExample(createTestMetadata("s3"), "GetObject");
+        Optional<String> result = provider.createLinkToCodeExample(createTestMetadata(serviceName), operationName);
 
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo("<a href=\"https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_GetObject_section.html\" target=\"_top\">Code Example</a>");
+        if (expectedUrl == null) {
+            assertThat(result).isEmpty();
+        } else {
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", expectedUrl));
+        }
     }
 
-    @Test
-    public void exampleMetadataService_createLinkToCodeExample_withNonExistentExample_returnsEmpty() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        Optional<String> result = provider.createLinkToCodeExample(createTestMetadata("s3"), "NonExistentOperation");
-
-        assertThat(result).isEmpty();
+    private static Stream<Arguments> createLinkToCodeExampleTestCases() {
+        return Stream.of(
+                Arguments.of("s3", "GetObject",
+                        "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_GetObject_section.html"),
+                Arguments.of("medicalimaging", "GetImageSet",
+                        "https://docs.aws.amazon.com/code-library/latest/ug/medical-imaging_example_medical-imaging_GetImageSet_section.html"),
+                Arguments.of("s3", "NonExistentOperation", null),
+                Arguments.of("nonexistent-service", "GetObject", null)
+        );
     }
 
     @Test
@@ -69,25 +81,6 @@ public class OperationDocProviderTest {
             .as("getInstance should reject null paths")
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("exampleMetaPath cannot be null");
-    }
-
-    @Test
-    public void exampleMetadataService_createLinkToCodeExample_withMedicalImagingService_returnsCorrectLink() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        Optional<String> result = provider.createLinkToCodeExample(createTestMetadata("medicalimaging"), "GetImageSet");
-
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo("<a href=\"https://docs.aws.amazon.com/code-library/latest/ug/medical-imaging_example_medical-imaging_GetImageSet_section.html\" target=\"_top\">Code Example</a>");
-    }
-
-    @Test
-    public void exampleMetadataService_createLinkToCodeExample_withNonExistentService_returnsEmpty() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        Optional<String> result = provider.createLinkToCodeExample(createTestMetadata("nonexistent-service"), "GetObject");
-
-        assertThat(result).isEmpty();
     }
 
     private Metadata createTestMetadata(String serviceName) {

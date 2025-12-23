@@ -2,7 +2,7 @@
  * Test service documentation.
  *
  * <h2>Code Examples</h2>
- * <p>The following code examples show how to use this service with the AWS SDK for Java v2:</p>
+ * <p>For code examples demonstrating how to use this service with the AWS SDK for Java v2, see:</p>
  * <h3>Getting Started</h3>
  * <ul>
  * <li><a href="https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_HelloS3_section.html" target="_top">Hello Amazon S3</a></li>

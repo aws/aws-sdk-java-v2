@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
 import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Emits the package-info.java for the base service package. Includes the service
@@ -126,7 +127,7 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
         
         StringBuilder javadoc = new StringBuilder();
         javadoc.append("<h2>Code Examples</h2>").append(System.lineSeparator());
-        javadoc.append("<p>The following code examples show how to use this service with the AWS SDK for Java v2:</p>")
+        javadoc.append("<p>For code examples demonstrating how to use this service with the AWS SDK for Java v2, see:</p>")
                .append(System.lineSeparator());
 
         appendPredefinedCategories(javadoc, categorizedExamples, CATEGORY_DISPLAY_MAPPING);
@@ -189,7 +190,7 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
                                         String category,
                                         String displayName) {
         List<ExampleMetadataProvider.ExampleData> categoryExamples = categorizedExamples.get(category);
-        if (categoryExamples != null && !categoryExamples.isEmpty()) {
+        if (!CollectionUtils.isNullOrEmpty(categoryExamples)) {
             appendCategorySection(javadoc, displayName, categoryExamples);
         }
     }

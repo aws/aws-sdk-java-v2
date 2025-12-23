@@ -90,15 +90,10 @@ public final class ExampleMetadataProvider {
                 return Optional.empty();
             }
 
-            String url = findExampleUrl(actualServiceKey, operationName);
-
-            if (url != null) {
-                return Optional.of(String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url));
-            }
-
-            return Optional.empty();
+            return findExampleUrl(actualServiceKey, operationName)
+                    .map(url -> String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url));
         } catch (RuntimeException e) {
-            log.debug(() -> "Failed to create code example link for "
+            log.error(() -> "Failed to create code example link for "
                             + metadata.getServiceName() + "." + operationName, e);
             return Optional.empty();
         }
@@ -112,7 +107,7 @@ public final class ExampleMetadataProvider {
     /**
      * Finds the URL for a code example given the service key and operation name.
      */
-    private String findExampleUrl(String serviceKey, String operationName) {
+    private Optional<String> findExampleUrl(String serviceKey, String operationName) {
         JsonNode serviceNode = serviceNodeCache.getValue().get(serviceKey);
 
         if (serviceNode != null) {
@@ -120,7 +115,7 @@ public final class ExampleMetadataProvider {
             return findOperationUrl(serviceNode, targetExampleId);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -197,7 +192,7 @@ public final class ExampleMetadataProvider {
     /**
      * Finds the URL for a specific operation ID within a service node.
      */
-    private String findOperationUrl(JsonNode serviceNode, String targetExampleId) {
+    private Optional<String> findOperationUrl(JsonNode serviceNode, String targetExampleId) {
         JsonNode examplesNode = serviceNode.field("examples").orElse(null);
         if (examplesNode != null && examplesNode.isArray()) {
             for (JsonNode example : examplesNode.asArray()) {
@@ -207,12 +202,12 @@ public final class ExampleMetadataProvider {
                 if (idNode != null && urlNode != null) {
                     String id = idNode.asString();
                     if (targetExampleId.equals(id)) {
-                        return urlNode.asString();
+                        return Optional.of(urlNode.asString());
                     }
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
     
     /**

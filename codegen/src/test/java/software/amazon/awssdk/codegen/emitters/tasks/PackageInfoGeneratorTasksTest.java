@@ -21,8 +21,11 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServi
 import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -32,92 +35,70 @@ public class PackageInfoGeneratorTasksTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
 
-    @AfterEach
-    void cleanupCache() {
+    @AfterAll
+    static void cleanupCache() {
         ExampleMetadataProvider.clearCache();
     }
 
-    @Test
-    public void exampleMetadataService_withExamples_returnsCorrectExamples() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
+    @ParameterizedTest
+    @MethodSource("getServiceCodeExamplesTestCases")
+    public void exampleMetadataService_getServiceCodeExamples_returnsExpectedResult(
+            String metadataPath, String serviceName,
+            Integer expectedSize, String expectedFirstTitle, String expectedFirstCategory, String expectedFirstUrl) {
+        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(metadataPath);
 
-        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata("s3"));
+        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata(serviceName));
 
-        assertThat(result).hasSize(5);
-        assertThat(result.get(0).getTitle()).isEqualTo("Get an object from a bucket");
-        assertThat(result.get(0).getCategory()).isEqualTo("Api");
-        assertThat(result.get(0).getUrl()).contains("s3_example_s3_GetObject_section.html");
+        if (expectedSize == null || expectedSize == 0) {
+            assertThat(result).isEmpty();
+        } else {
+            assertThat(result).hasSize(expectedSize);
+            if (expectedFirstTitle != null) {
+                assertThat(result.get(0).getTitle()).isEqualTo(expectedFirstTitle);
+            }
+            if (expectedFirstCategory != null) {
+                assertThat(result.get(0).getCategory()).isEqualTo(expectedFirstCategory);
+            }
+            if (expectedFirstUrl != null) {
+                assertThat(result.get(0).getUrl()).isEqualTo(expectedFirstUrl);
+            }
+        }
     }
 
-    @Test
-    public void exampleMetadataService_withoutExamples_returnsEmptyList() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata("empty-service"));
-
-        assertThat(result).isEmpty();
+    private static Stream<Arguments> getServiceCodeExamplesTestCases() {
+        return Stream.of(
+                Arguments.of(TEST_EXAMPLE_META_PATH, "s3",
+                        5, "Get an object from a bucket", "Api", 
+                        "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_GetObject_section.html"),
+                Arguments.of(TEST_EXAMPLE_META_PATH, "medicalimaging",
+                        1, "Get image set properties", "Api", 
+                        "https://docs.aws.amazon.com/code-library/latest/ug/medical-imaging_example_medical-imaging_GetImageSet_section.html"),
+                Arguments.of(TEST_EXAMPLE_META_PATH, "empty-service",
+                        0, null, null, null),
+                Arguments.of(TEST_EXAMPLE_META_PATH, "nonexistent",
+                        0, null, null, null),
+                Arguments.of("nonexistent/path.json", "s3",
+                        0, null, null, null)
+        );
     }
 
-    @Test
-    public void exampleMetadataService_withNonExistentService_returnsEmptyList() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata("nonexistent"));
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    public void exampleMetadataService_withMissingExampleFile_returnsEmptyList() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance("nonexistent/path.json");
-
-        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata("s3"));
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    public void exampleMetadataService_withMedicalImagingService_returnsCorrectExamples() {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-
-        List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata("medicalimaging"));
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getTitle()).isEqualTo("Get image set properties");
-        assertThat(result.get(0).getCategory()).isEqualTo("Api");
-        assertThat(result.get(0).getUrl()).contains("medical-imaging_example_medical-imaging_GetImageSet_section.html");
-    }
-
-    @Test
-    public void buildPackageInfoContent_withS3Examples_generatesExpectedContent() {
-        String actualContent = generatePackageInfoContent("s3");
-        String expectedContent = loadFixtureFile("s3-package-info.java");
+    @ParameterizedTest
+    @MethodSource("buildPackageInfoContentTestCases")
+    public void buildPackageInfoContent_generatesExpectedContent(
+            String serviceName, String expectedFixtureFile) {
+        String actualContent = generatePackageInfoContent(serviceName);
+        String expectedContent = loadFixtureFile(expectedFixtureFile);
 
         assertThat(actualContent).isEqualToIgnoringWhitespace(expectedContent);
     }
 
-    @Test
-    public void buildPackageInfoContent_withMedicalImagingExamples_generatesExpectedContent() {
-        String actualContent = generatePackageInfoContent("medicalimaging");
-        String expectedContent = loadFixtureFile("medical-imaging-package-info.java");
-
-        assertThat(actualContent).isEqualToIgnoringWhitespace(expectedContent);
-    }
-
-    @Test
-    public void buildPackageInfoContent_withNoExamples_generatesContentWithoutCodeExamples() {
-        String actualContent = generatePackageInfoContent("empty-service");
-        String expectedContent = loadFixtureFile("empty-service-package-info.java");
-
-        assertThat(actualContent).isEqualToIgnoringWhitespace(expectedContent);
-    }
-
-    @Test
-    public void buildPackageInfoContent_withNonExistentService_generatesContentWithoutCodeExamples() {
-        String actualContent = generatePackageInfoContent("nonexistent");
-        String expectedContent = loadFixtureFile("empty-service-package-info.java");
-
-        assertThat(actualContent).isEqualToIgnoringWhitespace(expectedContent);
+    private static Stream<Arguments> buildPackageInfoContentTestCases() {
+        return Stream.of(
+                Arguments.of("s3", "s3-package-info.java"),
+                Arguments.of("medicalimaging", "medical-imaging-package-info.java"),
+                Arguments.of("empty-service", "empty-service-package-info.java"),
+                Arguments.of("nonexistent", "empty-service-package-info.java")
+        );
     }
     
     private PackageInfoGeneratorTasks createTestGenerator() {
