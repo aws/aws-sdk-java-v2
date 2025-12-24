@@ -1,4 +1,47 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.15__ __2025-12-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Remove `elastictranscoder`.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Adds support for InferredSecondaryAddress place type, Designator in SecondaryAddressComponent and Heading in ReverseGeocode.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This release adds support for the Registration Reviewer feature, which provides generative AI feedback on a phone number or sender ID registration to ensure completeness before sending to downstream (carrier) review.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add additional validation to Outpost bucket names.
+
+# __2.40.14__ __2025-12-22__
+## __AWS Config__
+  - ### Features
+    - Added supported resourceTypes for Config from July to November 2025
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Change API Reference Documentation for default Mode in Accounting and SlurmRest
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for linkedGroupId on the CreatePlacementGroup and DescribePlacementGroups APIs. The linkedGroupId parameter is reserved for future use.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw.
+
 # __2.40.13__ __2025-12-19__
 ## __ARC - Region switch__
   - ### Features
@@ -13,10 +56,10 @@
     - Updated endpoint and partition metadata.
 
   - ### Bugfixes
+    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
     - Fix credential reloading in defaults when shared credential/config files are modified.
     - Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified.
     - Optimize endpoint rule standard functions
-    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
 
 ## __AWS Wickr Admin API__
   - ### Features
