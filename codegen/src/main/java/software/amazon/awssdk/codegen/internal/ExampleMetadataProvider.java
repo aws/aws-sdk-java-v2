@@ -203,25 +203,33 @@ public final class ExampleMetadataProvider {
 
         if (examplesNode != null && examplesNode.isArray()) {
             for (JsonNode example : examplesNode.asArray()) {
-                JsonNode idNode = example.field("id").orElse(null);
-                JsonNode titleNode = example.field("title").orElse(null);
-                JsonNode categoryNode = example.field("category").orElse(null);
-                JsonNode urlNode = example.field("url").orElse(null);
-
-                if (idNode != null && titleNode != null && urlNode != null) {
-                    String id = idNode.asString();
-                    String title = titleNode.asString();
-                    String category = categoryNode != null ? categoryNode.asString() : "Api";
-                    String url = urlNode.asString();
-                    
-                    if (!id.isEmpty() && !title.isEmpty() && !url.isEmpty()) {
-                        examples.add(new ExampleData(id, title, category, url));
-                    }
-                }
+                createExampleData(example).ifPresent(examples::add);
             }
         }
         
         return examples;
+    }
+
+    private Optional<ExampleData> createExampleData(JsonNode example) {
+        JsonNode idNode = example.field("id").orElse(null);
+        JsonNode titleNode = example.field("title").orElse(null);
+        JsonNode categoryNode = example.field("category").orElse(null);
+        JsonNode urlNode = example.field("url").orElse(null);
+
+        if (idNode == null || titleNode == null || urlNode == null) {
+            return Optional.empty();
+        }
+
+        String id = idNode.asString();
+        String title = titleNode.asString();
+        String category = categoryNode != null ? categoryNode.asString() : "Api";
+        String url = urlNode.asString();
+        
+        if (id.isEmpty() || title.isEmpty() || url.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        return Optional.of(new ExampleData(id, title, category, url));
     }
 
     public static final class ExampleData {
