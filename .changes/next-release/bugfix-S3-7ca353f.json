@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3",
-    "contributor": "",
-    "description": "Fixed single-byte `read()` on empty S3 objects returning checksum metadata instead of EOF"
-}
