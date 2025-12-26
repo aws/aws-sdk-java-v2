@@ -1,9 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.40.15__ __2025-12-23__
+# __2.40.16__ __2025-12-26__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports Pipeline Locking using Video Alignment as well as linked single pipeline channels to enable cross-channel and cross-region Pipeline Locking workflows.
+
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Update native image resource-config.json to stop including .class files in the native image. See [#6582](https://github.com/aws/aws-sdk-java-v2/issues/6582)
+
+## __S3__
+  - ### Bugfixes
+    - Fixed single-byte `read()` on empty S3 objects returning checksum metadata instead of EOF
+
+# __2.40.15__ __2025-12-23__
+## __AWS SDK for Java v2__
+  - ### Features
     - Remove `elastictranscoder`.
+    - Updated endpoint and partition metadata.
 
 ## __Amazon Location Service Places V2__
   - ### Features
