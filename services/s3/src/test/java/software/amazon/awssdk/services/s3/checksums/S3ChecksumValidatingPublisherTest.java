@@ -169,6 +169,28 @@ public class S3ChecksumValidatingPublisherTest {
     assertFalse(s.hasCompleted());
   }
 
+  @Test
+  public void emptyObjectReturnsNoData() {
+    Md5Checksum checksum = new Md5Checksum();
+    byte[] checksumBytes = checksum.getChecksumBytes();
+    byte[] emptyWithChecksum = new byte[CHECKSUM_SIZE];
+    for (int i = 0; i < CHECKSUM_SIZE; i++) {
+      emptyWithChecksum[i] = checksumBytes[i];
+    }
+
+    final TestPublisher driver = new TestPublisher();
+    final TestSubscriber s = new TestSubscriber();
+    final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), CHECKSUM_SIZE);
+    p.subscribe(s);
+
+    driver.doOnNext(ByteBuffer.wrap(emptyWithChecksum));
+    driver.doOnComplete();
+
+    assertArrayEquals(new byte[0], s.receivedData());
+    assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
+  }
+
   private class TestSubscriber implements Subscriber<ByteBuffer> {
     final List<ByteBuffer> received;
     boolean completed;
