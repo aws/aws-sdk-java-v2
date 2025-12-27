@@ -1,0 +1,51 @@
+{
+  "services": {
+    "s3": {
+      "examples": [
+        {
+          "id": "s3_GetObject",
+          "title": "Get an object from a bucket",
+          "category": "Api",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_GetObject_section.html"
+        },
+        {
+          "id": "s3_PutObject",
+          "title": "Upload an object to a bucket",
+          "category": "Api",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_PutObject_section.html"
+        },
+        {
+          "id": "s3_HelloS3",
+          "title": "Hello Amazon S3",
+          "category": "Hello",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_HelloS3_section.html"
+        },
+        {
+          "id": "s3_S3Basics",
+          "title": "Learn the basics",
+          "category": "Basics",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_Basics_section.html"
+        },
+        {
+          "id": "s3_S3Scenario",
+          "title": "Create a presigned URL",
+          "category": "Scenarios",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_Scenario_section.html"
+        }
+      ]
+    },
+    "medical-imaging": {
+      "examples": [
+        {
+          "id": "medical-imaging_GetImageSet",
+          "title": "Get image set properties",
+          "category": "Api",
+          "url": "https://docs.aws.amazon.com/code-library/latest/ug/medical-imaging_example_medical-imaging_GetImageSet_section.html"
+        }
+      ]
+    },
+    "empty-service": {
+      "examples": []
+    }
+  }
+}
