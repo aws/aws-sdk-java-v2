@@ -46,5 +46,8 @@
     <requiredProperty key="nettyOpenSslVersion">
       <defaultValue>${netty-open-ssl-version}</defaultValue>
     </requiredProperty>
+    <requiredProperty key="awsCrtVersion">
+      <defaultValue>${awscrt.version}</defaultValue>
+    </requiredProperty>
   </requiredProperties>
 </archetype-descriptor>
