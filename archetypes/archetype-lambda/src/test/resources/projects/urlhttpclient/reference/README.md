@@ -3,7 +3,7 @@
 This project contains an AWS Lambda maven application with [AWS Java SDK 2.x](https://github.com/aws/aws-sdk-java-v2) dependencies.
 
 ## Prerequisites
-- Java 25+
+- Java 8+ (Java version can be configured in pom.xml)
 - Apache Maven
 - [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 - Docker
