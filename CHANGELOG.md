@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.17__ __2025-12-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds links to AWS Code Library examples in package summary documentation and to individual methods documentation in Java SDK API Reference guide.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Changes for Contact for Global Search
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for quick users to be able to perform role upgrades on their own. Additionally it allows admins to make this feature admin or auto approval along with new self upgrade capability that can be restricted by Admins.
+
 # __2.40.16__ __2025-12-26__
 ## __AWS Elemental MediaLive__
   - ### Features
