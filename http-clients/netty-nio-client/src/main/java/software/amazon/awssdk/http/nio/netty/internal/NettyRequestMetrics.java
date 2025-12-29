@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger.getLogger;
+
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Stream;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Http2Metric;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
@@ -33,6 +36,9 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
  */
 @SdkInternalApi
 public class NettyRequestMetrics {
+
+    private static final NettyClientLogger logger = getLogger(NettyRequestMetrics.class);
+
     private NettyRequestMetrics() {
     }
 
@@ -45,7 +51,11 @@ public class NettyRequestMetrics {
 
     public static void ifMetricsAreEnabled(MetricCollector metrics, Consumer<MetricCollector> metricsConsumer) {
         if (metricsAreEnabled(metrics)) {
-            metricsConsumer.accept(metrics);
+            try {
+                metricsConsumer.accept(metrics);
+            } catch (Exception e) {
+                logger.warn(null, () -> "Failed to collect metrics", e);
+            }
         }
     }
 
@@ -58,9 +68,13 @@ public class NettyRequestMetrics {
             return;
         }
 
-        getHttp2Connection(channel).ifPresent(http2Connection -> {
-            writeHttp2RequestMetrics(metricCollector, channel, http2Connection);
-        });
+        try {
+            getHttp2Connection(channel).ifPresent(http2Connection -> {
+                writeHttp2RequestMetrics(metricCollector, channel, http2Connection);
+            });
+        } catch (Exception e) {
+            logger.warn(null, () -> "Failed to collect metrics", e);
+        }
     }
 
     private static Optional<Http2Connection> getHttp2Connection(Channel channel) {
@@ -78,10 +92,12 @@ public class NettyRequestMetrics {
         int streamId = channel.attr(ChannelAttributeKey.HTTP2_FRAME_STREAM).get().id();
 
         Http2Stream stream = http2Connection.stream(streamId);
-        metricCollector.reportMetric(Http2Metric.LOCAL_STREAM_WINDOW_SIZE_IN_BYTES,
-                                     http2Connection.local().flowController().windowSize(stream));
-        metricCollector.reportMetric(Http2Metric.REMOTE_STREAM_WINDOW_SIZE_IN_BYTES,
-                                     http2Connection.remote().flowController().windowSize(stream));
+        if (stream != null) {
+            metricCollector.reportMetric(Http2Metric.LOCAL_STREAM_WINDOW_SIZE_IN_BYTES,
+                                         http2Connection.local().flowController().windowSize(stream));
+            metricCollector.reportMetric(Http2Metric.REMOTE_STREAM_WINDOW_SIZE_IN_BYTES,
+                                         http2Connection.remote().flowController().windowSize(stream));
+        }
     }
 
     /**
