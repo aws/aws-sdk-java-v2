@@ -18,11 +18,17 @@ package software.amazon.awssdk.services.s3.urlconnection;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 public class EmptyFileS3IntegrationTest extends UrlHttpConnectionS3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(EmptyFileS3IntegrationTest.class);
@@ -52,6 +58,52 @@ public class EmptyFileS3IntegrationTest extends UrlHttpConnectionS3IntegrationTe
                                             .build()) {
             s3.putObject(r -> r.bucket(BUCKET).key("x"), RequestBody.empty());
             assertThat(s3.getObject(r -> r.bucket(BUCKET).key("x")).response().contentLength()).isEqualTo(0);
+        }
+    }
+
+    @Test
+    public void s3EmptyFileGetAsInputStreamReturnsEOF() throws Exception{
+        try (S3Client s3 = s3ClientBuilder().build()) {
+            s3.putObject(r -> r.bucket(BUCKET).key("x"), RequestBody.empty());
+
+            ResponseInputStream<GetObjectResponse> stream =
+                s3.getObject(r -> r.bucket(BUCKET).key("x"));
+
+            assertThat(stream.read()).isEqualTo(-1);
+
+            stream.close();
+        }
+    }
+
+    @Test
+    public void syncEmptyObjectWithChecksumValidation_arrayRead_returnsEOF() throws Exception {
+        try (S3Client s3 = s3ClientBuilder().build()) {
+            s3.putObject(r -> r.bucket(BUCKET).key("x"), RequestBody.empty());
+
+            ResponseInputStream<GetObjectResponse> stream =
+                s3.getObject(r -> r.bucket(BUCKET).key("x"));
+
+            byte[] buffer = new byte[100];
+            int bytesRead = stream.read(buffer);
+
+            assertThat(bytesRead).isEqualTo(-1);
+
+            stream.close();
+        }
+    }
+
+    @Test
+    public void asyncEmptyObjectWithChecksumValidation_returnsEmpty() throws Exception {
+        try (S3AsyncClient s3Async = S3AsyncClient.builder().region(DEFAULT_REGION).build()) {
+            s3Async.putObject(r -> r.bucket(BUCKET).key("x"),AsyncRequestBody.empty()).join();
+
+
+            CompletableFuture<byte[]> future = s3Async.getObject(r -> r.bucket(BUCKET).key("x"),
+                                                                 AsyncResponseTransformer.toBytes()).thenApply(
+                                                                     res -> res.asByteArray());
+
+            byte[] content = future.join();
+            assertThat(content).isEmpty();
         }
     }
 }

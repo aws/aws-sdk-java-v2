@@ -73,12 +73,14 @@ public class S3PojoToV2 extends Recipe {
                                                   params.get(0), params.get(1), params.get(2),  params.get(3));
             }
             if (type.isAssignableFrom(OBJECT_TAGGING) && newClass.getArguments().size() == 1) {
+                addV2S3ModelImport("Tagging");
                 String v2Builder = "Tagging.builder().tagSet(#{any()}).build();";
                 return JavaTemplate.builder(v2Builder)
                                    .build().apply(getCursor(), newClass.getCoordinates().replace(),
                                                   newClass.getArguments().get(0));
             }
             if (type.isAssignableFrom(GET_OBJECT_TAGGING_RESULT) && newClass.getArguments().size() == 1) {
+                addV2S3ModelImport("GetObjectTaggingResponse");
                 String v2Builder = "GetObjectTaggingResponse.builder().tagSet(#{any()}).build();";
                 return JavaTemplate.builder(v2Builder)
                                    .build().apply(getCursor(), newClass.getCoordinates().replace(),

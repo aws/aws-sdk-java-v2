@@ -104,11 +104,21 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             if (!contentRangeOpt.isPresent()) {
                 contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
                 if (!contentRangeOpt.isPresent()) {
-                    // Bad state! This is intended to cancel everything
-                    if (subscriber != null) {
+                    Optional<String> contentLength = response.sdkHttpResponse().firstMatchingHeader("content-length");
+                    long transformerCount = FileAsyncResponseTransformerPublisher.this.transformerCount.get();
+                    // Error out if content range header is missing and this is not the initial request
+                    if (subscriber != null && transformerCount > 0) {
                         subscriber.onError(new IllegalStateException("Content range header is missing"));
+                        return;
                     }
-                    return;
+
+                    if (!contentLength.isPresent()) {
+                        subscriber.onError(new IllegalStateException("Content length header is missing"));
+                        return;
+                    }
+                    String totalLength = contentLength.get();
+                    long endByte = Long.parseLong(totalLength) - 1;
+                    contentRangeOpt = Optional.of("bytes 0-" + endByte + "/" + totalLength);
                 }
             }
 
