@@ -612,7 +612,6 @@ public class VersionedRecordExtensionTest {
                                                                            .startAt(5L)
                                                                            .build();
 
-        // FakeVersionedThroughAnnotationItem value for startAt is 3, which would conflict with builder value of 5.
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
         item.setId(UUID.randomUUID().toString());
 
@@ -651,6 +650,83 @@ public class VersionedRecordExtensionTest {
 
         assertThat(result.additionalConditionalExpression().expression(),
                    is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
+    }
+
+    @Test
+    public void updateItem_newModeWithCustomInitialValue_versionMatchesInitialValue_shouldUseOrCondition() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .initialValue(5L)
+                                                                           .build();
+        FakeItem item = createUniqueFakeItem();
+        item.setVersion(5);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(FakeItem.getTableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
+    }
+
+    @Test
+    public void newMode_nullInitialValue_derivesFromIncrementBy() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .incrementBy(3L)
+                                                                           .build();
+        FakeItem item = createUniqueFakeItem();
+        item.setVersion(null);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(FakeItem.getTableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem().get("version").n(), is("3"));
+    }
+
+    @Test
+    public void newMode_customInitialValue_usesInitialValueNotIncrementBy() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .incrementBy(3L)
+                                                                           .initialValue(7L)
+                                                                           .build();
+        FakeItem item = createUniqueFakeItem();
+        item.setVersion(null);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(FakeItem.getTableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem().get("version").n(), is("7"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_negativeInitialValue_shouldThrow() {
+        VersionedRecordExtension.builder().initialValue(-1L).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_conflictingStartAtAndInitialValue_shouldThrow() {
+        VersionedRecordExtension.builder().startAt(0L).initialValue(5L).build();
+    }
+
+    @Test
+    public void annotation_startAtNegativeOne_shouldNotThrow() {
+        VersionedRecordExtension.builder().build();
     }
 
 
