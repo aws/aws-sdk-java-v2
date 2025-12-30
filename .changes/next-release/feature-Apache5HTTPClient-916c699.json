@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Apache5 HTTP Client",
-    "contributor": "",
-    "description": "The Apache5 HTTP Client (`apache5-client`) is out of preview and now generally available."
-}

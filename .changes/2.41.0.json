@@ -1,0 +1,48 @@
+{
+    "version": "2.41.0",
+    "date": "2025-12-30",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java V2",
+            "contributor": "",
+            "description": "Ensure rpc 1.0/1.1 error code parsing matches smithy spec: use both __type and code fields and handle uris in body error codes."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Don't use the value of AwsQueryError in json rpc/smithy-rpc-v2-cbor protocols."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds support for searching global contacts using the ActiveRegions filter, and pagination support for ListSecurityProfileFlowModules and ListEntitySecurityProfiles."
+        },
+        {
+            "type": "feature",
+            "category": "Apache5 HTTP Client",
+            "contributor": "",
+            "description": "The Apache5 HTTP Client (`apache5-client`) is out of preview and now generally available."
+        },
+        {
+            "type": "feature",
+            "category": "Lambda Maven Archetype",
+            "contributor": "",
+            "description": "Various Java Lambda Maven archetype improvements: use Java 25, use platform specific AWS CRT dependency, bump dependency version, and improve README. See [#6115](https://github.com/aws/aws-sdk-java-v2/issues/6115)"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "This change sets the KafkaConnect GovCloud FIPS and FIPS DualStack endpoints to use kafkaconnect instead of kafkaconnect-fips as the service name. This is done to match the Kafka endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

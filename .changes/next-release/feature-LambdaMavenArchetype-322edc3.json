@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Lambda Maven Archetype",
-    "contributor": "",
-    "description": "Various Java Lambda Maven archetype improvements: use Java 25, use platform specific AWS CRT dependency, bump dependency version, and improve README. See [#6115](https://github.com/aws/aws-sdk-java-v2/issues/6115)"
-}
