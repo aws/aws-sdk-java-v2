@@ -106,11 +106,16 @@ public final class StsWebIdentityTokenFileCredentialsProvider
                                                         .assumeRoleWithWebIdentityRequest(assumeRoleWithWebIdentityRequest.get())
                                                         .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
                                                         .build();
-            credentialsProviderLocal =
+
+            StsAssumeRoleWithWebIdentityCredentialsProvider.Builder internalBuilder =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
                                                                .stsClient(builder.stsClient)
-                                                               .refreshRequest(supplier)
-                                                               .build();
+                                                               .refreshRequest(supplier);
+
+            internalBuilder.staleTime(this.staleTime())
+                           .prefetchTime(this.prefetchTime());
+
+            credentialsProviderLocal = internalBuilder.build();
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
@@ -181,7 +186,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         }
 
         private Builder(StsWebIdentityTokenFileCredentialsProvider provider) {
-            super(StsWebIdentityTokenFileCredentialsProvider::new);
+            super(StsWebIdentityTokenFileCredentialsProvider::new, provider);
             this.roleArn = provider.roleArn;
             this.roleSessionName = provider.roleSessionName;
             this.webIdentityTokenFile = provider.webIdentityTokenFile;

@@ -30,10 +30,12 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRespon
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class StsWebIdentityTokenCredentialProviderTest {
@@ -55,6 +57,18 @@ class StsWebIdentityTokenCredentialProviderTest {
     @AfterEach
     public void cleanUp(){
         ENVIRONMENT_VARIABLE_HELPER.reset();
+    }
+
+    private void mockStsClientResponse(Instant expiration) {
+        when(stsClient.assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class)))
+            .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
+                                                         .credentials(Credentials.builder()
+                                                                                 .accessKeyId("key")
+                                                                                 .expiration(expiration)
+                                                                                 .sessionToken("session")
+                                                                                 .secretAccessKey("secret")
+                                                                                 .build())
+                                                         .build());
     }
 
     @Test
@@ -110,5 +124,58 @@ class StsWebIdentityTokenCredentialProviderTest {
                                                       .build();
         // exception should be raised lazily when resolving credentials, not at creation time.
         Assert.assertThrows(IllegalStateException.class, provider::resolveCredentials);
+    }
+
+    @Test
+    void prefetchTimeAndStaleTime_withCustomConfiguration_shouldReturnConfiguredValues() {
+        mockStsClientResponse(Instant.now().plusSeconds(3600));
+
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .prefetchTime(Duration.ofMinutes(10))
+                                                      .staleTime(Duration.ofMinutes(2))
+                                                      .build();
+
+        provider.resolveCredentials();
+        
+        assertThat(provider.prefetchTime()).isEqualTo(Duration.ofMinutes(10));
+        assertThat(provider.staleTime()).isEqualTo(Duration.ofMinutes(2));
+
+    }
+
+    @Test
+    void prefetchTimeAndStaleTime_withoutConfiguration_shouldReturnDefaultValues() {
+        mockStsClientResponse(Instant.now().plusSeconds(3600));
+
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .build();
+
+
+        provider.resolveCredentials();
+        
+        assertThat(provider.prefetchTime()).isEqualTo(Duration.ofMinutes(5));
+        assertThat(provider.staleTime()).isEqualTo(Duration.ofMinutes(1));
+    }
+
+    @Test
+    void toBuilder_withTimingConfiguration_shouldPreserveConfiguration() {
+        mockStsClientResponse(Instant.now().plusSeconds(3600));
+        StsWebIdentityTokenFileCredentialsProvider originalProvider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .prefetchTime(Duration.ofMinutes(8))
+                                                      .staleTime(Duration.ofMinutes(3))
+                                                      .build();
+
+
+        StsWebIdentityTokenFileCredentialsProvider copiedProvider = originalProvider.toBuilder().build();
+
+        copiedProvider.resolveCredentials();
+
+        assertThat(copiedProvider.prefetchTime()).isEqualTo(Duration.ofMinutes(8));
+        assertThat(copiedProvider.staleTime()).isEqualTo(Duration.ofMinutes(3));
     }
 }
