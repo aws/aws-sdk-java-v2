@@ -99,6 +99,11 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return VERSION_ATTRIBUTE;
         }
 
+        @Deprecated
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy) {
+            return versionAttribute(startAt, incrementBy, null);
+        }
+
         public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, Long initialValue) {
             return new VersionAttribute(startAt, incrementBy, initialValue);
         }
