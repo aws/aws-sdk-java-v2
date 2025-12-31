@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS STS",
+    "contributor": "",
+    "description": "Fix `StsWebIdentityTokenFileCredentialsProvider` not respecting custom `prefetchTime` and `staleTime` configurations."
+}

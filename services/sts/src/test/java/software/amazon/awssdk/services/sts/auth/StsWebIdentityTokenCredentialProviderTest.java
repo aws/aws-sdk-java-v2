@@ -88,9 +88,9 @@ class StsWebIdentityTokenCredentialProviderTest {
         StsWebIdentityTokenFileCredentialsProvider provider =
             StsWebIdentityTokenFileCredentialsProvider.builder().stsClient(stsClient)
                 .refreshRequest(r -> r.build())
-                                                      .roleArn("someTestRole")
+                                                      .roleArn("someRole")
                                                       .webIdentityTokenFile(Paths.get(webIdentityTokenPath))
-                                                      .roleSessionName("RoleSessionTemp")
+                                                      .roleSessionName("tempRoleSession")
                                                       .build();
         when(stsClient.assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class)))
             .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
