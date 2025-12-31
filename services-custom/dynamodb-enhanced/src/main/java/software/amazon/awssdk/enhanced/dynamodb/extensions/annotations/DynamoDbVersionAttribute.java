@@ -40,9 +40,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSche
 public @interface DynamoDbVersionAttribute {
     /**
      * The starting value for the version attribute.
-     * <p>
-     * <b>DEPRECATED:</b> Use {@link #initialValue()} instead.
-     * <p>
      * Default value when not set: {@code -1}, which enables {@link #initialValue()} behavior.
      * <p>
      * Cannot be used with {@link #initialValue()} - setting both will throw IllegalArgumentException.
