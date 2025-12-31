@@ -1,10 +1,58 @@
 {
   "metadata" : {
-    "generatedAt" : "2025-12-18T20:28:11.214500117Z",
+    "generatedAt" : "2025-12-30T15:05:34.068333043Z",
     "source" : "AWSDocsSdkExamplesPublic/example_meta.json",
     "sdkVersion" : 2
   },
   "services" : {
+    "comprehend" : {
+      "examples" : [ {
+        "id" : "cross_FSA",
+        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_FSA_section.html"
+      }, {
+        "id" : "cross_SQSMessageApp",
+        "title" : "Create a web application that sends and retrieves messages by using Amazon SQS",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_SQSMessageApp_section.html"
+      }, {
+        "id" : "cross_LexChatbotLanguages",
+        "title" : "Create an Amazon Lex chatbot to engage your website visitors",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_LexChatbotLanguages_section.html"
+      }, {
+        "id" : "comprehend_CreateDocumentClassifier",
+        "title" : "Use CreateDocumentClassifier",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_CreateDocumentClassifier_section.html"
+      }, {
+        "id" : "comprehend_DetectDominantLanguage",
+        "title" : "Use DetectDominantLanguage",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectDominantLanguage_section.html"
+      }, {
+        "id" : "comprehend_DetectEntities",
+        "title" : "Use DetectEntities",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectEntities_section.html"
+      }, {
+        "id" : "comprehend_DetectKeyPhrases",
+        "title" : "Use DetectKeyPhrases",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectKeyPhrases_section.html"
+      }, {
+        "id" : "comprehend_DetectSentiment",
+        "title" : "Use DetectSentiment",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectSentiment_section.html"
+      }, {
+        "id" : "comprehend_DetectSyntax",
+        "title" : "Use DetectSyntax",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectSyntax_section.html"
+      } ]
+    },
     "personalize-runtime" : {
       "examples" : [ {
         "id" : "personalize-runtime_GetRecommendations",
@@ -20,11 +68,6 @@
     },
     "rds" : {
       "examples" : [ {
-        "id" : "cross_RDSDataTracker",
-        "title" : "Create an Aurora Serverless work item tracker",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/rds_example_cross_RDSDataTracker_section.html"
-      }, {
         "id" : "rds_Hello",
         "title" : "Hello Amazon RDS",
         "category" : "Hello",
@@ -105,58 +148,15 @@
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/rds_example_rds_Scenario_GetStartedInstances_section.html"
       }, {
+        "id" : "cross_RDSDataTracker",
+        "title" : "Create an Aurora Serverless work item tracker",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/rds_example_cross_RDSDataTracker_section.html"
+      }, {
         "id" : "serverless_connect_RDS_Lambda",
         "title" : "Connecting to an Amazon RDS database in a Lambda function",
         "category" : "Serverless examples",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/rds_example_serverless_connect_RDS_Lambda_section.html"
-      } ]
-    },
-    "comprehend" : {
-      "examples" : [ {
-        "id" : "comprehend_CreateDocumentClassifier",
-        "title" : "Use CreateDocumentClassifier",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_CreateDocumentClassifier_section.html"
-      }, {
-        "id" : "comprehend_DetectDominantLanguage",
-        "title" : "Use DetectDominantLanguage",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectDominantLanguage_section.html"
-      }, {
-        "id" : "comprehend_DetectEntities",
-        "title" : "Use DetectEntities",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectEntities_section.html"
-      }, {
-        "id" : "comprehend_DetectKeyPhrases",
-        "title" : "Use DetectKeyPhrases",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectKeyPhrases_section.html"
-      }, {
-        "id" : "comprehend_DetectSentiment",
-        "title" : "Use DetectSentiment",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectSentiment_section.html"
-      }, {
-        "id" : "comprehend_DetectSyntax",
-        "title" : "Use DetectSyntax",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_comprehend_DetectSyntax_section.html"
-      }, {
-        "id" : "cross_FSA",
-        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_FSA_section.html"
-      }, {
-        "id" : "cross_SQSMessageApp",
-        "title" : "Create a web application that sends and retrieves messages by using Amazon SQS",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_SQSMessageApp_section.html"
-      }, {
-        "id" : "cross_LexChatbotLanguages",
-        "title" : "Create an Amazon Lex chatbot to engage your website visitors",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/comprehend_example_cross_LexChatbotLanguages_section.html"
       } ]
     },
     "docdb" : {
@@ -165,6 +165,64 @@
         "title" : "Invoke a Lambda function from a Amazon DocumentDB trigger",
         "category" : "Serverless examples",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/docdb_example_serverless_DocumentDB_Lambda_section.html"
+      } ]
+    },
+    "entityresolution" : {
+      "examples" : [ {
+        "id" : "entityresolution_Hello",
+        "title" : "Hello AWS Entity Resolution",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_Hello_section.html"
+      }, {
+        "id" : "entityresolution_DeleteSchemaMapping",
+        "title" : "Use DeleteSchemaMapping",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_DeleteSchemaMapping_section.html"
+      }, {
+        "id" : "entityresolution_TagResource",
+        "title" : "Use TagResource",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_TagResource_section.html"
+      }, {
+        "id" : "entityresolution_CreateMatchingWorkflow",
+        "title" : "Use CreateMatchingWorkflow",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_CreateMatchingWorkflow_section.html"
+      }, {
+        "id" : "entityresolution_StartMatchingJob",
+        "title" : "Use StartMatchingJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_StartMatchingJob_section.html"
+      }, {
+        "id" : "entityresolution_GetMatchingJob",
+        "title" : "Use GetMatchingJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_GetMatchingJob_section.html"
+      }, {
+        "id" : "entityresolution_DeleteMatchingWorkflow",
+        "title" : "Use DeleteMatchingWorkflow",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_DeleteMatchingWorkflow_section.html"
+      }, {
+        "id" : "entityresolution_ListSchemaMappings",
+        "title" : "Use ListSchemaMappings",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_ListSchemaMappings_section.html"
+      }, {
+        "id" : "entityresolution_GetSchemaMapping",
+        "title" : "Use GetSchemaMapping",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_GetSchemaMapping_section.html"
+      }, {
+        "id" : "entityresolution_CreateSchemaMapping",
+        "title" : "Use CreateSchemaMapping",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_CreateSchemaMapping_section.html"
+      }, {
+        "id" : "entityresolution_Scenario",
+        "title" : "Learn the basics of AWS Entity Resolution with an AWS SDK",
+        "category" : "Basics",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_Scenario_section.html"
       } ]
     },
     "glue" : {
@@ -235,64 +293,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glue_example_glue_Scenario_GetStartedCrawlersJobs_section.html"
       } ]
     },
-    "entityresolution" : {
-      "examples" : [ {
-        "id" : "entityresolution_Hello",
-        "title" : "Hello AWS Entity Resolution",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_Hello_section.html"
-      }, {
-        "id" : "entityresolution_DeleteSchemaMapping",
-        "title" : "Use DeleteSchemaMapping",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_DeleteSchemaMapping_section.html"
-      }, {
-        "id" : "entityresolution_TagResource",
-        "title" : "Use TagResource",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_TagResource_section.html"
-      }, {
-        "id" : "entityresolution_CreateMatchingWorkflow",
-        "title" : "Use CreateMatchingWorkflow",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_CreateMatchingWorkflow_section.html"
-      }, {
-        "id" : "entityresolution_StartMatchingJob",
-        "title" : "Use StartMatchingJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_StartMatchingJob_section.html"
-      }, {
-        "id" : "entityresolution_GetMatchingJob",
-        "title" : "Use GetMatchingJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_GetMatchingJob_section.html"
-      }, {
-        "id" : "entityresolution_DeleteMatchingWorkflow",
-        "title" : "Use DeleteMatchingWorkflow",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_DeleteMatchingWorkflow_section.html"
-      }, {
-        "id" : "entityresolution_ListSchemaMappings",
-        "title" : "Use ListSchemaMappings",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_ListSchemaMappings_section.html"
-      }, {
-        "id" : "entityresolution_GetSchemaMapping",
-        "title" : "Use GetSchemaMapping",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_GetSchemaMapping_section.html"
-      }, {
-        "id" : "entityresolution_CreateSchemaMapping",
-        "title" : "Use CreateSchemaMapping",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_CreateSchemaMapping_section.html"
-      }, {
-        "id" : "entityresolution_Scenario",
-        "title" : "Learn the basics of AWS Entity Resolution with an AWS SDK",
-        "category" : "Basics",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/entityresolution_example_entityresolution_Scenario_section.html"
-      } ]
-    },
     "acm" : {
       "examples" : [ {
         "id" : "acm_DescribeCertificate",
@@ -346,8 +346,76 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/acm_example_acm_RenewCertificate_section.html"
       } ]
     },
+    "route-53-domains" : {
+      "examples" : [ {
+        "id" : "route-53-domains_Hello",
+        "title" : "Hello Route 53 domain registration",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_Hello_section.html"
+      }, {
+        "id" : "route-53-domains_CheckDomainAvailability",
+        "title" : "Use CheckDomainAvailability",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_CheckDomainAvailability_section.html"
+      }, {
+        "id" : "route-53-domains_CheckDomainTransferability",
+        "title" : "Use CheckDomainTransferability",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_CheckDomainTransferability_section.html"
+      }, {
+        "id" : "route-53-domains_GetDomainDetail",
+        "title" : "Use GetDomainDetail",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetDomainDetail_section.html"
+      }, {
+        "id" : "route-53-domains_GetDomainSuggestions",
+        "title" : "Use GetDomainSuggestions",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetDomainSuggestions_section.html"
+      }, {
+        "id" : "route-53-domains_GetOperationDetail",
+        "title" : "Use GetOperationDetail",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetOperationDetail_section.html"
+      }, {
+        "id" : "route-53-domains_ListPrices",
+        "title" : "Use ListPrices",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListPrices_section.html"
+      }, {
+        "id" : "route-53-domains_ListDomains",
+        "title" : "Use ListDomains",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListDomains_section.html"
+      }, {
+        "id" : "route-53-domains_ListOperations",
+        "title" : "Use ListOperations",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListOperations_section.html"
+      }, {
+        "id" : "route-53-domains_RegisterDomain",
+        "title" : "Use RegisterDomain",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_RegisterDomain_section.html"
+      }, {
+        "id" : "route-53-domains_ViewBilling",
+        "title" : "Use ViewBilling",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ViewBilling_section.html"
+      }, {
+        "id" : "route-53-domains_Scenario_GetStartedRoute53Domains",
+        "title" : "Learn the basics of Route 53 domain registration with an AWS SDK",
+        "category" : "Basics",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_Scenario_GetStartedRoute53Domains_section.html"
+      } ]
+    },
     "bedrock-runtime" : {
       "examples" : [ {
+        "id" : "cross_FMPlayground",
+        "title" : "Create a sample application that offers playgrounds to interact with Amazon Bedrock foundation models using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_cross_FMPlayground_section.html"
+      }, {
         "id" : "bedrock-runtime_Converse_AmazonNovaText",
         "title" : "Use Converse",
         "category" : "Amazon Nova",
@@ -482,74 +550,54 @@
         "title" : "Generate videos from text prompts using Amazon Bedrock and Nova-Reel",
         "category" : "Scenarios",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_Scenario_GenerateVideos_NovaReel_section.html"
-      }, {
-        "id" : "cross_FMPlayground",
-        "title" : "Create a sample application that offers playgrounds to interact with Amazon Bedrock foundation models using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_cross_FMPlayground_section.html"
       } ]
     },
-    "route-53-domains" : {
+    "cloudfront" : {
       "examples" : [ {
-        "id" : "route-53-domains_Hello",
-        "title" : "Hello Route 53 domain registration",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_Hello_section.html"
-      }, {
-        "id" : "route-53-domains_CheckDomainAvailability",
-        "title" : "Use CheckDomainAvailability",
+        "id" : "cloudfront_CreateFunction",
+        "title" : "Use CreateFunction",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_CheckDomainAvailability_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateFunction_section.html"
       }, {
-        "id" : "route-53-domains_CheckDomainTransferability",
-        "title" : "Use CheckDomainTransferability",
+        "id" : "cloudfront_UpdateDistribution",
+        "title" : "Use UpdateDistribution",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_CheckDomainTransferability_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_UpdateDistribution_section.html"
       }, {
-        "id" : "route-53-domains_GetDomainDetail",
-        "title" : "Use GetDomainDetail",
+        "id" : "cloudfront_CreateDistribution",
+        "title" : "Use CreateDistribution",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetDomainDetail_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateDistribution_section.html"
       }, {
-        "id" : "route-53-domains_GetDomainSuggestions",
-        "title" : "Use GetDomainSuggestions",
+        "id" : "cloudfront_CreateSaasResources",
+        "title" : "Create SaaS manager resources AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateSaasResources_section.html"
+      }, {
+        "id" : "cloudfront_CreateKeyGroup",
+        "title" : "Use CreateKeyGroup",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetDomainSuggestions_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateKeyGroup_section.html"
       }, {
-        "id" : "route-53-domains_GetOperationDetail",
-        "title" : "Use GetOperationDetail",
+        "id" : "cloudfront_CreatePublicKey",
+        "title" : "Use CreatePublicKey",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_GetOperationDetail_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreatePublicKey_section.html"
       }, {
-        "id" : "route-53-domains_ListPrices",
-        "title" : "Use ListPrices",
+        "id" : "cloudfront_DeleteDistribution",
+        "title" : "Use DeleteDistribution",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListPrices_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_DeleteDistribution_section.html"
       }, {
-        "id" : "route-53-domains_ListDomains",
-        "title" : "Use ListDomains",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListDomains_section.html"
+        "id" : "cloudfront_DeleteSigningResources",
+        "title" : "Delete CloudFront signing resources using AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_DeleteSigningResources_section.html"
       }, {
-        "id" : "route-53-domains_ListOperations",
-        "title" : "Use ListOperations",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ListOperations_section.html"
-      }, {
-        "id" : "route-53-domains_RegisterDomain",
-        "title" : "Use RegisterDomain",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_RegisterDomain_section.html"
-      }, {
-        "id" : "route-53-domains_ViewBilling",
-        "title" : "Use ViewBilling",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_ViewBilling_section.html"
-      }, {
-        "id" : "route-53-domains_Scenario_GetStartedRoute53Domains",
-        "title" : "Learn the basics of Route 53 domain registration with an AWS SDK",
-        "category" : "Basics",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route-53-domains_example_route-53-domains_Scenario_GetStartedRoute53Domains_section.html"
+        "id" : "cloudfront_CloudFrontUtilities",
+        "title" : "Create signed URLs and cookies using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CloudFrontUtilities_section.html"
       } ]
     },
     "ssm" : {
@@ -618,54 +666,6 @@
         "title" : "Learn the basics of Systems Manager with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ssm_example_ssm_Scenario_section.html"
-      } ]
-    },
-    "cloudfront" : {
-      "examples" : [ {
-        "id" : "cloudfront_CreateFunction",
-        "title" : "Use CreateFunction",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateFunction_section.html"
-      }, {
-        "id" : "cloudfront_UpdateDistribution",
-        "title" : "Use UpdateDistribution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_UpdateDistribution_section.html"
-      }, {
-        "id" : "cloudfront_CreateDistribution",
-        "title" : "Use CreateDistribution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateDistribution_section.html"
-      }, {
-        "id" : "cloudfront_CreateSaasResources",
-        "title" : "Create SaaS manager resources AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateSaasResources_section.html"
-      }, {
-        "id" : "cloudfront_CreateKeyGroup",
-        "title" : "Use CreateKeyGroup",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreateKeyGroup_section.html"
-      }, {
-        "id" : "cloudfront_CreatePublicKey",
-        "title" : "Use CreatePublicKey",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CreatePublicKey_section.html"
-      }, {
-        "id" : "cloudfront_DeleteDistribution",
-        "title" : "Use DeleteDistribution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_DeleteDistribution_section.html"
-      }, {
-        "id" : "cloudfront_DeleteSigningResources",
-        "title" : "Delete CloudFront signing resources using AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_DeleteSigningResources_section.html"
-      }, {
-        "id" : "cloudfront_CloudFrontUtilities",
-        "title" : "Create signed URLs and cookies using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudfront_example_cloudfront_CloudFrontUtilities_section.html"
       } ]
     },
     "kinesis" : {
@@ -838,11 +838,6 @@
         "title" : "Use DetachThingPrincipal",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/iot_example_iot_DetachThingPrincipal_section.html"
-      }, {
-        "id" : "iot_UpdateThing",
-        "title" : "Use UpdateThing",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/iot_example_iot_UpdateThing_section.html"
       }, {
         "id" : "iot_CreateTopicRule",
         "title" : "Use CreateTopicRule",
@@ -1379,6 +1374,44 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/lambda_example_serverless_MSK_Lambda_section.html"
       } ]
     },
+    "ecs" : {
+      "examples" : [ {
+        "id" : "ecs_CreateCluster",
+        "title" : "Use CreateCluster",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_CreateCluster_section.html"
+      }, {
+        "id" : "ecs_DescribeClusters",
+        "title" : "Use DescribeClusters",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DescribeClusters_section.html"
+      }, {
+        "id" : "ecs_CreateService",
+        "title" : "Use CreateService",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_CreateService_section.html"
+      }, {
+        "id" : "ecs_DeleteService",
+        "title" : "Use DeleteService",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DeleteService_section.html"
+      }, {
+        "id" : "ecs_ListClusters",
+        "title" : "Use ListClusters",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_ListClusters_section.html"
+      }, {
+        "id" : "ecs_DescribeTasks",
+        "title" : "Use DescribeTasks",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DescribeTasks_section.html"
+      }, {
+        "id" : "ecs_UpdateService",
+        "title" : "Use UpdateService",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_UpdateService_section.html"
+      } ]
+    },
     "keyspaces" : {
       "examples" : [ {
         "id" : "keyspaces_Hello",
@@ -1440,44 +1473,6 @@
         "title" : "Learn the basics of Amazon Keyspaces with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/keyspaces_example_keyspaces_Scenario_GetStartedKeyspaces_section.html"
-      } ]
-    },
-    "ecs" : {
-      "examples" : [ {
-        "id" : "ecs_CreateCluster",
-        "title" : "Use CreateCluster",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_CreateCluster_section.html"
-      }, {
-        "id" : "ecs_DescribeClusters",
-        "title" : "Use DescribeClusters",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DescribeClusters_section.html"
-      }, {
-        "id" : "ecs_CreateService",
-        "title" : "Use CreateService",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_CreateService_section.html"
-      }, {
-        "id" : "ecs_DeleteService",
-        "title" : "Use DeleteService",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DeleteService_section.html"
-      }, {
-        "id" : "ecs_ListClusters",
-        "title" : "Use ListClusters",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_ListClusters_section.html"
-      }, {
-        "id" : "ecs_DescribeTasks",
-        "title" : "Use DescribeTasks",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_DescribeTasks_section.html"
-      }, {
-        "id" : "ecs_UpdateService",
-        "title" : "Use UpdateService",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ecs_example_ecs_UpdateService_section.html"
       } ]
     },
     "marketplace-agreement" : {
@@ -1712,6 +1707,14 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/iot-data-plane_example_iot-data-plane_UpdateThingShadow_section.html"
       } ]
     },
+    "lex" : {
+      "examples" : [ {
+        "id" : "cross_LexChatbotLanguages",
+        "title" : "Create an Amazon Lex chatbot to engage your website visitors",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/lex_example_cross_LexChatbotLanguages_section.html"
+      } ]
+    },
     "pinpoint" : {
       "examples" : [ {
         "id" : "pinpoint_SendMessages",
@@ -1780,49 +1783,41 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/pinpoint_example_pinpoint_GetSmsChannel_section.html"
       } ]
     },
-    "lex" : {
+    "sagemaker" : {
       "examples" : [ {
-        "id" : "cross_LexChatbotLanguages",
-        "title" : "Create an Amazon Lex chatbot to engage your website visitors",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/lex_example_cross_LexChatbotLanguages_section.html"
-      } ]
-    },
-    "application-auto-scaling" : {
-      "examples" : [ {
-        "id" : "application-auto-scaling_RegisterScalableTarget",
-        "title" : "Use RegisterScalableTarget",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/application-auto-scaling_example_application-auto-scaling_RegisterScalableTarget_section.html"
+        "id" : "sagemaker_Hello",
+        "title" : "Hello SageMaker AI",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_Hello_section.html"
       }, {
-        "id" : "application-auto-scaling_DeleteScalingPolicy",
-        "title" : "Use DeleteScalingPolicy",
+        "id" : "sagemaker_CreatePipeline",
+        "title" : "Use CreatePipeline",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/application-auto-scaling_example_application-auto-scaling_DeleteScalingPolicy_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_CreatePipeline_section.html"
+      }, {
+        "id" : "sagemaker_StartPipelineExecution",
+        "title" : "Use StartPipelineExecution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_StartPipelineExecution_section.html"
+      }, {
+        "id" : "sagemaker_DeletePipeline",
+        "title" : "Use DeletePipeline",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_DeletePipeline_section.html"
+      }, {
+        "id" : "sagemaker_DescribePipelineExecution",
+        "title" : "Use DescribePipelineExecution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_DescribePipelineExecution_section.html"
+      }, {
+        "id" : "sagemaker_Scenario_Pipelines",
+        "title" : "Get started with SageMaker AI geospatial jobs in a pipeline using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_Scenario_Pipelines_section.html"
       } ]
     },
     "s3" : {
       "examples" : [ {
-        "id" : "cross_PAM",
-        "title" : "Create a photo asset management application that lets users manage photos using labels",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_PAM_section.html"
-      }, {
-        "id" : "cross_RekognitionPhotoAnalyzerPPE",
-        "title" : "Detect PPE in images with Amazon Rekognition using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionPhotoAnalyzerPPE_section.html"
-      }, {
-        "id" : "cross_RekognitionPhotoAnalyzer",
-        "title" : "Detect objects in images with Amazon Rekognition using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionPhotoAnalyzer_section.html"
-      }, {
-        "id" : "cross_RekognitionVideoDetection",
-        "title" : "Detect people and objects in a video with Amazon Rekognition using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionVideoDetection_section.html"
-      }, {
         "id" : "s3_Hello",
         "title" : "Hello Amazon S3",
         "category" : "Hello",
@@ -2068,6 +2063,26 @@
         "category" : "Scenarios",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_s3_Scenario_DoesBucketExist_section.html"
       }, {
+        "id" : "cross_PAM",
+        "title" : "Create a photo asset management application that lets users manage photos using labels",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_PAM_section.html"
+      }, {
+        "id" : "cross_RekognitionPhotoAnalyzerPPE",
+        "title" : "Detect PPE in images with Amazon Rekognition using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionPhotoAnalyzerPPE_section.html"
+      }, {
+        "id" : "cross_RekognitionPhotoAnalyzer",
+        "title" : "Detect objects in images with Amazon Rekognition using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionPhotoAnalyzer_section.html"
+      }, {
+        "id" : "cross_RekognitionVideoDetection",
+        "title" : "Detect people and objects in a video with Amazon Rekognition using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_cross_RekognitionVideoDetection_section.html"
+      }, {
         "id" : "sqs_Scenario_SqsExtendedClient",
         "title" : "Manage large Amazon SQS messages using Amazon S3 with an AWS SDK",
         "category" : "Scenarios",
@@ -2079,37 +2094,17 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3_example_serverless_S3_Lambda_section.html"
       } ]
     },
-    "sagemaker" : {
+    "application-auto-scaling" : {
       "examples" : [ {
-        "id" : "sagemaker_Hello",
-        "title" : "Hello SageMaker AI",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_Hello_section.html"
-      }, {
-        "id" : "sagemaker_CreatePipeline",
-        "title" : "Use CreatePipeline",
+        "id" : "application-auto-scaling_RegisterScalableTarget",
+        "title" : "Use RegisterScalableTarget",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_CreatePipeline_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/application-auto-scaling_example_application-auto-scaling_RegisterScalableTarget_section.html"
       }, {
-        "id" : "sagemaker_StartPipelineExecution",
-        "title" : "Use StartPipelineExecution",
+        "id" : "application-auto-scaling_DeleteScalingPolicy",
+        "title" : "Use DeleteScalingPolicy",
         "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_StartPipelineExecution_section.html"
-      }, {
-        "id" : "sagemaker_DeletePipeline",
-        "title" : "Use DeletePipeline",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_DeletePipeline_section.html"
-      }, {
-        "id" : "sagemaker_DescribePipelineExecution",
-        "title" : "Use DescribePipelineExecution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_DescribePipelineExecution_section.html"
-      }, {
-        "id" : "sagemaker_Scenario_Pipelines",
-        "title" : "Get started with SageMaker AI geospatial jobs in a pipeline using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sagemaker_example_sagemaker_Scenario_Pipelines_section.html"
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/application-auto-scaling_example_application-auto-scaling_DeleteScalingPolicy_section.html"
       } ]
     },
     "firehose" : {
@@ -2269,6 +2264,19 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/migration-hub_example_migration-hub_DescribeMigrationTask_section.html"
       } ]
     },
+    "route53-recovery-cluster" : {
+      "examples" : [ {
+        "id" : "route53-recovery-cluster_GetRoutingControlState",
+        "title" : "Use GetRoutingControlState",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route53-recovery-cluster_example_route53-recovery-cluster_GetRoutingControlState_section.html"
+      }, {
+        "id" : "route53-recovery-cluster_UpdateRoutingControlState",
+        "title" : "Use UpdateRoutingControlState",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route53-recovery-cluster_example_route53-recovery-cluster_UpdateRoutingControlState_section.html"
+      } ]
+    },
     "batch" : {
       "examples" : [ {
         "id" : "batch_Hello",
@@ -2347,19 +2355,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/batch_example_batch_Scenario_section.html"
       } ]
     },
-    "route53-recovery-cluster" : {
-      "examples" : [ {
-        "id" : "route53-recovery-cluster_GetRoutingControlState",
-        "title" : "Use GetRoutingControlState",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route53-recovery-cluster_example_route53-recovery-cluster_GetRoutingControlState_section.html"
-      }, {
-        "id" : "route53-recovery-cluster_UpdateRoutingControlState",
-        "title" : "Use UpdateRoutingControlState",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/route53-recovery-cluster_example_route53-recovery-cluster_UpdateRoutingControlState_section.html"
-      } ]
-    },
     "auto-scaling" : {
       "examples" : [ {
         "id" : "cross_ResilientService",
@@ -2368,7 +2363,7 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/auto-scaling_example_cross_ResilientService_section.html"
       }, {
         "id" : "auto-scaling_Hello",
-        "title" : "Hello Amazon EC2 Auto Scaling",
+        "title" : "Hello Auto Scaling",
         "category" : "Hello",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/auto-scaling_example_auto-scaling_Hello_section.html"
       }, {
@@ -2423,7 +2418,7 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/auto-scaling_example_auto-scaling_DisableMetricsCollection_section.html"
       }, {
         "id" : "auto-scaling_Scenario_GroupsAndInstances",
-        "title" : "Learn the basics of Amazon EC2 Auto Scaling with an AWS SDK",
+        "title" : "Learn the basics of Auto Scaling with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/auto-scaling_example_auto-scaling_Scenario_GroupsAndInstances_section.html"
       } ]
@@ -2482,124 +2477,6 @@
         "title" : "Use SearchNearby",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/geo-places_example_geo-places_SearchNearby_section.html"
-      } ]
-    },
-    "personalize" : {
-      "examples" : [ {
-        "id" : "personalize_CreateBatchInferenceJob",
-        "title" : "Use CreateBatchInferenceJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateBatchInferenceJob_section.html"
-      }, {
-        "id" : "personalize_CreateCampaign",
-        "title" : "Use CreateCampaign",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateCampaign_section.html"
-      }, {
-        "id" : "personalize_CreateDataset",
-        "title" : "Use CreateDataset",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDataset_section.html"
-      }, {
-        "id" : "personalize_CreateDatasetExportJob",
-        "title" : "Use CreateDatasetExportJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetExportJob_section.html"
-      }, {
-        "id" : "personalize_CreateDatasetGroup",
-        "title" : "Use CreateDatasetGroup",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetGroup_section.html"
-      }, {
-        "id" : "personalize_CreateDatasetImportJob",
-        "title" : "Use CreateDatasetImportJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetImportJob_section.html"
-      }, {
-        "id" : "personalize_CreateEventTracker",
-        "title" : "Use CreateEventTracker",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateEventTracker_section.html"
-      }, {
-        "id" : "personalize_CreateFilter",
-        "title" : "Use CreateFilter",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateFilter_section.html"
-      }, {
-        "id" : "personalize_CreateRecommender",
-        "title" : "Use CreateRecommender",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateRecommender_section.html"
-      }, {
-        "id" : "personalize_CreateSchema",
-        "title" : "Use CreateSchema",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSchema_section.html"
-      }, {
-        "id" : "personalize_CreateSolution",
-        "title" : "Use CreateSolution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSolution_section.html"
-      }, {
-        "id" : "personalize_CreateSolutionVersion",
-        "title" : "Use CreateSolutionVersion",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSolutionVersion_section.html"
-      }, {
-        "id" : "personalize_DeleteCampaign",
-        "title" : "Use DeleteCampaign",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteCampaign_section.html"
-      }, {
-        "id" : "personalize_DeleteEventTracker",
-        "title" : "Use DeleteEventTracker",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteEventTracker_section.html"
-      }, {
-        "id" : "personalize_DeleteSolution",
-        "title" : "Use DeleteSolution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteSolution_section.html"
-      }, {
-        "id" : "personalize_DescribeCampaign",
-        "title" : "Use DescribeCampaign",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeCampaign_section.html"
-      }, {
-        "id" : "personalize_DescribeRecipe",
-        "title" : "Use DescribeRecipe",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeRecipe_section.html"
-      }, {
-        "id" : "personalize_DescribeSolution",
-        "title" : "Use DescribeSolution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeSolution_section.html"
-      }, {
-        "id" : "personalize_ListCampaigns",
-        "title" : "Use ListCampaigns",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListCampaigns_section.html"
-      }, {
-        "id" : "personalize_ListDatasetGroups",
-        "title" : "Use ListDatasetGroups",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListDatasetGroups_section.html"
-      }, {
-        "id" : "personalize_ListRecipes",
-        "title" : "Use ListRecipes",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListRecipes_section.html"
-      }, {
-        "id" : "personalize_ListSolutions",
-        "title" : "Use ListSolutions",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListSolutions_section.html"
-      }, {
-        "id" : "personalize_UpdateCampaign",
-        "title" : "Use UpdateCampaign",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_UpdateCampaign_section.html"
       } ]
     },
     "dynamodb" : {
@@ -2739,15 +2616,15 @@
         "category" : "Serverless examples",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_serverless_DynamoDB_Lambda_batch_item_failures_section.html"
       }, {
-        "id" : "dynamodb_DescribeTimeToLive",
-        "title" : "Use DescribeTimeToLive",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_dynamodb_DescribeTimeToLive_section.html"
-      }, {
         "id" : "dynamodb_UpdateTimeToLive",
         "title" : "Use UpdateTimeToLive",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_dynamodb_UpdateTimeToLive_section.html"
+      }, {
+        "id" : "dynamodb_DescribeTimeToLive",
+        "title" : "Use DescribeTimeToLive",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_dynamodb_DescribeTimeToLive_section.html"
       }, {
         "id" : "dynamodb_PutItemTTL",
         "title" : "Create a DynamoDB item with a TTL using an AWS SDK",
@@ -2895,35 +2772,130 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/dynamodb_example_dynamodb_Scenario_GlobalTableOperations_section.html"
       } ]
     },
+    "personalize" : {
+      "examples" : [ {
+        "id" : "personalize_CreateBatchInferenceJob",
+        "title" : "Use CreateBatchInferenceJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateBatchInferenceJob_section.html"
+      }, {
+        "id" : "personalize_CreateCampaign",
+        "title" : "Use CreateCampaign",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateCampaign_section.html"
+      }, {
+        "id" : "personalize_CreateDataset",
+        "title" : "Use CreateDataset",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDataset_section.html"
+      }, {
+        "id" : "personalize_CreateDatasetExportJob",
+        "title" : "Use CreateDatasetExportJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetExportJob_section.html"
+      }, {
+        "id" : "personalize_CreateDatasetGroup",
+        "title" : "Use CreateDatasetGroup",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetGroup_section.html"
+      }, {
+        "id" : "personalize_CreateDatasetImportJob",
+        "title" : "Use CreateDatasetImportJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateDatasetImportJob_section.html"
+      }, {
+        "id" : "personalize_CreateEventTracker",
+        "title" : "Use CreateEventTracker",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateEventTracker_section.html"
+      }, {
+        "id" : "personalize_CreateFilter",
+        "title" : "Use CreateFilter",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateFilter_section.html"
+      }, {
+        "id" : "personalize_CreateRecommender",
+        "title" : "Use CreateRecommender",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateRecommender_section.html"
+      }, {
+        "id" : "personalize_CreateSchema",
+        "title" : "Use CreateSchema",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSchema_section.html"
+      }, {
+        "id" : "personalize_CreateSolution",
+        "title" : "Use CreateSolution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSolution_section.html"
+      }, {
+        "id" : "personalize_CreateSolutionVersion",
+        "title" : "Use CreateSolutionVersion",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_CreateSolutionVersion_section.html"
+      }, {
+        "id" : "personalize_DeleteCampaign",
+        "title" : "Use DeleteCampaign",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteCampaign_section.html"
+      }, {
+        "id" : "personalize_DeleteEventTracker",
+        "title" : "Use DeleteEventTracker",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteEventTracker_section.html"
+      }, {
+        "id" : "personalize_DeleteSolution",
+        "title" : "Use DeleteSolution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DeleteSolution_section.html"
+      }, {
+        "id" : "personalize_DescribeCampaign",
+        "title" : "Use DescribeCampaign",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeCampaign_section.html"
+      }, {
+        "id" : "personalize_DescribeRecipe",
+        "title" : "Use DescribeRecipe",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeRecipe_section.html"
+      }, {
+        "id" : "personalize_DescribeSolution",
+        "title" : "Use DescribeSolution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_DescribeSolution_section.html"
+      }, {
+        "id" : "personalize_ListCampaigns",
+        "title" : "Use ListCampaigns",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListCampaigns_section.html"
+      }, {
+        "id" : "personalize_ListDatasetGroups",
+        "title" : "Use ListDatasetGroups",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListDatasetGroups_section.html"
+      }, {
+        "id" : "personalize_ListRecipes",
+        "title" : "Use ListRecipes",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListRecipes_section.html"
+      }, {
+        "id" : "personalize_ListSolutions",
+        "title" : "Use ListSolutions",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_ListSolutions_section.html"
+      }, {
+        "id" : "personalize_UpdateCampaign",
+        "title" : "Use UpdateCampaign",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize_example_personalize_UpdateCampaign_section.html"
+      } ]
+    },
     "sts" : {
       "examples" : [ {
         "id" : "sts_AssumeRole",
         "title" : "Use AssumeRole",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sts_example_sts_AssumeRole_section.html"
-      } ]
-    },
-    "textract" : {
-      "examples" : [ {
-        "id" : "cross_FSA",
-        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_cross_FSA_section.html"
-      }, {
-        "id" : "textract_AnalyzeDocument",
-        "title" : "Use AnalyzeDocument",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_AnalyzeDocument_section.html"
-      }, {
-        "id" : "textract_DetectDocumentText",
-        "title" : "Use DetectDocumentText",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_DetectDocumentText_section.html"
-      }, {
-        "id" : "textract_StartDocumentAnalysis",
-        "title" : "Use StartDocumentAnalysis",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_StartDocumentAnalysis_section.html"
       } ]
     },
     "neptune" : {
@@ -3017,6 +2989,29 @@
         "title" : "Use the Amazon Neptune API to develop a Lambda function that queries graph data",
         "category" : "Scenarios",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/neptune_example_cross_Neptune_Query_section.html"
+      } ]
+    },
+    "textract" : {
+      "examples" : [ {
+        "id" : "textract_AnalyzeDocument",
+        "title" : "Use AnalyzeDocument",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_AnalyzeDocument_section.html"
+      }, {
+        "id" : "textract_DetectDocumentText",
+        "title" : "Use DetectDocumentText",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_DetectDocumentText_section.html"
+      }, {
+        "id" : "textract_StartDocumentAnalysis",
+        "title" : "Use StartDocumentAnalysis",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_textract_StartDocumentAnalysis_section.html"
+      }, {
+        "id" : "cross_FSA",
+        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/textract_example_cross_FSA_section.html"
       } ]
     },
     "kafka" : {
@@ -3334,19 +3329,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/support_example_support_Scenario_GetStartedSupportCases_section.html"
       } ]
     },
-    "personalize-events" : {
-      "examples" : [ {
-        "id" : "personalize-events_PutEvents",
-        "title" : "Use PutEvents",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize-events_example_personalize-events_PutEvents_section.html"
-      }, {
-        "id" : "personalize-events_PutUsers",
-        "title" : "Use PutUsers",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize-events_example_personalize-events_PutUsers_section.html"
-      } ]
-    },
     "cognito-identity" : {
       "examples" : [ {
         "id" : "cognito-identity_ListIdentityPools",
@@ -3368,6 +3350,42 @@
         "title" : "Use GetCredentialsForIdentity",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cognito-identity_example_cognito-identity_GetCredentialsForIdentity_section.html"
+      } ]
+    },
+    "personalize-events" : {
+      "examples" : [ {
+        "id" : "personalize-events_PutEvents",
+        "title" : "Use PutEvents",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize-events_example_personalize-events_PutEvents_section.html"
+      }, {
+        "id" : "personalize-events_PutUsers",
+        "title" : "Use PutUsers",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/personalize-events_example_personalize-events_PutUsers_section.html"
+      } ]
+    },
+    "polly" : {
+      "examples" : [ {
+        "id" : "polly_DescribeVoices",
+        "title" : "Use DescribeVoices",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_DescribeVoices_section.html"
+      }, {
+        "id" : "polly_ListLexicons",
+        "title" : "Use ListLexicons",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_ListLexicons_section.html"
+      }, {
+        "id" : "polly_SynthesizeSpeech",
+        "title" : "Use SynthesizeSpeech",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_SynthesizeSpeech_section.html"
+      }, {
+        "id" : "cross_FSA",
+        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_cross_FSA_section.html"
       } ]
     },
     "mediastore" : {
@@ -3408,31 +3426,13 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/mediastore_example_mediastore_PutObject_section.html"
       } ]
     },
-    "polly" : {
-      "examples" : [ {
-        "id" : "polly_DescribeVoices",
-        "title" : "Use DescribeVoices",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_DescribeVoices_section.html"
-      }, {
-        "id" : "polly_ListLexicons",
-        "title" : "Use ListLexicons",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_ListLexicons_section.html"
-      }, {
-        "id" : "polly_SynthesizeSpeech",
-        "title" : "Use SynthesizeSpeech",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_polly_SynthesizeSpeech_section.html"
-      }, {
-        "id" : "cross_FSA",
-        "title" : "Create an application that analyzes customer feedback and synthesizes audio",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/polly_example_cross_FSA_section.html"
-      } ]
-    },
     "aurora" : {
       "examples" : [ {
+        "id" : "cross_RDSDataTracker",
+        "title" : "Create an Aurora Serverless work item tracker",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/aurora_example_cross_RDSDataTracker_section.html"
+      }, {
         "id" : "aurora_Hello",
         "title" : "Hello Aurora",
         "category" : "Hello",
@@ -3517,44 +3517,6 @@
         "title" : "Learn the basics of Aurora with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/aurora_example_aurora_Scenario_GetStartedClusters_section.html"
-      }, {
-        "id" : "cross_RDSDataTracker",
-        "title" : "Create an Aurora Serverless work item tracker",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/aurora_example_cross_RDSDataTracker_section.html"
-      } ]
-    },
-    "scheduler" : {
-      "examples" : [ {
-        "id" : "scheduler_hello",
-        "title" : "Hello EventBridge Scheduler",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_hello_section.html"
-      }, {
-        "id" : "scheduler_CreateSchedule",
-        "title" : "Use CreateSchedule",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_CreateSchedule_section.html"
-      }, {
-        "id" : "scheduler_CreateScheduleGroup",
-        "title" : "Use CreateScheduleGroup",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_CreateScheduleGroup_section.html"
-      }, {
-        "id" : "scheduler_DeleteSchedule",
-        "title" : "Use DeleteSchedule",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_DeleteSchedule_section.html"
-      }, {
-        "id" : "scheduler_DeleteScheduleGroup",
-        "title" : "Use DeleteScheduleGroup",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_DeleteScheduleGroup_section.html"
-      }, {
-        "id" : "scheduler_ScheduledEventsScenario",
-        "title" : "A complete EventBridge Scheduler Scheduled Events scenario using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_ScheduledEventsScenario_section.html"
       } ]
     },
     "kms" : {
@@ -3655,6 +3617,39 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/kms_example_kms_Scenario_Basics_section.html"
       } ]
     },
+    "scheduler" : {
+      "examples" : [ {
+        "id" : "scheduler_hello",
+        "title" : "Hello EventBridge Scheduler",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_hello_section.html"
+      }, {
+        "id" : "scheduler_CreateSchedule",
+        "title" : "Use CreateSchedule",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_CreateSchedule_section.html"
+      }, {
+        "id" : "scheduler_CreateScheduleGroup",
+        "title" : "Use CreateScheduleGroup",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_CreateScheduleGroup_section.html"
+      }, {
+        "id" : "scheduler_DeleteSchedule",
+        "title" : "Use DeleteSchedule",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_DeleteSchedule_section.html"
+      }, {
+        "id" : "scheduler_DeleteScheduleGroup",
+        "title" : "Use DeleteScheduleGroup",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_DeleteScheduleGroup_section.html"
+      }, {
+        "id" : "scheduler_ScheduledEventsScenario",
+        "title" : "A complete EventBridge Scheduler Scheduled Events scenario using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/scheduler_example_scheduler_ScheduledEventsScenario_section.html"
+      } ]
+    },
     "cloudwatch-events" : {
       "examples" : [ {
         "id" : "cloudwatch-events_PutRule",
@@ -3671,6 +3666,19 @@
         "title" : "Use PutTargets",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudwatch-events_example_cloudwatch-events_PutTargets_section.html"
+      } ]
+    },
+    "bedrock" : {
+      "examples" : [ {
+        "id" : "bedrock_GetFoundationModel",
+        "title" : "Use GetFoundationModel",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock_example_bedrock_GetFoundationModel_section.html"
+      }, {
+        "id" : "bedrock_ListFoundationModels",
+        "title" : "Use ListFoundationModels",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock_example_bedrock_ListFoundationModels_section.html"
       } ]
     },
     "iam" : {
@@ -3776,8 +3784,71 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/iam_example_iam_Scenario_IamPolicyBuilder_section.html"
       } ]
     },
+    "redshift" : {
+      "examples" : [ {
+        "id" : "cross_RedshiftDataTracker",
+        "title" : "Create an Amazon Redshift item tracker",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_cross_RedshiftDataTracker_section.html"
+      }, {
+        "id" : "redshift_Hello",
+        "title" : "Hello Amazon Redshift",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_Hello_section.html"
+      }, {
+        "id" : "redshift_ListDatabases",
+        "title" : "Use ListDatabases",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ListDatabases_section.html"
+      }, {
+        "id" : "redshift_CreateCluster",
+        "title" : "Use CreateCluster",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_CreateCluster_section.html"
+      }, {
+        "id" : "redshift_DeleteCluster",
+        "title" : "Use DeleteCluster",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DeleteCluster_section.html"
+      }, {
+        "id" : "redshift_DescribeClusters",
+        "title" : "Use DescribeClusters",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DescribeClusters_section.html"
+      }, {
+        "id" : "redshift_ModifyCluster",
+        "title" : "Use ModifyCluster",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ModifyCluster_section.html"
+      }, {
+        "id" : "redshift_DescribeStatement",
+        "title" : "Use DescribeStatement",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DescribeStatement_section.html"
+      }, {
+        "id" : "redshift_GetStatementResult",
+        "title" : "Use GetStatementResult",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_GetStatementResult_section.html"
+      }, {
+        "id" : "redshift_ExecuteStatement",
+        "title" : "Use ExecuteStatement",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ExecuteStatement_section.html"
+      }, {
+        "id" : "redshift_Scenario",
+        "title" : "Learn the basics of Amazon Redshift with an AWS SDK",
+        "category" : "Basics",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_Scenario_section.html"
+      } ]
+    },
     "sqs" : {
       "examples" : [ {
+        "id" : "s3_Scenario_ProcessS3EventNotification",
+        "title" : "Receive and process Amazon S3 event notifications by using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sqs_example_s3_Scenario_ProcessS3EventNotification_section.html"
+      }, {
         "id" : "cross_SQSMessageApp",
         "title" : "Create a web application that sends and retrieves messages by using Amazon SQS",
         "category" : "Scenarios",
@@ -3787,11 +3858,6 @@
         "title" : "Detect people and objects in a video with Amazon Rekognition using an AWS SDK",
         "category" : "Scenarios",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sqs_example_cross_RekognitionVideoDetection_section.html"
-      }, {
-        "id" : "s3_Scenario_ProcessS3EventNotification",
-        "title" : "Receive and process Amazon S3 event notifications by using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sqs_example_s3_Scenario_ProcessS3EventNotification_section.html"
       }, {
         "id" : "sqs_Hello",
         "title" : "Hello Amazon SQS",
@@ -3884,77 +3950,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sqs_example_serverless_SQS_Lambda_batch_item_failures_section.html"
       } ]
     },
-    "redshift" : {
-      "examples" : [ {
-        "id" : "redshift_Hello",
-        "title" : "Hello Amazon Redshift",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_Hello_section.html"
-      }, {
-        "id" : "redshift_ListDatabases",
-        "title" : "Use ListDatabases",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ListDatabases_section.html"
-      }, {
-        "id" : "redshift_CreateCluster",
-        "title" : "Use CreateCluster",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_CreateCluster_section.html"
-      }, {
-        "id" : "redshift_DeleteCluster",
-        "title" : "Use DeleteCluster",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DeleteCluster_section.html"
-      }, {
-        "id" : "redshift_DescribeClusters",
-        "title" : "Use DescribeClusters",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DescribeClusters_section.html"
-      }, {
-        "id" : "redshift_ModifyCluster",
-        "title" : "Use ModifyCluster",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ModifyCluster_section.html"
-      }, {
-        "id" : "redshift_DescribeStatement",
-        "title" : "Use DescribeStatement",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_DescribeStatement_section.html"
-      }, {
-        "id" : "redshift_GetStatementResult",
-        "title" : "Use GetStatementResult",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_GetStatementResult_section.html"
-      }, {
-        "id" : "redshift_ExecuteStatement",
-        "title" : "Use ExecuteStatement",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_ExecuteStatement_section.html"
-      }, {
-        "id" : "redshift_Scenario",
-        "title" : "Learn the basics of Amazon Redshift with an AWS SDK",
-        "category" : "Basics",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_redshift_Scenario_section.html"
-      }, {
-        "id" : "cross_RedshiftDataTracker",
-        "title" : "Create an Amazon Redshift item tracker",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/redshift_example_cross_RedshiftDataTracker_section.html"
-      } ]
-    },
-    "bedrock" : {
-      "examples" : [ {
-        "id" : "bedrock_GetFoundationModel",
-        "title" : "Use GetFoundationModel",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock_example_bedrock_GetFoundationModel_section.html"
-      }, {
-        "id" : "bedrock_ListFoundationModels",
-        "title" : "Use ListFoundationModels",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/bedrock_example_bedrock_ListFoundationModels_section.html"
-      } ]
-    },
     "secrets-manager" : {
       "examples" : [ {
         "id" : "secrets-manager_GetSecretValue",
@@ -3965,6 +3960,11 @@
     },
     "ec2" : {
       "examples" : [ {
+        "id" : "cross_ResilientService",
+        "title" : "Build and manage a resilient service using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ec2_example_cross_ResilientService_section.html"
+      }, {
         "id" : "ec2_Hello",
         "title" : "Hello Amazon EC2",
         "category" : "Hello",
@@ -4064,11 +4064,6 @@
         "title" : "Learn the basics of Amazon EC2 with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ec2_example_ec2_Scenario_GetStartedInstances_section.html"
-      }, {
-        "id" : "cross_ResilientService",
-        "title" : "Build and manage a resilient service using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/ec2_example_cross_ResilientService_section.html"
       } ]
     },
     "cognito-identity-provider" : {
@@ -4192,6 +4187,39 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/s3-control_example_s3-control_Basics_section.html"
       } ]
     },
+    "glacier" : {
+      "examples" : [ {
+        "id" : "glacier_CreateVault",
+        "title" : "Use CreateVault",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_CreateVault_section.html"
+      }, {
+        "id" : "glacier_ListVaults",
+        "title" : "Use ListVaults",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_ListVaults_section.html"
+      }, {
+        "id" : "glacier_UploadArchive",
+        "title" : "Use UploadArchive",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_UploadArchive_section.html"
+      }, {
+        "id" : "glacier_InitiateJob",
+        "title" : "Use InitiateJob",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_InitiateJob_section.html"
+      }, {
+        "id" : "glacier_DeleteVault",
+        "title" : "Use DeleteVault",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_DeleteVault_section.html"
+      }, {
+        "id" : "glacier_DeleteArchive",
+        "title" : "Use DeleteArchive",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_DeleteArchive_section.html"
+      } ]
+    },
     "rekognition" : {
       "examples" : [ {
         "id" : "cross_PAM",
@@ -4295,39 +4323,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/rekognition_example_rekognition_VideoDetection_section.html"
       } ]
     },
-    "glacier" : {
-      "examples" : [ {
-        "id" : "glacier_CreateVault",
-        "title" : "Use CreateVault",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_CreateVault_section.html"
-      }, {
-        "id" : "glacier_ListVaults",
-        "title" : "Use ListVaults",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_ListVaults_section.html"
-      }, {
-        "id" : "glacier_UploadArchive",
-        "title" : "Use UploadArchive",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_UploadArchive_section.html"
-      }, {
-        "id" : "glacier_InitiateJob",
-        "title" : "Use InitiateJob",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_InitiateJob_section.html"
-      }, {
-        "id" : "glacier_DeleteVault",
-        "title" : "Use DeleteVault",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_DeleteVault_section.html"
-      }, {
-        "id" : "glacier_DeleteArchive",
-        "title" : "Use DeleteArchive",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/glacier_example_glacier_DeleteArchive_section.html"
-      } ]
-    },
     "ses" : {
       "examples" : [ {
         "id" : "ses_SendEmail",
@@ -4404,13 +4399,76 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/mediaconvert_example_mediaconvert_GetJob_section.html"
       } ]
     },
+    "inspector" : {
+      "examples" : [ {
+        "id" : "inspector_Hello",
+        "title" : "Hello Amazon Inspector",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_Hello_section.html"
+      }, {
+        "id" : "inspector_BatchGetFindingDetails",
+        "title" : "Use BatchGetFindingDetails",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_BatchGetFindingDetails_section.html"
+      }, {
+        "id" : "inspector_DeleteFilter",
+        "title" : "Use DeleteFilter",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_DeleteFilter_section.html"
+      }, {
+        "id" : "inspector_Disable",
+        "title" : "Use Disable",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_Disable_section.html"
+      }, {
+        "id" : "inspector_Enable",
+        "title" : "Use Enable",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_Enable_section.html"
+      }, {
+        "id" : "inspector_CreateFilter",
+        "title" : "Use CreateFilter",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_CreateFilter_section.html"
+      }, {
+        "id" : "inspector_GetAccountStatus",
+        "title" : "Use BatchGetAccountStatus",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_GetAccountStatus_section.html"
+      }, {
+        "id" : "inspector_ListFindings",
+        "title" : "Use ListFindings",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_ListFindings_section.html"
+      }, {
+        "id" : "inspector_ListCoverageStatistics",
+        "title" : "Use ListCoverageStatistics",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_ListCoverageStatistics_section.html"
+      }, {
+        "id" : "inspector_ListCoverage",
+        "title" : "Use ListCoverage",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_ListCoverage_section.html"
+      }, {
+        "id" : "inspector_ListUsageTotals",
+        "title" : "Use ListUsageTotals",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_ListUsageTotals_section.html"
+      }, {
+        "id" : "inspector_ListFilters",
+        "title" : "Use ListFilters",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_ListFilters_section.html"
+      }, {
+        "id" : "inspector_Scenario",
+        "title" : "Learn the basics of Amazon Inspector with an AWS SDK",
+        "category" : "Basics",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/inspector_example_inspector_Scenario_section.html"
+      } ]
+    },
     "cloudwatch-logs" : {
       "examples" : [ {
-        "id" : "cross_LambdaScheduledEvents",
-        "title" : "Use scheduled events to invoke a Lambda function",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudwatch-logs_example_cross_LambdaScheduledEvents_section.html"
-      }, {
         "id" : "cloudwatch-logs_GetLogEvents",
         "title" : "Use GetLogEvents",
         "category" : "Api",
@@ -4435,6 +4493,11 @@
         "title" : "Use PutSubscriptionFilter",
         "category" : "Api",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudwatch-logs_example_cloudwatch-logs_PutSubscriptionFilter_section.html"
+      }, {
+        "id" : "cross_LambdaScheduledEvents",
+        "title" : "Use scheduled events to invoke a Lambda function",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/cloudwatch-logs_example_cross_LambdaScheduledEvents_section.html"
       }, {
         "id" : "cloudwatch-logs_StartLiveTail",
         "title" : "Use StartLiveTail",
@@ -4699,6 +4762,11 @@
     },
     "eventbridge" : {
       "examples" : [ {
+        "id" : "s3_Scenario_PutBucketNotificationConfiguration",
+        "title" : "Send S3 event notifications to Amazon EventBridge using an AWS SDK",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/eventbridge_example_s3_Scenario_PutBucketNotificationConfiguration_section.html"
+      }, {
         "id" : "eventbridge_Hello",
         "title" : "Hello EventBridge",
         "category" : "Hello",
@@ -4768,11 +4836,6 @@
         "title" : "Use scheduled events to invoke a Lambda function",
         "category" : "Scenarios",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/eventbridge_example_cross_LambdaScheduledEvents_section.html"
-      }, {
-        "id" : "s3_Scenario_PutBucketNotificationConfiguration",
-        "title" : "Send S3 event notifications to Amazon EventBridge using an AWS SDK",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/eventbridge_example_s3_Scenario_PutBucketNotificationConfiguration_section.html"
       } ]
     },
     "sns" : {
@@ -4923,84 +4986,6 @@
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sns_example_serverless_SNS_Lambda_section.html"
       } ]
     },
-    "sfn" : {
-      "examples" : [ {
-        "id" : "cross_ServerlessWorkflows",
-        "title" : "Use Step Functions to invoke Lambda functions",
-        "category" : "Scenarios",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_cross_ServerlessWorkflows_section.html"
-      }, {
-        "id" : "sfn_Hello",
-        "title" : "Hello Step Functions",
-        "category" : "Hello",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_Hello_section.html"
-      }, {
-        "id" : "sfn_CreateStateMachine",
-        "title" : "Use CreateStateMachine",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_CreateStateMachine_section.html"
-      }, {
-        "id" : "sfn_DeleteStateMachine",
-        "title" : "Use DeleteStateMachine",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DeleteStateMachine_section.html"
-      }, {
-        "id" : "sfn_ListStateMachines",
-        "title" : "Use ListStateMachines",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListStateMachines_section.html"
-      }, {
-        "id" : "sfn_DescribeStateMachine",
-        "title" : "Use DescribeStateMachine",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DescribeStateMachine_section.html"
-      }, {
-        "id" : "sfn_StartExecution",
-        "title" : "Use StartExecution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_StartExecution_section.html"
-      }, {
-        "id" : "sfn_ListExecutions",
-        "title" : "Use ListExecutions",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListExecutions_section.html"
-      }, {
-        "id" : "sfn_DescribeExecution",
-        "title" : "Use DescribeExecution",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DescribeExecution_section.html"
-      }, {
-        "id" : "sfn_CreateActivity",
-        "title" : "Use CreateActivity",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_CreateActivity_section.html"
-      }, {
-        "id" : "sfn_ListActivities",
-        "title" : "Use ListActivities",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListActivities_section.html"
-      }, {
-        "id" : "sfn_GetActivityTask",
-        "title" : "Use GetActivityTask",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_GetActivityTask_section.html"
-      }, {
-        "id" : "sfn_SendTaskSuccess",
-        "title" : "Use SendTaskSuccess",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_SendTaskSuccess_section.html"
-      }, {
-        "id" : "sfn_DeleteActivity",
-        "title" : "Use DeleteActivity",
-        "category" : "Api",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DeleteActivity_section.html"
-      }, {
-        "id" : "sfn_Scenario_GetStartedStateMachines",
-        "title" : "Learn the basics of Step Functions with an AWS SDK",
-        "category" : "Basics",
-        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_Scenario_GetStartedStateMachines_section.html"
-      } ]
-    },
     "location" : {
       "examples" : [ {
         "id" : "location_Hello",
@@ -5082,6 +5067,84 @@
         "title" : "Learn the basics of Amazon Location with an AWS SDK",
         "category" : "Basics",
         "url" : "https://docs.aws.amazon.com/code-library/latest/ug/location_example_location_Scenario_section.html"
+      } ]
+    },
+    "sfn" : {
+      "examples" : [ {
+        "id" : "cross_ServerlessWorkflows",
+        "title" : "Use Step Functions to invoke Lambda functions",
+        "category" : "Scenarios",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_cross_ServerlessWorkflows_section.html"
+      }, {
+        "id" : "sfn_Hello",
+        "title" : "Hello Step Functions",
+        "category" : "Hello",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_Hello_section.html"
+      }, {
+        "id" : "sfn_CreateStateMachine",
+        "title" : "Use CreateStateMachine",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_CreateStateMachine_section.html"
+      }, {
+        "id" : "sfn_DeleteStateMachine",
+        "title" : "Use DeleteStateMachine",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DeleteStateMachine_section.html"
+      }, {
+        "id" : "sfn_ListStateMachines",
+        "title" : "Use ListStateMachines",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListStateMachines_section.html"
+      }, {
+        "id" : "sfn_DescribeStateMachine",
+        "title" : "Use DescribeStateMachine",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DescribeStateMachine_section.html"
+      }, {
+        "id" : "sfn_StartExecution",
+        "title" : "Use StartExecution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_StartExecution_section.html"
+      }, {
+        "id" : "sfn_ListExecutions",
+        "title" : "Use ListExecutions",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListExecutions_section.html"
+      }, {
+        "id" : "sfn_DescribeExecution",
+        "title" : "Use DescribeExecution",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DescribeExecution_section.html"
+      }, {
+        "id" : "sfn_CreateActivity",
+        "title" : "Use CreateActivity",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_CreateActivity_section.html"
+      }, {
+        "id" : "sfn_ListActivities",
+        "title" : "Use ListActivities",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_ListActivities_section.html"
+      }, {
+        "id" : "sfn_GetActivityTask",
+        "title" : "Use GetActivityTask",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_GetActivityTask_section.html"
+      }, {
+        "id" : "sfn_SendTaskSuccess",
+        "title" : "Use SendTaskSuccess",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_SendTaskSuccess_section.html"
+      }, {
+        "id" : "sfn_DeleteActivity",
+        "title" : "Use DeleteActivity",
+        "category" : "Api",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_DeleteActivity_section.html"
+      }, {
+        "id" : "sfn_Scenario_GetStartedStateMachines",
+        "title" : "Learn the basics of Step Functions with an AWS SDK",
+        "category" : "Basics",
+        "url" : "https://docs.aws.amazon.com/code-library/latest/ug/sfn_example_sfn_Scenario_GetStartedStateMachines_section.html"
       } ]
     },
     "iotfleetwise" : {
