@@ -64,17 +64,9 @@ public class NettyRequestMetrics {
      * the stream has been initialized. If the stream is not initialized when this is invoked, an exception will be thrown.
      */
     public static void publishHttp2StreamMetrics(MetricCollector metricCollector, Channel channel) {
-        if (!metricsAreEnabled(metricCollector)) {
-            return;
-        }
 
-        try {
-            getHttp2Connection(channel).ifPresent(http2Connection -> {
-                writeHttp2RequestMetrics(metricCollector, channel, http2Connection);
-            });
-        } catch (Exception e) {
-            logger.warn(null, () -> "Failed to collect metrics", e);
-        }
+        ifMetricsAreEnabled(metricCollector, collector -> getHttp2Connection(channel)
+            .ifPresent(http2Connection -> writeHttp2RequestMetrics(collector, channel, http2Connection)));
     }
 
     private static Optional<Http2Connection> getHttp2Connection(Channel channel) {
