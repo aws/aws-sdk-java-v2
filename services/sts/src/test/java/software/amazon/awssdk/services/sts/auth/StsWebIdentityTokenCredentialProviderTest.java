@@ -119,7 +119,7 @@ class StsWebIdentityTokenCredentialProviderTest {
     void customPrefetchTime_actuallyTriggersRefreshEarly() throws InterruptedException {
         Mockito.reset(stsClient);
 
-        Instant tokenExpiration = Instant.now().plusSeconds(8);
+        Instant tokenExpiration = Instant.now().plusSeconds(5);
         Duration customPrefetchTime = Duration.ofSeconds(2);
         Duration customStaleTime = Duration.ofSeconds(1);
 
@@ -166,8 +166,8 @@ class StsWebIdentityTokenCredentialProviderTest {
             provider.resolveCredentials();
             Mockito.verify(stsClient, Mockito.times(1)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
 
-            // Wait 7 seconds to ensure prefetch completes
-            Thread.sleep(7_000);
+            // Wait 4 seconds to ensure prefetch completes
+            Thread.sleep(4_000);
             Mockito.verify(stsClient, Mockito.times(2)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
 
         } finally {

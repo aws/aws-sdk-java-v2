@@ -133,6 +133,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
 
     /**
      * Whether the provider should fetch credentials asynchronously in the background.
+     * <p>By default, this is false.</p>
      */
     public Boolean asyncCredentialUpdateEnabled() {
         return asyncCredentialUpdateEnabled;
