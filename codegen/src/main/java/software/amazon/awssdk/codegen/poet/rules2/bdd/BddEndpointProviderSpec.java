@@ -23,6 +23,8 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -95,6 +97,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                             .addType(evaluatorClass())
                                             .addType(dynamicAuthBuilderClass())
                                             .addField(bddDefinition())
+                                            .addStaticBlock(staticInitLoadBddDefinition())
                                             .addAnnotation(SdkInternalApi.class);
 
         builder.addMethod(resolveEndpointMethod());
@@ -261,13 +264,34 @@ public class BddEndpointProviderSpec implements ClassSpec  {
     // generate the BDD_DEFINITION array which defines the nodes in a compact form:
     // an array of 3*numNodes.  3 integers per node, (conditionRef, highRef, lowRef)
     private FieldSpec bddDefinition() {
-        String arrayLiteral = endpointBddModel.getCompactDecodedNodes().stream()
-                                              .map(String::valueOf)
-                                              .collect(Collectors.joining(", "));
 
         return FieldSpec.builder(int[].class, "BDD_DEFINITION",
                                  Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("{ $L }", arrayLiteral)
+                        .build();
+    }
+
+    // static initialization code to load the BDD definition from the binary resource file
+    private CodeBlock staticInitLoadBddDefinition() {
+        String fileName = "/endpoints_bdd_" + Integer.toHexString(endpointBddModel.getNodes().hashCode()) + ".bin";
+        return CodeBlock.builder()
+                        .beginControlFlow("try ($T in = $T.class.getResourceAsStream($S))",
+                                          ClassName.get("java.io", "InputStream"),
+                                          className(),
+                                          fileName)
+                        .beginControlFlow("if (in == null)")
+                        .addStatement("throw new $T($S)",
+                                      IllegalStateException.class,
+                                      "Resource " + fileName + " not found")
+                        .endControlFlow()
+                        .addStatement("BDD_DEFINITION = new int[$L]", endpointBddModel.getNodeCount()*3)
+                        .addStatement("$T data = new $T(in)", DataInputStream.class, DataInputStream.class)
+                        .beginControlFlow("for(int i=0; i < $L; i++)", endpointBddModel.getNodeCount()*3)
+                        .addStatement("BDD_DEFINITION[i] = data.readInt()")
+                        .endControlFlow()
+                        .nextControlFlow("catch ($T e)", IOException.class)
+                        .addStatement("throw new $T(e)",
+                                      ExceptionInInitializerError.class)
+                        .endControlFlow()
                         .build();
     }
 

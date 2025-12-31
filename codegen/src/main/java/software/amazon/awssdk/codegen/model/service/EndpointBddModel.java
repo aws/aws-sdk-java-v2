@@ -106,7 +106,7 @@ public class EndpointBddModel {
         ByteBuffer buf = ByteBuffer.wrap(data); // big-endian by default
 
         while (buf.remaining() >= 12) {
-            out.add(buf.getInt()); //conditionInded
+            out.add(buf.getInt()); //conditionIndex
             out.add(buf.getInt()); //highRef
             out.add(buf.getInt()); //lowRef
         }
