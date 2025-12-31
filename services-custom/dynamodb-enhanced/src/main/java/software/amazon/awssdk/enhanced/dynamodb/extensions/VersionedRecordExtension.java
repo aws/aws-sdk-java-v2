@@ -268,15 +268,12 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         /**
          * Sets the startAt used to compare if a record is the initial version of a record.
-         * <p>
-         * <b>DEPRECATED:</b> Use {@link #initialValue(Long)} instead.
-         * <p>
          * When startAt >= 0: First version = startAt + incrementBy.
          * Default value when not set: {@code -1}, which enables {@link #initialValue(Long)} behavior.
          * <p>
          * Cannot be used with {@link #initialValue(Long)} - setting both will throw IllegalArgumentException.
          *
-         * @param startAt the starting value for version comparison, must be -1 or non-negative
+         * @param startAt the starting value for version comparison. When null, defaults to -1. Must be -1 or positive number.
          * @return the builder instance
          * @deprecated Use {@link #initialValue(Long)} instead.
          */
@@ -310,7 +307,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
          * <p>
          * Cannot be used with deprecated {@link #startAt(Long)} when startAt >= 0.
          *
-         * @param initialValue the initial version for new records, must be non-negative
+         * @param initialValue the initial version for new records, must be a positive number
          * @return the builder instance
          * @throws IllegalArgumentException if initialValue is negative or if startAt >= 0 is also set
          */

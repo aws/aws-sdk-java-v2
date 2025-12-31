@@ -653,7 +653,7 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test
-    public void updateItem_newModeWithCustomInitialValue_versionMatchesInitialValue_shouldUseOrCondition() {
+    public void updateItem_versionMatchesInitialValue_shouldUseOrCondition() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
                                                                            .initialValue(5L)
                                                                            .build();
@@ -674,7 +674,7 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test
-    public void newMode_nullInitialValue_derivesFromIncrementBy() {
+    public void putItem_nullInitialValue_firstVersionEqualsIncrementBy() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
                                                                            .incrementBy(3L)
                                                                            .build();
@@ -694,7 +694,7 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test
-    public void newMode_customInitialValue_usesInitialValueNotIncrementBy() {
+    public void putItem_customInitialValue_firstVersionEqualsInitialValue() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
                                                                            .incrementBy(3L)
                                                                            .initialValue(7L)
@@ -715,20 +715,36 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_negativeInitialValue_shouldThrow() {
+    public void builder_negativeInitialValue_shouldThrow() {
         VersionedRecordExtension.builder().initialValue(-1L).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_conflictingStartAtAndInitialValue_shouldThrow() {
+    public void builder_conflictingStartAtAndInitialValue_shouldThrow() {
         VersionedRecordExtension.builder().startAt(0L).initialValue(5L).build();
     }
 
     @Test
-    public void annotation_startAtNegativeOne_shouldNotThrow() {
-        VersionedRecordExtension.builder().build();
-    }
+    public void updateItem_versionDoesNotMatchInitialValue_shouldUseEqualityCondition() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .initialValue(5L)
+                                                                           .incrementBy(2L)
+                                                                           .build();
+        FakeItem item = createUniqueFakeItem();
+        item.setVersion(10);
 
+        Map<String, AttributeValue> inputMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(FakeItem.getTableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("#AMZN_MAPPED_version = :old_version_value"));
+    }
 
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
         return Stream.of(

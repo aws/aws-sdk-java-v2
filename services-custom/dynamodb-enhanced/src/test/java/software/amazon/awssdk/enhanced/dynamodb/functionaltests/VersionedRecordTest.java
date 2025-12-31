@@ -580,4 +580,107 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         AnnotatedRecord shouldBeNull = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
         assertThat(shouldBeNull, is(nullValue()));
     }
+
+    @Test
+    public void putItem_customInitialValue_firstVersionEqualsInitialValue() {
+        DynamoDbEnhancedClient clientWithInitialValue = DynamoDbEnhancedClient.builder()
+                                                                               .dynamoDbClient(getDynamoDbClient())
+                                                                               .extensions(VersionedRecordExtension
+                                                                                               .builder()
+                                                                                               .incrementBy(2L)
+                                                                                               .initialValue(10L)
+                                                                                               .build())
+                                                                               .build();
+        DynamoDbTable<Record> table = clientWithInitialValue.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+        Record record = new Record().setId("initial-value-test").setAttribute("test");
+        table.putItem(record);
+
+        Record retrieved = table.getItem(r -> r.key(k -> k.partitionValue("initial-value-test")));
+        assertThat(retrieved.getVersion(), is(10));
+    }
+
+    @Test
+    public void updateItem_customInitialValue_versionMatchesInitialValue_shouldSucceed() {
+        DynamoDbEnhancedClient clientWithInitialValue = DynamoDbEnhancedClient.builder()
+                                                                               .dynamoDbClient(getDynamoDbClient())
+                                                                               .extensions(VersionedRecordExtension
+                                                                                               .builder()
+                                                                                               .incrementBy(2L)
+                                                                                               .initialValue(10L)
+                                                                                               .build())
+                                                                               .build();
+        DynamoDbTable<Record> table = clientWithInitialValue.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+        Record record = new Record().setId("initial-value-or").setAttribute("first").setVersion(10);
+        table.updateItem(record);
+
+        Record retrieved = table.getItem(r -> r.key(k -> k.partitionValue("initial-value-or")));
+        assertThat(retrieved.getAttribute(), is("first"));
+        assertThat(retrieved.getVersion(), is(12));
+    }
+
+    @Test
+    public void putItem_nullInitialValue_firstVersionEqualsIncrementBy() {
+        DynamoDbEnhancedClient clientWithNullInitialValue = DynamoDbEnhancedClient.builder()
+                                                                                   .dynamoDbClient(getDynamoDbClient())
+                                                                                   .extensions(VersionedRecordExtension
+                                                                                                   .builder()
+                                                                                                   .incrementBy(5L)
+                                                                                                   .build())
+                                                                                   .build();
+        DynamoDbTable<Record> table = clientWithNullInitialValue.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+        Record record = new Record().setId("null-initial-value").setAttribute("test");
+        table.putItem(record);
+
+        Record retrieved = table.getItem(r -> r.key(k -> k.partitionValue("null-initial-value")));
+        assertThat(retrieved.getVersion(), is(5));
+    }
+
+    @Test
+    public void putItem_explicitStartAtNegativeOne_usesInitialValue() {
+        DynamoDbEnhancedClient clientWithExplicitStartAt = DynamoDbEnhancedClient.builder()
+                                                                                  .dynamoDbClient(getDynamoDbClient())
+                                                                                  .extensions(VersionedRecordExtension
+                                                                                                  .builder()
+                                                                                                  .startAt(-1L)
+                                                                                                  .initialValue(7L)
+                                                                                                  .incrementBy(2L)
+                                                                                                  .build())
+                                                                                  .build();
+        DynamoDbTable<Record> table = clientWithExplicitStartAt.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+        Record record = new Record().setId("explicit-start-at").setAttribute("test");
+        table.putItem(record);
+
+        Record retrieved = table.getItem(r -> r.key(k -> k.partitionValue("explicit-start-at")));
+        assertThat(retrieved.getVersion(), is(7));
+    }
+
+    @Test
+    public void updateItem_versionDoesNotMatchInitialValue_shouldSucceed() {
+        DynamoDbEnhancedClient clientWithInitialValue = DynamoDbEnhancedClient.builder()
+                                                                               .dynamoDbClient(getDynamoDbClient())
+                                                                               .extensions(VersionedRecordExtension
+                                                                                               .builder()
+                                                                                               .initialValue(5L)
+                                                                                               .incrementBy(2L)
+                                                                                               .build())
+                                                                               .build();
+        DynamoDbTable<Record> table = clientWithInitialValue.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+        Record first = new Record().setId("equality-test").setAttribute("first");
+        table.putItem(first);
+
+        Record retrieved = table.getItem(r -> r.key(k -> k.partitionValue("equality-test")));
+        assertThat(retrieved.getVersion(), is(5));
+
+        retrieved.setAttribute("second");
+        table.updateItem(retrieved);
+
+        Record updated = table.getItem(r -> r.key(k -> k.partitionValue("equality-test")));
+        assertThat(updated.getAttribute(), is("second"));
+        assertThat(updated.getVersion(), is(7));
+    }
 }
