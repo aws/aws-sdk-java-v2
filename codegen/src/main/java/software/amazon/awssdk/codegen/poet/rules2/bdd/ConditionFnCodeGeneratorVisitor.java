@@ -152,7 +152,7 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
         RegistryInfo registryInfo = registerInfoMap.get(e.variableName());
-        builder.add("registers.$L", registryInfo.getName());
+        builder.add("$L", registryInfo.getName());
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 
@@ -197,10 +197,10 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             String k = kvp.getKey();
             RuleExpression v = kvp.getValue();
             String registerName = registerInfoMap.get(k).getName();
-            builder.add("registers.$L = ", registerName);
+            builder.add("$L = ", registerName);
             v.accept(this);
             builder.addStatement(""); // end the statement we started
-            builder.addStatement("return registers.$L != null", registerName);
+            builder.addStatement("return $L != null", registerName);
         }
         return RuleRuntimeTypeMirror.BOOLEAN;
     }
@@ -223,7 +223,7 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
                 RegistryInfo registryInfo = registerInfoMap.get(varRef.variableName());
                 // special case optimization: do not auto-box booleanEquals!
                 if (registryInfo.isNullable() && RuleRuntimeTypeMirror.BOOLEAN.equals(registryInfo.getRuleType())) {
-                    builder.add("Boolean.FALSE != registers.$L", registryInfo.getName());
+                    builder.add("Boolean.FALSE != $L", registryInfo.getName());
                     builder.addStatement(")");
                     return RuleRuntimeTypeMirror.BOOLEAN;
                 }

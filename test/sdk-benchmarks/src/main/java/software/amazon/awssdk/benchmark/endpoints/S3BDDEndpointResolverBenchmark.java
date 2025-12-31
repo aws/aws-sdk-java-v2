@@ -48,6 +48,9 @@ import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt3Runtime4
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt3Subgraph2;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt3Subgraph2_1;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime4;
+import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6a;
+import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6b;
+import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6c;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOptRuntime3;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedInlineSwitches;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedMethodHandleArray;
@@ -128,6 +131,16 @@ public class S3BDDEndpointResolverBenchmark {
     // uses new ite/split w/ express results reduced (requires dynamic auth builder)
     S3EndpointProvider bddCostOpt4Runtime4 = new BddCostOpt4Runtime4();
 
+    // uses new ite/split w/ express results reduced (requires dynamic auth builder)
+    // uses new Evaluator class with cond/result functions with switches + inline logic for both
+    S3EndpointProvider bddCostOpt4Runtime6a = new BddCostOpt4Runtime6a();
+
+    // result functions, conditions inline
+    S3EndpointProvider bddCostOpt4Runtime6b = new BddCostOpt4Runtime6b();
+
+    // both condition and result functions with switch dispatch
+    S3EndpointProvider bddCostOpt4Runtime6c = new BddCostOpt4Runtime6c();
+
     // this was the naive first attempt at BDD runtime.  Uses Object[] for registry. no loop optimization.
     // Uses baseline (non-optimized) std lib.
     S3EndpointProvider naiveBdd = new BddStartingPointBaselineStdLib();
@@ -159,15 +172,15 @@ public class S3BDDEndpointResolverBenchmark {
         }
     }
 
-    @Benchmark
-    public void bddBasicOptimization(Blackhole blackhole) {
-        runTest(blackhole, bddRuntime4);
-    }
-    //
-    @Benchmark
-    public void bddCostOptimized3(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt3Runtime4);
-    }
+    // @Benchmark
+    // public void bddBasicOptimization(Blackhole blackhole) {
+    //     runTest(blackhole, bddRuntime4);
+    // }
+    // //
+    // @Benchmark
+    // public void bddCostOptimized3(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt3Runtime4);
+    // }
     //
     // @Benchmark
     // public void bddCostOptimized2(Blackhole blackhole) {
@@ -175,8 +188,23 @@ public class S3BDDEndpointResolverBenchmark {
     // }
 
     @Benchmark
-    public void bddCostOptimized4(Blackhole blackhole) {
+    public void bddRegistryAndMethodReferenceArray(Blackhole blackhole) {
         runTest(blackhole, bddCostOpt4Runtime4);
+    }
+
+    @Benchmark
+    public void bddEvaluator_a(Blackhole blackhole) {
+        runTest(blackhole, bddCostOpt4Runtime6a);
+    }
+
+    @Benchmark
+    public void bddEvaluator_b(Blackhole blackhole) {
+        runTest(blackhole, bddCostOpt4Runtime6b);
+    }
+
+    @Benchmark
+    public void bddEvaluator_c(Blackhole blackhole) {
+        runTest(blackhole, bddCostOpt4Runtime6c);
     }
 
     //
@@ -195,15 +223,15 @@ public class S3BDDEndpointResolverBenchmark {
     //     runTest(blackhole, naiveBdd);
     // }
     //
-    @Benchmark
-    public void baselineRulesResolver(Blackhole blackhole) {
-        runTest(blackhole, baselineRulesProvider);
-    }
-
-    @Benchmark
-    public void baselineRulesResolverOldStdLib(Blackhole blackhole) {
-        runTest(blackhole, baselineRulesProviderOldStdLib);
-    }
+    // @Benchmark
+    // public void baselineRulesResolver(Blackhole blackhole) {
+    //     runTest(blackhole, baselineRulesProvider);
+    // }
+    //
+    // @Benchmark
+    // public void baselineRulesResolverOldStdLib(Blackhole blackhole) {
+    //     runTest(blackhole, baselineRulesProviderOldStdLib);
+    // }
 
     // @Benchmark
     // public void bddCostOptimized2(Blackhole blackhole) {

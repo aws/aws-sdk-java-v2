@@ -166,7 +166,7 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
         String registerName = registerInfoMap.get(e.variableName()).getName();
-        builder.add("registers.$L", registerName);
+        builder.add("$L", registerName);
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 
