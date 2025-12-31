@@ -60,18 +60,6 @@ class StsWebIdentityTokenCredentialProviderTest {
         ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
-    private void mockStsClientResponse(Instant expiration) {
-        when(stsClient.assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class)))
-            .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
-                                                         .credentials(Credentials.builder()
-                                                                                 .accessKeyId("key")
-                                                                                 .expiration(expiration)
-                                                                                 .sessionToken("session")
-                                                                                 .secretAccessKey("secret")
-                                                                                 .build())
-                                                         .build());
-    }
-
     @Test
     void createAssumeRoleWithWebIdentityTokenCredentialsProviderWithoutStsClient_throws_Exception() {
 
@@ -100,9 +88,9 @@ class StsWebIdentityTokenCredentialProviderTest {
         StsWebIdentityTokenFileCredentialsProvider provider =
             StsWebIdentityTokenFileCredentialsProvider.builder().stsClient(stsClient)
                 .refreshRequest(r -> r.build())
-                                                      .roleArn("someRole")
+                                                      .roleArn("someTestRole")
                                                       .webIdentityTokenFile(Paths.get(webIdentityTokenPath))
-                                                      .roleSessionName("tempRoleSession")
+                                                      .roleSessionName("RoleSessionTemp")
                                                       .build();
         when(stsClient.assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class)))
             .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
@@ -129,6 +117,8 @@ class StsWebIdentityTokenCredentialProviderTest {
 
     @Test
     void customPrefetchTime_actuallyTriggersRefreshEarly() throws InterruptedException {
+        Mockito.reset(stsClient);
+
         Instant tokenExpiration = Instant.now().plusSeconds(8);
         Duration customPrefetchTime = Duration.ofSeconds(2);
         Duration customStaleTime = Duration.ofSeconds(1);
