@@ -131,6 +131,13 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         return prefetchTime;
     }
 
+    /**
+     * Whether the provider should fetch credentials asynchronously in the background.
+     */
+    public Boolean asyncCredentialUpdateEnabled() {
+        return asyncCredentialUpdateEnabled;
+    }
+
     @Override
     public String toString() {
         return ToString.create(providerName());

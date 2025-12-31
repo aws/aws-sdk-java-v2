@@ -113,7 +113,8 @@ public final class StsWebIdentityTokenFileCredentialsProvider
                                                                .refreshRequest(supplier);
 
             internalBuilder.staleTime(this.staleTime())
-                           .prefetchTime(this.prefetchTime());
+                           .prefetchTime(this.prefetchTime())
+                           .asyncCredentialUpdateEnabled(this.asyncCredentialUpdateEnabled());
 
             credentialsProviderLocal = internalBuilder.build();
         } catch (RuntimeException e) {
