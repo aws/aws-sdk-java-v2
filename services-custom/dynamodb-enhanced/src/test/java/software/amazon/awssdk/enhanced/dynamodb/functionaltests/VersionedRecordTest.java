@@ -143,6 +143,24 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         }
     }
 
+    @DynamoDbBean
+    public static class AnnotatedRecordStartAtNegativeOne {
+        private String id;
+        private String attribute;
+        private Long version;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbVersionAttribute(startAt = -1, incrementBy = 1)
+        public Long getVersion() { return version; }
+        public void setVersion(Long version) { this.version = version; }
+
+        public String getAttribute() { return attribute; }
+        public void setAttribute(String attribute) { this.attribute = attribute; }
+    }
+
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .extensions(VersionedRecordExtension.builder().build())
@@ -158,10 +176,23 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                                           )
                                                                           .build();
 
+    private DynamoDbEnhancedClient startAtNegativeOneClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extensions(VersionedRecordExtension
+                                                                                          .builder()
+                                                                                          .startAt(-1L)
+                                                                                          .incrementBy(1L)
+                                                                                          .build()
+                                                                          )
+                                                                          .build();
+
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private DynamoDbTable<Record> mappedCustomVersionedTable = customVersionedEnhancedClient
         .table(getConcreteTableName("table-name2"), TABLE_SCHEMA);
+
+    private DynamoDbTable<Record> startAtNegativeOneTable = startAtNegativeOneClient
+        .table(getConcreteTableName("startAt-neg-one-table"), TABLE_SCHEMA);
 
 
     private static final TableSchema<AnnotatedRecord> ANNOTATED_TABLE_SCHEMA =
@@ -169,6 +200,12 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     private DynamoDbTable<AnnotatedRecord> annotatedTable = enhancedClient
         .table(getConcreteTableName("annotated-table"), ANNOTATED_TABLE_SCHEMA);
+
+    private static final TableSchema<AnnotatedRecordStartAtNegativeOne> ANNOTATED_START_AT_NEG_ONE_SCHEMA =
+        TableSchema.fromBean(AnnotatedRecordStartAtNegativeOne.class);
+
+    private DynamoDbTable<AnnotatedRecordStartAtNegativeOne> annotatedStartAtNegativeOneTable = enhancedClient
+        .table(getConcreteTableName("annotated-startAt-neg-one-table"), ANNOTATED_START_AT_NEG_ONE_SCHEMA);
 
 
 
@@ -181,6 +218,8 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         mappedCustomVersionedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         annotatedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        startAtNegativeOneTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        annotatedStartAtNegativeOneTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -195,6 +234,14 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("annotated-table"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("startAt-neg-one-table"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("annotated-startAt-neg-one-table"))
                                                           .build());
     }
 
@@ -579,5 +626,51 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         AnnotatedRecord shouldBeNull = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
         assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void putItem_startAtNegativeOne_firstVersionIsZero() {
+        startAtNegativeOneTable.putItem(r -> r.item(new Record().setId("test-id").setAttribute("value")));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
+        assertThat(result.getVersion(), is(0));
+    }
+
+    @Test
+    public void updateItem_startAtNegativeOne_incrementsFromZero() {
+        startAtNegativeOneTable.putItem(r -> r.item(new Record().setId("test-id-2").setAttribute("value")));
+        
+        Record recordToUpdate = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        recordToUpdate.setAttribute("updated");
+        startAtNegativeOneTable.updateItem(r -> r.item(recordToUpdate));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        assertThat(result.getVersion(), is(1));
+    }
+
+    @Test
+    public void updateItem_startAtNegativeOne_versionMatchesStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("test-id-3"));
+        item.put("attribute", stringValue("value"));
+        item.put("version", AttributeValue.builder().n("-1").build());
+        getDynamoDbClient().putItem(r -> r.tableName(startAtNegativeOneTable.tableName()).item(item));
+
+        startAtNegativeOneTable.updateItem(r -> r.item(new Record().setId("test-id-3").setAttribute("updated").setVersion(-1)));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-3")));
+        assertThat(result.getVersion(), is(0));
+    }
+
+    @Test
+    public void annotatedRecord_startAtNegativeOne_firstVersionIsZero() {
+        AnnotatedRecordStartAtNegativeOne record = new AnnotatedRecordStartAtNegativeOne();
+        record.setId("test-id");
+        record.setAttribute("value");
+
+        annotatedStartAtNegativeOneTable.putItem(record);
+
+        AnnotatedRecordStartAtNegativeOne result = annotatedStartAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
+        assertThat(result.getVersion(), is(0L));
     }
 }

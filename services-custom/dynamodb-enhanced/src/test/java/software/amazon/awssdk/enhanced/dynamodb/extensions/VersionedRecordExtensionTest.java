@@ -653,6 +653,26 @@ public class VersionedRecordExtensionTest {
                    is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
     }
 
+    @Test
+    public void beforeWrite_startAtNegativeOne_firstVersionIsZero() {
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .startAt(-1L)
+                                                                     .incrementBy(1L)
+                                                                     .build();
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> expectedItem =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        expectedItem.put("version", AttributeValue.builder().n("0").build());
+
+        WriteModification result =
+            extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                      .builder()
+                                      .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                      .tableMetadata(FakeItem.getTableMetadata())
+                                      .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(expectedItem));
+    }
 
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
         return Stream.of(
