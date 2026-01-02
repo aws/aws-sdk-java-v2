@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms Service",
+    "contributor": "",
+    "description": "Added support for publishing detailed metrics to CloudWatch for operational monitoring of collaborations, including query performance and resource utilization."
+}
