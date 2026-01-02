@@ -192,7 +192,7 @@ public final class RuleRuntimeTypeMirror {
             // still does the trick for codegen.
             RuleFunctionMirror
                 .builder("listAccess")
-                .returns(BOOLEAN)
+                .returns(STRING)
                 .addArgument("value", LIST_OF_STRING)
                 .addArgument("index", INTEGER)
                 .containingType(containingType)

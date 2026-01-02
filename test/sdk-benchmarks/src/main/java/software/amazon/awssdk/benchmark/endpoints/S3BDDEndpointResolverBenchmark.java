@@ -51,6 +51,7 @@ import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime4
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6a;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6b;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6c;
+import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt5Runtime6;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOptRuntime3;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedInlineSwitches;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedMethodHandleArray;
@@ -141,6 +142,12 @@ public class S3BDDEndpointResolverBenchmark {
     // both condition and result functions with switch dispatch
     S3EndpointProvider bddCostOpt4Runtime6c = new BddCostOpt4Runtime6c();
 
+    // cost opt 5, using https://github.com/smithy-lang/smithy/commit/99d556a28c1fe79b840f61a39370eb3bdfd5bf07
+    // uses Evaluator class with cond/result functions
+    // result functions w/ switch dispatch, condition inline
+    // load binary bdd nodes from resource
+    S3EndpointProvider bddCostOpt5Runtime6 = new BddCostOpt5Runtime6();
+
     // this was the naive first attempt at BDD runtime.  Uses Object[] for registry. no loop optimization.
     // Uses baseline (non-optimized) std lib.
     S3EndpointProvider naiveBdd = new BddStartingPointBaselineStdLib();
@@ -187,24 +194,34 @@ public class S3BDDEndpointResolverBenchmark {
     //     runTest(blackhole, bddCostOpt2Runtime4);
     // }
 
-    @Benchmark
-    public void bddRegistryAndMethodReferenceArray(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt4Runtime4);
-    }
+    // @Benchmark
+    // public void bddRegistryAndMethodReferenceArray(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime4);
+    // }
+    //
+    // @Benchmark
+    // public void bddEvaluator_a(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime6a);
+    // }
+    //
+    // @Benchmark
+    // public void bddEvaluator_b(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime6b);
+    // }
+    //
+    // @Benchmark
+    // public void bddEvaluator_c(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime6c);
+    // }
+
+    // @Benchmark
+    // public void bddCostOpt4(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime6b);
+    // }
 
     @Benchmark
-    public void bddEvaluator_a(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt4Runtime6a);
-    }
-
-    @Benchmark
-    public void bddEvaluator_b(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt4Runtime6b);
-    }
-
-    @Benchmark
-    public void bddEvaluator_c(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt4Runtime6c);
+    public void bddCostOpt5(Blackhole blackhole) {
+        runTest(blackhole, bddCostOpt5Runtime6);
     }
 
     //

@@ -43,6 +43,21 @@ public class RulesFunctions {
         return args[args.length - 1];
     }
 
+    @SafeVarargs
+    public static String coalesce(String... args) {
+        if (args == null || args.length < 2) {
+            throw new IllegalArgumentException("coalesce requires at least two arguments");
+        }
+
+        for (String arg : args) {
+            if (arg != null && !arg.isEmpty()) {
+                return arg;
+            }
+        }
+
+        return args[args.length - 1];
+    }
+
     public static List<String> split(String value, String delimiter, int limit) {
         if (limit == 1) {
             return Collections.singletonList(value);
