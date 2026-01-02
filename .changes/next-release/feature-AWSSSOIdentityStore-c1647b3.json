@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO Identity Store",
-    "contributor": "",
-    "description": "This change introduces \"Roles\" attribute for User entities supported by AWS Identity Store SDK."
-}
