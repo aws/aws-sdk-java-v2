@@ -16,6 +16,8 @@
 package software.amazon.awssdk.core.internal.pagination.async;
 
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -32,6 +34,8 @@ import software.amazon.awssdk.core.pagination.async.PaginationSubscription;
 public final class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<ResponseT> {
     private final Function<ResponseT, Iterator<ItemT>> getIteratorFunction;
     private volatile Iterator<ItemT> singlePageItemsIterator;
+    private final AtomicBoolean handlingRequests = new AtomicBoolean();
+    private volatile boolean awaitingNewPage = false;
 
     private ItemsSubscription(BuilderImpl builder) {
         super(builder);
@@ -47,61 +51,83 @@ public final class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscri
 
     @Override
     protected void handleRequests() {
-        if (!hasMoreItems() && !hasNextPage()) {
-            completeSubscription();
+        // Prevent recursion if we already invoked handleRequests
+        if (!handlingRequests.compareAndSet(false, true)) {
             return;
         }
 
-        synchronized (this) {
-            if (outstandingRequests.get() <= 0) {
-                stopTask();
-                return;
+        try {
+            while (true) {
+                if (!hasMoreItems() && !hasNextPage()) {
+                    completeSubscription();
+                    return;
+                }
+
+                synchronized (this) {
+                    if (outstandingRequests.get() <= 0) {
+                        stopTask();
+                        return;
+                    }
+                }
+
+                if (isTerminated()) {
+                    return;
+                }
+
+                if (shouldFetchNextPage()) {
+                    awaitingNewPage = true;
+                    fetchNextPage().whenComplete((r, e) -> {
+                        if (e == null) {
+                            awaitingNewPage = false;
+                            handleRequests();
+                        }
+                        // note: signaling onError if e != null is taken care of by fetchNextPage(). No need to do it here.
+                    });
+                } else if (hasMoreItems()) {
+                    synchronized (this) {
+                        if (outstandingRequests.get() <= 0) {
+                            continue;
+                        }
+
+                        subscriber.onNext(singlePageItemsIterator.next());
+                        outstandingRequests.getAndDecrement();
+                    }
+                } else {
+                    // Outstanding demand AND no items in current page AND waiting for next page. Just return for now, and
+                    // we'll handle demand when the new page arrives.
+                    return;
+                }
             }
-        }
-
-        if (!isTerminated()) {
-            /**
-             * Current page is null only the first time the method is called.
-             * Once initialized, current page will never be null
-             */
-            if (currentPage == null || (!hasMoreItems() && hasNextPage())) {
-                fetchNextPage();
-
-            } else if (hasMoreItems()) {
-                sendNextElement();
-
-            // All valid cases are covered above. Throw an exception if any combination is missed
-            } else {
-                throw new IllegalStateException("Execution should have not reached here");
-            }
+        } finally {
+            handlingRequests.set(false);
         }
     }
 
-    private void fetchNextPage() {
-        nextPageFetcher.nextPage(currentPage)
-                       .whenComplete(((response, error) -> {
-                           if (response != null) {
-                               currentPage = response;
-                               singlePageItemsIterator = getIteratorFunction.apply(response);
-                               sendNextElement();
-                           }
-                           if (error != null) {
-                               subscriber.onError(error);
-                               cleanup();
-                           }
-                       }));
+    private CompletableFuture<ResponseT> fetchNextPage() {
+        return nextPageFetcher.nextPage(currentPage)
+                              .whenComplete((response, error) -> {
+                                  if (response != null) {
+                                      currentPage = response;
+                                      singlePageItemsIterator = getIteratorFunction.apply(response);
+                                  } else if (error != null) {
+                                      subscriber.onError(error);
+                                      cleanup();
+                                  }
+                              });
     }
 
-    /**
-     * Calls onNext and calls the recursive method.
-     */
-    private void sendNextElement() {
-        if (singlePageItemsIterator.hasNext()) {
-            subscriber.onNext(singlePageItemsIterator.next());
-            outstandingRequests.getAndDecrement();
+    // Conditions when to fetch the next page:
+    //  - We're NOT already waiting for a new page AND either
+    //    - We still need to fetch the first page OR
+    //    - We've exhausted the current page AND there is a next page available
+    private boolean shouldFetchNextPage() {
+        if (awaitingNewPage) {
+            return false;
         }
 
-        handleRequests();
+        // Current page is null only the first time the method is called.
+        // Once initialized, current page will never be null.
+        return currentPage == null || (!hasMoreItems() && hasNextPage());
     }
 
     private boolean hasMoreItems() {
