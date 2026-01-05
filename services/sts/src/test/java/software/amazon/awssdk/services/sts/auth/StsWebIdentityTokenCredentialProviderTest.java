@@ -166,8 +166,8 @@ class StsWebIdentityTokenCredentialProviderTest {
             provider.resolveCredentials();
             Mockito.verify(stsClient, Mockito.times(1)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
 
-            // Wait 4 seconds to ensure prefetch completes
-            Thread.sleep(4_000);
+            // Wait 5 seconds to ensure prefetch completes
+            Thread.sleep(5_000);
             Mockito.verify(stsClient, Mockito.times(2)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
 
         } finally {
