@@ -120,13 +120,18 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
+        RuleType lastArgType = RuleRuntimeTypeMirror.VOID;
         for (int i = 0; i < args.size(); i++) {
             if (i > 0) {
                 builder.add(", ");
             }
-            args.get(i).accept(this);
+            lastArgType = args.get(i).accept(this);
         }
         builder.add(")");
+        if ("coalesce".equals(fn)) {
+            // special case type inference for coalesce
+            return lastArgType;
+        }
         return func.returns();
     }
 

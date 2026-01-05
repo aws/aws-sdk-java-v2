@@ -39,7 +39,8 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 // uses Evaluator class with cond/result functions
 // result functions w/ switch dispatch, condition inline
 // load binary bdd nodes from resource
-public final class BddCostOpt5Runtime6 implements S3EndpointProvider {
+// Optimized loop (no complimented nodes).
+public final class BddCostOpt5Runtime6b implements S3EndpointProvider {
     private static final int[] BDD_DEFINITION;
 
     static {
@@ -79,11 +80,10 @@ public final class BddCostOpt5Runtime6 implements S3EndpointProvider {
         evaluator.disableS3ExpressSessionAuth = params.disableS3ExpressSessionAuth();
         final int[] bdd = BDD_DEFINITION;
         int nodeRef = 521;
-        while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000) {
-            int base = (Math.abs(nodeRef) - 1) * 3;
-            int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0;
+        while ((nodeRef > 1) && nodeRef < 100000000) {
+            int base = (nodeRef - 1) * 3;
             int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0;
-            nodeRef = bdd[base + 2 - (complemented ^ conditionResult)];
+            nodeRef = bdd[base + 2 - conditionResult];
         }
         if (nodeRef == -1 || nodeRef == 1) {
             return CompletableFutureUtils.failedFuture(SdkClientException
