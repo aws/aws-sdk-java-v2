@@ -76,7 +76,7 @@ public class MetricReportingTest {
 
         client.prepareRequest(executeRequest).call();
         MetricCollection collected = collector.collect();
-        assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5Preview");
+        assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5");
         assertThat(collected.metricValues(LEASED_CONCURRENCY)).containsExactly(1);
         assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).containsExactly(2);
         assertThat(collected.metricValues(AVAILABLE_CONCURRENCY)).containsExactly(3);
@@ -94,7 +94,7 @@ public class MetricReportingTest {
 
         MetricCollection collected = collector.collect();
 
-        assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5Preview");
+        assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5");
         assertThat(collected.metricValues(LEASED_CONCURRENCY)).isEmpty();
         assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).isEmpty();
         assertThat(collected.metricValues(AVAILABLE_CONCURRENCY)).isEmpty();
