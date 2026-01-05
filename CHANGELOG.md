@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.2__ __2026-01-05__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - AWS Clean Rooms ML now supports advanced Spark configurations to optimize SQL performance when creating an MLInputChannel or an audience generation job.
+
 # __2.41.1__ __2026-01-02__
 ## __AWS Clean Rooms Service__
   - ### Features
