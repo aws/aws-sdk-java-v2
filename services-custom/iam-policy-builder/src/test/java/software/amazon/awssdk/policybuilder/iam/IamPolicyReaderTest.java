@@ -89,6 +89,34 @@ class IamPolicyReaderTest {
                  .statements(singletonList(ONE_ELEMENT_LISTS_STATEMENT))
                  .build();
 
+    private static final IamPolicy INTEGER_ACCOUNT_ID_POLICY =
+        IamPolicy.builder()
+                 .version("Version")
+                 .statements(singletonList(
+                     IamStatement
+                         .builder()
+                         .effect("Allow")
+                         .principals(
+                             IamPrincipal.createAll("AWS", asList("001234567890", "555555555555")))
+                         .addCondition(
+                             IamCondition.create("StringNotEquals", "aws:PrincipalAccount", "001234567890"))
+                         .build()
+                 ))
+                 .build();
+
+    private static final IamPolicy BOOLEAN_CONDITION_POLICY =
+        IamPolicy.builder()
+                 .version("Version")
+                 .statements(singletonList(
+                     IamStatement
+                         .builder()
+                         .effect("Allow")
+                         .addCondition(
+                             IamCondition.create("Bool", "aws:SecureTransport", "true"))
+                         .build()
+                 ))
+                 .build();
+
     private static final IamStatement COMPOUND_PRINCIPAL_STATEMENT =
         IamStatement.builder()
                     .effect(ALLOW)
@@ -176,20 +204,40 @@ class IamPolicyReaderTest {
 
     @Test
     public void readPolicyWithIntegerAccountsWorks() {
-        IamPolicy p = READER.read("{\n"
+        assertThat(READER.read("{\n"
                                   + "  \"Version\" : \"Version\",\n"
                                   + "  \"Statement\" : {\n"
                                   + "    \"Effect\" : \"Allow\",\n"
+                                  + "    \"Principal\" : { \n"
+                                  + "      \"AWS\": [ \n"
+                                  + "        001234567890,\n"
+                                  + "        \"555555555555\" \n"
+                                  + "        ]\n"
+                                  + "    },\n"
                                   + "    \"Condition\" : {\n"
                                   + "      \"StringNotEquals\": {\n"
                                   + "          \"aws:PrincipalAccount\": [\n"
-                                  + "              00012345679\n"
+                                  + "              001234567890\n"
                                   + "          ]\n"
                                   + "      }\n"
                                   + "    }\n"
                                   + "  }\n"
-                                  + "}");
-        System.out.println(p);
+                                  + "}")).isEqualTo(INTEGER_ACCOUNT_ID_POLICY);
+    }
+
+    @Test
+    public void readPolicyWithBooleanConditionWorks() {
+        assertThat(READER.read("{\n"
+                               + "  \"Version\" : \"Version\",\n"
+                               + "  \"Statement\" : {\n"
+                               + "    \"Effect\" : \"Allow\",\n"
+                               + "    \"Condition\" : {\n"
+                               + "      \"Bool\": {\n"
+                               + "          \"aws:SecureTransport\": true\n"
+                               + "      }\n"
+                               + "    }\n"
+                               + "  }\n"
+                               + "}")).isEqualTo(BOOLEAN_CONDITION_POLICY);
     }
 
     @Test
