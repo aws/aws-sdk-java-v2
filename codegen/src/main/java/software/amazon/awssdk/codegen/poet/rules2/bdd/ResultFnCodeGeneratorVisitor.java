@@ -27,6 +27,7 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules2.BooleanAndExpression;
 import software.amazon.awssdk.codegen.poet.rules2.BooleanNotExpression;
 import software.amazon.awssdk.codegen.poet.rules2.CodeGeneratorVisitor;
@@ -63,17 +64,21 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
     private final Map<String, RegistryInfo> registerInfoMap;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
     private final boolean endpointCaching;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+
 
     public ResultFnCodeGeneratorVisitor(
         CodeBlock.Builder builder, ClassName dynamicAuthBuilderType, RuleRuntimeTypeMirror typeMirror,
         Map<String, RegistryInfo> registerInfoMap,
-        Map<String, KeyTypePair> knownEndpointAttributes, boolean endpointCaching) {
+        Map<String, KeyTypePair> knownEndpointAttributes, boolean endpointCaching,
+        EndpointRulesSpecUtils endpointRulesSpecUtils) {
         this.builder = builder;
         this.dynamicAuthBuilderType = dynamicAuthBuilderType;
         this.typeMirror = typeMirror;
         this.registerInfoMap = registerInfoMap;
         this.knownEndpointAttributes = knownEndpointAttributes;
         this.endpointCaching = endpointCaching;
+        this.endpointRulesSpecUtils = endpointRulesSpecUtils;
     }
 
     @Override
@@ -165,8 +170,12 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
 
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
-        String registerName = registerInfoMap.get(e.variableName()).getName();
-        builder.add("$L", registerName);
+        RegistryInfo registryInfo = registerInfoMap.get(e.variableName());
+        if (registryInfo.isNonRegionParam()) {
+            builder.add("params.$L()", endpointRulesSpecUtils.paramMethodName(registryInfo.getNonRegionParamKey()));
+        } else {
+            builder.add("$L", registryInfo.getName());
+        }
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 

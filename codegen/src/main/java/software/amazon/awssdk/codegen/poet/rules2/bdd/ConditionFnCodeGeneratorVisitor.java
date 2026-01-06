@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules2.BooleanAndExpression;
 import software.amazon.awssdk.codegen.poet.rules2.BooleanNotExpression;
 import software.amazon.awssdk.codegen.poet.rules2.EndpointExpression;
@@ -52,11 +53,13 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     private final CodeBlock.Builder builder;
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
-    public ConditionFnCodeGeneratorVisitor(CodeBlock.Builder builder, RuleRuntimeTypeMirror typeMirror, Map<String, RegistryInfo> registerInfoMap) {
+    public ConditionFnCodeGeneratorVisitor(CodeBlock.Builder builder, RuleRuntimeTypeMirror typeMirror, Map<String, RegistryInfo> registerInfoMap, EndpointRulesSpecUtils endpointRulesSpecUtils) {
         this.builder = builder;
         this.typeMirror = typeMirror;
         this.registerInfoMap = registerInfoMap;
+        this.endpointRulesSpecUtils = endpointRulesSpecUtils;
     }
 
     @Override
@@ -157,7 +160,11 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
         RegistryInfo registryInfo = registerInfoMap.get(e.variableName());
-        builder.add("$L", registryInfo.getName());
+        if (registryInfo.isNonRegionParam()) {
+            builder.add("params.$L()", endpointRulesSpecUtils.paramMethodName(registryInfo.getNonRegionParamKey()));
+        } else {
+            builder.add("$L", registryInfo.getName());
+        }
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 

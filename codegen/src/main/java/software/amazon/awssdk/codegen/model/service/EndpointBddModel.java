@@ -114,6 +114,14 @@ public class EndpointBddModel {
         return out;
     }
 
+    /**
+     *
+     * @return true if any of nodes are complemented (negative)
+     */
+    public boolean hasComplementedNodes() {
+        return getCompactDecodedNodes().stream().anyMatch(n -> n < 0);
+    }
+
     public List<BddNode> getDecodedNodes() {
         List<BddNode> out = new ArrayList<>(nodeCount);
         byte[] data = Base64.getDecoder().decode(nodes);

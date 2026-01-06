@@ -28,20 +28,25 @@ public class RegistryInfo {
     // defaults to true, set to false only when we guarantee that the value cannot be null.
     private boolean nullable;
 
-    public RegistryInfo(String name, int index, RuleType ruleType, RuleSetExpression ruleSetExpression, boolean nullable) {
+    // set only when this is an endpoint parameter, EXCEPT in the case of Region built in which is a special case
+    private final String nonRegionParamKey;
+
+    public RegistryInfo(String name, int index, RuleType ruleType, RuleSetExpression ruleSetExpression, boolean nullable,
+                        String nonRegionParamKey) {
         this.name = name;
         this.index = index;
         this.ruleType = ruleType;
         this.ruleSetExpression = ruleSetExpression;
         this.nullable = nullable;
+        this.nonRegionParamKey = nonRegionParamKey;
     }
 
-    public RegistryInfo(String name, int index, RuleType ruleType) {
-        this(name, index, ruleType, null, true);
+    public RegistryInfo(String name, int index, RuleType ruleType, String paramKey) {
+        this(name, index, ruleType, null, true, paramKey);
     }
 
     public RegistryInfo(String name, int index, RuleSetExpression ruleSetExpression) {
-        this(name, index, null, ruleSetExpression, true);
+        this(name, index, null, ruleSetExpression, true, null);
     }
 
     public String getName() {
@@ -66,5 +71,13 @@ public class RegistryInfo {
 
     public boolean isNullable() {
         return nullable;
+    }
+
+    public String getNonRegionParamKey() {
+        return nonRegionParamKey;
+    }
+
+    public boolean isNonRegionParam() {
+        return nonRegionParamKey != null;
     }
 }

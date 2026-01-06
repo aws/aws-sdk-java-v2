@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
@@ -127,18 +126,23 @@ public class BddEndpointProviderSpec implements ClassSpec  {
 
     private TypeSpec evaluatorClass() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(evaluatorType)
-                                           .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+                                           .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                           .addField(FieldSpec
+                                                         .builder(endpointRulesSpecUtils.parametersClassName(),"params")
+                                                         .build());
         registerInfoMap.forEach((k,r) -> {
             TypeName type = r.getRuleType().type();
             if (type.isPrimitive() && r.isNullable()) {
                 type = type.box();
             }
 
-            builder.addField(
-                FieldSpec
-                    .builder(type, r.getName())
-                    .build()
-            );
+            if (!r.isNonRegionParam()) {
+                builder.addField(
+                    FieldSpec
+                        .builder(type, r.getName())
+                        .build()
+                );
+            }
         });
 
         builder.addMethod(evaluatorConditionMethod());
@@ -171,7 +175,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 .parseRuleSetExpression(synthetic)
                 .accept(new PrepareForCodegenVisitor());
 
-            parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap));
+            parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap, endpointRulesSpecUtils));
 
             builder.endControlFlow(); //end case, no "break" required as all cases will return
         }
@@ -332,7 +336,8 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 .parseRuleSetExpression(synthetic)
                 .accept(new PrepareForCodegenVisitor());
 
-            parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap));
+            parsedSynthetic.accept(
+                new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap, endpointRulesSpecUtils));
 
             methods.add(MethodSpec
                             .methodBuilder("cond" + cI)
@@ -375,7 +380,8 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 .accept(new PrepareForCodegenVisitor());
 
             parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
-                builder, dynamicAuthBuilderType, typeMirror, registerInfoMap, knownEndpointAttributes, endpointCaching));
+                builder, dynamicAuthBuilderType, typeMirror, registerInfoMap,
+                knownEndpointAttributes, endpointCaching, endpointRulesSpecUtils));
 
             methods.add(MethodSpec
                             .methodBuilder("result" + rI)
@@ -406,27 +412,30 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                  registerInfoMap.get(regionParamName).getName(),
                                  regionMethodName, regionMethodName);
         }
-
-        // add all other parameters
-        for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
-            if (!entry.getKey().equals(regionParamName)) {
-                builder.addStatement("evaluator.$L = params.$L()",
-                                     registerInfoMap.get(entry.getKey()).getName(),
-                                     endpointRulesSpecUtils.paramMethodName(entry.getKey()));
-            }
-        }
+        builder.addStatement("evaluator.params = params");
 
         builder.addStatement("final $T bdd = BDD_DEFINITION", int[].class);
         builder.addStatement("int nodeRef = $L", endpointBddModel.getRoot());
-        builder
-            .beginControlFlow("while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000)")
-            .addStatement("int base  = (Math.abs(nodeRef) - 1) * 3")
-            .addStatement("int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0")
-            .addStatement("int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0")
-            .addStatement("nodeRef = bdd[base + 2 - (complemented ^ conditionResult)]")
-            .endControlFlow();
 
-        builder.beginControlFlow("if (nodeRef == -1 || nodeRef == 1)")
+        // optimize the code generated loop if there are no complemented nodes.
+        if (endpointBddModel.hasComplementedNodes()) {
+            builder
+                .beginControlFlow("while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000)")
+                .addStatement("int base  = (Math.abs(nodeRef) - 1) * 3")
+                .addStatement("int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0")
+                .addStatement("int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0")
+                .addStatement("nodeRef = bdd[base + 2 - (complemented ^ conditionResult)]")
+                .endControlFlow();
+        } else {
+            builder
+                .beginControlFlow("while (nodeRef > 1 && nodeRef < 100000000)")
+                .addStatement("int base  = (nodeRef - 1) * 3")
+                .addStatement("int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0")
+                .addStatement("nodeRef = bdd[base + 2 - conditionResult]")
+                .endControlFlow();
+        }
+
+        builder.beginControlFlow("if (nodeRef == 1 || nodeRef == -1)")
                .addStatement("return $T.failedFuture($T.create($S))", CompletableFutureUtils.class,
                              SdkClientException.class, "Rule engine did not reach an error or endpoint result")
                .nextControlFlow("else")
@@ -485,8 +494,12 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
             String name = intermediateModel.getNamingStrategy().getVariableName(entry.getKey());
             boolean nullable = entry.getValue().getDefault() == null;
-            registryInfo.put(entry.getKey(),
-                             new RegistryInfo(name, index, fromParameterModel(entry.getValue()), null, nullable));
+            boolean isRegionBuiltIn = entry.getValue().getBuiltInEnum() == BuiltInParameter.AWS_REGION;
+            String nonRegionParamKey = isRegionBuiltIn ? null : entry.getKey();
+            registryInfo.put(
+                entry.getKey(),
+                new RegistryInfo(name, index, fromParameterModel(entry.getValue()),
+                                 null, nullable, nonRegionParamKey));
             index += 1;
         }
 

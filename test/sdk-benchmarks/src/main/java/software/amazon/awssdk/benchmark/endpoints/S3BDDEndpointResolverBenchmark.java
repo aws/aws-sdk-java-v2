@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt4Runtime6c;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt5Runtime6;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt5Runtime6b;
+import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOpt5Runtime6c;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddCostOptRuntime3;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedInlineSwitches;
 import software.amazon.awssdk.services.s3.endpoints.internal.BddOptimizedMethodHandleArray;
@@ -151,6 +152,8 @@ public class S3BDDEndpointResolverBenchmark {
 
     // identical to bddCostOpt5Runtime6 but with optimized runtime loop (no complimented nodes)
     S3EndpointProvider bddCostOpt5Runtime6b = new BddCostOpt5Runtime6b();
+    // identical to bddCostOpt5Runtime6b, but optimize params - access directly rather than copying into Evaluator members
+    S3EndpointProvider bddCostOpt5Runtime6c = new BddCostOpt5Runtime6c();
 
     // this was the naive first attempt at BDD runtime.  Uses Object[] for registry. no loop optimization.
     // Uses baseline (non-optimized) std lib.
@@ -183,10 +186,10 @@ public class S3BDDEndpointResolverBenchmark {
         }
     }
 
-    @Benchmark
-    public void bddBasicOptimization(Blackhole blackhole) {
-        runTest(blackhole, bddRuntime4);
-    }
+    // @Benchmark
+    // public void bddBasicOptimization(Blackhole blackhole) {
+    //     runTest(blackhole, bddRuntime4);
+    // }
     // //
     // @Benchmark
     // public void bddCostOptimized3(Blackhole blackhole) {
@@ -218,21 +221,50 @@ public class S3BDDEndpointResolverBenchmark {
     //     runTest(blackhole, bddCostOpt4Runtime6c);
     // }
 
-    @Benchmark
-    public void bddCostOpt4(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt4Runtime6b);
-    }
-
-    @Benchmark
-    public void bddCostOpt5(Blackhole blackhole) {
-        runTest(blackhole, bddCostOpt5Runtime6);
-    }
+    // @Benchmark
+    // public void bddCostOpt4(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt4Runtime6b);
+    // }
+    //
+    // @Benchmark
+    // public void bddCostOpt5(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt5Runtime6);
+    // }
 
     @Benchmark
     public void bddCostOpt5b(Blackhole blackhole) {
         runTest(blackhole, bddCostOpt5Runtime6b);
     }
 
+    @Benchmark
+    public void bddCostOpt5c(Blackhole blackhole) {
+        runTest(blackhole, bddCostOpt5Runtime6c);
+    }
+
+    // @Benchmark
+    // public void naiveBdd(Blackhole blackhole) {
+    //     runTest(blackhole, naiveBdd);
+    // }
+    //
+    // @Benchmark
+    // public void baselineRulesResolver(Blackhole blackhole) {
+    //     runTest(blackhole, baselineRulesProvider);
+    // }
+    //
+    // @Benchmark
+    // public void baselineRulesResolverOldStdLib(Blackhole blackhole) {
+    //     runTest(blackhole, baselineRulesProviderOldStdLib);
+    // }
+
+    // @Benchmark
+    // public void bddCostOptimized2(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt2Runtime3);
+    // }
+    //
+    // @Benchmark
+    // public void bddWithSubgraphs(Blackhole blackhole) {
+    //     runTest(blackhole, bddCostOpt2Subgraphs);
+    // }
 
     //
     // @Benchmark
@@ -243,31 +275,6 @@ public class S3BDDEndpointResolverBenchmark {
     // @Benchmark
     // public void bddCostOpt3Subgraph2_1(Blackhole blackhole) {
     //     runTest(blackhole, bddCostOpt3Subgraph2_1);
-    // }
-
-    @Benchmark
-    public void naiveBdd(Blackhole blackhole) {
-        runTest(blackhole, naiveBdd);
-    }
-
-    @Benchmark
-    public void baselineRulesResolver(Blackhole blackhole) {
-        runTest(blackhole, baselineRulesProvider);
-    }
-
-    @Benchmark
-    public void baselineRulesResolverOldStdLib(Blackhole blackhole) {
-        runTest(blackhole, baselineRulesProviderOldStdLib);
-    }
-
-    // @Benchmark
-    // public void bddCostOptimized2(Blackhole blackhole) {
-    //     runTest(blackhole, bddCostOpt2Runtime3);
-    // }
-    //
-    // @Benchmark
-    // public void bddWithSubgraphs(Blackhole blackhole) {
-    //     runTest(blackhole, bddCostOpt2Subgraphs);
     // }
 
     // @Benchmark
