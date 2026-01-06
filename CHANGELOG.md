@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.3__ __2026-01-06__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release updates existing reservation recommendations API to support deployment model.
+
+## __EMR Serverless__
+  - ### Features
+    - Added support for enabling disk encryption using customer managed AWS KMS keys to CreateApplication, UpdateApplication and StartJobRun APIs.
+
 # __2.41.2__ __2026-01-05__
 ## __AWS Clean Rooms ML__
   - ### Features
