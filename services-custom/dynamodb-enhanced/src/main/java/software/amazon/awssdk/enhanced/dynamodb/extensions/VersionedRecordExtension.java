@@ -35,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * This extension implements optimistic locking on record writes by means of a 'record version number' that is used
@@ -55,6 +54,10 @@ import software.amazon.awssdk.utils.Validate;
  * Then, whenever a record is written the write operation will only succeed if the version number of the record has not
  * been modified since it was last read by the application. Every time a new version of the record is successfully
  * written to the database, the record version number will be automatically incremented.
+ * <p>
+ * <b>Version Calculation:</b> The first version written to a new record is calculated as {@code startAt + incrementBy}.
+ * For example, with {@code startAt=0} and {@code incrementBy=1} (defaults), the first version is 1.
+ * To start versioning from 0, use {@code startAt=-1} and {@code incrementBy=1}, which produces first version = 0.
  */
 @SdkPublicApi
 @ThreadSafe
@@ -68,7 +71,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     private final long incrementBy;
 
     private VersionedRecordExtension(Long startAt, Long incrementBy) {
-        Validate.isNotNegativeOrNull(startAt, "startAt");
+        if (startAt != null && startAt < -1) {
+            throw new IllegalArgumentException("startAt must be -1 or greater");
+        }
 
         if (incrementBy != null && incrementBy < 1) {
             throw new IllegalArgumentException("incrementBy must be greater than 0.");
@@ -121,7 +126,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                     "is supported.", attributeName, attributeValueType.name()));
             }
 
-            Validate.isNotNegativeOrNull(startAt, "startAt");
+            if (startAt != null && startAt < -1) {
+                throw new IllegalArgumentException("startAt must be -1 or greater.");
+            }
 
             if (incrementBy != null && incrementBy < 1) {
                 throw new IllegalArgumentException("incrementBy must be greater than 0.");
@@ -228,9 +235,10 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         /**
          * Sets the startAt used to compare if a record is the initial version of a record.
+         * The first version written to a new record is calculated as {@code startAt + incrementBy}.
          * Default value - {@code 0}.
          *
-         * @param startAt the starting value for version comparison, must not be negative
+         * @param startAt the starting value for version comparison, must be -1 or greater
          * @return the builder instance
          */
         public Builder startAt(Long startAt) {
