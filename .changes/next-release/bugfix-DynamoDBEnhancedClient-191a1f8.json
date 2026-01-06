@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Allow versioning to start from 0"
+}
