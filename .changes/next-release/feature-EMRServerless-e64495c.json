@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EMR Serverless",
-    "contributor": "",
-    "description": "Added support for enabling disk encryption using customer managed AWS KMS keys to CreateApplication, UpdateApplication and StartJobRun APIs."
-}
