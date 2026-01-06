@@ -1578,6 +1578,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ap-southeast-5" : { },
+          "ap-southeast-6" : { },
           "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
@@ -4106,6 +4107,7 @@
       },
       "cases" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-southeast-1" : { },
@@ -4960,12 +4962,14 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ap-southeast-5" : { },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "cloudhsmv2.ca-central-1.api.aws",
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ca-west-1" : { },
           "eu-central-1" : {
             "variants" : [ {
               "hostname" : "cloudhsmv2.eu-central-1.api.aws",
@@ -5027,6 +5031,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "mx-central-1" : { },
           "sa-east-1" : {
             "variants" : [ {
               "hostname" : "cloudhsmv2.sa-east-1.api.aws",
@@ -10050,18 +10055,6 @@
           }
         }
       },
-      "elastictranscoder" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-south-1" : { },
-          "ap-southeast-1" : { },
-          "ap-southeast-2" : { },
-          "eu-west-1" : { },
-          "us-east-1" : { },
-          "us-west-1" : { },
-          "us-west-2" : { }
-        }
-      },
       "email" : {
         "endpoints" : {
           "af-south-1" : { },
@@ -13910,6 +13903,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ap-southeast-5" : { },
+          "ap-southeast-6" : { },
           "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
@@ -18851,6 +18845,7 @@
             },
             "hostname" : "portal.sso.ap-east-1.amazonaws.com"
           },
+          "ap-east-2" : { },
           "ap-northeast-1" : {
             "credentialScope" : {
               "region" : "ap-northeast-1"
@@ -25855,6 +25850,7 @@
         "endpoints" : {
           "af-south-1" : { },
           "ap-east-1" : { },
+          "ap-east-2" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
@@ -27228,6 +27224,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ap-southeast-5" : { },
+          "ap-southeast-6" : { },
           "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
@@ -28388,6 +28385,7 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ap-southeast-6" : { },
           "ap-southeast-7" : {
             "credentialScope" : {
               "region" : "ap-southeast-7"
@@ -37871,6 +37869,11 @@
       }
     },
     "services" : {
+      "agreement-marketplace" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
       "api.ecr" : {
         "endpoints" : {
           "us-isob-east-1" : {
@@ -39789,6 +39792,11 @@
         "isRegionalized" : false,
         "partitionEndpoint" : "aws-iso-f-global"
       },
+      "identitystore" : {
+        "endpoints" : {
+          "us-isof-east-1" : { }
+        }
+      },
       "kinesis" : {
         "endpoints" : {
           "us-isof-east-1" : { },
@@ -40681,6 +40689,11 @@
         }
       },
       "trustedadvisor" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
+      "wafv2" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
         }

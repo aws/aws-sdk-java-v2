@@ -1,0 +1,12 @@
+{
+    "version": "2.41.2",
+    "date": "2026-01-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "AWS Clean Rooms ML now supports advanced Spark configurations to optimize SQL performance when creating an MLInputChannel or an audience generation job."
+        }
+    ]
+}

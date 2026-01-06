@@ -117,8 +117,8 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
                     return Optional.empty();
                 }
                 switch (errorCode) {
-                    case "InvalidInput":
-                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                    case "InvalidInputException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
