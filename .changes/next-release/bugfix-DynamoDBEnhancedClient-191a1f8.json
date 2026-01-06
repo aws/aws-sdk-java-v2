@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "DynamoDB Enhanced Client",
     "contributor": "",
-    "description": "Allow versioning to start from 0"
+    "description": "Allow new records to start at version=0 by supporting startAt=-1 in VersionedRecordExtension"
 }
