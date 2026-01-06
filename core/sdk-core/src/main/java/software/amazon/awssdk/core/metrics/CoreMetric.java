@@ -162,6 +162,9 @@ public final class CoreMetric {
     public static final SdkMetric<Duration> ENDPOINT_RESOLVE_DURATION =
         metric("EndpointResolveDuration", Duration.class, MetricLevel.INFO);
 
+    public static final SdkMetric<Duration> AUTH_RESOLVE_DURATION =
+        metric("AuthResolveDuration", Duration.class, MetricLevel.INFO);
+
 
     /**
      * The type of error that occurred for a call attempt.

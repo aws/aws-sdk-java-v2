@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -149,8 +150,15 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(ExecutionAttributes.class,
                                                              "executionAttributes");
 
-        builder.addStatement("$T authOptions = resolveAuthOptions(context, executionAttributes)",
+        builder.addStatement("long resolveAuthStart = $T.nanoTime()", System.class)
+                .addStatement("$T authOptions = resolveAuthOptions(context, executionAttributes)",
                              listOf(AuthSchemeOption.class))
+            .addStatement("$T resolveAuthDuration = $T.ofNanos($T.nanoTime() - resolveAuthStart)",
+                          Duration.class, Duration.class, System.class)
+            .addStatement("$T<$T> metricCollector = executionAttributes.getOptionalAttribute($T.API_CALL_METRIC_COLLECTOR)",
+                          Optional.class, MetricCollector.class, SdkExecutionAttribute.class)
+            .addStatement("metricCollector.ifPresent(mc -> mc.reportMetric($T.AUTH_RESOLVE_DURATION, resolveAuthDuration))",
+                          CoreMetric.class)
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
                .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");

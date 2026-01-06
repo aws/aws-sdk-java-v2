@@ -163,7 +163,7 @@ public final class BDDEndpointResolverTranslatedToRules implements ConnectEndpoi
     private static RuleResult endpointRule17(ConnectEndpointParams params, RulePartition partitionResult, String region) {
         if (partitionResult.supportsDualStack()) {
             return RuleResult.endpoint(Endpoint.builder()
-                                               .url(URI.create("https://acm-fips." + region + "." + partitionResult.dualStackDnsSuffix())).build());
+                                               .url(URI.create("https://connect-fips." + region + "." + partitionResult.dualStackDnsSuffix())).build());
         }
         return RuleResult.error("FIPS and DualStack are enabled, but this partition does not support one or both");
     }
@@ -185,10 +185,10 @@ public final class BDDEndpointResolverTranslatedToRules implements ConnectEndpoi
 
     private static RuleResult endpointRule23(ConnectEndpointParams params, RulePartition partitionResult, String region) {
         if ("aws-us-gov".equals(partitionResult.name())) {
-            return RuleResult.endpoint(Endpoint.builder().url(URI.create("https://acm." + region + ".amazonaws.com")).build());
+            return RuleResult.endpoint(Endpoint.builder().url(URI.create("https://connect." + region + ".amazonaws.com")).build());
         }
         return RuleResult.endpoint(Endpoint.builder()
-                                           .url(URI.create("https://acm-fips." + region + "." + partitionResult.dnsSuffix())).build());
+                                           .url(URI.create("https://connect-fips." + region + "." + partitionResult.dnsSuffix())).build());
     }
 
     private static RuleResult endpointRule28(ConnectEndpointParams params, String region) {
@@ -213,7 +213,7 @@ public final class BDDEndpointResolverTranslatedToRules implements ConnectEndpoi
             return result;
         }
         return RuleResult.endpoint(Endpoint.builder()
-                                           .url(URI.create("https://acm." + region + "." + partitionResult.dnsSuffix())).build());
+                                           .url(URI.create("https://connect." + region + "." + partitionResult.dnsSuffix())).build());
     }
 
     private static RuleResult endpointRule31(ConnectEndpointParams params, RulePartition partitionResult, String region) {
@@ -226,7 +226,7 @@ public final class BDDEndpointResolverTranslatedToRules implements ConnectEndpoi
     private static RuleResult endpointRule32(ConnectEndpointParams params, RulePartition partitionResult, String region) {
         if (partitionResult.supportsDualStack()) {
             return RuleResult.endpoint(Endpoint.builder()
-                                               .url(URI.create("https://acm." + region + "." + partitionResult.dualStackDnsSuffix())).build());
+                                               .url(URI.create("https://connect." + region + "." + partitionResult.dualStackDnsSuffix())).build());
         }
         return RuleResult.error("DualStack is enabled but this partition does not support DualStack");
     }
