@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Add StateMessage and ProgressPercentage fields to DescribeCustomWorkspaceImageImport API response."
+}
