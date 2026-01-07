@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.4__ __2026-01-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Add StateMessage and ProgressPercentage fields to DescribeCustomWorkspaceImageImport API response.
+
 # __2.41.3__ __2026-01-06__
 ## __AWS Cost Explorer Service__
   - ### Features
