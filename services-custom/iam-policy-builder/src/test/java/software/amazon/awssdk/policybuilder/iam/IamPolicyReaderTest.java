@@ -18,8 +18,11 @@ package software.amazon.awssdk.policybuilder.iam;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.policybuilder.iam.IamEffect.ALLOW;
 
+import java.io.UncheckedIOException;
 import org.junit.jupiter.api.Test;
 
 class IamPolicyReaderTest {
@@ -97,9 +100,9 @@ class IamPolicyReaderTest {
                          .builder()
                          .effect("Allow")
                          .principals(
-                             IamPrincipal.createAll("AWS", asList("001234567890", "555555555555")))
+                             IamPrincipal.createAll("AWS", asList("123456789012", "555555555555")))
                          .addCondition(
-                             IamCondition.create("StringNotEquals", "aws:PrincipalAccount", "001234567890"))
+                             IamCondition.create("StringNotEquals", "aws:PrincipalAccount", "123456789012"))
                          .build()
                  ))
                  .build();
@@ -210,19 +213,42 @@ class IamPolicyReaderTest {
                                   + "    \"Effect\" : \"Allow\",\n"
                                   + "    \"Principal\" : { \n"
                                   + "      \"AWS\": [ \n"
-                                  + "        001234567890,\n"
+                                  + "        123456789012,\n"
                                   + "        \"555555555555\" \n"
                                   + "        ]\n"
                                   + "    },\n"
                                   + "    \"Condition\" : {\n"
                                   + "      \"StringNotEquals\": {\n"
                                   + "          \"aws:PrincipalAccount\": [\n"
-                                  + "              001234567890\n"
+                                  + "              123456789012\n"
                                   + "          ]\n"
                                   + "      }\n"
                                   + "    }\n"
                                   + "  }\n"
                                   + "}")).isEqualTo(INTEGER_ACCOUNT_ID_POLICY);
+    }
+
+    @Test
+    public void readPolicyWithLeadingZeroIntegerFails() {
+        // while accountIds may have leading zeros, IAM rejects policy documents with
+        // unquoted accountIDs with leading zeros because these are invalid json.
+        Exception e = assertThrows(Exception.class, () ->
+        {
+            READER.read("{\n"
+                        + "  \"Version\" : \"Version\",\n"
+                        + "  \"Statement\" : {\n"
+                        + "    \"Effect\" : \"Allow\",\n"
+                        + "    \"Condition\" : {\n"
+                        + "      \"StringNotEquals\": {\n"
+                        + "          \"aws:PrincipalAccount\": [\n"
+                        + "              001234567890\n"
+                        + "          ]\n"
+                        + "      }\n"
+                        + "    }\n"
+                        + "  }\n"
+                        + "}");
+        });
+        assertThat(e.getMessage()).contains("Invalid numeric value: Leading zeroes not allowed");
     }
 
     @Test

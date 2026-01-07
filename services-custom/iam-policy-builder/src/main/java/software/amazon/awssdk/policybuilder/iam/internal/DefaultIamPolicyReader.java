@@ -32,9 +32,6 @@ import software.amazon.awssdk.policybuilder.iam.IamPrincipal;
 import software.amazon.awssdk.policybuilder.iam.IamStatement;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
-import software.amazon.awssdk.thirdparty.jackson.core.json.JsonReadFeature;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,16 +41,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class DefaultIamPolicyReader implements IamPolicyReader {
-    private static final JsonNodeParser JSON_NODE_PARSER = JsonNodeParser
-        .builder()
-        .jsonFactory(JsonFactory
-                         .builder()
-                         .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
-                         .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, true)
-                         // required to handle integer accountIDs with leading zeros
-                         .configure(JsonReadFeature.ALLOW_LEADING_ZEROS_FOR_NUMBERS, true)
-                         .build())
-        .build();
+    private static final JsonNodeParser JSON_NODE_PARSER = JsonNodeParser.create();
 
     @Override
     public IamPolicy read(String policy) {
@@ -225,10 +213,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
 
     private String expectStringOrAccountId(JsonNode node, String name) {
         if (node.isNumber()) {
-            // treat numbers like accountIDs and return a zero padded 12 digit string
-            if (node.asNumber().length() <= 12) {
-                return  String.format("%012d", Long.parseLong(node.asNumber()));
-            }
+            return node.asNumber();
         }
         Validate.isTrue(node.isString(), "%s was not a string", name);
         return node.asString();
@@ -237,10 +222,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
     // condition values are generally String, however in some cases they may be an AWS accountID or a boolean.
     private String expectConditionValue(JsonNode node, String name) {
         if (node.isNumber()) {
-            // treat numbers like accountIDs and return a zero padded 12 digit string
-            if (node.asNumber().length() <= 12) {
-                return String.format("%012d", Long.parseLong(node.asNumber()));
-            }
+            return node.asNumber();
         }
         if (node.isBoolean()) {
             return Boolean.toString(node.asBoolean());
