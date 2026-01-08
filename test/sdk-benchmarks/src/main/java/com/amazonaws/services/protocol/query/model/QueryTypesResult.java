@@ -1,0 +1,505 @@
+/*
+ * Copyright 2021-2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
+ * the License. A copy of the License is located at
+ * 
+ * http://aws.amazon.com/apache2.0
+ * 
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+package com.amazonaws.services.protocol.query.model;
+
+import java.io.Serializable;
+
+
+/**
+ * 
+ * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-2016-03-11/QueryTypes" target="_top">AWS API
+ *      Documentation</a>
+ */
+
+public class QueryTypesResult extends com.amazonaws.AmazonWebServiceResult<com.amazonaws.ResponseMetadata> implements Serializable, Cloneable {
+
+    private java.util.List<String> flattenedListOfStrings;
+
+    private java.util.List<String> nonFlattenedListWithLocation;
+
+    private java.util.List<SimpleStruct> flattenedListOfStructs;
+
+    private java.util.List<String> flattenedListWithLocation;
+
+    private java.util.Map<String, String> flattenedMap;
+
+    private java.util.Map<String, String> flattenedMapWithLocation;
+
+    private java.util.Map<String, String> nonFlattenedMapWithLocation;
+
+    /**
+     * @return
+     */
+
+    public java.util.List<String> getFlattenedListOfStrings() {
+        return flattenedListOfStrings;
+    }
+
+    /**
+     * @param flattenedListOfStrings
+     */
+
+    public void setFlattenedListOfStrings(java.util.Collection<String> flattenedListOfStrings) {
+        if (flattenedListOfStrings == null) {
+            this.flattenedListOfStrings = null;
+            return;
+        }
+
+        this.flattenedListOfStrings = new java.util.ArrayList<String>(flattenedListOfStrings);
+    }
+
+    /**
+     * <p>
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setFlattenedListOfStrings(java.util.Collection)} or
+     * {@link #withFlattenedListOfStrings(java.util.Collection)} if you want to override the existing values.
+     * </p>
+     * 
+     * @param flattenedListOfStrings
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListOfStrings(String... flattenedListOfStrings) {
+        if (this.flattenedListOfStrings == null) {
+            setFlattenedListOfStrings(new java.util.ArrayList<String>(flattenedListOfStrings.length));
+        }
+        for (String ele : flattenedListOfStrings) {
+            this.flattenedListOfStrings.add(ele);
+        }
+        return this;
+    }
+
+    /**
+     * @param flattenedListOfStrings
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListOfStrings(java.util.Collection<String> flattenedListOfStrings) {
+        setFlattenedListOfStrings(flattenedListOfStrings);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.List<String> getNonFlattenedListWithLocation() {
+        return nonFlattenedListWithLocation;
+    }
+
+    /**
+     * @param nonFlattenedListWithLocation
+     */
+
+    public void setNonFlattenedListWithLocation(java.util.Collection<String> nonFlattenedListWithLocation) {
+        if (nonFlattenedListWithLocation == null) {
+            this.nonFlattenedListWithLocation = null;
+            return;
+        }
+
+        this.nonFlattenedListWithLocation = new java.util.ArrayList<String>(nonFlattenedListWithLocation);
+    }
+
+    /**
+     * <p>
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setNonFlattenedListWithLocation(java.util.Collection)} or
+     * {@link #withNonFlattenedListWithLocation(java.util.Collection)} if you want to override the existing values.
+     * </p>
+     * 
+     * @param nonFlattenedListWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withNonFlattenedListWithLocation(String... nonFlattenedListWithLocation) {
+        if (this.nonFlattenedListWithLocation == null) {
+            setNonFlattenedListWithLocation(new java.util.ArrayList<String>(nonFlattenedListWithLocation.length));
+        }
+        for (String ele : nonFlattenedListWithLocation) {
+            this.nonFlattenedListWithLocation.add(ele);
+        }
+        return this;
+    }
+
+    /**
+     * @param nonFlattenedListWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withNonFlattenedListWithLocation(java.util.Collection<String> nonFlattenedListWithLocation) {
+        setNonFlattenedListWithLocation(nonFlattenedListWithLocation);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.List<SimpleStruct> getFlattenedListOfStructs() {
+        return flattenedListOfStructs;
+    }
+
+    /**
+     * @param flattenedListOfStructs
+     */
+
+    public void setFlattenedListOfStructs(java.util.Collection<SimpleStruct> flattenedListOfStructs) {
+        if (flattenedListOfStructs == null) {
+            this.flattenedListOfStructs = null;
+            return;
+        }
+
+        this.flattenedListOfStructs = new java.util.ArrayList<SimpleStruct>(flattenedListOfStructs);
+    }
+
+    /**
+     * <p>
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setFlattenedListOfStructs(java.util.Collection)} or
+     * {@link #withFlattenedListOfStructs(java.util.Collection)} if you want to override the existing values.
+     * </p>
+     * 
+     * @param flattenedListOfStructs
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListOfStructs(SimpleStruct... flattenedListOfStructs) {
+        if (this.flattenedListOfStructs == null) {
+            setFlattenedListOfStructs(new java.util.ArrayList<SimpleStruct>(flattenedListOfStructs.length));
+        }
+        for (SimpleStruct ele : flattenedListOfStructs) {
+            this.flattenedListOfStructs.add(ele);
+        }
+        return this;
+    }
+
+    /**
+     * @param flattenedListOfStructs
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListOfStructs(java.util.Collection<SimpleStruct> flattenedListOfStructs) {
+        setFlattenedListOfStructs(flattenedListOfStructs);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.List<String> getFlattenedListWithLocation() {
+        return flattenedListWithLocation;
+    }
+
+    /**
+     * @param flattenedListWithLocation
+     */
+
+    public void setFlattenedListWithLocation(java.util.Collection<String> flattenedListWithLocation) {
+        if (flattenedListWithLocation == null) {
+            this.flattenedListWithLocation = null;
+            return;
+        }
+
+        this.flattenedListWithLocation = new java.util.ArrayList<String>(flattenedListWithLocation);
+    }
+
+    /**
+     * <p>
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setFlattenedListWithLocation(java.util.Collection)} or
+     * {@link #withFlattenedListWithLocation(java.util.Collection)} if you want to override the existing values.
+     * </p>
+     * 
+     * @param flattenedListWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListWithLocation(String... flattenedListWithLocation) {
+        if (this.flattenedListWithLocation == null) {
+            setFlattenedListWithLocation(new java.util.ArrayList<String>(flattenedListWithLocation.length));
+        }
+        for (String ele : flattenedListWithLocation) {
+            this.flattenedListWithLocation.add(ele);
+        }
+        return this;
+    }
+
+    /**
+     * @param flattenedListWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedListWithLocation(java.util.Collection<String> flattenedListWithLocation) {
+        setFlattenedListWithLocation(flattenedListWithLocation);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.Map<String, String> getFlattenedMap() {
+        return flattenedMap;
+    }
+
+    /**
+     * @param flattenedMap
+     */
+
+    public void setFlattenedMap(java.util.Map<String, String> flattenedMap) {
+        this.flattenedMap = flattenedMap;
+    }
+
+    /**
+     * @param flattenedMap
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedMap(java.util.Map<String, String> flattenedMap) {
+        setFlattenedMap(flattenedMap);
+        return this;
+    }
+
+    /**
+     * Add a single FlattenedMap entry
+     *
+     * @see QueryTypesResult#withFlattenedMap
+     * @returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult addFlattenedMapEntry(String key, String value) {
+        if (null == this.flattenedMap) {
+            this.flattenedMap = new java.util.HashMap<String, String>();
+        }
+        if (this.flattenedMap.containsKey(key))
+            throw new IllegalArgumentException("Duplicated keys (" + key.toString() + ") are provided.");
+        this.flattenedMap.put(key, value);
+        return this;
+    }
+
+    /**
+     * Removes all the entries added into FlattenedMap.
+     *
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult clearFlattenedMapEntries() {
+        this.flattenedMap = null;
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.Map<String, String> getFlattenedMapWithLocation() {
+        return flattenedMapWithLocation;
+    }
+
+    /**
+     * @param flattenedMapWithLocation
+     */
+
+    public void setFlattenedMapWithLocation(java.util.Map<String, String> flattenedMapWithLocation) {
+        this.flattenedMapWithLocation = flattenedMapWithLocation;
+    }
+
+    /**
+     * @param flattenedMapWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withFlattenedMapWithLocation(java.util.Map<String, String> flattenedMapWithLocation) {
+        setFlattenedMapWithLocation(flattenedMapWithLocation);
+        return this;
+    }
+
+    /**
+     * Add a single FlattenedMapWithLocation entry
+     *
+     * @see QueryTypesResult#withFlattenedMapWithLocation
+     * @returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult addFlattenedMapWithLocationEntry(String key, String value) {
+        if (null == this.flattenedMapWithLocation) {
+            this.flattenedMapWithLocation = new java.util.HashMap<String, String>();
+        }
+        if (this.flattenedMapWithLocation.containsKey(key))
+            throw new IllegalArgumentException("Duplicated keys (" + key.toString() + ") are provided.");
+        this.flattenedMapWithLocation.put(key, value);
+        return this;
+    }
+
+    /**
+     * Removes all the entries added into FlattenedMapWithLocation.
+     *
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult clearFlattenedMapWithLocationEntries() {
+        this.flattenedMapWithLocation = null;
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.Map<String, String> getNonFlattenedMapWithLocation() {
+        return nonFlattenedMapWithLocation;
+    }
+
+    /**
+     * @param nonFlattenedMapWithLocation
+     */
+
+    public void setNonFlattenedMapWithLocation(java.util.Map<String, String> nonFlattenedMapWithLocation) {
+        this.nonFlattenedMapWithLocation = nonFlattenedMapWithLocation;
+    }
+
+    /**
+     * @param nonFlattenedMapWithLocation
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult withNonFlattenedMapWithLocation(java.util.Map<String, String> nonFlattenedMapWithLocation) {
+        setNonFlattenedMapWithLocation(nonFlattenedMapWithLocation);
+        return this;
+    }
+
+    /**
+     * Add a single NonFlattenedMapWithLocation entry
+     *
+     * @see QueryTypesResult#withNonFlattenedMapWithLocation
+     * @returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult addNonFlattenedMapWithLocationEntry(String key, String value) {
+        if (null == this.nonFlattenedMapWithLocation) {
+            this.nonFlattenedMapWithLocation = new java.util.HashMap<String, String>();
+        }
+        if (this.nonFlattenedMapWithLocation.containsKey(key))
+            throw new IllegalArgumentException("Duplicated keys (" + key.toString() + ") are provided.");
+        this.nonFlattenedMapWithLocation.put(key, value);
+        return this;
+    }
+
+    /**
+     * Removes all the entries added into NonFlattenedMapWithLocation.
+     *
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public QueryTypesResult clearNonFlattenedMapWithLocationEntries() {
+        this.nonFlattenedMapWithLocation = null;
+        return this;
+    }
+
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     *
+     * @return A string representation of this object.
+     *
+     * @see Object#toString()
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        if (getFlattenedListOfStrings() != null)
+            sb.append("FlattenedListOfStrings: ").append(getFlattenedListOfStrings()).append(",");
+        if (getNonFlattenedListWithLocation() != null)
+            sb.append("NonFlattenedListWithLocation: ").append(getNonFlattenedListWithLocation()).append(",");
+        if (getFlattenedListOfStructs() != null)
+            sb.append("FlattenedListOfStructs: ").append(getFlattenedListOfStructs()).append(",");
+        if (getFlattenedListWithLocation() != null)
+            sb.append("FlattenedListWithLocation: ").append(getFlattenedListWithLocation()).append(",");
+        if (getFlattenedMap() != null)
+            sb.append("FlattenedMap: ").append(getFlattenedMap()).append(",");
+        if (getFlattenedMapWithLocation() != null)
+            sb.append("FlattenedMapWithLocation: ").append(getFlattenedMapWithLocation()).append(",");
+        if (getNonFlattenedMapWithLocation() != null)
+            sb.append("NonFlattenedMapWithLocation: ").append(getNonFlattenedMapWithLocation());
+        sb.append("}");
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+
+        if (obj instanceof QueryTypesResult == false)
+            return false;
+        QueryTypesResult other = (QueryTypesResult) obj;
+        if (other.getFlattenedListOfStrings() == null ^ this.getFlattenedListOfStrings() == null)
+            return false;
+        if (other.getFlattenedListOfStrings() != null && other.getFlattenedListOfStrings().equals(this.getFlattenedListOfStrings()) == false)
+            return false;
+        if (other.getNonFlattenedListWithLocation() == null ^ this.getNonFlattenedListWithLocation() == null)
+            return false;
+        if (other.getNonFlattenedListWithLocation() != null && other.getNonFlattenedListWithLocation().equals(this.getNonFlattenedListWithLocation()) == false)
+            return false;
+        if (other.getFlattenedListOfStructs() == null ^ this.getFlattenedListOfStructs() == null)
+            return false;
+        if (other.getFlattenedListOfStructs() != null && other.getFlattenedListOfStructs().equals(this.getFlattenedListOfStructs()) == false)
+            return false;
+        if (other.getFlattenedListWithLocation() == null ^ this.getFlattenedListWithLocation() == null)
+            return false;
+        if (other.getFlattenedListWithLocation() != null && other.getFlattenedListWithLocation().equals(this.getFlattenedListWithLocation()) == false)
+            return false;
+        if (other.getFlattenedMap() == null ^ this.getFlattenedMap() == null)
+            return false;
+        if (other.getFlattenedMap() != null && other.getFlattenedMap().equals(this.getFlattenedMap()) == false)
+            return false;
+        if (other.getFlattenedMapWithLocation() == null ^ this.getFlattenedMapWithLocation() == null)
+            return false;
+        if (other.getFlattenedMapWithLocation() != null && other.getFlattenedMapWithLocation().equals(this.getFlattenedMapWithLocation()) == false)
+            return false;
+        if (other.getNonFlattenedMapWithLocation() == null ^ this.getNonFlattenedMapWithLocation() == null)
+            return false;
+        if (other.getNonFlattenedMapWithLocation() != null && other.getNonFlattenedMapWithLocation().equals(this.getNonFlattenedMapWithLocation()) == false)
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int hashCode = 1;
+
+        hashCode = prime * hashCode + ((getFlattenedListOfStrings() == null) ? 0 : getFlattenedListOfStrings().hashCode());
+        hashCode = prime * hashCode + ((getNonFlattenedListWithLocation() == null) ? 0 : getNonFlattenedListWithLocation().hashCode());
+        hashCode = prime * hashCode + ((getFlattenedListOfStructs() == null) ? 0 : getFlattenedListOfStructs().hashCode());
+        hashCode = prime * hashCode + ((getFlattenedListWithLocation() == null) ? 0 : getFlattenedListWithLocation().hashCode());
+        hashCode = prime * hashCode + ((getFlattenedMap() == null) ? 0 : getFlattenedMap().hashCode());
+        hashCode = prime * hashCode + ((getFlattenedMapWithLocation() == null) ? 0 : getFlattenedMapWithLocation().hashCode());
+        hashCode = prime * hashCode + ((getNonFlattenedMapWithLocation() == null) ? 0 : getNonFlattenedMapWithLocation().hashCode());
+        return hashCode;
+    }
+
+    @Override
+    public QueryTypesResult clone() {
+        try {
+            return (QueryTypesResult) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException("Got a CloneNotSupportedException from Object.clone() " + "even though we're Cloneable!", e);
+        }
+    }
+
+}
