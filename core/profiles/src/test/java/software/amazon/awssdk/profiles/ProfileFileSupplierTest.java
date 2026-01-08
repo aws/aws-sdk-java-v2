@@ -592,28 +592,6 @@ class ProfileFileSupplierTest {
         });
     }
 
-    @Test
-    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() throws IOException {
-        Path credentialsFilePath = getTestCredentialsFilePath();
-        Files.deleteIfExists(credentialsFilePath);
-
-        AdjustableClock clock = new AdjustableClock();
-        ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
-            .build();
-
-        assertThat(supplier.get().profiles()).isEmpty();
-
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
-        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
-
-        clock.tickForward(Duration.ofSeconds(10));
-
-        // supplied ProfileFile should refreshed and now have data under the `default` profile
-        Optional<Profile> fileOptional = supplier.get().profile("default");
-        assertThat(fileOptional).isPresent();
-    }
-
     private Path writeTestFile(String contents, Path path) {
         try {
             Files.createDirectories(testDirectory);

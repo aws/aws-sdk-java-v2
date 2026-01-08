@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.profiles;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -39,7 +38,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
 
     /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects by aggregating the default
-     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} and
+     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} abd
      * {@link ProfileFileLocation#configurationFileLocation()}. This supplier will return a new ProfileFile instance only once
      * either disk file has been modified. Multiple calls to the supplier while both disk files are unchanged will return the
      * same object.
@@ -82,17 +81,13 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
      */
     static ProfileFileSupplier reloadWhenModified(Path path, ProfileFile.Type type) {
         return new ProfileFileSupplier() {
-            Supplier<ProfileFile> profileFileSupplier = () -> {
-                if (Files.isRegularFile(path) && Files.isReadable(path)) {
-                    return ProfileFile.builder()
-                                      .content(path)
-                                      .type(type).build();
-                }
-                return ProfileFile.empty();
-            };
+
+            final ProfileFile.Builder builder = ProfileFile.builder()
+                                                           .content(path)
+                                                           .type(type);
 
             final ProfileFileRefresher refresher = ProfileFileRefresher.builder()
-                                                                       .profileFile(profileFileSupplier)
+                                                                       .profileFile(builder::build)
                                                                        .profileFilePath(path)
                                                                        .build();
 

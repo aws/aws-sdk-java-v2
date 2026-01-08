@@ -105,7 +105,7 @@ public final class InstanceProfileCredentialsProvider
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(ProfileFileSupplier::defaultSupplier);
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
         this.sourceChain = builder.sourceChain;

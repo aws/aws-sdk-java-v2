@@ -122,7 +122,7 @@ public final class ProfileFileRefresher {
     }
 
     private boolean canReloadProfileFile() {
-        if (Objects.isNull(profileFilePath) || !Files.exists(profileFilePath)) {
+        if (Objects.isNull(profileFilePath)) {
             return false;
         }
 

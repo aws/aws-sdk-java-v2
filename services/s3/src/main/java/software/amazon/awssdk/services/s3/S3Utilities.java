@@ -121,7 +121,7 @@ public final class S3Utilities {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(ProfileFileSupplier::defaultSupplier);
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
