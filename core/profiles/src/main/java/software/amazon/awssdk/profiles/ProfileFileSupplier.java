@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Encapsulates the logic for supplying either a single or multiple ProfileFile instances.
@@ -127,43 +128,41 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
 
         return new ProfileFileSupplier() {
 
-            final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
-            final Map<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier
-                = Collections.synchronizedMap(new LinkedHashMap<>());
+            final AtomicReference<Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile>> state =
+                new AtomicReference<>(Pair.of(Collections.emptyMap(), ProfileFile.empty()));
 
             @Override
             public ProfileFile get() {
-                boolean refreshAggregate = false;
-                for (ProfileFileSupplier supplier : suppliers) {
-                    if (didSuppliedValueChange(supplier)) {
-                        refreshAggregate = true;
+                while(true) {
+                    Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile> currentState = state.get();
+                    Map<Supplier<ProfileFile>, ProfileFile> nextValues = new LinkedHashMap<>(currentState.left());
+
+                    boolean refreshAggregate = false;
+
+                    for (ProfileFileSupplier supplier : suppliers) {
+                        ProfileFile next = supplier.get();
+                        ProfileFile prev = nextValues.put(supplier, next);
+                        // we ONLY care about if the reference has changed, we don't care about object equality here
+                        if (prev != next) {
+                            refreshAggregate = true;
+                        }
                     }
-                }
 
-                if (refreshAggregate) {
-                    refreshCurrentAggregate();
-                }
+                    if (!refreshAggregate) {
+                        return currentState.right();
+                    }
 
-                return  currentAggregateProfileFile.get();
-            }
+                    ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
+                    nextValues.values().forEach(aggregator::addFile);
+                    ProfileFile nextAggregate = aggregator.build();
 
-            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
-                ProfileFile next = supplier.get();
-                ProfileFile current = currentValuesBySupplier.put(supplier, next);
-
-                return !Objects.equals(next, current);
-            }
-
-            private void refreshCurrentAggregate() {
-                ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
-                currentValuesBySupplier.values().forEach(aggregator::addFile);
-                ProfileFile current = currentAggregateProfileFile.get();
-                ProfileFile next = aggregator.build();
-                if (!Objects.equals(current, next)) {
-                    currentAggregateProfileFile.compareAndSet(current, next);
+                    Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile> nextState = Pair.of(nextValues, nextAggregate);
+                    if (state.compareAndSet(currentState, nextState)) {
+                        return nextAggregate;
+                    }
+                    // else: another thread has modified the state in between, retry with the fresh state
                 }
             }
-
         };
     }
 
