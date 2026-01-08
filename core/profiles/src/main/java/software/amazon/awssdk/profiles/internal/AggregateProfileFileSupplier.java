@@ -32,10 +32,10 @@ import software.amazon.awssdk.profiles.ProfileFileSupplier;
  */
 @SdkInternalApi
 public class AggregateProfileFileSupplier implements  ProfileFileSupplier {
-    final List<ProfileFileSupplier> suppliers;
+    private final List<ProfileFileSupplier> suppliers;
 
     // supplier values and the resulting aggregate must always be updated atomically together
-    final AtomicReference<SupplierState> state =
+    private final AtomicReference<SupplierState> state =
         new AtomicReference<>(new SupplierState(Collections.emptyMap(), null));
 
     public AggregateProfileFileSupplier(ProfileFileSupplier... suppliers) {
@@ -88,9 +88,13 @@ public class AggregateProfileFileSupplier implements  ProfileFileSupplier {
         return changedValues;
     }
 
+    /**
+     * Supplier values and the resulting aggregate must always be updated atomically together.
+     * This record class tracks all mutable elements of the supplier's state together.
+     */
     private static final class SupplierState {
-        final Map<Supplier<ProfileFile>, ProfileFile> values;
-        final ProfileFile aggregate;
+        private final Map<Supplier<ProfileFile>, ProfileFile> values;
+        private final ProfileFile aggregate;
 
         private SupplierState(Map<Supplier<ProfileFile>, ProfileFile> values, ProfileFile aggregate) {
             this.values = values;
