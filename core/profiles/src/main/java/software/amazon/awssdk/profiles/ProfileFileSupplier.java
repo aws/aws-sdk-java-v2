@@ -17,16 +17,11 @@ package software.amazon.awssdk.profiles;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.profiles.internal.AggregateProfileFileSupplier;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
-import software.amazon.awssdk.utils.Pair;
 
 /**
  * Encapsulates the logic for supplying either a single or multiple ProfileFile instances.
@@ -126,44 +121,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
      */
     static ProfileFileSupplier aggregate(ProfileFileSupplier... suppliers) {
 
-        return new ProfileFileSupplier() {
-
-            final AtomicReference<Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile>> state =
-                new AtomicReference<>(Pair.of(Collections.emptyMap(), ProfileFile.empty()));
-
-            @Override
-            public ProfileFile get() {
-                while(true) {
-                    Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile> currentState = state.get();
-                    Map<Supplier<ProfileFile>, ProfileFile> nextValues = new LinkedHashMap<>(currentState.left());
-
-                    boolean refreshAggregate = false;
-
-                    for (ProfileFileSupplier supplier : suppliers) {
-                        ProfileFile next = supplier.get();
-                        ProfileFile prev = nextValues.put(supplier, next);
-                        // we ONLY care about if the reference has changed, we don't care about object equality here
-                        if (prev != next) {
-                            refreshAggregate = true;
-                        }
-                    }
-
-                    if (!refreshAggregate) {
-                        return currentState.right();
-                    }
-
-                    ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
-                    nextValues.values().forEach(aggregator::addFile);
-                    ProfileFile nextAggregate = aggregator.build();
-
-                    Pair<Map<Supplier<ProfileFile>, ProfileFile>, ProfileFile> nextState = Pair.of(nextValues, nextAggregate);
-                    if (state.compareAndSet(currentState, nextState)) {
-                        return nextAggregate;
-                    }
-                    // else: another thread has modified the state in between, retry with the fresh state
-                }
-            }
-        };
+        return new AggregateProfileFileSupplier(suppliers);
     }
 
 }
