@@ -1,4 +1,32 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.5__ __2026-01-09__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaPackage v2 output groups in MediaLive can now accept one additional destination for single pipeline channels and up to two additional destinations for standard channels. MediaPackage v2 destinations now support sending to cross region MediaPackage channels.
+
+## __AWS Glue__
+  - ### Features
+    - Adding MaterializedViews task run APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a race condition in aggregate ProfileFileSupplier that could cause credential resolution failures with shared DefaultCredentialsProvider.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds optional field "view" to GetMemory API input to give customers control over whether CMK encrypted data such as strategy decryption or override prompts is returned or not.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Added EntityLimitExceeded exception handling to the following API operations AssociateDistributionWebACL, AssociateDistributionTenantWebACL, UpdateDistributionWithStagingConfig
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Adds waiters to Amazon Transcribe.
+
 # __2.41.4__ __2026-01-07__
 ## __AWS SDK for Java v2__
   - ### Features
