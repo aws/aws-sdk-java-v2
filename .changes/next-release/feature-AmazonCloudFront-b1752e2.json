@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Added EntityLimitExceeded exception handling to the following API operations AssociateDistributionWebACL, AssociateDistributionTenantWebACL, UpdateDistributionWithStagingConfig"
-}
