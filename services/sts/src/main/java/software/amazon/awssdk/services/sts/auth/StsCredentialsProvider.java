@@ -131,14 +131,6 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         return prefetchTime;
     }
 
-    /**
-     * Whether the provider should fetch credentials asynchronously in the background.
-     * <p>By default, this is false.</p>
-     */
-    public Boolean asyncCredentialUpdateEnabled() {
-        return asyncCredentialUpdateEnabled;
-    }
-
     @Override
     public String toString() {
         return ToString.create(providerName());
@@ -237,6 +229,14 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         @SuppressWarnings("unchecked")
         public T build() {
             return providerConstructor.apply((B) this);
+        }
+
+        /**
+         * Whether the provider should fetch credentials asynchronously in the background.
+         * <p>By default, this is false.</p>
+         */
+        Boolean asyncCredentialUpdateEnabled() {
+            return asyncCredentialUpdateEnabled;
         }
     }
 }

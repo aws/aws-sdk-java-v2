@@ -107,14 +107,18 @@ public final class StsWebIdentityTokenFileCredentialsProvider
                                                         .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
                                                         .build();
 
-            credentialsProviderLocal =
+            StsAssumeRoleWithWebIdentityCredentialsProvider.Builder providerBuilder =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
                                                                .stsClient(builder.stsClient)
                                                                .refreshRequest(supplier)
                                                                .staleTime(this.staleTime())
-                                                               .prefetchTime(this.prefetchTime())
-                                                               .asyncCredentialUpdateEnabled(this.asyncCredentialUpdateEnabled())
-                                                               .build();
+                                                               .prefetchTime(this.prefetchTime());
+            
+            if (builder.asyncCredentialUpdateEnabled() != null) {
+                providerBuilder.asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled());
+            }
+            
+            credentialsProviderLocal = providerBuilder.build();
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
