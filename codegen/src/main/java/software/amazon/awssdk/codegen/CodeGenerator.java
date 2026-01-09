@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.validation.ModelValidator;
 import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.smithy.model.Model;
 
 public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);
@@ -48,6 +49,7 @@ public class CodeGenerator {
     );
 
     private final C2jModels c2jModels;
+    private final SmithyModelWithCustomizations smithyModel;
 
     private final IntermediateModel intermediateModel;
     private final IntermediateModel shareModelsTarget;
@@ -72,10 +74,11 @@ public class CodeGenerator {
 
     public CodeGenerator(Builder builder) {
         this.c2jModels = builder.models;
+        this.smithyModel = builder.smithyModel;
         this.intermediateModel = builder.intermediateModel;
 
-        if (this.c2jModels != null && this.intermediateModel != null) {
-            throw new IllegalArgumentException("Only one of c2jModels and intermediateModel must be specified");
+        if (!exactlyOneSet(c2jModels, smithyModel, intermediateModel)) {
+            throw new IllegalArgumentException("Exactly one of smithyModel, c2jModels and intermediateModel must be specified");
         }
 
         this.shareModelsTarget = builder.shareModelsTarget;
@@ -109,7 +112,9 @@ public class CodeGenerator {
         ModelValidationReport report = new ModelValidationReport();
 
         IntermediateModel modelToGenerate;
-        if (c2jModels != null) {
+        if (smithyModel != null) {
+            modelToGenerate = new SmithyIntermediateModelBuilder(smithyModel).build();
+        } else if (c2jModels != null) {
             modelToGenerate = new IntermediateModelBuilder(c2jModels).build();
         } else {
             modelToGenerate = intermediateModel;
@@ -208,12 +213,26 @@ public class CodeGenerator {
 
     }
 
+    private static boolean exactlyOneSet(Object... values) {
+        boolean valueSet = false;
+        for (Object value : values) {
+            if (value != null) {
+                if (valueSet) {
+                    return false; // more than one set
+                }
+                valueSet = true;
+            }
+        }
+        return valueSet; // true iff exactly one non-null was found
+    }
+
     /**
      * Builder for a {@link CodeGenerator}.
      */
     public static final class Builder {
 
         private C2jModels models;
+        private SmithyModelWithCustomizations smithyModel;
         private IntermediateModel intermediateModel;
         private IntermediateModel shareModelsTarget;
         private String sourcesDirectory;
@@ -228,6 +247,11 @@ public class CodeGenerator {
 
         public Builder models(C2jModels models) {
             this.models = models;
+            return this;
+        }
+
+        public Builder smithyModel(SmithyModelWithCustomizations smithyModel) {
+            this.smithyModel = smithyModel;
             return this;
         }
 
