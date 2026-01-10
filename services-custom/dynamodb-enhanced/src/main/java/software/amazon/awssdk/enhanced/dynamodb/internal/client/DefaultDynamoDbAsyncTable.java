@@ -40,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteCompleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
@@ -132,6 +133,13 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public CompletableFuture<T> deleteItem(DeleteCompleteItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient)
+                        .thenApply(DeleteItemEnhancedResponse::attributes);
+    }
+
+    @Override
     public CompletableFuture<T> deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
         requestConsumer.accept(builder);
@@ -145,7 +153,10 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return deleteItem(DeleteCompleteItemEnhancedRequest.builder()
+                                                           .key(keyFrom(keyItem))
+                                                           .item(keyItem)
+                                                           .build());
     }
 
     @Override
