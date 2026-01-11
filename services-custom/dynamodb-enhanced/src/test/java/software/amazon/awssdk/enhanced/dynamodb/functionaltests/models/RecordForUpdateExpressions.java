@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior.WRITE_IF_NOT_EXISTS;
 
+import java.util.List;
 import java.util.Set;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdat
 public class RecordForUpdateExpressions {
     private String id;
     private String stringAttribute1;
+    private List<String> requestAttributeList;
     private Long extensionAttribute1;
     private Set<String> extensionAttribute2;
 
@@ -45,6 +47,14 @@ public class RecordForUpdateExpressions {
 
     public void setStringAttribute(String stringAttribute1) {
         this.stringAttribute1 = stringAttribute1;
+    }
+
+    public List<String> getRequestAttributeList() {
+        return requestAttributeList;
+    }
+
+    public void setRequestAttributeList(List<String> stringRequestAttribute) {
+        this.requestAttributeList = stringRequestAttribute;
     }
 
     public Long getExtensionNumberAttribute() {
