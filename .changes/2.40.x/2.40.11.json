@@ -1,0 +1,78 @@
+{
+    "version": "2.40.11",
+    "date": "2025-12-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Migration Tool",
+            "contributor": "",
+            "description": "Add support for S3Object getObjectMetadata transform"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Adds support for tile encoding in HEVC and audio for video overlays."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds support for SPEKE V2 content key encryption in MediaPackage v2 Origin Endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add support for ECDSA signed URLs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Added new stream group operation parameters for scale-on-demand capacity with automatic prewarming. Added new Gen6 stream classes based on the EC2 G6 instance family. Added new StartStreamSession parameter for exposure of real-time performance stats to clients."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add support for dbiResourceId in finding."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adding the newly launched p6-b300.48xlarge ec2 instance support in Sagemaker(Hyperpod,Training and Sceptor)"
+        },
+        {
+            "type": "feature",
+            "category": "Inspector Scan",
+            "contributor": "",
+            "description": "Adds an additional OutputFormat"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "Support dual-stack network connectivity for connectors via NetworkType field."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Support for AS2805 standard. Modifications to import-key and export-key to support AS2805 variants."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Support for AS2805 standard. New API GenerateAs2805KekValidation and changes to translate pin, GenerateMac and VerifyMac to support AS2805 key variants."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

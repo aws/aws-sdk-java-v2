@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.checksums;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -56,10 +57,41 @@ public class S3ChecksumValidatingInputStreamTest {
 
     @Test
     public void validChecksumSucceeds() throws IOException {
-        InputStream validatingInputStream = newValidatingStream(testData);
+        InputStream validatingInputStream = newValidatingStream(testData, TEST_DATA_SIZE, CHECKSUM_SIZE);
         byte[] dataFromValidatingStream = IoUtils.toByteArray(validatingInputStream);
 
         assertArrayEquals(testDataWithoutChecksum, dataFromValidatingStream);
+    }
+
+    @Test
+    public void emptyObjectSingleByteReadReturnsEOF() throws IOException {
+        Md5Checksum checksum = new Md5Checksum();
+        byte[] checksumBytes = checksum.getChecksumBytes();
+        byte[] emptyWithChecksum = new byte[CHECKSUM_SIZE];
+
+        for (int i = 0; i < CHECKSUM_SIZE; i++) {
+            emptyWithChecksum[i] = checksumBytes[i];
+        }
+
+        InputStream validatingInputStream = newValidatingStream(emptyWithChecksum, 0, CHECKSUM_SIZE);
+
+        assertEquals(-1, validatingInputStream.read());
+    }
+
+    @Test
+    public void emptyObjectByteArrayReadReturnsEOF() throws IOException {
+        Md5Checksum checksum = new Md5Checksum();
+        byte[] checksumBytes = checksum.getChecksumBytes();
+        byte[] emptyWithChecksum = new byte[CHECKSUM_SIZE];
+
+        for (int i = 0; i < CHECKSUM_SIZE; i++) {
+            emptyWithChecksum[i] = checksumBytes[i];
+        }
+
+        InputStream validatingInputStream = newValidatingStream(emptyWithChecksum, 0, CHECKSUM_SIZE);
+        byte[] buffer = new byte[1];
+
+        assertEquals(-1, validatingInputStream.read(buffer));
     }
 
     @Test
@@ -69,7 +101,7 @@ public class S3ChecksumValidatingInputStreamTest {
             byte[] corruptedChecksumData = Arrays.copyOf(testData, testData.length);
             corruptedChecksumData[i] = (byte) ~corruptedChecksumData[i];
 
-            InputStream validatingInputStream = newValidatingStream(corruptedChecksumData);
+            InputStream validatingInputStream = newValidatingStream(corruptedChecksumData, TEST_DATA_SIZE, CHECKSUM_SIZE);
 
             try {
                 IoUtils.toByteArray(validatingInputStream);
@@ -80,9 +112,9 @@ public class S3ChecksumValidatingInputStreamTest {
         }
     }
 
-    private InputStream newValidatingStream(byte[] dataFromS3) {
+    private InputStream newValidatingStream(byte[] dataFromS3, int testDataSize, int checkSumSize) {
         return new S3ChecksumValidatingInputStream(new ByteArrayInputStream(dataFromS3),
                                                    new Md5Checksum(),
-                                                 TEST_DATA_SIZE + CHECKSUM_SIZE);
+                                                   testDataSize + checkSumSize);
     }
 }

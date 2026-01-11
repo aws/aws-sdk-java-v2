@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.ContentRangeParser;
 
 class FileAsyncResponseTransformerPublisherTest {
 
@@ -239,11 +240,17 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     private SdkResponse createMockResponseWithRange(String contentRange) {
+        return createMockResponseWithRange(contentRange,
+                                           ContentRangeParser.totalBytes(contentRange).getAsLong());
+    }
+
+    private SdkResponse createMockResponseWithRange(String contentRange, Long contentLength) {
         SdkResponse mockResponse = mock(SdkResponse.class);
         SdkHttpResponse mockHttpResponse = mock(SdkHttpResponse.class);
 
         when(mockResponse.sdkHttpResponse()).thenReturn(mockHttpResponse);
-        when(mockHttpResponse.firstMatchingHeader("x-amz-content-range")).thenReturn(Optional.of(contentRange));
+        when(mockHttpResponse.firstMatchingHeader("content-length")).thenReturn(Optional.ofNullable(String.valueOf(contentLength)));
+        when(mockHttpResponse.firstMatchingHeader("x-amz-content-range")).thenReturn(Optional.ofNullable(contentRange));
 
         return mockResponse;
     }
@@ -298,7 +305,101 @@ class FileAsyncResponseTransformerPublisherTest {
         assertThatThrownBy(() -> new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("CREATE_OR_APPEND_TO_EXISTING");
+    }
 
+    @Test
+    void singleDemand_contentRangeMissing_shouldSucceed() throws Exception {
+        AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+        FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<SdkResponse>) initialTransformer);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<AsyncResponseTransformer<SdkResponse, SdkResponse>> receivedTransformer = new AtomicReference<>();
+        CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+
+        publisher.subscribe(new Subscriber<AsyncResponseTransformer<SdkResponse, SdkResponse>>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                this.subscription = s;
+                s.request(1);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
+                receivedTransformer.set(transformer);
+
+                // Simulate response with content-range header
+                SdkResponse mockResponse = createMockResponseWithRange(null, 0L);
+                CompletableFuture<SdkResponse> prepareFuture = transformer.prepare();
+                CompletableFutureUtils.forwardResultTo(prepareFuture, future);
+                transformer.onResponse(mockResponse);
+
+                // Simulate stream data
+                SdkPublisher<ByteBuffer> mockPublisher = createMockPublisher();
+                transformer.onStream(mockPublisher);
+
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                fail("Unexpected error with exception: " + t.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                latch.countDown();
+            }
+        });
+
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(receivedTransformer.get()).isNotNull();
+        assertThat(Files.exists(testFile)).isTrue();
+        assertThat(future).succeedsWithin(10, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void multipleTransformers_contentRangeMissingOnSecondRequest_shouldFail() throws Exception {
+        AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+        FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<SdkResponse>) initialTransformer);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+        AtomicReference<Throwable> exception = new AtomicReference<>();
+
+        publisher.subscribe(new Subscriber<AsyncResponseTransformer<SdkResponse, SdkResponse>>() {
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(2);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
+                SdkResponse mockResponse = createMockResponseWithRange(null, 0L);
+
+                CompletableFuture<SdkResponse> prepareFuture = transformer.prepare();
+                CompletableFutureUtils.forwardResultTo(prepareFuture, future);
+                transformer.onResponse(mockResponse);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                exception.set(t);
+                latch.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+                fail("Unexpected onComplete");
+            }
+        });
+
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(exception.get()).hasMessageContaining("Content range header is missing");
     }
 
 }

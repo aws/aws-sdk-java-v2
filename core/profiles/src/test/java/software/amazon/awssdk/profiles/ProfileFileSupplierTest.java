@@ -31,12 +31,20 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -504,6 +512,50 @@ class ProfileFileSupplierTest {
     }
 
     @Test
+    void aggregate_concurrentGetAlwaysReturnsCorrectAggregate() throws ExecutionException, InterruptedException {
+        ProfileFile credentialFile = credentialProfileFile("test1", "key1", "secret1");
+        ProfileFile configFile = configProfileFile("profile test",
+                                                   Pair.of("region", "us-west-2"),
+                                                   Pair.of("aws_account_id", "012354678922"));
+
+
+        ProfileFile expectedAggregate = ProfileFile.aggregator().addFile(credentialFile).addFile(configFile).build();
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(() -> credentialFile, () -> configFile);
+
+        ExecutorService executor = Executors.newFixedThreadPool(24);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        List<Future<Boolean>> tasks = new ArrayList<>();
+
+        for(int i = 0; i < 24; i++) {
+            tasks.add(executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    ProfileFile resolved = supplier.get();
+                    return Objects.equals(expectedAggregate, resolved);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+        // All tasks are now submitted — release them
+        startLatch.countDown();
+        executor.shutdown();
+        try {
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS))
+                .as("executor did not terminate")
+                .isTrue();
+        } finally {
+            executor.shutdownNow();
+        }
+
+        // assert that all concurrent get's returned the same, expected aggregate
+        for(Future<Boolean> task : tasks) {
+            assertThat(task.get()).isTrue();
+        }
+    }
+
+    @Test
     void fixedProfileFile_nullProfileFile_returnsNonNullSupplier() {
         ProfileFile file = null;
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
@@ -590,6 +642,28 @@ class ProfileFileSupplierTest {
             ProfileFileSupplier supplier = ProfileFileSupplier.defaultSupplier();
             assertThat(supplier.get().profiles()).isEmpty();
         });
+    }
+
+    @Test
+    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() throws IOException {
+        Path credentialsFilePath = getTestCredentialsFilePath();
+        Files.deleteIfExists(credentialsFilePath);
+
+        AdjustableClock clock = new AdjustableClock();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
+            .build();
+
+        assertThat(supplier.get().profiles()).isEmpty();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
+        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+        clock.tickForward(Duration.ofSeconds(10));
+
+        // supplied ProfileFile should refreshed and now have data under the `default` profile
+        Optional<Profile> fileOptional = supplier.get().profile("default");
+        assertThat(fileOptional).isPresent();
     }
 
     private Path writeTestFile(String contents, Path path) {
