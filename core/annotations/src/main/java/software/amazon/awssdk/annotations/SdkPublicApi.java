@@ -15,12 +15,30 @@
 
 package software.amazon.awssdk.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for 'public' APIs.
+ * Marks APIs as public and stable for use by SDK users building applications.
+ * 
+ * <p><b>Stability guarantee:</b> Elements annotated with {@code @SdkPublicApi} are backward
+ * compatible.
+ * 
+ * <p><b>Safe to use for:</b>
+ * <ul>
+ *   <li>Application code that depends on the AWS SDK</li>
+ *   <li>Libraries that build on top of the SDK</li>
+ *   <li>Any code requiring stable, long-term API contracts</li>
+ * </ul>
+ * 
+ * <p><b>Intended for:</b> SDK users and external developers. These APIs form the official public
+ * interface of the AWS SDK for Java v2.
+ * 
+ * @see SdkProtectedApi
+ * @see SdkInternalApi
  */
+@Documented
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
 @SdkProtectedApi
 public @interface SdkPublicApi {

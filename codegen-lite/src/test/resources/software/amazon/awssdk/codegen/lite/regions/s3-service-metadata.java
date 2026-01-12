@@ -69,6 +69,7 @@ public final class S3ServiceMetadata implements ServiceMetadata {
 
     private static final Map<ServiceEndpointKey, String> HOSTNAMES_BY_REGION = ImmutableMap
         .<ServiceEndpointKey, String> builder()
+        .allowDuplicateKeys(true)
         .put(ServiceEndpointKey.builder().region(Region.of("af-south-1")).tags(EndpointTag.of("dualstack")).build(),
              "s3.dualstack.af-south-1.amazonaws.com")
         .put(ServiceEndpointKey.builder().region(Region.of("ap-east-1")).tags(EndpointTag.of("dualstack")).build(),

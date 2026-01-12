@@ -25,7 +25,7 @@ public class S3EnDateTime {
     public void parseEvent(String jsonInput) {
         S3EventNotification notification = S3EventNotification.fromJson(jsonInput);
 
-        for (S3EventNotification.S3EventNotificationRecord record : notification.getRecords()) {
+        for (S3EventNotificationRecord record : notification.getRecords()) {
             DateTime eventTime = /*AWS SDK for Java v2 migration: getEventTime returns Instant instead of DateTime in v2. AWS SDK v2 does not include org.joda.time as a dependency. If you want to keep using DateTime, you'll need to manually add "org.joda.time:joda-time" dependency to your project after migration.*/new DateTime(record.getEventTime().toEpochMilli());
 
             GlacierEventData glacierEventData = record.getGlacierEventData();

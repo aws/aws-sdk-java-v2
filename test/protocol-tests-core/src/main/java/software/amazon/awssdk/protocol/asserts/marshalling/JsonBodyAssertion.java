@@ -19,6 +19,10 @@ import static org.junit.Assert.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 /**
@@ -37,8 +41,39 @@ public class JsonBodyAssertion extends MarshallingAssertion {
     @Override
     protected void doAssert(LoggedRequest actual) throws Exception {
         JsonNode expected = MAPPER.readTree(jsonEquals);
-        JsonNode actualJson = MAPPER.readTree(actual.getBodyAsString());
+        JsonNode actualJson = convertWholeNumberDoubleToLong(MAPPER.readTree(actual.getBodyAsString()));
         assertEquals(expected, actualJson);
     }
 
+    /**
+     * We serialize some numbers (in particular epoch timestamps) as doubles such as 123.000.
+     * In protocol tests, these values are parsed as longs.  This conversion insures that
+     * 123.000 will equal 123.
+     */
+    public static JsonNode convertWholeNumberDoubleToLong(JsonNode node) {
+        if (node.isDouble()) {
+            double value = node.doubleValue();
+            if (value % 1 == 0) {
+                if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+                    return new IntNode((int) value);
+                }
+                return new LongNode((long) value);
+            }
+        }
+        if (node.isObject()) {
+            ObjectNode obj = (ObjectNode) node;
+            ObjectNode result = obj.objectNode();
+            obj.fieldNames().forEachRemaining(field -> result.set(field, convertWholeNumberDoubleToLong(obj.get(field))));
+            return result;
+        }
+        if (node.isArray()) {
+            ArrayNode array = (ArrayNode) node;
+            ArrayNode result = array.arrayNode();
+            for (JsonNode item : array) {
+                result.add(convertWholeNumberDoubleToLong(item));
+            }
+            return result;
+        }
+        return node;
+    }
 }

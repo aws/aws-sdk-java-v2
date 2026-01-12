@@ -111,7 +111,8 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
         // but before we called timeoutTracker.cancel(). Note that if hasExecuted() returns true, its guaranteed that
         // the timeout tracker has set the interrupt flag, and if it returns false, it guarantees that it did not and
         // will never set the interrupt flag.
-        if (context.apiCallAttemptTimeoutTracker().hasExecuted()) {
+        TimeoutTracker timeoutTracker = context.apiCallAttemptTimeoutTracker();
+        if (timeoutTracker != null && timeoutTracker.hasExecuted()) {
             // Clear the interrupt flag. Since we already have an exception from the call, which may contain information
             // that's useful to the caller, just return that instead of an ApiCallTimeoutException.
             Thread.interrupted();
@@ -136,7 +137,8 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
                                                                         "Failed to close the response stream",
                                                                         r::close));
         }
-        if (context.apiCallAttemptTimeoutTracker().hasExecuted()) {
+        TimeoutTracker timeoutTracker = context.apiCallAttemptTimeoutTracker();
+        if (timeoutTracker != null && timeoutTracker.hasExecuted()) {
             // Clear the interrupt status
             Thread.interrupted();
             return generateApiCallAttemptTimeoutException(context);

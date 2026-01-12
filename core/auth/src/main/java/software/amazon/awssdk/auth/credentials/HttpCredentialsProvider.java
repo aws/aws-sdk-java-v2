@@ -49,6 +49,15 @@ public interface HttpCredentialsProvider extends AwsCredentialsProvider, SdkAuto
         BuilderT endpoint(String endpoint);
 
         /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
+        default BuilderT sourceChain(String sourceChain) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
          * Build the credentials provider based on the configuration on this builder.
          */
         TypeToBuildT build();

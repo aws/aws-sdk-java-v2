@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
@@ -76,6 +77,10 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
             this.listener = Validate.notNull(listener, "listener");
         }
 
+        public AsyncResponseTransformer<ResponseT, ResultT> getDelegate() {
+            return delegate;
+        }
+
         @Override
         public CompletableFuture<ResultT> prepare() {
             return delegate.prepare();
@@ -97,6 +102,16 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
         public void exceptionOccurred(Throwable error) {
             invoke(() -> listener.transformerExceptionOccurred(error), "transformerExceptionOccurred");
             delegate.exceptionOccurred(error);
+        }
+
+        @Override
+        public String name() {
+            return delegate.name();
+        }
+
+        @Override
+        public SplitResult<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig) {
+            return delegate.split(splitConfig);
         }
 
         static void invoke(Runnable runnable, String callbackName) {

@@ -19,8 +19,11 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -36,6 +39,7 @@ import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -159,6 +163,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
+     * Each AsyncResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestTransformer.
+     */
+    default String name() {
+        return TransformerType.UNKNOWN.getName();
+    }
+
+    /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
@@ -258,6 +272,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * The publisher has a default timeout of 60 seconds that starts when the response body begins streaming. If no subscriber is
+     * registered within this time, the subscription will be automatically cancelled. Use {@link #toPublisher(Duration)} to
+     * specify a custom timeout.
+     * <p>
      * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
      * transformer is only recommended for advanced use cases.
      * <p>
@@ -278,6 +296,34 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> toPublisher() {
         return new PublisherAsyncResponseTransformer<>();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} with a custom timeout that publishes the response body content through a
+     * {@link ResponsePublisher}, which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse}
+     * returned by the service.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * The timeout starts when the response body begins streaming. If no subscriber is registered within the specified timeout,
+     * the subscription will be automatically cancelled. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     * <p>
+     * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
+     * transformer is only recommended for advanced use cases.
+     *
+     * @param timeout Maximum time to wait for subscription before cancelling. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseTransformer instance.
+     * @see #toPublisher()
+     */
+    static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT,
+        ResponsePublisher<ResponseT>> toPublisher(Duration timeout) {
+        return new PublisherAsyncResponseTransformer<>(timeout);
     }
 
     /**
@@ -335,6 +381,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          */
         CompletableFuture<ResultT> resultFuture();
 
+        /**
+         * Indicates if the split async response transformer supports sending individual transformer non-serially and
+         * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
+         * @return true if non-serial data is supported, false otherwise
+         */
+        default Boolean parallelSplitSupported() {
+            return false;
+        }
+
         static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
             return DefaultAsyncResponseTransformerSplitResult.builder();
         }
@@ -367,6 +422,52 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * @return an instance of this Builder
              */
             Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+
+            /**
+             * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently.
+             * @return
+             */
+            Boolean parallelSplitSupported();
+
+            /**
+             * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Builder<ResponseT, ResultT> parallelSplitSupported(Boolean parallelSplitSupported);
+        }
+    }
+
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
         }
     }
 }

@@ -1,0 +1,43 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Rest Json Service",
+    "serviceFullName": "Some Service That Uses Rest-Json Protocol",
+    "serviceId": "Rest Json Service",
+    "signingName": "json-service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "OperationWithUriMappedParam": {
+      "name": "OperationWithUriMappedParam",
+      "http": {
+        "method": "GET"
+      },
+      "input": {
+        "shape": "OperationWithUriMappedParamRequest"
+      }
+    }
+  },
+  "shapes": {
+    "OperationWithUriMappedParamRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "stringMember"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  },
+  "documentation": "A service that is implemented using the rest-json protocol"
+}

@@ -24,12 +24,13 @@
         <Root level="WARN">
             <AppenderRef ref="ConsoleAppender"/>
         </Root>
+        <Logger name="software.amazon.awssdk.services.s3.regression" level="INFO" />
 <!--        <Logger name="software.amazon.awssdk" level="WARN" />-->
 <!--        <Logger name="software.amazon.awssdk.request" level="DEBUG" />-->
 <!--        <Logger name="org.apache.http.wire" level="DEBUG" />-->
 <!--        <Logger name="org.apache.http.headers" level="DEBUG" />-->
 
-        <!--        <Logger name="software.amazon.awssdk.services.s3.checksum" level="DEBUG" />-->
+<!--        <Logger name="software.amazon.awssdk.services.s3.checksum" level="DEBUG" />-->
 <!--        <Logger name="io.netty.handler.logging" level="DEBUG" />-->
 <!--        <Logger name="io.netty.handler.codec.http2.Http2FrameLogger" level="DEBUG" />-->
     </Loggers>

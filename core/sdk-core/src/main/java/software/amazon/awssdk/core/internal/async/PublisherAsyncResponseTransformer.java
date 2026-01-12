@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
@@ -35,6 +36,14 @@ public final class PublisherAsyncResponseTransformer<ResponseT extends SdkRespon
 
     private volatile CompletableFuture<ResponsePublisher<ResponseT>> future;
     private volatile ResponseT response;
+    private Duration timeout;
+
+    public PublisherAsyncResponseTransformer() {
+    }
+
+    public PublisherAsyncResponseTransformer(Duration timeout) {
+        this.timeout = timeout;
+    }
 
     @Override
     public CompletableFuture<ResponsePublisher<ResponseT>> prepare() {
@@ -50,11 +59,16 @@ public final class PublisherAsyncResponseTransformer<ResponseT extends SdkRespon
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        future.complete(new ResponsePublisher<>(response, publisher));
+        future.complete(new ResponsePublisher<>(response, publisher, timeout));
     }
 
     @Override
     public void exceptionOccurred(Throwable error) {
         future.completeExceptionally(error);
+    }
+
+    @Override
+    public String name() {
+        return TransformerType.PUBLISHER.getName();
     }
 }

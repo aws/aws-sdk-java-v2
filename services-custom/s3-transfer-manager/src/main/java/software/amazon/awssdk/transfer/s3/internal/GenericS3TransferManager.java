@@ -128,7 +128,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public final Upload upload(UploadRequest uploadRequest) {
+    public Upload upload(UploadRequest uploadRequest) {
         Validate.paramNotNull(uploadRequest, "uploadRequest");
 
         AsyncRequestBody requestBody = uploadRequest.requestBody();
@@ -148,8 +148,15 @@ class GenericS3TransferManager implements S3TransferManager {
             putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
         }
 
+        doUpload(putObjectRequest, requestBody, returnFuture);
+
+        return new DefaultUpload(returnFuture, progressUpdater.progress());
+    }
+
+    protected void doUpload(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody,
+                    CompletableFuture<CompletedUpload> returnFuture) {
         try {
-            assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
+            assertNotUnsupportedArn(putObjectRequest.bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> future =
                 s3AsyncClient.putObject(putObjectRequest, requestBody);
@@ -157,15 +164,15 @@ class GenericS3TransferManager implements S3TransferManager {
             // Forward upload cancellation to future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
 
-            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
-                                                              r -> CompletedUpload.builder()
-                                                                                  .response(r)
-                                                                                  .build());
+            CompletableFutureUtils.forwardTransformedResultTo(
+                future,
+                returnFuture,
+                r -> CompletedUpload.builder()
+                                    .response(r)
+                                    .build());
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
-
-        return new DefaultUpload(returnFuture, progressUpdater.progress());
     }
 
     /**
@@ -341,10 +348,18 @@ class GenericS3TransferManager implements S3TransferManager {
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
-        responseTransformer = isS3ClientMultipartEnabled()
-                              ? progressUpdater.wrapResponseTransformerForMultipartDownload(
-            responseTransformer, downloadRequest.getObjectRequest())
-                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        if (isS3ClientMultipartEnabled()) {
+            if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
+                responseTransformer =
+                    progressUpdater.wrapForNonSerialFileDownload(responseTransformer, downloadRequest.getObjectRequest());
+            } else {
+                responseTransformer =
+                    progressUpdater.wrapResponseTransformerForMultipartDownload(
+                        responseTransformer, downloadRequest.getObjectRequest());
+            }
+        } else {
+            responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
+        }
         progressUpdater.registerCompletion(returnFuture);
 
         try {
@@ -394,8 +409,8 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         try {
             progressUpdater.transferInitiated();
-            responseTransformer = isS3ClientMultipartEnabled()
-                                  ? progressUpdater.wrapResponseTransformerForMultipartDownload(
+            responseTransformer = isS3ClientMultipartEnabled() && downloadRequest.getObjectRequest().range() == null
+                                  ? progressUpdater.wrapForNonSerialFileDownload(
                 responseTransformer, downloadRequest.getObjectRequest())
                                   : progressUpdater.wrapResponseTransformer(responseTransformer);
             progressUpdater.registerCompletion(returnFuture);

@@ -24,6 +24,8 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.ChecksumConfig;
+import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
@@ -102,7 +105,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withTlsContext(s3NativeClientConfiguration.tlsContext())
-                                 .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withMultipartUploadThreshold(s3NativeClientConfiguration.thresholdInBytes())
                                  .withComputeContentMd5(false)
                                  .withEnableS3Express(true)
@@ -118,6 +120,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (Boolean.FALSE.equals(s3NativeClientConfiguration.isUseEnvironmentVariableValues())) {
             options.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
         }
+        Optional.ofNullable(s3NativeClientConfiguration.partSizeBytes()).ifPresent(options::withPartSize);
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(options::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
                 .map(Duration::toMillis)
@@ -125,6 +128,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withConnectTimeoutMs);
         Optional.ofNullable(s3NativeClientConfiguration.httpMonitoringOptions())
                 .ifPresent(options::withHttpMonitoringOptions);
+        Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
+            .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
         return options;
     }
 
@@ -135,11 +140,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         HttpRequest httpRequest = toCrtRequest(asyncRequest);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
-        S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(executeFuture,
-                                            asyncRequest.responseHandler(),
-                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                                            s3MetaRequestFuture);
 
         String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
@@ -156,6 +156,16 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         ChecksumConfig checksumConfig = checksumConfig(httpChecksum, requestType, requestChecksumCalculation,
                                                        responseChecksumValidation);
 
+        Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
+        S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
+
+        S3CrtResponseHandlerAdapter responseHandler =
+            new S3CrtResponseHandlerAdapter(
+                executeFuture,
+                asyncRequest.responseHandler(),
+                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                s3MetaRequestFuture);
+
         URI endpoint = getEndpoint(uri);
 
         AwsSigningConfig signingConfig = awsSigningConfig(signingRegion, httpExecutionAttributes);
@@ -169,7 +179,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withResumeToken(resumeToken)
             .withOperationName(operationName)
             .withRequestFilePath(requestFilePath)
-            .withSigningConfig(signingConfig);
+            .withSigningConfig(signingConfig)
+            .withResponseFilePath(responseFilePath);
+
+        if (responseFileOption != null) {
+            requestOptions = requestOptions.withResponseFileOption(responseFileOption);
+        }
 
         try {
             S3MetaRequestWrapper requestWrapper = new S3MetaRequestWrapper(crtS3Client.makeMetaRequest(requestOptions));

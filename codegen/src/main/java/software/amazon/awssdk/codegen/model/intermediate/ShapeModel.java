@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.customization.ShapeCustomizationInfo;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
@@ -668,5 +669,85 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public ShapeModel withIsThrottling(boolean throttling) {
         this.throttling = throttling;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        ShapeModel that = (ShapeModel) o;
+        return deprecated == that.deprecated
+               && hasPayloadMember == that.hasPayloadMember
+               && hasHeaderMember == that.hasHeaderMember
+               && hasStatusCodeMember == that.hasStatusCodeMember
+               && hasStreamingMember == that.hasStreamingMember
+               && hasRequiresLengthMember == that.hasRequiresLengthMember
+               && wrapper == that.wrapper
+               && simpleMethod == that.simpleMethod
+               && fault == that.fault
+               && isEventStream == that.isEventStream
+               && isEvent == that.isEvent
+               && document == that.document
+               && union == that.union
+               && retryable == that.retryable
+               && throttling == that.throttling
+               && Objects.equals(c2jName, that.c2jName)
+               && Objects.equals(shapeName, that.shapeName)
+               && Objects.equals(deprecatedMessage, that.deprecatedMessage)
+               && Objects.equals(type, that.type)
+               && Objects.equals(required, that.required)
+               && Objects.equals(requestSignerClassFqcn, that.requestSignerClassFqcn)
+               && Objects.equals(endpointDiscovery, that.endpointDiscovery)
+               && Objects.equals(members, that.members)
+               && Objects.equals(enums, that.enums)
+               && Objects.equals(variable, that.variable)
+               && Objects.equals(marshaller, that.marshaller)
+               && Objects.equals(unmarshaller, that.unmarshaller)
+               && Objects.equals(errorCode, that.errorCode)
+               && Objects.equals(httpStatusCode, that.httpStatusCode)
+               && Objects.equals(customization, that.customization)
+               && Objects.equals(xmlNamespace, that.xmlNamespace);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(c2jName);
+        result = 31 * result + Objects.hashCode(shapeName);
+        result = 31 * result + Boolean.hashCode(deprecated);
+        result = 31 * result + Objects.hashCode(deprecatedMessage);
+        result = 31 * result + Objects.hashCode(type);
+        result = 31 * result + Objects.hashCode(required);
+        result = 31 * result + Boolean.hashCode(hasPayloadMember);
+        result = 31 * result + Boolean.hashCode(hasHeaderMember);
+        result = 31 * result + Boolean.hashCode(hasStatusCodeMember);
+        result = 31 * result + Boolean.hashCode(hasStreamingMember);
+        result = 31 * result + Boolean.hashCode(hasRequiresLengthMember);
+        result = 31 * result + Boolean.hashCode(wrapper);
+        result = 31 * result + Boolean.hashCode(simpleMethod);
+        result = 31 * result + Objects.hashCode(requestSignerClassFqcn);
+        result = 31 * result + Objects.hashCode(endpointDiscovery);
+        result = 31 * result + Objects.hashCode(members);
+        result = 31 * result + Objects.hashCode(enums);
+        result = 31 * result + Objects.hashCode(variable);
+        result = 31 * result + Objects.hashCode(marshaller);
+        result = 31 * result + Objects.hashCode(unmarshaller);
+        result = 31 * result + Objects.hashCode(errorCode);
+        result = 31 * result + Objects.hashCode(httpStatusCode);
+        result = 31 * result + Boolean.hashCode(fault);
+        result = 31 * result + Objects.hashCode(customization);
+        result = 31 * result + Boolean.hashCode(isEventStream);
+        result = 31 * result + Boolean.hashCode(isEvent);
+        result = 31 * result + Objects.hashCode(xmlNamespace);
+        result = 31 * result + Boolean.hashCode(document);
+        result = 31 * result + Boolean.hashCode(union);
+        result = 31 * result + Boolean.hashCode(retryable);
+        result = 31 * result + Boolean.hashCode(throttling);
+        return result;
     }
 }

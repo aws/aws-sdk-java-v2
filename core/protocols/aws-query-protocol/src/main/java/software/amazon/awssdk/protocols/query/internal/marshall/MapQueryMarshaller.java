@@ -46,7 +46,7 @@ public class MapQueryMarshaller implements QueryMarshaller<Map<String, ?>> {
 
     private static String resolveMapPath(String path, MapTrait mapTrait, AtomicInteger entryNum, String s) {
         return mapTrait.isFlattened() ?
-               String.format("%s.%d.%s", path, entryNum.get(), s) :
-               String.format("%s.entry.%d.%s", path, entryNum.get(), s);
+               path + "." + entryNum.get() + "." + s :
+               path + ".entry." + entryNum.get() + "." + s;
     }
 }

@@ -21,6 +21,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -54,6 +55,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                         .addMethod(resolveAuthSchemeMethod())
                         .addMethod(resolveAuthSchemeConsumerBuilderMethod())
                         .addMethod(defaultProviderMethod())
+                        .addMethod(defaultPreferredProviderMethod())
                         .build();
     }
 
@@ -93,6 +95,17 @@ public class AuthSchemeProviderSpec implements ClassSpec {
             .build();
     }
 
+    private MethodSpec defaultPreferredProviderMethod() {
+        return MethodSpec.methodBuilder("defaultProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
+                         .returns(className())
+                         .addJavadoc("Get the default auth scheme provider the preferred auth schemes in order of preference.")
+                         .addStatement("return new $T(defaultProvider(), authSchemePreference)",
+                                       authSchemeSpecUtils.preferredAuthSchemeProviderName())
+                         .build();
+    }
+
     private CodeBlock interfaceJavadoc() {
         CodeBlock.Builder b = CodeBlock.builder();
 
@@ -105,3 +118,4 @@ public class AuthSchemeProviderSpec implements ClassSpec {
         return b.build();
     }
 }
+
