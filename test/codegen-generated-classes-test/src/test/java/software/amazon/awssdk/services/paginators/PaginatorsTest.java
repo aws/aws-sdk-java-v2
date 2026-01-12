@@ -65,9 +65,8 @@ public class PaginatorsTest {
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     void listStrings_largePage_succeeds() {
         int nItems = 10_000;
-        wireMock.stubFor(post(urlEqualTo("/2016-03-11/listStrings"))
-                             .willReturn(aResponse().withStatus(200)
-                                                    .withJsonBody(createScanResponse(nItems))));
+        wireMock.stubFor(post(urlEqualTo("/2016-03-11/listStrings")).willReturn(
+            aResponse().withStatus(200).withJsonBody(createResponse(nItems))));
 
         ListStringsPublisher publisher = client.listStringsPaginator(ListStringsRequest.builder().build());
 
@@ -75,7 +74,7 @@ public class PaginatorsTest {
         assertThat(itemsSeen).isEqualTo(nItems);
     }
 
-    private static JsonNode createScanResponse(int nItems) {
+    private static JsonNode createResponse(int nItems) {
         ObjectNode resp = mapper.createObjectNode();
 
         ArrayNode strings = mapper.createArrayNode();
