@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed integrations for AWS IoT Device Management",
-    "contributor": "",
-    "description": "This release introduces WiFi Simple Setup (WSS) enabling device provisioning via barcode scanning with automated network discovery, authentication, and credential provisioning. Additionally, it introduces 2P Device Capability Rediscovery for updating hub-managed device capabilities post-onboarding."
-}

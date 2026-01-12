@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Added ultraServerType to the UltraServerInfo structure to support server type identification for SageMaker HyperPod"
-}

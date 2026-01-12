@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.6__ __2026-01-12__
+## __AWS Billing__
+  - ### Features
+    - Cost Categories filtering support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added ultraServerType to the UltraServerInfo structure to support server type identification for SageMaker HyperPod
+
+## __IAM Policy Builder__
+  - ### Bugfixes
+    - Allow integer AWS account IDs and boolean values when reading IAM policies from JSON with `IamPolicyReader`.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - This release introduces WiFi Simple Setup (WSS) enabling device provisioning via barcode scanning with automated network discovery, authentication, and credential provisioning. Additionally, it introduces 2P Device Capability Rediscovery for updating hub-managed device capabilities post-onboarding.
+
 # __2.41.5__ __2026-01-09__
 ## __AWS Elemental MediaLive__
   - ### Features
