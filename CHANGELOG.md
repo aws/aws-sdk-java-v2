@@ -1,4 +1,24 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.7__ __2026-01-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where `StackOverflowError` can occur when iterating over large pages from an async paginator. This can manifest as the publisher hanging/never reaching the end of the stream. Fixes [#6411](https://github.com/aws/aws-sdk-java-v2/issues/6411).
+
+## __Amazon Bedrock__
+  - ### Features
+    - This change will increase TestCase guardContent input size from 1024 to 2028 characters and PolicyBuildDocumentDescription from 2000 to 4000 characters
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for IAM role subscriptions to Glue table listings via CreateSubscriptionRequest API. Also adds owningIamPrincipalArn filter to List APIs and subscriptionGrantCreationMode parameter to subscription target APIs for controlling grant creation behavior.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - modify VersionedRecordExtension to support updating existing records with version=0 using OR condition
+
+  - ### Bugfixes
+    - Allow new records to be initialized with version=0 by supporting startAt=-1 in VersionedRecordExtension
+
 # __2.41.6__ __2026-01-12__
 ## __AWS Billing__
   - ### Features
