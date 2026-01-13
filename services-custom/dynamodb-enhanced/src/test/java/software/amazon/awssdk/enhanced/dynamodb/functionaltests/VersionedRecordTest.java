@@ -17,10 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -139,6 +143,30 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         }
     }
 
+    @DynamoDbBean
+    public static class AnnotatedRecordStartAtNegativeOne {
+        private String id;
+        private String attribute;
+        private Long version;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbVersionAttribute(startAt = -1, incrementBy = 1)
+        public Long getVersion() { return version; }
+        public void setVersion(Long version) { this.version = version; }
+
+        public String getAttribute() { return attribute; }
+        public void setAttribute(String attribute) { this.attribute = attribute; }
+    }
+
+
+    private static final int CUSTOM_START_AT = 10;
+    private static final int CUSTOM_INCREMENT_BY = 2;
+    private static final long ANNOTATED_START_AT = 5L;
+    private static final long ANNOTATED_INCREMENT_BY = 3L;
+
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .extensions(VersionedRecordExtension.builder().build())
@@ -154,10 +182,36 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                                           )
                                                                           .build();
 
+    private DynamoDbEnhancedClient startAtNegativeOneClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extensions(VersionedRecordExtension
+                                                                                          .builder()
+                                                                                          .startAt(-1L)
+                                                                                          .incrementBy(1L)
+                                                                                          .build()
+                                                                          )
+                                                                          .build();
+
+    private DynamoDbEnhancedClient startAtNegativeOneIncrementByTwoClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extensions(VersionedRecordExtension
+                                                                                          .builder()
+                                                                                          .startAt(-1L)
+                                                                                          .incrementBy(2L)
+                                                                                          .build()
+                                                                          )
+                                                                          .build();
+
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private DynamoDbTable<Record> mappedCustomVersionedTable = customVersionedEnhancedClient
         .table(getConcreteTableName("table-name2"), TABLE_SCHEMA);
+
+    private DynamoDbTable<Record> startAtNegativeOneTable = startAtNegativeOneClient
+        .table(getConcreteTableName("startAt-neg-one-table"), TABLE_SCHEMA);
+
+    private DynamoDbTable<Record> startAtNegativeOneIncrementByTwoTable = startAtNegativeOneIncrementByTwoClient
+        .table(getConcreteTableName("startAt-neg-one-inc-two-table"), TABLE_SCHEMA);
 
 
     private static final TableSchema<AnnotatedRecord> ANNOTATED_TABLE_SCHEMA =
@@ -165,6 +219,12 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     private DynamoDbTable<AnnotatedRecord> annotatedTable = enhancedClient
         .table(getConcreteTableName("annotated-table"), ANNOTATED_TABLE_SCHEMA);
+
+    private static final TableSchema<AnnotatedRecordStartAtNegativeOne> ANNOTATED_START_AT_NEG_ONE_SCHEMA =
+        TableSchema.fromBean(AnnotatedRecordStartAtNegativeOne.class);
+
+    private DynamoDbTable<AnnotatedRecordStartAtNegativeOne> annotatedStartAtNegativeOneTable = enhancedClient
+        .table(getConcreteTableName("annotated-startAt-neg-one-table"), ANNOTATED_START_AT_NEG_ONE_SCHEMA);
 
 
 
@@ -177,6 +237,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         mappedCustomVersionedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
         annotatedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        startAtNegativeOneTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        startAtNegativeOneIncrementByTwoTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        annotatedStartAtNegativeOneTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -191,6 +254,18 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("annotated-table"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("startAt-neg-one-table"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("startAt-neg-one-inc-two-table"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("annotated-startAt-neg-one-table"))
                                                           .build());
     }
 
@@ -383,12 +458,12 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         mappedCustomVersionedTable.putItem(r -> r.item(new Record().setId("custom-start").setAttribute("test")));
 
         Record record = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("custom-start")));
-        assertThat(record.getVersion(), is(12));
+        assertThat(record.getVersion(), is(CUSTOM_START_AT + CUSTOM_INCREMENT_BY));
     }
 
     @Test(expected = ConditionalCheckFailedException.class)
     public void recordWithVersionBetweenStartAtAndFirstVersionFails() {
-        Record invalidRecord = new Record().setId("invalid-version").setAttribute("test").setVersion(11);
+        Record invalidRecord = new Record().setId("invalid-version").setAttribute("test").setVersion(CUSTOM_START_AT + 1);
         mappedCustomVersionedTable.putItem(r -> r.item(invalidRecord));
     }
 
@@ -398,13 +473,256 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         AnnotatedRecord result = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("annotated")));
 
-        assertThat(result.getVersion(), is(8L));
+        assertThat(result.getVersion(), is(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY));
 
         AnnotatedRecord updated = annotatedTable.updateItem(r -> r.item(new AnnotatedRecord()
                                                                             .setId("annotated")
                                                                             .setAttribute("updated")
-                                                                            .setVersion(8L)));
+                                                                            .setVersion(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY)));
 
-        assertThat(updated.getVersion(), is(11L));
+        assertThat(updated.getVersion(), is(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY + ANNOTATED_INCREMENT_BY));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionZero_defaultStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-zero"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("version-zero")));
+        assertThat(retrieved.getVersion(), is(0));
+
+        Record updated = mappedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(1));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionEqualToBuilderStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-ten"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(CUSTOM_START_AT)).build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record retrieved = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("version-ten")));
+        assertThat(retrieved.getVersion(), is(CUSTOM_START_AT));
+
+        Record updated = mappedCustomVersionedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(CUSTOM_START_AT + CUSTOM_INCREMENT_BY));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionEqualToAnnotationStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-five"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(ANNOTATED_START_AT)).build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("version-five")));
+        assertThat(retrieved.getVersion(), is(ANNOTATED_START_AT));
+
+        AnnotatedRecord updated = annotatedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY));
+    }
+
+    @Test
+    public void putItem_existingRecordWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("put-version-ten"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(CUSTOM_START_AT)).build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record overwrite = new Record().setId("put-version-ten").setVersion(CUSTOM_START_AT);
+        mappedCustomVersionedTable.putItem(overwrite);
+
+        Record retrieved = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("put-version-ten")));
+        assertThat(retrieved.getVersion(), is(CUSTOM_START_AT + CUSTOM_INCREMENT_BY));
+    }
+
+    @Test
+    public void putItem_newRecordWithVersionEqualToStartAt_shouldSucceed() {
+        Record newRecord = new Record().setId("explicit-zero").setAttribute("test").setVersion(0);
+        mappedTable.putItem(newRecord);
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("explicit-zero")));
+        assertThat(retrieved.getVersion(), is(1));
+    }
+
+    @Test
+    public void sdkV1MigrationFlow_createRetrieveUpdate_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("v1-record"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("v1-record")));
+        assertThat(retrieved.getVersion(), is(0));
+
+        retrieved.setAttribute("updated");
+        Record updated = mappedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(1));
+        assertThat(updated.getAttribute(), is("updated"));
+    }
+
+    @Test
+    public void deleteItem_existingRecordWithVersionZero_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-test"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record toDelete = mappedTable.getItem(r -> r.key(k -> k.partitionValue("delete-test")));
+        assertThat(toDelete.getVersion(), is(0));
+
+        mappedTable.deleteItem(toDelete);
+
+        Record shouldBeNull = mappedTable.getItem(r -> r.key(k -> k.partitionValue("delete-test")));
+        assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void updateItem_bothBuilderAndAnnotationWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("both-config"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(ANNOTATED_START_AT)).build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("both-config")));
+        assertThat(retrieved.getVersion(), is(ANNOTATED_START_AT));
+
+        retrieved.setAttribute("updated");
+        AnnotatedRecord updated = annotatedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY));
+    }
+
+    @Test
+    public void putItem_annotationConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("annotation-put"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(ANNOTATED_START_AT)).build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord overwrite = new AnnotatedRecord().setId("annotation-put").setAttribute("overwritten").setVersion(ANNOTATED_START_AT);
+        annotatedTable.putItem(overwrite);
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("annotation-put")));
+        assertThat(retrieved.getAttribute(), is("overwritten"));
+        assertThat(retrieved.getVersion(), is(ANNOTATED_START_AT + ANNOTATED_INCREMENT_BY));
+    }
+
+    @Test
+    public void deleteItem_builderConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-builder"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(CUSTOM_START_AT)).build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record toDelete = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("delete-builder")));
+        assertThat(toDelete.getVersion(), is(CUSTOM_START_AT));
+
+        mappedCustomVersionedTable.deleteItem(toDelete);
+
+        Record shouldBeNull = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("delete-builder")));
+        assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void deleteItem_annotationConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-annotation"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n(String.valueOf(ANNOTATED_START_AT)).build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord toDelete = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
+        assertThat(toDelete.getVersion(), is(ANNOTATED_START_AT));
+
+        annotatedTable.deleteItem(toDelete);
+
+        AnnotatedRecord shouldBeNull = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
+        assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void putItem_startAtNegativeOne_firstVersionIsZero() {
+        startAtNegativeOneTable.putItem(r -> r.item(new Record().setId("test-id").setAttribute("value")));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
+        assertThat(result.getVersion(), is(0));
+    }
+
+    @Test
+    public void updateItem_startAtNegativeOne_incrementsFromZero() {
+        startAtNegativeOneTable.putItem(r -> r.item(new Record().setId("test-id-2").setAttribute("value")));
+        
+        Record recordToUpdate = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        recordToUpdate.setAttribute("updated");
+        startAtNegativeOneTable.updateItem(r -> r.item(recordToUpdate));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        assertThat(result.getVersion(), is(1));
+    }
+
+    @Test
+    public void putItem_startAtNegativeOne_incrementByTwo_firstVersionIsOne() {
+        startAtNegativeOneIncrementByTwoTable.putItem(r -> r.item(new Record().setId("test-id").setAttribute("value")));
+
+        Record result = startAtNegativeOneIncrementByTwoTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
+        assertThat(result.getVersion(), is(1));
+    }
+
+    @Test
+    public void updateItem_startAtNegativeOne_incrementByTwo_incrementsByTwo() {
+        startAtNegativeOneIncrementByTwoTable.putItem(r -> r.item(new Record().setId("test-id-2").setAttribute("value")));
+        
+        Record recordToUpdate = startAtNegativeOneIncrementByTwoTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        recordToUpdate.setAttribute("updated");
+        startAtNegativeOneIncrementByTwoTable.updateItem(r -> r.item(recordToUpdate));
+
+        Record result = startAtNegativeOneIncrementByTwoTable.getItem(r -> r.key(k -> k.partitionValue("test-id-2")));
+        assertThat(result.getVersion(), is(3));
+    }
+
+    @Test
+    public void updateItem_startAtNegativeOne_versionMatchesStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("test-id-3"));
+        item.put("attribute", stringValue("value"));
+        item.put("version", AttributeValue.builder().n("-1").build());
+        getDynamoDbClient().putItem(r -> r.tableName(startAtNegativeOneTable.tableName()).item(item));
+
+        startAtNegativeOneTable.updateItem(r -> r.item(new Record().setId("test-id-3").setAttribute("updated").setVersion(-1)));
+
+        Record result = startAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id-3")));
+        assertThat(result.getVersion(), is(0));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builder_startAtNegativeTwo_throwsException() {
+        VersionedRecordExtension.builder()
+                                .startAt(-2L)
+                                .incrementBy(1L)
+                                .build();
+    }
+
+    @Test
+    public void annotatedRecord_startAtNegativeOne_firstVersionIsZero() {
+        AnnotatedRecordStartAtNegativeOne record = new AnnotatedRecordStartAtNegativeOne();
+        record.setId("test-id");
+        record.setAttribute("value");
+
+        annotatedStartAtNegativeOneTable.putItem(record);
+
+        AnnotatedRecordStartAtNegativeOne result = annotatedStartAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
+        assertThat(result.getVersion(), is(0L));
     }
 }

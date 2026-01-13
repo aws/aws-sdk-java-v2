@@ -35,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * This extension implements optimistic locking on record writes by means of a 'record version number' that is used
@@ -55,6 +54,10 @@ import software.amazon.awssdk.utils.Validate;
  * Then, whenever a record is written the write operation will only succeed if the version number of the record has not
  * been modified since it was last read by the application. Every time a new version of the record is successfully
  * written to the database, the record version number will be automatically incremented.
+ * <p>
+ * <b>Version Calculation:</b> The first version written to a new record is calculated as {@code startAt + incrementBy}.
+ * For example, with {@code startAt=0} and {@code incrementBy=1} (defaults), the first version is 1.
+ * To start versioning from 0, use {@code startAt=-1} and {@code incrementBy=1}, which produces first version = 0.
  */
 @SdkPublicApi
 @ThreadSafe
@@ -68,7 +71,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     private final long incrementBy;
 
     private VersionedRecordExtension(Long startAt, Long incrementBy) {
-        Validate.isNotNegativeOrNull(startAt, "startAt");
+        if (startAt != null && startAt < -1) {
+            throw new IllegalArgumentException("startAt must be -1 or greater");
+        }
 
         if (incrementBy != null && incrementBy < 1) {
             throw new IllegalArgumentException("incrementBy must be greater than 0.");
@@ -121,7 +126,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                     "is supported.", attributeName, attributeValueType.name()));
             }
 
-            Validate.isNotNegativeOrNull(startAt, "startAt");
+            if (startAt != null && startAt < -1) {
+                throw new IllegalArgumentException("startAt must be -1 or greater.");
+            }
 
             if (incrementBy != null && incrementBy < 1) {
                 throw new IllegalArgumentException("incrementBy must be greater than 0.");
@@ -158,7 +165,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                                    .orElse(this.incrementBy);
 
 
-        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
+        if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
             newVersionValue = AttributeValue.builder()
                                             .n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation))
                                             .build();
@@ -175,7 +182,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
             long existingVersion = Long.parseLong(existingVersionValue.n());
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
-
             long increment = versionIncrementByFromAnnotation;
 
             /*
@@ -190,12 +196,25 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
             newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
 
-            condition = Expression.builder()
-                                  .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
-                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
-                                  .expressionValues(Collections.singletonMap(existingVersionValueKey,
-                                                                             existingVersionValue))
-                                  .build();
+            // When version equals startAt, we can't distinguish between new and existing records
+            // Use OR condition to handle both cases
+            if (existingVersion == versionStartAtFromAnnotation) {
+                condition = Expression.builder()
+                                      .expression(String.format("attribute_not_exists(%s) OR %s = %s",
+                                                              attributeKeyRef, attributeKeyRef, existingVersionValueKey))
+                                      .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
+                                      .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                                 existingVersionValue))
+                                      .build();
+            } else {
+                // Normal case - version doesn't equal startAt, must be existing record
+                condition = Expression.builder()
+                                      .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
+                                      .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
+                                      .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                                 existingVersionValue))
+                                      .build();
+            }
         }
 
         itemToTransform.put(versionAttributeKey.get(), newVersionValue);
@@ -204,21 +223,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .transformedItem(Collections.unmodifiableMap(itemToTransform))
                                 .additionalConditionalExpression(condition)
                                 .build();
-    }
-
-    private boolean isInitialVersion(AttributeValue existingVersionValue, Long versionStartAtFromAnnotation) {
-        if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
-            return true;
-        }
-
-        if (existingVersionValue.n() != null) {
-            long currentVersion = Long.parseLong(existingVersionValue.n());
-            // If annotation value is present, use it, otherwise fall back to the extension's value
-            Long effectiveStartAt = versionStartAtFromAnnotation != null ? versionStartAtFromAnnotation : this.startAt;
-            return currentVersion == effectiveStartAt;
-        }
-
-        return false;
     }
 
     @NotThreadSafe
@@ -231,9 +235,10 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         /**
          * Sets the startAt used to compare if a record is the initial version of a record.
+         * The first version written to a new record is calculated as {@code startAt + incrementBy}.
          * Default value - {@code 0}.
          *
-         * @param startAt the starting value for version comparison, must not be negative
+         * @param startAt the starting value for version comparison, must be -1 or greater
          * @return the builder instance
          */
         public Builder startAt(Long startAt) {
