@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "IAM Policy Builder",
-    "contributor": "",
-    "description": "Allow integer AWS account IDs and boolean values when reading IAM policies from JSON with `IamPolicyReader`."
-}
