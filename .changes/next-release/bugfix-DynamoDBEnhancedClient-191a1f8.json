@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Allow new records to be initialized with version=0 by supporting startAt=-1 in VersionedRecordExtension"
+}
