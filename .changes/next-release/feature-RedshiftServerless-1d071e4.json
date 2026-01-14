@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "Adds support for enabling extra compute resources for automatic optimization during create and update operations in Amazon Redshift Serverless workgroups."
+}
