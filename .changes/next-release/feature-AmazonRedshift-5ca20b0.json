@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "Adds support for enabling extra compute resources for automatic optimization during create and modify operations in Amazon Redshift clusters."
+}
