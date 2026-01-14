@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Metric Publisher",
-    "contributor": "",
-    "description": "Optimize metric processing by replacing stream-based operations with direct iteration to reduce allocations and GC pressure."
-}
