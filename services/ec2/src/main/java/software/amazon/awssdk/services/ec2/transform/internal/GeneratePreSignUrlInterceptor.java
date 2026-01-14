@@ -15,20 +15,20 @@
 
 package software.amazon.awssdk.services.ec2.transform.internal;
 
-import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.CredentialUtils;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -38,7 +38,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -123,39 +130,54 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                     .method(SdkHttpMethod.GET)
                     .build();
 
-            Aws4Signer signer = Aws4Signer.create();
-            Aws4PresignerParams signingParams = getPresignerParams(executionAttributes, sourceRegion, serviceName);
-
-            SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
+            URI presignedUrl =
+                sraPresignRequest(executionAttributes, requestForPresigning, sourceRegion);
 
             return request.toBuilder()
                           .putRawQueryParameter("DestinationRegion", destinationRegion)
-                          .putRawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
+                          .putRawQueryParameter("PresignedUrl", presignedUrl.toString())
                           .build();
         }
 
         return request;
     }
 
-    private Aws4PresignerParams getPresignerParams(ExecutionAttributes attributes, String signingRegion, String signingName) {
-        return Aws4PresignerParams.builder()
-                                  .signingRegion(Region.of(signingRegion))
-                                  .signingName(signingName)
-                                  .awsCredentials(resolveCredentials(attributes))
-                                  .signingClockOverride(testClock)
-                                  .build();
+    private URI sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
+                                                 String signingRegion) {
+        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        Instant signingInstant;
+        if (testClock != null) {
+            signingInstant = testClock.instant();
+        } else {
+            signingInstant = Instant.now();
+        }
+
+        Clock signingClock = Clock.fixed(signingInstant, ZoneOffset.UTC);
+        Duration expirationDuration = SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+        return doSraPresign(request, selectedAuthScheme, signingRegion, signingClock, expirationDuration);
     }
 
-    // TODO(sra-identity-and-auth): add test case for SELECTED_AUTH_SCHEME case
-    private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
-        return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
-                         .map(selectedAuthScheme -> selectedAuthScheme.identity())
-                         .map(identityFuture -> CompletableFutureUtils.joinLikeSync(identityFuture))
-                         .filter(identity -> identity instanceof AwsCredentialsIdentity)
-                         .map(identity -> {
-                             AwsCredentialsIdentity awsCredentialsIdentity = (AwsCredentialsIdentity) identity;
-                             return CredentialUtils.toCredentials(awsCredentialsIdentity);
-                         }).orElse(attributes.getAttribute(AWS_CREDENTIALS));
+    private <T extends Identity> URI doSraPresign(SdkHttpFullRequest request,
+                                                                 SelectedAuthScheme<T> selectedAuthScheme,
+                                                                 String signingRegion,
+                                                                 Clock signingClock,
+                                                                 Duration expirationDuration) {
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
+        SignRequest.Builder<T> signRequestBuilder = SignRequest
+            .builder(identity)
+            .putProperty(AwsV4FamilyHttpSigner.AUTH_LOCATION, AwsV4FamilyHttpSigner.AuthLocation.QUERY_STRING)
+            .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
+            .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+        signRequestBuilder.putProperty(AwsV4HttpSigner.REGION_NAME, signingRegion);
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        return signedRequest.request().getUri();
     }
 
     /**

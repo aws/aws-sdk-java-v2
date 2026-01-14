@@ -79,6 +79,14 @@ public class PoetExtension {
         return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "UserAgentUtils");
     }
 
+    public ClassName getServiceVersionInfoClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "ServiceVersionInfo");
+    }
+
+    public ClassName getEnvironmentTokenSystemSettingsClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "EnvironmentTokenSystemSettings");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a paginated operation in the base service package.

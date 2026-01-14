@@ -24,6 +24,7 @@ import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getArgumentName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getSelectName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.inputStreamBufferingWarningComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataGetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPayloadSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestBuilderSetter;
@@ -94,6 +95,11 @@ public class S3PutObjectRequestToV2 extends Recipe {
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (isObjectMetadataSetter(method)) {
                 return saveMetadataValueAndRemoveStatement(method);
+            }
+            if (isObjectMetadataGetter(method)) {
+                if (method.getSelect() != null) {
+                    return method.getSelect().withPrefix(method.getPrefix());
+                }
             }
 
             if (isPutObjectRequestBuilderSetter(method)) {
@@ -305,13 +311,8 @@ public class S3PutObjectRequestToV2 extends Recipe {
                     .withComments(inputStreamBufferingWarningComment());
             }
 
-            StringBuilder sb = new StringBuilder("#{any()}, RequestBody.fromInputStream(#{any()}, #{any()}");
-            if (contentLen instanceof J.Literal) {
-                sb.append("L");
-            }
-            sb.append(")");
-
-            return JavaTemplate.builder(sb.toString()).build()
+            v2Method = "#{any()}, RequestBody.fromInputStream(#{any()}, #{any()})";
+            return JavaTemplate.builder(v2Method).build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments(),
                                       method.getArguments().get(0), inputStream, contentLen);
         }
@@ -346,12 +347,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
                                    .withComments(inputStreamBufferingWarningComment());
             }
 
-            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()}");
-
-            if (contentLen instanceof J.Literal) {
-                sb.append("L");
-            }
-            sb.append(")");
+            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()})");
 
             params = Arrays.copyOf(params, 4);
             params[3] = contentLen;

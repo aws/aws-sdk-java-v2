@@ -32,12 +32,14 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import software.amazon.awssdk.core.SdkBytes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -48,10 +50,12 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.CompositeKeyFakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
@@ -409,7 +413,7 @@ public class QueryOperationTest {
             modifiedResultItems.stream()
                               .map(QueryOperationTest::getAttributeValueMap)
                               .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
-                              .collect(Collectors.toList())
+                              .collect(toList())
                               .toArray(new ReadModification[]{});
 
         when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
@@ -445,10 +449,462 @@ public class QueryOperationTest {
     }
 
     private static List<FakeItem> generateFakeItemList() {
-        return IntStream.range(0, 3).mapToObj(ignored -> FakeItem.createUniqueFakeItem()).collect(toList());
+        return IntStream.range(0, 3).mapToObj(ignored -> createUniqueFakeItem()).collect(toList());
     }
 
     private static Map<String, AttributeValue> getAttributeValueMap(FakeItem fakeItem) {
         return singletonMap("id", AttributeValue.builder().s(fakeItem.getId()).build());
+    }
+
+    private static final OperationContext GSI_COMPOSITE_CONTEXT =
+        DefaultOperationContext.create(TABLE_NAME, "gsi1");
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionKeysOnly() {
+        Key compositeKey = Key.builder()
+                              .partitionValues(Arrays.asList(
+                                  AttributeValue.builder().s("gsiKey1").build(),
+                                  AttributeValue.builder().s("gsiKey2").build()))
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        Map<String, String> names = new HashMap<>();
+        names.put("#AMZN_MAPPED_gsiKey1", "gsiKey1");
+        names.put("#AMZN_MAPPED_gsiKey2", "gsiKey2");
+
+        Map<String, AttributeValue> values = new HashMap<>();
+        values.put(":AMZN_MAPPED_gsiKey1", AttributeValue.builder().s("gsiKey1").build());
+        values.put(":AMZN_MAPPED_gsiKey2", AttributeValue.builder().s("gsiKey2").build());
+
+        QueryRequest expectedQueryRequest = QueryRequest.builder()
+                                                        .tableName(TABLE_NAME)
+                                                        .indexName("gsi1")
+                                                        .keyConditionExpression("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2")
+                                                        .expressionAttributeNames(names)
+                                                        .expressionAttributeValues(values)
+                                                        .build();
+
+        assertThat(queryRequest, is(expectedQueryRequest));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionAndSortKeys() {
+        Key compositeKey = Key.builder()
+                              .partitionValues(Arrays.asList(
+                                  AttributeValue.builder().s("key1").build(),
+                                  AttributeValue.builder().s("key2").build()))
+                              .sortValues(Arrays.asList(
+                                  AttributeValue.builder().s("sort1").build(),
+                                  AttributeValue.builder().s("sort2").build()))
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
+        assertThat(queryRequest.indexName(), is("gsi1"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_sortBetween() {
+        Key keyFrom = Key.builder()
+                         .partitionValues(Arrays.asList(
+                             AttributeValue.builder().s("key1").build(),
+                             AttributeValue.builder().s("key2").build()))
+                         .sortValues(Arrays.asList(
+                             AttributeValue.builder().s("sort1").build(),
+                             AttributeValue.builder().s("sortA").build()))
+                         .build();
+
+        Key keyTo = Key.builder()
+                       .partitionValues(Arrays.asList(
+                           AttributeValue.builder().s("key1").build(),
+                           AttributeValue.builder().s("key2").build()))
+                       .sortValues(Arrays.asList(
+                           AttributeValue.builder().s("sort1").build(),
+                           AttributeValue.builder().s("sortZ").build()))
+                       .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.sortBetween(keyFrom, keyTo))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_sortBeginsWith() {
+        Key key = Key.builder()
+                     .partitionValues(Arrays.asList(
+                         AttributeValue.builder().s("key1").build(),
+                         AttributeValue.builder().s("key2").build()))
+                     .sortValues(Arrays.asList(
+                         AttributeValue.builder().s("sort1").build(),
+                         AttributeValue.builder().s("prefix").build()))
+                     .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.sortBeginsWith(key))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND begins_with(#AMZN_MAPPED_gsiSort2, :AMZN_MAPPED_gsiSort2)"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_exclusiveStartKey() {
+        CompositeKeyFakeItem exclusiveStartKey = CompositeKeyFakeItem.builder()
+            .id("id1")
+            .gsiKey1("gsiKey1")
+            .gsiKey2("gsiKey2")
+            .gsiSort1("gsiSort1")
+            .gsiSort2("gsiSort2")
+            .build();
+
+        Set<String> keyFields = new HashSet<>(CompositeKeyFakeItem.SCHEMA.tableMetadata().primaryKeys());
+        keyFields.addAll(CompositeKeyFakeItem.SCHEMA.tableMetadata().indexKeys("gsi1"));
+
+        Key compositeKey = Key.builder()
+                              .partitionValues(Arrays.asList(
+                                  AttributeValue.builder().s("key1").build(),
+                                  AttributeValue.builder().s("key2").build()))
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .exclusiveStartKey(CompositeKeyFakeItem.SCHEMA.itemToMap(exclusiveStartKey, keyFields))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.exclusiveStartKey(),
+                   hasEntry("id", AttributeValue.builder().s("id1").build()));
+        assertThat(queryRequest.exclusiveStartKey(),
+                   hasEntry("gsiKey1", AttributeValue.builder().s("gsiKey1").build()));
+        assertThat(queryRequest.exclusiveStartKey(),
+                   hasEntry("gsiKey2", AttributeValue.builder().s("gsiKey2").build()));
+        assertThat(queryRequest.exclusiveStartKey(),
+                   hasEntry("gsiSort1", AttributeValue.builder().s("gsiSort1").build()));
+        assertThat(queryRequest.exclusiveStartKey(),
+                   hasEntry("gsiSort2", AttributeValue.builder().s("gsiSort2").build()));
+    }
+
+    @Test
+    public void transformResults_gsiCompositeKeys_multipleItems() {
+        List<CompositeKeyFakeItem> queryResultItems = generateCompositeKeyFakeItemList();
+        List<Map<String, AttributeValue>> queryResultMaps =
+            queryResultItems.stream().map(QueryOperationTest::getCompositeKeyAttributeValueMap).collect(toList());
+
+        QueryResponse queryResponse = generateFakeQueryResults(queryResultMaps);
+
+        QueryOperation<CompositeKeyFakeItem> queryOperation = QueryOperation.create(
+            QueryEnhancedRequest.builder()
+                                .queryConditional(keyEqualTo(Key.builder()
+                                                                .partitionValues(Arrays.asList(
+                                                                    AttributeValue.builder().s("key1").build(),
+                                                                    AttributeValue.builder().s("key2").build()))
+                                                                .build()))
+                                .build());
+
+        Page<CompositeKeyFakeItem> queryResultPage = queryOperation.transformResponse(queryResponse,
+                                                                                  CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryResultPage.items(), is(queryResultItems));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_backwardCompatibility() {
+        FakeItemWithIndices fakeItem = createUniqueFakeItemWithIndices();
+        QueryOperation<FakeItemWithIndices> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(fakeItem.getGsiId())))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
+
+        assertThat(queryRequest.indexName(), is("gsi_1"));
+        assertThat(queryRequest.keyConditionExpression(), is("#AMZN_MAPPED_gsi_id = :AMZN_MAPPED_gsi_id"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_consumerBuilder() {
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k
+                                                          .partitionValues(Arrays.asList(
+                                                              AttributeValue.builder().s("key1").build(),
+                                                              AttributeValue.builder().s("key2").build()))
+                                                          .sortValues(Collections.singletonList(
+                                                              AttributeValue.builder().s("sort1").build()))))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void generateRequest_gsiCompositeKeys_incompletePartitionKeys() {
+        Key incompleteKey = Key.builder()
+                               .partitionValues(Collections.singletonList(
+                                   AttributeValue.builder().s("key1").build()))
+                               .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(incompleteKey))
+                                                      .build());
+
+        queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void generateRequest_gsiCompositeKeys_tooManySortKeys() {
+        Key invalidKey = Key.builder()
+                            .partitionValues(Arrays.asList(
+                                AttributeValue.builder().s("key1").build(),
+                                AttributeValue.builder().s("key2").build()))
+                            .sortValues(Arrays.asList(
+                                AttributeValue.builder().s("sort1").build(),
+                                AttributeValue.builder().s("sort2").build(),
+                                AttributeValue.builder().s("sort3").build()))
+                            .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(invalidKey))
+                                                      .build());
+
+        queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+    }
+
+    private static List<CompositeKeyFakeItem> generateCompositeKeyFakeItemList() {
+        return IntStream.range(0, 3).mapToObj(i ->
+            CompositeKeyFakeItem.builder()
+                .id("id" + i)
+                .gsiKey1("gsiKey1_" + i)
+                .gsiKey2("gsiKey2_" + i)
+                .gsiSort1("gsiSort1_" + i)
+                .gsiSort2("gsiSort2_" + i)
+                .build()
+        ).collect(toList());
+    }
+
+    private static Map<String, AttributeValue> getCompositeKeyAttributeValueMap(CompositeKeyFakeItem item) {
+        Map<String, AttributeValue> map = new HashMap<>();
+        map.put("id", AttributeValue.builder().s(item.getId()).build());
+        map.put("gsiKey1", AttributeValue.builder().s(item.getGsiKey1()).build());
+        map.put("gsiKey2", AttributeValue.builder().s(item.getGsiKey2()).build());
+        map.put("gsiSort1", AttributeValue.builder().s(item.getGsiSort1()).build());
+        map.put("gsiSort2", AttributeValue.builder().s(item.getGsiSort2()).build());
+        return map;
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionValuesFromStrings() {
+        Key compositeKey = Key.builder()
+                              .addPartitionValue("gsiKey1")
+                              .addPartitionValue("gsiKey2")
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
+        assertThat(queryRequest.indexName(), is("gsi1"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionAndSortFromStrings() {
+        Key compositeKey = Key.builder()
+                              .addPartitionValue("key1")
+                              .addPartitionValue("key2")
+                              .addSortValue("sort1")
+                              .addSortValue("sort2")
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionValuesFromNumbers() {
+        Key compositeKey = Key.builder()
+                              .addPartitionValue(123)
+                              .addPartitionValue(456)
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").n(), is("123"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").n(), is("456"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_sortBetweenFromNumbers() {
+        Key keyFrom = Key.builder()
+                         .addPartitionValue(123)
+                         .addPartitionValue(456)
+                         .addSortValue(100)
+                         .addSortValue(200)
+                         .build();
+
+        Key keyTo = Key.builder()
+                       .addPartitionValue(123)
+                       .addPartitionValue(456)
+                       .addSortValue(100)
+                       .addSortValue(300)
+                       .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.sortBetween(keyFrom, keyTo))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_partitionValuesFromBinary() {
+        SdkBytes bytes1 = SdkBytes.fromUtf8String("binary1");
+        SdkBytes bytes2 = SdkBytes.fromUtf8String("binary2");
+
+        Key compositeKey = Key.builder()
+                              .addPartitionValue(bytes1)
+                              .addPartitionValue(bytes2)
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").b(), is(bytes1));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").b(), is(bytes2));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_sortBeginsWithFromBinary() {
+        SdkBytes bytes1 = SdkBytes.fromUtf8String("binary1");
+        SdkBytes bytes2 = SdkBytes.fromUtf8String("binary2");
+        SdkBytes sortBytes = SdkBytes.fromUtf8String("prefix");
+
+        Key key = Key.builder()
+                     .addPartitionValue(bytes1)
+                     .addPartitionValue(bytes2)
+                     .addSortValue(sortBytes)
+                     .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.sortBeginsWith(key))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND begins_with(#AMZN_MAPPED_gsiSort1, :AMZN_MAPPED_gsiSort1)"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_mixedTypes() {
+        Key compositeKey = Key.builder()
+                              .addPartitionValue("key1")
+                              .addPartitionValue("key2")
+                              .addSortValue(123)
+                              .addSortValue(456)
+                              .build();
+
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(compositeKey))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").s(), is("key1"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").s(), is("key2"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort1").n(), is("123"));
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort2").n(), is("456"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_consumerBuilderFromStrings() {
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k
+                                                          .addPartitionValue("key1")
+                                                          .addPartitionValue("key2")
+                                                          .addSortValue("sort1")))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
+    }
+
+    @Test
+    public void generateRequest_gsiCompositeKeys_consumerBuilderFromNumbers() {
+        QueryOperation<CompositeKeyFakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(keyEqualTo(k -> k
+                                                          .addPartitionValue(123)
+                                                          .addPartitionValue(456)
+                                                          .addSortValue(789)))
+                                                      .build());
+
+        QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
+
+        assertThat(queryRequest.keyConditionExpression(),
+                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
     }
 }

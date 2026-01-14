@@ -1,0 +1,60 @@
+{
+    "version": "2.33.0",
+    "date": "2025-08-29",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve Sigv4 signing performance, particularly for RPC protocols"
+        },
+        {
+            "type": "deprecation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Deprecate `AsyncRequestBody#split` in favor of `AsyncRequestBody#splitCloseable` that takes the same input but returns `SdkPublisher<CloseableAsyncRequestBody>`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add `AsyncRequestBody#splitCloseable` API that returns a Publisher of `ClosableAsyncRequestBody`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Introduce CloseableAsyncRequestBody interface that extends both AsyncRequestBody and SdkAutoClosable interfaces"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Introduce BufferedSplittableAsyncRequestBody that enables splitting into retryable sub-request bodies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "contributor": "",
+            "description": "AWS X-Ray Features: Support Sampling Rate Boost On Anomaly"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Fixed stop sequence limit for converse API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Release shows new route types such as filtered and advertisement."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -45,6 +45,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
  *     to the end of the list to fall back on the defaults.</li>
  *     <li>Providing an empty list {} will cause no providers to get loaded.</li>
  * </ul>
+ * <p>
+ * For <b>Lombok users</b>: Lombok's naming scheme for boolean properties is not compatible with this schema.
+ * {@link ImmutableTableSchema} expects getters for {@code boolean} properties to begin with "is",
+ * for example {@code boolean isNew()}. However, Lombok will use a "get" prefix. To maintain backwards compatibility when
+ * existing use cases, the expected naming will not be updated.
  *
  * Example using attribute converter providers with one custom provider and the default provider:
  *

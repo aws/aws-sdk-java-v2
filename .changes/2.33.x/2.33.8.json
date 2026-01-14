@@ -1,0 +1,66 @@
+{
+    "version": "2.33.8",
+    "date": "2025-09-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental MediaLive adds a new feature in MediaPackage output group that enables MediaPackage V2 users to control HLS-related parameters directly in MediaLive. These parameter settings are then reflected in MediaPackage outputs, providing more streamlined control over HLS configurations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "adding IAM principal id to IAM user profile details"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release supports hook details for Amazon ECS lifecycle hooks."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "Added nodeLabel support in container provider to aid hardware isolation support for virtual cluster and security configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "CreateEnvironment API now supports parameters (isHcxPublic & hcxNetworkAclId) for HCX migration via public internet, adding flexibility for migration scenarios. New APIs have been added for associating (AssociateEipToVlan) & disassociating (DisassociateEipFromVlan) Elastic IP (EIP) addresses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Updated Java SDK implementation of entity set status in GuardDuty API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "Add Vended Logs APIs for Amazon Prometheus Managed Collector"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release adds support for Account level custom permissions, additional Dashboard Options, and Null support for Q&A."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for end-to-end IAM authentication in RDS Proxy for MySQL, MariaDB, and PostgreSQL engines."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

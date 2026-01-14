@@ -30,4 +30,7 @@ target/
 
 # VS Code
 .vscode/*
+bin/
 
+# Other
+.attach_pid*

@@ -13,6 +13,25 @@
     "uid":"bedrock-data-automation-2023-07-26"
   },
   "operations":{
+    "CopyBlueprintStage":{
+      "name":"CopyBlueprintStage",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/blueprints/{blueprintArn}/copy-stage",
+        "responseCode":200
+      },
+      "input":{"shape":"CopyBlueprintStageRequest"},
+      "output":{"shape":"CopyBlueprintStageResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Copies a Blueprint from one stage to another</p>",
+      "idempotent":true
+    },
     "CreateBlueprint":{
       "name":"CreateBlueprint",
       "http":{
@@ -127,7 +146,27 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Gets an existing Amazon Bedrock Data Automation Blueprint</p>"
+      "documentation":"<p>Gets an existing Amazon Bedrock Data Automation Blueprint</p>",
+      "readonly":true
+    },
+    "GetBlueprintOptimizationStatus":{
+      "name":"GetBlueprintOptimizationStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/getBlueprintOptimizationStatus/{invocationArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetBlueprintOptimizationStatusRequest"},
+      "output":{"shape":"GetBlueprintOptimizationStatusResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>API used to get blueprint optimization status.</p>",
+      "readonly":true
     },
     "GetDataAutomationProject":{
       "name":"GetDataAutomationProject",
@@ -145,7 +184,28 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Gets an existing Amazon Bedrock Data Automation Project</p>"
+      "documentation":"<p>Gets an existing Amazon Bedrock Data Automation Project</p>",
+      "readonly":true
+    },
+    "InvokeBlueprintOptimizationAsync":{
+      "name":"InvokeBlueprintOptimizationAsync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/invokeBlueprintOptimizationAsync",
+        "responseCode":200
+      },
+      "input":{"shape":"InvokeBlueprintOptimizationAsyncRequest"},
+      "output":{"shape":"InvokeBlueprintOptimizationAsyncResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Invoke an async job to perform Blueprint Optimization</p>",
+      "idempotent":true
     },
     "ListBlueprints":{
       "name":"ListBlueprints",
@@ -163,7 +223,8 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists all existing Amazon Bedrock Data Automation Blueprints</p>"
+      "documentation":"<p>Lists all existing Amazon Bedrock Data Automation Blueprints</p>",
+      "readonly":true
     },
     "ListDataAutomationProjects":{
       "name":"ListDataAutomationProjects",
@@ -181,7 +242,8 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists all existing Amazon Bedrock Data Automation Projects</p>"
+      "documentation":"<p>Lists all existing Amazon Bedrock Data Automation Projects</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -298,7 +360,8 @@
       "required":["state"],
       "members":{
         "state":{"shape":"State"},
-        "types":{"shape":"AudioExtractionCategoryTypes"}
+        "types":{"shape":"AudioExtractionCategoryTypes"},
+        "typeConfiguration":{"shape":"AudioExtractionCategoryTypeConfiguration"}
       },
       "documentation":"<p>Category of Audio Extraction</p>"
     },
@@ -310,15 +373,49 @@
         "TOPIC_CONTENT_MODERATION"
       ]
     },
+    "AudioExtractionCategoryTypeConfiguration":{
+      "type":"structure",
+      "members":{
+        "transcript":{"shape":"TranscriptConfiguration"}
+      },
+      "documentation":"<p>Configuration for different audio extraction category types</p>"
+    },
     "AudioExtractionCategoryTypes":{
       "type":"list",
       "member":{"shape":"AudioExtractionCategoryType"},
       "documentation":"<p>List of Audio Extraction Category Type</p>"
     },
+    "AudioGenerativeOutputLanguage":{
+      "type":"string",
+      "documentation":"<p>Configuration for Audio output language</p>",
+      "enum":[
+        "DEFAULT",
+        "EN"
+      ]
+    },
+    "AudioInputLanguages":{
+      "type":"list",
+      "member":{"shape":"Language"},
+      "documentation":"<p>List of supported audio languages</p>"
+    },
+    "AudioLanguageConfiguration":{
+      "type":"structure",
+      "members":{
+        "inputLanguages":{"shape":"AudioInputLanguages"},
+        "generativeOutputLanguage":{"shape":"AudioGenerativeOutputLanguage"},
+        "identifyMultipleLanguages":{
+          "shape":"Boolean",
+          "documentation":"<p>Enable multiple language identification in audio</p>"
+        }
+      },
+      "documentation":"<p>Optional configuration for audio language settings</p>"
+    },
     "AudioOverrideConfiguration":{
       "type":"structure",
       "members":{
-        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"}
+        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"},
+        "languageConfiguration":{"shape":"AudioLanguageConfiguration"},
+        "sensitiveDataConfiguration":{"shape":"SensitiveDataConfiguration"}
       },
       "documentation":"<p>Override Configuration of Audio</p>"
     },
@@ -380,7 +477,9 @@
         "blueprintVersion":{"shape":"BlueprintVersion"},
         "blueprintStage":{"shape":"BlueprintStage"},
         "kmsKeyId":{"shape":"KmsKeyId"},
-        "kmsEncryptionContext":{"shape":"KmsEncryptionContext"}
+        "kmsEncryptionContext":{"shape":"KmsEncryptionContext"},
+        "optimizationSamples":{"shape":"BlueprintOptimizationSamples"},
+        "optimizationTime":{"shape":"DateTimestamp"}
       },
       "documentation":"<p>Contains the information of a Blueprint.</p>"
     },
@@ -423,6 +522,73 @@
       "min":1,
       "pattern":"[a-zA-Z0-9-_]+",
       "sensitive":true
+    },
+    "BlueprintOptimizationInvocationArn":{
+      "type":"string",
+      "documentation":"<p>Invocation arn.</p>",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws(|-cn|-iso|-iso-[a-z]|-us-gov):bedrock:[a-zA-Z0-9-]*:[0-9]{12}:blueprint-optimization-invocation/[a-zA-Z0-9-_]+"
+    },
+    "BlueprintOptimizationJobStatus":{
+      "type":"string",
+      "documentation":"<p>List of status supported by optimization jobs</p>",
+      "enum":[
+        "Created",
+        "InProgress",
+        "Success",
+        "ServiceError",
+        "ClientError"
+      ]
+    },
+    "BlueprintOptimizationObject":{
+      "type":"structure",
+      "required":["blueprintArn"],
+      "members":{
+        "blueprintArn":{
+          "shape":"BlueprintArn",
+          "documentation":"<p>Arn of blueprint.</p>"
+        },
+        "stage":{
+          "shape":"BlueprintStage",
+          "documentation":"<p>Stage of blueprint.</p>"
+        }
+      },
+      "documentation":"<p>Structure for single blueprint entity.</p>"
+    },
+    "BlueprintOptimizationOutputConfiguration":{
+      "type":"structure",
+      "required":["s3Object"],
+      "members":{
+        "s3Object":{
+          "shape":"S3Object",
+          "documentation":"<p>S3 object.</p>"
+        }
+      },
+      "documentation":"<p>Blueprint Optimization Output configuration.</p>"
+    },
+    "BlueprintOptimizationSample":{
+      "type":"structure",
+      "required":[
+        "assetS3Object",
+        "groundTruthS3Object"
+      ],
+      "members":{
+        "assetS3Object":{
+          "shape":"S3Object",
+          "documentation":"<p>S3 Object of the asset</p>"
+        },
+        "groundTruthS3Object":{
+          "shape":"S3Object",
+          "documentation":"<p>Ground truth for the Blueprint and Asset combination</p>"
+        }
+      },
+      "documentation":"<p>Blueprint Recommendation Sample</p>"
+    },
+    "BlueprintOptimizationSamples":{
+      "type":"list",
+      "member":{"shape":"BlueprintOptimizationSample"},
+      "documentation":"<p>List of Blueprint Optimization Samples</p>"
     },
     "BlueprintSchema":{
       "type":"string",
@@ -476,6 +642,18 @@
       "member":{"shape":"BlueprintSummary"},
       "documentation":"<p>List of Blueprints</p>"
     },
+    "Boolean":{
+      "type":"boolean",
+      "box":true
+    },
+    "ChannelLabelingConfiguration":{
+      "type":"structure",
+      "required":["state"],
+      "members":{
+        "state":{"shape":"State"}
+      },
+      "documentation":"<p>Channel labeling configuration</p>"
+    },
     "ClientToken":{
       "type":"string",
       "documentation":"<p>Client specified token used for idempotency checks</p>",
@@ -494,6 +672,41 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "CopyBlueprintStageRequest":{
+      "type":"structure",
+      "required":[
+        "blueprintArn",
+        "sourceStage",
+        "targetStage"
+      ],
+      "members":{
+        "blueprintArn":{
+          "shape":"BlueprintArn",
+          "documentation":"<p>Blueprint to be copied</p>",
+          "location":"uri",
+          "locationName":"blueprintArn"
+        },
+        "sourceStage":{
+          "shape":"BlueprintStage",
+          "documentation":"<p>Source stage to copy from</p>"
+        },
+        "targetStage":{
+          "shape":"BlueprintStage",
+          "documentation":"<p>Target stage to copy to</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Client token for idempotency</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>CopyBlueprintStage Request</p>"
+    },
+    "CopyBlueprintStageResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>CopyBlueprintStage Response</p>"
     },
     "CreateBlueprintRequest":{
       "type":"structure",
@@ -559,6 +772,7 @@
         "projectName":{"shape":"DataAutomationProjectName"},
         "projectDescription":{"shape":"DataAutomationProjectDescription"},
         "projectStage":{"shape":"DataAutomationProjectStage"},
+        "projectType":{"shape":"DataAutomationProjectType"},
         "standardOutputConfiguration":{"shape":"StandardOutputConfiguration"},
         "customOutputConfiguration":{"shape":"CustomOutputConfiguration"},
         "overrideConfiguration":{"shape":"OverrideConfiguration"},
@@ -588,6 +802,13 @@
       },
       "documentation":"<p>Custom output configuration</p>"
     },
+    "DataAutomationProfileArn":{
+      "type":"string",
+      "documentation":"<p>Data automation profile arn.</p>",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws(|-cn|-us-gov):bedrock:[a-zA-Z0-9-]*:(aws|[0-9]{12}):data-automation-profile/[a-zA-Z0-9-_.]+"
+    },
     "DataAutomationProject":{
       "type":"structure",
       "required":[
@@ -603,6 +824,7 @@
         "lastModifiedTime":{"shape":"DateTimestamp"},
         "projectName":{"shape":"DataAutomationProjectName"},
         "projectStage":{"shape":"DataAutomationProjectStage"},
+        "projectType":{"shape":"DataAutomationProjectType"},
         "projectDescription":{"shape":"DataAutomationProjectDescription"},
         "standardOutputConfiguration":{"shape":"StandardOutputConfiguration"},
         "customOutputConfiguration":{"shape":"CustomOutputConfiguration"},
@@ -684,10 +906,19 @@
       "members":{
         "projectArn":{"shape":"DataAutomationProjectArn"},
         "projectStage":{"shape":"DataAutomationProjectStage"},
+        "projectType":{"shape":"DataAutomationProjectType"},
         "projectName":{"shape":"DataAutomationProjectName"},
         "creationTime":{"shape":"DateTimestamp"}
       },
       "documentation":"<p>Summary of a DataAutomationProject</p>"
+    },
+    "DataAutomationProjectType":{
+      "type":"string",
+      "documentation":"<p>Type of the DataAutomationProject</p>",
+      "enum":[
+        "ASYNC",
+        "SYNC"
+      ]
     },
     "DateTimestamp":{
       "type":"timestamp",
@@ -715,8 +946,7 @@
     },
     "DeleteBlueprintResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Delete Blueprint Response</p>"
     },
     "DeleteDataAutomationProjectRequest":{
@@ -826,7 +1056,8 @@
       "type":"structure",
       "members":{
         "splitter":{"shape":"SplitterConfiguration"},
-        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"}
+        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"},
+        "sensitiveDataConfiguration":{"shape":"SensitiveDataConfiguration"}
       },
       "documentation":"<p>Override Configuration of Document</p>"
     },
@@ -881,6 +1112,41 @@
       "max":2000,
       "min":1,
       "pattern":".*\\S.*"
+    },
+    "GetBlueprintOptimizationStatusRequest":{
+      "type":"structure",
+      "required":["invocationArn"],
+      "members":{
+        "invocationArn":{
+          "shape":"BlueprintOptimizationInvocationArn",
+          "documentation":"<p>Invocation arn.</p>",
+          "location":"uri",
+          "locationName":"invocationArn"
+        }
+      },
+      "documentation":"<p>Structure for request of GetBlueprintOptimizationStatus API.</p>"
+    },
+    "GetBlueprintOptimizationStatusResponse":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"BlueprintOptimizationJobStatus",
+          "documentation":"<p>Job Status.</p>"
+        },
+        "errorType":{
+          "shape":"String",
+          "documentation":"<p>Error Type.</p>"
+        },
+        "errorMessage":{
+          "shape":"String",
+          "documentation":"<p>Error Message.</p>"
+        },
+        "outputConfiguration":{
+          "shape":"BlueprintOptimizationOutputConfiguration",
+          "documentation":"<p>Output configuration.</p>"
+        }
+      },
+      "documentation":"<p>Response of GetBlueprintOptimizationStatus API.</p>"
     },
     "GetBlueprintRequest":{
       "type":"structure",
@@ -969,7 +1235,8 @@
     "ImageOverrideConfiguration":{
       "type":"structure",
       "members":{
-        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"}
+        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"},
+        "sensitiveDataConfiguration":{"shape":"SensitiveDataConfiguration"}
       },
       "documentation":"<p>Override Configuration of Image</p>"
     },
@@ -1024,6 +1291,53 @@
       "exception":true,
       "fault":true
     },
+    "InvokeBlueprintOptimizationAsyncRequest":{
+      "type":"structure",
+      "required":[
+        "blueprint",
+        "samples",
+        "outputConfiguration",
+        "dataAutomationProfileArn"
+      ],
+      "members":{
+        "blueprint":{
+          "shape":"BlueprintOptimizationObject",
+          "documentation":"<p>Blueprint to be optimized</p>"
+        },
+        "samples":{
+          "shape":"BlueprintOptimizationSamples",
+          "documentation":"<p>List of Blueprint Optimization Samples</p>"
+        },
+        "outputConfiguration":{
+          "shape":"BlueprintOptimizationOutputConfiguration",
+          "documentation":"<p>Output configuration where the results should be placed</p>"
+        },
+        "dataAutomationProfileArn":{
+          "shape":"DataAutomationProfileArn",
+          "documentation":"<p>Data automation profile ARN</p>"
+        },
+        "encryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Encryption configuration.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>List of tags.</p>"
+        }
+      },
+      "documentation":"<p>Invoke Blueprint Optimization Async Request</p>"
+    },
+    "InvokeBlueprintOptimizationAsyncResponse":{
+      "type":"structure",
+      "required":["invocationArn"],
+      "members":{
+        "invocationArn":{
+          "shape":"BlueprintOptimizationInvocationArn",
+          "documentation":"<p>ARN of the blueprint optimization job</p>"
+        }
+      },
+      "documentation":"<p>Invoke Blueprint Optimization Async Response</p>"
+    },
     "KmsEncryptionContext":{
       "type":"map",
       "key":{"shape":"EncryptionContextKey"},
@@ -1037,6 +1351,23 @@
       "max":2048,
       "min":1,
       "pattern":"[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]+"
+    },
+    "Language":{
+      "type":"string",
+      "documentation":"<p>Supported input languages</p>",
+      "enum":[
+        "EN",
+        "DE",
+        "ES",
+        "FR",
+        "IT",
+        "PT",
+        "JA",
+        "KO",
+        "CN",
+        "TW",
+        "HK"
+      ]
     },
     "ListBlueprintsRequest":{
       "type":"structure",
@@ -1139,6 +1470,73 @@
       },
       "documentation":"<p>Override configuration</p>"
     },
+    "PIIEntitiesConfiguration":{
+      "type":"structure",
+      "members":{
+        "piiEntityTypes":{
+          "shape":"PIIEntityTypes",
+          "documentation":"<p>Types of PII entities to detect</p>"
+        },
+        "redactionMaskMode":{
+          "shape":"PIIRedactionMaskMode",
+          "documentation":"<p>Mode for redacting detected PII</p>"
+        }
+      },
+      "documentation":"<p>Configuration for PII entities detection and redaction</p>"
+    },
+    "PIIEntityType":{
+      "type":"string",
+      "documentation":"<p>Types of PII entities that can be detected, we will support every types that Guardrails can support</p>",
+      "enum":[
+        "ALL",
+        "ADDRESS",
+        "AGE",
+        "NAME",
+        "EMAIL",
+        "PHONE",
+        "USERNAME",
+        "PASSWORD",
+        "DRIVER_ID",
+        "LICENSE_PLATE",
+        "VEHICLE_IDENTIFICATION_NUMBER",
+        "CREDIT_DEBIT_CARD_CVV",
+        "CREDIT_DEBIT_CARD_EXPIRY",
+        "CREDIT_DEBIT_CARD_NUMBER",
+        "PIN",
+        "INTERNATIONAL_BANK_ACCOUNT_NUMBER",
+        "SWIFT_CODE",
+        "IP_ADDRESS",
+        "MAC_ADDRESS",
+        "URL",
+        "AWS_ACCESS_KEY",
+        "AWS_SECRET_KEY",
+        "US_BANK_ACCOUNT_NUMBER",
+        "US_BANK_ROUTING_NUMBER",
+        "US_INDIVIDUAL_TAX_IDENTIFICATION_NUMBER",
+        "US_PASSPORT_NUMBER",
+        "US_SOCIAL_SECURITY_NUMBER",
+        "CA_HEALTH_NUMBER",
+        "CA_SOCIAL_INSURANCE_NUMBER",
+        "UK_NATIONAL_HEALTH_SERVICE_NUMBER",
+        "UK_NATIONAL_INSURANCE_NUMBER",
+        "UK_UNIQUE_TAXPAYER_REFERENCE_NUMBER"
+      ]
+    },
+    "PIIEntityTypes":{
+      "type":"list",
+      "member":{"shape":"PIIEntityType"},
+      "documentation":"<p>List of PII entity types</p>",
+      "max":32,
+      "min":1
+    },
+    "PIIRedactionMaskMode":{
+      "type":"string",
+      "documentation":"<p>Mode for redacting detected PII</p>",
+      "enum":[
+        "PII",
+        "ENTITY_TYPE"
+      ]
+    },
     "ResourceNotFoundException":{
       "type":"structure",
       "members":{
@@ -1159,6 +1557,76 @@
         "ACCOUNT"
       ]
     },
+    "S3Object":{
+      "type":"structure",
+      "required":["s3Uri"],
+      "members":{
+        "s3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>S3 uri.</p>"
+        },
+        "version":{
+          "shape":"S3ObjectVersion",
+          "documentation":"<p>S3 object version.</p>"
+        }
+      },
+      "documentation":"<p>S3 object</p>"
+    },
+    "S3ObjectVersion":{
+      "type":"string",
+      "documentation":"<p>S3 object version.</p>",
+      "max":1024,
+      "min":1
+    },
+    "S3Uri":{
+      "type":"string",
+      "documentation":"<p>A path in S3</p>",
+      "max":1024,
+      "min":1,
+      "pattern":"s3://[a-z0-9][\\.\\-a-z0-9]{1,61}[a-z0-9](/.*)?"
+    },
+    "SensitiveDataConfiguration":{
+      "type":"structure",
+      "required":["detectionMode"],
+      "members":{
+        "detectionMode":{
+          "shape":"SensitiveDataDetectionMode",
+          "documentation":"<p>Mode for sensitive data detection</p>"
+        },
+        "detectionScope":{
+          "shape":"SensitiveDataDetectionScope",
+          "documentation":"<p>Scope of detection - what types of sensitive data to detect</p>"
+        },
+        "piiEntitiesConfiguration":{
+          "shape":"PIIEntitiesConfiguration",
+          "documentation":"<p>Configuration for PII entities detection and redaction</p>"
+        }
+      },
+      "documentation":"<p>Configuration for sensitive data detection and redaction</p>"
+    },
+    "SensitiveDataDetectionMode":{
+      "type":"string",
+      "documentation":"<p>Mode for sensitive data detection</p>",
+      "enum":[
+        "DETECTION",
+        "DETECTION_AND_REDACTION"
+      ]
+    },
+    "SensitiveDataDetectionScope":{
+      "type":"list",
+      "member":{"shape":"SensitiveDataDetectionScopeType"},
+      "documentation":"<p>Scope of sensitive data detection</p>",
+      "max":2,
+      "min":1
+    },
+    "SensitiveDataDetectionScopeType":{
+      "type":"string",
+      "documentation":"<p>Types of sensitive data detection scope</p>",
+      "enum":[
+        "STANDARD",
+        "CUSTOM"
+      ]
+    },
     "ServiceQuotaExceededException":{
       "type":"structure",
       "members":{
@@ -1170,6 +1638,14 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "SpeakerLabelingConfiguration":{
+      "type":"structure",
+      "required":["state"],
+      "members":{
+        "state":{"shape":"State"}
+      },
+      "documentation":"<p>Speaker labeling configuration</p>"
     },
     "SplitterConfiguration":{
       "type":"structure",
@@ -1196,6 +1672,7 @@
         "DISABLED"
       ]
     },
+    "String":{"type":"string"},
     "Tag":{
       "type":"structure",
       "required":[
@@ -1241,8 +1718,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -1255,7 +1731,7 @@
       "documentation":"<p>ARN of a taggable resource</p>",
       "max":1011,
       "min":20,
-      "pattern":"arn:aws(|-cn|-us-gov):bedrock:[a-z0-9-]*:[0-9]{12}:(blueprint|data-automation-project)/[a-zA-Z0-9-]{12,36}"
+      "pattern":"arn:aws(|-cn|-iso|-iso-[a-z]|-us-gov):bedrock:[a-z0-9-]*:[0-9]{12}:(blueprint|data-automation-project|blueprint-optimization-invocation)/[a-zA-Z0-9-]{12,36}"
     },
     "ThrottlingException":{
       "type":"structure",
@@ -1268,6 +1744,14 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "TranscriptConfiguration":{
+      "type":"structure",
+      "members":{
+        "speakerLabeling":{"shape":"SpeakerLabelingConfiguration"},
+        "channelLabeling":{"shape":"ChannelLabelingConfiguration"}
+      },
+      "documentation":"<p>Configuration for transcript related features</p>"
     },
     "Type":{
       "type":"string",
@@ -1292,8 +1776,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateBlueprintRequest":{
       "type":"structure",
@@ -1418,7 +1901,8 @@
     "VideoOverrideConfiguration":{
       "type":"structure",
       "members":{
-        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"}
+        "modalityProcessing":{"shape":"ModalityProcessingConfiguration"},
+        "sensitiveDataConfiguration":{"shape":"SensitiveDataConfiguration"}
       },
       "documentation":"<p>Override Configuration of Video</p>"
     },

@@ -1,0 +1,312 @@
+{
+    "version": "2.36.3",
+    "date": "2025-10-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AI Ops",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup Gateway",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Updated endpoint for eusc-de-east-1 region."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elastic Beanstalk",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Greengrass",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Fixed missing SummaryMap keys in GetAccountSummary response that were being filtered out during deserialization in AWS Java SDK v2"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Launch Wizard",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Move `ApplyUserAgentStage` to later position in request pipeline to ensure all business metrics are properly recorded before finalizing user agent."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Shield",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SimSpace Weaver",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager for SAP",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAF Regional",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS re:Post Private",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Identity",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignService",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Accelerator (DAX)",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge Scheduler",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Adds support for record sizes up to 10MiB and introduces new UpdateMaxRecordSize API to modify stream record size limits. Adds record size parameters to existing CreateStream and DescribeStreamSummary APIs for request and response payloads respectively."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Mechanical Turk",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Recycle Bin",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Vectors",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail Message Flow",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Cost Optimization Hub",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Route 53 Profiles",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        }
+    ]
+}

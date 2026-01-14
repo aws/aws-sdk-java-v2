@@ -88,12 +88,12 @@ public final class CrtAsyncRequestExecutor {
                                 CompletableFuture<Void> requestFuture,
                                 HttpClientConnection crtConn,
                                 AsyncExecuteRequest asyncRequest) {
-        HttpRequest crtRequest = CrtRequestAdapter.toAsyncCrtRequest(executionContext);
-        HttpStreamResponseHandler crtResponseHandler =
-            CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
-
         // Submit the request on the connection
         try {
+            HttpRequest crtRequest = CrtRequestAdapter.toAsyncCrtRequest(executionContext);
+            HttpStreamResponseHandler crtResponseHandler =
+                CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
+
             crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
         } catch (HttpException e) {
             Throwable toThrow = wrapWithIoExceptionIfRetryable(e);

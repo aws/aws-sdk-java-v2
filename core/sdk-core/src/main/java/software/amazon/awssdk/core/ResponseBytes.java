@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -66,6 +67,48 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
      */
     public static <ResponseT> ResponseBytes<ResponseT> fromByteArrayUnsafe(ResponseT response, byte[] bytes) {
         return new ResponseBytes<>(response, bytes);
+    }
+
+    /**
+     * Create {@link ResponseBytes} from a {@link ByteBuffer} with minimal copying. This method attempts to avoid
+     * copying data when possible, but introduces concurrency risks in specific scenarios.
+     *
+     * <p><b>Behavior by buffer type:</b>
+     * <ul>
+     *   <li><b>Array-backed ByteBuffer (perfect match):</b> When the buffer represents the entire backing array
+     *       (offset=0, remaining=array.length), the array is shared <b>without</b> copying. This introduces the same
+     *       concurrency risks as {@link #fromByteArrayUnsafe(Object, byte[])}: modifications to the original
+     *       backing array will affect the returned {@link ResponseBytes}.</li>
+     *   <li><b>Array-backed ByteBuffer (partial):</b> When the buffer represents only a portion of the backing array,
+     *       data is copied to a new array. No concurrency risks.</li>
+     *   <li><b>Direct ByteBuffer:</b> Data is always copied to a heap array. No concurrency risks.</li>
+     * </ul>
+     *
+     * <p>The buffer's position is preserved and not modified by this operation.
+     *
+     * <p>As the method name implies, this is unsafe in the first scenario. Use a safe alternative unless you're
+     * sure you know the risks.
+     */
+    public static <ResponseT> ResponseBytes<ResponseT> fromByteBufferUnsafe(ResponseT response, ByteBuffer buffer) {
+        byte[] array;
+        if (buffer.hasArray()) {
+            array = buffer.array();
+            int offset = buffer.arrayOffset() + buffer.position();
+            int length = buffer.remaining();
+            if (offset == 0 && length == array.length) {
+                // Perfect match - use array directly
+            } else {
+                // Create view of the relevant portion
+                array = Arrays.copyOfRange(array, offset, offset + length);
+            }
+        } else {
+            // Direct buffer - must copy to array
+            array = new byte[buffer.remaining()];
+            int originalPosition = buffer.position();
+            buffer.get(array);
+            buffer.position(originalPosition);
+        }
+        return new ResponseBytes<>(response, array);
     }
 
     /**

@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class VariableModel extends DocumentationModel {
 
@@ -97,5 +98,32 @@ public class VariableModel extends DocumentationModel {
     @Override
     public String toString() {
         return variableName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        VariableModel that = (VariableModel) o;
+        return Objects.equals(variableName, that.variableName)
+               && Objects.equals(variableType, that.variableType)
+               && Objects.equals(variableDeclarationType, that.variableDeclarationType);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(variableName);
+        result = 31 * result + Objects.hashCode(variableType);
+        result = 31 * result + Objects.hashCode(variableDeclarationType);
+        return result;
     }
 }

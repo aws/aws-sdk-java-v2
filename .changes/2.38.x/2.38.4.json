@@ -1,0 +1,48 @@
+{
+    "version": "2.38.4",
+    "date": "2025-11-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fix NullPointerException when using AnonymousCredentials in a CredentialsChain with the S3 CRT Client."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Documentation-only update: update API and doc descriptions per EKS ImageType default value switch from AL2 to AL2023."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Added new fields in existing APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS Site-to-Site VPN now supports VPN connections with up to 5 Gbps bandwidth per tunnel, a 4x improvement from existing limit of 1.25 Gbps."
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Added support for Language Expansion feature for BDA Audio modality."
+        },
+        {
+            "type": "feature",
+            "category": "RTBFabric",
+            "contributor": "",
+            "description": "Added LogSettings and LinkAttribute fields to external links"
+        },
+        {
+            "type": "feature",
+            "category": "Security Incident Response",
+            "contributor": "",
+            "description": "Added support for configuring communication preferences as well as clearly displaying case comment author identities."
+        }
+    ]
+}

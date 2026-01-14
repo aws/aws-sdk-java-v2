@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.51-SNAPSHOT</version>
+        <version>2.41.9-SNAPSHOT</version>
     </parent>
     <artifactId>bundle</artifactId>
     <packaging>jar</packaging>
@@ -90,8 +90,47 @@
            </plugin>
 	</plugins>
     </build>
-
     <profiles>
+        <profile>
+            <id>central-portal-publishing</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <configuration>
+                            <createSourcesJar>true</createSourcesJar>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>javadoc-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <sourcepath>${basedir}/../core/profiles/src/main/java/software/amazon/awssdk/profiles;${basedir}/../core/sdk-core/src/main/java/software/amazon/awssdk/core</sourcepath>
+                            <failOnError>false</failOnError>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <configuration>
+                            <ignoredUnusedDeclaredDependencies>
+                                <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-sdk</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>software.amazon.awssdk:bundle-logging-bridge</ignoredUnusedDeclaredDependency>
+                            </ignoredUnusedDeclaredDependencies>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>publishing</id>
             <build>

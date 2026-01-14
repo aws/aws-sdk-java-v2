@@ -15,18 +15,22 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.conditional;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.AND_OPERATOR;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addEqualityCondition;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addPartitionKeyConditions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.buildExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.resolveKeys;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validatePartitionKeyConstraints;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validateSortKeyConstraints;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.KeyResolution;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -41,81 +45,39 @@ public class EqualToConditional implements QueryConditional {
 
     @Override
     public Expression expression(TableSchema<?> tableSchema, String indexName) {
-        String partitionKey = tableSchema.tableMetadata().indexPartitionKey(indexName);
-        AttributeValue partitionValue = key.partitionKeyValue();
+        KeyResolution keyResolution = resolveKeys(key, tableSchema, indexName);
 
-        if (partitionValue == null || partitionValue.equals(nullAttributeValue())) {
-            throw new IllegalArgumentException("Partition key must be a valid scalar value to execute a query "
-                + "against. The provided partition key was set to null.");
-        }
+        validateKeyConstraints(keyResolution, indexName);
 
-        Optional<AttributeValue> sortKeyValue = key.sortKeyValue();
-
-        if (sortKeyValue.isPresent()) {
-            Optional<String> sortKey = tableSchema.tableMetadata().indexSortKey(indexName);
-
-            if (!sortKey.isPresent()) {
-                throw new IllegalArgumentException("A sort key was supplied as part of a query conditional "
-                                                   + "against an index that does not support a sort key. Index: "
-                                                   + indexName);
-            }
-
-            return partitionAndSortExpression(partitionKey,
-                                              sortKey.get(),
-                                              partitionValue,
-                                              sortKeyValue.get());
-        } else {
-            return partitionOnlyExpression(partitionKey, partitionValue);
-        }
+        return buildEqualityExpression(keyResolution);
     }
 
-    private Expression partitionOnlyExpression(String partitionKey,
-                                               AttributeValue partitionValue) {
-
-        String partitionKeyToken = EnhancedClientUtils.keyRef(partitionKey);
-        String partitionKeyValueToken = EnhancedClientUtils.valueRef(partitionKey);
-        String queryExpression = String.format("%s = %s", partitionKeyToken, partitionKeyValueToken);
-
-        return Expression.builder()
-                         .expression(queryExpression)
-                         .expressionNames(Collections.singletonMap(partitionKeyToken, partitionKey))
-                         .expressionValues(Collections.singletonMap(partitionKeyValueToken, partitionValue))
-                         .build();
+    private void validateKeyConstraints(KeyResolution keyResolution, String indexName) {
+        validatePartitionKeyConstraints(keyResolution, indexName);
+        validateSortKeyConstraints(keyResolution, indexName);
     }
 
-    private Expression partitionAndSortExpression(String partitionKey,
-                                                  String sortKey,
-                                                  AttributeValue partitionValue,
-                                                  AttributeValue sortKeyValue) {
+    private Expression buildEqualityExpression(KeyResolution keyResolution) {
+        StringBuilder expression = new StringBuilder();
+        Map<String, String> names = new HashMap<>();
+        Map<String, AttributeValue> values = new HashMap<>();
 
+        addPartitionKeyConditions(expression, names, values, keyResolution.partitionKeys, keyResolution.partitionValues);
 
-        // When a sort key is explicitly provided as null treat as partition only expression
-        if (isNullAttributeValue(sortKeyValue)) {
-            return partitionOnlyExpression(partitionKey, partitionValue);
+        addSortKeyEqualityConditions(expression, names, values, keyResolution);
+
+        return buildExpression(expression, names, values);
+    }
+
+    private void addSortKeyEqualityConditions(StringBuilder expression, Map<String, String> names,
+                                              Map<String, AttributeValue> values, KeyResolution keyResolution) {
+        List<String> sortKeys = keyResolution.sortKeys;
+        List<AttributeValue> sortValues = keyResolution.sortValues;
+
+        for (int i = 0; i < sortValues.size(); i++) {
+            expression.append(AND_OPERATOR);
+            addEqualityCondition(expression, names, values, sortKeys.get(i), sortValues.get(i));
         }
-
-        String partitionKeyToken = EnhancedClientUtils.keyRef(partitionKey);
-        String partitionKeyValueToken = EnhancedClientUtils.valueRef(partitionKey);
-        String sortKeyToken = EnhancedClientUtils.keyRef(sortKey);
-        String sortKeyValueToken = EnhancedClientUtils.valueRef(sortKey);
-
-        String queryExpression = String.format("%s = %s AND %s = %s",
-                                               partitionKeyToken,
-                                               partitionKeyValueToken,
-                                               sortKeyToken,
-                                               sortKeyValueToken);
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(partitionKeyValueToken, partitionValue);
-        expressionAttributeValues.put(sortKeyValueToken, sortKeyValue);
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put(partitionKeyToken, partitionKey);
-        expressionAttributeNames.put(sortKeyToken, sortKey);
-
-        return Expression.builder()
-                         .expression(queryExpression)
-                         .expressionValues(expressionAttributeValues)
-                         .expressionNames(expressionAttributeNames)
-                         .build();
     }
 
     @Override

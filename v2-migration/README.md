@@ -1,11 +1,29 @@
 # AWS SDK for Java v2 Migration Tool
 
 ## Description
-This modules contains [OpenRewrite][open-rewrite] recipes to automate migration from the AWS SDK for Java v1 to the AWS SDK for Java v2.
+This module contains [OpenRewrite][open-rewrite] recipes to automate migration from the AWS SDK for Java v1 to the 
+AWS SDK for Java v2.
+
+While the majority of v1 code is supported by recipes that transform to the v2 equivalent, there are some classes and 
+methods not covered by the migration tool. For these classes and methods, refer to our 
+[Developer Guide][developer-guide-steps] and [API Reference][api-reference-v2] to manually migrate your code.
 
 ## Usage
 
-For steps on performing the migration, see our [Developer Guide][developer-guide].
+For detailed steps on using the tool, see our [Developer Guide][developer-guide].
+
+### Maven Project
+
+To transform a Maven project, run the following command from your project root directory:
+
+```
+mvn org.openrewrite.maven:rewrite-maven-plugin:6.17.0 \
+  -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:2.34.0 \
+  -Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2
+```
+
+**Note:** Newer OpenRewrite versions may not be compatible. If errors occur during the transforms, specify the 
+[SDK supported version][maven-plugin-version], e.g., `6.17.0`, and run the command again.
 
 ## Development
 
@@ -32,3 +50,6 @@ code and ensures it compiles.
 [rewrite-test]: https://docs.openrewrite.org/authoring-recipes/recipe-testing#rewritetest-interface
 [v2-migration-tests]: ../test/v2-migration-tests
 [developer-guide]: https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-tool.html
+[developer-guide-steps]: https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-steps.html
+[api-reference-v2]: https://sdk.amazonaws.com/java/api/latest/index.html
+[maven-plugin-version]: https://github.com/aws/aws-sdk-java-v2/blob/master/test/v2-migration-tests/src/test/java/software/amazon/awssdk/v2migrationtests/MavenTestBase.java#L54
