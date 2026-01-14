@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.8__ __2026-01-14__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Cost Categories added support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - This release clarifies WhatsApp template operations as a resource-authenticated operation via the parent WhatsApp Business Account. It also introduces new parameters for parameter format, CTA URL link tracking, and template body examples, and increases the phone number ID length.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Don't generate the unused files for the service endpoint provider when compiled endpoint rules are enabled (the default behavior). This lowers the overall size of the built JAR.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect makes it easier to manage contact center operating hours by enabling automated scheduling for recurring events like holidays and maintenance windows. Set up recurring patterns (weekly, monthly, etc.) or link to another hours of operation to inherit overrides.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for BOTTLEROCKET NVIDIA FIPS AMIs to AMI types in US regions.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for enabling extra compute resources for automatic optimization during create and modify operations in Amazon Redshift clusters.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - no feature changes. model migrated to Smithy
+
+## __CloudWatch Metric Publisher__
+  - ### Features
+    - Optimize metric processing by replacing stream-based operations with direct iteration to reduce allocations and GC pressure.
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds support for enabling extra compute resources for automatic optimization during create and update operations in Amazon Redshift Serverless workgroups.
+
 # __2.41.7__ __2026-01-13__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
