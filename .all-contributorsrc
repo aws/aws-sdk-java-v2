@@ -1084,6 +1084,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "KENNYSOFT",
+      "name": "Hyeonmin Park",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6624567?v=4",
+      "profile": "http://kennysoft.kr",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
