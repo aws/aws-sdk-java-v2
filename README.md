@@ -3,7 +3,7 @@
 [![Maven](https://img.shields.io/maven-central/v/software.amazon.awssdk/s3.svg?label=Maven)](https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22s3%22)
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-120-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-121-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -345,6 +345,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://mboegie.dev"><img src="https://avatars.githubusercontent.com/u/7557397?v=4?s=100" width="100px;" alt="Merlin Bögershausen"/><br /><sub><b>Merlin Bögershausen</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=MBoegers" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://kennysoft.kr"><img src="https://avatars.githubusercontent.com/u/6624567?v=4?s=100" width="100px;" alt="Hyeonmin Park"/><br /><sub><b>Hyeonmin Park</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=KENNYSOFT" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
