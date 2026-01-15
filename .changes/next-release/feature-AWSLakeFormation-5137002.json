@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "API Changes for GTCForLocation feature. Includes a new API, GetTemporaryDataLocationCredentials and updates to the APIs RegisterResource and UpdateResource"
-}
