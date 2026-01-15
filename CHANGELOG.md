@@ -1,4 +1,83 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.8__ __2026-01-14__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Cost Categories added support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - This release clarifies WhatsApp template operations as a resource-authenticated operation via the parent WhatsApp Business Account. It also introduces new parameters for parameter format, CTA URL link tracking, and template body examples, and increases the phone number ID length.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Don't generate the unused files for the service endpoint provider when compiled endpoint rules are enabled (the default behavior). This lowers the overall size of the built JAR.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect makes it easier to manage contact center operating hours by enabling automated scheduling for recurring events like holidays and maintenance windows. Set up recurring patterns (weekly, monthly, etc.) or link to another hours of operation to inherit overrides.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for BOTTLEROCKET NVIDIA FIPS AMIs to AMI types in US regions.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for enabling extra compute resources for automatic optimization during create and modify operations in Amazon Redshift clusters.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - no feature changes. model migrated to Smithy
+
+## __CloudWatch Metric Publisher__
+  - ### Features
+    - Optimize metric processing by replacing stream-based operations with direct iteration to reduce allocations and GC pressure.
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds support for enabling extra compute resources for automatic optimization during create and update operations in Amazon Redshift Serverless workgroups.
+
+# __2.41.7__ __2026-01-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where `StackOverflowError` can occur when iterating over large pages from an async paginator. This can manifest as the publisher hanging/never reaching the end of the stream. Fixes [#6411](https://github.com/aws/aws-sdk-java-v2/issues/6411).
+
+## __Amazon Bedrock__
+  - ### Features
+    - This change will increase TestCase guardContent input size from 1024 to 2028 characters and PolicyBuildDocumentDescription from 2000 to 4000 characters
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for IAM role subscriptions to Glue table listings via CreateSubscriptionRequest API. Also adds owningIamPrincipalArn filter to List APIs and subscriptionGrantCreationMode parameter to subscription target APIs for controlling grant creation behavior.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - modify VersionedRecordExtension to support updating existing records with version=0 using OR condition
+
+  - ### Bugfixes
+    - Allow new records to be initialized with version=0 by supporting startAt=-1 in VersionedRecordExtension
+
+# __2.41.6__ __2026-01-12__
+## __AWS Billing__
+  - ### Features
+    - Cost Categories filtering support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added ultraServerType to the UltraServerInfo structure to support server type identification for SageMaker HyperPod
+
+## __IAM Policy Builder__
+  - ### Bugfixes
+    - Allow integer AWS account IDs and boolean values when reading IAM policies from JSON with `IamPolicyReader`.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - This release introduces WiFi Simple Setup (WSS) enabling device provisioning via barcode scanning with automated network discovery, authentication, and credential provisioning. Additionally, it introduces 2P Device Capability Rediscovery for updating hub-managed device capabilities post-onboarding.
+
 # __2.41.5__ __2026-01-09__
 ## __AWS Elemental MediaLive__
   - ### Features
