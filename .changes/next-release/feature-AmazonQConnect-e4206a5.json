@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Q Connect",
+    "contributor": "",
+    "description": "Fix inference configuration shapes for the CreateAIPrompt and UpdateAIPrompt APIs, Modify Text Length Limit for SendMessage API"
+}
