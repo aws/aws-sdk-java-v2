@@ -48,7 +48,9 @@ public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
         }
         String targetHost = lowerCase(target.getHostName());
         for (String pattern : hostPatterns) {
-            if (targetHost.matches(pattern)) {
+            // Only convert if pattern contains literal *, not already converted to .*
+            String regexPattern = pattern.contains(".*") ? pattern : pattern.replace("*", ".*?");
+            if (targetHost.matches(regexPattern)) {
                 return true;
             }
         }
