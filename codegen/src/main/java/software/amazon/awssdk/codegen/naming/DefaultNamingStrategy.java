@@ -500,6 +500,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
         if (name.contains("_")) {
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
 
+            String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
             if (behavior == null) {
                 throw ModelInvalidException.fromEntry(ValidationEntry.create(
                     ValidationErrorId.INVALID_IDENTIFIER_NAME,
