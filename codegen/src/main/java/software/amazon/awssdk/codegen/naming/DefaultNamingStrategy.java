@@ -500,7 +500,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
         if (name.contains("_")) {
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
 
-            String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
             if (behavior == null) {
                 throw ModelInvalidException.fromEntry(ValidationEntry.create(
                     ValidationErrorId.INVALID_IDENTIFIER_NAME,
@@ -508,7 +507,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
                     String.format(
                         "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
                         + "This isn't idiomatic in Java. Please remove the underscores.",
-                        name, location, supportedBehaviors)
+                        name, location)
                 ));
             }
             if (behavior != UnderscoresInNameBehavior.ALLOW) {
