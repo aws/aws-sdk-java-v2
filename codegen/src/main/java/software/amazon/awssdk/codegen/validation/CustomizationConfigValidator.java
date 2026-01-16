@@ -20,7 +20,11 @@ import java.util.List;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 
-public class CustomizationConfigValidator implements ModelValidator{
+/**
+ * Validator that ensures CustomizationConfig settings are valid and not conflicting. This validator returns a validation
+ * entry for each invalid or conflicting customization configuration detected.
+ */
+public final class CustomizationConfigValidator implements ModelValidator {
     @Override
     public List<ValidationEntry> validateModels(ModelValidationContext context) {
         CustomizationConfig config = context.intermediateModel().getCustomizationConfig();
