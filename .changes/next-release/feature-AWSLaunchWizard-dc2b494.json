@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Launch Wizard",
+    "contributor": "",
+    "description": "Added UpdateDeployment, ListDeploymentPatternVersions and GetDeploymentPatternVersion APIs for Launch Wizard"
+}
