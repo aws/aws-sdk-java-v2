@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.10__ __2026-01-16__
+## __AWS Launch Wizard__
+  - ### Features
+    - Added UpdateDeployment, ListDeploymentPatternVersions and GetDeploymentPatternVersion APIs for Launch Wizard
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Added ViewName to View-related responses and ServiceViewName to GetServiceView response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support to allow customers to create form with Dispute configuration
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds support for numeric filtering and complex free-text searches cases for the Search and SearchListings APIs.
+
+## __Amazon Glacier__
+  - ### Features
+    - Documentation updates for Amazon Glacier's maintenance mode
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding security consideration comments for lcc accessing execution role under root access
+
 # __2.41.9__ __2026-01-15__
 ## __AWS Clean Rooms Service__
   - ### Features
