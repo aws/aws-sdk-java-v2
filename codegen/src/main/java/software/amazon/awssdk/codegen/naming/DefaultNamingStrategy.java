@@ -499,12 +499,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         }
 
         if (name.contains("_")) {
+            UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
             List<String> allowedNames = customizationConfig.getAllowedUnderscoreNames();
             if (allowedNames != null && allowedNames.contains(name)) {
                 return;
             }
-
-            UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
 
             String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
             if (behavior == null) {
