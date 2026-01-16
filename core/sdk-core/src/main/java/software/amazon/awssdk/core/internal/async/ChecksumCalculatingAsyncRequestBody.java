@@ -43,10 +43,10 @@ import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Wrapper class to wrap an AsyncRequestBody.
- * This will read the data in chunk format and append Checksum as trailer at the end.
- * TODO(sra-identity-and-auth): Checksum calculating logic for async client is still here and should be in
- * "http-auth-aws", more specifically, AwsChunkedV4PayloadSigner#signAsync
+ * Wrapper class to wrap an AsyncRequestBody to calculate checksum as it reads data and append Checksum as trailer at the end.
+ *
+ * <p>
+ * This is only used by non-sra code path, i.e., when a custom legacy signer is provided.
  */
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.regression.upload;
 
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotMRAP;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.MULTIPART_ENABLED;
 
 import java.time.Duration;
@@ -48,6 +49,7 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
     void putObject(UploadConfig config) throws Exception {
 
         assumeNotAccessPointWithPathStyle(config);
+        assumeNotMRAP(config);
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
@@ -55,13 +57,6 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
 
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH,
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
-
-        // Payload signing doesn't work correctly for async java based
-        // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
-        // MRAP requires body signing
-        Assumptions.assumeFalse(
-            config.isPayloadSigning() || config.getBucketType() == BucketType.MRAP,
-            "Async payload signing doesn't work with Java based clients");
 
         LOG.info(() -> "Running putObject with config: " + config);
 
@@ -106,6 +101,4 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
             }
         }
     }
-
-
 }

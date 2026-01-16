@@ -1507,6 +1507,24 @@
       },
       "documentation":"<p>Used to specify the configuration options for an FSx for ONTAP volume's storage aggregate or aggregates.</p>"
     },
+    "CreateAndAttachS3AccessPointOntapConfiguration":{
+      "type":"structure",
+      "required":[
+        "VolumeId",
+        "FileSystemIdentity"
+      ],
+      "members":{
+        "VolumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The ID of the FSx for ONTAP volume to which you want the S3 access point attached.</p>"
+        },
+        "FileSystemIdentity":{
+          "shape":"OntapFileSystemIdentity",
+          "documentation":"<p>Specifies the file system user identity to use for authorizing file read and write requests that are made using this S3 access point.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the FSx for ONTAP volume that the S3 access point will be attached to, and the file system user identity.</p>"
+    },
     "CreateAndAttachS3AccessPointOpenZFSConfiguration":{
       "type":"structure",
       "required":[
@@ -1548,6 +1566,7 @@
           "shape":"CreateAndAttachS3AccessPointOpenZFSConfiguration",
           "documentation":"<p>Specifies the configuration to use when creating and attaching an S3 access point to an FSx for OpenZFS volume.</p>"
         },
+        "OntapConfiguration":{"shape":"CreateAndAttachS3AccessPointOntapConfiguration"},
         "S3AccessPoint":{
           "shape":"CreateAndAttachS3AccessPointS3Configuration",
           "documentation":"<p>Specifies the virtual private cloud (VPC) configuration if you're creating an access point that is restricted to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/access-points-vpc.html\">Creating access points restricted to a virtual private cloud</a>.</p>"
@@ -2161,6 +2180,10 @@
         "DiskIopsConfiguration":{
           "shape":"DiskIopsConfiguration",
           "documentation":"<p>The SSD IOPS (input/output operations per second) configuration for an Amazon FSx for Windows file system. By default, Amazon FSx automatically provisions 3 IOPS per GiB of storage capacity. You can provision additional IOPS per GiB of storage, up to the maximum limit associated with your chosen throughput capacity.</p>"
+        },
+        "FsrmConfiguration":{
+          "shape":"WindowsFsrmConfiguration",
+          "documentation":"<p>The File Server Resource Manager (FSRM) configuration that Amazon FSx for Windows File Server uses for the file system. FSRM is disabled by default.</p>"
         }
       },
       "documentation":"<p>The configuration object for the Microsoft Windows file system used in <code>CreateFileSystem</code> and <code>CreateFileSystemFromBackup</code> operations.</p>"
@@ -2473,6 +2496,12 @@
     "CreationTime":{
       "type":"timestamp",
       "documentation":"<p>The time that the resource was created, in seconds (since 1970-01-01T00:00:00Z), also known as Unix time.</p>"
+    },
+    "CustomerSecretsManagerARN":{
+      "type":"string",
+      "max":1024,
+      "min":64,
+      "pattern":"^arn:[^:]{1,63}:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[a-zA-Z0-9/_+=.@-]+-[a-zA-Z0-9]{6}$"
     },
     "DNSName":{
       "type":"string",
@@ -4761,6 +4790,49 @@
       },
       "documentation":"<p>Configuration for the FSx for NetApp ONTAP file system.</p>"
     },
+    "OntapFileSystemIdentity":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"OntapFileSystemUserType",
+          "documentation":"<p>Specifies the FSx for ONTAP user identity type. Valid values are <code>UNIX</code> and <code>WINDOWS</code>.</p>"
+        },
+        "UnixUser":{
+          "shape":"OntapUnixFileSystemUser",
+          "documentation":"<p>Specifies the UNIX user identity for file system operations.</p>"
+        },
+        "WindowsUser":{
+          "shape":"OntapWindowsFileSystemUser",
+          "documentation":"<p>Specifies the Windows user identity for file system operations.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the file system user identity that will be used for authorizing all file access requests that are made using the S3 access point. The identity can be either a UNIX user or a Windows user.</p>"
+    },
+    "OntapFileSystemUserName":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[^\\u0000\\u0085\\u2028\\u2029\\r\\n]{1,256}$"
+    },
+    "OntapFileSystemUserType":{
+      "type":"string",
+      "enum":[
+        "UNIX",
+        "WINDOWS"
+      ]
+    },
+    "OntapUnixFileSystemUser":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"OntapFileSystemUserName",
+          "documentation":"<p>The name of the UNIX user. The name can be up to 256 characters long.</p>"
+        }
+      },
+      "documentation":"<p>The FSx for ONTAP UNIX file system user that is used for authorizing all file access requests that are made using the S3 access point.</p>"
+    },
     "OntapVolumeConfiguration":{
       "type":"structure",
       "members":{
@@ -4838,6 +4910,17 @@
         "DP",
         "LS"
       ]
+    },
+    "OntapWindowsFileSystemUser":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"OntapFileSystemUserName",
+          "documentation":"<p>The name of the Windows user. The name can be up to 256 characters long and supports Active Directory users.</p>"
+        }
+      },
+      "documentation":"<p>The FSx for ONTAP Windows file system user that is used for authorizing all file access requests that are made using the S3 access point.</p>"
     },
     "OpenZFSClientConfiguration":{
       "type":"structure",
@@ -5460,6 +5543,10 @@
           "shape":"S3AccessPointOpenZFSConfiguration",
           "documentation":"<p>The OpenZFSConfiguration of the S3 access point attachment.</p>"
         },
+        "OntapConfiguration":{
+          "shape":"S3AccessPointOntapConfiguration",
+          "documentation":"<p>The ONTAP configuration of the S3 access point attachment.</p>"
+        },
         "S3AccessPoint":{
           "shape":"S3AccessPoint",
           "documentation":"<p>The S3 access point configuration of the S3 access point attachment.</p>"
@@ -5474,7 +5561,8 @@
         "CREATING",
         "DELETING",
         "UPDATING",
-        "FAILED"
+        "FAILED",
+        "MISCONFIGURED"
       ]
     },
     "S3AccessPointAttachmentName":{
@@ -5498,7 +5586,10 @@
     },
     "S3AccessPointAttachmentType":{
       "type":"string",
-      "enum":["OPENZFS"]
+      "enum":[
+        "OPENZFS",
+        "ONTAP"
+      ]
     },
     "S3AccessPointAttachments":{
       "type":"list",
@@ -5542,6 +5633,20 @@
       "type":"list",
       "member":{"shape":"S3AccessPointAttachmentsFilter"},
       "max":2
+    },
+    "S3AccessPointOntapConfiguration":{
+      "type":"structure",
+      "members":{
+        "VolumeId":{
+          "shape":"VolumeId",
+          "documentation":"<p>The ID of the FSx for ONTAP volume that the S3 access point is attached to.</p>"
+        },
+        "FileSystemIdentity":{
+          "shape":"OntapFileSystemIdentity",
+          "documentation":"<p>The file system identity used to authorize file access requests made using the S3 access point.</p>"
+        }
+      },
+      "documentation":"<p>Describes the FSx for ONTAP attachment configuration of an S3 access point attachment.</p>"
     },
     "S3AccessPointOpenZFSConfiguration":{
       "type":"structure",
@@ -5624,6 +5729,10 @@
         "DnsIps":{
           "shape":"DnsIps",
           "documentation":"<p>A list of up to three IP addresses of DNS servers or domain controllers in the self-managed AD directory.</p>"
+        },
+        "DomainJoinServiceAccountSecret":{
+          "shape":"CustomerSecretsManagerARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Secrets Manager secret containing the service account credentials used to join the file system to your self-managed Active Directory domain.</p>"
         }
       },
       "documentation":"<p>The configuration of the self-managed Microsoft Active Directory (AD) directory to which the Windows File Server or ONTAP storage virtual machine (SVM) instance is joined.</p>"
@@ -5632,8 +5741,6 @@
       "type":"structure",
       "required":[
         "DomainName",
-        "UserName",
-        "Password",
         "DnsIps"
       ],
       "members":{
@@ -5660,6 +5767,10 @@
         "DnsIps":{
           "shape":"DnsIps",
           "documentation":"<p>A list of up to three IP addresses of DNS servers or domain controllers in the self-managed AD directory. </p>"
+        },
+        "DomainJoinServiceAccountSecret":{
+          "shape":"CustomerSecretsManagerARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Secrets Manager secret containing the self-managed Active Directory domain join service account credentials. When provided, Amazon FSx uses the credentials stored in this secret to join the file system to your self-managed Active Directory domain.</p> <p>The secret must contain two key-value pairs:</p> <ul> <li> <p> <code>CUSTOMER_MANAGED_ACTIVE_DIRECTORY_USERNAME</code> - The username for the service account</p> </li> <li> <p> <code>CUSTOMER_MANAGED_ACTIVE_DIRECTORY_PASSWORD</code> - The password for the service account</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/self-manage-prereqs.html\"> Using Amazon FSx for Windows with your self-managed Microsoft Active Directory</a> or <a href=\"https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/self-manage-prereqs.html\"> Using Amazon FSx for ONTAP with your self-managed Microsoft Active Directory</a>.</p>"
         }
       },
       "documentation":"<p>The configuration that Amazon FSx uses to join a FSx for Windows File Server file system or an FSx for ONTAP storage virtual machine (SVM) to a self-managed (including on-premises) Microsoft Active Directory (AD) directory. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/self-managed-AD.html\"> Using Amazon FSx for Windows with your self-managed Microsoft Active Directory</a> or <a href=\"https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/managing-svms.html\">Managing FSx for ONTAP SVMs</a>.</p>"
@@ -5690,6 +5801,10 @@
         "FileSystemAdministratorsGroup":{
           "shape":"FileSystemAdministratorsGroupName",
           "documentation":"<p>For FSx for ONTAP file systems only - Specifies the updated name of the self-managed Active Directory domain group whose members are granted administrative privileges for the Amazon FSx resource.</p>"
+        },
+        "DomainJoinServiceAccountSecret":{
+          "shape":"CustomerSecretsManagerARN",
+          "documentation":"<p>Specifies the updated Amazon Resource Name (ARN) of the Amazon Web Services Secrets Manager secret containing the self-managed Active Directory domain join service account credentials. Amazon FSx uses this account to join to your self-managed Active Directory domain.</p>"
         }
       },
       "documentation":"<p>Specifies changes you are making to the self-managed Microsoft Active Directory configuration to which an FSx for Windows File Server file system or an FSx for ONTAP SVM is joined.</p>"
@@ -6623,6 +6738,10 @@
         "DiskIopsConfiguration":{
           "shape":"DiskIopsConfiguration",
           "documentation":"<p>The SSD IOPS (input/output operations per second) configuration for an Amazon FSx for Windows file system. By default, Amazon FSx automatically provisions 3 IOPS per GiB of storage capacity. You can provision additional IOPS per GiB of storage, up to the maximum limit associated with your chosen throughput capacity.</p>"
+        },
+        "FsrmConfiguration":{
+          "shape":"WindowsFsrmConfiguration",
+          "documentation":"<p>The File Server Resource Manager (FSRM) configuration that Amazon FSx for Windows File Server uses for the file system. FSRM is disabled by default.</p>"
         }
       },
       "documentation":"<p>Updates the configuration for an existing Amazon FSx for Windows File Server file system. Amazon FSx only overwrites existing properties with non-null values provided in the request.</p>"
@@ -7160,9 +7279,28 @@
         "PreferredFileServerIpv6":{
           "shape":"IpAddress",
           "documentation":"<p>For MULTI_AZ_1 deployment types, the IPv6 address of the primary, or preferred, file server. Use this IP address when mounting the file system on Linux SMB clients or Windows SMB clients that are not joined to a Microsoft Active Directory. Applicable for all Windows file system deployment types. This IPv6 address is temporarily unavailable when the file system is undergoing maintenance. For Linux and Windows SMB clients that are joined to an Active Directory, use the file system's DNSName instead.</p>"
+        },
+        "FsrmConfiguration":{
+          "shape":"WindowsFsrmConfiguration",
+          "documentation":"<p>The File Server Resource Manager (FSRM) configuration that Amazon FSx for Windows File Server uses for the file system. FSRM is disabled by default.</p>"
         }
       },
       "documentation":"<p>The configuration for this Microsoft Windows file system.</p>"
+    },
+    "WindowsFsrmConfiguration":{
+      "type":"structure",
+      "required":["FsrmServiceEnabled"],
+      "members":{
+        "FsrmServiceEnabled":{
+          "shape":"Flag",
+          "documentation":"<p>Specifies whether FSRM is enabled or disabled on the file system. When <code>TRUE</code>, the FSRM service is enabled and monitor file operations according to configured policies. When <code>FALSE</code> or omitted, FSRM is disabled. The default value is <code>FALSE</code>. </p>"
+        },
+        "EventLogDestination":{
+          "shape":"GeneralARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the destination of the FSRM event logs. The destination can be any Amazon CloudWatch Logs log group ARN or Amazon Kinesis Data Firehose delivery stream ARN.</p> <p>The name of the Amazon CloudWatch Logs log group must begin with the <code>/aws/fsx</code> prefix. The name of the Amazon Kinesis Data Firehose delivery stream must begin with the <code>aws-fsx</code> prefix.</p> <p>The destination ARN (either CloudWatch Logs log group or Kinesis Data Firehose delivery stream) must be in the same Amazon Web Services partition, Amazon Web Services Region, and Amazon Web Services account as your Amazon FSx file system.</p>"
+        }
+      },
+      "documentation":"<p>The File Server Resource Manager (FSRM) configuration that Amazon FSx for Windows File Server uses for the file system. When FSRM is enabled, you can manage and monitor storage quotas, file screening, storage reports, and file classification.</p>"
     }
   },
   "documentation":"<p>Amazon FSx is a fully managed service that makes it easy for storage and application administrators to launch and use shared file storage.</p>"

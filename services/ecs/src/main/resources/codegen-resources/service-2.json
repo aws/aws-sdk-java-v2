@@ -50,6 +50,26 @@
       ],
       "documentation":"<p>Creates a new Amazon ECS cluster. By default, your account receives a <code>default</code> cluster when you launch your first container instance. However, you can create your own cluster with a unique name.</p> <note> <p>When you call the <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateCluster.html\">CreateCluster</a> API operation, Amazon ECS attempts to create the Amazon ECS service-linked role for your account. This is so that it can manage required resources in other Amazon Web Services services on your behalf. However, if the user that makes the call doesn't have permissions to create the service-linked role, it isn't created. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using-service-linked-roles.html\">Using service-linked roles for Amazon ECS</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </note>"
     },
+    "CreateExpressGatewayService":{
+      "name":"CreateExpressGatewayService",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateExpressGatewayServiceRequest"},
+      "output":{"shape":"CreateExpressGatewayServiceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"PlatformUnknownException"},
+        {"shape":"PlatformTaskDefinitionIncompatibilityException"},
+        {"shape":"ServerException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Creates an Express service that simplifies deploying containerized web applications on Amazon ECS with managed Amazon Web Services infrastructure. This operation provisions and configures Application Load Balancers, target groups, security groups, and auto-scaling policies automatically.</p> <p>Specify a primary container configuration with your application image and basic settings. Amazon ECS creates the necessary Amazon Web Services resources for traffic distribution, health monitoring, network access control, and capacity management.</p> <p>Provide an execution role for task operations and an infrastructure role for managing Amazon Web Services resources on your behalf.</p>"
+    },
     "CreateService":{
       "name":"CreateService",
       "http":{
@@ -69,7 +89,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"NamespaceNotFoundException"}
       ],
-      "documentation":"<p>Runs and maintains your desired number of tasks from a specified task definition. If the number of tasks running in a service drops below the <code>desiredCount</code>, Amazon ECS runs another copy of the task in the specified cluster. To update an existing service, use <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html\">UpdateService</a>.</p> <note> <p>On March 21, 2024, a change was made to resolve the task definition revision before authorization. When a task definition revision is not specified, authorization will occur using the latest revision of a task definition.</p> </note> <note> <p>Amazon Elastic Inference (EI) is no longer available to customers.</p> </note> <p>In addition to maintaining the desired count of tasks in your service, you can optionally run your service behind one or more load balancers. The load balancers distribute traffic across the tasks that are associated with the service. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html\">Service load balancing</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>You can attach Amazon EBS volumes to Amazon ECS tasks by configuring the volume when creating or updating a service. <code>volumeConfigurations</code> is only supported for REPLICA service and not DAEMON service. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volume-types\">Amazon EBS volumes</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Tasks for services that don't use a load balancer are considered healthy if they're in the <code>RUNNING</code> state. Tasks for services that use a load balancer are considered healthy if they're in the <code>RUNNING</code> state and are reported as healthy by the load balancer.</p> <p>There are two service scheduler strategies available:</p> <ul> <li> <p> <code>REPLICA</code> - The replica scheduling strategy places and maintains your desired number of tasks across your cluster. By default, the service scheduler spreads tasks across Availability Zones. You can use task placement strategies and constraints to customize task placement decisions. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html\">Service scheduler concepts</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>DAEMON</code> - The daemon scheduling strategy deploys exactly one task on each active container instance that meets all of the task placement constraints that you specify in your cluster. The service scheduler also evaluates the task placement constraints for running tasks. It also stops tasks that don't meet the placement constraints. When using this strategy, you don't need to specify a desired number of tasks, a task placement strategy, or use Service Auto Scaling policies. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html\">Amazon ECS services</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> </ul> <p>The deployment controller is the mechanism that determines how tasks are deployed for your service. The valid options are:</p> <ul> <li> <p>ECS</p> <p> When you create a service which uses the <code>ECS</code> deployment controller, you can choose between the following deployment strategies (which you can set in the “<code>strategy</code>” field in “<code>deploymentConfiguration</code>”): :</p> <ul> <li> <p> <code>ROLLING</code>: When you create a service which uses the <i>rolling update</i> (<code>ROLLING</code>) deployment strategy, the Amazon ECS service scheduler replaces the currently running tasks with new tasks. The number of tasks that Amazon ECS adds or removes from the service during a rolling update is controlled by the service deployment configuration. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html\">Deploy Amazon ECS services by replacing tasks</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Rolling update deployments are best suited for the following scenarios:</p> <ul> <li> <p>Gradual service updates: You need to update your service incrementally without taking the entire service offline at once.</p> </li> <li> <p>Limited resource requirements: You want to avoid the additional resource costs of running two complete environments simultaneously (as required by blue/green deployments).</p> </li> <li> <p>Acceptable deployment time: Your application can tolerate a longer deployment process, as rolling updates replace tasks one by one.</p> </li> <li> <p>No need for instant roll back: Your service can tolerate a rollback process that takes minutes rather than seconds.</p> </li> <li> <p>Simple deployment process: You prefer a straightforward deployment approach without the complexity of managing multiple environments, target groups, and listeners.</p> </li> <li> <p>No load balancer requirement: Your service doesn't use or require a load balancer, Application Load Balancer, Network Load Balancer, or Service Connect (which are required for blue/green deployments).</p> </li> <li> <p>Stateful applications: Your application maintains state that makes it difficult to run two parallel environments.</p> </li> <li> <p>Cost sensitivity: You want to minimize deployment costs by not running duplicate environments during deployment.</p> </li> </ul> <p>Rolling updates are the default deployment strategy for services and provide a balance between deployment safety and resource efficiency for many common application scenarios.</p> </li> <li> <p> <code>BLUE_GREEN</code>: A <i>blue/green</i> deployment strategy (<code>BLUE_GREEN</code>) is a release methodology that reduces downtime and risk by running two identical production environments called blue and green. With Amazon ECS blue/green deployments, you can validate new service revisions before directing production traffic to them. This approach provides a safer way to deploy changes with the ability to quickly roll back if needed. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-blue-green.html\">Amazon ECS blue/green deployments</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Amazon ECS blue/green deployments are best suited for the following scenarios:</p> <ul> <li> <p>Service validation: When you need to validate new service revisions before directing production traffic to them</p> </li> <li> <p>Zero downtime: When your service requires zero-downtime deployments</p> </li> <li> <p>Instant roll back: When you need the ability to quickly roll back if issues are detected</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer, Network Load Balancer, or Service Connect</p> </li> </ul> </li> <li> <p> <code>LINEAR</code>: A <i>linear</i> deployment strategy (<code>LINEAR</code>) gradually shifts traffic from the current production environment to a new environment in equal percentage increments over a specified time period. With Amazon ECS linear deployments, you can control the pace of traffic shifting and validate new service revisions with increasing amounts of production traffic.</p> <p>Linear deployments are best suited for the following scenarios:</p> <ul> <li> <p>Gradual validation: When you want to gradually validate your new service version with increasing traffic</p> </li> <li> <p>Performance monitoring: When you need time to monitor metrics and performance during the deployment</p> </li> <li> <p>Risk minimization: When you want to minimize risk by exposing the new version to production traffic incrementally</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer, Network Load Balancer, or Service Connect</p> </li> </ul> </li> <li> <p> <code>CANARY</code>: A <i>canary</i> deployment strategy (<code>CANARY</code>) shifts a small percentage of traffic to the new service revision first, then shifts the remaining traffic all at once after a specified time period. This allows you to test the new version with a subset of users before full deployment.</p> <p>Canary deployments are best suited for the following scenarios:</p> <ul> <li> <p>Feature testing: When you want to test new features with a small subset of users before full rollout</p> </li> <li> <p>Production validation: When you need to validate performance and functionality with real production traffic</p> </li> <li> <p>Blast radius control: When you want to minimize blast radius if issues are discovered in the new version</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer, Network Load Balancer, or Service Connect</p> </li> </ul> </li> </ul> </li> <li> <p>External</p> <p>Use a third-party deployment controller.</p> </li> <li> <p>Blue/green deployment (powered by CodeDeploy)</p> <p>CodeDeploy installs an updated version of the application as a new replacement task set and reroutes production traffic from the original application task set to the replacement task set. The original task set is terminated after a successful deployment. Use this deployment controller to verify a new deployment of a service before sending production traffic to it.</p> </li> </ul> <p>When creating a service that uses the <code>EXTERNAL</code> deployment controller, you can specify only parameters that aren't controlled at the task set level. The only required parameter is the service name. You control your services using the <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateTaskSet.html\">CreateTaskSet</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-types.html\">Amazon ECS deployment types</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>When the service scheduler launches new tasks, it determines task placement. For information about task placement and task placement strategies, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement.html\">Amazon ECS task placement</a> in the <i>Amazon Elastic Container Service Developer Guide</i> </p>"
+      "documentation":"<p>Runs and maintains your desired number of tasks from a specified task definition. If the number of tasks running in a service drops below the <code>desiredCount</code>, Amazon ECS runs another copy of the task in the specified cluster. To update an existing service, use <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html\">UpdateService</a>.</p> <note> <p>On March 21, 2024, a change was made to resolve the task definition revision before authorization. When a task definition revision is not specified, authorization will occur using the latest revision of a task definition.</p> </note> <note> <p>Amazon Elastic Inference (EI) is no longer available to customers.</p> </note> <p>In addition to maintaining the desired count of tasks in your service, you can optionally run your service behind one or more load balancers. The load balancers distribute traffic across the tasks that are associated with the service. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html\">Service load balancing</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>You can attach Amazon EBS volumes to Amazon ECS tasks by configuring the volume when creating or updating a service. <code>volumeConfigurations</code> is only supported for REPLICA service and not DAEMON service. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ebs-volumes.html#ebs-volume-types\">Amazon EBS volumes</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Tasks for services that don't use a load balancer are considered healthy if they're in the <code>RUNNING</code> state. Tasks for services that use a load balancer are considered healthy if they're in the <code>RUNNING</code> state and are reported as healthy by the load balancer.</p> <p>There are two service scheduler strategies available:</p> <ul> <li> <p> <code>REPLICA</code> - The replica scheduling strategy places and maintains your desired number of tasks across your cluster. By default, the service scheduler spreads tasks across Availability Zones. You can use task placement strategies and constraints to customize task placement decisions. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html\">Service scheduler concepts</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>DAEMON</code> - The daemon scheduling strategy deploys exactly one task on each active container instance that meets all of the task placement constraints that you specify in your cluster. The service scheduler also evaluates the task placement constraints for running tasks. It also stops tasks that don't meet the placement constraints. When using this strategy, you don't need to specify a desired number of tasks, a task placement strategy, or use Service Auto Scaling policies. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html\">Amazon ECS services</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> </ul> <p>The deployment controller is the mechanism that determines how tasks are deployed for your service. The valid options are:</p> <ul> <li> <p>ECS</p> <p> When you create a service which uses the <code>ECS</code> deployment controller, you can choose between the following deployment strategies (which you can set in the “<code>strategy</code>” field in “<code>deploymentConfiguration</code>”): :</p> <ul> <li> <p> <code>ROLLING</code>: When you create a service which uses the <i>rolling update</i> (<code>ROLLING</code>) deployment strategy, the Amazon ECS service scheduler replaces the currently running tasks with new tasks. The number of tasks that Amazon ECS adds or removes from the service during a rolling update is controlled by the service deployment configuration. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html\">Deploy Amazon ECS services by replacing tasks</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Rolling update deployments are best suited for the following scenarios:</p> <ul> <li> <p>Gradual service updates: You need to update your service incrementally without taking the entire service offline at once.</p> </li> <li> <p>Limited resource requirements: You want to avoid the additional resource costs of running two complete environments simultaneously (as required by blue/green deployments).</p> </li> <li> <p>Acceptable deployment time: Your application can tolerate a longer deployment process, as rolling updates replace tasks one by one.</p> </li> <li> <p>No need for instant roll back: Your service can tolerate a rollback process that takes minutes rather than seconds.</p> </li> <li> <p>Simple deployment process: You prefer a straightforward deployment approach without the complexity of managing multiple environments, target groups, and listeners.</p> </li> <li> <p>No load balancer requirement: Your service doesn't use or require a load balancer, Application Load Balancer, Network Load Balancer, or Service Connect (which are required for blue/green deployments).</p> </li> <li> <p>Stateful applications: Your application maintains state that makes it difficult to run two parallel environments.</p> </li> <li> <p>Cost sensitivity: You want to minimize deployment costs by not running duplicate environments during deployment.</p> </li> </ul> <p>Rolling updates are the default deployment strategy for services and provide a balance between deployment safety and resource efficiency for many common application scenarios.</p> </li> <li> <p> <code>BLUE_GREEN</code>: A <i>blue/green</i> deployment strategy (<code>BLUE_GREEN</code>) is a release methodology that reduces downtime and risk by running two identical production environments called blue and green. With Amazon ECS blue/green deployments, you can validate new service revisions before directing production traffic to them. This approach provides a safer way to deploy changes with the ability to quickly roll back if needed. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-blue-green.html\">Amazon ECS blue/green deployments</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>Amazon ECS blue/green deployments are best suited for the following scenarios:</p> <ul> <li> <p>Service validation: When you need to validate new service revisions before directing production traffic to them</p> </li> <li> <p>Zero downtime: When your service requires zero-downtime deployments</p> </li> <li> <p>Instant roll back: When you need the ability to quickly roll back if issues are detected</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer, Network Load Balancer, or Service Connect</p> </li> </ul> </li> <li> <p> <code>LINEAR</code>: A <i>linear</i> deployment strategy (<code>LINEAR</code>) gradually shifts traffic from the current production environment to a new environment in equal percentage increments. With Amazon ECS linear deployments, you can control the pace of traffic shifting and validate new service revisions with increasing amounts of production traffic.</p> <p>Linear deployments are best suited for the following scenarios:</p> <ul> <li> <p>Gradual validation: When you want to gradually validate your new service version with increasing traffic</p> </li> <li> <p>Performance monitoring: When you need time to monitor metrics and performance during the deployment</p> </li> <li> <p>Risk minimization: When you want to minimize risk by exposing the new version to production traffic incrementally</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer or Service Connect</p> </li> </ul> </li> <li> <p> <code>CANARY</code>: A <i>canary</i> deployment strategy (<code>CANARY</code>) shifts a small percentage of traffic to the new service revision first, then shifts the remaining traffic all at once after a specified time period. This allows you to test the new version with a subset of users before full deployment.</p> <p>Canary deployments are best suited for the following scenarios:</p> <ul> <li> <p>Feature testing: When you want to test new features with a small subset of users before full rollout</p> </li> <li> <p>Production validation: When you need to validate performance and functionality with real production traffic</p> </li> <li> <p>Blast radius control: When you want to minimize blast radius if issues are discovered in the new version</p> </li> <li> <p>Load balancer requirement: When your service uses Application Load Balancer or Service Connect</p> </li> </ul> </li> </ul> </li> <li> <p>External</p> <p>Use a third-party deployment controller.</p> </li> <li> <p>Blue/green deployment (powered by CodeDeploy)</p> <p>CodeDeploy installs an updated version of the application as a new replacement task set and reroutes production traffic from the original application task set to the replacement task set. The original task set is terminated after a successful deployment. Use this deployment controller to verify a new deployment of a service before sending production traffic to it.</p> </li> </ul> <p>When creating a service that uses the <code>EXTERNAL</code> deployment controller, you can specify only parameters that aren't controlled at the task set level. The only required parameter is the service name. You control your services using the <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateTaskSet.html\">CreateTaskSet</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-types.html\">Amazon ECS deployment types</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>When the service scheduler launches new tasks, it determines task placement. For information about task placement and task placement strategies, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement.html\">Amazon ECS task placement</a> in the <i>Amazon Elastic Container Service Developer Guide</i> </p>"
     },
     "CreateTaskSet":{
       "name":"CreateTaskSet",
@@ -161,6 +181,26 @@
         {"shape":"UpdateInProgressException"}
       ],
       "documentation":"<p>Deletes the specified cluster. The cluster transitions to the <code>INACTIVE</code> state. Clusters with an <code>INACTIVE</code> status might remain discoverable in your account for a period of time. However, this behavior is subject to change in the future. We don't recommend that you rely on <code>INACTIVE</code> clusters persisting.</p> <p>You must deregister all container instances from this cluster before you may delete it. You can list the container instances in a cluster with <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ListContainerInstances.html\">ListContainerInstances</a> and deregister them with <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DeregisterContainerInstance.html\">DeregisterContainerInstance</a>.</p>"
+    },
+    "DeleteExpressGatewayService":{
+      "name":"DeleteExpressGatewayService",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteExpressGatewayServiceRequest"},
+      "output":{"shape":"DeleteExpressGatewayServiceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceNotFoundException"},
+        {"shape":"ServiceNotActiveException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Deletes an Express service and removes all associated Amazon Web Services resources. This operation stops service tasks, removes the Application Load Balancer, target groups, security groups, auto-scaling policies, and other managed infrastructure components.</p> <p>The service enters a <code>DRAINING</code> state where existing tasks complete current requests without starting new tasks. After all tasks stop, the service and infrastructure are permanently removed.</p> <p>This operation cannot be reversed. Back up important data and verify the service is no longer needed before deletion.</p>"
     },
     "DeleteService":{
       "name":"DeleteService",
@@ -294,6 +334,25 @@
         {"shape":"ClusterNotFoundException"}
       ],
       "documentation":"<p>Describes one or more container instances. Returns metadata about each container instance requested.</p>"
+    },
+    "DescribeExpressGatewayService":{
+      "name":"DescribeExpressGatewayService",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeExpressGatewayServiceRequest"},
+      "output":{"shape":"DescribeExpressGatewayServiceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ServerException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Retrieves detailed information about an Express service, including current status, configuration, managed infrastructure, and service revisions.</p> <p>Returns comprehensive service details, active service revisions, ingress paths with endpoints, and managed Amazon Web Services resource status including load balancers and auto-scaling policies.</p> <p>Use the <code>include</code> parameter to retrieve additional information such as resource tags.</p>"
     },
     "DescribeServiceDeployments":{
       "name":"DescribeServiceDeployments",
@@ -790,7 +849,7 @@
         {"shape":"InvalidParameterException"},
         {"shape":"ClusterNotFoundException"}
       ],
-      "documentation":"<p>Stops a running task. Any tags associated with the task will be deleted.</p> <p>When you call <code>StopTask</code> on a task, the equivalent of <code>docker stop</code> is issued to the containers running in the task. This results in a <code>SIGTERM</code> value and a default 30-second timeout, after which the <code>SIGKILL</code> value is sent and the containers are forcibly stopped. If the container handles the <code>SIGTERM</code> value gracefully and exits within 30 seconds from receiving it, no <code>SIGKILL</code> value is sent.</p> <p>For Windows containers, POSIX signals do not work and runtime stops the container by sending a <code>CTRL_SHUTDOWN_EVENT</code>. For more information, see <a href=\"https://github.com/moby/moby/issues/25982\">Unable to react to graceful shutdown of (Windows) container #25982</a> on GitHub.</p> <note> <p>The default 30-second timeout can be configured on the Amazon ECS container agent with the <code>ECS_CONTAINER_STOP_TIMEOUT</code> variable. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html\">Amazon ECS Container Agent Configuration</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </note>"
+      "documentation":"<p>Stops a running task. Any tags associated with the task will be deleted.</p> <p>When you call <code>StopTask</code> on a task, the equivalent of <code>docker stop</code> is issued to the containers running in the task. This results in a stop signal value and a default 30-second timeout, after which the <code>SIGKILL</code> value is sent and the containers are forcibly stopped. This signal can be defined in your container image with the <code>STOPSIGNAL</code> instruction and will default to <code>SIGTERM</code>. If the container handles the <code>SIGTERM</code> value gracefully and exits within 30 seconds from receiving it, no <code>SIGKILL</code> value is sent.</p> <p>For Windows containers, POSIX signals do not work and runtime stops the container by sending a <code>CTRL_SHUTDOWN_EVENT</code>. For more information, see <a href=\"https://github.com/moby/moby/issues/25982\">Unable to react to graceful shutdown of (Windows) container #25982</a> on GitHub.</p> <note> <p>The default 30-second timeout can be configured on the Amazon ECS container agent with the <code>ECS_CONTAINER_STOP_TIMEOUT</code> variable. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-config.html\">Amazon ECS Container Agent Configuration</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </note>"
     },
     "SubmitAttachmentStateChanges":{
       "name":"SubmitAttachmentStateChanges",
@@ -958,6 +1017,26 @@
       ],
       "documentation":"<p>Modifies the status of an Amazon ECS container instance.</p> <p>Once a container instance has reached an <code>ACTIVE</code> state, you can change the status of a container instance to <code>DRAINING</code> to manually remove an instance from a cluster, for example to perform system updates, update the Docker daemon, or scale down the cluster size.</p> <important> <p>A container instance can't be changed to <code>DRAINING</code> until it has reached an <code>ACTIVE</code> status. If the instance is in any other status, an error will be received.</p> </important> <p>When you set a container instance to <code>DRAINING</code>, Amazon ECS prevents new tasks from being scheduled for placement on the container instance and replacement service tasks are started on other container instances in the cluster if the resources are available. Service tasks on the container instance that are in the <code>PENDING</code> state are stopped immediately.</p> <p>Service tasks on the container instance that are in the <code>RUNNING</code> state are stopped and replaced according to the service's deployment configuration parameters, <code>minimumHealthyPercent</code> and <code>maximumPercent</code>. You can change the deployment configuration of your service using <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_UpdateService.html\">UpdateService</a>.</p> <ul> <li> <p>If <code>minimumHealthyPercent</code> is below 100%, the scheduler can ignore <code>desiredCount</code> temporarily during task replacement. For example, <code>desiredCount</code> is four tasks, a minimum of 50% allows the scheduler to stop two existing tasks before starting two new tasks. If the minimum is 100%, the service scheduler can't remove existing tasks until the replacement tasks are considered healthy. Tasks for services that do not use a load balancer are considered healthy if they're in the <code>RUNNING</code> state. Tasks for services that use a load balancer are considered healthy if they're in the <code>RUNNING</code> state and are reported as healthy by the load balancer.</p> </li> <li> <p>The <code>maximumPercent</code> parameter represents an upper limit on the number of running tasks during task replacement. You can use this to define the replacement batch size. For example, if <code>desiredCount</code> is four tasks, a maximum of 200% starts four new tasks before stopping the four tasks to be drained, provided that the cluster resources required to do this are available. If the maximum is 100%, then replacement tasks can't start until the draining tasks have stopped.</p> </li> </ul> <p>Any <code>PENDING</code> or <code>RUNNING</code> tasks that do not belong to a service aren't affected. You must wait for them to finish or stop them manually.</p> <p>A container instance has completed draining when it has no more <code>RUNNING</code> tasks. You can verify this using <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ListTasks.html\">ListTasks</a>.</p> <p>When a container instance has been drained, you can set a container instance to <code>ACTIVE</code> status and once it has reached that status the Amazon ECS scheduler can begin scheduling tasks on the instance again.</p>"
     },
+    "UpdateExpressGatewayService":{
+      "name":"UpdateExpressGatewayService",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateExpressGatewayServiceRequest"},
+      "output":{"shape":"UpdateExpressGatewayServiceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceNotFoundException"},
+        {"shape":"ServiceNotActiveException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Updates an existing Express service configuration. Modifies container settings, resource allocation, auto-scaling configuration, and other service parameters without recreating the service.</p> <p>Amazon ECS creates a new service revision with updated configuration and performs a rolling deployment to replace existing tasks. The service remains available during updates, ensuring zero-downtime deployments.</p> <p>Some parameters like the infrastructure role cannot be modified after service creation and require creating a new service.</p>"
+    },
     "UpdateService":{
       "name":"UpdateService",
       "http":{
@@ -1124,6 +1203,13 @@
       "members":{},
       "documentation":"<p>You don't have authorization to perform the requested action.</p>",
       "exception":true
+    },
+    "AccessType":{
+      "type":"string",
+      "enum":[
+        "PUBLIC",
+        "PRIVATE"
+      ]
     },
     "AdvancedConfiguration":{
       "type":"structure",
@@ -1331,7 +1417,7 @@
         },
         "assignPublicIp":{
           "shape":"AssignPublicIp",
-          "documentation":"<p>Whether the task's elastic network interface receives a public IP address. </p> <p>Consider the following when you set this value:</p> <ul> <li> <p>When you use <code>create-service</code> or <code>update-service</code>, the The default is <code>DISABLED</code>. </p> </li> <li> <p>When the service <code>deploymentController</code> is <code>ECS</code>, the value must be <code>DISABLED</code>. </p> </li> </ul>"
+          "documentation":"<p>Whether the task's elastic network interface receives a public IP address. </p> <p>Consider the following when you set this value:</p> <ul> <li> <p>When you use <code>create-service</code> or <code>update-service</code>, the default is <code>DISABLED</code>. </p> </li> <li> <p>When the service <code>deploymentController</code> is <code>ECS</code>, the value must be <code>DISABLED</code>. </p> </li> </ul>"
         }
       },
       "documentation":"<p>An object representing the networking details for a task or service. For example <code>awsVpcConfiguration={subnets=[\"subnet-12344321\"],securityGroups=[\"sg-12344321\"]}</code>.</p>"
@@ -1397,7 +1483,7 @@
       "members":{
         "canaryPercent":{
           "shape":"Double",
-          "documentation":"<p>The percentage of production traffic to shift to the new service revision during the canary phase. Valid values are 0.1 to 100.0. The default value is 5.0.</p>",
+          "documentation":"<p>The percentage of production traffic to shift to the new service revision during the canary phase. Valid values are multiples of 0.1 from 0.1 to 100.0. The default value is 5.0.</p>",
           "box":true
         },
         "canaryBakeTimeInMinutes":{
@@ -1406,7 +1492,14 @@
           "box":true
         }
       },
-      "documentation":"<p>Configuration for canary deployment strategy that shifts a fixed percentage of traffic to the new service revision, waits for a specified bake time, then shifts the remaining traffic. </p> <p>This is only valid when you run <code>CreateService</code> or <code>UpdateService</code> with <code>deploymentController</code> set to <code>ECS</code> and a <code>deploymentConfiguration</code> with a strategy set to <code>CANARY</code>. </p>"
+      "documentation":"<p>Configuration for a canary deployment strategy that shifts a fixed percentage of traffic to the new service revision, waits for a specified bake time, then shifts the remaining traffic. </p> <p>This is only valid when you run <code>CreateService</code> or <code>UpdateService</code> with <code>deploymentController</code> set to <code>ECS</code> and a <code>deploymentConfiguration</code> with a strategy set to <code>CANARY</code>. </p>"
+    },
+    "CapacityOptionType":{
+      "type":"string",
+      "enum":[
+        "ON_DEMAND",
+        "SPOT"
+      ]
     },
     "CapacityProvider":{
       "type":"structure",
@@ -2362,6 +2455,73 @@
         }
       }
     },
+    "CreateExpressGatewayServiceRequest":{
+      "type":"structure",
+      "required":[
+        "executionRoleArn",
+        "infrastructureRoleArn",
+        "primaryContainer"
+      ],
+      "members":{
+        "executionRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the task execution role that grants the Amazon ECS container agent permission to make Amazon Web Services API calls on your behalf. This role is required for Amazon ECS to pull container images from Amazon ECR, send container logs to Amazon CloudWatch Logs, and retrieve sensitive data from Amazon Web Services Systems Manager Parameter Store or Amazon Web Services Secrets Manager.</p> <p>The execution role must include the <code>AmazonECSTaskExecutionRolePolicy</code> managed policy or equivalent permissions. For Express services, this role is used during task startup and runtime for container management operations.</p>"
+        },
+        "infrastructureRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the infrastructure role that grants Amazon ECS permission to create and manage Amazon Web Services resources on your behalf for the Express service. This role is used to provision and manage Application Load Balancers, target groups, security groups, auto-scaling policies, and other Amazon Web Services infrastructure components.</p> <p>The infrastructure role must include permissions for Elastic Load Balancing, Application Auto Scaling, Amazon EC2 (for security groups), and other services required for managed infrastructure. This role is only used during Express service creation, updates, and deletion operations.</p>"
+        },
+        "serviceName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Express service. This name must be unique within the specified cluster and can contain up to 255 letters (uppercase and lowercase), numbers, underscores, and hyphens. The name is used to identify the service in the Amazon ECS console and API operations.</p> <p>If you don't specify a service name, Amazon ECS generates a unique name for the service. The service name becomes part of the service ARN and cannot be changed after the service is created.</p>"
+        },
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster on which to create the Express service. If you do not specify a cluster, the <code>default</code> cluster is assumed.</p>"
+        },
+        "healthCheckPath":{
+          "shape":"String",
+          "documentation":"<p>The path on the container that the Application Load Balancer uses for health checks. This should be a valid HTTP endpoint that returns a successful response (HTTP 200) when the application is healthy.</p> <p>If not specified, the default health check path is <code>/ping</code>. The health check path must start with a forward slash and can include query parameters. Examples: <code>/health</code>, <code>/api/status</code>, <code>/ping?format=json</code>.</p>"
+        },
+        "primaryContainer":{
+          "shape":"ExpressGatewayContainer",
+          "documentation":"<p>The primary container configuration for the Express service. This defines the main application container that will receive traffic from the Application Load Balancer.</p> <p>The primary container must specify at minimum a container image. You can also configure the container port (defaults to 80), logging configuration, environment variables, secrets, and startup commands. The container image can be from Amazon ECR, Docker Hub, or any other container registry accessible to your execution role.</p>"
+        },
+        "taskRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that containers in this task can assume. This role allows your application code to access other Amazon Web Services services securely.</p> <p>The task role is different from the execution role. While the execution role is used by the Amazon ECS agent to set up the task, the task role is used by your application code running inside the container to make Amazon Web Services API calls. If your application doesn't need to access Amazon Web Services services, you can omit this parameter.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"ExpressGatewayServiceNetworkConfiguration",
+          "documentation":"<p>The network configuration for the Express service tasks. This specifies the VPC subnets and security groups for the tasks.</p> <p>For Express services, you can specify custom security groups and subnets. If not provided, Amazon ECS will use the default VPC configuration and create appropriate security groups automatically. The network configuration determines how your service integrates with your VPC and what network access it has.</p>"
+        },
+        "cpu":{
+          "shape":"String",
+          "documentation":"<p>The number of CPU units used by the task. This parameter determines the CPU allocation for each task in the Express service. The default value for an Express service is 256 (.25 vCPU).</p>"
+        },
+        "memory":{
+          "shape":"String",
+          "documentation":"<p>The amount of memory (in MiB) used by the task. This parameter determines the memory allocation for each task in the Express service. The default value for an express service is 512 MiB.</p>"
+        },
+        "scalingTarget":{
+          "shape":"ExpressGatewayScalingTarget",
+          "documentation":"<p>The auto-scaling configuration for the Express service. This defines how the service automatically adjusts the number of running tasks based on demand.</p> <p>You can specify the minimum and maximum number of tasks, the scaling metric (CPU utilization, memory utilization, or request count per target), and the target value for the metric. If not specified, the default target value for an Express service is 60.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>The metadata that you apply to the Express service to help categorize and organize it. Each tag consists of a key and an optional value. You can apply up to 50 tags to a service.</p>"
+        }
+      }
+    },
+    "CreateExpressGatewayServiceResponse":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"ECSExpressGatewayService",
+          "documentation":"<p>The full description of your Express service following the create operation.</p>"
+        }
+      }
+    },
     "CreateManagedInstancesProviderConfiguration":{
       "type":"structure",
       "required":[
@@ -2380,6 +2540,10 @@
         "propagateTags":{
           "shape":"PropagateMITags",
           "documentation":"<p>Specifies whether to propagate tags from the capacity provider to the Amazon ECS Managed Instances. When enabled, tags applied to the capacity provider are automatically applied to all instances launched by this provider.</p>"
+        },
+        "infrastructureOptimization":{
+          "shape":"InfrastructureOptimization",
+          "documentation":"<p>Defines how Amazon ECS Managed Instances optimizes the infrastastructure in your capacity provider. Provides control over the delay between when EC2 instances become idle or underutilized and when Amazon ECS optimizes them.</p>"
         }
       },
       "documentation":"<p>The configuration for creating a Amazon ECS Managed Instances provider. This specifies how Amazon ECS should manage Amazon EC2 instances, including the infrastructure role, instance launch template, and whether to propagate tags from the capacity provider to the instances.</p>"
@@ -2676,6 +2840,25 @@
         }
       }
     },
+    "DeleteExpressGatewayServiceRequest":{
+      "type":"structure",
+      "required":["serviceArn"],
+      "members":{
+        "serviceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Express service to delete. The ARN uniquely identifies the service within your Amazon Web Services account and region.</p>"
+        }
+      }
+    },
+    "DeleteExpressGatewayServiceResponse":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"ECSExpressGatewayService",
+          "documentation":"<p>The full description of the deleted express service.</p>"
+        }
+      }
+    },
     "DeleteServiceRequest":{
       "type":"structure",
       "required":["service"],
@@ -2913,7 +3096,7 @@
         },
         "strategy":{
           "shape":"DeploymentStrategy",
-          "documentation":"<p>The deployment strategy for the service. Choose from these valid values:</p> <ul> <li> <p> <code>ROLLING</code> - When you create a service which uses the rolling update (<code>ROLLING</code>) deployment strategy, the Amazon ECS service scheduler replaces the currently running tasks with new tasks. The number of tasks that Amazon ECS adds or removes from the service during a rolling update is controlled by the service deployment configuration.</p> </li> <li> <p> <code>BLUE_GREEN</code> - A blue/green deployment strategy (<code>BLUE_GREEN</code>) is a release methodology that reduces downtime and risk by running two identical production environments called blue and green. With Amazon ECS blue/green deployments, you can validate new service revisions before directing production traffic to them. This approach provides a safer way to deploy changes with the ability to quickly roll back if needed.</p> </li> </ul>"
+          "documentation":"<p>The deployment strategy for the service. Choose from these valid values:</p> <ul> <li> <p> <code>ROLLING</code> - When you create a service which uses the rolling update (<code>ROLLING</code>) deployment strategy, the Amazon ECS service scheduler replaces the currently running tasks with new tasks. The number of tasks that Amazon ECS adds or removes from the service during a rolling update is controlled by the service deployment configuration.</p> </li> <li> <p> <code>BLUE_GREEN</code> - A blue/green deployment strategy (<code>BLUE_GREEN</code>) is a release methodology that reduces downtime and risk by running two identical production environments called blue and green. With Amazon ECS blue/green deployments, you can validate new service revisions before directing production traffic to them. This approach provides a safer way to deploy changes with the ability to quickly roll back if needed.</p> </li> <li> <p> <code>LINEAR</code> - A <i>linear</i> deployment strategy (<code>LINEAR</code>) gradually shifts traffic from the current production environment to a new environment in equal percentages over time. With Amazon ECS linear deployments, you can control the pace of traffic shifting and validate new service revisions with increasing amounts of production traffic.</p> </li> <li> <p> <code>CANARY</code> - A <i>canary</i> deployment strategy (<code>CANARY</code>) shifts a small percentage of traffic to the new service revision first, then shifts the remaining traffic all at once after a specified time period. This allows you to test the new version with a subset of users before full deployment.</p> </li> </ul>"
         },
         "bakeTimeInMinutes":{
           "shape":"BoxedInteger",
@@ -3168,6 +3351,29 @@
         "failures":{
           "shape":"Failures",
           "documentation":"<p>Any failures associated with the call.</p>"
+        }
+      }
+    },
+    "DescribeExpressGatewayServiceRequest":{
+      "type":"structure",
+      "required":["serviceArn"],
+      "members":{
+        "serviceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Express service to describe. The ARN uniquely identifies the service within your Amazon Web Services account and region.</p>"
+        },
+        "include":{
+          "shape":"ExpressGatewayServiceIncludeList",
+          "documentation":"<p>Specifies additional information to include in the response. Valid values are <code>TAGS</code> to include resource tags associated with the Express service.</p>"
+        }
+      }
+    },
+    "DescribeExpressGatewayServiceResponse":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"ECSExpressGatewayService",
+          "documentation":"<p>The full description of the described express service.</p>"
         }
       }
     },
@@ -3484,6 +3690,78 @@
       "member":{"shape":"EBSTagSpecification"}
     },
     "EBSVolumeType":{"type":"string"},
+    "ECSExpressGatewayService":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full ARN of the cluster that hosts the Express service.</p>"
+        },
+        "serviceName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Express service.</p>"
+        },
+        "serviceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN that identifies the Express service.</p>"
+        },
+        "infrastructureRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the infrastructure role that manages Amazon Web Services resources for the Express service.</p>"
+        },
+        "status":{
+          "shape":"ExpressGatewayServiceStatus",
+          "documentation":"<p>The current status of the Express service.</p>"
+        },
+        "currentDeployment":{
+          "shape":"String",
+          "documentation":"<p>The current deployment configuration for the Express service.</p>"
+        },
+        "activeConfigurations":{
+          "shape":"ExpressGatewayServiceConfigurations",
+          "documentation":"<p>The list of active service configurations for the Express service.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>The metadata applied to the Express service.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Express service was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Express service was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Represents an Express service, which provides a simplified way to deploy containerized web applications on Amazon ECS with managed Amazon Web Services infrastructure. An Express service automatically provisions and manages Application Load Balancers, target groups, security groups, and auto-scaling policies.</p> <p>Express services use a service revision architecture where each service can have multiple active configurations, enabling blue-green deployments and gradual rollouts. The service maintains a list of active configurations and manages the lifecycle of the underlying Amazon Web Services resources.</p>"
+    },
+    "ECSManagedResources":{
+      "type":"structure",
+      "members":{
+        "ingressPaths":{
+          "shape":"ManagedIngressPaths",
+          "documentation":"<p>The ingress paths and endpoints for the Express service.</p>"
+        },
+        "autoScaling":{
+          "shape":"ManagedAutoScaling",
+          "documentation":"<p>The auto-scaling configuration and policies for the Express service.</p>"
+        },
+        "metricAlarms":{
+          "shape":"ManagedMetricAlarms",
+          "documentation":"<p>The CloudWatch metric alarms associated with the Express service.</p>"
+        },
+        "serviceSecurityGroups":{
+          "shape":"ManagedSecurityGroups",
+          "documentation":"<p>The security groups managed by the Express service.</p>"
+        },
+        "logGroups":{
+          "shape":"ManagedLogGroups",
+          "documentation":"<p>The log groups managed by the Express service.</p>"
+        }
+      },
+      "documentation":"<p>Represents the Amazon Web Services resources managed by Amazon ECS for an Express service, including ingress paths, auto-scaling policies, metric alarms, and security groups.</p>"
+    },
     "ECSVolumeName":{"type":"string"},
     "EFSAuthorizationConfig":{
       "type":"structure",
@@ -3702,6 +3980,197 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the task.</p>"
         }
       }
+    },
+    "ExpressGatewayContainer":{
+      "type":"structure",
+      "required":["image"],
+      "members":{
+        "image":{
+          "shape":"String",
+          "documentation":"<p>The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. Other repositories are specified with either <code>repository-url/image:tag</code> or <code>repository-url/image@digest</code>.</p> <p>For Express services, the image typically contains a web application that listens on the specified container port. The image can be stored in Amazon ECR, Docker Hub, or any other container registry accessible to your execution role.</p>"
+        },
+        "containerPort":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The port number on the container that receives traffic from the load balancer. Default is 80.</p>"
+        },
+        "awsLogsConfiguration":{
+          "shape":"ExpressGatewayServiceAwsLogsConfiguration",
+          "documentation":"<p>The log configuration for the container.</p>"
+        },
+        "repositoryCredentials":{
+          "shape":"ExpressGatewayRepositoryCredentials",
+          "documentation":"<p>The configuration for repository credentials for private registry authentication.</p>"
+        },
+        "command":{
+          "shape":"StringList",
+          "documentation":"<p>The command that is passed to the container.</p>"
+        },
+        "environment":{
+          "shape":"EnvironmentVariables",
+          "documentation":"<p>The environment variables to pass to the container.</p>"
+        },
+        "secrets":{
+          "shape":"SecretList",
+          "documentation":"<p>The secrets to pass to the container.</p>"
+        }
+      },
+      "documentation":"<p>Defines the configuration for the primary container in an Express service. This container receives traffic from the Application Load Balancer and runs your application code.</p> <p>The container configuration includes the container image, port mapping, logging settings, environment variables, and secrets. The container image is the only required parameter, with sensible defaults provided for other settings.</p>"
+    },
+    "ExpressGatewayRepositoryCredentials":{
+      "type":"structure",
+      "members":{
+        "credentialsParameter":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the secret containing the private repository credentials.</p>"
+        }
+      },
+      "documentation":"<p>The repository credentials for private registry authentication to pass to the container.</p>"
+    },
+    "ExpressGatewayScalingTarget":{
+      "type":"structure",
+      "members":{
+        "minTaskCount":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The minimum number of tasks to run in the Express service.</p>"
+        },
+        "maxTaskCount":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum number of tasks to run in the Express service.</p>"
+        },
+        "autoScalingMetric":{
+          "shape":"ExpressGatewayServiceScalingMetric",
+          "documentation":"<p>The metric used for auto-scaling decisions. The default metric used for an Express service is <code>CPUUtilization</code>.</p>"
+        },
+        "autoScalingTargetValue":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The target value for the auto-scaling metric. The default value for an Express service is 60.</p>"
+        }
+      },
+      "documentation":"<p>Defines the auto-scaling configuration for an Express service. This determines how the service automatically adjusts the number of running tasks based on demand metrics such as CPU utilization, memory utilization, or request count per target.</p> <p>Auto-scaling helps ensure your application can handle varying levels of traffic while optimizing costs by scaling down during low-demand periods. You can specify the minimum and maximum number of tasks, the scaling metric, and the target value for that metric.</p>"
+    },
+    "ExpressGatewayServiceAwsLogsConfiguration":{
+      "type":"structure",
+      "required":[
+        "logGroup",
+        "logStreamPrefix"
+      ],
+      "members":{
+        "logGroup":{
+          "shape":"String",
+          "documentation":"<p>The name of the CloudWatch Logs log group to send container logs to.</p>"
+        },
+        "logStreamPrefix":{
+          "shape":"String",
+          "documentation":"<p>The prefix for the CloudWatch Logs log stream names. The default for an Express service is <code>ecs</code>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Amazon CloudWatch Logs configuration for the Express service container.</p>"
+    },
+    "ExpressGatewayServiceConfiguration":{
+      "type":"structure",
+      "members":{
+        "serviceRevisionArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the service revision.</p>"
+        },
+        "executionRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the task execution role for the service revision.</p>"
+        },
+        "taskRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the task role for the service revision.</p>"
+        },
+        "cpu":{
+          "shape":"String",
+          "documentation":"<p>The CPU allocation for tasks in this service revision.</p>"
+        },
+        "memory":{
+          "shape":"String",
+          "documentation":"<p>The memory allocation for tasks in this service revision.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"ExpressGatewayServiceNetworkConfiguration",
+          "documentation":"<p>The network configuration for tasks in this service revision.</p>"
+        },
+        "healthCheckPath":{
+          "shape":"String",
+          "documentation":"<p>The health check path for this service revision.</p>"
+        },
+        "primaryContainer":{
+          "shape":"ExpressGatewayContainer",
+          "documentation":"<p>The primary container configuration for this service revision.</p>"
+        },
+        "scalingTarget":{
+          "shape":"ExpressGatewayScalingTarget",
+          "documentation":"<p>The auto-scaling configuration for this service revision.</p>"
+        },
+        "ingressPaths":{
+          "shape":"IngressPathSummaries",
+          "documentation":"<p>The entry point into this service revision.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when this service revision was created.</p>"
+        }
+      },
+      "documentation":"<p>Represents a specific configuration revision of an Express service, containing all the settings and parameters for that revision.</p>"
+    },
+    "ExpressGatewayServiceConfigurations":{
+      "type":"list",
+      "member":{"shape":"ExpressGatewayServiceConfiguration"}
+    },
+    "ExpressGatewayServiceInclude":{
+      "type":"string",
+      "enum":["TAGS"]
+    },
+    "ExpressGatewayServiceIncludeList":{
+      "type":"list",
+      "member":{"shape":"ExpressGatewayServiceInclude"}
+    },
+    "ExpressGatewayServiceNetworkConfiguration":{
+      "type":"structure",
+      "members":{
+        "securityGroups":{
+          "shape":"StringList",
+          "documentation":"<p>The IDs of the security groups associated with the Express service.</p>"
+        },
+        "subnets":{
+          "shape":"StringList",
+          "documentation":"<p>The IDs of the subnets associated with the Express service.</p>"
+        }
+      },
+      "documentation":"<p>The network configuration for an Express service. By default, an Express service utilizes subnets and security groups associated with the default VPC.</p>"
+    },
+    "ExpressGatewayServiceScalingMetric":{
+      "type":"string",
+      "enum":[
+        "AVERAGE_CPU",
+        "AVERAGE_MEMORY",
+        "REQUEST_COUNT_PER_TARGET"
+      ]
+    },
+    "ExpressGatewayServiceStatus":{
+      "type":"structure",
+      "members":{
+        "statusCode":{
+          "shape":"ExpressGatewayServiceStatusCode",
+          "documentation":"<p>The status of the Express service.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the Express service is in the current status.</p>"
+        }
+      },
+      "documentation":"<p>An object that defines the status of Express service creation and information about the status of the service.</p>"
+    },
+    "ExpressGatewayServiceStatusCode":{
+      "type":"string",
+      "enum":[
+        "ACTIVE",
+        "DRAINING",
+        "INACTIVE"
+      ]
     },
     "FSxWindowsFileServerAuthorizationConfig":{
       "type":"structure",
@@ -3937,6 +4406,38 @@
       "type":"list",
       "member":{"shape":"InferenceAccelerator"}
     },
+    "InfrastructureOptimization":{
+      "type":"structure",
+      "members":{
+        "scaleInAfter":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>This parameter defines the number of seconds Amazon ECS Managed Instances waits before optimizing EC2 instances that have become idle or underutilized. A longer delay increases the likelihood of placing new tasks on idle or underutilized instances instances, reducing startup time. A shorter delay helps reduce infrastructure costs by optimizing idle or underutilized instances,instances more quickly.</p> <p>Valid values are:</p> <ul> <li> <p> <code>null</code> - Uses the default optimization behavior.</p> </li> <li> <p> <code>-1</code> - Disables automatic infrastructure optimization.</p> </li> <li> <p>A value between <code>0</code> and <code>3600</code> (inclusive) - Specifies the number of seconds to wait before optimizing instances.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The configuration that controls how Amazon ECS optimizes your infrastructure.</p>"
+    },
+    "IngressPathSummaries":{
+      "type":"list",
+      "member":{"shape":"IngressPathSummary"}
+    },
+    "IngressPathSummary":{
+      "type":"structure",
+      "required":[
+        "accessType",
+        "endpoint"
+      ],
+      "members":{
+        "accessType":{
+          "shape":"AccessType",
+          "documentation":"<p>The type of access to the endpoint for the Express service.</p>"
+        },
+        "endpoint":{
+          "shape":"String",
+          "documentation":"<p>The endpoint for access to the service.</p>"
+        }
+      },
+      "documentation":"<p>The entry point into an Express service.</p>"
+    },
     "InstanceGeneration":{
       "type":"string",
       "enum":[
@@ -4010,9 +4511,17 @@
           "shape":"ManagedInstancesMonitoringOptions",
           "documentation":"<p>CloudWatch provides two categories of monitoring: basic monitoring and detailed monitoring. By default, your managed instance is configured for basic monitoring. You can optionally enable detailed monitoring to help you more quickly identify and act on operational issues. You can enable or turn off detailed monitoring at launch or when the managed instance is running or stopped. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/detailed-monitoring-managed-instances.html\">Detailed monitoring for Amazon ECS Managed Instances</a> in the Amazon ECS Developer Guide.</p>"
         },
+        "capacityOptionType":{
+          "shape":"CapacityOptionType",
+          "documentation":"<p>The capacity option type. This determines whether Amazon ECS launches On-Demand or Spot Instances for your managed instance capacity provider.</p> <p>Valid values are:</p> <ul> <li> <p> <code>ON_DEMAND</code> - Launches standard On-Demand Instances. On-Demand Instances provide predictable pricing and availability.</p> </li> <li> <p> <code>SPOT</code> - Launches Spot Instances that use spare Amazon EC2 capacity at reduced cost. Spot Instances can be interrupted by Amazon EC2 with a two-minute notification when the capacity is needed back.</p> </li> </ul> <p>The default is On-Demand</p> <p>For more information about Amazon EC2 capacity options, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html\">Instance purchasing options</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+        },
         "instanceRequirements":{
           "shape":"InstanceRequirementsRequest",
           "documentation":"<p>The instance requirements. You can specify:</p> <ul> <li> <p>The instance types</p> </li> <li> <p>Instance requirements such as vCPU count, memory, network performance, and accelerator specifications</p> </li> </ul> <p>Amazon ECS automatically selects the instances that match the specified criteria.</p>"
+        },
+        "fipsEnabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Determines whether to enable FIPS 140-2 validated cryptographic modules on EC2 instances launched by the capacity provider. If <code>true</code>, instances use FIPS-compliant cryptographic algorithms and modules for enhanced security compliance. If <code>false</code>, instances use standard cryptographic implementations.</p> <p>If not specified, instances are launched with FIPS enabled in AWS GovCloud (US) regions and FIPS disabled in other regions.</p>"
         }
       },
       "documentation":"<p>The launch template configuration for Amazon ECS Managed Instances. This defines how Amazon ECS launches Amazon EC2 instances, including the instance profile for your tasks, network and storage configuration, capacity options, and instance requirements for flexible instance type selection.</p>"
@@ -4216,12 +4725,12 @@
       "members":{
         "stepPercent":{
           "shape":"Double",
-          "documentation":"<p>The percentage of production traffic to shift in each step during a linear deployment. Valid values are 3.0 to 100.0. The default value is 10.0.</p>",
+          "documentation":"<p>The percentage of production traffic to shift in each step during a linear deployment. Valid values are multiples of 0.1 from 3.0 to 100.0. The default value is 10.0.</p>",
           "box":true
         },
         "stepBakeTimeInMinutes":{
           "shape":"Integer",
-          "documentation":"<p>The amount of time in minutes to wait between each traffic shifting step during a linear deployment. Valid values are 0 to 1440 minutes (24 hours). The default value is 6. This bake time is not applied after reaching 100% traffic.</p>",
+          "documentation":"<p>The amount of time in minutes to wait between each traffic shifting step during a linear deployment. Valid values are 0 to 1440 minutes (24 hours). The default value is 6. This bake time is not applied after reaching 100 percent traffic.</p>",
           "box":true
         }
       },
@@ -4506,6 +5015,10 @@
         "schedulingStrategy":{
           "shape":"SchedulingStrategy",
           "documentation":"<p>The scheduling strategy to use when filtering the <code>ListServices</code> results.</p>"
+        },
+        "resourceManagementType":{
+          "shape":"ResourceManagementType",
+          "documentation":"<p>The resourceManagementType type to use when filtering the <code>ListServices</code> results.</p>"
         }
       }
     },
@@ -4815,12 +5328,148 @@
       "type":"list",
       "member":{"shape":"ManagedAgent"}
     },
+    "ManagedApplicationAutoScalingPolicies":{
+      "type":"list",
+      "member":{"shape":"ManagedApplicationAutoScalingPolicy"}
+    },
+    "ManagedApplicationAutoScalingPolicy":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "policyType",
+        "targetValue",
+        "metric"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Application Auto Scaling policy associated with the Express service.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of Application Auto Scaling policy creation.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the Application Auto Scaling policy is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Application Auto Scaling policy was last updated.</p>"
+        },
+        "policyType":{
+          "shape":"String",
+          "documentation":"<p>The type of Application Auto Scaling policy associated with the Express service. Valid values are <code>TargetTrackingScaling</code>, <code>StepScaling</code>, and <code>PredictiveScaling</code>.</p>"
+        },
+        "targetValue":{
+          "shape":"Double",
+          "documentation":"<p>The target value for the auto scaling metric.</p>"
+        },
+        "metric":{
+          "shape":"String",
+          "documentation":"<p>The metric used for auto scaling decisions. The available metrics are <code>ECSServiceAverageCPUUtilization</code>, <code>ECSServiceAverageMemoryUtilization</code>, and <code>ALBRequestCOuntPerTarget</code>.</p>"
+        }
+      },
+      "documentation":"<p>The Application Auto Scaling policy created by Amazon ECS when you create an Express service.</p>"
+    },
+    "ManagedAutoScaling":{
+      "type":"structure",
+      "members":{
+        "scalableTarget":{
+          "shape":"ManagedScalableTarget",
+          "documentation":"<p>Represents a scalable target.</p>"
+        },
+        "applicationAutoScalingPolicies":{
+          "shape":"ManagedApplicationAutoScalingPolicies",
+          "documentation":"<p>The policy used for auto scaling.</p>"
+        }
+      },
+      "documentation":"<p>The auto scaling configuration created by Amazon ECS for an Express service.</p>"
+    },
+    "ManagedCertificate":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "domainName"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the ACM certificate.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the ACM; certificate.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the ACM certificate is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the ACM certificate was last updated</p>"
+        },
+        "domainName":{
+          "shape":"String",
+          "documentation":"<p>The fully qualified domain name (FQDN) that is secured with this ACM certificate.</p>"
+        }
+      },
+      "documentation":"<p>The ACM certificate associated with the HTTPS domain created for the Express service.</p>"
+    },
     "ManagedDraining":{
       "type":"string",
       "enum":[
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "ManagedIngressPath":{
+      "type":"structure",
+      "required":[
+        "accessType",
+        "endpoint"
+      ],
+      "members":{
+        "accessType":{
+          "shape":"AccessType",
+          "documentation":"<p>The type of access to the endpoint for the Express service.</p>"
+        },
+        "endpoint":{
+          "shape":"String",
+          "documentation":"<p>The endpoint for access to the Express service.</p>"
+        },
+        "loadBalancer":{
+          "shape":"ManagedLoadBalancer",
+          "documentation":"<p>The Application Load Balancer associated with the Express service.</p>"
+        },
+        "loadBalancerSecurityGroups":{
+          "shape":"ManagedSecurityGroups",
+          "documentation":"<p>The security groups associated with the Application Load Balancer.</p>"
+        },
+        "certificate":{
+          "shape":"ManagedCertificate",
+          "documentation":"<p>The ACM certificate for the Express service's domain.</p>"
+        },
+        "listener":{
+          "shape":"ManagedListener",
+          "documentation":"<p>The listeners associated with the Application Load Balancer.</p>"
+        },
+        "rule":{
+          "shape":"ManagedListenerRule",
+          "documentation":"<p>The listener rules for the Application Load Balancer.</p>"
+        },
+        "targetGroups":{
+          "shape":"ManagedTargetGroups",
+          "documentation":"<p>The target groups associated with the Application Load Balancer.</p>"
+        }
+      },
+      "documentation":"<p>The entry point into the Express service.</p>"
+    },
+    "ManagedIngressPaths":{
+      "type":"list",
+      "member":{"shape":"ManagedIngressPath"}
     },
     "ManagedInstancesMonitoringOptions":{
       "type":"string",
@@ -4857,6 +5506,10 @@
         "propagateTags":{
           "shape":"PropagateMITags",
           "documentation":"<p>Determines whether tags from the capacity provider are automatically applied to Amazon ECS Managed Instances. This helps with cost allocation and resource management by ensuring consistent tagging across your infrastructure.</p>"
+        },
+        "infrastructureOptimization":{
+          "shape":"InfrastructureOptimization",
+          "documentation":"<p>Defines how Amazon ECS Managed Instances optimizes the infrastastructure in your capacity provider. Configure it to turn on or off the infrastructure optimization in your capacity provider, and to control the idle or underutilized EC2 instances optimization delay.</p>"
         }
       },
       "documentation":"<p>The configuration for a Amazon ECS Managed Instances provider. Amazon ECS uses this configuration to automatically launch, manage, and terminate Amazon EC2 instances on your behalf. Managed instances provide access to the full range of Amazon EC2 instance types and features while offloading infrastructure management to Amazon Web Services.</p>"
@@ -4870,6 +5523,208 @@
         }
       },
       "documentation":"<p>The storage configuration for Amazon ECS Managed Instances. This defines the root volume configuration for the instances.</p>"
+    },
+    "ManagedListener":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the load balancer listener.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the load balancer listener.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Informaion about why the load balancer listener is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when this listener was most recently updated.</p>"
+        }
+      },
+      "documentation":"<p>The listeners associated with the Express service's Application Load Balancer.</p>"
+    },
+    "ManagedListenerRule":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the load balancer listener rule.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the load balancer listener rule.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the load balancer listener rule is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when this listener rule was most recently updated.</p>"
+        }
+      },
+      "documentation":"<p>The listener rule associated with the Express service's Application Load Balancer.</p>"
+    },
+    "ManagedLoadBalancer":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "scheme"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the load balancer.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the load balancer.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the load balancer is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when this load balancer was most recently updated.</p>"
+        },
+        "scheme":{
+          "shape":"String",
+          "documentation":"<p>The scheme of the load balancer. By default, the scheme of the load balancer is <code>internet-facing</code>.</p>"
+        },
+        "subnetIds":{
+          "shape":"StringList",
+          "documentation":"<p>The IDs of the subnets associated with the load balancer.</p>"
+        },
+        "securityGroupIds":{
+          "shape":"StringList",
+          "documentation":"<p>The IDs of the security groups associated with the load balancer.</p>"
+        }
+      },
+      "documentation":"<p>The Application Load Balancer associated with the Express service.</p>"
+    },
+    "ManagedLogGroup":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "logGroupName"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Cloudwatch Log Group associated with the Express service.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the Cloudwatch LogGroup.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the Cloudwatch LogGroup is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Cloudwatch LogGroup was last updated</p>"
+        },
+        "logGroupName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Cloudwatch Log Group associated with the Express service.</p>"
+        }
+      },
+      "documentation":"<p>The Cloudwatch Log Group created by Amazon ECS for an Express service.</p>"
+    },
+    "ManagedLogGroups":{
+      "type":"list",
+      "member":{"shape":"ManagedLogGroup"}
+    },
+    "ManagedMetricAlarm":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the CloudWatch metric alarm.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the CloudWatch metric alarm.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the CloudWatch metric alarm is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the CloudWatch metric alarm was last updated.</p>"
+        }
+      },
+      "documentation":"<p>The CloudWatch metric alarm associated with the Express service's scaling policy.</p>"
+    },
+    "ManagedMetricAlarms":{
+      "type":"list",
+      "member":{"shape":"ManagedMetricAlarm"}
+    },
+    "ManagedResourceStatus":{
+      "type":"string",
+      "enum":[
+        "PROVISIONING",
+        "ACTIVE",
+        "DEPROVISIONING",
+        "DELETED",
+        "FAILED"
+      ]
+    },
+    "ManagedScalableTarget":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "minCapacity",
+        "maxCapacity"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the scalable target.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the scalable target.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the scalable target is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the target was most recently updated.</p>"
+        },
+        "minCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The minimum value to scale to in response to a scale-in activity.</p>"
+        },
+        "maxCapacity":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum value to scale to in response to a scale-out activity.</p>"
+        }
+      },
+      "documentation":"<p>Represents a scalable target.</p>"
     },
     "ManagedScaling":{
       "type":"structure",
@@ -4919,6 +5774,36 @@
       "max":100,
       "min":1
     },
+    "ManagedSecurityGroup":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the security group.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the security group.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the security group is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the security group was last updated.</p>"
+        }
+      },
+      "documentation":"<p>A security group associated with the Express service.</p>"
+    },
+    "ManagedSecurityGroups":{
+      "type":"list",
+      "member":{"shape":"ManagedSecurityGroup"}
+    },
     "ManagedStorageConfiguration":{
       "type":"structure",
       "members":{
@@ -4932,6 +5817,51 @@
         }
       },
       "documentation":"<p>The managed storage configuration for the cluster.</p>"
+    },
+    "ManagedTargetGroup":{
+      "type":"structure",
+      "required":[
+        "status",
+        "updatedAt",
+        "healthCheckPath",
+        "healthCheckPort",
+        "port"
+      ],
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the target group.</p>"
+        },
+        "status":{
+          "shape":"ManagedResourceStatus",
+          "documentation":"<p>The status of the target group.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>Information about why the target group is in the current status.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the target group was last updated.</p>"
+        },
+        "healthCheckPath":{
+          "shape":"String",
+          "documentation":"<p>The destination for health checks on the targets.</p>"
+        },
+        "healthCheckPort":{
+          "shape":"Integer",
+          "documentation":"<p>The port the load balancer uses when performing health checks on targets.</p>"
+        },
+        "port":{
+          "shape":"Integer",
+          "documentation":"<p>The port on which the targets receive traffic.</p>"
+        }
+      },
+      "documentation":"<p>The target group associated with the Express service's Application Load Balancer. For more information about load balancer target groups, see <a href=\"https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_CreateTargetGroup.html\">CreateTargetGroup</a> in the <i>Elastic Load Balancing API Reference</i> </p>"
+    },
+    "ManagedTargetGroups":{
+      "type":"list",
+      "member":{"shape":"ManagedTargetGroup"}
     },
     "ManagedTerminationProtection":{
       "type":"string",
@@ -5336,7 +6266,7 @@
       "members":{
         "name":{
           "shape":"SettingName",
-          "documentation":"<p>The resource name for which to modify the account setting.</p> <p>The following are the valid values for the account setting name.</p> <ul> <li> <p> <code>serviceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>taskLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>containerInstanceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>awsvpcTrunking</code> - When modified, the elastic network interface (ENI) limit for any new container instances that support the feature is changed. If <code>awsvpcTrunking</code> is turned on, any new container instances that support the feature are launched have the increased ENI limits available to them. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-eni.html\">Elastic Network Interface Trunking</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>containerInsights</code> - Container Insights with enhanced observability provides all the Container Insights metrics, plus additional task and container metrics. This version supports enhanced observability for Amazon ECS clusters using the Amazon EC2 and Fargate launch types. After you configure Container Insights with enhanced observability on Amazon ECS, Container Insights auto-collects detailed infrastructure telemetry from the cluster level down to the container level in your environment and displays these critical performance data in curated dashboards removing the heavy lifting in observability set-up. </p> <p>To use Container Insights with enhanced observability, set the <code>containerInsights</code> account setting to <code>enhanced</code>.</p> <p>To use Container Insights, set the <code>containerInsights</code> account setting to <code>enabled</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-container-insights.html\">Monitor Amazon ECS containers using Container Insights with enhanced observability</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>dualStackIPv6</code> - When turned on, when using a VPC in dual stack mode, your tasks using the <code>awsvpc</code> network mode can have an IPv6 address assigned. For more information on using IPv6 with tasks launched on Amazon EC2 instances, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking-awsvpc.html#task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>. For more information on using IPv6 with tasks launched on Fargate, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html#fargate-task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>.</p> </li> <li> <p> <code>fargateFIPSMode</code> - If you specify <code>fargateFIPSMode</code>, Fargate FIPS 140 compliance is affected.</p> </li> <li> <p> <code>fargateTaskRetirementWaitPeriod</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateTaskRetirementWaitPeriod</code> to configure the wait time to retire a Fargate task. For information about the Fargate tasks maintenance, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-maintenance.html\">Amazon Web Services Fargate task maintenance</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>tagResourceAuthorization</code> - Amazon ECS is introducing tagging authorization for resource creation. Users must have permissions for actions that create the resource, such as <code>ecsCreateCluster</code>. If tags are specified when you create a resource, Amazon Web Services performs additional authorization to verify if users or roles have permissions to create tags. Therefore, you must grant explicit permissions to use the <code>ecs:TagResource</code> action. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/supported-iam-actions-tagging.html\">Grant permission to tag resources on creation</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>defaultLogDriverMode</code> -Amazon ECS supports setting a default delivery mode of log messages from a container to the <code>logDriver</code> that you specify in the container's <code>logConfiguration</code>. The delivery mode affects application stability when the flow of logs from the container to the log driver is interrupted. The <code>defaultLogDriverMode</code> setting supports two values: <code>blocking</code> and <code>non-blocking</code>. If you don't specify a delivery mode in your container definition's <code>logConfiguration</code>, the mode you specify using this account setting will be used as the default. For more information about log delivery modes, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html\">LogConfiguration</a>.</p> <note> <p>On June 25, 2025, Amazon ECS changed the default log driver mode from <code>blocking</code> to <code>non-blocking</code> to prioritize task availability over logging. To continue using the <code>blocking</code> mode after this change, do one of the following:</p> <ul> <li> <p>Set the <code>mode</code> option in your container definition's <code>logConfiguration</code> as <code>blocking</code>.</p> </li> <li> <p>Set the <code>defaultLogDriverMode</code> account setting to <code>blocking</code>.</p> </li> </ul> </note> </li> <li> <p> <code>guardDutyActivate</code> - The <code>guardDutyActivate</code> parameter is read-only in Amazon ECS and indicates whether Amazon ECS Runtime Monitoring is enabled or disabled by your security administrator in your Amazon ECS account. Amazon GuardDuty controls this account setting on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-guard-duty-integration.html\">Protecting Amazon ECS workloads with Amazon ECS Runtime Monitoring</a>.</p> </li> </ul>"
+          "documentation":"<p>The resource name for which to modify the account setting.</p> <p>The following are the valid values for the account setting name.</p> <ul> <li> <p> <code>serviceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>taskLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>containerInstanceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>awsvpcTrunking</code> - When modified, the elastic network interface (ENI) limit for any new container instances that support the feature is changed. If <code>awsvpcTrunking</code> is turned on, any new container instances that support the feature are launched have the increased ENI limits available to them. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-eni.html\">Elastic Network Interface Trunking</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>containerInsights</code> - Container Insights with enhanced observability provides all the Container Insights metrics, plus additional task and container metrics. This version supports enhanced observability for Amazon ECS clusters using the Amazon EC2 and Fargate launch types. After you configure Container Insights with enhanced observability on Amazon ECS, Container Insights auto-collects detailed infrastructure telemetry from the cluster level down to the container level in your environment and displays these critical performance data in curated dashboards removing the heavy lifting in observability set-up. </p> <p>To use Container Insights with enhanced observability, set the <code>containerInsights</code> account setting to <code>enhanced</code>.</p> <p>To use Container Insights, set the <code>containerInsights</code> account setting to <code>enabled</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-container-insights.html\">Monitor Amazon ECS containers using Container Insights with enhanced observability</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>dualStackIPv6</code> - When turned on, when using a VPC in dual stack mode, your tasks using the <code>awsvpc</code> network mode can have an IPv6 address assigned. For more information on using IPv6 with tasks launched on Amazon EC2 instances, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking-awsvpc.html#task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>. For more information on using IPv6 with tasks launched on Fargate, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html#fargate-task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>.</p> </li> <li> <p> <code>fargateFIPSMode</code> - If you specify <code>fargateFIPSMode</code>, Fargate FIPS 140 compliance is affected.</p> </li> <li> <p> <code>fargateTaskRetirementWaitPeriod</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateTaskRetirementWaitPeriod</code> to configure the wait time to retire a Fargate task. For information about the Fargate tasks maintenance, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-maintenance.html\">Amazon Web Services Fargate task maintenance</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>fargateEventWindows</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateEventWindows</code> to use EC2 Event Windows associated with Fargate tasks to configure time windows for task retirement.</p> </li> <li> <p> <code>tagResourceAuthorization</code> - Amazon ECS is introducing tagging authorization for resource creation. Users must have permissions for actions that create the resource, such as <code>ecsCreateCluster</code>. If tags are specified when you create a resource, Amazon Web Services performs additional authorization to verify if users or roles have permissions to create tags. Therefore, you must grant explicit permissions to use the <code>ecs:TagResource</code> action. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/supported-iam-actions-tagging.html\">Grant permission to tag resources on creation</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>defaultLogDriverMode</code> -Amazon ECS supports setting a default delivery mode of log messages from a container to the <code>logDriver</code> that you specify in the container's <code>logConfiguration</code>. The delivery mode affects application stability when the flow of logs from the container to the log driver is interrupted. The <code>defaultLogDriverMode</code> setting supports two values: <code>blocking</code> and <code>non-blocking</code>. If you don't specify a delivery mode in your container definition's <code>logConfiguration</code>, the mode you specify using this account setting will be used as the default. For more information about log delivery modes, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html\">LogConfiguration</a>.</p> <note> <p>On June 25, 2025, Amazon ECS changed the default log driver mode from <code>blocking</code> to <code>non-blocking</code> to prioritize task availability over logging. To continue using the <code>blocking</code> mode after this change, do one of the following:</p> <ul> <li> <p>Set the <code>mode</code> option in your container definition's <code>logConfiguration</code> as <code>blocking</code>.</p> </li> <li> <p>Set the <code>defaultLogDriverMode</code> account setting to <code>blocking</code>.</p> </li> </ul> </note> </li> <li> <p> <code>guardDutyActivate</code> - The <code>guardDutyActivate</code> parameter is read-only in Amazon ECS and indicates whether Amazon ECS Runtime Monitoring is enabled or disabled by your security administrator in your Amazon ECS account. Amazon GuardDuty controls this account setting on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-guard-duty-integration.html\">Protecting Amazon ECS workloads with Amazon ECS Runtime Monitoring</a>.</p> </li> </ul>"
         },
         "value":{
           "shape":"String",
@@ -5362,7 +6292,7 @@
       "members":{
         "name":{
           "shape":"SettingName",
-          "documentation":"<p>The Amazon ECS account setting name to modify.</p> <p>The following are the valid values for the account setting name.</p> <ul> <li> <p> <code>serviceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>taskLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>containerInstanceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>awsvpcTrunking</code> - When modified, the elastic network interface (ENI) limit for any new container instances that support the feature is changed. If <code>awsvpcTrunking</code> is turned on, any new container instances that support the feature are launched have the increased ENI limits available to them. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-eni.html\">Elastic Network Interface Trunking</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>containerInsights</code> - Container Insights with enhanced observability provides all the Container Insights metrics, plus additional task and container metrics. This version supports enhanced observability for Amazon ECS clusters using the Amazon EC2 and Fargate launch types. After you configure Container Insights with enhanced observability on Amazon ECS, Container Insights auto-collects detailed infrastructure telemetry from the cluster level down to the container level in your environment and displays these critical performance data in curated dashboards removing the heavy lifting in observability set-up. </p> <p>To use Container Insights with enhanced observability, set the <code>containerInsights</code> account setting to <code>enhanced</code>.</p> <p>To use Container Insights, set the <code>containerInsights</code> account setting to <code>enabled</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-container-insights.html\">Monitor Amazon ECS containers using Container Insights with enhanced observability</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>dualStackIPv6</code> - When turned on, when using a VPC in dual stack mode, your tasks using the <code>awsvpc</code> network mode can have an IPv6 address assigned. For more information on using IPv6 with tasks launched on Amazon EC2 instances, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking-awsvpc.html#task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>. For more information on using IPv6 with tasks launched on Fargate, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html#fargate-task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>.</p> </li> <li> <p> <code>fargateTaskRetirementWaitPeriod</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateTaskRetirementWaitPeriod</code> to configure the wait time to retire a Fargate task. For information about the Fargate tasks maintenance, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-maintenance.html\">Amazon Web Services Fargate task maintenance</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>tagResourceAuthorization</code> - Amazon ECS is introducing tagging authorization for resource creation. Users must have permissions for actions that create the resource, such as <code>ecsCreateCluster</code>. If tags are specified when you create a resource, Amazon Web Services performs additional authorization to verify if users or roles have permissions to create tags. Therefore, you must grant explicit permissions to use the <code>ecs:TagResource</code> action. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/supported-iam-actions-tagging.html\">Grant permission to tag resources on creation</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>defaultLogDriverMode</code> - Amazon ECS supports setting a default delivery mode of log messages from a container to the <code>logDriver</code> that you specify in the container's <code>logConfiguration</code>. The delivery mode affects application stability when the flow of logs from the container to the log driver is interrupted. The <code>defaultLogDriverMode</code> setting supports two values: <code>blocking</code> and <code>non-blocking</code>. If you don't specify a delivery mode in your container definition's <code>logConfiguration</code>, the mode you specify using this account setting will be used as the default. For more information about log delivery modes, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html\">LogConfiguration</a>. </p> <note> <p>On June 25, 2025, Amazon ECS changed the default log driver mode from <code>blocking</code> to <code>non-blocking</code> to prioritize task availability over logging. To continue using the <code>blocking</code> mode after this change, do one of the following:</p> <ul> <li> <p>Set the <code>mode</code> option in your container definition's <code>logConfiguration</code> as <code>blocking</code>.</p> </li> <li> <p>Set the <code>defaultLogDriverMode</code> account setting to <code>blocking</code>.</p> </li> </ul> </note> </li> <li> <p> <code>guardDutyActivate</code> - The <code>guardDutyActivate</code> parameter is read-only in Amazon ECS and indicates whether Amazon ECS Runtime Monitoring is enabled or disabled by your security administrator in your Amazon ECS account. Amazon GuardDuty controls this account setting on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-guard-duty-integration.html\">Protecting Amazon ECS workloads with Amazon ECS Runtime Monitoring</a>.</p> </li> </ul>"
+          "documentation":"<p>The Amazon ECS account setting name to modify.</p> <p>The following are the valid values for the account setting name.</p> <ul> <li> <p> <code>serviceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>taskLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>containerInstanceLongArnFormat</code> - When modified, the Amazon Resource Name (ARN) and resource ID format of the resource type for a specified user, role, or the root user for an account is affected. The opt-in and opt-out account setting must be set for each Amazon ECS resource separately. The ARN and resource ID format of a resource is defined by the opt-in status of the user or role that created the resource. You must turn on this setting to use Amazon ECS features such as resource tagging.</p> </li> <li> <p> <code>awsvpcTrunking</code> - When modified, the elastic network interface (ENI) limit for any new container instances that support the feature is changed. If <code>awsvpcTrunking</code> is turned on, any new container instances that support the feature are launched have the increased ENI limits available to them. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/container-instance-eni.html\">Elastic Network Interface Trunking</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>containerInsights</code> - Container Insights with enhanced observability provides all the Container Insights metrics, plus additional task and container metrics. This version supports enhanced observability for Amazon ECS clusters using the Amazon EC2 and Fargate launch types. After you configure Container Insights with enhanced observability on Amazon ECS, Container Insights auto-collects detailed infrastructure telemetry from the cluster level down to the container level in your environment and displays these critical performance data in curated dashboards removing the heavy lifting in observability set-up. </p> <p>To use Container Insights with enhanced observability, set the <code>containerInsights</code> account setting to <code>enhanced</code>.</p> <p>To use Container Insights, set the <code>containerInsights</code> account setting to <code>enabled</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch-container-insights.html\">Monitor Amazon ECS containers using Container Insights with enhanced observability</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> </li> <li> <p> <code>dualStackIPv6</code> - When turned on, when using a VPC in dual stack mode, your tasks using the <code>awsvpc</code> network mode can have an IPv6 address assigned. For more information on using IPv6 with tasks launched on Amazon EC2 instances, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking-awsvpc.html#task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>. For more information on using IPv6 with tasks launched on Fargate, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html#fargate-task-networking-vpc-dual-stack\">Using a VPC in dual-stack mode</a>.</p> </li> <li> <p> <code>fargateTaskRetirementWaitPeriod</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateTaskRetirementWaitPeriod</code> to configure the wait time to retire a Fargate task. For information about the Fargate tasks maintenance, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-maintenance.html\">Amazon Web Services Fargate task maintenance</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>fargateEventWindows</code> - When Amazon Web Services determines that a security or infrastructure update is needed for an Amazon ECS task hosted on Fargate, the tasks need to be stopped and new tasks launched to replace them. Use <code>fargateEventWindows</code> to use EC2 Event Windows associated with Fargate tasks to configure time windows for task retirement.</p> </li> <li> <p> <code>tagResourceAuthorization</code> - Amazon ECS is introducing tagging authorization for resource creation. Users must have permissions for actions that create the resource, such as <code>ecsCreateCluster</code>. If tags are specified when you create a resource, Amazon Web Services performs additional authorization to verify if users or roles have permissions to create tags. Therefore, you must grant explicit permissions to use the <code>ecs:TagResource</code> action. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/supported-iam-actions-tagging.html\">Grant permission to tag resources on creation</a> in the <i>Amazon ECS Developer Guide</i>.</p> </li> <li> <p> <code>defaultLogDriverMode</code> - Amazon ECS supports setting a default delivery mode of log messages from a container to the <code>logDriver</code> that you specify in the container's <code>logConfiguration</code>. The delivery mode affects application stability when the flow of logs from the container to the log driver is interrupted. The <code>defaultLogDriverMode</code> setting supports two values: <code>blocking</code> and <code>non-blocking</code>. If you don't specify a delivery mode in your container definition's <code>logConfiguration</code>, the mode you specify using this account setting will be used as the default. For more information about log delivery modes, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html\">LogConfiguration</a>. </p> <note> <p>On June 25, 2025, Amazon ECS changed the default log driver mode from <code>blocking</code> to <code>non-blocking</code> to prioritize task availability over logging. To continue using the <code>blocking</code> mode after this change, do one of the following:</p> <ul> <li> <p>Set the <code>mode</code> option in your container definition's <code>logConfiguration</code> as <code>blocking</code>.</p> </li> <li> <p>Set the <code>defaultLogDriverMode</code> account setting to <code>blocking</code>.</p> </li> </ul> </note> </li> <li> <p> <code>guardDutyActivate</code> - The <code>guardDutyActivate</code> parameter is read-only in Amazon ECS and indicates whether Amazon ECS Runtime Monitoring is enabled or disabled by your security administrator in your Amazon ECS account. Amazon GuardDuty controls this account setting on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-guard-duty-integration.html\">Protecting Amazon ECS workloads with Amazon ECS Runtime Monitoring</a>.</p> </li> </ul>"
         },
         "value":{
           "shape":"String",
@@ -5645,6 +6575,13 @@
       "members":{},
       "documentation":"<p>The specified resource is in-use and can't be removed.</p>",
       "exception":true
+    },
+    "ResourceManagementType":{
+      "type":"string",
+      "enum":[
+        "CUSTOMER",
+        "ECS"
+      ]
     },
     "ResourceNotFoundException":{
       "type":"structure",
@@ -5966,6 +6903,14 @@
           "shape":"Timestamp",
           "documentation":"<p>The Unix timestamp for the time when the service was created.</p>"
         },
+        "currentServiceDeployment":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the current service deployment.</p>"
+        },
+        "currentServiceRevisions":{
+          "shape":"ServiceCurrentRevisionSummaryList",
+          "documentation":"<p>The list of the service revisions.</p>"
+        },
         "placementConstraints":{
           "shape":"PlacementConstraints",
           "documentation":"<p>The placement constraints for the tasks in the service.</p>"
@@ -6013,6 +6958,10 @@
         "availabilityZoneRebalancing":{
           "shape":"AvailabilityZoneRebalancing",
           "documentation":"<p>Indicates whether to use Availability Zone rebalancing for the service.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-rebalancing.html\">Balancing an Amazon ECS service across Availability Zones</a> in the <i> <i>Amazon Elastic Container Service Developer Guide</i> </i>.</p> <p>The default behavior of <code>AvailabilityZoneRebalancing</code> differs between create and update requests:</p> <ul> <li> <p>For create service requests, when no value is specified for <code>AvailabilityZoneRebalancing</code>, Amazon ECS defaults the value to <code>ENABLED</code>.</p> </li> <li> <p>For update service requests, when no value is specified for <code>AvailabilityZoneRebalancing</code>, Amazon ECS defaults to the existing service’s <code>AvailabilityZoneRebalancing</code> value. If the service never had an <code>AvailabilityZoneRebalancing</code> value set, Amazon ECS treats this as <code>DISABLED</code>.</p> </li> </ul>"
+        },
+        "resourceManagementType":{
+          "shape":"ResourceManagementType",
+          "documentation":"<p>Identifies whether an ECS Service is an Express Service managed by ECS, or managed by the customer. The valid values are <code>ECS</code> and <code>CUSTOMER</code> </p>"
         }
       },
       "documentation":"<p>Details on a service within a cluster.</p>"
@@ -6213,6 +7162,32 @@
         }
       },
       "documentation":"<p>The key that encrypts and decrypts your resources for Service Connect TLS.</p>"
+    },
+    "ServiceCurrentRevisionSummary":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the current service revision.</p>"
+        },
+        "requestedTaskCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of requested tasks in the current service revision</p>"
+        },
+        "runningTaskCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of running tasks of the current service revision</p>"
+        },
+        "pendingTaskCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of pending tasks in the current service revision</p>"
+        }
+      },
+      "documentation":"<p>The summary of the current service revision configuration</p>"
+    },
+    "ServiceCurrentRevisionSummaryList":{
+      "type":"list",
+      "member":{"shape":"ServiceCurrentRevisionSummary"}
     },
     "ServiceDeployment":{
       "type":"structure",
@@ -6607,6 +7582,10 @@
         "resolvedConfiguration":{
           "shape":"ResolvedConfiguration",
           "documentation":"<p>The resolved configuration for the service revision which contains the actual resources your service revision uses, such as which target groups serve traffic.</p>"
+        },
+        "ecsManagedResources":{
+          "shape":"ECSManagedResources",
+          "documentation":"<p>The resources created and managed by Amazon ECS when you create an Express service for Amazon ECS.</p>"
         }
       },
       "documentation":"<p>Information about the service revision.</p> <p>A service revision contains a record of the workload configuration Amazon ECS is attempting to deploy. Whenever you create or deploy a service, Amazon ECS automatically creates and captures the configuration that you're trying to deploy in the service revision. For information about service revisions, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-revision.html\">Amazon ECS service revisions</a> in the <i> <i>Amazon Elastic Container Service Developer Guide</i> </i>.</p>"
@@ -6744,7 +7723,8 @@
         "tagResourceAuthorization",
         "fargateTaskRetirementWaitPeriod",
         "guardDutyActivate",
-        "defaultLogDriverMode"
+        "defaultLogDriverMode",
+        "fargateEventWindows"
       ]
     },
     "SettingType":{
@@ -8015,6 +8995,57 @@
         }
       }
     },
+    "UpdateExpressGatewayServiceRequest":{
+      "type":"structure",
+      "required":["serviceArn"],
+      "members":{
+        "serviceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Express service to update.</p>"
+        },
+        "executionRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the task execution role for the Express service.</p>"
+        },
+        "healthCheckPath":{
+          "shape":"String",
+          "documentation":"<p>The path on the container for Application Load Balancer health checks.</p>"
+        },
+        "primaryContainer":{
+          "shape":"ExpressGatewayContainer",
+          "documentation":"<p>The primary container configuration for the Express service.</p>"
+        },
+        "taskRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role for containers in this task.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"ExpressGatewayServiceNetworkConfiguration",
+          "documentation":"<p>The network configuration for the Express service tasks. By default, the network configuration for an Express service uses the default VPC.</p>"
+        },
+        "cpu":{
+          "shape":"String",
+          "documentation":"<p>The number of CPU units used by the task.</p>"
+        },
+        "memory":{
+          "shape":"String",
+          "documentation":"<p>The amount of memory (in MiB) used by the task.</p>"
+        },
+        "scalingTarget":{
+          "shape":"ExpressGatewayScalingTarget",
+          "documentation":"<p>The auto-scaling configuration for the Express service.</p>"
+        }
+      }
+    },
+    "UpdateExpressGatewayServiceResponse":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"UpdatedExpressGatewayService",
+          "documentation":"<p>The full description of your express gateway service following the update call.</p>"
+        }
+      }
+    },
     "UpdateInProgressException":{
       "type":"structure",
       "members":{},
@@ -8039,6 +9070,10 @@
         "propagateTags":{
           "shape":"PropagateMITags",
           "documentation":"<p>The updated tag propagation setting. When changed, this affects only new instances launched after the update.</p>"
+        },
+        "infrastructureOptimization":{
+          "shape":"InfrastructureOptimization",
+          "documentation":"<p>The updated infrastructure optimization configuration. Changes to this setting affect how Amazon ECS optimizes instances going forward.</p>"
         }
       },
       "documentation":"<p>The updated configuration for a Amazon ECS Managed Instances provider. You can modify the infrastructure role, instance launch template, and tag propagation settings. Changes apply to new instances launched after the update.</p>"
@@ -8248,6 +9283,40 @@
           "documentation":"<p>Details about the task set.</p>"
         }
       }
+    },
+    "UpdatedExpressGatewayService":{
+      "type":"structure",
+      "members":{
+        "serviceArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the Express service that is being updated.</p>"
+        },
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The cluster associated with the Express service that is being updated.</p>"
+        },
+        "serviceName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Express service that is being updated.</p>"
+        },
+        "status":{
+          "shape":"ExpressGatewayServiceStatus",
+          "documentation":"<p>The status of the Express service that is being updated.</p>"
+        },
+        "targetConfiguration":{
+          "shape":"ExpressGatewayServiceConfiguration",
+          "documentation":"<p>The configuration to which the current Express service is being updated to.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Express service that is being updated was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix timestamp for when the Express service that is being updated was most recently updated.</p>"
+        }
+      },
+      "documentation":"<p>An object that describes an Express service to be updated.</p>"
     },
     "VCpuCountRangeRequest":{
       "type":"structure",

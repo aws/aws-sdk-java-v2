@@ -27,7 +27,23 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns attributes for one or more collections, including the collection endpoint, the OpenSearch Dashboards endpoint, and FIPS-compliant endpoints. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>"
+      "documentation":"<p>Returns attributes for one or more collections, including the collection endpoint, the OpenSearch Dashboards endpoint, and FIPS-compliant endpoints. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
+      "readonly":true
+    },
+    "BatchGetCollectionGroup":{
+      "name":"BatchGetCollectionGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"BatchGetCollectionGroupRequest"},
+      "output":{"shape":"BatchGetCollectionGroupResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Returns attributes for one or more collection groups, including capacity limits and the number of collections in each group. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
+      "readonly":true
     },
     "BatchGetEffectiveLifecyclePolicy":{
       "name":"BatchGetEffectiveLifecyclePolicy",
@@ -41,7 +57,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns a list of successful and failed retrievals for the OpenSearch Serverless indexes. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>"
+      "documentation":"<p>Returns a list of successful and failed retrievals for the OpenSearch Serverless indexes. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>",
+      "readonly":true
     },
     "BatchGetLifecyclePolicy":{
       "name":"BatchGetLifecyclePolicy",
@@ -55,7 +72,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns one or more configured OpenSearch Serverless lifecycle policies. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>"
+      "documentation":"<p>Returns one or more configured OpenSearch Serverless lifecycle policies. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>",
+      "readonly":true
     },
     "BatchGetVpcEndpoint":{
       "name":"BatchGetVpcEndpoint",
@@ -69,7 +87,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns attributes for one or more VPC endpoints associated with the current account. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-vpc.html\">Access Amazon OpenSearch Serverless using an interface endpoint</a>.</p>"
+      "documentation":"<p>Returns attributes for one or more VPC endpoints associated with the current account. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-vpc.html\">Access Amazon OpenSearch Serverless using an interface endpoint</a>.</p>",
+      "readonly":true
     },
     "CreateAccessPolicy":{
       "name":"CreateAccessPolicy",
@@ -104,6 +123,23 @@
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Creates a new OpenSearch Serverless collection. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
+      "idempotent":true
+    },
+    "CreateCollectionGroup":{
+      "name":"CreateCollectionGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateCollectionGroupRequest"},
+      "output":{"shape":"CreateCollectionGroupResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ServiceQuotaExceededException"}
+      ],
+      "documentation":"<p>Creates a collection group within OpenSearch Serverless. Collection groups let you manage OpenSearch Compute Units (OCUs) at a group level, with multiple collections sharing the group's capacity limits.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-collection-groups.html\">Managing collection groups</a>.</p>",
       "idempotent":true
     },
     "CreateIndex":{
@@ -225,6 +261,23 @@
       "documentation":"<p>Deletes an OpenSearch Serverless collection. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
       "idempotent":true
     },
+    "DeleteCollectionGroup":{
+      "name":"DeleteCollectionGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteCollectionGroupRequest"},
+      "output":{"shape":"DeleteCollectionGroupResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Deletes a collection group. You can only delete empty collection groups that contain no collections. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
+      "idempotent":true
+    },
     "DeleteIndex":{
       "name":"DeleteIndex",
       "http":{
@@ -322,7 +375,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns an OpenSearch Serverless access policy. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-data-access.html\">Data access control for Amazon OpenSearch Serverless</a>.</p>"
+      "documentation":"<p>Returns an OpenSearch Serverless access policy. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-data-access.html\">Data access control for Amazon OpenSearch Serverless</a>.</p>",
+      "readonly":true
     },
     "GetAccountSettings":{
       "name":"GetAccountSettings",
@@ -336,7 +390,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns account-level settings related to OpenSearch Serverless.</p>"
+      "documentation":"<p>Returns account-level settings related to OpenSearch Serverless.</p>",
+      "readonly":true
     },
     "GetIndex":{
       "name":"GetIndex",
@@ -351,7 +406,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Retrieves information about an index in an OpenSearch Serverless collection, including its schema definition. The index might be configured to conduct automatic semantic enrichment ingestion and search. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html#serverless-semantic-enrichment\">About automatic semantic enrichment</a>.</p>"
+      "documentation":"<p>Retrieves information about an index in an OpenSearch Serverless collection, including its schema definition. The index might be configured to conduct automatic semantic enrichment ingestion and search. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html#serverless-semantic-enrichment\">About automatic semantic enrichment</a>.</p>",
+      "readonly":true
     },
     "GetPoliciesStats":{
       "name":"GetPoliciesStats",
@@ -364,7 +420,8 @@
       "errors":[
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns statistical information about your OpenSearch Serverless access policies, security configurations, and security policies.</p>"
+      "documentation":"<p>Returns statistical information about your OpenSearch Serverless access policies, security configurations, and security policies.</p>",
+      "readonly":true
     },
     "GetSecurityConfig":{
       "name":"GetSecurityConfig",
@@ -379,7 +436,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information about an OpenSearch Serverless security configuration. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-saml.html\">SAML authentication for Amazon OpenSearch Serverless</a>.</p>"
+      "documentation":"<p>Returns information about an OpenSearch Serverless security configuration. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-saml.html\">SAML authentication for Amazon OpenSearch Serverless</a>.</p>",
+      "readonly":true
     },
     "GetSecurityPolicy":{
       "name":"GetSecurityPolicy",
@@ -394,7 +452,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information about a configured OpenSearch Serverless security policy. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-network.html\">Network access for Amazon OpenSearch Serverless</a> and <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-encryption.html\">Encryption at rest for Amazon OpenSearch Serverless</a>.</p>"
+      "documentation":"<p>Returns information about a configured OpenSearch Serverless security policy. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-network.html\">Network access for Amazon OpenSearch Serverless</a> and <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-encryption.html\">Encryption at rest for Amazon OpenSearch Serverless</a>.</p>",
+      "readonly":true
     },
     "ListAccessPolicies":{
       "name":"ListAccessPolicies",
@@ -408,7 +467,23 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information about a list of OpenSearch Serverless access policies.</p>"
+      "documentation":"<p>Returns information about a list of OpenSearch Serverless access policies.</p>",
+      "readonly":true
+    },
+    "ListCollectionGroups":{
+      "name":"ListCollectionGroups",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListCollectionGroupsRequest"},
+      "output":{"shape":"ListCollectionGroupsResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"}
+      ],
+      "documentation":"<p>Returns a list of collection groups. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p>",
+      "readonly":true
     },
     "ListCollections":{
       "name":"ListCollections",
@@ -422,7 +497,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Lists all OpenSearch Serverless collections. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p> <note> <p>Make sure to include an empty request body {} if you don't include any collection filters in the request.</p> </note>"
+      "documentation":"<p>Lists all OpenSearch Serverless collections. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-manage.html\">Creating and managing Amazon OpenSearch Serverless collections</a>.</p> <note> <p>Make sure to include an empty request body {} if you don't include any collection filters in the request.</p> </note>",
+      "readonly":true
     },
     "ListLifecyclePolicies":{
       "name":"ListLifecyclePolicies",
@@ -436,7 +512,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns a list of OpenSearch Serverless lifecycle policies. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>"
+      "documentation":"<p>Returns a list of OpenSearch Serverless lifecycle policies. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-lifecycle.html#serverless-lifecycle-list\">Viewing data lifecycle policies</a>.</p>",
+      "readonly":true
     },
     "ListSecurityConfigs":{
       "name":"ListSecurityConfigs",
@@ -450,7 +527,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information about configured OpenSearch Serverless security configurations. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-saml.html\">SAML authentication for Amazon OpenSearch Serverless</a>.</p>"
+      "documentation":"<p>Returns information about configured OpenSearch Serverless security configurations. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-saml.html\">SAML authentication for Amazon OpenSearch Serverless</a>.</p>",
+      "readonly":true
     },
     "ListSecurityPolicies":{
       "name":"ListSecurityPolicies",
@@ -464,7 +542,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information about configured OpenSearch Serverless security policies.</p>"
+      "documentation":"<p>Returns information about configured OpenSearch Serverless security policies.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -493,7 +572,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns the OpenSearch Serverless-managed interface VPC endpoints associated with the current account. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-vpc.html\">Access Amazon OpenSearch Serverless using an interface endpoint</a>.</p>"
+      "documentation":"<p>Returns the OpenSearch Serverless-managed interface VPC endpoints associated with the current account. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-vpc.html\">Access Amazon OpenSearch Serverless using an interface endpoint</a>.</p>",
+      "readonly":true
     },
     "TagResource":{
       "name":"TagResource",
@@ -555,7 +635,8 @@
       "output":{"shape":"UpdateAccountSettingsResponse"},
       "errors":[
         {"shape":"InternalServerException"},
-        {"shape":"ValidationException"}
+        {"shape":"ValidationException"},
+        {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Update the OpenSearch Serverless settings for the current Amazon Web Services account. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-scaling.html\">Managing capacity limits for Amazon OpenSearch Serverless</a>.</p>"
     },
@@ -573,6 +654,23 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Updates an OpenSearch Serverless collection.</p>",
+      "idempotent":true
+    },
+    "UpdateCollectionGroup":{
+      "name":"UpdateCollectionGroup",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateCollectionGroupRequest"},
+      "output":{"shape":"UpdateCollectionGroupResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ServiceQuotaExceededException"}
+      ],
+      "documentation":"<p>Updates the description and capacity limits of a collection group.</p>",
       "idempotent":true
     },
     "UpdateIndex":{
@@ -756,6 +854,32 @@
       "max":1011,
       "min":1
     },
+    "BatchGetCollectionGroupRequest":{
+      "type":"structure",
+      "members":{
+        "ids":{
+          "shape":"CollectionGroupIds",
+          "documentation":"<p>A list of collection group IDs. You can't provide names and IDs in the same request.</p>"
+        },
+        "names":{
+          "shape":"CollectionGroupNames",
+          "documentation":"<p>A list of collection group names. You can't provide names and IDs in the same request.</p>"
+        }
+      }
+    },
+    "BatchGetCollectionGroupResponse":{
+      "type":"structure",
+      "members":{
+        "collectionGroupDetails":{
+          "shape":"CollectionGroupDetails",
+          "documentation":"<p>Details about each collection group.</p>"
+        },
+        "collectionGroupErrorDetails":{
+          "shape":"CollectionGroupErrorDetails",
+          "documentation":"<p>Error information for the request.</p>"
+        }
+      }
+    },
     "BatchGetCollectionRequest":{
       "type":"structure",
       "members":{
@@ -909,6 +1033,10 @@
           "shape":"StandbyReplicas",
           "documentation":"<p>Details about an OpenSearch Serverless collection.</p>"
         },
+        "vectorOptions":{
+          "shape":"VectorOptions",
+          "documentation":"<p>Configuration options for vector search capabilities in the collection.</p>"
+        },
         "createdDate":{
           "shape":"Long",
           "documentation":"<p>The Epoch time when the collection was created.</p>"
@@ -936,6 +1064,10 @@
         "failureMessage":{
           "shape":"String",
           "documentation":"<p>A message associated with the failure code.</p>"
+        },
+        "collectionGroupName":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group that contains this collection.</p>"
         }
       },
       "documentation":"<p>Details about each OpenSearch Serverless collection, including the collection endpoint, the OpenSearch Dashboards endpoint, and FIPS-compliant endpoints for federal government workloads.</p>"
@@ -980,9 +1112,172 @@
         "status":{
           "shape":"CollectionStatus",
           "documentation":"<p>The current status of the collection.</p>"
+        },
+        "collectionGroupName":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group to filter by.</p>"
         }
       },
       "documentation":"<p>A list of filter keys that you can use for LIST, UPDATE, and DELETE requests to OpenSearch Serverless collections.</p>"
+    },
+    "CollectionGroupCapacityLimits":{
+      "type":"structure",
+      "members":{
+        "maxIndexingCapacityInOCU":{
+          "shape":"CollectionGroupIndexingCapacityValue",
+          "documentation":"<p>The maximum indexing capacity for collections in the group.</p>"
+        },
+        "maxSearchCapacityInOCU":{
+          "shape":"CollectionGroupSearchCapacityValue",
+          "documentation":"<p>The maximum search capacity for collections in the group.</p>"
+        },
+        "minIndexingCapacityInOCU":{
+          "shape":"CollectionGroupIndexingCapacityValue",
+          "documentation":"<p>The minimum indexing capacity for collections in the group.</p>"
+        },
+        "minSearchCapacityInOCU":{
+          "shape":"CollectionGroupSearchCapacityValue",
+          "documentation":"<p>The minimum search capacity for collections in the group.</p>"
+        }
+      },
+      "documentation":"<p>Capacity limits for a collection group. These limits define the minimum and maximum OpenSearch Compute Units (OCUs) for indexing and search operations that can be used by collections in the group.</p>"
+    },
+    "CollectionGroupDetail":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group.</p>"
+        },
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the collection group.</p>"
+        },
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group.</p>"
+        },
+        "standbyReplicas":{
+          "shape":"StandbyReplicas",
+          "documentation":"<p>Indicates whether standby replicas are used for the collection group.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the collection group.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A map of key-value pairs associated with the collection group.</p>"
+        },
+        "createdDate":{
+          "shape":"Long",
+          "documentation":"<p>The Epoch time when the collection group was created.</p>"
+        },
+        "capacityLimits":{
+          "shape":"CollectionGroupCapacityLimits",
+          "documentation":"<p>The capacity limits for the collection group, in OpenSearch Compute Units (OCUs).</p>"
+        },
+        "numberOfCollections":{
+          "shape":"Integer",
+          "documentation":"<p>The number of collections associated with the collection group.</p>"
+        }
+      },
+      "documentation":"<p>Details about a collection group.</p>"
+    },
+    "CollectionGroupDetails":{
+      "type":"list",
+      "member":{"shape":"CollectionGroupDetail"}
+    },
+    "CollectionGroupErrorDetail":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>If the request contains collection group IDs, the response includes the IDs provided in the request.</p>"
+        },
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>If the request contains collection group names, the response includes the names provided in the request.</p>"
+        },
+        "errorMessage":{
+          "shape":"String",
+          "documentation":"<p>A description of the error. For example, <code>The specified Collection Group is not found.</code> </p>"
+        },
+        "errorCode":{
+          "shape":"String",
+          "documentation":"<p>The error code for the request. For example, <code>NOT_FOUND</code>.</p>"
+        }
+      },
+      "documentation":"<p>Error details for a collection group operation.</p>"
+    },
+    "CollectionGroupErrorDetails":{
+      "type":"list",
+      "member":{"shape":"CollectionGroupErrorDetail"}
+    },
+    "CollectionGroupId":{
+      "type":"string",
+      "max":40,
+      "min":3,
+      "pattern":"[a-z0-9]{3,40}"
+    },
+    "CollectionGroupIds":{
+      "type":"list",
+      "member":{"shape":"CollectionGroupId"},
+      "max":100,
+      "min":1
+    },
+    "CollectionGroupIndexingCapacityValue":{
+      "type":"float",
+      "box":true,
+      "min":1
+    },
+    "CollectionGroupName":{
+      "type":"string",
+      "max":32,
+      "min":3,
+      "pattern":"[a-z][a-z0-9-]+"
+    },
+    "CollectionGroupNames":{
+      "type":"list",
+      "member":{"shape":"CollectionGroupName"},
+      "max":100,
+      "min":1
+    },
+    "CollectionGroupSearchCapacityValue":{
+      "type":"float",
+      "box":true,
+      "min":1
+    },
+    "CollectionGroupSummaries":{
+      "type":"list",
+      "member":{"shape":"CollectionGroupSummary"}
+    },
+    "CollectionGroupSummary":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group.</p>"
+        },
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the collection group.</p>"
+        },
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group.</p>"
+        },
+        "numberOfCollections":{
+          "shape":"Integer",
+          "documentation":"<p>The number of collections within the collection group.</p>"
+        },
+        "createdDate":{
+          "shape":"Long",
+          "documentation":"<p>The Epoch time when the collection group was created.</p>"
+        },
+        "capacityLimits":{"shape":"CollectionGroupCapacityLimits"}
+      },
+      "documentation":"<p>Summary information about a collection group.</p>"
     },
     "CollectionId":{
       "type":"string",
@@ -1039,6 +1334,14 @@
         "arn":{
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the collection.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the Amazon Web Services Key Management Service key used to encrypt the collection.</p>"
+        },
+        "collectionGroupName":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group that contains this collection.</p>"
         }
       },
       "documentation":"<p>Details about each OpenSearch Serverless collection.</p>"
@@ -1067,7 +1370,7 @@
       "members":{
         "message":{"shape":"String"}
       },
-      "documentation":"<p>When creating a resource, thrown when a resource with the same name already exists or is being created. When deleting a resource, thrown when the resource is not in the ACTIVE or FAILED state.</p>",
+      "documentation":"<p>When creating a resource, thrown when a resource with the same name already exists or is being created.</p>",
       "exception":true
     },
     "CreateAccessPolicyRequest":{
@@ -1145,6 +1448,10 @@
           "shape":"StandbyReplicas",
           "documentation":"<p>Creates details about an OpenSearch Serverless collection.</p>"
         },
+        "vectorOptions":{
+          "shape":"VectorOptions",
+          "documentation":"<p>Configuration options for vector search capabilities in the collection.</p>"
+        },
         "createdDate":{
           "shape":"Long",
           "documentation":"<p>The Epoch time when the collection was created.</p>"
@@ -1152,9 +1459,99 @@
         "lastModifiedDate":{
           "shape":"Long",
           "documentation":"<p>The date and time when the collection was last modified.</p>"
+        },
+        "collectionGroupName":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group that contains this collection.</p>"
         }
       },
       "documentation":"<p>Details about the created OpenSearch Serverless collection.</p>"
+    },
+    "CreateCollectionGroupDetail":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group.</p>"
+        },
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the collection group.</p>"
+        },
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group.</p>"
+        },
+        "standbyReplicas":{
+          "shape":"StandbyReplicas",
+          "documentation":"<p>Indicates whether standby replicas are used for the collection group.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the collection group.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A map of key-value pairs associated with the collection group.</p>"
+        },
+        "createdDate":{
+          "shape":"Long",
+          "documentation":"<p>The Epoch time when the collection group was created.</p>"
+        },
+        "capacityLimits":{
+          "shape":"CollectionGroupCapacityLimits",
+          "documentation":"<p>The capacity limits for the collection group, in OpenSearch Compute Units (OCUs).</p>"
+        }
+      },
+      "documentation":"<p>Details about the created collection group.</p>"
+    },
+    "CreateCollectionGroupRequest":{
+      "type":"structure",
+      "required":[
+        "name",
+        "standbyReplicas"
+      ],
+      "members":{
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group.</p>"
+        },
+        "standbyReplicas":{
+          "shape":"StandbyReplicas",
+          "documentation":"<p>Indicates whether standby replicas should be used for a collection group.</p>"
+        },
+        "description":{
+          "shape":"CreateCollectionGroupRequestDescriptionString",
+          "documentation":"<p>A description of the collection group.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>An arbitrary set of tags (key–value pairs) to associate with the OpenSearch Serverless collection group.</p>"
+        },
+        "capacityLimits":{
+          "shape":"CollectionGroupCapacityLimits",
+          "documentation":"<p>The capacity limits for the collection group, in OpenSearch Compute Units (OCUs). These limits control the maximum and minimum capacity for collections within the group.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Unique, case-sensitive identifier to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateCollectionGroupRequestDescriptionString":{
+      "type":"string",
+      "max":1000,
+      "min":0
+    },
+    "CreateCollectionGroupResponse":{
+      "type":"structure",
+      "members":{
+        "createCollectionGroupDetail":{
+          "shape":"CreateCollectionGroupDetail",
+          "documentation":"<p>Details about the created collection group.</p>"
+        }
+      }
     },
     "CreateCollectionRequest":{
       "type":"structure",
@@ -1179,6 +1576,18 @@
         "standbyReplicas":{
           "shape":"StandbyReplicas",
           "documentation":"<p>Indicates whether standby replicas should be used for a collection.</p>"
+        },
+        "vectorOptions":{
+          "shape":"VectorOptions",
+          "documentation":"<p>Configuration options for vector search capabilities in the collection.</p>"
+        },
+        "collectionGroupName":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group to associate with the collection.</p>"
+        },
+        "encryptionConfig":{
+          "shape":"EncryptionConfig",
+          "documentation":"<p>Encryption settings for the collection.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -1306,11 +1715,11 @@
         },
         "samlOptions":{
           "shape":"SamlConfigOptions",
-          "documentation":"<p>Describes SAML options in in the form of a key-value map. This field is required if you specify <code>SAML</code> for the <code>type</code> parameter.</p>"
+          "documentation":"<p>Describes SAML options in the form of a key-value map. This field is required if you specify <code>SAML</code> for the <code>type</code> parameter.</p>"
         },
         "iamIdentityCenterOptions":{
           "shape":"CreateIamIdentityCenterConfigOptions",
-          "documentation":"<p>Describes IAM Identity Center options in the form of a key-value map. This field is required if you specify iamidentitycenter for the type parameter.</p>"
+          "documentation":"<p>Describes IAM Identity Center options in the form of a key-value map. This field is required if you specify <code>iamidentitycenter</code> for the <code>type</code> parameter.</p>"
         },
         "iamFederationOptions":{
           "shape":"IamFederationConfigOptions",
@@ -1473,6 +1882,25 @@
         }
       },
       "documentation":"<p>Details about a deleted OpenSearch Serverless collection.</p>"
+    },
+    "DeleteCollectionGroupRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group to delete.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Unique, case-sensitive identifier to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "DeleteCollectionGroupResponse":{
+      "type":"structure",
+      "members":{}
     },
     "DeleteCollectionRequest":{
       "type":"structure",
@@ -1696,6 +2124,26 @@
     "EffectiveLifecyclePolicyErrorDetails":{
       "type":"list",
       "member":{"shape":"EffectiveLifecyclePolicyErrorDetail"}
+    },
+    "EncryptionConfig":{
+      "type":"structure",
+      "members":{
+        "aWSOwnedKey":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to use an Amazon Web Services-owned key for encryption.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"EncryptionConfigKmsKeyArnString",
+          "documentation":"<p>The ARN of the Amazon Web Services Key Management Service key used to encrypt the collection.</p>"
+        }
+      },
+      "documentation":"<p>Encryption settings for a collection.</p>"
+    },
+    "EncryptionConfigKmsKeyArnString":{
+      "type":"string",
+      "max":100,
+      "min":10,
+      "pattern":"arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):kms:[a-z0-9-]+:[0-9]{12}:key/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
     },
     "FipsEndpoints":{
       "type":"structure",
@@ -1932,6 +2380,10 @@
       "box":true,
       "min":2
     },
+    "Integer":{
+      "type":"integer",
+      "box":true
+    },
     "InternalServerException":{
       "type":"structure",
       "members":{
@@ -2142,6 +2594,38 @@
         "accessPolicySummaries":{
           "shape":"AccessPolicySummaries",
           "documentation":"<p>Details about the requested access policies.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Make the call again using the returned token to retrieve the next page.</p>"
+        }
+      }
+    },
+    "ListCollectionGroupsRequest":{
+      "type":"structure",
+      "members":{
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>If your initial <code>ListCollectionGroups</code> operation returns a <code>nextToken</code>, you can include the returned <code>nextToken</code> in subsequent <code>ListCollectionGroups</code> operations, which returns results in the next page.</p>"
+        },
+        "maxResults":{
+          "shape":"ListCollectionGroupsRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of results to return. Default is 20. You can use <code>nextToken</code> to get the next page of results.</p>"
+        }
+      }
+    },
+    "ListCollectionGroupsRequestMaxResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "ListCollectionGroupsResponse":{
+      "type":"structure",
+      "members":{
+        "collectionGroupSummaries":{
+          "shape":"CollectionGroupSummaries",
+          "documentation":"<p>Details about each collection group.</p>"
         },
         "nextToken":{
           "shape":"String",
@@ -2665,6 +3149,15 @@
         "network"
       ]
     },
+    "ServerlessVectorAccelerationStatus":{
+      "type":"string",
+      "documentation":"<p>Specifies whether serverless vector acceleration is enabled for the collection.</p>",
+      "enum":[
+        "ENABLED",
+        "DISABLED",
+        "ALLOWED"
+      ]
+    },
     "ServiceQuotaExceededException":{
       "type":"structure",
       "required":[
@@ -2893,6 +3386,77 @@
         }
       },
       "documentation":"<p>Details about an updated OpenSearch Serverless collection.</p>"
+    },
+    "UpdateCollectionGroupDetail":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group.</p>"
+        },
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the collection group.</p>"
+        },
+        "name":{
+          "shape":"CollectionGroupName",
+          "documentation":"<p>The name of the collection group.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the collection group.</p>"
+        },
+        "capacityLimits":{
+          "shape":"CollectionGroupCapacityLimits",
+          "documentation":"<p>The capacity limits for the collection group, in OpenSearch Compute Units (OCUs).</p>"
+        },
+        "createdDate":{
+          "shape":"Long",
+          "documentation":"<p>The Epoch time when the collection group was created.</p>"
+        },
+        "lastModifiedDate":{
+          "shape":"Long",
+          "documentation":"<p>The date and time when the collection group was last modified.</p>"
+        }
+      },
+      "documentation":"<p>Details about the updated collection group.</p>"
+    },
+    "UpdateCollectionGroupRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"CollectionGroupId",
+          "documentation":"<p>The unique identifier of the collection group to update.</p>"
+        },
+        "description":{
+          "shape":"UpdateCollectionGroupRequestDescriptionString",
+          "documentation":"<p>A new description for the collection group.</p>"
+        },
+        "capacityLimits":{
+          "shape":"CollectionGroupCapacityLimits",
+          "documentation":"<p>Updated capacity limits for the collection group, in OpenSearch Compute Units (OCUs).</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Unique, case-sensitive identifier to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "UpdateCollectionGroupRequestDescriptionString":{
+      "type":"string",
+      "max":1000,
+      "min":0
+    },
+    "UpdateCollectionGroupResponse":{
+      "type":"structure",
+      "members":{
+        "updateCollectionGroupDetail":{
+          "shape":"UpdateCollectionGroupDetail",
+          "documentation":"<p>Details about the updated collection group.</p>"
+        }
+      }
     },
     "UpdateCollectionRequest":{
       "type":"structure",
@@ -3178,6 +3742,17 @@
       },
       "documentation":"<p>Thrown when the HTTP request contains invalid input or is missing required input.</p>",
       "exception":true
+    },
+    "VectorOptions":{
+      "type":"structure",
+      "required":["ServerlessVectorAcceleration"],
+      "members":{
+        "ServerlessVectorAcceleration":{
+          "shape":"ServerlessVectorAccelerationStatus",
+          "documentation":"<p>Specifies whether serverless vector acceleration is enabled for the collection.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for vector search capabilities in an OpenSearch Serverless collection.</p>"
     },
     "VpcEndpointDetail":{
       "type":"structure",

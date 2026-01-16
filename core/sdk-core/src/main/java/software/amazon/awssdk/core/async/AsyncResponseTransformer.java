@@ -381,6 +381,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          */
         CompletableFuture<ResultT> resultFuture();
 
+        /**
+         * Indicates if the split async response transformer supports sending individual transformer non-serially and
+         * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
+         * @return true if non-serial data is supported, false otherwise
+         */
+        default Boolean parallelSplitSupported() {
+            return false;
+        }
+
         static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
             return DefaultAsyncResponseTransformerSplitResult.builder();
         }
@@ -413,6 +422,20 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * @return an instance of this Builder
              */
             Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+
+            /**
+             * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently.
+             * @return
+             */
+            Boolean parallelSplitSupported();
+
+            /**
+             * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Builder<ResponseT, ResultT> parallelSplitSupported(Boolean parallelSplitSupported);
         }
     }
 

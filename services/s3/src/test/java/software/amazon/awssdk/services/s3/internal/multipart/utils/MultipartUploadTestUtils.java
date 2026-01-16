@@ -29,6 +29,8 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
@@ -67,6 +69,23 @@ public final class MultipartUploadTestUtils {
 
         when(s3AsyncClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
             .thenReturn(completeMultipartUploadFuture);
+    }
+
+    public static void stubSuccessfulPutObjectCall(S3AsyncClient s3AsyncClient) {
+        when(s3AsyncClient.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenAnswer(new Answer<CompletableFuture<PutObjectResponse>>() {
+
+                @Override
+                public CompletableFuture<PutObjectResponse> answer(InvocationOnMock invocationOnMock) {
+                    AsyncRequestBody asyncRequestBody = invocationOnMock.getArgument(1);
+                    // Draining the request body
+                    asyncRequestBody.subscribe(b -> {
+                    });
+
+                    return CompletableFuture.completedFuture(PutObjectResponse.builder()
+                                                                              .build());
+                }
+            });
     }
 
     public static void stubSuccessfulUploadPartCalls(S3AsyncClient s3AsyncClient) {

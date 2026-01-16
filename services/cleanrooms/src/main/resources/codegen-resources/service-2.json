@@ -1456,6 +1456,25 @@
       ],
       "documentation":"<p>Updates collaboration metadata and can only be called by the collaboration owner.</p>"
     },
+    "UpdateCollaborationChangeRequest":{
+      "name":"UpdateCollaborationChangeRequest",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/collaborations/{collaborationIdentifier}/changeRequests/{changeRequestIdentifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateCollaborationChangeRequestInput"},
+      "output":{"shape":"UpdateCollaborationChangeRequestOutput"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Updates an existing collaboration change request. This operation allows approval actions for pending change requests in collaborations (APPROVE, DENY, CANCEL, COMMIT).</p> <p>For change requests without automatic approval, a member in the collaboration can manually APPROVE or DENY a change request. The collaboration owner can manually CANCEL or COMMIT a change request.</p>"
+    },
     "UpdateConfiguredAudienceModelAssociation":{
       "name":"UpdateConfiguredAudienceModelAssociation",
       "http":{
@@ -1942,7 +1961,7 @@
       "members":{
         "name":{
           "shape":"ParameterName",
-          "documentation":"<p>The name of the parameter. The name must use only alphanumeric, underscore (_), or hyphen (-) characters but cannot start or end with a hyphen.</p>"
+          "documentation":"<p>The name of the parameter. The name must use only alphanumeric or underscore (_) characters.</p>"
         },
         "type":{
           "shape":"ParameterType",
@@ -2328,6 +2347,10 @@
         "errorMessageConfiguration":{
           "shape":"ErrorMessageConfiguration",
           "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
+        },
+        "syntheticDataParameters":{
+          "shape":"SyntheticDataParameters",
+          "documentation":"<p>The parameters used to generate synthetic data for this analysis template.</p>"
         }
       },
       "documentation":"<p>The analysis template.</p>"
@@ -2463,6 +2486,10 @@
         "description":{
           "shape":"ResourceDescription",
           "documentation":"<p>The description of the analysis template.</p>"
+        },
+        "isSyntheticData":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates if this analysis template summary generated synthetic data.</p>"
         }
       },
       "documentation":"<p>The metadata of the analysis template.</p>"
@@ -2473,7 +2500,7 @@
     },
     "AnalysisTemplateText":{
       "type":"string",
-      "max":90000,
+      "max":500000,
       "min":0,
       "sensitive":true
     },
@@ -2544,6 +2571,32 @@
         "CLEAN_ROOMS_SQL"
       ]
     },
+    "ApprovalStatus":{
+      "type":"string",
+      "enum":[
+        "APPROVED",
+        "DENIED",
+        "PENDING"
+      ]
+    },
+    "ApprovalStatusDetails":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"ApprovalStatus",
+          "documentation":"<p>The approval status of a member's vote on the change request. Valid values are PENDING (if they haven't voted), APPROVED, or DENIED.</p>"
+        }
+      },
+      "documentation":"<p>Contains detailed information about the approval state of a given member in the collaboration for a given collaboration change request.</p>"
+    },
+    "ApprovalStatuses":{
+      "type":"map",
+      "key":{"shape":"AccountId"},
+      "value":{"shape":"ApprovalStatusDetails"},
+      "max":50,
+      "min":1
+    },
     "AthenaDatabaseName":{
       "type":"string",
       "max":128,
@@ -2601,7 +2654,11 @@
     },
     "AutoApprovedChangeType":{
       "type":"string",
-      "enum":["ADD_MEMBER"]
+      "enum":[
+        "ADD_MEMBER",
+        "GRANT_RECEIVE_RESULTS_ABILITY",
+        "REVOKE_RECEIVE_RESULTS_ABILITY"
+      ]
     },
     "AutoApprovedChangeTypeList":{
       "type":"list",
@@ -2933,6 +2990,15 @@
       "max":10,
       "min":1
     },
+    "ChangeRequestAction":{
+      "type":"string",
+      "enum":[
+        "APPROVE",
+        "DENY",
+        "CANCEL",
+        "COMMIT"
+      ]
+    },
     "ChangeRequestStatus":{
       "type":"string",
       "enum":[
@@ -2949,6 +3015,10 @@
         "member":{
           "shape":"MemberChangeSpecification",
           "documentation":"<p>The member change specification when the change type is <code>MEMBER</code>.</p>"
+        },
+        "collaboration":{
+          "shape":"CollaborationChangeSpecification",
+          "documentation":"<p>The collaboration configuration changes being requested. Currently, this only supports modifying which change types are auto-approved for the collaboration.</p>"
         }
       },
       "documentation":"<p>A union that contains the specification details for different types of changes.</p>",
@@ -2956,11 +3026,19 @@
     },
     "ChangeSpecificationType":{
       "type":"string",
-      "enum":["MEMBER"]
+      "enum":[
+        "MEMBER",
+        "COLLABORATION"
+      ]
     },
     "ChangeType":{
       "type":"string",
-      "enum":["ADD_MEMBER"]
+      "enum":[
+        "ADD_MEMBER",
+        "GRANT_RECEIVE_RESULTS_ABILITY",
+        "REVOKE_RECEIVE_RESULTS_ABILITY",
+        "EDIT_AUTO_APPROVED_CHANGE_TYPES"
+      ]
     },
     "ChangeTypeList":{
       "type":"list",
@@ -3054,6 +3132,10 @@
         "allowedResultRegions":{
           "shape":"AllowedResultRegions",
           "documentation":"<p>The Amazon Web Services Regions where collaboration query results can be stored. Returns the list of Region identifiers that were specified when the collaboration was created. This list is used to enforce regional storage policies and compliance requirements.</p>"
+        },
+        "isMetricsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>An indicator as to whether metrics are enabled for the collaboration.</p> <p>When <code>true</code>, collaboration members can opt in to Amazon CloudWatch metrics for their membership queries.</p>"
         }
       },
       "documentation":"<p>The multi-party data share environment. The collaboration contains metadata about its purpose and participants.</p>"
@@ -3136,6 +3218,10 @@
         "errorMessageConfiguration":{
           "shape":"ErrorMessageConfiguration",
           "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
+        },
+        "syntheticDataParameters":{
+          "shape":"SyntheticDataParameters",
+          "documentation":"<p>The synthetic data generation parameters configured for this collaboration analysis template.</p>"
         }
       },
       "documentation":"<p>The analysis template within a collaboration.</p>"
@@ -3194,6 +3280,10 @@
         "description":{
           "shape":"ResourceDescription",
           "documentation":"<p>The description of the analysis template.</p>"
+        },
+        "isSyntheticData":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates if this collaboration analysis template uses synthetic data generation.</p>"
         }
       },
       "documentation":"<p>The metadata of the analysis template within a collaboration.</p>"
@@ -3247,6 +3337,10 @@
         "changes":{
           "shape":"ChangeList",
           "documentation":"<p>The list of changes specified in this change request.</p>"
+        },
+        "approvals":{
+          "shape":"ApprovalStatuses",
+          "documentation":"<p>A list of approval details from collaboration members, including approval status and multi-party approval workflow information.</p>"
         }
       },
       "documentation":"<p>Represents a request to modify a collaboration. Change requests enable structured modifications to collaborations after they have been created.</p>"
@@ -3296,6 +3390,10 @@
         "changes":{
           "shape":"ChangeList",
           "documentation":"<p>Summary of the changes in this change request.</p>"
+        },
+        "approvals":{
+          "shape":"ApprovalStatuses",
+          "documentation":"<p>Summary of approval statuses from all collaboration members for this change request.</p>"
         }
       },
       "documentation":"<p>Summary information about a collaboration change request.</p>"
@@ -3303,6 +3401,16 @@
     "CollaborationChangeRequestSummaryList":{
       "type":"list",
       "member":{"shape":"CollaborationChangeRequestSummary"}
+    },
+    "CollaborationChangeSpecification":{
+      "type":"structure",
+      "members":{
+        "autoApprovedChangeTypes":{
+          "shape":"AutoApprovedChangeTypeList",
+          "documentation":"<p>Defines requested updates to properties of the collaboration. Currently, this only supports modifying which change types are auto-approved for the collaboration.</p>"
+        }
+      },
+      "documentation":"<p>Defines the specific changes being requested for a collaboration, including configuration modifications and approval requirements.</p>"
     },
     "CollaborationConfiguredAudienceModelAssociation":{
       "type":"structure",
@@ -3832,9 +3940,26 @@
       },
       "documentation":"<p>A column within a schema relation, derived from the underlying table.</p>"
     },
+    "ColumnClassificationDetails":{
+      "type":"structure",
+      "required":["columnMapping"],
+      "members":{
+        "columnMapping":{
+          "shape":"ColumnMappingList",
+          "documentation":"<p>A mapping that defines the classification of data columns for synthetic data generation and specifies how each column should be handled during the privacy-preserving data synthesis process.</p>"
+        }
+      },
+      "documentation":"<p>Contains classification information for data columns, including mappings that specify how columns should be handled during synthetic data generation and privacy analysis.</p>"
+    },
     "ColumnList":{
       "type":"list",
       "member":{"shape":"Column"}
+    },
+    "ColumnMappingList":{
+      "type":"list",
+      "member":{"shape":"SyntheticDataColumnProperties"},
+      "max":1000,
+      "min":5
     },
     "ColumnName":{
       "type":"string",
@@ -4774,6 +4899,10 @@
         "errorMessageConfiguration":{
           "shape":"ErrorMessageConfiguration",
           "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
+        },
+        "syntheticDataParameters":{
+          "shape":"SyntheticDataParameters",
+          "documentation":"<p>The parameters for generating synthetic data when running the analysis template.</p>"
         }
       }
     },
@@ -4879,6 +5008,10 @@
         "allowedResultRegions":{
           "shape":"AllowedResultRegions",
           "documentation":"<p>The Amazon Web Services Regions where collaboration query results can be stored. When specified, results can only be written to these Regions. This parameter enables you to meet your compliance and data governance requirements, and implement regional data governance policies.</p>"
+        },
+        "isMetricsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>An indicator as to whether metrics have been enabled or disabled for the collaboration.</p> <p>When <code>true</code>, collaboration members can opt in to Amazon CloudWatch metrics for their membership queries. The default value is <code>false</code>.</p>"
         }
       }
     },
@@ -5236,6 +5369,10 @@
         "paymentConfiguration":{
           "shape":"MembershipPaymentConfiguration",
           "documentation":"<p>The payment responsibilities accepted by the collaboration member.</p> <p>Not required if the collaboration member has the member ability to run queries. </p> <p>Required if the collaboration member doesn't have the member ability to run queries but is configured as a payer by the collaboration creator. </p>"
+        },
+        "isMetricsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>An indicator as to whether Amazon CloudWatch metrics have been enabled or disabled for the membership.</p> <p>Amazon CloudWatch metrics are only available when the collaboration has metrics enabled. This option can be set by collaboration members who have the ability to run queries (analysis runners) or by members who are configured as payers.</p> <p>When <code>true</code>, metrics about query execution are collected in Amazon CloudWatch. The default value is <code>false</code>.</p>"
         }
       }
     },
@@ -7048,6 +7185,23 @@
       },
       "documentation":"<p>An object representing the collaboration member's payment responsibilities set by the collaboration creator for query and job compute costs.</p>"
     },
+    "JobParameterMap":{
+      "type":"map",
+      "key":{"shape":"JobParameterName"},
+      "value":{"shape":"JobParameterValue"},
+      "sensitive":true
+    },
+    "JobParameterName":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "pattern":"[0-9a-zA-Z_]+"
+    },
+    "JobParameterValue":{
+      "type":"string",
+      "max":1000,
+      "min":0
+    },
     "JobType":{
       "type":"string",
       "enum":[
@@ -7937,9 +8091,48 @@
         "modelInference":{
           "shape":"ModelInferencePaymentConfig",
           "documentation":"<p>The payment responsibilities accepted by the member for model inference.</p>"
+        },
+        "syntheticDataGeneration":{
+          "shape":"SyntheticDataGenerationPaymentConfig",
+          "documentation":"<p>The payment configuration for machine learning synthetic data generation.</p>"
         }
       },
       "documentation":"<p>An object representing the collaboration member's machine learning payment responsibilities set by the collaboration creator.</p>"
+    },
+    "MLSyntheticDataParameters":{
+      "type":"structure",
+      "required":[
+        "epsilon",
+        "maxMembershipInferenceAttackScore",
+        "columnClassification"
+      ],
+      "members":{
+        "epsilon":{
+          "shape":"MLSyntheticDataParametersEpsilonDouble",
+          "documentation":"<p>The epsilon value for differential privacy when generating synthetic data. Lower values provide stronger privacy guarantees but may reduce data utility.</p>"
+        },
+        "maxMembershipInferenceAttackScore":{
+          "shape":"MaxMembershipInferenceAttackScore",
+          "documentation":"<p>The maximum acceptable score for membership inference attack vulnerability. Synthetic data generation fails if the score for the resulting data exceeds this threshold.</p>"
+        },
+        "columnClassification":{
+          "shape":"ColumnClassificationDetails",
+          "documentation":"<p>Classification details for data columns that specify how each column should be treated during synthetic data generation.</p>"
+        }
+      },
+      "documentation":"<p>Parameters that control the generation of synthetic data for machine learning, including privacy settings and column classification details.</p>"
+    },
+    "MLSyntheticDataParametersEpsilonDouble":{
+      "type":"double",
+      "box":true,
+      "max":10,
+      "min":0.0001
+    },
+    "MaxMembershipInferenceAttackScore":{
+      "type":"double",
+      "box":true,
+      "max":1,
+      "min":0.5
     },
     "MaxResults":{
       "type":"integer",
@@ -7984,7 +8177,6 @@
     "MemberList":{
       "type":"list",
       "member":{"shape":"MemberSpecification"},
-      "max":9,
       "min":0
     },
     "MemberSpecification":{
@@ -8171,6 +8363,10 @@
         "paymentConfiguration":{
           "shape":"MembershipPaymentConfiguration",
           "documentation":"<p>The payment responsibilities accepted by the collaboration member.</p>"
+        },
+        "isMetricsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>An indicator as to whether Amazon CloudWatch metrics are enabled for the membership.</p> <p>When <code>true</code>, metrics about query execution are collected in Amazon CloudWatch.</p>"
         }
       },
       "documentation":"<p>The membership object.</p>"
@@ -8215,6 +8411,10 @@
         "modelInference":{
           "shape":"MembershipModelInferencePaymentConfig",
           "documentation":"<p>The payment responsibilities accepted by the member for model inference.</p>"
+        },
+        "syntheticDataGeneration":{
+          "shape":"MembershipSyntheticDataGenerationPaymentConfig",
+          "documentation":"<p>The payment configuration for synthetic data generation for this machine learning membership.</p>"
         }
       },
       "documentation":"<p>An object representing the collaboration member's machine learning payment responsibilities set by the collaboration creator.</p>"
@@ -8414,6 +8614,17 @@
       "type":"list",
       "member":{"shape":"MembershipSummary"}
     },
+    "MembershipSyntheticDataGenerationPaymentConfig":{
+      "type":"structure",
+      "required":["isResponsible"],
+      "members":{
+        "isResponsible":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates if this membership is responsible for paying for synthetic data generation.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for payment for synthetic data generation in a membership.</p>"
+    },
     "ModelInferencePaymentConfig":{
       "type":"structure",
       "required":["isResponsible"],
@@ -8487,7 +8698,7 @@
     },
     "ParameterValue":{
       "type":"string",
-      "max":250,
+      "max":1000,
       "min":0
     },
     "PaymentConfiguration":{
@@ -9054,10 +9265,15 @@
     },
     "ProtectedJobParameters":{
       "type":"structure",
+      "required":["analysisTemplateArn"],
       "members":{
         "analysisTemplateArn":{
           "shape":"AnalysisTemplateArn",
           "documentation":"<p> The ARN of the analysis template.</p>"
+        },
+        "parameters":{
+          "shape":"JobParameterMap",
+          "documentation":"<p>Runtime configuration values passed to the PySpark analysis script. Parameter names and types must match those defined in the analysis template.</p>"
         }
       },
       "documentation":"<p>The parameters for the protected job.</p>"
@@ -10396,6 +10612,64 @@
         "mx-central-1"
       ]
     },
+    "SyntheticDataColumnName":{
+      "type":"string",
+      "max":128,
+      "min":0,
+      "pattern":"[a-z0-9_](([a-z0-9_]+-)*([a-z0-9_]+))?"
+    },
+    "SyntheticDataColumnProperties":{
+      "type":"structure",
+      "required":[
+        "columnName",
+        "columnType",
+        "isPredictiveValue"
+      ],
+      "members":{
+        "columnName":{
+          "shape":"SyntheticDataColumnName",
+          "documentation":"<p>The name of the data column as it appears in the dataset.</p>"
+        },
+        "columnType":{
+          "shape":"SyntheticDataColumnType",
+          "documentation":"<p>The data type of the column, which determines how the synthetic data generation algorithm processes and synthesizes values for this column.</p>"
+        },
+        "isPredictiveValue":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates if this column contains predictive values that should be treated as target variables in machine learning models. This affects how the synthetic data generation preserves statistical relationships.</p>"
+        }
+      },
+      "documentation":"<p>Properties that define how a specific data column should be handled during synthetic data generation, including its name, type, and role in predictive modeling.</p>"
+    },
+    "SyntheticDataColumnType":{
+      "type":"string",
+      "enum":[
+        "CATEGORICAL",
+        "NUMERICAL"
+      ]
+    },
+    "SyntheticDataGenerationPaymentConfig":{
+      "type":"structure",
+      "required":["isResponsible"],
+      "members":{
+        "isResponsible":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates who is responsible for paying for synthetic data generation.</p>"
+        }
+      },
+      "documentation":"<p>Payment configuration for synthetic data generation.</p>"
+    },
+    "SyntheticDataParameters":{
+      "type":"structure",
+      "members":{
+        "mlSyntheticDataParameters":{
+          "shape":"MLSyntheticDataParameters",
+          "documentation":"<p>The machine learning-specific parameters for synthetic data generation.</p>"
+        }
+      },
+      "documentation":"<p>The parameters that control how synthetic data is generated, including privacy settings, column classifications, and other configuration options that affect the data synthesis process.</p>",
+      "union":true
+    },
     "TableAlias":{
       "type":"string",
       "max":128,
@@ -10563,6 +10837,39 @@
           "shape":"AnalysisTemplate",
           "documentation":"<p>The analysis template.</p>"
         }
+      }
+    },
+    "UpdateCollaborationChangeRequestInput":{
+      "type":"structure",
+      "required":[
+        "collaborationIdentifier",
+        "changeRequestIdentifier",
+        "action"
+      ],
+      "members":{
+        "collaborationIdentifier":{
+          "shape":"CollaborationIdentifier",
+          "documentation":"<p>The unique identifier of the collaboration that contains the change request to be updated.</p>",
+          "location":"uri",
+          "locationName":"collaborationIdentifier"
+        },
+        "changeRequestIdentifier":{
+          "shape":"CollaborationChangeRequestIdentifier",
+          "documentation":"<p>The unique identifier of the specific change request to be updated within the collaboration.</p>",
+          "location":"uri",
+          "locationName":"changeRequestIdentifier"
+        },
+        "action":{
+          "shape":"ChangeRequestAction",
+          "documentation":"<p>The action to perform on the change request. Valid values include APPROVE (approve the change), DENY (reject the change), CANCEL (cancel the request), and COMMIT (commit after the request is approved).</p> <p>For change requests without automatic approval, a member in the collaboration can manually APPROVE or DENY a change request. The collaboration owner can manually CANCEL or COMMIT a change request.</p>"
+        }
+      }
+    },
+    "UpdateCollaborationChangeRequestOutput":{
+      "type":"structure",
+      "required":["collaborationChangeRequest"],
+      "members":{
+        "collaborationChangeRequest":{"shape":"CollaborationChangeRequest"}
       }
     },
     "UpdateCollaborationInput":{

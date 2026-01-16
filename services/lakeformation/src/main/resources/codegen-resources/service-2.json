@@ -47,7 +47,7 @@
         {"shape":"EntityNotFoundException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Allows a caller to assume an IAM role decorated as the SAML user specified in the SAML assertion included in the request. This decoration allows Lake Formation to enforce access policies against the SAML users and groups. This API operation requires SAML federation setup in the caller’s account as it can only be called with valid SAML assertions. Lake Formation does not scope down the permission of the assumed role. All permissions attached to the role via the SAML federation setup will be included in the role session. </p> <p> This decorated role is expected to access data in Amazon S3 by getting temporary access from Lake Formation which is authorized via the virtual API <code>GetDataAccess</code>. Therefore, all SAML roles that can be assumed via <code>AssumeDecoratedRoleWithSAML</code> must at a minimum include <code>lakeformation:GetDataAccess</code> in their role policies. A typical IAM policy attached to such a role would look as follows: </p>"
+      "documentation":"<p>Allows a caller to assume an IAM role decorated as the SAML user specified in the SAML assertion included in the request. This decoration allows Lake Formation to enforce access policies against the SAML users and groups. This API operation requires SAML federation setup in the caller’s account as it can only be called with valid SAML assertions. Lake Formation does not scope down the permission of the assumed role. All permissions attached to the role via the SAML federation setup will be included in the role session. </p> <p> This decorated role is expected to access data in Amazon S3 by getting temporary access from Lake Formation which is authorized via the virtual API <code>GetDataAccess</code>. Therefore, all SAML roles that can be assumed via <code>AssumeDecoratedRoleWithSAML</code> must at a minimum include <code>lakeformation:GetDataAccess</code> in their role policies. A typical IAM policy attached to such a role would include the following actions: </p> <ul> <li> <p>glue:*Database*</p> </li> <li> <p>glue:*Table*</p> </li> <li> <p>glue:*Partition*</p> </li> <li> <p>glue:*UserDefinedFunction*</p> </li> <li> <p>lakeformation:GetDataAccess</p> </li> </ul>"
     },
     "BatchGrantPermissions":{
       "name":"BatchGrantPermissions",
@@ -238,7 +238,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Deletes the specified LF-tag given a key name. If the input parameter tag key was not found, then the operation will throw an exception. When you delete an LF-tag, the <code>LFTagPolicy</code> attached to the LF-tag becomes invalid. If the deleted LF-tag was still assigned to any resource, the tag policy attach to the deleted LF-tag will no longer be applied to the resource.</p>"
+      "documentation":"<p> Deletes an LF-tag by its key name. The operation fails if the specified tag key doesn't exist. When you delete an LF-Tag: </p> <ul> <li> <p>The associated LF-Tag policy becomes invalid.</p> </li> <li> <p> Resources that had this tag assigned will no longer have the tag policy applied to them.</p> </li> </ul>"
     },
     "DeleteLFTagExpression":{
       "name":"DeleteLFTagExpression",
@@ -568,6 +568,25 @@
       ],
       "documentation":"<p>Returns the set of Amazon S3 objects that make up the specified governed table. A transaction ID or timestamp can be specified for time-travel queries.</p>"
     },
+    "GetTemporaryDataLocationCredentials":{
+      "name":"GetTemporaryDataLocationCredentials",
+      "http":{
+        "method":"POST",
+        "requestUri":"/GetTemporaryDataLocationCredentials"
+      },
+      "input":{"shape":"GetTemporaryDataLocationCredentialsRequest"},
+      "output":{"shape":"GetTemporaryDataLocationCredentialsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"GlueEncryptionException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Allows a user or application in a secure environment to access data in a specific Amazon S3 location registered with Lake Formation by providing temporary scoped credentials that are limited to the requested data location and the caller's authorized access level.</p> <p> The API operation returns an error in the following scenarios:</p> <ul> <li> <p>The data location is not registered with Lake Formation. </p> </li> <li> <p>No Glue table is associated with the data location.</p> </li> <li> <p>The caller doesn't have required permissions on the associated table. The caller must have <code>SELECT</code> or <code>SUPER</code> permissions on the associated table, and credential vending for full table access must be enabled in the data lake settings. </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/full-table-credential-vending.html\">Application integration for full table access</a>.</p> </li> <li> <p>The data location is in a different Amazon Web Services Region. Lake Formation doesn't support cross-Region access when vending credentials for a data location. Lake Formation only supports Amazon S3 paths registered within the same Region as the API call. </p> </li> </ul>"
+    },
     "GetTemporaryGluePartitionCredentials":{
       "name":"GetTemporaryGluePartitionCredentials",
       "http":{
@@ -736,7 +755,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"InternalServiceException"}
       ],
-      "documentation":"<p>Returns a list of the principal permissions on the resource, filtered by the permissions of the caller. For example, if you are granted an ALTER permission, you are able to see only the principal permissions for ALTER.</p> <p>This operation returns only those permissions that have been explicitly granted.</p> <p>For information about permissions, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
+      "documentation":"<p>Returns a list of the principal permissions on the resource, filtered by the permissions of the caller. For example, if you are granted an ALTER permission, you are able to see only the principal permissions for ALTER.</p> <p>This operation returns only those permissions that have been explicitly granted. If both <code>Principal</code> and <code>Resource</code> parameters are provided, the response returns effective permissions rather than the explicitly granted permissions.</p> <p>For information about permissions, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
     },
     "ListResources":{
       "name":"ListResources",
@@ -1062,6 +1081,10 @@
       "exception":true
     },
     "AccessKeyIdString":{"type":"string"},
+    "AccountIdString":{
+      "type":"string",
+      "pattern":"^\\d{12}$"
+    },
     "AddLFTagsToResourceRequest":{
       "type":"structure",
       "required":[
@@ -1431,6 +1454,17 @@
       },
       "documentation":"<p>A Lake Formation condition, which applies to permissions and opt-ins that contain an expression.</p>"
     },
+    "ConflictException":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
+      },
+      "documentation":"<p>Multiple resources exist with the same Amazon S3 location</p>",
+      "exception":true
+    },
     "ContextKey":{
       "type":"string",
       "max":128,
@@ -1527,6 +1561,10 @@
         "ShareRecipients":{
           "shape":"DataLakePrincipalList",
           "documentation":"<p>A list of Amazon Web Services account IDs and/or Amazon Web Services organization/organizational unit ARNs that are allowed to access data managed by Lake Formation. </p> <p>If the <code>ShareRecipients</code> list includes valid values, a resource share is created with the principals you want to have access to the resources.</p> <p>If the <code>ShareRecipients</code> value is null or the list is empty, no resource share is created.</p>"
+        },
+        "ServiceIntegrations":{
+          "shape":"ServiceIntegrationList",
+          "documentation":"<p>A list of service integrations for enabling trusted identity propagation with external services such as Redshift.</p>"
         }
       }
     },
@@ -1560,6 +1598,13 @@
       "box":true,
       "max":43200,
       "min":900
+    },
+    "CredentialsScope":{
+      "type":"string",
+      "enum":[
+        "READ",
+        "READWRITE"
+      ]
     },
     "DataCellsFilter":{
       "type":"structure",
@@ -1939,6 +1984,10 @@
         "ShareRecipients":{
           "shape":"DataLakePrincipalList",
           "documentation":"<p>A list of Amazon Web Services account IDs or Amazon Web Services organization/organizational unit ARNs that are allowed to access data managed by Lake Formation. </p> <p>If the <code>ShareRecipients</code> list includes valid values, a resource share is created with the principals you want to have access to the resources as the <code>ShareRecipients</code>.</p> <p>If the <code>ShareRecipients</code> value is null or the list is empty, no resource share is created.</p>"
+        },
+        "ServiceIntegrations":{
+          "shape":"ServiceIntegrationList",
+          "documentation":"<p>A list of service integrations for enabling trusted identity propagation with external services such as Redshift.</p>"
         },
         "ResourceShare":{
           "shape":"RAMResourceShareArn",
@@ -2460,6 +2509,38 @@
         "NextToken":{
           "shape":"TokenString",
           "documentation":"<p>A continuation token indicating whether additional data is available.</p>"
+        }
+      }
+    },
+    "GetTemporaryDataLocationCredentialsRequest":{
+      "type":"structure",
+      "members":{
+        "DurationSeconds":{
+          "shape":"CredentialTimeoutDurationSecondInteger",
+          "documentation":"<p>The time period, between 900 and 43,200 seconds, for the timeout of the temporary credentials.</p>"
+        },
+        "AuditContext":{"shape":"AuditContext"},
+        "DataLocations":{
+          "shape":"PathStringList",
+          "documentation":"<p>The Amazon S3 data location that you want to access.</p>"
+        },
+        "CredentialsScope":{
+          "shape":"CredentialsScope",
+          "documentation":"<p>The credential scope is determined by the caller's Lake Formation permission on the associated table. Credential scope can be either:</p> <ul> <li> <p>READ - Provides read-only access to the data location.</p> </li> <li> <p>READ_WRITE - Provides both read and write access to the data location.</p> </li> </ul>"
+        }
+      }
+    },
+    "GetTemporaryDataLocationCredentialsResponse":{
+      "type":"structure",
+      "members":{
+        "Credentials":{"shape":"TemporaryCredentials"},
+        "AccessibleDataLocations":{
+          "shape":"PathStringList",
+          "documentation":"<p>Refers to the Amazon S3 locations that can be accessed through the <code>GetTemporaryCredentialsForLocation</code> API operation.</p>"
+        },
+        "CredentialsScope":{
+          "shape":"CredentialsScope",
+          "documentation":"<p>The credential scope is determined by the caller's Lake Formation permission on the associated table. Credential scope can be either:</p> <ul> <li> <p>READ - Provides read-only access to the data location.</p> </li> <li> <p>READ_WRITE - Provides both read and write access to the data location.</p> </li> </ul>"
         }
       }
     },
@@ -3109,7 +3190,7 @@
         },
         "IncludeRelated":{
           "shape":"TrueFalseString",
-          "documentation":"<p>Indicates that related permissions should be included in the results.</p>"
+          "documentation":"<p>Indicates that related permissions should be included in the results when listing permissions on a table resource.</p> <p>Set the field to <code>TRUE</code> to show the cell filters on a table resource. Default is <code>FALSE</code>. The Principal parameter must not be specified when requesting cell filter information.</p>"
         }
       }
     },
@@ -3565,6 +3646,33 @@
       ]
     },
     "RAMResourceShareArn":{"type":"string"},
+    "RedshiftConnect":{
+      "type":"structure",
+      "required":["Authorization"],
+      "members":{
+        "Authorization":{
+          "shape":"ServiceAuthorization",
+          "documentation":"<p>The authorization status for Redshift Connect. Valid values are ENABLED or DISABLED.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for enabling trusted identity propagation with Redshift Connect.</p>"
+    },
+    "RedshiftScopeUnion":{
+      "type":"structure",
+      "members":{
+        "RedshiftConnect":{
+          "shape":"RedshiftConnect",
+          "documentation":"<p>Configuration for Redshift Connect integration.</p>"
+        }
+      },
+      "documentation":"<p>A union structure representing different Redshift integration scopes.</p>",
+      "union":true
+    },
+    "RedshiftServiceIntegrations":{
+      "type":"list",
+      "member":{"shape":"RedshiftScopeUnion"},
+      "documentation":"<p>A list of Redshift service integration configurations.</p>"
+    },
     "RegisterResourceRequest":{
       "type":"structure",
       "required":["ResourceArn"],
@@ -3592,6 +3700,10 @@
         "WithPrivilegedAccess":{
           "shape":"Boolean",
           "documentation":"<p>Grants the calling principal the permissions to perform all supported Lake Formation operations on the registered data location. </p>"
+        },
+        "ExpectedResourceOwnerAccount":{
+          "shape":"AccountIdString",
+          "documentation":"<p>The Amazon Web Services account that owns the Glue tables associated with specific Amazon S3 locations. </p>"
         }
       }
     },
@@ -3658,7 +3770,7 @@
         },
         "LFTag":{
           "shape":"LFTagKeyResource",
-          "documentation":"<p>The LF-tag key and values attached to a resource.</p>"
+          "documentation":"<p>The LF-Tag key and values attached to a resource.</p>"
         },
         "LFTagPolicy":{
           "shape":"LFTagPolicyResource",
@@ -3698,6 +3810,14 @@
         "WithPrivilegedAccess":{
           "shape":"NullableBoolean",
           "documentation":"<p>Grants the calling principal the permissions to perform all supported Lake Formation operations on the registered data location. </p>"
+        },
+        "VerificationStatus":{
+          "shape":"VerificationStatus",
+          "documentation":"<p>Indicates whether the registered role has sufficient permissions to access registered Amazon S3 location. Verification Status can be one of the following: </p> <ul> <li> <p>VERIFIED - Registered role has sufficient permissions to access registered Amazon S3 location.</p> </li> <li> <p>NOT_VERIFIED - Registered role does not have sufficient permissions to access registered Amazon S3 location.</p> </li> <li> <p>VERIFICATION_FAILED - Unable to verify if the registered role can access the registered Amazon S3 location.</p> </li> </ul>"
+        },
+        "ExpectedResourceOwnerAccount":{
+          "shape":"AccountIdString",
+          "documentation":"<p>The Amazon Web Services account that owns the Glue tables associated with specific Amazon S3 locations. </p>"
         }
       },
       "documentation":"<p>A structure containing information about an Lake Formation resource.</p>"
@@ -3888,6 +4008,30 @@
       }
     },
     "SecretAccessKeyString":{"type":"string"},
+    "ServiceAuthorization":{
+      "type":"string",
+      "documentation":"<p>Authorization status for service integrations. Specify a value of <code>ENABLED</code> or <code>DISABLED</code>.</p>",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "ServiceIntegrationList":{
+      "type":"list",
+      "member":{"shape":"ServiceIntegrationUnion"},
+      "documentation":"<p>A list of service integrations for trusted identity propagation.</p>"
+    },
+    "ServiceIntegrationUnion":{
+      "type":"structure",
+      "members":{
+        "Redshift":{
+          "shape":"RedshiftServiceIntegrations",
+          "documentation":"<p>Redshift service integration configuration.</p>"
+        }
+      },
+      "documentation":"<p>A union structure representing different service integration types.</p>",
+      "union":true
+    },
     "SessionTokenString":{"type":"string"},
     "StartQueryPlanningRequest":{
       "type":"structure",
@@ -4134,6 +4278,28 @@
       },
       "documentation":"<p>A structure describing a table resource with LF-tags.</p>"
     },
+    "TemporaryCredentials":{
+      "type":"structure",
+      "members":{
+        "AccessKeyId":{
+          "shape":"AccessKeyIdString",
+          "documentation":"<p>The access key ID for the temporary credentials.</p>"
+        },
+        "SecretAccessKey":{
+          "shape":"SecretAccessKeyString",
+          "documentation":"<p>The secret key for the temporary credentials.</p>"
+        },
+        "SessionToken":{
+          "shape":"SessionTokenString",
+          "documentation":"<p>The session token for the temporary credentials.</p>"
+        },
+        "Expiration":{
+          "shape":"ExpirationTimestamp",
+          "documentation":"<p>The date and time when the temporary credentials expire.</p>"
+        }
+      },
+      "documentation":"<p>A temporary set of credentials for an Lake Formation user. These credentials are scoped down to only access the raw data sources that the user has access to. </p> <p>The temporary security credentials consist of an access key and a session token. The access key consists of an access key ID and a secret key. When the credentials are created, they are associated with an IAM access control policy that limits what the user can do when using the credentials.</p>"
+    },
     "ThrottledException":{
       "type":"structure",
       "members":{
@@ -4346,6 +4512,10 @@
           "shape":"DataLakePrincipalList",
           "documentation":"<p>A list of Amazon Web Services account IDs or Amazon Web Services organization/organizational unit ARNs that are allowed to access to access data managed by Lake Formation. </p> <p>If the <code>ShareRecipients</code> list includes valid values, then the resource share is updated with the principals you want to have access to the resources.</p> <p>If the <code>ShareRecipients</code> value is null, both the list of share recipients and the resource share remain unchanged.</p> <p>If the <code>ShareRecipients</code> value is an empty list, then the existing share recipients list will be cleared, and the resource share will be deleted.</p>"
         },
+        "ServiceIntegrations":{
+          "shape":"ServiceIntegrationList",
+          "documentation":"<p>A list of service integrations for enabling trusted identity propagation with external services such as Redshift.</p>"
+        },
         "ApplicationStatus":{
           "shape":"ApplicationStatus",
           "documentation":"<p>Allows to enable or disable the IAM Identity Center connection.</p>"
@@ -4382,6 +4552,10 @@
         "HybridAccessEnabled":{
           "shape":"NullableBoolean",
           "documentation":"<p> Specifies whether the data access of tables pointing to the location can be managed by both Lake Formation permissions as well as Amazon S3 bucket policies. </p>"
+        },
+        "ExpectedResourceOwnerAccount":{
+          "shape":"AccountIdString",
+          "documentation":"<p>The Amazon Web Services account that owns the Glue tables associated with specific Amazon S3 locations. </p>"
         }
       }
     },
@@ -4463,6 +4637,14 @@
       "type":"list",
       "member":{"shape":"ValueString"},
       "min":1
+    },
+    "VerificationStatus":{
+      "type":"string",
+      "enum":[
+        "VERIFIED",
+        "VERIFICATION_FAILED",
+        "NOT_VERIFIED"
+      ]
     },
     "VersionString":{
       "type":"string",

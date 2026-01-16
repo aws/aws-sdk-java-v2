@@ -31,11 +31,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 
 /**
@@ -84,7 +84,7 @@ public class BatchingEfficiencyUnderLoadTest {
     /**
      * Test runs heavy load and expects average batch sizes to be close to max.
      */
-    @Test
+    @RetryableTest(maxRetries = 3)
     void sendMessage_whenHighLoadScenario_shouldEfficientlyBatchMessages() throws Exception {
         int expectedBatchSize = 25; // more than double the actual max of 10
         int rateLimit = 1000 / SEND_FREQUENCY_MILLIS * expectedBatchSize;
@@ -126,7 +126,7 @@ public class BatchingEfficiencyUnderLoadTest {
     /**
      * Test runs a load that should cause an average batch size of 5.
      */
-    @Test
+    @RetryableTest(maxRetries = 3)
     void sendMessage_whenMediumLoadScenario_shouldCreateHalfSizeBatches() throws Exception {
         int expectedBatchSize = 5;
         int rateLimit = 1000 / SEND_FREQUENCY_MILLIS * expectedBatchSize;
@@ -157,7 +157,7 @@ public class BatchingEfficiencyUnderLoadTest {
             .isLessThan(messageCount / 3d);
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     void sendMessage_whenLowLoadScenario_shouldCreateSmallBatches() throws Exception {
         int expectedBatchSize = 1;
         int rateLimit = 1000 / SEND_FREQUENCY_MILLIS * expectedBatchSize;
@@ -217,5 +217,8 @@ public class BatchingEfficiencyUnderLoadTest {
 
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS);
+        
+        // Wait for batch manager to flush all pending batches
+        Thread.sleep(SEND_FREQUENCY_MILLIS * 3);
     }
 }

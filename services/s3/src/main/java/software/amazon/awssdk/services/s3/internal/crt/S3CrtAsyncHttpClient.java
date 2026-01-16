@@ -48,6 +48,7 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.ChecksumConfig;
+import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
@@ -104,7 +105,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withTlsContext(s3NativeClientConfiguration.tlsContext())
-                                 .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withMultipartUploadThreshold(s3NativeClientConfiguration.thresholdInBytes())
                                  .withComputeContentMd5(false)
                                  .withEnableS3Express(true)
@@ -120,6 +120,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (Boolean.FALSE.equals(s3NativeClientConfiguration.isUseEnvironmentVariableValues())) {
             options.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
         }
+        Optional.ofNullable(s3NativeClientConfiguration.partSizeBytes()).ifPresent(options::withPartSize);
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(options::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
                 .map(Duration::toMillis)
@@ -127,6 +128,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withConnectTimeoutMs);
         Optional.ofNullable(s3NativeClientConfiguration.httpMonitoringOptions())
                 .ifPresent(options::withHttpMonitoringOptions);
+        Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
+            .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
         return options;
     }
 

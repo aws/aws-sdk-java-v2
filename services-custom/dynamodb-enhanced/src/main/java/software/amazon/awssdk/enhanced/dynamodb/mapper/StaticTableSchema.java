@@ -31,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
@@ -277,7 +278,19 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
          * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
          */
         public StaticTableSchema<T> build() {
-            return new StaticTableSchema<>(this);
+            return build(ExecutionContext.ROOT);
+        }
+
+        /**
+         * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
+         * @param context The context in which the schema is being executed, from root or from a flatten operation.
+         */
+        public StaticTableSchema<T> build(ExecutionContext context) {
+            StaticTableSchema staticTableSchema = new StaticTableSchema<>(this);
+            if (context == ExecutionContext.ROOT) {
+                IndexValidator.validateAllIndices(staticTableSchema.tableMetadata().indices());
+            }
+            return staticTableSchema;
         }
 
     }

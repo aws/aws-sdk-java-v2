@@ -225,6 +225,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
         {"shape":"UnsupportedUserEditionException"},
+        {"shape":"InvalidDataSetParameterValueException"},
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Creates a dataset. This operation doesn't support datasets that include uploaded files as a source.</p>"
@@ -1531,7 +1532,7 @@
         {"shape":"UnsupportedUserEditionException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Describes an existing snapshot job.</p> <p>Poll job descriptions after a job starts to know the status of the job. For information on available status codes, see <code>JobStatus</code>.</p>"
+      "documentation":"<p>Describes an existing snapshot job.</p> <p>Poll job descriptions after a job starts to know the status of the job. For information on available status codes, see <code>JobStatus</code>.</p> <p> <b>Registered user support</b> </p> <p>This API can be called as before to get status of a job started by the same Quick Sight user.</p> <p> <b>Possible error scenarios</b> </p> <p>Request will fail with an Access Denied error in the following scenarios:</p> <ul> <li> <p>The credentials have expired.</p> </li> <li> <p>Job has been started by a different user.</p> </li> <li> <p>Impersonated Quick Sight user doesn't have access to the specified dashboard in the job.</p> </li> </ul>"
     },
     "DescribeDashboardSnapshotJobResult":{
       "name":"DescribeDashboardSnapshotJobResult",
@@ -1550,7 +1551,7 @@
         {"shape":"PreconditionNotMetException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Describes the result of an existing snapshot job that has finished running.</p> <p>A finished snapshot job will return a <code>COMPLETED</code> or <code>FAILED</code> status when you poll the job with a <code>DescribeDashboardSnapshotJob</code> API call.</p> <p>If the job has not finished running, this operation returns a message that says <code>Dashboard Snapshot Job with id &lt;SnapshotjobId&gt; has not reached a terminal state.</code>.</p>"
+      "documentation":"<p>Describes the result of an existing snapshot job that has finished running.</p> <p>A finished snapshot job will return a <code>COMPLETED</code> or <code>FAILED</code> status when you poll the job with a <code>DescribeDashboardSnapshotJob</code> API call.</p> <p>If the job has not finished running, this operation returns a message that says <code>Dashboard Snapshot Job with id &lt;SnapshotjobId&gt; has not reached a terminal state.</code>.</p> <p> <b>Registered user support</b> </p> <p>This API can be called as before to get the result of a job started by the same Quick Sight user. The result for the user will be returned in <code>RegisteredUsers</code> response attribute. The attribute will contain a list with at most one object in it.</p> <p> <b>Possible error scenarios</b> </p> <p>The request fails with an Access Denied error in the following scenarios:</p> <ul> <li> <p>The credentials have expired.</p> </li> <li> <p>The job was started by a different user.</p> </li> <li> <p>The registered user doesn't have access to the specified dashboard.</p> </li> </ul> <p>The request succeeds but the job fails in the following scenarios:</p> <ul> <li> <p> <code>DASHBOARD_ACCESS_DENIED</code> - The registered user lost access to the dashboard.</p> </li> <li> <p> <code>CAPABILITY_RESTRICTED</code> - The registered user is restricted from exporting data in <b>all</b> selected formats.</p> </li> </ul> <p>The request succeeds but the response contains an error code in the following scenarios:</p> <ul> <li> <p> <code>CAPABILITY_RESTRICTED</code> - The registered user is restricted from exporting data in <b>some</b> selected formats.</p> </li> <li> <p> <code>RLS_CHANGED</code> - Row-level security settings have changed. Re-run the job with current settings.</p> </li> <li> <p> <code>CLS_CHANGED</code> - Column-level security settings have changed. Re-run the job with current settings.</p> </li> <li> <p> <code>DATASET_DELETED</code> - The dataset has been deleted. Verify the dataset exists before re-running the job.</p> </li> </ul>"
     },
     "DescribeDashboardsQAConfiguration":{
       "name":"DescribeDashboardsQAConfiguration",
@@ -1928,6 +1929,26 @@
       ],
       "documentation":"<p>Describes all custom permissions that are mapped to a role.</p>"
     },
+    "DescribeSelfUpgradeConfiguration":{
+      "name":"DescribeSelfUpgradeConfiguration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/namespaces/{Namespace}/self-upgrade-configuration"
+      },
+      "input":{"shape":"DescribeSelfUpgradeConfigurationRequest"},
+      "output":{"shape":"DescribeSelfUpgradeConfigurationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceUnavailableException"}
+      ],
+      "documentation":"<p>Describes the self-upgrade configuration for a Quick Suite account.</p>"
+    },
     "DescribeTemplate":{
       "name":"DescribeTemplate",
       "http":{
@@ -2183,7 +2204,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Generates an embed URL that you can use to embed an Amazon QuickSight dashboard or visual in your website, without having to register any reader users. Before you use this action, make sure that you have configured the dashboards and permissions.</p> <p>The following rules apply to the generated URL:</p> <ul> <li> <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p> </li> <li> <p>The URL validity period should not be confused with the actual session lifetime that can be customized using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForAnonymousUser.html#QS-GenerateEmbedUrlForAnonymousUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a> </code> parameter. The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>"
+      "documentation":"<p>Generates an embed URL that you can use to embed an Amazon Quick Suite dashboard or visual in your website, without having to register any reader users. Before you use this action, make sure that you have configured the dashboards and permissions.</p> <p>The following rules apply to the generated URL:</p> <ul> <li> <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p> </li> <li> <p>The URL validity period should not be confused with the actual session lifetime that can be customized using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForAnonymousUser.html#QS-GenerateEmbedUrlForAnonymousUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a> </code> parameter. The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with Amazon Quick Suite.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon Quick Suite User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon Quick Suite Developer Portal</a>.</p>"
     },
     "GenerateEmbedUrlForRegisteredUser":{
       "name":"GenerateEmbedUrlForRegisteredUser",
@@ -2204,7 +2225,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Generates an embed URL that you can use to embed an Amazon QuickSight experience in your website. This action can be used for any type of user registered in an Amazon QuickSight account. Before you use this action, make sure that you have configured the relevant Amazon QuickSight resource and permissions.</p> <p>The following rules apply to the generated URL:</p> <ul> <li> <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p> </li> <li> <p>The URL validity period should not be confused with the actual session lifetime that can be customized using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html#QS-GenerateEmbedUrlForRegisteredUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a> </code> parameter.</p> <p>The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>"
+      "documentation":"<p>Generates an embed URL that you can use to embed an Amazon Quick Suite experience in your website. This action can be used for any type of user registered in an Amazon Quick Suite account. Before you use this action, make sure that you have configured the relevant Amazon Quick Suite resource and permissions.</p> <p>The following rules apply to the generated URL:</p> <ul> <li> <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p> </li> <li> <p>The URL validity period should not be confused with the actual session lifetime that can be customized using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html#QS-GenerateEmbedUrlForRegisteredUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a> </code> parameter.</p> <p>The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with Amazon Quick Suite.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon Quick Suite User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon Quick Suite Developer Portal</a>.</p>"
     },
     "GenerateEmbedUrlForRegisteredUserWithIdentity":{
       "name":"GenerateEmbedUrlForRegisteredUserWithIdentity",
@@ -2249,7 +2270,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Generates a temporary session URL and authorization code(bearer token) that you can use to embed an Amazon Quick Sight read-only dashboard in your website or application. Before you use this command, make sure that you have configured the dashboards and permissions. </p> <p>Currently, you can use <code>GetDashboardEmbedURL</code> only from the server, not from the user's browser. The following rules apply to the generated URL:</p> <ul> <li> <p>They must be used together.</p> </li> <li> <p>They can be used one time only.</p> </li> <li> <p>They are valid for 5 minutes after you run this command.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with QuickSight.</p> </li> <li> <p>The resulting user session is valid for 15 minutes (default) up to 10 hours (maximum). You can use the optional <code>SessionLifetimeInMinutes</code> parameter to customize session duration.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics-deprecated.html\">Embedding Analytics Using GetDashboardEmbedUrl</a> in the <i>Amazon QuickSight User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>"
+      "documentation":"<p>Generates a temporary session URL and authorization code(bearer token) that you can use to embed an Amazon Quick Sight read-only dashboard in your website or application. Before you use this command, make sure that you have configured the dashboards and permissions. </p> <p>Currently, you can use <code>GetDashboardEmbedURL</code> only from the server, not from the user's browser. The following rules apply to the generated URL:</p> <ul> <li> <p>They must be used together.</p> </li> <li> <p>They can be used one time only.</p> </li> <li> <p>They are valid for 5 minutes after you run this command.</p> </li> <li> <p>You are charged only when the URL is used or there is interaction with Quick Suite.</p> </li> <li> <p>The resulting user session is valid for 15 minutes (default) up to 10 hours (maximum). You can use the optional <code>SessionLifetimeInMinutes</code> parameter to customize session duration.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics-deprecated.html\">Embedding Analytics Using GetDashboardEmbedUrl</a> in the <i>Amazon Quick Suite User Guide</i>.</p> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon Quick Suite Developer Portal</a>.</p>"
     },
     "GetFlowMetadata":{
       "name":"GetFlowMetadata",
@@ -2287,6 +2308,25 @@
       "documentation":"<p>Get permissions for a flow.</p>",
       "readonly":true
     },
+    "GetIdentityContext":{
+      "name":"GetIdentityContext",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/identity-context",
+        "responseCode":200
+      },
+      "input":{"shape":"GetIdentityContextRequest"},
+      "output":{"shape":"GetIdentityContextResponse"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Retrieves the identity context for a Quick Sight user in a specified namespace, allowing you to obtain identity tokens that can be used with identity-enhanced IAM role sessions to call identity-aware APIs.</p> <p>Currently, you can call the following APIs with identity-enhanced Credentials</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_StartDashboardSnapshotJob.html\">StartDashboardSnapshotJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DescribeDashboardSnapshotJob.html\">DescribeDashboardSnapshotJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DescribeDashboardSnapshotJobResult.html\">DescribeDashboardSnapshotJobResult</a> </p> </li> </ul> <p> <b>Supported Authentication Methods</b> </p> <p>This API supports Quick Sight native users, IAM federated users, and Active Directory users. For Quick Sight users authenticated by Amazon Web Services Identity Center, see <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation-identity-enhanced-iam-role-sessions.html\">Identity Center documentation on identity-enhanced IAM role sessions</a>.</p> <p> <b>Getting Identity-Enhanced Credentials</b> </p> <p>To obtain identity-enhanced credentials, follow these steps:</p> <ul> <li> <p>Call the GetIdentityContext API to retrieve an identity token for the specified user.</p> </li> <li> <p>Use the identity token with the <a href=\"https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html\">STS AssumeRole API</a> to obtain identity-enhanced IAM role session credentials.</p> </li> </ul> <p> <b>Usage with STS AssumeRole</b> </p> <p>The identity token returned by this API should be used with the STS AssumeRole API to obtain credentials for an identity-enhanced IAM role session. When calling AssumeRole, include the identity token in the <code>ProvidedContexts</code> parameter with <code>ProviderArn</code> set to <code>arn:aws:iam::aws:contextProvider/QuickSight</code> and <code>ContextAssertion</code> set to the identity token received from this API.</p> <p>The assumed role must allow the <code>sts:SetContext</code> action in addition to <code>sts:AssumeRole</code> in its trust relationship policy. The trust policy should include both actions for the principal that will be assuming the role.</p>"
+    },
     "GetSessionEmbedUrl":{
       "name":"GetSessionEmbedUrl",
       "http":{
@@ -2306,7 +2346,7 @@
         {"shape":"UnsupportedUserEditionException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Generates a session URL and authorization code that you can use to embed the Amazon Amazon Quick Sight console in your web server code. Use <code>GetSessionEmbedUrl</code> where you want to provide an authoring portal that allows users to create data sources, datasets, analyses, and dashboards. The users who access an embedded Amazon Quick Sight console need belong to the author or admin security cohort. If you want to restrict permissions to some of these features, add a custom permissions profile to the user with the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> API operation. Use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_RegisterUser.html\">RegisterUser</a> </code> API operation to add a new user with a custom permission profile attached. For more information, see the following sections in the <i>Amazon QuickSight User Guide</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedding Analytics</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon QuickSight Console</a> </p> </li> </ul>"
+      "documentation":"<p>Generates a session URL and authorization code that you can use to embed the Amazon Amazon Quick Sight console in your web server code. Use <code>GetSessionEmbedUrl</code> where you want to provide an authoring portal that allows users to create data sources, datasets, analyses, and dashboards. The users who access an embedded Amazon Quick Sight console need belong to the author or admin security cohort. If you want to restrict permissions to some of these features, add a custom permissions profile to the user with the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> API operation. Use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_RegisterUser.html\">RegisterUser</a> </code> API operation to add a new user with a custom permission profile attached. For more information, see the following sections in the <i>Amazon Quick Suite User Guide</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedding Analytics</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon Quick Suite Console</a> </p> </li> </ul>"
     },
     "ListActionConnectors":{
       "name":"ListActionConnectors",
@@ -2729,6 +2769,27 @@
       ],
       "documentation":"<p>Lists all groups that are associated with a role.</p>"
     },
+    "ListSelfUpgrades":{
+      "name":"ListSelfUpgrades",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/namespaces/{Namespace}/self-upgrade-requests"
+      },
+      "input":{"shape":"ListSelfUpgradesRequest"},
+      "output":{"shape":"ListSelfUpgradesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceUnavailableException"}
+      ],
+      "documentation":"<p>Lists all self-upgrade requests for a Quick Suite account.</p>"
+    },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
       "http":{
@@ -2981,7 +3042,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Predicts existing visuals or generates new visuals to answer a given query.</p> <p>This API uses <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation.html\">trusted identity propagation</a> to ensure that an end user is authenticated and receives the embed URL that is specific to that user. The IAM Identity Center application that the user has logged into needs to have <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation-using-customermanagedapps-specify-trusted-apps.html\">trusted Identity Propagation enabled for QuickSight</a> with the scope value set to <code>quicksight:read</code>. Before you use this action, make sure that you have configured the relevant QuickSight resource and permissions.</p> <p>We recommend enabling the <code>QSearchStatus</code> API to unlock the full potential of <code>PredictQnA</code>. When <code>QSearchStatus</code> is enabled, it first checks the specified dashboard for any existing visuals that match the question. If no matching visuals are found, <code>PredictQnA</code> uses generative Q&amp;A to provide an answer. To update the <code>QSearchStatus</code>, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateQuickSightQSearchConfiguration.html\">UpdateQuickSightQSearchConfiguration</a>.</p>"
+      "documentation":"<p>Predicts existing visuals or generates new visuals to answer a given query.</p> <p>This API uses <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation.html\">trusted identity propagation</a> to ensure that an end user is authenticated and receives the embed URL that is specific to that user. The IAM Identity Center application that the user has logged into needs to have <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation-using-customermanagedapps-specify-trusted-apps.html\">trusted Identity Propagation enabled for Quick Suite</a> with the scope value set to <code>quicksight:read</code>. Before you use this action, make sure that you have configured the relevant Quick Suite resource and permissions.</p> <p>We recommend enabling the <code>QSearchStatus</code> API to unlock the full potential of <code>PredictQnA</code>. When <code>QSearchStatus</code> is enabled, it first checks the specified dashboard for any existing visuals that match the question. If no matching visuals are found, <code>PredictQnA</code> uses generative Q&amp;A to provide an answer. To update the <code>QSearchStatus</code>, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateQuickSightQSearchConfiguration.html\">UpdateQuickSightQSearchConfiguration</a>.</p>"
     },
     "PutDataSetRefreshProperties":{
       "name":"PutDataSetRefreshProperties",
@@ -3208,7 +3269,7 @@
         {"shape":"InvalidNextTokenException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Searches for any Q topic that exists in an QuickSight account.</p>"
+      "documentation":"<p>Searches for any Q topic that exists in an Quick Suite account.</p>"
     },
     "StartAssetBundleExportJob":{
       "name":"StartAssetBundleExportJob",
@@ -3267,7 +3328,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Starts an asynchronous job that generates a snapshot of a dashboard's output. You can request one or several of the following format configurations in each API call.</p> <ul> <li> <p>1 Paginated PDF</p> </li> <li> <p>1 Excel workbook that includes up to 5 table or pivot table visuals</p> </li> <li> <p>5 CSVs from table or pivot table visuals</p> </li> </ul> <p>The status of a submitted job can be polled with the <code>DescribeDashboardSnapshotJob</code> API. When you call the <code>DescribeDashboardSnapshotJob</code> API, check the <code>JobStatus</code> field in the response. Once the job reaches a <code>COMPLETED</code> or <code>FAILED</code> status, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the URLs for the generated files. If the job fails, the <code>DescribeDashboardSnapshotJobResult</code> API returns detailed information about the error that occurred.</p> <p> <b>StartDashboardSnapshotJob API throttling</b> </p> <p>Quick Sight utilizes API throttling to create a more consistent user experience within a time span for customers when they call the <code>StartDashboardSnapshotJob</code>. By default, 12 jobs can run simlutaneously in one Amazon Web Services account and users can submit up 10 API requests per second before an account is throttled. If an overwhelming number of API requests are made by the same user in a short period of time, Quick Sight throttles the API calls to maintin an optimal experience and reliability for all Quick Sight users.</p> <p> <b>Common throttling scenarios</b> </p> <p>The following list provides information about the most commin throttling scenarios that can occur.</p> <ul> <li> <p> <b>A large number of <code>SnapshotExport</code> API jobs are running simultaneously on an Amazon Web Services account.</b> When a new <code>StartDashboardSnapshotJob</code> is created and there are already 12 jobs with the <code>RUNNING</code> status, the new job request fails and returns a <code>LimitExceededException</code> error. Wait for a current job to comlpete before you resubmit the new job.</p> </li> <li> <p> <b>A large number of API requests are submitted on an Amazon Web Services account.</b> When a user makes more than 10 API calls to the Quick Sight API in one second, a <code>ThrottlingException</code> is returned.</p> </li> </ul> <p>If your use case requires a higher throttling limit, contact your account admin or <a href=\"http://aws.amazon.com/contact-us/\">Amazon Web ServicesSupport</a> to explore options to tailor a more optimal expereince for your account.</p> <p> <b>Best practices to handle throttling</b> </p> <p>If your use case projects high levels of API traffic, try to reduce the degree of frequency and parallelism of API calls as much as you can to avoid throttling. You can also perform a timing test to calculate an estimate for the total processing time of your projected load that stays within the throttling limits of the Quick Sight APIs. For example, if your projected traffic is 100 snapshot jobs before 12:00 PM per day, start 12 jobs in parallel and measure the amount of time it takes to proccess all 12 jobs. Once you obtain the result, multiply the duration by 9, for example <code>(12 minutes * 9 = 108 minutes)</code>. Use the new result to determine the latest time at which the jobs need to be started to meet your target deadline.</p> <p>The time that it takes to process a job can be impacted by the following factors:</p> <ul> <li> <p>The dataset type (Direct Query or SPICE).</p> </li> <li> <p>The size of the dataset.</p> </li> <li> <p>The complexity of the calculated fields that are used in the dashboard.</p> </li> <li> <p>The number of visuals that are on a sheet.</p> </li> <li> <p>The types of visuals that are on the sheet.</p> </li> <li> <p>The number of formats and snapshots that are requested in the job configuration.</p> </li> <li> <p>The size of the generated snapshots.</p> </li> </ul>"
+      "documentation":"<p>Starts an asynchronous job that generates a snapshot of a dashboard's output. You can request one or several of the following format configurations in each API call.</p> <ul> <li> <p>1 Paginated PDF</p> </li> <li> <p>1 Excel workbook that includes up to 5 table or pivot table visuals</p> </li> <li> <p>5 CSVs from table or pivot table visuals</p> </li> </ul> <p>The status of a submitted job can be polled with the <code>DescribeDashboardSnapshotJob</code> API. When you call the <code>DescribeDashboardSnapshotJob</code> API, check the <code>JobStatus</code> field in the response. Once the job reaches a <code>COMPLETED</code> or <code>FAILED</code> status, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the URLs for the generated files. If the job fails, the <code>DescribeDashboardSnapshotJobResult</code> API returns detailed information about the error that occurred.</p> <p> <b>StartDashboardSnapshotJob API throttling</b> </p> <p>Quick Sight utilizes API throttling to create a more consistent user experience within a time span for customers when they call the <code>StartDashboardSnapshotJob</code>. By default, 12 jobs can run simlutaneously in one Amazon Web Services account and users can submit up 10 API requests per second before an account is throttled. If an overwhelming number of API requests are made by the same user in a short period of time, Quick Sight throttles the API calls to maintin an optimal experience and reliability for all Quick Sight users.</p> <p> <b>Common throttling scenarios</b> </p> <p>The following list provides information about the most commin throttling scenarios that can occur.</p> <ul> <li> <p> <b>A large number of <code>SnapshotExport</code> API jobs are running simultaneously on an Amazon Web Services account.</b> When a new <code>StartDashboardSnapshotJob</code> is created and there are already 12 jobs with the <code>RUNNING</code> status, the new job request fails and returns a <code>LimitExceededException</code> error. Wait for a current job to comlpete before you resubmit the new job.</p> </li> <li> <p> <b>A large number of API requests are submitted on an Amazon Web Services account.</b> When a user makes more than 10 API calls to the Quick Sight API in one second, a <code>ThrottlingException</code> is returned.</p> </li> </ul> <p>If your use case requires a higher throttling limit, contact your account admin or <a href=\"http://aws.amazon.com/contact-us/\">Amazon Web ServicesSupport</a> to explore options to tailor a more optimal expereince for your account.</p> <p> <b>Best practices to handle throttling</b> </p> <p>If your use case projects high levels of API traffic, try to reduce the degree of frequency and parallelism of API calls as much as you can to avoid throttling. You can also perform a timing test to calculate an estimate for the total processing time of your projected load that stays within the throttling limits of the Quick Sight APIs. For example, if your projected traffic is 100 snapshot jobs before 12:00 PM per day, start 12 jobs in parallel and measure the amount of time it takes to proccess all 12 jobs. Once you obtain the result, multiply the duration by 9, for example <code>(12 minutes * 9 = 108 minutes)</code>. Use the new result to determine the latest time at which the jobs need to be started to meet your target deadline.</p> <p>The time that it takes to process a job can be impacted by the following factors:</p> <ul> <li> <p>The dataset type (Direct Query or SPICE).</p> </li> <li> <p>The size of the dataset.</p> </li> <li> <p>The complexity of the calculated fields that are used in the dashboard.</p> </li> <li> <p>The number of visuals that are on a sheet.</p> </li> <li> <p>The types of visuals that are on the sheet.</p> </li> <li> <p>The number of formats and snapshots that are requested in the job configuration.</p> </li> <li> <p>The size of the generated snapshots.</p> </li> </ul> <p> <b>Registered user support</b> </p> <p>You can generate snapshots for registered Quick Sight users by using the Snapshot Job APIs with <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation-identity-enhanced-iam-role-sessions.html\">identity-enhanced IAM role session credentials</a>. This approach allows you to create snapshots on behalf of specific Quick Sight users while respecting their row-level security (RLS), column-level security (CLS), dynamic default parameters and dashboard parameter/filter settings.</p> <p>To generate snapshots for registered Quick Sight users, you need to:</p> <ul> <li> <p>Obtain identity-enhanced IAM role session credentials from Amazon Web Services Security Token Service (STS).</p> </li> <li> <p>Use these credentials to call the Snapshot Job APIs.</p> </li> </ul> <p>Identity-enhanced credentials are credentials that contain information about the end user (e.g., registered Quick Sight user).</p> <p>If your Quick Sight users are backed by <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html\">Amazon Web Services Identity Center</a>, then you need to set up a <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/setuptrustedtokenissuer.html\">trusted token issuer</a>. Then, getting identity-enhanced IAM credentials for a Quick Sight user will look like the following:</p> <ul> <li> <p>Authenticate user with your OIDC compliant Identity Provider. You should get auth tokens back.</p> </li> <li> <p>Use the OIDC API, <a href=\"https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_CreateTokenWithIAM.html\">CreateTokenWithIAM</a>, to exchange auth tokens to IAM tokens. One of the resulted tokens will be identity token.</p> </li> <li> <p>Call STS AssumeRole API as you normally would, but provide an extra <code>ProvidedContexts</code> parameter in the API request. The list of contexts must have a single trusted context assertion. The <code>ProviderArn</code> should be <code>arn:aws:iam::aws:contextProvider/IdentityCenter</code> while <code>ContextAssertion</code> will be the identity token you received in response from CreateTokenWithIAM</p> </li> </ul> <p>For more details, see <a href=\"https://docs.aws.amazon.com/singlesignon/latest/userguide/trustedidentitypropagation-identity-enhanced-iam-role-sessions.html\">IdC documentation on Identity-enhanced IAM role sessions</a>.</p> <p>To obtain Identity-enhanced credentials for Quick Sight native users, IAM federated users, or Active Directory users, follow the steps below:</p> <ul> <li> <p>Call Quick Sight <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GetIdentityContext.html\">GetIdentityContext API</a> to get identity token.</p> </li> <li> <p>Call STS AssumeRole API as you normally would, but provide extra <code>ProvidedContexts</code> parameter in the API request. The list of contexts must have a single trusted context assertion. The <code>ProviderArn</code> should be <code>arn:aws:iam::aws:contextProvider/QuickSight</code> while <code>ContextAssertion</code> will be the identity token you received in response from GetIdentityContext</p> </li> </ul> <p>After obtaining the identity-enhanced IAM role session credentials, you can use them to start a job, describe the job and describe job result. You can use the same credentials as long as they haven't expired. All API requests made with these credentials are considered to be made by the impersonated Quick Sight user.</p> <important> <p>When using identity-enhanced session credentials, set the UserConfiguration request attribute to null. Otherwise, the request will be invalid.</p> </important> <p> <b>Possible error scenarios</b> </p> <p>The request fails with an Access Denied error in the following scenarios:</p> <ul> <li> <p>The credentials have expired.</p> </li> <li> <p>The impersonated Quick Sight user doesn't have access to the specified dashboard.</p> </li> <li> <p>The impersonated Quick Sight user is restricted from exporting data in the selected formats. For more information about export restrictions, see <a href=\"https://docs.aws.amazon.com/quicksuite/latest/userguide/create-custom-permisions-profile.html\">Customizing access to Amazon Quick Sight capabilities</a>.</p> </li> </ul>"
     },
     "StartDashboardSnapshotJobSchedule":{
       "name":"StartDashboardSnapshotJobSchedule",
@@ -3473,7 +3534,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Updates an QuickSight application with a token exchange grant. This operation only supports QuickSight applications that are registered with IAM Identity Center.</p>"
+      "documentation":"<p>Updates an Quick Suite application with a token exchange grant. This operation only supports Quick Suite applications that are registered with IAM Identity Center.</p>"
     },
     "UpdateBrand":{
       "name":"UpdateBrand",
@@ -3664,6 +3725,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"UnsupportedUserEditionException"},
+        {"shape":"InvalidDataSetParameterValueException"},
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Updates a dataset. This operation doesn't support datasets that include uploaded files as a source. Partial updates are not supported by this operation.</p>"
@@ -3903,7 +3965,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<important> <p>This API controls public sharing settings for your entire Quick Sight account, affecting data security and access. When you enable public sharing:</p> <ul> <li> <p>Dashboards can be shared publicly</p> </li> <li> <p>This setting affects your entire Amazon Web Services account and all Quick Sight users</p> </li> </ul> <p> <b>Before proceeding:</b> Ensure you understand the security implications and have proper IAM permissions configured.</p> </important> <p>Use the <code>UpdatePublicSharingSettings</code> operation to turn on or turn off the public sharing settings of an Amazon Quick Sight dashboard.</p> <p>To use this operation, turn on session capacity pricing for your Amazon Quick Sight account.</p> <p>Before you can turn on public sharing on your account, make sure to give public sharing permissions to an administrative user in the Identity and Access Management (IAM) console. For more information on using IAM with Amazon Quick Sight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/security_iam_service-with-iam.html\">Using QuickSight with IAM</a> in the <i>Amazon Quick Sight User Guide</i>.</p>"
+      "documentation":"<important> <p>This API controls public sharing settings for your entire Quick Sight account, affecting data security and access. When you enable public sharing:</p> <ul> <li> <p>Dashboards can be shared publicly</p> </li> <li> <p>This setting affects your entire Amazon Web Services account and all Quick Sight users</p> </li> </ul> <p> <b>Before proceeding:</b> Ensure you understand the security implications and have proper IAM permissions configured.</p> </important> <p>Use the <code>UpdatePublicSharingSettings</code> operation to turn on or turn off the public sharing settings of an Amazon Quick Sight dashboard.</p> <p>To use this operation, turn on session capacity pricing for your Amazon Quick Sight account.</p> <p>Before you can turn on public sharing on your account, make sure to give public sharing permissions to an administrative user in the Identity and Access Management (IAM) console. For more information on using IAM with Amazon Quick Sight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/security_iam_service-with-iam.html\">Using Quick Suite with IAM</a> in the <i>Amazon Quick Sight User Guide</i>.</p>"
     },
     "UpdateQPersonalizationConfiguration":{
       "name":"UpdateQPersonalizationConfiguration",
@@ -3996,6 +4058,47 @@
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Updates the SPICE capacity configuration for a Quick Sight account.</p>"
+    },
+    "UpdateSelfUpgrade":{
+      "name":"UpdateSelfUpgrade",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/namespaces/{Namespace}/update-self-upgrade-request"
+      },
+      "input":{"shape":"UpdateSelfUpgradeRequest"},
+      "output":{"shape":"UpdateSelfUpgradeResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceUnavailableException"}
+      ],
+      "documentation":"<p>Updates a self-upgrade request for a Quick Suite user by approving, denying, or verifying the request.</p>"
+    },
+    "UpdateSelfUpgradeConfiguration":{
+      "name":"UpdateSelfUpgradeConfiguration",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/accounts/{AwsAccountId}/namespaces/{Namespace}/self-upgrade-configuration"
+      },
+      "input":{"shape":"UpdateSelfUpgradeConfigurationRequest"},
+      "output":{"shape":"UpdateSelfUpgradeConfigurationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceUnavailableException"}
+      ],
+      "documentation":"<p>Updates the self-upgrade configuration for a Quick Suite account.</p>"
     },
     "UpdateTemplate":{
       "name":"UpdateTemplate",
@@ -4297,7 +4400,7 @@
       "members":{
         "AccountName":{
           "shape":"String",
-          "documentation":"<p>The account name that you provided for the Amazon Quick Sight subscription in your Amazon Web Services account. You create this name when you sign up for QuickSight. It's unique over all of Amazon Web Services, and it appears only when users sign in.</p>"
+          "documentation":"<p>The account name that you provided for the Amazon Quick Sight subscription in your Amazon Web Services account. You create this name when you sign up for Quick Suite. It's unique over all of Amazon Web Services, and it appears only when users sign in.</p>"
         },
         "Edition":{
           "shape":"Edition",
@@ -4320,7 +4423,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) for the IAM Identity Center instance.</p>"
         }
       },
-      "documentation":"<p>A structure that contains the following account information elements:</p> <ul> <li> <p>Your Quick Sight account name.</p> </li> <li> <p>The edition of Quick Sight that your account is using.</p> </li> <li> <p>The notification email address that is associated with the Quick Sight account. </p> </li> <li> <p>The authentication type of the Quick Sight account.</p> </li> <li> <p>The status of the Quick Sight account's subscription.</p> </li> </ul>"
+      "documentation":"<p>A structure that contains the following account information elements: </p> <ul> <li> <p>Your Quick Sight account name.</p> </li> <li> <p>The edition of Quick Sight that your account is using.</p> </li> <li> <p>The notification email address that is associated with the Quick Sight account. </p> </li> <li> <p>The authentication type of the Quick Sight account.</p> </li> <li> <p>The status of the Quick Sight account's subscription.</p> </li> </ul>"
     },
     "AccountName":{
       "type":"string",
@@ -4349,7 +4452,7 @@
         },
         "PublicSharingEnabled":{
           "shape":"Boolean",
-          "documentation":"<p>A Boolean value that indicates whether public sharing is turned on for an QuickSight account. For more information about turning on public sharing, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdatePublicSharingSettings.html\">UpdatePublicSharingSettings</a>.</p>"
+          "documentation":"<p>A Boolean value that indicates whether public sharing is turned on for an Quick Suite account. For more information about turning on public sharing, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdatePublicSharingSettings.html\">UpdatePublicSharingSettings</a>.</p>"
         },
         "TerminationProtectionEnabled":{
           "shape":"Boolean",
@@ -4702,6 +4805,56 @@
         "CUSTOM"
       ]
     },
+    "AggregateOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "Aggregations"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for the aggregation.</p>"
+        },
+        "GroupByColumnNames":{
+          "shape":"GroupByColumnNameList",
+          "documentation":"<p>The list of column names to group by when performing the aggregation. Rows with the same values in these columns will be grouped together.</p>"
+        },
+        "Aggregations":{
+          "shape":"AggregationList",
+          "documentation":"<p>The list of aggregation functions to apply to the grouped data, such as <code>SUM</code>, <code>COUNT</code>, or <code>AVERAGE</code>.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that groups rows by specified columns and applies aggregation functions to calculate summary values.</p>"
+    },
+    "Aggregation":{
+      "type":"structure",
+      "required":[
+        "AggregationFunction",
+        "NewColumnName",
+        "NewColumnId"
+      ],
+      "members":{
+        "AggregationFunction":{
+          "shape":"DataPrepAggregationFunction",
+          "documentation":"<p>The aggregation function to apply, such as <code>SUM</code>, <code>COUNT</code>, <code>AVERAGE</code>, <code>MIN</code>, <code>MAX</code> </p>"
+        },
+        "NewColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name for the new column that will contain the aggregated values.</p>"
+        },
+        "NewColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the new column that will contain the aggregated values.</p>"
+        }
+      },
+      "documentation":"<p>Defines an aggregation function to be applied to grouped data, creating a new column with the calculated result.</p>"
+    },
     "AggregationFunction":{
       "type":"structure",
       "members":{
@@ -4728,6 +4881,12 @@
       "type":"map",
       "key":{"shape":"LimitedString"},
       "value":{"shape":"LimitedString"}
+    },
+    "AggregationList":{
+      "type":"list",
+      "member":{"shape":"Aggregation"},
+      "max":128,
+      "min":0
     },
     "AggregationPartitionBy":{
       "type":"structure",
@@ -5206,7 +5365,7 @@
           "documentation":"<p>The Generative Q&amp;A experience that you want to use for anonymous user embedding.</p>"
         }
       },
-      "documentation":"<p>The type of experience you want to embed. For anonymous users, you can embed QuickSight dashboards.</p>"
+      "documentation":"<p>The type of experience you want to embed. For anonymous users, you can embed Quick Suite dashboards.</p>"
     },
     "AnonymousUserGenerativeQnAEmbeddingConfiguration":{
       "type":"structure",
@@ -5252,6 +5411,56 @@
     "AnswerIds":{
       "type":"list",
       "member":{"shape":"AnswerId"}
+    },
+    "AppendOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "AppendedColumns"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "FirstSource":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The first data source to be included in the append operation.</p>"
+        },
+        "SecondSource":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The second data source to be appended to the first source.</p>"
+        },
+        "AppendedColumns":{
+          "shape":"AppendedColumnList",
+          "documentation":"<p>The list of columns to include in the appended result, mapping columns from both sources.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that combines rows from two data sources by stacking them vertically (union operation).</p>"
+    },
+    "AppendedColumn":{
+      "type":"structure",
+      "required":[
+        "ColumnName",
+        "NewColumnId"
+      ],
+      "members":{
+        "ColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the column to include in the appended result.</p>"
+        },
+        "NewColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the column in the appended result.</p>"
+        }
+      },
+      "documentation":"<p>Represents a column that will be included in the result of an append operation, combining data from multiple sources.</p>"
+    },
+    "AppendedColumnList":{
+      "type":"list",
+      "member":{"shape":"AppendedColumn"},
+      "max":2048,
+      "min":0
     },
     "ApplicationArn":{
       "type":"string",
@@ -7220,6 +7429,14 @@
           "shape":"ChartAxisLabelOptions",
           "documentation":"<p>The label options (label text, label visibility and sort icon visibility) for a color that is used in a bar chart.</p>"
         },
+        "DefaultSeriesSettings":{
+          "shape":"BarChartDefaultSeriesSettings",
+          "documentation":"<p>The options that determine the default presentation of all bar series in <code>BarChartVisual</code>.</p>"
+        },
+        "Series":{
+          "shape":"BarSeriesItemList",
+          "documentation":"<p>The series item configuration of a <code>BarChartVisual</code>.</p>"
+        },
         "Legend":{
           "shape":"LegendOptions",
           "documentation":"<p>The legend display setup of the visual.</p>"
@@ -7247,6 +7464,20 @@
       },
       "documentation":"<p>The configuration of a <code>BarChartVisual</code>.</p>"
     },
+    "BarChartDefaultSeriesSettings":{
+      "type":"structure",
+      "members":{
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings for all bar series in the visual.</p>"
+        },
+        "BorderSettings":{
+          "shape":"BorderSettings",
+          "documentation":"<p>Border settings for all bar series in the visual.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the default presentation of all bar series in <code>BarChartVisual</code>.</p>"
+    },
     "BarChartFieldWells":{
       "type":"structure",
       "members":{
@@ -7263,6 +7494,20 @@
         "HORIZONTAL",
         "VERTICAL"
       ]
+    },
+    "BarChartSeriesSettings":{
+      "type":"structure",
+      "members":{
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings for the bar series.</p>"
+        },
+        "BorderSettings":{
+          "shape":"BorderSettings",
+          "documentation":"<p>Border settings for the bar series.</p>"
+        }
+      },
+      "documentation":"<p>Options that determine the presentation of a bar series in the visual.</p>"
     },
     "BarChartSortConfiguration":{
       "type":"structure",
@@ -7328,6 +7573,25 @@
         }
       },
       "documentation":"<p>A bar chart.</p> <p>The <code>BarChartVisual</code> structure describes a visual that is a member of the bar chart family. The following charts can be described using this structure:</p> <ul> <li> <p>Horizontal bar chart</p> </li> <li> <p>Vertical bar chart</p> </li> <li> <p>Horizontal stacked bar chart</p> </li> <li> <p>Vertical stacked bar chart</p> </li> <li> <p>Horizontal stacked 100% bar chart</p> </li> <li> <p>Vertical stacked 100% bar chart</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/bar-charts.html\">Using bar charts</a> in the <i>Amazon Quick Suite User Guide</i>.</p>"
+    },
+    "BarSeriesItem":{
+      "type":"structure",
+      "members":{
+        "FieldBarSeriesItem":{
+          "shape":"FieldBarSeriesItem",
+          "documentation":"<p>The field series item configuration of a <code>BarChartVisual</code>.</p>"
+        },
+        "DataFieldBarSeriesItem":{
+          "shape":"DataFieldBarSeriesItem",
+          "documentation":"<p>The data field series item configuration of a <code>BarChartVisual</code>.</p>"
+        }
+      },
+      "documentation":"<p>The series item configuration of a <code>BarChartVisual</code>.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "BarSeriesItemList":{
+      "type":"list",
+      "member":{"shape":"BarSeriesItem"},
+      "max":2000
     },
     "BarsArrangement":{
       "type":"string",
@@ -7678,13 +7942,43 @@
     },
     "Boolean":{"type":"boolean"},
     "BooleanObject":{"type":"boolean"},
+    "BorderRadius":{
+      "type":"string",
+      "max":50
+    },
+    "BorderSettings":{
+      "type":"structure",
+      "members":{
+        "BorderVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>Visibility setting for the border.</p>"
+        },
+        "BorderWidth":{
+          "shape":"PixelLength",
+          "documentation":"<p>Width of the border. Valid range is from 1px to 8px.</p>"
+        },
+        "BorderColor":{
+          "shape":"HexColorWithTransparency",
+          "documentation":"<p>Color of the border.</p>"
+        }
+      },
+      "documentation":"<p>Border settings configuration for visual elements, including visibility, width, and color properties.</p>"
+    },
     "BorderStyle":{
       "type":"structure",
       "members":{
+        "Color":{
+          "shape":"Color",
+          "documentation":"<p>The option to add color for tile borders for visuals.</p>"
+        },
         "Show":{
           "shape":"Boolean",
           "documentation":"<p>The option to enable display of borders for visuals.</p>",
           "box":true
+        },
+        "Width":{
+          "shape":"Width",
+          "documentation":"<p>The option to set the width of tile borders for visuals.</p>"
         }
       },
       "documentation":"<p>The display options for tile borders for visuals.</p>"
@@ -7929,7 +8223,7 @@
       "members":{
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>"
+          "documentation":"<p>The ID of the Quick Suite brand.</p>"
         },
         "Arn":{
           "shape":"Arn",
@@ -7995,7 +8289,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>"
+          "documentation":"<p>The ID of the Quick Suite brand.</p>"
         },
         "BrandName":{
           "shape":"Name",
@@ -8062,8 +8356,8 @@
     "CalculatedColumnList":{
       "type":"list",
       "member":{"shape":"CalculatedColumn"},
-      "max":128,
-      "min":1
+      "max":256,
+      "min":0
     },
     "CalculatedField":{
       "type":"structure",
@@ -8322,6 +8616,10 @@
         "Research":{
           "shape":"CapabilityState",
           "documentation":"<p>The ability to perform research-related actions.</p>"
+        },
+        "SelfUpgradeUserRole":{
+          "shape":"CapabilityState",
+          "documentation":"<p>The ability to enable users to upgrade their user role.</p>"
         }
       },
       "documentation":"<p>A set of actions that correspond to Amazon Quick Sight permissions.</p>"
@@ -8384,6 +8682,35 @@
         }
       },
       "documentation":"<p>A transform operation that casts a column to a different type.</p>"
+    },
+    "CastColumnTypeOperationList":{
+      "type":"list",
+      "member":{"shape":"CastColumnTypeOperation"},
+      "max":2048,
+      "min":0
+    },
+    "CastColumnTypesOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "CastColumnTypeOperations"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for the type casting.</p>"
+        },
+        "CastColumnTypeOperations":{
+          "shape":"CastColumnTypeOperationList",
+          "documentation":"<p>The list of column type casting operations to perform.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that changes the data types of one or more columns in the dataset.</p>"
     },
     "Catalog":{
       "type":"string",
@@ -8563,6 +8890,11 @@
       "member":{"shape":"CategoryValue"},
       "max":100000
     },
+    "CellValue":{
+      "type":"string",
+      "max":2047,
+      "min":0
+    },
     "CellValueSynonym":{
       "type":"structure",
       "members":{
@@ -8721,6 +9053,10 @@
       "member":{"shape":"CollectiveConstantEntry"},
       "max":2000
     },
+    "Color":{
+      "type":"string",
+      "documentation":"String to encapsulate the most generic way Color can be formatted (words, hexStrings etc)"
+    },
     "ColorFillType":{
       "type":"string",
       "enum":[
@@ -8790,6 +9126,10 @@
         "ColorsConfiguration":{
           "shape":"ColorsConfiguration",
           "documentation":"<p>The color configurations of the column.</p>"
+        },
+        "DecalSettingsConfiguration":{
+          "shape":"DecalSettingsConfiguration",
+          "documentation":"<p>Decal configuration of the column.</p>"
         }
       },
       "documentation":"<p>The general configuration of a column.</p>"
@@ -8947,11 +9287,16 @@
           "documentation":"<p>An array of Amazon Resource Names (ARNs) for Quick Sight users or groups.</p>"
         },
         "ColumnNames":{
-          "shape":"ColumnNameList",
+          "shape":"ColumnLevelPermissionRuleColumnNameList",
           "documentation":"<p>An array of column names.</p>"
         }
       },
       "documentation":"<p>A rule defined to grant access on one or more restricted columns. Each dataset can have multiple rules. To create a restricted column, you add it to one or more rules. Each rule must contain at least one column and at least one user or group. To be able to see a restricted column, a user or group needs to be added to a rule for that column.</p>"
+    },
+    "ColumnLevelPermissionRuleColumnNameList":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "min":1
     },
     "ColumnLevelPermissionRuleList":{
       "type":"list",
@@ -8967,11 +9312,6 @@
     "ColumnName":{
       "type":"string",
       "max":128,
-      "min":1
-    },
-    "ColumnNameList":{
-      "type":"list",
-      "member":{"shape":"String"},
       "min":1
     },
     "ColumnOrderingType":{
@@ -9061,6 +9401,26 @@
     "ColumnTagNames":{
       "type":"list",
       "member":{"shape":"ColumnTagName"}
+    },
+    "ColumnToUnpivot":{
+      "type":"structure",
+      "members":{
+        "ColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the column to unpivot from the source data.</p>"
+        },
+        "NewValue":{
+          "shape":"CellValue",
+          "documentation":"<p>The value to assign to this column in the unpivoted result, typically the column name or a descriptive label.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a column to be unpivoted, transforming it from a column into rows with associated values.</p>"
+    },
+    "ColumnToUnpivotList":{
+      "type":"list",
+      "member":{"shape":"ColumnToUnpivot"},
+      "max":100,
+      "min":0
     },
     "ColumnTooltipItem":{
       "type":"structure",
@@ -9155,6 +9515,14 @@
           "shape":"ChartAxisLabelOptions",
           "documentation":"<p>The label options (label text, label visibility, and sort icon visibility) of a combo chart's color field well.</p>"
         },
+        "DefaultSeriesSettings":{
+          "shape":"ComboChartDefaultSeriesSettings",
+          "documentation":"<p>The options that determine the default presentation of all series in <code>ComboChartVisual</code>.</p>"
+        },
+        "Series":{
+          "shape":"ComboSeriesItemList",
+          "documentation":"<p>The series item configuration of a <code>ComboChartVisual</code>.</p>"
+        },
         "Legend":{
           "shape":"LegendOptions",
           "documentation":"<p>The legend display setup of the visual.</p>"
@@ -9186,6 +9554,28 @@
       },
       "documentation":"<p>The configuration of a <code>ComboChartVisual</code>.</p>"
     },
+    "ComboChartDefaultSeriesSettings":{
+      "type":"structure",
+      "members":{
+        "LineStyleSettings":{
+          "shape":"LineChartLineStyleSettings",
+          "documentation":"<p>Line styles options for all line series in the visual.</p>"
+        },
+        "MarkerStyleSettings":{
+          "shape":"LineChartMarkerStyleSettings",
+          "documentation":"<p>Marker styles options for all line series in the visual.</p>"
+        },
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings for all series in the visual.</p>"
+        },
+        "BorderSettings":{
+          "shape":"BorderSettings",
+          "documentation":"<p>Border settings for all bar series in the visual.</p>"
+        }
+      },
+      "documentation":"<p>The options that determine the default presentation of all series in <code>ComboChartVisual</code>.</p>"
+    },
     "ComboChartFieldWells":{
       "type":"structure",
       "members":{
@@ -9195,6 +9585,28 @@
         }
       },
       "documentation":"<p>The field wells of the visual.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "ComboChartSeriesSettings":{
+      "type":"structure",
+      "members":{
+        "LineStyleSettings":{
+          "shape":"LineChartLineStyleSettings",
+          "documentation":"<p>Line styles options for the line series in the visual.</p>"
+        },
+        "MarkerStyleSettings":{
+          "shape":"LineChartMarkerStyleSettings",
+          "documentation":"<p>Marker styles options for the line series in the visual.</p>"
+        },
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings for the series in the visual.</p>"
+        },
+        "BorderSettings":{
+          "shape":"BorderSettings",
+          "documentation":"<p>Border settings for the bar series in the visual.</p>"
+        }
+      },
+      "documentation":"<p>Options that determine the presentation of a series in the visual.</p>"
     },
     "ComboChartSortConfiguration":{
       "type":"structure",
@@ -9252,6 +9664,25 @@
         }
       },
       "documentation":"<p>A combo chart.</p> <p>The <code>ComboChartVisual</code> includes stacked bar combo charts and clustered bar combo charts</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/combo-charts.html\">Using combo charts</a> in the <i>Amazon Quick Suite User Guide</i>.</p>"
+    },
+    "ComboSeriesItem":{
+      "type":"structure",
+      "members":{
+        "FieldComboSeriesItem":{
+          "shape":"FieldComboSeriesItem",
+          "documentation":"<p>The field series item configuration of a <code>ComboChartVisual</code>.</p>"
+        },
+        "DataFieldComboSeriesItem":{
+          "shape":"DataFieldComboSeriesItem",
+          "documentation":"<p>The data field series item configuration of a <code>ComboChartVisual</code>.</p>"
+        }
+      },
+      "documentation":"<p>The series item configuration of a <code>ComboChartVisual</code>.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "ComboSeriesItemList":{
+      "type":"list",
+      "member":{"shape":"ComboSeriesItem"},
+      "max":2000
     },
     "CommitMode":{
       "type":"string",
@@ -9679,6 +10110,36 @@
       "max":4,
       "min":1
     },
+    "Coordinate":{
+      "type":"structure",
+      "required":[
+        "Latitude",
+        "Longitude"
+      ],
+      "members":{
+        "Latitude":{
+          "shape":"CoordinateLatitudeDouble",
+          "documentation":"<p>The latitude coordinate value for the geocode preference.</p>"
+        },
+        "Longitude":{
+          "shape":"CoordinateLongitudeDouble",
+          "documentation":"<p>The longitude coordinate value for the geocode preference.</p>"
+        }
+      },
+      "documentation":"<p>The preference coordinate for the geocode preference.</p>"
+    },
+    "CoordinateLatitudeDouble":{
+      "type":"double",
+      "box":true,
+      "max":90.0,
+      "min":-90.0
+    },
+    "CoordinateLongitudeDouble":{
+      "type":"double",
+      "box":true,
+      "max":180.0,
+      "min":-180.0
+    },
     "CopySourceArn":{
       "type":"string",
       "pattern":"^arn:[-a-z0-9]*:quicksight:[-a-z0-9]*:[0-9]{12}:datasource/.+"
@@ -10024,7 +10485,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         },
@@ -10059,6 +10520,14 @@
       "type":"structure",
       "required":["Columns"],
       "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for creating new calculated columns.</p>"
+        },
         "Columns":{
           "shape":"CalculatedColumnList",
           "documentation":"<p>Calculated columns to create.</p>"
@@ -10244,7 +10713,10 @@
         },
         "LogicalTableMap":{
           "shape":"LogicalTableMap",
-          "documentation":"<p>Configures the combination and transformation of the data from the physical tables.</p>"
+          "documentation":"<p>Configures the combination and transformation of the data from the physical tables. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "ImportMode":{
           "shape":"DataSetImportMode",
@@ -10264,11 +10736,17 @@
         },
         "RowLevelPermissionDataSet":{
           "shape":"RowLevelPermissionDataSet",
-          "documentation":"<p>The row-level security configuration for the data that you want to create.</p>"
+          "documentation":"<p>The row-level security configuration for the data that you want to create. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "RowLevelPermissionTagConfiguration":{
           "shape":"RowLevelPermissionTagConfiguration",
-          "documentation":"<p>The configuration of tags on a dataset to set row-level security. Row-level security tags are currently supported for anonymous embedding only.</p>"
+          "documentation":"<p>The configuration of tags on a dataset to set row-level security. Row-level security tags are currently supported for anonymous embedding only. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "ColumnLevelPermissionRules":{
           "shape":"ColumnLevelPermissionRuleList",
@@ -10294,6 +10772,14 @@
         "UseAs":{
           "shape":"DataSetUseAs",
           "documentation":"<p>The usage of the dataset. <code>RLS_RULES</code> must be specified for RLS permission datasets.</p>"
+        },
+        "DataPrepConfiguration":{
+          "shape":"DataPrepConfiguration",
+          "documentation":"<p>The data preparation configuration for the dataset. This configuration defines the source tables, transformation steps, and destination tables used to prepare the data. Required when using the new data preparation experience.</p>"
+        },
+        "SemanticModelConfiguration":{
+          "shape":"SemanticModelConfiguration",
+          "documentation":"<p>The semantic model configuration for the dataset. This configuration defines how the prepared data is structured for an analysis, including table mappings and row-level security configurations. Required when using the new data preparation experience.</p>"
         }
       }
     },
@@ -11832,7 +12318,7 @@
     },
     "CustomSqlName":{
       "type":"string",
-      "max":64,
+      "max":128,
       "min":1
     },
     "CustomValuesConfiguration":{
@@ -11904,6 +12390,23 @@
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "DashboardCustomizationStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "DashboardCustomizationVisualOptions":{
+      "type":"structure",
+      "members":{
+        "FieldsConfiguration":{
+          "shape":"VisualCustomizationFieldsConfiguration",
+          "documentation":"<p>The configuration that controls field customization options available to dashboard readers for a visual.</p>"
+        }
+      },
+      "documentation":"<p>The options that define customizations available to dashboard readers for a specific visual</p>"
     },
     "DashboardError":{
       "type":"structure",
@@ -12258,11 +12761,11 @@
       "members":{
         "DashboardId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the dashboard that has the visual that you want to embed. The <code>DashboardId</code> can be found in the <code>IDs for developers</code> section of the <code>Embed visual</code> pane of the visual's on-visual menu of the QuickSight console. You can also get the <code>DashboardId</code> with a <code>ListDashboards</code> API operation.</p>"
+          "documentation":"<p>The ID of the dashboard that has the visual that you want to embed. The <code>DashboardId</code> can be found in the <code>IDs for developers</code> section of the <code>Embed visual</code> pane of the visual's on-visual menu of the Quick Suite console. You can also get the <code>DashboardId</code> with a <code>ListDashboards</code> API operation.</p>"
         },
         "SheetId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the sheet that the has visual that you want to embed. The <code>SheetId</code> can be found in the <code>IDs for developers</code> section of the <code>Embed visual</code> pane of the visual's on-visual menu of the QuickSight console.</p>"
+          "documentation":"<p>The ID of the sheet that the has visual that you want to embed. The <code>SheetId</code> can be found in the <code>IDs for developers</code> section of the <code>Embed visual</code> pane of the visual's on-visual menu of the Quick Suite console.</p>"
         },
         "VisualId":{
           "shape":"ShortRestrictiveResourceId",
@@ -12391,6 +12894,44 @@
         }
       },
       "documentation":"<p>The theme colors that are used for data colors in charts. The colors description is a hexadecimal color code that consists of six alphanumerical characters, prefixed with <code>#</code>, for example #37BFF5. </p>"
+    },
+    "DataFieldBarSeriesItem":{
+      "type":"structure",
+      "required":["FieldId"],
+      "members":{
+        "FieldId":{
+          "shape":"FieldId",
+          "documentation":"<p>Field ID of the field that you are setting the series configuration for.</p>"
+        },
+        "FieldValue":{
+          "shape":"SensitiveString",
+          "documentation":"<p>Field value of the field that you are setting the series configuration for.</p>"
+        },
+        "Settings":{
+          "shape":"BarChartSeriesSettings",
+          "documentation":"<p>Options that determine the presentation of bar series associated to the field.</p>"
+        }
+      },
+      "documentation":"<p>The data field series item configuration of a <code>BarChartVisual</code>.</p>"
+    },
+    "DataFieldComboSeriesItem":{
+      "type":"structure",
+      "required":["FieldId"],
+      "members":{
+        "FieldId":{
+          "shape":"FieldId",
+          "documentation":"<p>Field ID of the field that you are setting the series configuration for.</p>"
+        },
+        "FieldValue":{
+          "shape":"SensitiveString",
+          "documentation":"<p>Field value of the field that you are setting the series configuration for.</p>"
+        },
+        "Settings":{
+          "shape":"ComboChartSeriesSettings",
+          "documentation":"<p>Options that determine the presentation of series associated to the field.</p>"
+        }
+      },
+      "documentation":"<p>The data field series item configuration of a <code>ComboChartVisual</code>.</p>"
     },
     "DataFieldSeriesItem":{
       "type":"structure",
@@ -12647,6 +13188,91 @@
       },
       "documentation":"<p>The data point tooltip options.</p>"
     },
+    "DataPrepAggregationFunction":{
+      "type":"structure",
+      "members":{
+        "SimpleAggregation":{
+          "shape":"DataPrepSimpleAggregationFunction",
+          "documentation":"<p>A simple aggregation function such as <code>SUM</code>, <code>COUNT</code>, <code>AVERAGE</code>, <code>MIN</code>, <code>MAX</code>, <code>MEDIAN</code>, <code>VARIANCE</code>, or <code>STANDARD_DEVIATION</code>.</p>"
+        },
+        "ListAggregation":{
+          "shape":"DataPrepListAggregationFunction",
+          "documentation":"<p>A list aggregation function that concatenates values from multiple rows into a single delimited string.</p>"
+        }
+      },
+      "documentation":"<p>Defines the type of aggregation function to apply to data during data preparation, supporting simple and list aggregations.</p>"
+    },
+    "DataPrepConfiguration":{
+      "type":"structure",
+      "required":[
+        "SourceTableMap",
+        "TransformStepMap",
+        "DestinationTableMap"
+      ],
+      "members":{
+        "SourceTableMap":{
+          "shape":"SourceTableMap",
+          "documentation":"<p>A map of source tables that provide information about underlying sources.</p>"
+        },
+        "TransformStepMap":{
+          "shape":"TransformStepMap",
+          "documentation":"<p>A map of transformation steps that process the data.</p>"
+        },
+        "DestinationTableMap":{
+          "shape":"DestinationTableMap",
+          "documentation":"<p>A map of destination tables that receive the final prepared data.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for data preparation operations, defining the complete pipeline from source tables through transformations to destination tables.</p>"
+    },
+    "DataPrepListAggregationFunction":{
+      "type":"structure",
+      "required":[
+        "Separator",
+        "Distinct"
+      ],
+      "members":{
+        "InputColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the column containing values to be concatenated.</p>"
+        },
+        "Separator":{
+          "shape":"Separator",
+          "documentation":"<p>The string used to separate values in the concatenated result.</p>"
+        },
+        "Distinct":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to include only distinct values in the concatenated result, removing duplicates.</p>"
+        }
+      },
+      "documentation":"<p>An aggregation function that concatenates values from multiple rows into a single string with a specified separator.</p>"
+    },
+    "DataPrepSimpleAggregationFunction":{
+      "type":"structure",
+      "required":["FunctionType"],
+      "members":{
+        "InputColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the column on which to perform the aggregation function.</p>"
+        },
+        "FunctionType":{
+          "shape":"DataPrepSimpleAggregationFunctionType",
+          "documentation":"<p>The type of aggregation function to perform, such as <code>COUNT</code>, <code>SUM</code>, <code>AVERAGE</code>, <code>MIN</code>, <code>MAX</code>, <code>MEDIAN</code>, <code>VARIANCE</code>, or <code>STANDARD_DEVIATION</code>.</p>"
+        }
+      },
+      "documentation":"<p>A simple aggregation function that performs standard statistical operations on a column.</p>"
+    },
+    "DataPrepSimpleAggregationFunctionType":{
+      "type":"string",
+      "enum":[
+        "COUNT",
+        "DISTINCT_COUNT",
+        "SUM",
+        "AVERAGE",
+        "MAX",
+        "MIN"
+      ]
+    },
     "DataQAEnabledOption":{
       "type":"structure",
       "members":{
@@ -12746,6 +13372,14 @@
         "UseAs":{
           "shape":"DataSetUseAs",
           "documentation":"<p>The usage of the dataset.</p>"
+        },
+        "DataPrepConfiguration":{
+          "shape":"DataPrepConfiguration",
+          "documentation":"<p>The data preparation configuration associated with this dataset.</p>"
+        },
+        "SemanticModelConfiguration":{
+          "shape":"SemanticModelConfiguration",
+          "documentation":"<p>The semantic model configuration associated with this dataset.</p>"
         }
       },
       "documentation":"<p>Dataset.</p>"
@@ -12760,6 +13394,30 @@
       "max":250000,
       "min":1,
       "sensitive":true
+    },
+    "DataSetColumnIdMapping":{
+      "type":"structure",
+      "required":[
+        "SourceColumnId",
+        "TargetColumnId"
+      ],
+      "members":{
+        "SourceColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>Source column ID.</p>"
+        },
+        "TargetColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>Target column ID.</p>"
+        }
+      },
+      "documentation":"<p>Maps a source column identifier to a target column identifier during transform operations.</p>"
+    },
+    "DataSetColumnIdMappingList":{
+      "type":"list",
+      "member":{"shape":"DataSetColumnIdMapping"},
+      "max":2048,
+      "min":1
     },
     "DataSetConfiguration":{
       "type":"structure",
@@ -12783,6 +13441,88 @@
       "type":"list",
       "member":{"shape":"DataSetConfiguration"},
       "max":30
+    },
+    "DataSetDateComparisonFilterCondition":{
+      "type":"structure",
+      "required":["Operator"],
+      "members":{
+        "Operator":{
+          "shape":"DataSetDateComparisonFilterOperator",
+          "documentation":"<p>The comparison operator to use, such as <code>BEFORE</code>, <code>BEFORE_OR_EQUALS_TO</code>, <code>AFTER</code>, or <code>AFTER_OR_EQUALS_TO</code>.</p>"
+        },
+        "Value":{
+          "shape":"DataSetDateFilterValue",
+          "documentation":"<p>The date value to compare against.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition that compares date values using operators like <code>BEFORE</code>, <code>AFTER</code>, or their inclusive variants.</p>"
+    },
+    "DataSetDateComparisonFilterOperator":{
+      "type":"string",
+      "enum":[
+        "BEFORE",
+        "BEFORE_OR_EQUALS_TO",
+        "AFTER",
+        "AFTER_OR_EQUALS_TO"
+      ]
+    },
+    "DataSetDateFilterCondition":{
+      "type":"structure",
+      "members":{
+        "ColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the date column to filter.</p>"
+        },
+        "ComparisonFilterCondition":{
+          "shape":"DataSetDateComparisonFilterCondition",
+          "documentation":"<p>A comparison-based filter condition for the date column.</p>"
+        },
+        "RangeFilterCondition":{
+          "shape":"DataSetDateRangeFilterCondition",
+          "documentation":"<p>A range-based filter condition for the date column, filtering values between minimum and maximum dates.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition for date columns, supporting both comparison and range-based filtering.</p>"
+    },
+    "DataSetDateFilterValue":{
+      "type":"structure",
+      "members":{
+        "StaticValue":{
+          "shape":"SensitiveTimestamp",
+          "documentation":"<p>A static date value used for filtering.</p>"
+        }
+      },
+      "documentation":"<p>Represents a date value used in filter conditions.</p>"
+    },
+    "DataSetDateRangeFilterCondition":{
+      "type":"structure",
+      "members":{
+        "RangeMinimum":{
+          "shape":"DataSetDateFilterValue",
+          "documentation":"<p>The minimum date value for the range filter.</p>"
+        },
+        "RangeMaximum":{
+          "shape":"DataSetDateFilterValue",
+          "documentation":"<p>The maximum date value for the range filter.</p>"
+        },
+        "IncludeMinimum":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to include the minimum value in the filter range.</p>",
+          "box":true
+        },
+        "IncludeMaximum":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to include the maximum value in the filter range.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>A filter condition that filters date values within a specified range.</p>"
+    },
+    "DataSetEntityResourceId":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[0-9a-zA-Z-]*"
     },
     "DataSetFilterAttribute":{
       "type":"string",
@@ -12835,6 +13575,85 @@
       "type":"string",
       "max":128,
       "min":1
+    },
+    "DataSetNumericComparisonFilterCondition":{
+      "type":"structure",
+      "required":["Operator"],
+      "members":{
+        "Operator":{
+          "shape":"DataSetNumericComparisonFilterOperator",
+          "documentation":"<p>The comparison operator to use, such as <code>EQUALS</code>, <code>GREATER_THAN</code>, <code>LESS_THAN</code>, or their variants.</p>"
+        },
+        "Value":{
+          "shape":"DataSetNumericFilterValue",
+          "documentation":"<p>The numeric value to compare against.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition that compares numeric values using operators like <code>EQUALS</code>, <code>GREATER_THAN</code>, or <code>LESS_THAN</code>.</p>"
+    },
+    "DataSetNumericComparisonFilterOperator":{
+      "type":"string",
+      "enum":[
+        "EQUALS",
+        "DOES_NOT_EQUAL",
+        "GREATER_THAN",
+        "GREATER_THAN_OR_EQUALS_TO",
+        "LESS_THAN",
+        "LESS_THAN_OR_EQUALS_TO"
+      ]
+    },
+    "DataSetNumericFilterCondition":{
+      "type":"structure",
+      "members":{
+        "ColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the numeric column to filter.</p>"
+        },
+        "ComparisonFilterCondition":{
+          "shape":"DataSetNumericComparisonFilterCondition",
+          "documentation":"<p>A comparison-based filter condition for the numeric column.</p>"
+        },
+        "RangeFilterCondition":{
+          "shape":"DataSetNumericRangeFilterCondition",
+          "documentation":"<p>A range-based filter condition for the numeric column, filtering values between minimum and maximum numbers.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition for numeric columns, supporting both comparison and range-based filtering.</p>"
+    },
+    "DataSetNumericFilterValue":{
+      "type":"structure",
+      "members":{
+        "StaticValue":{
+          "shape":"SensitiveDouble",
+          "documentation":"<p>A static numeric value used for filtering.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>Represents a numeric value used in filter conditions.</p>"
+    },
+    "DataSetNumericRangeFilterCondition":{
+      "type":"structure",
+      "members":{
+        "RangeMinimum":{
+          "shape":"DataSetNumericFilterValue",
+          "documentation":"<p>The minimum numeric value for the range filter.</p>"
+        },
+        "RangeMaximum":{
+          "shape":"DataSetNumericFilterValue",
+          "documentation":"<p>The maximum numeric value for the range filter.</p>"
+        },
+        "IncludeMinimum":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to include the minimum value in the filter range.</p>",
+          "box":true
+        },
+        "IncludeMaximum":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to include the maximum value in the filter range.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>A filter condition that filters numeric values within a specified range.</p>"
     },
     "DataSetReference":{
       "type":"structure",
@@ -12917,6 +13736,102 @@
       "max":1,
       "min":1
     },
+    "DataSetStringComparisonFilterCondition":{
+      "type":"structure",
+      "required":["Operator"],
+      "members":{
+        "Operator":{
+          "shape":"DataSetStringComparisonFilterOperator",
+          "documentation":"<p>The comparison operator to use, such as <code>EQUALS</code>, <code>CONTAINS</code>, <code>STARTS_WITH</code>, <code>ENDS_WITH</code>, or their negations.</p>"
+        },
+        "Value":{
+          "shape":"DataSetStringFilterValue",
+          "documentation":"<p>The string value to compare against.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition that compares string values using operators like <code>EQUALS</code>, <code>CONTAINS</code>, or <code>STARTS_WITH</code>.</p>"
+    },
+    "DataSetStringComparisonFilterOperator":{
+      "type":"string",
+      "enum":[
+        "EQUALS",
+        "DOES_NOT_EQUAL",
+        "CONTAINS",
+        "DOES_NOT_CONTAIN",
+        "STARTS_WITH",
+        "ENDS_WITH"
+      ]
+    },
+    "DataSetStringFilterCondition":{
+      "type":"structure",
+      "members":{
+        "ColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the string column to filter.</p>"
+        },
+        "ComparisonFilterCondition":{
+          "shape":"DataSetStringComparisonFilterCondition",
+          "documentation":"<p>A comparison-based filter condition for the string column.</p>"
+        },
+        "ListFilterCondition":{
+          "shape":"DataSetStringListFilterCondition",
+          "documentation":"<p>A list-based filter condition that includes or excludes values from a specified list.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition for string columns, supporting both comparison and list-based filtering.</p>"
+    },
+    "DataSetStringFilterStaticValue":{
+      "type":"string",
+      "max":512,
+      "sensitive":true
+    },
+    "DataSetStringFilterStaticValueList":{
+      "type":"list",
+      "member":{"shape":"DataSetStringFilterStaticValue"},
+      "max":1000
+    },
+    "DataSetStringFilterValue":{
+      "type":"structure",
+      "members":{
+        "StaticValue":{
+          "shape":"DataSetStringFilterStaticValue",
+          "documentation":"<p>A static string value used for filtering.</p>"
+        }
+      },
+      "documentation":"<p>Represents a string value used in filter conditions.</p>"
+    },
+    "DataSetStringListFilterCondition":{
+      "type":"structure",
+      "required":["Operator"],
+      "members":{
+        "Operator":{
+          "shape":"DataSetStringListFilterOperator",
+          "documentation":"<p>The list operator to use, either <code>INCLUDE</code> to match values in the list or <code>EXCLUDE</code> to filter out values in the list.</p>"
+        },
+        "Values":{
+          "shape":"DataSetStringListFilterValue",
+          "documentation":"<p>The list of string values to include or exclude in the filter.</p>"
+        }
+      },
+      "documentation":"<p>A filter condition that includes or excludes string values from a specified list.</p>"
+    },
+    "DataSetStringListFilterOperator":{
+      "type":"string",
+      "enum":[
+        "INCLUDE",
+        "EXCLUDE"
+      ]
+    },
+    "DataSetStringListFilterValue":{
+      "type":"structure",
+      "members":{
+        "StaticValues":{
+          "shape":"DataSetStringFilterStaticValueList",
+          "documentation":"<p>A list of static string values used for filtering.</p>"
+        }
+      },
+      "documentation":"<p>Represents a list of string values used in filter conditions.</p>"
+    },
     "DataSetSummary":{
       "type":"structure",
       "members":{
@@ -12946,7 +13861,11 @@
         },
         "RowLevelPermissionDataSet":{
           "shape":"RowLevelPermissionDataSet",
-          "documentation":"<p>The row-level security configuration for the dataset.</p>"
+          "documentation":"<p>The row-level security configuration for the dataset in the legacy data preparation experience.</p>"
+        },
+        "RowLevelPermissionDataSetMap":{
+          "shape":"RowLevelPermissionDataSetMap",
+          "documentation":"<p>The row-level security configuration for the dataset in the new data preparation experience.</p>"
         },
         "RowLevelPermissionTagConfigurationApplied":{
           "shape":"Boolean",
@@ -13057,6 +13976,10 @@
         "SecretArn":{
           "shape":"SecretArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the secret associated with the data source in Amazon Secrets Manager.</p>"
+        },
+        "KeyPairCredentials":{
+          "shape":"KeyPairCredentials",
+          "documentation":"<p>The credentials for connecting using key-pair.</p>"
         },
         "WebProxyCredentials":{
           "shape":"WebProxyCredentials",
@@ -13820,6 +14743,81 @@
       "max":64,
       "min":1
     },
+    "DecalPatternType":{
+      "type":"string",
+      "enum":[
+        "SOLID",
+        "DIAGONAL_MEDIUM",
+        "CIRCLE_MEDIUM",
+        "DIAMOND_GRID_MEDIUM",
+        "CHECKERBOARD_MEDIUM",
+        "TRIANGLE_MEDIUM",
+        "DIAGONAL_OPPOSITE_MEDIUM",
+        "DIAMOND_MEDIUM",
+        "DIAGONAL_LARGE",
+        "CIRCLE_LARGE",
+        "DIAMOND_GRID_LARGE",
+        "CHECKERBOARD_LARGE",
+        "TRIANGLE_LARGE",
+        "DIAGONAL_OPPOSITE_LARGE",
+        "DIAMOND_LARGE",
+        "DIAGONAL_SMALL",
+        "CIRCLE_SMALL",
+        "DIAMOND_GRID_SMALL",
+        "CHECKERBOARD_SMALL",
+        "TRIANGLE_SMALL",
+        "DIAGONAL_OPPOSITE_SMALL",
+        "DIAMOND_SMALL"
+      ]
+    },
+    "DecalSettings":{
+      "type":"structure",
+      "members":{
+        "ElementValue":{
+          "shape":"ElementValue",
+          "documentation":"<p>Field value of the field that you are setting the decal pattern to. Applicable only for field level settings.</p>"
+        },
+        "DecalVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>Visibility setting for the decal pattern.</p>"
+        },
+        "DecalColor":{
+          "shape":"HexColorWithTransparency",
+          "documentation":"<p>Color configuration for the decal pattern.</p>"
+        },
+        "DecalPatternType":{
+          "shape":"DecalPatternType",
+          "documentation":"<p>Type of pattern used for the decal, such as solid, diagonal, or circular patterns in various sizes.</p> <ul> <li> <p> <code>SOLID</code>: Solid fill pattern.</p> </li> <li> <p> <code>DIAGONAL_SMALL</code>: Small diagonal stripes pattern.</p> </li> <li> <p> <code>DIAGONAL_MEDIUM</code>: Medium diagonal stripes pattern.</p> </li> <li> <p> <code>DIAGONAL_LARGE</code>: Large diagonal stripes pattern.</p> </li> <li> <p> <code>DIAGONAL_OPPOSITE_SMALL</code>: Small cross-diagonal stripes pattern.</p> </li> <li> <p> <code>DIAGONAL_OPPOSITE_MEDIUM</code>: Medium cross-diagonal stripes pattern.</p> </li> <li> <p> <code>DIAGONAL_OPPOSITE_LARGE</code>: Large cross-diagonal stripes pattern.</p> </li> <li> <p> <code>CIRCLE_SMALL</code>: Small circle pattern.</p> </li> <li> <p> <code>CIRCLE_MEDIUM</code>: Medium circle pattern.</p> </li> <li> <p> <code>CIRCLE_LARGE</code>: Large circle pattern.</p> </li> <li> <p> <code>DIAMOND_SMALL</code>: Small diamonds pattern.</p> </li> <li> <p> <code>DIAMOND_MEDIUM</code>: Medium diamonds pattern.</p> </li> <li> <p> <code>DIAMOND_LARGE</code>: Large diamonds pattern.</p> </li> <li> <p> <code>DIAMOND_GRID_SMALL</code>: Small diamond grid pattern.</p> </li> <li> <p> <code>DIAMOND_GRID_MEDIUM</code>: Medium diamond grid pattern.</p> </li> <li> <p> <code>DIAMOND_GRID_LARGE</code>: Large diamond grid pattern.</p> </li> <li> <p> <code>CHECKERBOARD_SMALL</code>: Small checkerboard pattern.</p> </li> <li> <p> <code>CHECKERBOARD_MEDIUM</code>: Medium checkerboard pattern.</p> </li> <li> <p> <code>CHECKERBOARD_LARGE</code>: Large checkerboard pattern.</p> </li> <li> <p> <code>TRIANGLE_SMALL</code>: Small triangles pattern.</p> </li> <li> <p> <code>TRIANGLE_MEDIUM</code>: Medium triangles pattern.</p> </li> <li> <p> <code>TRIANGLE_LARGE</code>: Large triangles pattern.</p> </li> </ul>"
+        },
+        "DecalStyleType":{
+          "shape":"DecalStyleType",
+          "documentation":"<p>Style type for the decal, which can be either manual or automatic. This field is only applicable for line series.</p> <ul> <li> <p> <code>Manual</code>: Apply manual line and marker configuration for line series.</p> </li> <li> <p> <code>Auto</code>: Apply automatic line and marker configuration for line series.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Decal settings for accessibility features that define visual patterns and styling for data elements.</p>"
+    },
+    "DecalSettingsConfiguration":{
+      "type":"structure",
+      "members":{
+        "CustomDecalSettings":{
+          "shape":"DecalSettingsList",
+          "documentation":"<p>A list of up to 50 decal settings.</p>"
+        }
+      },
+      "documentation":"<p>Decal settings configuration for a column</p>"
+    },
+    "DecalSettingsList":{
+      "type":"list",
+      "member":{"shape":"DecalSettings"},
+      "max":50
+    },
+    "DecalStyleType":{
+      "type":"string",
+      "enum":[
+        "Manual",
+        "Auto"
+      ]
+    },
     "DecimalDatasetParameter":{
       "type":"structure",
       "required":[
@@ -14472,7 +15470,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         }
@@ -14624,7 +15622,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "documentation":"<p>The ID for the dataset that you want to delete. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         }
@@ -14639,7 +15637,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+          "documentation":"<p>The ID for the dataset that you want to delete. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
         },
         "RequestId":{
           "shape":"String",
@@ -15751,7 +16749,7 @@
       "members":{
         "AccountSettings":{
           "shape":"AccountSettings",
-          "documentation":"<p>The Amazon Quick Sight settings for this Amazon Web Services account. This information includes the edition of Amazon Quick Sight that you subscribed to (Standard or Enterprise) and the notification email for the Amazon Quick Sight subscription. </p> <p>In the Quick Sight console, the Amazon Quick Sight subscription is sometimes referred to as a Quick Sight \"account\" even though it's technically not an account by itself. Instead, it's a subscription to the Amazon Quick Sight service for your Amazon Web Services account. The edition that you subscribe to applies to QuickSight in every Amazon Web Services Region where you use it.</p>"
+          "documentation":"<p>The Amazon Quick Sight settings for this Amazon Web Services account. This information includes the edition of Amazon Quick Sight that you subscribed to (Standard or Enterprise) and the notification email for the Amazon Quick Sight subscription. </p> <p>In the Quick Sight console, the Amazon Quick Sight subscription is sometimes referred to as a Quick Sight \"account\" even though it's technically not an account by itself. Instead, it's a subscription to the Amazon Quick Sight service for your Amazon Web Services account. The edition that you subscribe to applies to Quick Suite in every Amazon Web Services Region where you use it.</p>"
         },
         "RequestId":{
           "shape":"String",
@@ -16259,7 +17257,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         }
@@ -16297,7 +17295,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         },
@@ -16729,7 +17727,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "documentation":"<p>The ID for the dataset that you want to describe. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         }
@@ -16744,7 +17742,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+          "documentation":"<p>The ID for the dataset that you want to describe. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
         },
         "Permissions":{
           "shape":"ResourcePermissionList",
@@ -16815,7 +17813,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "documentation":"<p>The ID for the dataset that you want to describe. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         }
@@ -17611,6 +18609,45 @@
         }
       }
     },
+    "DescribeSelfUpgradeConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "Namespace"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the Quick Suite self-upgrade configuration.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The Quick Suite namespace that you want to describe the Quick Suite self-upgrade configuration for.</p>",
+          "location":"uri",
+          "locationName":"Namespace"
+        }
+      }
+    },
+    "DescribeSelfUpgradeConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "SelfUpgradeConfiguration":{
+          "shape":"SelfUpgradeConfiguration",
+          "documentation":"<p>The self-upgrade configuration for the Quick Suite account.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "DescribeTemplateAliasRequest":{
       "type":"structure",
       "required":[
@@ -18285,6 +19322,47 @@
       },
       "documentation":"<p>The configuration of destination parameter values.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
     },
+    "DestinationTable":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"DestinationTableAlias",
+          "documentation":"<p>Alias for the destination table.</p>"
+        },
+        "Source":{
+          "shape":"DestinationTableSource",
+          "documentation":"<p>The source configuration that specifies which transform operation provides data to this destination table.</p>"
+        }
+      },
+      "documentation":"<p>Defines a destination table in data preparation that receives the final transformed data.</p>"
+    },
+    "DestinationTableAlias":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "DestinationTableMap":{
+      "type":"map",
+      "key":{"shape":"DataSetEntityResourceId"},
+      "value":{"shape":"DestinationTable"},
+      "max":1,
+      "min":1
+    },
+    "DestinationTableSource":{
+      "type":"structure",
+      "required":["TransformOperationId"],
+      "members":{
+        "TransformOperationId":{
+          "shape":"DataSetEntityResourceId",
+          "documentation":"<p>The identifier of the transform operation that provides data to the destination table.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the source of data for a destination table, including the transform operation and column mappings.</p>"
+    },
     "DigitGroupingStyle":{
       "type":"string",
       "enum":[
@@ -18495,6 +19573,10 @@
         "ENTERPRISE",
         "ENTERPRISE_AND_Q"
       ]
+    },
+    "ElementValue":{
+      "type":"string",
+      "max":1024
     },
     "Email":{
       "type":"string",
@@ -18756,6 +19838,21 @@
       },
       "documentation":"<p>An entry that appears when a <code>KeyRegistration</code> update to Quick Sight fails.</p>"
     },
+    "FieldBarSeriesItem":{
+      "type":"structure",
+      "required":["FieldId"],
+      "members":{
+        "FieldId":{
+          "shape":"FieldId",
+          "documentation":"<p>Field ID of the field for which you are setting the series configuration.</p>"
+        },
+        "Settings":{
+          "shape":"BarChartSeriesSettings",
+          "documentation":"<p>Options that determine the presentation of bar series associated to the field.</p>"
+        }
+      },
+      "documentation":"<p>The field series item configuration of a <code>BarChartVisual</code>.</p>"
+    },
     "FieldBasedTooltip":{
       "type":"structure",
       "members":{
@@ -18773,6 +19870,21 @@
         }
       },
       "documentation":"<p>The setup for the detailed tooltip.</p>"
+    },
+    "FieldComboSeriesItem":{
+      "type":"structure",
+      "required":["FieldId"],
+      "members":{
+        "FieldId":{
+          "shape":"FieldId",
+          "documentation":"<p>Field ID of the field for which you are setting the series configuration.</p>"
+        },
+        "Settings":{
+          "shape":"ComboChartSeriesSettings",
+          "documentation":"<p>Options that determine the presentation of series associated to the field.</p>"
+        }
+      },
+      "documentation":"<p>The field series item configuration of a <code>ComboChartVisual</code>.</p>"
     },
     "FieldFolder":{
       "type":"structure",
@@ -19089,6 +20201,10 @@
         "VisualContentAltText":{
           "shape":"LongPlainText",
           "documentation":"<p>The alt text for the visual.</p>"
+        },
+        "GeocodingPreferences":{
+          "shape":"GeocodePreferenceList",
+          "documentation":"<p>The geocoding prefences for filled map visual.</p>"
         }
       },
       "documentation":"<p>A filled map.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/filled-maps.html\">Creating filled maps</a> in the <i>Amazon Quick Suite User Guide</i>.</p>"
@@ -19419,14 +20535,31 @@
     },
     "FilterOperation":{
       "type":"structure",
-      "required":["ConditionExpression"],
       "members":{
         "ConditionExpression":{
           "shape":"Expression",
           "documentation":"<p>An expression that must evaluate to a Boolean value. Rows for which the expression evaluates to true are kept in the dataset.</p>"
+        },
+        "StringFilterCondition":{
+          "shape":"DataSetStringFilterCondition",
+          "documentation":"<p>A string-based filter condition within a filter operation.</p>"
+        },
+        "NumericFilterCondition":{
+          "shape":"DataSetNumericFilterCondition",
+          "documentation":"<p>A numeric-based filter condition within a filter operation.</p>"
+        },
+        "DateFilterCondition":{
+          "shape":"DataSetDateFilterCondition",
+          "documentation":"<p>A date-based filter condition within a filter operation.</p>"
         }
       },
       "documentation":"<p>A transform operation that filters rows based on a condition.</p>"
+    },
+    "FilterOperationList":{
+      "type":"list",
+      "member":{"shape":"FilterOperation"},
+      "max":128,
+      "min":0
     },
     "FilterOperationSelectedFieldsConfiguration":{
       "type":"structure",
@@ -19633,6 +20766,29 @@
       "type":"list",
       "member":{"shape":"ShortRestrictiveResourceId"},
       "max":50
+    },
+    "FiltersOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "FilterOperations"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for filtering.</p>"
+        },
+        "FilterOperations":{
+          "shape":"FilterOperationList",
+          "documentation":"<p>The list of filter operations to apply.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that applies one or more filter conditions.</p>"
     },
     "FlowDescription":{
       "type":"string",
@@ -20170,6 +21326,14 @@
         "LoadingAnimation":{
           "shape":"LoadingAnimation",
           "documentation":"<p>The loading animation configuration of a free-form layout element.</p>"
+        },
+        "BorderRadius":{
+          "shape":"BorderRadius",
+          "documentation":"<p>The border radius of a free-form layout element.</p>"
+        },
+        "Padding":{
+          "shape":"Padding",
+          "documentation":"<p>The padding of a free-form layout element.</p>"
         }
       },
       "documentation":"<p>An element within a free-form layout.</p>"
@@ -20198,6 +21362,10 @@
         "Color":{
           "shape":"HexColorWithTransparency",
           "documentation":"<p>The border color of a free-form layout element.</p>"
+        },
+        "Width":{
+          "shape":"Width",
+          "documentation":"<p>The border width of a free-form layout element.</p>"
         }
       },
       "documentation":"<p>The background style configuration of a free-form layout element.</p>"
@@ -20592,7 +21760,7 @@
         },
         "Namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The Amazon Quick Sight namespace that the anonymous user virtually belongs to. If you are not using an Amazon QuickSight custom namespace, set this to <code>default</code>.</p>"
+          "documentation":"<p>The Amazon Quick Sight namespace that the anonymous user virtually belongs to. If you are not using an Amazon Quick Suite custom namespace, set this to <code>default</code>.</p>"
         },
         "SessionTags":{
           "shape":"SessionTagList",
@@ -20636,7 +21804,7 @@
         },
         "AnonymousUserArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) to use for the anonymous Amazon QuickSight user.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) to use for the anonymous Amazon Quick Suite user.</p>"
         }
       }
     },
@@ -20664,7 +21832,7 @@
         },
         "ExperienceConfiguration":{
           "shape":"RegisteredUserEmbeddingExperienceConfiguration",
-          "documentation":"<p>The experience that you want to embed. For registered users, you can embed QuickSight dashboards, Amazon Quick Sight visuals, the Amazon Quick Sight Q search bar, the Amazon Quick Sight Generative Q&amp;A experience, or the entire Amazon Quick Sight console.</p>"
+          "documentation":"<p>The experience that you want to embed. For registered users, you can embed Quick Suite dashboards, Amazon Quick Sight visuals, the Amazon Quick Sight Q search bar, the Amazon Quick Sight Generative Q&amp;A experience, or the entire Amazon Quick Sight console.</p>"
         },
         "AllowedDomains":{
           "shape":"StringList",
@@ -20836,6 +22004,96 @@
         "LONGITUDE",
         "LATITUDE"
       ]
+    },
+    "GeocodePreference":{
+      "type":"structure",
+      "required":[
+        "RequestKey",
+        "Preference"
+      ],
+      "members":{
+        "RequestKey":{
+          "shape":"GeocoderHierarchy",
+          "documentation":"<p>The unique request key for the geocode preference.</p>"
+        },
+        "Preference":{
+          "shape":"GeocodePreferenceValue",
+          "documentation":"<p>The preference definition for the geocode preference.</p>"
+        }
+      },
+      "documentation":"<p>The geocode preference.</p>"
+    },
+    "GeocodePreferenceList":{
+      "type":"list",
+      "member":{"shape":"GeocodePreference"},
+      "max":200,
+      "min":0
+    },
+    "GeocodePreferenceValue":{
+      "type":"structure",
+      "members":{
+        "GeocoderHierarchy":{
+          "shape":"GeocoderHierarchy",
+          "documentation":"<p>The preference hierarchy for the geocode preference.</p>"
+        },
+        "Coordinate":{
+          "shape":"Coordinate",
+          "documentation":"<p>The preference coordinate for the geocode preference.</p>"
+        }
+      },
+      "documentation":"<p>The preference value for the geocode preference.</p>",
+      "union":true
+    },
+    "GeocoderHierarchy":{
+      "type":"structure",
+      "members":{
+        "Country":{
+          "shape":"GeocoderHierarchyCountryString",
+          "documentation":"<p>The country value for the preference hierarchy.</p>"
+        },
+        "State":{
+          "shape":"GeocoderHierarchyStateString",
+          "documentation":"<p>The state/region value for the preference hierarchy.</p>"
+        },
+        "County":{
+          "shape":"GeocoderHierarchyCountyString",
+          "documentation":"<p>The county/district value for the preference hierarchy.</p>"
+        },
+        "City":{
+          "shape":"GeocoderHierarchyCityString",
+          "documentation":"<p>The city value for the preference hierarchy.</p>"
+        },
+        "PostCode":{
+          "shape":"GeocoderHierarchyPostCodeString",
+          "documentation":"<p>The postcode value for the preference hierarchy.</p>"
+        }
+      },
+      "documentation":"<p>The preference hierarchy for the geocode preference.</p>"
+    },
+    "GeocoderHierarchyCityString":{
+      "type":"string",
+      "max":3000,
+      "min":0
+    },
+    "GeocoderHierarchyCountryString":{
+      "type":"string",
+      "max":3000,
+      "min":0
+    },
+    "GeocoderHierarchyCountyString":{
+      "type":"string",
+      "max":3000,
+      "min":0
+    },
+    "GeocoderHierarchyPostCodeString":{
+      "type":"string",
+      "max":3000,
+      "min":0
+    },
+    "GeocoderHierarchyStateString":{
+      "type":"string",
+      "max":3000,
+      "min":0
     },
     "GeospatialCategoricalColor":{
       "type":"structure",
@@ -21375,6 +22633,10 @@
         "VisualContentAltText":{
           "shape":"LongPlainText",
           "documentation":"<p>The alt text for the visual.</p>"
+        },
+        "GeocodingPreferences":{
+          "shape":"GeocodePreferenceList",
+          "documentation":"<p>The geocoding prefences for geospatial map.</p>"
         }
       },
       "documentation":"<p>A geospatial map or a points on map visual.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/point-maps.html\">Creating point maps</a> in the <i>Amazon Quick Suite User Guide</i>.</p>"
@@ -21594,7 +22856,7 @@
         },
         "UserArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon QuickSight user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any Amazon QuickSight users in your account (readers, authors, or admins) authenticated as one of the following:</p> <ul> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>IAM users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation.</p> </li> </ul> <p>Omit this parameter for users in the third group – IAM users and IAM role-based sessions.</p>",
+          "documentation":"<p>The Amazon Quick Suite user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any Amazon Quick Suite users in your account (readers, authors, or admins) authenticated as one of the following:</p> <ul> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>IAM users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation.</p> </li> </ul> <p>Omit this parameter for users in the third group – IAM users and IAM role-based sessions.</p>",
           "location":"querystring",
           "locationName":"user-arn"
         },
@@ -21606,7 +22868,7 @@
         },
         "AdditionalDashboardIds":{
           "shape":"AdditionalDashboardIdList",
-          "documentation":"<p>A list of one or more dashboard IDs that you want anonymous users to have tempporary access to. Currently, the <code>IdentityType</code> parameter must be set to <code>ANONYMOUS</code> because other identity types authenticate as QuickSight or IAM users. For example, if you set \"<code>--dashboard-id dash_id1 --dashboard-id dash_id2 dash_id3 identity-type ANONYMOUS</code>\", the session can access all three dashboards.</p>",
+          "documentation":"<p>A list of one or more dashboard IDs that you want anonymous users to have tempporary access to. Currently, the <code>IdentityType</code> parameter must be set to <code>ANONYMOUS</code> because other identity types authenticate as Quick Suite or IAM users. For example, if you set \"<code>--dashboard-id dash_id1 --dashboard-id dash_id2 dash_id3 identity-type ANONYMOUS</code>\", the session can access all three dashboards.</p>",
           "location":"querystring",
           "locationName":"additional-dashboard-ids"
         }
@@ -21760,6 +23022,56 @@
         }
       }
     },
+    "GetIdentityContextRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "UserIdentifier"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID for the Amazon Web Services account that the user whose identity context you want to retrieve is in. Currently, you use the ID for the Amazon Web Services account that contains your Quick Sight account.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "UserIdentifier":{
+          "shape":"UserIdentifier",
+          "documentation":"<p>The identifier for the user whose identity context you want to retrieve.</p>"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the user that you want to get identity context for. This parameter is required when the UserIdentifier is specified using Email or UserName.</p>"
+        },
+        "SessionExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp at which the session will expire.</p>"
+        }
+      },
+      "documentation":"<p>///////////////////////// /////////////////////////</p>"
+    },
+    "GetIdentityContextResponse":{
+      "type":"structure",
+      "required":[
+        "Status",
+        "RequestId"
+      ],
+      "members":{
+        "Status":{
+          "shape":"statusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Context":{
+          "shape":"String",
+          "documentation":"<p>The identity context information for the user. This is an identity token that should be used as the ContextAssertion parameter in the <a href=\"https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html\">STS AssumeRole API</a> call to obtain identity enhanced Amazon Web Services credentials.</p>"
+        }
+      }
+    },
     "GetSessionEmbedUrlRequest":{
       "type":"structure",
       "required":["AwsAccountId"],
@@ -21784,7 +23096,7 @@
         },
         "UserArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon QuickSight user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any type of Amazon QuickSight users in your account (readers, authors, or admins). They need to be authenticated as one of the following:</p> <ol> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>IAM users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation</p> </li> </ol> <p>Omit this parameter for users in the third group, IAM users and IAM role-based sessions.</p>",
+          "documentation":"<p>The Amazon Quick Suite user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any type of Amazon Quick Suite users in your account (readers, authors, or admins). They need to be authenticated as one of the following:</p> <ol> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>IAM users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation</p> </li> </ol> <p>Omit this parameter for users in the third group, IAM users and IAM role-based sessions.</p>",
           "location":"querystring",
           "locationName":"user-arn"
         }
@@ -21795,7 +23107,7 @@
       "members":{
         "EmbedUrl":{
           "shape":"EmbeddingUrl",
-          "documentation":"<p>A single-use URL that you can put into your server-side web page to embed your QuickSight session. This URL is valid for 5 minutes. The API operation provides the URL with an <code>auth_code</code> value that enables one (and only one) sign-on to a user session that is valid for 10 hours. </p>"
+          "documentation":"<p>A single-use URL that you can put into your server-side web page to embed your Quick Suite session. This URL is valid for 5 minutes. The API operation provides the URL with an <code>auth_code</code> value that enables one (and only one) sign-on to a user session that is valid for 10 hours. </p>"
         },
         "Status":{
           "shape":"StatusCode",
@@ -21911,9 +23223,62 @@
         "RowSpan":{
           "shape":"GridLayoutElementRowSpan",
           "documentation":"<p>The height of a grid element expressed as a number of grid rows.</p>"
+        },
+        "BorderStyle":{
+          "shape":"GridLayoutElementBorderStyle",
+          "documentation":"<p>The border style configuration of a grid layout element.</p>"
+        },
+        "SelectedBorderStyle":{
+          "shape":"GridLayoutElementBorderStyle",
+          "documentation":"<p>The border style configuration of a grid layout element. This border style is used when the element is selected.</p>"
+        },
+        "BackgroundStyle":{
+          "shape":"GridLayoutElementBackgroundStyle",
+          "documentation":"<p>The background style configuration of a grid layout element.</p>"
+        },
+        "LoadingAnimation":{"shape":"LoadingAnimation"},
+        "BorderRadius":{
+          "shape":"BorderRadius",
+          "documentation":"<p>The border radius of a grid layout element.</p>"
+        },
+        "Padding":{
+          "shape":"Padding",
+          "documentation":"<p>The padding of a grid layout element.</p>"
         }
       },
       "documentation":"<p>An element within a grid layout.</p>"
+    },
+    "GridLayoutElementBackgroundStyle":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The background visibility of a grid layout element.</p>"
+        },
+        "Color":{
+          "shape":"HexColorWithTransparency",
+          "documentation":"<p>The background color of a grid layout element.</p>"
+        }
+      },
+      "documentation":"<p>The background style configuration of a grid layout element.</p>"
+    },
+    "GridLayoutElementBorderStyle":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The border visibility of a grid layout element.</p>"
+        },
+        "Color":{
+          "shape":"HexColorWithTransparency",
+          "documentation":"<p>The border color of a grid layout element.</p>"
+        },
+        "Width":{
+          "shape":"Width",
+          "documentation":"<p>The border width of a grid layout element.</p>"
+        }
+      },
+      "documentation":"<p>The border style configuration of a grid layout element.</p>"
     },
     "GridLayoutElementColumnIndex":{
       "type":"integer",
@@ -21977,6 +23342,12 @@
         }
       },
       "documentation":"<p>A <i>group</i> in Quick Sight consists of a set of users. You can use groups to make it easier to manage access and security. </p>"
+    },
+    "GroupByColumnNameList":{
+      "type":"list",
+      "member":{"shape":"ColumnName"},
+      "max":128,
+      "min":0
     },
     "GroupDescription":{
       "type":"string",
@@ -22789,6 +24160,39 @@
       },
       "documentation":"<p>The parameters that are required to connect to a Impala data source.</p>"
     },
+    "ImportTableOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"ImportTableOperationSource",
+          "documentation":"<p>The source configuration that specifies which source table to import and any column mappings.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that imports data from a source table.</p>"
+    },
+    "ImportTableOperationSource":{
+      "type":"structure",
+      "required":["SourceTableId"],
+      "members":{
+        "SourceTableId":{
+          "shape":"DataSetEntityResourceId",
+          "documentation":"<p>The identifier of the source table to import data from.</p>"
+        },
+        "ColumnIdMappings":{
+          "shape":"DataSetColumnIdMappingList",
+          "documentation":"<p>The mappings between source column identifiers and target column identifiers during the import.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the source table and column mappings for an import table operation.</p>"
+    },
     "IncludeFolderMembers":{
       "type":"string",
       "enum":[
@@ -22995,6 +24399,10 @@
           "shape":"ColumnName",
           "documentation":"<p>The name of this column in the underlying data source.</p>"
         },
+        "Id":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the input column.</p>"
+        },
         "Type":{
           "shape":"InputColumnDataType",
           "documentation":"<p>The data type of the column.</p>"
@@ -23022,7 +24430,7 @@
       "type":"list",
       "member":{"shape":"InputColumn"},
       "max":2048,
-      "min":1
+      "min":0
     },
     "InsightConfiguration":{
       "type":"structure",
@@ -23242,6 +24650,19 @@
       "exception":true,
       "fault":true
     },
+    "InvalidDataSetParameterValueException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"},
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this request.</p>"
+        }
+      },
+      "documentation":"<p>An exception thrown when an invalid parameter value is provided for dataset operations.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "InvalidNextTokenException":{
       "type":"structure",
       "members":{
@@ -23252,6 +24673,19 @@
         }
       },
       "documentation":"<p>The <code>NextToken</code> value isn't valid.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "InvalidParameterException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"},
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this request.</p>"
+        }
+      },
+      "documentation":"<p>One or more parameter has a value that isn't valid.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -23381,6 +24815,73 @@
         }
       },
       "documentation":"<p>Properties associated with the columns participating in a join.</p>"
+    },
+    "JoinOperandProperties":{
+      "type":"structure",
+      "required":["OutputColumnNameOverrides"],
+      "members":{
+        "OutputColumnNameOverrides":{
+          "shape":"OutputColumnNameOverrideList",
+          "documentation":"<p>A list of column name overrides to apply to the join operand's output columns.</p>"
+        }
+      },
+      "documentation":"<p>Properties that control how columns are handled for a join operand, including column name overrides.</p>"
+    },
+    "JoinOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "LeftOperand",
+        "RightOperand",
+        "Type",
+        "OnClause"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "LeftOperand":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The left operand for the join operation.</p>"
+        },
+        "RightOperand":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The right operand for the join operation.</p>"
+        },
+        "Type":{
+          "shape":"JoinOperationType",
+          "documentation":"<p>The type of join to perform, such as <code>INNER</code>, <code>LEFT</code>, <code>RIGHT</code>, or <code>OUTER</code>.</p>"
+        },
+        "OnClause":{
+          "shape":"JoinOperationOnClause",
+          "documentation":"<p>The join condition that specifies how to match rows between the left and right operands.</p>"
+        },
+        "LeftOperandProperties":{
+          "shape":"JoinOperandProperties",
+          "documentation":"<p>Properties that control how the left operand's columns are handled in the join result.</p>"
+        },
+        "RightOperandProperties":{
+          "shape":"JoinOperandProperties",
+          "documentation":"<p>Properties that control how the right operand's columns are handled in the join result.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that combines data from two sources based on specified join conditions.</p>"
+    },
+    "JoinOperationOnClause":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "sensitive":true
+    },
+    "JoinOperationType":{
+      "type":"string",
+      "enum":[
+        "INNER",
+        "OUTER",
+        "LEFT",
+        "RIGHT"
+      ]
     },
     "JoinType":{
       "type":"string",
@@ -23668,6 +25169,28 @@
         "CLASSIC",
         "VERTICAL"
       ]
+    },
+    "KeyPairCredentials":{
+      "type":"structure",
+      "required":[
+        "KeyPairUsername",
+        "PrivateKey"
+      ],
+      "members":{
+        "KeyPairUsername":{
+          "shape":"DbUsername",
+          "documentation":"<p>Username</p>"
+        },
+        "PrivateKey":{
+          "shape":"PrivateKey",
+          "documentation":"<p>PrivateKey</p>"
+        },
+        "PrivateKeyPassphrase":{
+          "shape":"PrivateKeyPassphrase",
+          "documentation":"<p>PrivateKeyPassphrase</p>"
+        }
+      },
+      "documentation":"<p>The combination of username, private key and passphrase that are used as credentials.</p>"
     },
     "KeyRegistration":{
       "type":"list",
@@ -24018,6 +25541,10 @@
         "MarkerStyleSettings":{
           "shape":"LineChartMarkerStyleSettings",
           "documentation":"<p>Marker styles options for all line series in the visual.</p>"
+        },
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings options for all line series in the visual.</p>"
         }
       },
       "documentation":"<p>The options that determine the default presentation of all line series in <code>LineChartVisual</code>.</p>"
@@ -24104,6 +25631,10 @@
         "MarkerStyleSettings":{
           "shape":"LineChartMarkerStyleSettings",
           "documentation":"<p>Marker styles options for a line series in <code>LineChartVisual</code>.</p>"
+        },
+        "DecalSettings":{
+          "shape":"DecalSettings",
+          "documentation":"<p>Decal settings for a line series in <code>LineChartVisual</code>.</p>"
         }
       },
       "documentation":"<p>The options that determine the presentation of a line series in the visual</p>"
@@ -25426,6 +26957,62 @@
         "NextToken":{
           "shape":"String",
           "documentation":"<p>A pagination token that can be used in a subsequent request.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
+    "ListSelfUpgradesRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "Namespace"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the self-upgrade requests.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The Quick Suite namespace for the self-upgrade requests.</p>",
+          "location":"uri",
+          "locationName":"Namespace"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next set of results, or null if there are no more results.</p>",
+          "location":"querystring",
+          "locationName":"next-token"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return.</p>",
+          "box":true,
+          "location":"querystring",
+          "locationName":"max-results"
+        }
+      }
+    },
+    "ListSelfUpgradesResponse":{
+      "type":"structure",
+      "members":{
+        "SelfUpgradeRequestDetails":{
+          "shape":"SelfUpgradeRequestDetailList",
+          "documentation":"<p>A list of self-upgrade request details.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next set of results, or null if there are no more results.</p>"
         },
         "RequestId":{
           "shape":"String",
@@ -27385,6 +28972,10 @@
           "shape":"ColumnName",
           "documentation":"<p>The display name of the column..</p>"
         },
+        "Id":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the output column.</p>"
+        },
         "Description":{
           "shape":"ColumnDescriptiveText",
           "documentation":"<p>A description for a column.</p>"
@@ -27404,6 +28995,27 @@
       "type":"list",
       "member":{"shape":"OutputColumn"}
     },
+    "OutputColumnNameOverride":{
+      "type":"structure",
+      "required":["OutputColumnName"],
+      "members":{
+        "SourceColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The original name of the column from the source transform operation.</p>"
+        },
+        "OutputColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The new name to assign to the column in the output.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a mapping to override the name of an output column from a transform operation.</p>"
+    },
+    "OutputColumnNameOverrideList":{
+      "type":"list",
+      "member":{"shape":"OutputColumnNameOverride"},
+      "max":2048,
+      "min":1
+    },
     "OverrideDatasetParameterOperation":{
       "type":"structure",
       "required":["ParameterName"],
@@ -27422,6 +29034,10 @@
         }
       },
       "documentation":"<p>A transform operation that overrides the dataset parameter values that are defined in another dataset.</p>"
+    },
+    "Padding":{
+      "type":"string",
+      "max":200
     },
     "PageNumber":{
       "type":"long",
@@ -27635,7 +29251,7 @@
     "ParameterDeclarationList":{
       "type":"list",
       "member":{"shape":"ParameterDeclaration"},
-      "max":200
+      "max":400
     },
     "ParameterDropDownControl":{
       "type":"structure",
@@ -27873,6 +29489,24 @@
       },
       "documentation":"<p>A list of Quick Sight parameters and the list's override values.</p>"
     },
+    "ParentDataSet":{
+      "type":"structure",
+      "required":[
+        "DataSetArn",
+        "InputColumns"
+      ],
+      "members":{
+        "DataSetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the parent dataset.</p>"
+        },
+        "InputColumns":{
+          "shape":"InputColumnList",
+          "documentation":"<p>The list of input columns available from the parent dataset.</p>"
+        }
+      },
+      "documentation":"<p>References a parent dataset that serves as a data source, including its columns and metadata.</p>"
+    },
     "Password":{
       "type":"string",
       "max":1024,
@@ -28033,7 +29667,7 @@
         },
         "Principal":{
           "shape":"PermissionPrincipalString",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the principal. This can be an Amazon QuickSight user, group or namespace associated with the flow. Namespace principal can only be set as a viewer and will grant everyone in the same namespace viewer permissions.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the principal. This can be an Amazon Quick Suite user, group or namespace associated with the flow. Namespace principal can only be set as a viewer and will grant everyone in the same namespace viewer permissions.</p>"
         }
       },
       "documentation":"<p>A structure that contains the permission information for one principal against one flow.</p>"
@@ -28068,6 +29702,10 @@
         "S3Source":{
           "shape":"S3Source",
           "documentation":"<p>A physical table type for as S3 data source.</p>"
+        },
+        "SaaSTable":{
+          "shape":"SaaSTable",
+          "documentation":"<p>A physical table type for Software-as-a-Service (SaaS) sources.</p>"
         }
       },
       "documentation":"<p>A view of a data source that contains information about the shape of the data in the underlying source. This is a variant type structure. For this structure to be valid, only one of the attributes can be non-null.</p>"
@@ -28224,6 +29862,21 @@
       },
       "documentation":"<p>A pie or donut chart.</p> <p>The <code>PieChartVisual</code> structure describes a visual that is a member of the pie chart family.</p> <p>The following charts can be described by using this structure:</p> <ul> <li> <p>Pie charts</p> </li> <li> <p>Donut charts</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/pie-chart.html\">Using pie charts</a> in the <i>Amazon Quick Suite User Guide</i>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/donut-chart.html\">Using donut charts</a> in the <i>Amazon Quick Suite User Guide</i>.</p>"
     },
+    "PivotConfiguration":{
+      "type":"structure",
+      "required":["PivotedLabels"],
+      "members":{
+        "LabelColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name of the column that contains the labels to be pivoted into separate columns.</p>"
+        },
+        "PivotedLabels":{
+          "shape":"PivotedLabelList",
+          "documentation":"<p>The list of specific label values to pivot into separate columns.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for a pivot operation, specifying which column contains labels and how to pivot them.</p>"
+    },
     "PivotFieldSortOptions":{
       "type":"structure",
       "required":[
@@ -28247,10 +29900,48 @@
       "member":{"shape":"PivotFieldSortOptions"},
       "max":200
     },
+    "PivotGroupByColumnNameList":{
+      "type":"list",
+      "member":{"shape":"ColumnName"},
+      "max":128,
+      "min":0
+    },
     "PivotMeasureFieldList":{
       "type":"list",
       "member":{"shape":"MeasureField"},
       "max":40
+    },
+    "PivotOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "ValueColumnConfiguration",
+        "PivotConfiguration"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for pivoting.</p>"
+        },
+        "GroupByColumnNames":{
+          "shape":"PivotGroupByColumnNameList",
+          "documentation":"<p>The list of column names to group by when performing the pivot operation.</p>"
+        },
+        "ValueColumnConfiguration":{
+          "shape":"ValueColumnConfiguration",
+          "documentation":"<p>Configuration for how to aggregate values when multiple rows map to the same pivoted column.</p>"
+        },
+        "PivotConfiguration":{
+          "shape":"PivotConfiguration",
+          "documentation":"<p>Configuration that specifies which labels to pivot and how to structure the resulting columns.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that pivots data by converting row values into columns.</p>"
     },
     "PivotTableAggregatedFieldWells":{
       "type":"structure",
@@ -28367,6 +30058,10 @@
         "PaginatedReportOptions":{
           "shape":"PivotTablePaginatedReportOptions",
           "documentation":"<p>The paginated report options for a pivot table visual.</p>"
+        },
+        "DashboardCustomizationVisualOptions":{
+          "shape":"DashboardCustomizationVisualOptions",
+          "documentation":"<p>The options that define customizations available to dashboard readers for a specific visual</p>"
         },
         "Interactions":{
           "shape":"VisualInteractionOptions",
@@ -28752,6 +30447,35 @@
       },
       "documentation":"<p>The optional configuration of totals cells in a <code>PivotTableVisual</code>.</p>"
     },
+    "PivotedLabel":{
+      "type":"structure",
+      "required":[
+        "LabelName",
+        "NewColumnName",
+        "NewColumnId"
+      ],
+      "members":{
+        "LabelName":{
+          "shape":"CellValue",
+          "documentation":"<p>The label value from the source data to be pivoted.</p>"
+        },
+        "NewColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name for the new column created from this pivoted label.</p>"
+        },
+        "NewColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the new column created from this pivoted label.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a label value to be pivoted into a separate column, including the new column name and identifier.</p>"
+    },
+    "PivotedLabelList":{
+      "type":"list",
+      "member":{"shape":"PivotedLabel"},
+      "max":100,
+      "min":0
+    },
     "PixelLength":{
       "type":"string",
       "documentation":"String based length that is composed of value and unit in px"
@@ -29086,6 +30810,18 @@
       "max":100,
       "min":1
     },
+    "PrivateKey":{
+      "type":"string",
+      "max":8000,
+      "min":1600,
+      "pattern":"^-{5}BEGIN (ENCRYPTED )?PRIVATE KEY-{5}\\u000D?\\u000A([A-Za-z0-9/+]{64}\\u000D?\\u000A)*[A-Za-z0-9/+]{1,64}={0,2}\\u000D?\\u000A-{5}END (ENCRYPTED )?PRIVATE KEY-{5}(\\u000D?\\u000A)?$",
+      "sensitive":true
+    },
+    "PrivateKeyPassphrase":{
+      "type":"string",
+      "max":256,
+      "sensitive":true
+    },
     "ProgressBarOptions":{
       "type":"structure",
       "members":{
@@ -29105,18 +30841,26 @@
       "type":"structure",
       "required":["ProjectedColumns"],
       "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for column projection.</p>"
+        },
         "ProjectedColumns":{
-          "shape":"ProjectedColumnList",
+          "shape":"ProjectedColumnNameList",
           "documentation":"<p>Projected columns.</p>"
         }
       },
       "documentation":"<p>A transform operation that projects columns. Operations that come after a projection can only refer to projected columns.</p>"
     },
-    "ProjectedColumnList":{
+    "ProjectedColumnNameList":{
       "type":"list",
       "member":{"shape":"String"},
-      "max":2000,
-      "min":1
+      "max":2048,
+      "min":0
     },
     "PropertyRole":{
       "type":"string",
@@ -30374,7 +32118,7 @@
         },
         "QuickSightConsole":{
           "shape":"RegisteredUserQuickSightConsoleEmbeddingConfiguration",
-          "documentation":"<p>The configuration details for providing each Amazon Quick Sight console embedding experience. This can be used along with custom permissions to restrict access to certain features. For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon Quick Sight Console</a> in the <i>Amazon QuickSight User Guide</i>.</p> <p>Use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html\">GenerateEmbedUrlForRegisteredUser</a> </code> where you want to provide an authoring portal that allows users to create data sources, datasets, analyses, and dashboards. The users who accesses an embedded Amazon Quick Sight console needs to belong to the author or admin security cohort. If you want to restrict permissions to some of these features, add a custom permissions profile to the user with the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> API operation. Use the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_RegisterUser.html\">RegisterUser</a> </code> API operation to add a new user with a custom permission profile attached. For more information, see the following sections in the <i>Amazon QuickSight User Guide</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics-full-console-for-authenticated-users.html\">Embedding the Full Functionality of the Amazon Quick Sight Console for Authenticated Users</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon QuickSight Console</a> </p> </li> </ul> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>"
+          "documentation":"<p>The configuration details for providing each Amazon Quick Sight console embedding experience. This can be used along with custom permissions to restrict access to certain features. For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon Quick Sight Console</a> in the <i>Amazon Quick Suite User Guide</i>.</p> <p>Use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html\">GenerateEmbedUrlForRegisteredUser</a> </code> where you want to provide an authoring portal that allows users to create data sources, datasets, analyses, and dashboards. The users who accesses an embedded Amazon Quick Sight console needs to belong to the author or admin security cohort. If you want to restrict permissions to some of these features, add a custom permissions profile to the user with the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> API operation. Use the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_RegisterUser.html\">RegisterUser</a> </code> API operation to add a new user with a custom permission profile attached. For more information, see the following sections in the <i>Amazon Quick Suite User Guide</i>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics-full-console-for-authenticated-users.html\">Embedding the Full Functionality of the Amazon Quick Sight Console for Authenticated Users</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/customizing-permissions-to-the-quicksight-console.html\">Customizing Access to the Amazon Quick Suite Console</a> </p> </li> </ul> <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon Quick Suite Developer Portal</a>.</p>"
         },
         "QSearchBar":{
           "shape":"RegisteredUserQSearchBarEmbeddingConfiguration",
@@ -30387,16 +32131,20 @@
         "GenerativeQnA":{
           "shape":"RegisteredUserGenerativeQnAEmbeddingConfiguration",
           "documentation":"<p>The configuration details for embedding the Generative Q&amp;A experience.</p> <p>For more information about embedding the Generative Q&amp;A experience, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedding-overview.html\">Embedding Overview</a> in the <i>Amazon Quick Sight User Guide</i>.</p>"
+        },
+        "QuickChat":{
+          "shape":"RegisteredUserQuickChatEmbeddingConfiguration",
+          "documentation":"<p>The configuration details for embedding the Quick chat agent.</p>"
         }
       },
-      "documentation":"<p>The type of experience you want to embed. For registered users, you can embed QuickSight dashboards or the Amazon Quick Sight console.</p> <note> <p>Exactly one of the experience configurations is required. You can choose <code>Dashboard</code> or <code>QuickSightConsole</code>. You cannot choose more than one experience configuration.</p> </note>"
+      "documentation":"<p>The type of experience you want to embed. For registered users, you can embed Quick Suite dashboards or the Amazon Quick Sight console.</p> <note> <p>Exactly one of the experience configurations is required. You can choose <code>Dashboard</code> or <code>QuickSightConsole</code>. You cannot choose more than one experience configuration.</p> </note>"
     },
     "RegisteredUserGenerativeQnAEmbeddingConfiguration":{
       "type":"structure",
       "members":{
         "InitialTopicId":{
           "shape":"RestrictiveResourceId",
-          "documentation":"<p>The ID of the new Q reader experience topic that you want to make the starting topic in the Generative Q&amp;A experience. You can find a topic ID by navigating to the Topics pane in the QuickSight application and opening a topic. The ID is in the URL for the topic that you open.</p> <p>If you don't specify an initial topic or you specify a legacy topic, a list of all shared new reader experience topics is shown in the Generative Q&amp;A experience for your readers. When you select an initial new reader experience topic, you can specify whether or not readers are allowed to select other new reader experience topics from the available ones in the list.</p>"
+          "documentation":"<p>The ID of the new Q reader experience topic that you want to make the starting topic in the Generative Q&amp;A experience. You can find a topic ID by navigating to the Topics pane in the Quick Suite application and opening a topic. The ID is in the URL for the topic that you open.</p> <p>If you don't specify an initial topic or you specify a legacy topic, a list of all shared new reader experience topics is shown in the Generative Q&amp;A experience for your readers. When you select an initial new reader experience topic, you can specify whether or not readers are allowed to select other new reader experience topics from the available ones in the list.</p>"
         }
       },
       "documentation":"<p>An object that provides information about the configuration of a Generative Q&amp;A experience.</p>"
@@ -30411,6 +32159,11 @@
       },
       "documentation":"<p>Information about the Q search bar embedding experience.</p>"
     },
+    "RegisteredUserQuickChatEmbeddingConfiguration":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>An object that provides information about the configuration of a chat agent.</p>"
+    },
     "RegisteredUserQuickSightConsoleEmbeddingConfiguration":{
       "type":"structure",
       "members":{
@@ -30424,6 +32177,20 @@
         }
       },
       "documentation":"<p>Information about the Amazon Quick Sight console that you want to embed.</p>"
+    },
+    "RegisteredUserSnapshotJobResult":{
+      "type":"structure",
+      "members":{
+        "FileGroups":{
+          "shape":"SnapshotJobResultFileGroupList",
+          "documentation":"<p>A list of <code>SnapshotJobResultFileGroup</code> objects that contain information on the files that are requested for registered user during a <code>StartDashboardSnapshotJob</code> API call. If the job succeeds, these objects contain the location where the snapshot artifacts are stored. If the job fails, the objects contain information about the error that caused the job to fail.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about files that are requested for registered user during a <code>StartDashboardSnapshotJob</code> API call.</p>"
+    },
+    "RegisteredUserSnapshotJobResultList":{
+      "type":"list",
+      "member":{"shape":"RegisteredUserSnapshotJobResult"}
     },
     "RelationalTable":{
       "type":"structure",
@@ -30583,6 +32350,35 @@
         }
       },
       "documentation":"<p>A transform operation that renames a column.</p>"
+    },
+    "RenameColumnOperationList":{
+      "type":"list",
+      "member":{"shape":"RenameColumnOperation"},
+      "max":2048,
+      "min":0
+    },
+    "RenameColumnsOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "RenameColumnOperations"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for column renaming.</p>"
+        },
+        "RenameColumnOperations":{
+          "shape":"RenameColumnOperationList",
+          "documentation":"<p>The list of column rename operations to perform, specifying old and new column names.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that renames one or more columns in the dataset.</p>"
     },
     "ResizeOption":{
       "type":"string",
@@ -30843,6 +32639,14 @@
       },
       "documentation":"<p>Information about rows for a data set SPICE ingestion.</p>"
     },
+    "RowLevelPermissionConfiguration":{
+      "type":"structure",
+      "members":{
+        "TagConfiguration":{"shape":"RowLevelPermissionTagConfiguration"},
+        "RowLevelPermissionDataSet":{"shape":"RowLevelPermissionDataSet"}
+      },
+      "documentation":"<p>Configuration for row level security.</p>"
+    },
     "RowLevelPermissionDataSet":{
       "type":"structure",
       "required":[
@@ -30872,6 +32676,11 @@
         }
       },
       "documentation":"<p>Information about a dataset that contains permissions for row-level security (RLS). The permissions dataset maps fields to users or groups. For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/restrict-access-to-a-data-set-using-row-level-security.html\">Using Row-Level Security (RLS) to Restrict Access to a Dataset</a> in the <i>Quick Sight User Guide</i>.</p> <p>The option to deny permissions by setting <code>PermissionPolicy</code> to <code>DENY_ACCESS</code> is not supported for new RLS datasets.</p>"
+    },
+    "RowLevelPermissionDataSetMap":{
+      "type":"map",
+      "key":{"shape":"DataSetEntityResourceId"},
+      "value":{"shape":"RowLevelPermissionDataSet"}
     },
     "RowLevelPermissionFormatVersion":{
       "type":"string",
@@ -31051,6 +32860,29 @@
     "S3Uri":{
       "type":"string",
       "pattern":"^(https|s3)://([^/]+)/?(.*)$"
+    },
+    "SaaSTable":{
+      "type":"structure",
+      "required":[
+        "DataSourceArn",
+        "TablePath",
+        "InputColumns"
+      ],
+      "members":{
+        "DataSourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the SaaS data source.</p>"
+        },
+        "TablePath":{
+          "shape":"TablePathElementList",
+          "documentation":"<p>The hierarchical path to the table within the SaaS data source.</p>"
+        },
+        "InputColumns":{
+          "shape":"InputColumnList",
+          "documentation":"<p>The list of input columns available from the SaaS table.</p>"
+        }
+      },
+      "documentation":"<p>A table from a Software-as-a-Service (SaaS) data source, including connection details and column definitions.</p>"
     },
     "SameSheetTargetVisualConfiguration":{
       "type":"structure",
@@ -32037,6 +33869,87 @@
         "DETAILED"
       ]
     },
+    "SelfUpgradeAdminAction":{
+      "type":"string",
+      "enum":[
+        "APPROVE",
+        "DENY",
+        "VERIFY"
+      ]
+    },
+    "SelfUpgradeConfiguration":{
+      "type":"structure",
+      "members":{
+        "SelfUpgradeStatus":{
+          "shape":"SelfUpgradeStatus",
+          "documentation":"<p>Status set for the self-upgrade configuration for the Quick Suite account. It can contain the following values:</p> <ul> <li> <p> <code>AUTO_APPROVAL</code>: All the self-upgrade requests will be auto approved.</p> </li> <li> <p> <code>ADMIN_APPROVAL</code>: All the self-upgrade requests will require admin approval.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The self-upgrade configuration for the Quick Suite account.</p>"
+    },
+    "SelfUpgradeRequestDetail":{
+      "type":"structure",
+      "members":{
+        "UpgradeRequestId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the self-upgrade request.</p>"
+        },
+        "UserName":{
+          "shape":"UserName",
+          "documentation":"<p>The username of the user who initiated the self-upgrade request.</p>"
+        },
+        "OriginalRole":{
+          "shape":"UserRole",
+          "documentation":"<p>The original role of the user before the upgrade.</p>"
+        },
+        "RequestedRole":{
+          "shape":"UserRole",
+          "documentation":"<p>The role that the user is requesting to upgrade to.</p>"
+        },
+        "RequestNote":{
+          "shape":"String",
+          "documentation":"<p>An optional note explaining the reason for the self-upgrade request.</p>"
+        },
+        "CreationTime":{
+          "shape":"Long",
+          "documentation":"<p>The time when the self-upgrade request was created.</p>"
+        },
+        "RequestStatus":{
+          "shape":"SelfUpgradeRequestStatus",
+          "documentation":"<p>The status of the self-upgrade request.</p>"
+        },
+        "lastUpdateAttemptTime":{
+          "shape":"Long",
+          "documentation":"<p>The time of the last update attempt for the self-upgrade request.</p>"
+        },
+        "lastUpdateFailureReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the last update failure, if applicable.</p>"
+        }
+      },
+      "documentation":"<p>Details of a self-upgrade request.</p>"
+    },
+    "SelfUpgradeRequestDetailList":{
+      "type":"list",
+      "member":{"shape":"SelfUpgradeRequestDetail"}
+    },
+    "SelfUpgradeRequestStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "APPROVED",
+        "DENIED",
+        "UPDATE_FAILED",
+        "VERIFY_FAILED"
+      ]
+    },
+    "SelfUpgradeStatus":{
+      "type":"string",
+      "enum":[
+        "AUTO_APPROVAL",
+        "ADMIN_APPROVAL"
+      ]
+    },
     "SemanticEntityType":{
       "type":"structure",
       "members":{
@@ -32054,6 +33967,50 @@
         }
       },
       "documentation":"<p>A structure that represents a semantic entity type.</p>"
+    },
+    "SemanticModelConfiguration":{
+      "type":"structure",
+      "members":{
+        "TableMap":{
+          "shape":"SemanticTableMap",
+          "documentation":"<p>A map of semantic tables that define the analytical structure.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for the semantic model that defines how prepared data is structured for analysis and reporting.</p>"
+    },
+    "SemanticTable":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "DestinationTableId"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"SemanticTableAlias",
+          "documentation":"<p>Alias for the semantic table.</p>"
+        },
+        "DestinationTableId":{
+          "shape":"DataSetEntityResourceId",
+          "documentation":"<p>The identifier of the destination table from data preparation that provides data to this semantic table.</p>"
+        },
+        "RowLevelPermissionConfiguration":{
+          "shape":"RowLevelPermissionConfiguration",
+          "documentation":"<p>Configuration for row level security that control data access for this semantic table.</p>"
+        }
+      },
+      "documentation":"<p>A semantic table that represents the final analytical structure of the data.</p>"
+    },
+    "SemanticTableAlias":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "SemanticTableMap":{
+      "type":"map",
+      "key":{"shape":"DataSetEntityResourceId"},
+      "value":{"shape":"SemanticTable"},
+      "max":1,
+      "min":1
     },
     "SemanticType":{
       "type":"structure",
@@ -32138,6 +34095,7 @@
       "type":"list",
       "member":{"shape":"SensitiveTimestamp"}
     },
+    "Separator":{"type":"string"},
     "SeriesItem":{
       "type":"structure",
       "members":{
@@ -32303,6 +34261,20 @@
       },
       "documentation":"<p>A <i>sheet</i>, which is an object that contains a set of visuals that are viewed together on one page in Quick Sight. Every analysis and dashboard contains at least one sheet. Each sheet contains at least one visualization widget, for example a chart, pivot table, or narrative insight. Sheets can be associated with other components, such as controls, filters, and so on.</p>"
     },
+    "SheetBackgroundStyle":{
+      "type":"structure",
+      "members":{
+        "Color":{
+          "shape":"Color",
+          "documentation":"<p>The solid color background option for sheets.</p>"
+        },
+        "Gradient":{
+          "shape":"String",
+          "documentation":"<p>The gradient background option for sheets.</p>"
+        }
+      },
+      "documentation":"<p>The background configuration for sheets.</p>"
+    },
     "SheetContentType":{
       "type":"string",
       "enum":[
@@ -32410,7 +34382,7 @@
         },
         "Name":{
           "shape":"SheetName",
-          "documentation":"<p>The name of the sheet. This name is displayed on the sheet's tab in the QuickSight console.</p>"
+          "documentation":"<p>The name of the sheet. This name is displayed on the sheet's tab in the Quick Suite console.</p>"
         },
         "ParameterControls":{
           "shape":"ParameterControlList",
@@ -32632,6 +34604,10 @@
         "TileLayout":{
           "shape":"TileLayoutStyle",
           "documentation":"<p>The layout options for tiles.</p>"
+        },
+        "Background":{
+          "shape":"SheetBackgroundStyle",
+          "documentation":"<p>The background for sheets.</p>"
         }
       },
       "documentation":"<p>The theme display options for sheets. </p>"
@@ -32905,7 +34881,7 @@
       "members":{
         "RowLevelPermissionTags":{
           "shape":"SessionTagList",
-          "documentation":"<p>The tags to be used for row-level security (RLS). Make sure that the relevant datasets have RLS tags configured before you start a snapshot export job. You can configure the RLS tags of a dataset with a <code>DataSet$RowLevelPermissionTagConfiguration</code> API call.</p> <p>These are not the tags that are used for Amazon Web Services resource tagging. For more information on row level security in Amazon Quick Sight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-rls-tags.html\">Using Row-Level Security (RLS) with Tags</a>in the <i>Amazon QuickSight User Guide</i>.</p>"
+          "documentation":"<p>The tags to be used for row-level security (RLS). Make sure that the relevant datasets have RLS tags configured before you start a snapshot export job. You can configure the RLS tags of a dataset with a <code>DataSet$RowLevelPermissionTagConfiguration</code> API call.</p> <p>These are not the tags that are used for Amazon Web Services resource tagging. For more information on row level security in Amazon Quick Sight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-rls-tags.html\">Using Row-Level Security (RLS) with Tags</a>in the <i>Amazon Quick Suite User Guide</i>.</p>"
         }
       },
       "documentation":"<p>A structure that contains information on the anonymous user configuration.</p>"
@@ -33059,7 +35035,7 @@
           "documentation":"<p>The error type.</p>"
         }
       },
-      "documentation":"<p>An object that contains information on the error that caused the snapshot job to fail.</p>"
+      "documentation":"<p>An object that contains information on the error that caused the snapshot job to fail.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DescribeDashboardSnapshotJobResult.html\">DescribeDashboardSnapshotJobResult API</a>.</p>"
     },
     "SnapshotJobResult":{
       "type":"structure",
@@ -33067,6 +35043,10 @@
         "AnonymousUsers":{
           "shape":"AnonymousUserSnapshotJobResultList",
           "documentation":"<p> A list of <code>AnonymousUserSnapshotJobResult</code> objects that contain information on anonymous users and their user configurations. This data provided by you when you make a <code>StartDashboardSnapshotJob</code> API call.</p>"
+        },
+        "RegisteredUsers":{
+          "shape":"RegisteredUserSnapshotJobResultList",
+          "documentation":"<p>A list of <code>RegisteredUserSnapshotJobResult</code> objects that contain information about files that are requested for registered user during a <code>StartDashboardSnapshotJob</code> API call.</p>"
         }
       },
       "documentation":"<p>An object that provides information on the result of a snapshot job. This object provides information about the job, the job status, and the location of the generated file.</p>"
@@ -33163,7 +35143,7 @@
           "documentation":"<p>An array of records that describe the anonymous users that the dashboard snapshot is generated for.</p>"
         }
       },
-      "documentation":"<p>A structure that contains information about the users that the dashboard snapshot is generated for.</p>"
+      "documentation":"<p>A structure that contains information about the users that the dashboard snapshot is generated for.</p> <important> <p>When using identity-enhanced session credentials, set the UserConfiguration request attribute to null. Otherwise, the request will be invalid.</p> </important>"
     },
     "SnapshotUserConfigurationRedacted":{
       "type":"structure",
@@ -33216,6 +35196,27 @@
         "ASC",
         "DESC"
       ]
+    },
+    "SourceTable":{
+      "type":"structure",
+      "members":{
+        "PhysicalTableId":{
+          "shape":"DataSetEntityResourceId",
+          "documentation":"<p>The identifier of the physical table that serves as the data source.</p>"
+        },
+        "DataSet":{
+          "shape":"ParentDataSet",
+          "documentation":"<p>A parent dataset that serves as the data source instead of a physical table.</p>"
+        }
+      },
+      "documentation":"<p>A source table that provides initial data from either a physical table or parent dataset.</p>"
+    },
+    "SourceTableMap":{
+      "type":"map",
+      "key":{"shape":"DataSetEntityResourceId"},
+      "value":{"shape":"SourceTable"},
+      "max":32,
+      "min":1
     },
     "Spacing":{
       "type":"structure",
@@ -33288,7 +35289,8 @@
     "SqlQuery":{
       "type":"string",
       "max":168000,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "SqlServerParameters":{
       "type":"structure",
@@ -33520,7 +35522,6 @@
         "AwsAccountId",
         "DashboardId",
         "SnapshotJobId",
-        "UserConfiguration",
         "SnapshotConfiguration"
       ],
       "members":{
@@ -33542,7 +35543,7 @@
         },
         "UserConfiguration":{
           "shape":"SnapshotUserConfiguration",
-          "documentation":"<p> A structure that contains information about the anonymous users that the generated snapshot is for. This API will not return information about registered Amazon Quick Sight.</p>"
+          "documentation":"<p>A structure that contains information about the users that the dashboard snapshot is generated for. The users can be either anonymous users or registered users. Anonymous users cannot be used together with registered users.</p> <important> <p>When using identity-enhanced session credentials, set the UserConfiguration request attribute to null. Otherwise, the request will be invalid.</p> </important>"
         },
         "SnapshotConfiguration":{
           "shape":"SnapshotConfiguration",
@@ -34131,6 +36132,10 @@
           "shape":"TableInlineVisualizationList",
           "documentation":"<p>A collection of inline visualizations to display within a chart.</p>"
         },
+        "DashboardCustomizationVisualOptions":{
+          "shape":"DashboardCustomizationVisualOptions",
+          "documentation":"<p>The options that define customizations available to dashboard readers for a specific visual</p>"
+        },
         "Interactions":{
           "shape":"VisualInteractionOptions",
           "documentation":"<p>The general visual interactions setup for a visual.</p>"
@@ -34359,6 +36364,36 @@
         }
       },
       "documentation":"<p>The paginated report options for a table visual.</p>"
+    },
+    "TablePathElement":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"TablePathElementName",
+          "documentation":"<p>The name of the path element.</p>"
+        },
+        "Id":{
+          "shape":"TablePathElementId",
+          "documentation":"<p>The unique identifier of the path element.</p>"
+        }
+      },
+      "documentation":"<p>An element in the hierarchical path to a table within a data source, containing both name and identifier.</p>"
+    },
+    "TablePathElementId":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "TablePathElementList":{
+      "type":"list",
+      "member":{"shape":"TablePathElement"},
+      "max":32,
+      "min":1
+    },
+    "TablePathElementName":{
+      "type":"string",
+      "max":256,
+      "min":1
     },
     "TablePinnedFieldOptions":{
       "type":"structure",
@@ -35011,6 +37046,10 @@
         "SINGLE_QUOTE"
       ]
     },
+    "TextTransform":{
+      "type":"string",
+      "enum":["CAPITALIZE"]
+    },
     "TextWrap":{
       "type":"string",
       "enum":[
@@ -35290,9 +37329,21 @@
     "TileStyle":{
       "type":"structure",
       "members":{
+        "BackgroundColor":{
+          "shape":"Color",
+          "documentation":"<p>The background color of a tile.</p>"
+        },
         "Border":{
           "shape":"BorderStyle",
           "documentation":"<p>The border around a tile.</p>"
+        },
+        "BorderRadius":{
+          "shape":"BorderRadius",
+          "documentation":"<p>The border radius of a tile.</p>"
+        },
+        "Padding":{
+          "shape":"Padding",
+          "documentation":"<p>The padding of a tile.</p>"
         }
       },
       "documentation":"<p>Display options related to tiles on a sheet.</p>"
@@ -36847,10 +38898,81 @@
       },
       "documentation":"<p>A data transformation on a logical table. This is a variant type structure. For this structure to be valid, only one of the attributes can be non-null.</p>"
     },
+    "TransformOperationAlias":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "TransformOperationList":{
       "type":"list",
       "member":{"shape":"TransformOperation"},
       "max":2048,
+      "min":1
+    },
+    "TransformOperationSource":{
+      "type":"structure",
+      "required":["TransformOperationId"],
+      "members":{
+        "TransformOperationId":{
+          "shape":"DataSetEntityResourceId",
+          "documentation":"<p>The identifier of the transform operation that provides input data.</p>"
+        },
+        "ColumnIdMappings":{
+          "shape":"DataSetColumnIdMappingList",
+          "documentation":"<p>The mappings between source column identifiers and target column identifiers for this transformation.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the source of data for a transform operation, including the source operation and column mappings.</p>"
+    },
+    "TransformStep":{
+      "type":"structure",
+      "members":{
+        "ImportTableStep":{
+          "shape":"ImportTableOperation",
+          "documentation":"<p>A transform step that brings data from a source table.</p>"
+        },
+        "ProjectStep":{"shape":"ProjectOperation"},
+        "FiltersStep":{
+          "shape":"FiltersOperation",
+          "documentation":"<p>A transform step that applies filter conditions.</p>"
+        },
+        "CreateColumnsStep":{"shape":"CreateColumnsOperation"},
+        "RenameColumnsStep":{
+          "shape":"RenameColumnsOperation",
+          "documentation":"<p>A transform step that changes the names of one or more columns.</p>"
+        },
+        "CastColumnTypesStep":{
+          "shape":"CastColumnTypesOperation",
+          "documentation":"<p>A transform step that changes the data types of one or more columns.</p>"
+        },
+        "JoinStep":{
+          "shape":"JoinOperation",
+          "documentation":"<p>A transform step that combines data from two sources based on specified join conditions.</p>"
+        },
+        "AggregateStep":{
+          "shape":"AggregateOperation",
+          "documentation":"<p>A transform step that groups data and applies aggregation functions to calculate summary values.</p>"
+        },
+        "PivotStep":{
+          "shape":"PivotOperation",
+          "documentation":"<p>A transform step that converts row values into columns to reshape the data structure.</p>"
+        },
+        "UnpivotStep":{
+          "shape":"UnpivotOperation",
+          "documentation":"<p>A transform step that converts columns into rows to normalize the data structure.</p>"
+        },
+        "AppendStep":{
+          "shape":"AppendOperation",
+          "documentation":"<p>A transform step that combines rows from multiple sources by stacking them vertically.</p>"
+        }
+      },
+      "documentation":"<p>A step in data preparation that performs a specific operation on the data.</p>"
+    },
+    "TransformStepMap":{
+      "type":"map",
+      "key":{"shape":"DataSetEntityResourceId"},
+      "value":{"shape":"TransformStep"},
+      "max":256,
       "min":1
     },
     "TransposedColumnIndex":{
@@ -37090,6 +39212,19 @@
         "FontFamilies":{
           "shape":"FontList",
           "documentation":"<p>Determines the list of font families.</p>"
+        },
+        "AxisTitleFontConfiguration":{"shape":"FontConfiguration"},
+        "AxisLabelFontConfiguration":{"shape":"FontConfiguration"},
+        "LegendTitleFontConfiguration":{"shape":"FontConfiguration"},
+        "LegendValueFontConfiguration":{"shape":"FontConfiguration"},
+        "DataLabelFontConfiguration":{"shape":"FontConfiguration"},
+        "VisualTitleFontConfiguration":{
+          "shape":"VisualTitleFontConfiguration",
+          "documentation":"<p>Configures the display properties of the visual title.</p>"
+        },
+        "VisualSubtitleFontConfiguration":{
+          "shape":"VisualSubtitleFontConfiguration",
+          "documentation":"<p>Configures the display properties of the visual sub-title.</p>"
         }
       },
       "documentation":"<p>Determines the typography options.</p>"
@@ -37260,6 +39395,49 @@
     "UnlimitedPixelLength":{
       "type":"string",
       "documentation":"String based length that is composed of value and unit in px with Integer.MAX_VALUE as maximum value"
+    },
+    "UnpivotOperation":{
+      "type":"structure",
+      "required":[
+        "Alias",
+        "Source",
+        "ColumnsToUnpivot",
+        "UnpivotedLabelColumnName",
+        "UnpivotedLabelColumnId",
+        "UnpivotedValueColumnName",
+        "UnpivotedValueColumnId"
+      ],
+      "members":{
+        "Alias":{
+          "shape":"TransformOperationAlias",
+          "documentation":"<p>Alias for this operation.</p>"
+        },
+        "Source":{
+          "shape":"TransformOperationSource",
+          "documentation":"<p>The source transform operation that provides input data for unpivoting.</p>"
+        },
+        "ColumnsToUnpivot":{
+          "shape":"ColumnToUnpivotList",
+          "documentation":"<p>The list of columns to unpivot from the source data.</p>"
+        },
+        "UnpivotedLabelColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name for the new column that will contain the unpivoted column names.</p>"
+        },
+        "UnpivotedLabelColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the new column that will contain the unpivoted column names.</p>"
+        },
+        "UnpivotedValueColumnName":{
+          "shape":"ColumnName",
+          "documentation":"<p>The name for the new column that will contain the unpivoted values.</p>"
+        },
+        "UnpivotedValueColumnId":{
+          "shape":"ColumnId",
+          "documentation":"<p>A unique identifier for the new column that will contain the unpivoted values.</p>"
+        }
+      },
+      "documentation":"<p>A transform operation that converts columns into rows, normalizing the data structure.</p>"
     },
     "UnsupportedPricingPlanException":{
       "type":"structure",
@@ -37730,7 +39908,7 @@
         },
         "Namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace of the QuickSight application.</p>",
+          "documentation":"<p>The namespace of the Quick Suite application.</p>",
           "location":"querystring",
           "locationName":"namespace"
         }
@@ -37798,7 +39976,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         },
@@ -37836,7 +40014,7 @@
         },
         "BrandId":{
           "shape":"ShortRestrictiveResourceId",
-          "documentation":"<p>The ID of the QuickSight brand.</p>",
+          "documentation":"<p>The ID of the Quick Suite brand.</p>",
           "location":"uri",
           "locationName":"BrandId"
         },
@@ -38273,7 +40451,10 @@
         },
         "LogicalTableMap":{
           "shape":"LogicalTableMap",
-          "documentation":"<p>Configures the combination and transformation of the data from the physical tables.</p>"
+          "documentation":"<p>Configures the combination and transformation of the data from the physical tables. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "ImportMode":{
           "shape":"DataSetImportMode",
@@ -38289,11 +40470,17 @@
         },
         "RowLevelPermissionDataSet":{
           "shape":"RowLevelPermissionDataSet",
-          "documentation":"<p>The row-level security configuration for the data you want to create.</p>"
+          "documentation":"<p>The row-level security configuration for the data you want to create. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "RowLevelPermissionTagConfiguration":{
           "shape":"RowLevelPermissionTagConfiguration",
-          "documentation":"<p>The configuration of tags on a dataset to set row-level security. Row-level security tags are currently supported for anonymous embedding only.</p>"
+          "documentation":"<p>The configuration of tags on a dataset to set row-level security. Row-level security tags are currently supported for anonymous embedding only. This parameter is used with the legacy data preparation experience.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Only used in the legacy data preparation experience.",
+          "deprecatedSince":"2025-10-23"
         },
         "ColumnLevelPermissionRules":{
           "shape":"ColumnLevelPermissionRuleList",
@@ -38307,6 +40494,14 @@
         "PerformanceConfiguration":{
           "shape":"PerformanceConfiguration",
           "documentation":"<p>The configuration for the performance optimization of the dataset that contains a <code>UniqueKey</code> configuration.</p>"
+        },
+        "DataPrepConfiguration":{
+          "shape":"DataPrepConfiguration",
+          "documentation":"<p>The data preparation configuration for the dataset. This configuration defines the source tables, transformation steps, and destination tables used to prepare the data. Required when using the new data preparation experience.</p>"
+        },
+        "SemanticModelConfiguration":{
+          "shape":"SemanticModelConfiguration",
+          "documentation":"<p>The semantic model configuration for the dataset. This configuration defines how the prepared data is structured for an analysis, including table mappings and row-level security configurations. Required when using the new data preparation experience.</p>"
         }
       }
     },
@@ -38319,7 +40514,7 @@
         },
         "DataSetId":{
           "shape":"ResourceId",
-          "documentation":"<p>The ID for the dataset that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+          "documentation":"<p>The ID for the dataset that you want to update. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
         },
         "IngestionArn":{
           "shape":"Arn",
@@ -38935,7 +41130,7 @@
         },
         "PublicSharingEnabled":{
           "shape":"Boolean",
-          "documentation":"<p>A Boolean value that indicates whether public sharing is turned on for an QuickSight account.</p>"
+          "documentation":"<p>A Boolean value that indicates whether public sharing is turned on for an Quick Suite account.</p>"
         }
       }
     },
@@ -39148,6 +41343,95 @@
     "UpdateSPICECapacityConfigurationResponse":{
       "type":"structure",
       "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
+    "UpdateSelfUpgradeConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "Namespace",
+        "SelfUpgradeStatus"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the Quick Suite self-upgrade configuration that you want to update.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The Quick Suite namespace that you want to update the Quick Suite self-upgrade configuration for.</p>",
+          "location":"uri",
+          "locationName":"Namespace"
+        },
+        "SelfUpgradeStatus":{
+          "shape":"SelfUpgradeStatus",
+          "documentation":"<p>The self-upgrade status that you want to set for the Quick Suite account.</p>"
+        }
+      }
+    },
+    "UpdateSelfUpgradeConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
+    "UpdateSelfUpgradeRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "Namespace",
+        "UpgradeRequestId",
+        "Action"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the self-upgrade request.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The Quick Suite namespace for the self-upgrade request.</p>",
+          "location":"uri",
+          "locationName":"Namespace"
+        },
+        "UpgradeRequestId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the self-upgrade request to update.</p>"
+        },
+        "Action":{
+          "shape":"SelfUpgradeAdminAction",
+          "documentation":"<p>The action to perform on the self-upgrade request. Valid values are <code>APPROVE</code>, <code>DENY</code>, or <code>VERIFY</code>.</p>"
+        }
+      }
+    },
+    "UpdateSelfUpgradeResponse":{
+      "type":"structure",
+      "members":{
+        "SelfUpgradeRequestDetail":{
+          "shape":"SelfUpgradeRequestDetail",
+          "documentation":"<p>Details of the updated self-upgrade request.</p>"
+        },
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
@@ -39902,6 +42186,10 @@
         "Delimiter":{
           "shape":"Delimiter",
           "documentation":"<p>The delimiter between values in the file.</p>"
+        },
+        "CustomCellAddressRange":{
+          "shape":"String",
+          "documentation":"<p>A custom cell address range for Excel files, specifying which cells to import from the spreadsheet.</p>"
         }
       },
       "documentation":"<p>Information about the format for a source file or files.</p>"
@@ -39955,6 +42243,25 @@
         }
       },
       "documentation":"<p>A registered user of Quick Sight. </p>"
+    },
+    "UserIdentifier":{
+      "type":"structure",
+      "members":{
+        "UserName":{
+          "shape":"SensitiveString",
+          "documentation":"<p>The name of the user that you want to get identity context for.</p>"
+        },
+        "Email":{
+          "shape":"SensitiveString",
+          "documentation":"<p>The email address of the user that you want to get identity context for.</p>"
+        },
+        "UserArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the user that you want to get identity context for.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information to identify a user.</p>",
+      "union":true
     },
     "UserList":{
       "type":"list",
@@ -40140,6 +42447,16 @@
         "STRICT",
         "LENIENT"
       ]
+    },
+    "ValueColumnConfiguration":{
+      "type":"structure",
+      "members":{
+        "AggregationFunction":{
+          "shape":"DataPrepAggregationFunction",
+          "documentation":"<p>The aggregation function to apply when multiple values map to the same pivoted cell.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for how to handle value columns in pivot operations, including aggregation settings.</p>"
     },
     "ValueWhenUnsetOption":{
       "type":"string",
@@ -40396,6 +42713,25 @@
         "DATA_POINT_MENU"
       ]
     },
+    "VisualCustomizationAdditionalFieldsList":{
+      "type":"list",
+      "member":{"shape":"ColumnIdentifier"},
+      "max":2500
+    },
+    "VisualCustomizationFieldsConfiguration":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"DashboardCustomizationStatus",
+          "documentation":"<p>Specifies whether dashboard readers can customize fields for this visual. This option is <code>ENABLED</code> by default.</p>"
+        },
+        "AdditionalFields":{
+          "shape":"VisualCustomizationAdditionalFieldsList",
+          "documentation":"<p>The additional dataset fields available for dashboard readers to customize the visual with, beyond the fields already configured on the visual.</p>"
+        }
+      },
+      "documentation":"<p>The configuration that controls field customization options available to dashboard readers for a visual.</p>"
+    },
     "VisualHighlightOperation":{
       "type":"structure",
       "required":["Trigger"],
@@ -40483,6 +42819,21 @@
       "max":1024,
       "min":1
     },
+    "VisualSubtitleFontConfiguration":{
+      "type":"structure",
+      "members":{
+        "FontConfiguration":{"shape":"FontConfiguration"},
+        "TextAlignment":{
+          "shape":"HorizontalTextAlignment",
+          "documentation":"<p>Determines the alignment of visual sub-title.</p>"
+        },
+        "TextTransform":{
+          "shape":"TextTransform",
+          "documentation":"<p>Determines the text transformation of visual sub-title.</p>"
+        }
+      },
+      "documentation":"<p>Configures the display properties of the visual sub-title.</p>"
+    },
     "VisualSubtitleLabelOptions":{
       "type":"structure",
       "members":{
@@ -40501,6 +42852,21 @@
       "type":"string",
       "max":1024,
       "min":1
+    },
+    "VisualTitleFontConfiguration":{
+      "type":"structure",
+      "members":{
+        "FontConfiguration":{"shape":"FontConfiguration"},
+        "TextAlignment":{
+          "shape":"HorizontalTextAlignment",
+          "documentation":"<p>Determines the alignment of visual title.</p>"
+        },
+        "TextTransform":{
+          "shape":"TextTransform",
+          "documentation":"<p>Determines the text transformation of visual title.</p>"
+        }
+      },
+      "documentation":"<p>Configures the display properties of the visual title.</p>"
     },
     "VisualTitleLabelOptions":{
       "type":"structure",
@@ -40846,6 +43212,11 @@
         "DISABLED"
       ]
     },
+    "Width":{
+      "type":"string",
+      "documentation":"String to encapsulate the most generic way Width can be formatted with whatever units (px, em etc)",
+      "max":50
+    },
     "WordCloudAggregatedFieldWells":{
       "type":"structure",
       "members":{
@@ -41048,7 +43419,11 @@
       },
       "documentation":"<p>The options that are available for a single Y axis in a chart.</p>"
     },
-    "boolean":{"type":"boolean"}
+    "boolean":{"type":"boolean"},
+    "statusCode":{
+      "type":"integer",
+      "box":true
+    }
   },
-  "documentation":"<fullname>Amazon QuickSight API Reference</fullname> <p>Amazon Quick Sight is a fully managed, serverless business intelligence service for the Amazon Web Services Cloud that makes it easy to extend data and insights to every user in your organization. This API reference contains documentation for a programming interface that you can use to manage Amazon Quick Sight. </p>"
+  "documentation":"<fullname>Amazon Quick Suite API Reference</fullname> <p>Amazon Quick Sight is a fully managed, serverless business intelligence service for the Amazon Web Services Cloud that makes it easy to extend data and insights to every user in your organization. This API reference contains documentation for a programming interface that you can use to manage Amazon Quick Sight. </p>"
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -361,6 +363,21 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
 
+    /**
+     * Configure an advanced async option. These values are used very rarely, and the majority of SDK customers can ignore
+     * them.
+     *
+     * @param option The option to configure.
+     * @param value The value of the option.
+     * @param <T> The type of the option.
+     */
+    <T> S3CrtAsyncClientBuilder advancedOption(SdkAdvancedAsyncClientOption<T> option, T value);
+
+    /**
+     * Configure the map of advanced override options. This will override all values currently configured. The values in the
+     * map must match the key type of the map, or a runtime exception will be raised.
+     */
+    S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
 
     @Override
     S3AsyncClient build();

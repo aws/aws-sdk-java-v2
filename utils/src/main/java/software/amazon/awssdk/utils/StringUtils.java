@@ -299,10 +299,10 @@ public final class StringUtils {
      * equal sequences of characters.</p>
      *
      * <p>{@code null}s are handled without exceptions. Two {@code null}
-     * references are considered to be equal. The comparison is case sensitive.</p>
+     * references are considered to be unequal. The comparison is case sensitive.</p>
      *
      * <pre>
-     * StringUtils.equals(null, null)   = true
+     * StringUtils.equals(null, null)   = false
      * StringUtils.equals(null, "abc")  = false
      * StringUtils.equals("abc", null)  = false
      * StringUtils.equals("abc", "abc") = true
@@ -312,7 +312,7 @@ public final class StringUtils {
      * @see Object#equals(Object)
      * @param cs1  the first String, may be {@code null}
      * @param cs2  the second String, may be {@code null}
-     * @return {@code true} if the Strings are equal (case-sensitive), or both {@code null}
+     * @return {@code true} if the Strings are equal (case-sensitive), or {@code false} if either is {@code null}
      */
     public static boolean equals(final String cs1, final String cs2) {
         if (cs1 == null || cs2 == null) {
@@ -932,18 +932,19 @@ public final class StringUtils {
 
         throw new IllegalArgumentException("Value was defined as '" + value + "', but should be 'false' or 'true'");
     }
-    
+
     /**
      * Returns a string whose value is the concatenation of this string repeated {@code count} times.
      * <p>
      * If this string is empty or count is zero then the empty string is returned.
+     * A {@code null} input string returns {@code null}.
      * <p>
      * Logical clone of JDK11's {@link String#repeat(int)}.
      *
-     * @param value the string to repeat
+     * @param value the string to repeat, may be null
      * @param count number of times to repeat
-     * @return A string composed of this string repeated {@code count} times or the empty string if this string is empty or count
-     * is zero
+     * @return A string composed of this string repeated {@code count} times, the empty string if this string is empty or count
+     * is zero, or {@code null} if input is {@code null}
      * @throws IllegalArgumentException if the {@code count} is negative.
      */
     public static String repeat(String value, int count) {

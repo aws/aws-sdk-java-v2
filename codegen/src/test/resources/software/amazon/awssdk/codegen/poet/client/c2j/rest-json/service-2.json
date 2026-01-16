@@ -210,7 +210,8 @@
       "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"],
+        "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
     "GetOperationWithChecksum":{

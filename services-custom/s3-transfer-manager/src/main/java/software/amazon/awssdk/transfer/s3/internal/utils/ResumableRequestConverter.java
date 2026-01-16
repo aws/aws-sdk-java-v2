@@ -84,15 +84,11 @@ public final class ResumableRequestConverter {
 
         if (hasRemainingParts(getObjectRequest)) {
             log.debug(() -> "The paused download was performed with part GET, now resuming download of remaining parts");
-            Long positionToWriteFrom =
-                MultipartDownloadUtils.multipartDownloadResumeContext(originalDownloadRequest.getObjectRequest())
-                .map(MultipartDownloadResumeContext::bytesToLastCompletedParts)
-                .orElse(0L);
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
                 AsyncResponseTransformer.toFile(originalDownloadRequest.destination(),
                                                 FileTransformerConfiguration.builder()
                                                                             .fileWriteOption(WRITE_TO_POSITION)
-                                                                            .position(positionToWriteFrom)
+                                                                            .position(0L)
                                                                             .failureBehavior(LEAVE)
                                                                             .build());
             return Pair.of(originalDownloadRequest, responseTransformer);

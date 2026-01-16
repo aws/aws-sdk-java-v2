@@ -190,6 +190,24 @@ public class MultiRegionAccessPointChecksumTest {
         }
     }
 
+    @ParameterizedTest(name = "{index} {3}")
+    @MethodSource("streamingInputChecksumCalculationParams")
+    public void asyncStreamingInput_checksumCalculation(RequestChecksumCalculation requestChecksumCalculation,
+                                                       ChecksumAlgorithm checksumAlgorithm,
+                                                       String expectedTrailer,
+                                                       String description) {
+
+        try (S3AsyncClient client = initializeAsync(requestChecksumCalculation).build()) {
+            client.putObject(PutObjectRequest.builder().bucket(MRAP_ARN).key("key")
+                                             .checksumAlgorithm(checksumAlgorithm)
+                                             .build(),
+                             AsyncRequestBody.fromString("Hello world")).join();
+
+            SdkHttpRequest request = getAsyncRequest();
+            validateChecksumTrailerHeader(expectedTrailer, request);
+        }
+    }
+
     private static DeleteObjectsRequest getDeleteObjectsRequest(ChecksumAlgorithm checksumAlgorithm) {
         return DeleteObjectsRequest.builder()
                                    .bucket(MRAP_ARN)

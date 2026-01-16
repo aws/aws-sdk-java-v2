@@ -203,6 +203,11 @@ public final class S3ChecksumsTestUtils {
                                 "Path style doesn't work with ARN type buckets");
     }
 
+    public static void assumeNotMRAP(UploadConfig config) {
+        Assumptions.assumeFalse(config.getBucketType().equals(BucketType.MRAP),
+                                "MRAP buckets are not supported by TransferManager.");
+    }
+
     public static String crc32(String s) {
         return crc32(s.getBytes(StandardCharsets.UTF_8));
     }
