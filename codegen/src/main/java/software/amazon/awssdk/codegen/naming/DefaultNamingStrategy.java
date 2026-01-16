@@ -28,6 +28,7 @@ import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWo
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -498,6 +499,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         }
 
         if (name.contains("_")) {
+            List<String> allowedNames = customizationConfig.getAllowedUnderscoreNames();
+            if (allowedNames != null && allowedNames.contains(name)) {
+                return;
+            }
+
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
 
             String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
