@@ -21,8 +21,9 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 
 /**
- * Validator that ensures CustomizationConfig settings are valid and not conflicting. This validator returns a validation
- * entry for each invalid or conflicting customization configuration detected.
+ * Validator that ensures CustomizationConfig settings are not conflicting. This validator returns a validation
+ * entry if mutually exclusive customization options are set simultaneously, such as both the global
+ * underscoresInNameBehavior and the granular allowedUnderscoreNames list.
  */
 public final class CustomizationConfigValidator implements ModelValidator {
     @Override
