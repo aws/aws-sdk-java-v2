@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Make `Apache5HttpClient` the preferred default HTTP client for sync SDK clients. This means that when `apache5-client` is on the classpath, and an HTTP client is *not* explicitly configured on client builder, the SDK client will use `Apache5HttpClient`."
+}
