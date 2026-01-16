@@ -507,8 +507,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
                     ValidationErrorSeverity.DANGER,
                     String.format(
                         "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
-                        + "This isn't idiomatic in Java. Please either remove the underscores",
-                        name, location, supportedBehaviors)
+                        + "This isn't idiomatic in Java. Please remove the underscores.",
+                        name, location)
                 ));
             }
             if (behavior != UnderscoresInNameBehavior.ALLOW) {
