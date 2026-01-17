@@ -363,6 +363,11 @@ public class CustomizationConfig {
      */
     private boolean enableEndpointProviderUriCaching;
 
+    /**
+     * List of specific shape or member names that are allowed to contain underscores.
+     */
+    private List<String> allowedUnderscoreNames = new ArrayList<>();
+
     private CustomizationConfig() {
     }
 
@@ -950,5 +955,13 @@ public class CustomizationConfig {
 
     public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
         this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
+    }
+
+    public List<String> getAllowedUnderscoreNames() {
+        return allowedUnderscoreNames;
+    }
+
+    public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
+        this.allowedUnderscoreNames = allowedUnderscoreNames;
     }
 }

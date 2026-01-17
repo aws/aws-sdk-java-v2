@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.Before;
@@ -335,6 +336,36 @@ public class DefaultNamingStrategyTest {
         model.setMetadata(metadata);
 
         strategy.validateCustomerVisibleNaming(model);
+    }
+
+    @Test
+    public void validateAllowsSpecificUnderscoresWithAllowlist() {
+        CustomizationConfig customization =
+            CustomizationConfig.create();
+        customization.setAllowedUnderscoreNames(Arrays.asList("checksumXXHASH3_64", "foo_bar"));
+
+        NamingStrategy strategy = new DefaultNamingStrategy(serviceModel, customization);
+        Metadata metadata = new Metadata();
+
+        metadata.setAsyncBuilderInterface("foo_bar");
+        IntermediateModel model = new IntermediateModel();
+        model.setMetadata(metadata);
+        strategy.validateCustomerVisibleNaming(model);
+    }
+
+    @Test
+    public void validateRejectsSpecificUnderscoresWithAllowlist() {
+        CustomizationConfig customization =
+            CustomizationConfig.create();
+        customization.setAllowedUnderscoreNames(Arrays.asList("checksumXXHASH3_64", "foo_bar"));
+
+        NamingStrategy strategy = new DefaultNamingStrategy(serviceModel, customization);
+        Metadata metadata = new Metadata();
+
+        metadata.setAsyncBuilderInterface("fizz_buzz");
+        IntermediateModel model = new IntermediateModel();
+        model.setMetadata(metadata);
+        assertThatThrownBy(() -> strategy.validateCustomerVisibleNaming(model)).isInstanceOf(RuntimeException.class);
     }
 
     @Test

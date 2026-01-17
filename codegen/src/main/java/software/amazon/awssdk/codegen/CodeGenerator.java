@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.validation.CustomizationConfigValidator;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationContext;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
@@ -41,8 +42,9 @@ public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);
     private static final String MODEL_DIR_NAME = "models";
 
-    private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Collections.singletonList(
-        new SharedModelsValidator()
+    private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Arrays.asList(
+            new SharedModelsValidator(),
+            new CustomizationConfigValidator()
     );
 
     private final C2jModels c2jModels;
