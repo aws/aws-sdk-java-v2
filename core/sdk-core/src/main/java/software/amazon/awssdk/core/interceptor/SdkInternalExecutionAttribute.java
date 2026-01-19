@@ -29,12 +29,14 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
@@ -165,6 +167,20 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * The {@link IdentityProviders} for a request.
      */
     public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDERS = new ExecutionAttribute<>("IdentityProviders");
+
+    /**
+     * Callback for updating identity providers based on request-level overrides.
+     * This allows aws-core to provide AWS-specific logic without sdk-core depending on aws-core.
+     */
+    public static final ExecutionAttribute<IdentityProviderUpdater> IDENTITY_PROVIDER_UPDATER =
+        new ExecutionAttribute<>("IdentityProviderUpdater");
+
+    /**
+     * The resolved auth scheme options for a request. These are resolved by the auth scheme provider
+     * but identity resolution is deferred to the AuthSchemeResolutionStage.
+     */
+    public static final ExecutionAttribute<List<AuthSchemeOption>> AUTH_SCHEME_OPTIONS =
+        new ExecutionAttribute<>("AuthSchemeOptions");
 
     /**
      * The selected auth scheme for a request.

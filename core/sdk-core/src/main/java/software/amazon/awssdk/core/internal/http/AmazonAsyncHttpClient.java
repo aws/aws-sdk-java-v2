@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentS
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncAuthSchemeResolutionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
@@ -201,7 +202,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(ApplyUserAgentStage::new)
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder
-                                        .first(AsyncSigningStage::new)
+                                        .first(AsyncAuthSchemeResolutionStage::new)
+                                        .then(AsyncSigningStage::new)
                                         .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
                                         .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)

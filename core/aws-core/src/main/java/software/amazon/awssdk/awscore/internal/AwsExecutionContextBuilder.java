@@ -33,6 +33,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.internal.identity.AwsIdentityProviderUpdater;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -143,6 +144,15 @@ public final class AwsExecutionContextBuilder {
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
+
+        // Set auth scheme options from ClientExecutionParams if provided (Option 1 approach)
+        if (executionParams.authSchemeOptions() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS,
+                                             executionParams.authSchemeOptions());
+        }
+        // Set the identity provider updater for the pipeline stage to use
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER,
+                                         AwsIdentityProviderUpdater.INSTANCE);
 
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));

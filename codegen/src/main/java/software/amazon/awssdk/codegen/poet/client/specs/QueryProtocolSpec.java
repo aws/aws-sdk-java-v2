@@ -116,6 +116,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
+                     .add(".withAuthSchemeOptions(resolveAuthSchemeOptions($L, $S))\n",
+                          opModel.getInput().getVariableName(), opModel.getOperationName())
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
@@ -155,6 +157,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(credentialType(opModel, intermediateModel))
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withAuthSchemeOptions(resolveAuthSchemeOptions($L, $S))\n",
+                          opModel.getInput().getVariableName(), opModel.getOperationName())
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 

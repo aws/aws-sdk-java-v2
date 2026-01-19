@@ -85,7 +85,8 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
+// TODO: S3AuthSchemeInterceptor removed in POC - presigner needs to be updated
+// import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
@@ -240,7 +241,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new S3AuthSchemeInterceptor());
+        // TODO: S3AuthSchemeInterceptor removed in POC - presigner needs different approach
+        // additionalInterceptors.add(new S3AuthSchemeInterceptor());
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
         additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
         s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
