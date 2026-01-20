@@ -150,7 +150,7 @@ public class WebIdentityTokenFileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create("WebIdentityTokenCredentialsProvider");
+        return ToString.create("WebIdentityTokenFileCredentialsProvider");
     }
 
     @Override

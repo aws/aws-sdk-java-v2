@@ -58,6 +58,18 @@ public class S3ChecksumValidatingInputStream extends InputStream implements Abor
      */
     @Override
     public int read() throws IOException {
+        if (strippedLength == 0 && lengthRead == 0) {
+            for (int i = 0; i < CHECKSUM_SIZE; i++) {
+                int b = inputStream.read();
+                if (b != -1) {
+                    streamChecksum[i] = (byte) b;
+                }
+            }
+            lengthRead = CHECKSUM_SIZE;
+            validateAndThrow();
+            return -1;
+        }
+
         int read = inputStream.read();
 
         if (read != -1 && lengthRead < strippedLength) {

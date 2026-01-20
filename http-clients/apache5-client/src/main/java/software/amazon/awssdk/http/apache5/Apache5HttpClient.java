@@ -75,7 +75,6 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -126,11 +125,10 @@ import software.amazon.awssdk.utils.Validate;
  * <p>This can be created via {@link #builder()}</p>
  */
 
-@SdkPreviewApi
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
-    private static final String CLIENT_NAME = "Apache5Preview";
+    private static final String CLIENT_NAME = "Apache5";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();

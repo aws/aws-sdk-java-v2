@@ -49,6 +49,16 @@
       "output_token": "NextToken",
       "result_key": "LexBots"
     },
+    "ListChildHoursOfOperations": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "LastModifiedRegion",
+        "LastModifiedTime"
+      ],
+      "output_token": "NextToken",
+      "result_key": "ChildHoursOfOperationsSummaryList"
+    },
     "ListContactEvaluations": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -118,6 +128,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "DefaultVocabularyList"
+    },
+    "ListEntitySecurityProfiles": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecurityProfiles"
     },
     "ListEvaluationFormVersions": {
       "input_token": "NextToken",
@@ -287,6 +303,16 @@
       ],
       "output_token": "NextToken",
       "result_key": "Applications"
+    },
+    "ListSecurityProfileFlowModules": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "LastModifiedRegion",
+        "LastModifiedTime"
+      ],
+      "output_token": "NextToken",
+      "result_key": "AllowedFlowModules"
     },
     "ListSecurityProfilePermissions": {
       "input_token": "NextToken",
