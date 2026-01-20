@@ -289,6 +289,7 @@
                                 <include>software.amazon.awssdk:*</include>
                                 <include>software.amazon:*</include>
                                 <include>software.amazon.s3.accessgrants:*</include>
+                                <include>software.amazon.lakeformation.plugin.accessgrants:*</include>
                                 <include>com.github.ben-manes.caffeine:caffeine</include>
                                 <include>com.google.errorprone:error_prone_annotations</include>
                                 <inlcude>org.checkerframework:checker-qual</inlcude>

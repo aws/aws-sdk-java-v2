@@ -548,6 +548,7 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.lakeformation.plugin.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
