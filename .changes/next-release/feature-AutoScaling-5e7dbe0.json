@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Auto Scaling",
-    "contributor": "",
-    "description": "This release adds support for three new filters when describing scaling activities, StartTimeLowerBound, StartTimeUpperBound, and Status."
-}

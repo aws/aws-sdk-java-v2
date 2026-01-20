@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.11__ __2026-01-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Make `Apache5HttpClient` the preferred default HTTP client for sync SDK clients. This means that when `apache5-client` is on the classpath, and an HTTP client is *not* explicitly configured on client builder, the SDK client will use `Apache5HttpClient`.
+    - Updated endpoint and partition metadata.
+
+## __AWS STS__
+  - ### Bugfixes
+    - Fix `StsWebIdentityTokenFileCredentialsProvider` not respecting custom `prefetchTime` and `staleTime` configurations.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for extended prompt caching with one hour TTL.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Adds support for managing table pre-warming in Amazon Keyspaces (for Apache Cassandra)
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions now supports encryption of resources by a customer managed KMS key. Customers can now create new encrypted policy stores by passing in their customer managed key during policy store creation.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Added billing configuration support for WorkSpaces Instances with monthly and hourly billing modes, including new filtering capabilities for instance type searches.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for three new filters when describing scaling activities, StartTimeLowerBound, StartTimeUpperBound, and Status.
+
+## __odb__
+  - ### Features
+    - Adds support for associating and disassociating IAM roles with Autonomous VM cluster resources through the AssociateIamRoleToResource and DisassociateIamRoleFromResource APIs. The GetCloudAutonomousVmCluster and ListCloudAutonomousVmClusters API responses now include the iamRoles field.
+
 # __2.41.10__ __2026-01-16__
 ## __AWS Launch Wizard__
   - ### Features
