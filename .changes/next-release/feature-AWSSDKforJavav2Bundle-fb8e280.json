@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2 Bundle",
+    "contributor": "",
+    "description": "Include `aws-lakeformation-accessgrants-java-plugin` in the bundle."
+}

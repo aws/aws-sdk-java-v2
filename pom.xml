@@ -195,6 +195,8 @@
         <!-- S3 Access Grants plugin version -->
         <s3accessgrants.version>2.1.0</s3accessgrants.version>
 
+        <lakeformations3accessgrants.version>1.1</lakeformations3accessgrants.version>
+
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <v2.migration.tests.skip>true</v2.migration.tests.skip>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
@@ -546,6 +548,7 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.lakeformation.plugin.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
