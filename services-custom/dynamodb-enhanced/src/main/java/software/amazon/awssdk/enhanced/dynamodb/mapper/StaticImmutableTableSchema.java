@@ -624,7 +624,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         Set<FlattenedMapper<T, B, ?>> processedMappers = new LinkedHashSet<>();
         flattenedObjectMappers.forEach((name, flattenedMapper) -> {
             if (item != null) {
-                if(processedMappers.add(flattenedMapper)) {
+                if (processedMappers.add(flattenedMapper)) {
                     attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
                 }
             } else if (!ignoreNulls) {
