@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Metric Publisher",
+    "contributor": "",
+    "description": "Add `taskQueue` configuration option to `CloudWatchMetricPublisher.Builder` to allow customizing the internal executor queue. This enables high-throughput applications to use a larger queue to prevent dropped metrics."
+}
