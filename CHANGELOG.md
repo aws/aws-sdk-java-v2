@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.12__ __2026-01-21__
+## __AWS Config__
+  - ### Features
+    - AWS Config Conformance Packs now support tag-on-create through PutConformancePack API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Features
+    - Include `aws-lakeformation-accessgrants-java-plugin` in the bundle.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Supports custom browser extensions for AgentCore Browser and increased message payloads up to 100KB per message in an Event for AgentCore Memory
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support of multiple EBS cards. New EbsCardIndex parameter enables attaching volumes to specific EBS cards on supported instance types for improved storage performance.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added documentation and model for sheet layout groups - allows sheet elements to be grouped, Added documentation and the feature enables admins to have granular control over connectors under actions, Updated API documentation for PDF Export in Snapshot Export APIs
+
+## __Apache5 HTTP Client__
+  - ### Features
+    - Update `httpclient5` to 5.6 and `httpcore5` to 5.4.
+
 # __2.41.11__ __2026-01-20__
 ## __AWS SDK for Java v2__
   - ### Features
