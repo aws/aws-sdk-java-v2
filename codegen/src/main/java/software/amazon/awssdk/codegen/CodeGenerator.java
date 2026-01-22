@@ -29,6 +29,8 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
+import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.validation.CustomizationConfigValidator;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationContext;
@@ -37,7 +39,6 @@ import software.amazon.awssdk.codegen.validation.ModelValidator;
 import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.smithy.model.Model;
 
 public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);

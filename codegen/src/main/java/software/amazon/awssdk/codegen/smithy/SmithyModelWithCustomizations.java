@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen;
+package software.amazon.awssdk.codegen.smithy;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

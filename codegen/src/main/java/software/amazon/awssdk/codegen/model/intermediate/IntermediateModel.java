@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
@@ -299,5 +300,19 @@ public final class IntermediateModel {
     public boolean containsRequestEventStreams() {
         return getOperations().values().stream()
                               .anyMatch(OperationModel::hasEventStreamInput);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof IntermediateModel)) {
+            return false;
+        }
+        IntermediateModel that = (IntermediateModel) o;
+        return Objects.equals(operations, that.operations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(operations);
     }
 }

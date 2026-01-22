@@ -17,17 +17,32 @@ package software.amazon.awssdk.codegen;
 
 import java.io.File;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
+import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
+import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 public class SmithyIntermediateModelBuilderTest {
 
     @Test
     public void testTranslate() {
-        final File modelFile = new File(IntermediateModelBuilderTest.class
-                                            .getResource("poet/client/smithy/basic-smithy-model.json").getFile());
-        SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations.builder()
-            .smithyModel(modelFile.toPath())
+
+        final File c2jModelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/smithy/basic/service-2.json").getFile());
+        IntermediateModel c2jIm = new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, c2jModelFile))
+                     .customizationConfig(CustomizationConfig.create())
+                     .build())
             .build();
-        IntermediateModel im = new SmithyIntermediateModelBuilder(smithyModel).build();
+
+        final File smithyModelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/smithy/basic/model.json").getFile());
+        SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations.builder()
+                                                                                 .smithyModel(smithyModelFile.toPath())
+                                                                                 .build();
+        IntermediateModel smithyIm = new SmithyIntermediateModelBuilder(smithyModel).build();
     }
 }
