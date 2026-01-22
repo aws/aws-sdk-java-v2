@@ -1,6 +1,6 @@
 [
   {
-    "name": "software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory",
+    "name": "software.amazon.awssdk.services.sso.auth.SsoProfileCredentialsProviderFactory",
     "methods": [
       {
         "name": "<init>",
