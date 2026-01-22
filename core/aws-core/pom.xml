@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.26.21-SNAPSHOT</version>
+        <version>2.41.13-SNAPSHOT</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
@@ -113,6 +113,11 @@
             <groupId>software.amazon.eventstream</groupId>
             <artifactId>eventstream</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils-lite</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -163,6 +168,11 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

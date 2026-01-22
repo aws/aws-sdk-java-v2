@@ -35,29 +35,43 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Validate the functionality of the {@link AwsDefaultClientBuilder}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DefaultAwsClientBuilderTest {
 
     private static final AttributeMap MOCK_DEFAULTS = AttributeMap
@@ -71,16 +85,16 @@ public class DefaultAwsClientBuilderTest {
     private static final Signer TEST_SIGNER = Aws4Signer.create();
     private static final URI ENDPOINT = URI.create("https://example.com");
 
-    @Mock
+    @Mock(lenient = true)
     private SdkHttpClient.Builder defaultHttpClientBuilder;
 
-    @Mock
+    @Mock(lenient = true)
     private SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory;
 
     @Mock
     private AutoDefaultsModeDiscovery autoModeDiscovery;
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
         when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
@@ -98,8 +112,14 @@ public class DefaultAwsClientBuilderTest {
     public void buildWithRegionShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
 
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden())
+            .isEqualTo(false);
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT))
             .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .isEqualTo(false);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }
@@ -130,7 +150,13 @@ public class DefaultAwsClientBuilderTest {
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).endpointOverride(ENDPOINT).build();
 
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden())
+            .isEqualTo(true);
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .isEqualTo(true);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }
@@ -239,6 +265,102 @@ public class DefaultAwsClientBuilderTest {
         });
     }
 
+    @ParameterizedTest(name = "{0} - expectedPredicateAmount: {2}")
+    @MethodSource("retryArguments")
+    void retryStrategyConfiguration_shouldAddDefaultPredicatesWhenRequired(
+        String testDescription, RetryStrategy retryStrategy, int expectedPredicateAmount) {
+        TestClientBuilder builder = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.retryStrategy(retryStrategy));
+        TestClient client = builder.build();
+
+        ClientOverrideConfiguration conf = client.clientConfiguration.asOverrideConfiguration();
+        assertThat(conf.retryStrategy()).isPresent();
+
+        RetryStrategy configuredRetryStrategy = conf.retryStrategy().get();
+        BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) configuredRetryStrategy;
+        assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.retryPredicates()).hasSize(expectedPredicateAmount);
+    }
+
+    private static Stream<Arguments> retryArguments() {
+        return Stream.of(
+            Arguments.of("Standard - static method creation",
+                         SdkDefaultRetryStrategy.standardRetryStrategy(), 9),
+            Arguments.of("Standard - static builder method",
+                         DefaultRetryStrategy.standardStrategyBuilder().build(), 9),
+            Arguments.of("Standard - builder with retryOnException",
+                         StandardRetryStrategy.builder()
+                                              .retryOnException(TestException.class)
+                                              .backoffStrategy(BackoffStrategy.retryImmediately())
+                                              .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                              .build(), 10),
+            Arguments.of("Standard - useClientDefaults=false",
+                         StandardRetryStrategy.builder()
+                                              .retryOnException(TestException.class)
+                                              .backoffStrategy(BackoffStrategy.retryImmediately())
+                                              .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                              .useClientDefaults(false)
+                                              .build(), 1),
+            Arguments.of("Adaptive - static method creation",
+                         SdkDefaultRetryStrategy.adaptiveRetryStrategy(), 9),
+            Arguments.of("Adaptive - builder with retryOnException",
+                         AdaptiveRetryStrategy.builder()
+                                              .retryOnException(TestException.class)
+                                              .backoffStrategy(BackoffStrategy.retryImmediately())
+                                              .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                              .build(), 10),
+            Arguments.of("Adaptive - useClientDefaults=false",
+                         AdaptiveRetryStrategy.builder()
+                                              .retryOnException(TestException.class)
+                                              .backoffStrategy(BackoffStrategy.retryImmediately())
+                                              .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                              .useClientDefaults(false)
+                                              .build(), 1),
+            Arguments.of("Legacy - static method creation",
+                         SdkDefaultRetryStrategy.legacyRetryStrategy(), 9),
+            Arguments.of("Legacy - builder with retryOnException",
+                         LegacyRetryStrategy.builder()
+                                            .retryOnException(TestException.class)
+                                            .backoffStrategy(BackoffStrategy.retryImmediately())
+                                            .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                            .build(), 10),
+            Arguments.of("Legacy - useClientDefaults=false",
+                         LegacyRetryStrategy.builder()
+                                            .retryOnException(TestException.class)
+                                            .backoffStrategy(BackoffStrategy.retryImmediately())
+                                            .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
+                                            .useClientDefaults(false)
+                                            .build(), 1)
+        );
+    }
+
+    @ParameterizedTest(name = "{0} - expectedPredicateAmount: ({2}+2)")
+    @MethodSource("retryArguments")
+    void retryBuilderRoundTrip_ShouldKeepDefaults_ShouldAddNewPredicates(
+        String testDescription, RetryStrategy retryStrategy, int expectedPredicateAmount) {
+        RetryStrategy.Builder<?, ?> retryBuilder = retryStrategy.toBuilder();
+        Predicate<Throwable> newDummyPredicate1 = t -> t instanceof RuntimeException;
+        Predicate<Throwable> newDummyPredicate2 = t -> t instanceof IllegalArgumentException;
+        retryBuilder.retryOnException(newDummyPredicate1);
+        retryBuilder.retryOnException(newDummyPredicate2);
+
+        TestClientBuilder clientBuilder = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.retryStrategy(retryBuilder.build()));
+        TestClient client = clientBuilder.build();
+
+        ClientOverrideConfiguration conf = client.clientConfiguration.asOverrideConfiguration();
+        assertThat(conf.retryStrategy()).isPresent();
+
+        RetryStrategy configuredRetryStrategy = conf.retryStrategy().get();
+        BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) configuredRetryStrategy;
+        assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.retryPredicates()).hasSize(expectedPredicateAmount + 2);
+    }
+
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
             ClientOverrideConfiguration.builder()
@@ -341,5 +463,8 @@ public class DefaultAwsClientBuilderTest {
         protected AttributeMap serviceHttpConfig() {
             return MOCK_DEFAULTS;
         }
+    }
+
+    private static class TestException extends Throwable {
     }
 }

@@ -48,11 +48,11 @@ public final class BeanTableSchemaAttributeTags {
     }
 
     public static StaticAttributeTag attributeTagFor(DynamoDbSecondaryPartitionKey annotation) {
-        return StaticAttributeTags.secondaryPartitionKey(Arrays.asList(annotation.indexNames()));
+        return StaticAttributeTags.secondaryPartitionKey(Arrays.asList(annotation.indexNames()), annotation.order());
     }
 
     public static StaticAttributeTag attributeTagFor(DynamoDbSecondarySortKey annotation) {
-        return StaticAttributeTags.secondarySortKey(Arrays.asList(annotation.indexNames()));
+        return StaticAttributeTags.secondarySortKey(Arrays.asList(annotation.indexNames()), annotation.order());
     }
 
     public static StaticAttributeTag attributeTagFor(DynamoDbUpdateBehavior annotation) {

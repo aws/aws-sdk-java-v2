@@ -17,10 +17,7 @@ final class ListOfIntegersCopier {
         if (listOfIntegersParam == null || listOfIntegersParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<Integer> modifiableList = new ArrayList<>();
-            listOfIntegersParam.forEach(entry -> {
-                modifiableList.add(entry);
-            });
+            List<Integer> modifiableList = new ArrayList<>(listOfIntegersParam);
             list = Collections.unmodifiableList(modifiableList);
         }
         return list;

@@ -16,12 +16,18 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -35,6 +41,9 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -42,7 +51,10 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.NoOpTimeoutTracker;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApiCallAttemptTimeoutTrackingStageTest {
@@ -55,6 +67,9 @@ public class ApiCallAttemptTimeoutTrackingStageTest {
 
     @Mock
     private ScheduledFuture scheduledFuture;
+
+    @Mock
+    private InputStream responseStream;
 
     private ApiCallAttemptTimeoutTrackingStage<Void> stage;
 
@@ -91,6 +106,18 @@ public class ApiCallAttemptTimeoutTrackingStageTest {
         assertThat(context.apiCallAttemptTimeoutTracker().hasExecuted()).isFalse();
     }
 
+    @Test
+    public void interruptedException_streamCloseFailed_shouldNotSurface() throws Exception {
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder().content(AbortableInputStream.create(responseStream,
+                                                                                                         () -> {})).build();
+        when(timeoutExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(scheduledFuture);
+        when(wrapped.execute(any(), any())).thenThrow(new SdkInterruptedException(response));
+        RequestExecutionContext context = requestContext(1);
+        doThrow(new IOException()).when(responseStream).close();
+        assertThatThrownBy(() -> stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), context))
+            .isInstanceOfAny(AbortedException.class);
+        verify(responseStream).close();
+    }
 
     private RequestExecutionContext requestContext(long timeout) {
         SdkRequestOverrideConfiguration.Builder configBuilder = SdkRequestOverrideConfiguration.builder();

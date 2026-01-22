@@ -1,0 +1,42 @@
+{
+    "version": "2.27.16",
+    "date": "2024-08-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "This release adds support for static analysis to ValidateStateMachineDefinition API, which can now return optional WARNING diagnostics for semantic errors on the definition of an Amazon States Language (ASL) state machine."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "The minimum request rate for a rate-based rule is now 10. Before this, it was 100."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Lifting the maximum length on Bedrock KnowledgeBase RetrievalFilter array"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Add support for imported-model in invokeModel and InvokeModelWithResponseStream."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "This releases ability to update automatic training scheduler for customer solutions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Increased Character Limit for Dataset Calculation Field expressions"
+        }
+    ]
+}

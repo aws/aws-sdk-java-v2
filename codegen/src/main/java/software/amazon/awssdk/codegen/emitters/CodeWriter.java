@@ -119,6 +119,7 @@ public class CodeWriter extends StringWriter {
             if (fileSize(outputFile) == 0) {
                 try (BufferedWriter writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8)) {
                     writer.write(formattedContents);
+                    writer.flush();
                 }
             } else {
                 validateFileContentMatches(outputFile, formattedContents);

@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class Partitions {
@@ -51,7 +52,10 @@ public final class Partitions {
 
     @Override
     public String toString() {
-        return "Partitions{" + "version='" + version + '\'' + ", partitions=" + partitions + '}';
+        return ToString.builder("Partitions")
+                       .add("version", version)
+                       .add("partitions", partitions)
+                       .build();
     }
 
     public static Partitions fromNode(JsonNode node) {

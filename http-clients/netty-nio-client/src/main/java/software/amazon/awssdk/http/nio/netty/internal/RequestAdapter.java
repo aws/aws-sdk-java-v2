@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.HttpConversionUtil.ExtensionHeaderNames;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -87,13 +88,19 @@ public final class RequestAdapter {
         // Copy over any other headers already in our request
         request.forEachHeader((name, value) -> {
             // Skip the Host header to avoid sending it twice, which will interfere with some signing schemes.
-            if (!IGNORE_HEADERS.contains(name)) {
+            if (IGNORE_HEADERS.stream().noneMatch(name::equalsIgnoreCase)) {
                 value.forEach(h -> httpRequest.headers().add(name, h));
             }
         });
     }
 
     private String getHostHeaderValue(SdkHttpRequest request) {
+        // Respect any user-specified Host header when present
+        Optional<String> existingHostHeader = request.firstMatchingHeader(HOST);
+        if (existingHostHeader.isPresent()) {
+            return existingHostHeader.get();
+        }
+
         return SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
                 ? request.host()
                 : request.host() + ":" + request.port();

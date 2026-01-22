@@ -26,7 +26,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 @WireMockTest
 public class CrtHttpClientApiCallTimeoutTest {
@@ -49,7 +49,7 @@ public class CrtHttpClientApiCallTimeoutTest {
                                               .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"));
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     void apiCallAttemptExceeded_shouldThrowApiCallAttemptTimeoutException() {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(2000)));
         try (ProtocolRestJsonClient client =
@@ -61,7 +61,7 @@ public class CrtHttpClientApiCallTimeoutTest {
         }
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     void apiCallExceeded_shouldThrowApiCallAttemptTimeoutException() {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(2000)));
         try (ProtocolRestJsonClient client = clientBuilder.overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMillis(10)))

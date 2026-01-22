@@ -1,5 +1,11 @@
 {
   "pagination": {
+    "DescribeConfigurationTemplates": {
+      "input_token": "nextToken",
+      "limit_key": "limit",
+      "output_token": "nextToken",
+      "result_key": "configurationTemplates"
+    },
     "DescribeDeliveries": {
       "input_token": "nextToken",
       "limit_key": "limit",
@@ -63,6 +69,18 @@
       "output_token": "nextForwardToken",
       "result_key": "events"
     },
+    "GetScheduledQueryHistory": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "triggerHistory"
+    },
+    "ListAggregateLogGroupSummaries": {
+      "input_token": "nextToken",
+      "limit_key": "limit",
+      "output_token": "nextToken",
+      "result_key": "aggregateLogGroupSummaries"
+    },
     "ListAnomalies": {
       "input_token": "nextToken",
       "limit_key": "limit",
@@ -74,6 +92,24 @@
       "limit_key": "limit",
       "output_token": "nextToken",
       "result_key": "anomalyDetectors"
+    },
+    "ListLogGroupsForQuery": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "logGroupIdentifiers"
+    },
+    "ListScheduledQueries": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "scheduledQueries"
+    },
+    "ListSourcesForS3TableIntegration": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "sources"
     }
   }
 }

@@ -86,7 +86,8 @@ public class NewServiceMain extends Cli {
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
-            this.internalDependencies = computeInternalDependencies(toList(commandLine
+            this.internalDependencies = computeInternalDependencies(serviceProtocol,
+                                                                    toList(commandLine
                                                                                .getOptionValues("include-internal-dependency")),
                                                                     toList(commandLine
                                                                                .getOptionValues("exclude-internal-dependency")));
@@ -95,10 +96,11 @@ public class NewServiceMain extends Cli {
 
         private String transformSpecialProtocols(String protocol) {
             switch (protocol) {
-                case "ec2": return "query";
-                case "rest-xml": return "xml";
-                case "rest-json": return "json";
-                default: return protocol;
+                case "ec2": return "aws-query";
+                case "rest-xml": return "aws-xml";
+                case "rest-json": return "aws-json";
+                case "smithy-rpc-v2-cbor": return "smithy-rpcv2";
+                default: return "aws-" + protocol;
             }
         }
 

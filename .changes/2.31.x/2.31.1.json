@@ -1,0 +1,54 @@
+{
+    "version": "2.31.1",
+    "date": "2025-03-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "thomasjinlo",
+            "description": "Map AWS_IO_SOCKET_TIMEOUT to ConnectException when acquiring a connection to improve error handling"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release added AllowFullTableExternalDataAccess to glue catalog resource."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release added \"condition\" to LakeFormation OptIn APIs, also added WithPrivilegedAccess flag to RegisterResource and DescribeResource."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Made DefaultSdkAutoConstructList and DefaultSdkAutoConstructMap serializable"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "Updated API model build artifacts for identity pools"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Minor description updates to API parameters"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read."
+        }
+    ]
+}

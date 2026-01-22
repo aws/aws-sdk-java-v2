@@ -78,6 +78,8 @@ public final class ValueToStringConverter {
 
     public static final SimpleValueToString<Short> FROM_SHORT = Object::toString;
 
+    public static final SimpleValueToString<Byte> FROM_BYTE = Object::toString;
+
     public static final SimpleValueToString<Float> FROM_FLOAT = Object::toString;
 
     public static final SimpleValueToString<Double> FROM_DOUBLE = Object::toString;

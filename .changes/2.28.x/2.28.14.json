@@ -1,0 +1,66 @@
+{
+    "version": "2.28.14",
+    "date": "2024-10-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Added and updated APIs to support outbound EDI transformations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Core Device Advisor",
+            "contributor": "",
+            "description": "Add clientToken attribute and implement idempotency for CreateSuiteDefinition."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Added raw model response and usage metrics to PreProcessing and PostProcessing Trace"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Added support for Automatic Time Zone Redirection on Amazon AppStream 2.0"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Added new fields to Amazon Bedrock Guardrails trace"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Adds new Stage Health EventErrorCodes applicable to RTMP(S) broadcasts. Bug Fix: Enforces that EncoderConfiguration Video height and width must be even-number values."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "releasing builtinlcc to public"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This release introduces a header representing the minimum object size limit for Lifecycle transitions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "WSP is being rebranded to become DCV."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

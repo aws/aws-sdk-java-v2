@@ -22,6 +22,104 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface for loading {@link Identity} that is used for authentication.
+ *
+ * <p>
+ * Identity providers are responsible for resolving credentials, tokens, or other authentication identities
+ * that are used by signers to authenticate requests. The SDK provides built-in identity providers for common
+ * identity types like {@link AwsCredentialsIdentity} and {@link TokenIdentity}.
+ *
+ * <p>
+ * <b>Common Built-in Identity Providers</b>
+ * <ul>
+ *     <li>{@code DefaultCredentialsProvider} - Resolves AWS credentials from the default credential chain</li>
+ *     <li>{@code StaticCredentialsProvider} - Provides static AWS credentials</li>
+ *     <li>{@code ProfileCredentialsProvider} - Resolves credentials from AWS profiles</li>
+ *     <li>{@code StsAssumeRoleCredentialsProvider} - Assumes an IAM role using STS</li>
+ * </ul>
+ *
+ * <p>
+ * <b>How Identity Providers Work</b>
+ * <p>
+ * Identity providers are selected by {@link software.amazon.awssdk.http.auth.spi.scheme.AuthScheme}s based on the
+ * identity type they produce. The SDK matches the identity type required by the auth scheme with the appropriate
+ * provider from {@link IdentityProviders}.
+ *
+ * <p>
+ * <b>Implementing a Custom Identity Provider</b>
+ * <p>
+ * You can implement custom identity providers for specialized authentication scenarios, such as retrieving
+ * credentials from a custom credential store or implementing a custom token provider.
+ *
+ * <p>
+ * Example - Custom credentials provider:
+ *
+ * {@snippet :
+ * public class CustomCredentialsProvider implements IdentityProvider<AwsCredentialsIdentity> {
+ *     @Override
+ *     public Class<AwsCredentialsIdentity> identityType() {
+ *         return AwsCredentialsIdentity.class;
+ *     }
+ *
+ *     @Override
+ *     public CompletableFuture<AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
+ *         // Retrieve credentials from custom source
+ *         String accessKeyId = retrieveAccessKeyFromCustomStore();
+ *         String secretAccessKey = retrieveSecretKeyFromCustomStore();
+ *
+ *         AwsCredentialsIdentity credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+ *         return CompletableFuture.completedFuture(credentials);
+ *     }
+ *
+ *     private String retrieveAccessKeyFromCustomStore() {
+ *         // Custom implementation
+ *     }
+ *
+ *     private String retrieveSecretKeyFromCustomStore() {
+ *         // Custom implementation
+ *     }
+ * }
+ *
+ * // Configure on client
+ * S3Client s3 = S3Client.builder()
+ *     .region(Region.US_WEST_2)
+ *     .credentialsProvider(new CustomCredentialsProvider())
+ *     .build();
+ * }
+ *
+ * <p>
+ * <b>Using Identity Properties</b>
+ * <p>
+ * Identity providers can read {@link IdentityProperty} values from the {@link ResolveIdentityRequest} to
+ * customize identity resolution based on request-specific parameters.
+ *
+ * <p>
+ * Example - Identity provider using properties:
+ *
+ * {@snippet :
+ * public class RoleBasedCredentialsProvider implements IdentityProvider<AwsCredentialsIdentity> {
+ *     public static final IdentityProperty<String> ROLE_ARN =
+ *         IdentityProperty.create(RoleBasedCredentialsProvider.class, "RoleArn");
+ *
+ *     @Override
+ *     public Class<AwsCredentialsIdentity> identityType() {
+ *         return AwsCredentialsIdentity.class;
+ *     }
+ *
+ *     @Override
+ *     public CompletableFuture<AwsCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
+ *         // Read property from request
+ *         String roleArn = request.property(ROLE_ARN);
+ *
+ *         // Assume role and return credentials
+ *         return assumeRoleAndGetCredentials(roleArn);
+ *     }
+ * }
+ * }
+ *
+ * @see Identity
+ * @see IdentityProviders
+ * @see IdentityProperty
+ * @see software.amazon.awssdk.http.auth.spi.scheme.AuthScheme
  */
 @SdkPublicApi
 @ThreadSafe

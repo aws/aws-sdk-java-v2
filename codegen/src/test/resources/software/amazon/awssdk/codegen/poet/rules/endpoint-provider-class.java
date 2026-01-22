@@ -94,6 +94,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             paramsMap.put(Identifier.of("CustomEndpointArray"),
                           Value.fromArray(params.customEndpointArray().stream().map(Value::fromStr).collect(Collectors.toList())));
         }
+        if (params.arnList() != null) {
+            paramsMap.put(Identifier.of("ArnList"),
+                          Value.fromArray(params.arnList().stream().map(Value::fromStr).collect(Collectors.toList())));
+        }
         return paramsMap;
     }
 
@@ -330,6 +334,58 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         return Rule.builder().error("{region} is not a valid HTTP host-label");
     }
 
+    private static Rule endpointRule_11() {
+        return Rule
+            .builder()
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode
+                            .builder()
+                            .fn("not")
+                            .argv(Arrays.asList(FnNode.builder().fn("isSet")
+                                                      .argv(Arrays.asList(Expr.ref(Identifier.of("useFIPSEndpoint")))).build()
+                                                      .validate())).build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")))).build().validate())
+                    .build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("booleanEquals")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("useDualStackEndpoint")), Expr.of(true)))
+                              .build().validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("isSet").argv(Arrays.asList(Expr.ref(Identifier.of("ArnList")))).build()
+                              .validate()).build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("getAttr")
+                              .argv(Arrays.asList(Expr.ref(Identifier.of("ArnList")), Expr.of("[0]"))).build()
+                              .validate()).result("FirstArn").build())
+            .addCondition(
+                Condition
+                    .builder()
+                    .fn(FnNode.builder().fn("aws.parseArn").argv(Arrays.asList(Expr.ref(Identifier.of("FirstArn"))))
+                              .build().validate()).result("ParsedArn").build())
+            .endpoint(
+                EndpointResult
+                    .builder()
+                    .url(Expr.of("https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
+                    .addProperty(
+                        Identifier.of("authSchemes"),
+                        Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
+                                                                                       Literal.fromStr("sigv4a"), Identifier.of("signingName"),
+                                                                                       Literal.fromStr("query"), Identifier.of("signingRegionSet"),
+                                                                                       Literal.fromTuple(Arrays.asList(Literal.fromStr("*")))))))).build());
+    }
+
     private static Rule endpointRule_0() {
         return Rule
             .builder()
@@ -338,7 +394,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .builder()
                     .fn(FnNode.builder().fn("aws.partition").argv(Arrays.asList(Expr.ref(Identifier.of("region"))))
                               .build().validate()).result("partitionResult").build())
-            .treeRule(Arrays.asList(endpointRule_1(), endpointRule_5(), endpointRule_10()));
+            .treeRule(Arrays.asList(endpointRule_1(), endpointRule_5(), endpointRule_10(), endpointRule_11()));
     }
 
     private static EndpointRuleset ruleSet() {
@@ -402,8 +458,11 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     .addParameter(
                         Parameter.builder().name("CustomEndpointArray")
                                  .type(ParameterType.fromValue("StringArray")).required(false)
-                                 .documentation("Parameter from the customization config").build()).build())
-            .addRule(endpointRule_0()).build();
+                                 .documentation("Parameter from the customization config").build())
+                    .addParameter(
+                        Parameter.builder().name("ArnList").type(ParameterType.fromValue("StringArray"))
+                                 .required(false).documentation("Parameter from the customization config").build())
+                    .build()).addRule(endpointRule_0()).build();
     }
 
     @Override

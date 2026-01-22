@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class AuthUtils {
     private AuthUtils() {
@@ -36,6 +37,16 @@ public final class AuthUtils {
                     .anyMatch(authType -> authType == AuthType.BEARER);
     }
 
+    public static boolean usesSigv4aAuth(IntermediateModel model) {
+        if (isServiceSigv4a(model)) {
+            return true;
+        }
+        return model.getOperations()
+                    .values()
+                    .stream()
+                    .anyMatch(operationModel -> operationModel.getAuth().stream().anyMatch(authType -> authType == AuthType.V4A));
+    }
+
     public static boolean usesAwsAuth(IntermediateModel model) {
         if (isServiceAwsAuthType(model)) {
             return true;
@@ -47,21 +58,36 @@ public final class AuthUtils {
     }
 
     /**
-     * Returns {@code true} if the operation should use bearer auth.
+     * Returns {@code true} if and only if the operation should use bearer auth as the first preferred auth scheme.
      */
-    public static boolean isOpBearerAuth(IntermediateModel model, OperationModel opModel) {
-        if (opModel.getAuthType() == AuthType.BEARER) {
-            return true;
-        }
-        return isServiceBearerAuth(model) && hasNoAuthType(opModel);
+    public static boolean isOpBearerAuthPreferred(IntermediateModel model, OperationModel opModel) {
+        return opModel.getAuthType() == AuthType.BEARER // single modeled auth on operation is bearer
+            // auth array, first auth type is bearer
+            || (opModel.getAuth() != null && !opModel.getAuth().isEmpty() && opModel.getAuth().get(0) == AuthType.BEARER)
+            // service is only bearer and operation doesn't override
+            || (model.getMetadata().getAuthType() == AuthType.BEARER && hasNoAuthType(opModel))
+            // service is only bearer first and operation doesn't override
+            || (model.getMetadata().getAuth() != null && !model.getMetadata().getAuth().isEmpty()
+                && model.getMetadata().getAuth().get(0) == AuthType.BEARER && hasNoAuthType(opModel));
     }
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {
-        return model.getMetadata().getAuthType() == AuthType.BEARER;
+        return model.getMetadata().getAuthType() == AuthType.BEARER ||
+               (model.getMetadata().getAuth() != null && model.getMetadata().getAuth().contains(AuthType.BEARER));
+    }
+
+    private static boolean isServiceSigv4a(IntermediateModel model) {
+        return model.getMetadata().getAuth().stream().anyMatch(authType -> authType == AuthType.V4A);
     }
 
     private static boolean isServiceAwsAuthType(IntermediateModel model) {
         AuthType authType = model.getMetadata().getAuthType();
+        if (authType == null && !CollectionUtils.isNullOrEmpty(model.getMetadata().getAuth())) {
+            return model.getMetadata().getAuth().stream()
+                        .map(AuthType::value)
+                        .map(AuthType::fromValue)
+                        .anyMatch(AuthUtils::isAuthTypeAws);
+        }
         return isAuthTypeAws(authType);
     }
 
@@ -71,6 +97,7 @@ public final class AuthUtils {
         }
 
         switch (authType) {
+            case V4A:
             case V4:
             case S3:
             case S3V4:

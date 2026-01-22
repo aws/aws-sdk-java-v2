@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -25,7 +26,9 @@ import software.amazon.awssdk.utils.internal.ReflectionUtils;
 @SdkInternalApi
 public interface BeanAttributeSetter<BeanT, GetterT> extends BiConsumer<BeanT, GetterT> {
     @SuppressWarnings("unchecked")
-    static <BeanT, SetterT> BeanAttributeSetter<BeanT, SetterT> create(Class<BeanT> beanClass, Method setter) {
+    static <BeanT, SetterT> BeanAttributeSetter<BeanT, SetterT> create(Class<BeanT> beanClass,
+                                                                       Method setter,
+                                                                       MethodHandles.Lookup lookup) {
         Validate.isTrue(setter.getParameterCount() == 1,
                         "%s.%s doesn't have just 1 parameter, despite being named like a setter.",
                         beanClass, setter.getName());
@@ -34,6 +37,7 @@ public interface BeanAttributeSetter<BeanT, GetterT> extends BiConsumer<BeanT, G
         Class<?> boxedInputClass = ReflectionUtils.getWrappedClass(setterInputClass);
 
         return LambdaToMethodBridgeBuilder.create(BeanAttributeSetter.class)
+                                          .lookup(lookup)
                                           .lambdaMethodName("accept")
                                           .runtimeLambdaSignature(void.class, Object.class, Object.class)
                                           .compileTimeLambdaSignature(void.class, beanClass, boxedInputClass)

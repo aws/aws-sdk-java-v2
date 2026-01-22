@@ -19,15 +19,17 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.internal.waiters.LegacyToNonLegacyAdapter;
+import software.amazon.awssdk.core.internal.waiters.NonLegacyToLegacyAdapter;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration values for the {@link Waiter}. All values are optional, and the default values will be used
- * if they are not specified.
+ * Configuration values for the {@link Waiter}. All values are optional, and the default values will be used if they are not
+ * specified.
  */
 @SdkPublicApi
 public final class WaiterOverrideConfiguration implements ToCopyableBuilder<WaiterOverrideConfiguration.Builder,
@@ -39,8 +41,16 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
 
     public WaiterOverrideConfiguration(Builder builder) {
         this.maxAttempts = Validate.isPositiveOrNull(builder.maxAttempts, "maxAttempts");
-        this.backoffStrategy = builder.backoffStrategy;
         this.waitTimeout = Validate.isPositiveOrNull(builder.waitTimeout, "waitTimeout");
+        Validate.mutuallyExclusive("Only one of backoffStrategy or backoffStrategyV2 may be used, but both where defined",
+                                   builder.backoffStrategy, builder.backoffStrategyV2);
+        if (builder.backoffStrategyV2 != null) {
+            this.backoffStrategy = builder.backoffStrategyV2;
+        } else if (builder.backoffStrategy != null) {
+            this.backoffStrategy = new LegacyToNonLegacyAdapter(builder.backoffStrategy);
+        } else {
+            this.backoffStrategy = null;
+        }
     }
 
     public static Builder builder() {
@@ -55,15 +65,29 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
     }
 
     /**
+     * @return the optional {@link software.amazon.awssdk.core.retry.backoff.BackoffStrategy} that should be used when polling the
+     * resource
+     * @deprecated Use instead {@link #backoffStrategyV2()}
+     */
+    public Optional<software.amazon.awssdk.core.retry.backoff.BackoffStrategy> backoffStrategy() {
+        if (backoffStrategy == null) {
+            return Optional.empty();
+        }
+        if (backoffStrategy instanceof LegacyToNonLegacyAdapter) {
+            return Optional.of(((LegacyToNonLegacyAdapter) backoffStrategy).adaptee());
+        }
+        return Optional.of(new NonLegacyToLegacyAdapter(backoffStrategy));
+    }
+
+    /**
      * @return the optional {@link BackoffStrategy} that should be used when polling the resource
      */
-    public Optional<BackoffStrategy> backoffStrategy() {
+    public Optional<BackoffStrategy> backoffStrategyV2() {
         return Optional.ofNullable(backoffStrategy);
     }
 
     /**
      * @return the optional amount of time to wait that should be used when polling the resource
-     *
      */
     public Optional<Duration> waitTimeout() {
         return Optional.ofNullable(waitTimeout);
@@ -72,7 +96,8 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
     @Override
     public Builder toBuilder() {
         return new Builder().maxAttempts(maxAttempts)
-                            .backoffStrategy(backoffStrategy)
+                            .backoffStrategyV2(backoffStrategy)
+                            .backoffStrategy(null)
                             .waitTimeout(waitTimeout);
     }
 
@@ -115,21 +140,36 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
 
     public static final class Builder implements CopyableBuilder<WaiterOverrideConfiguration.Builder,
         WaiterOverrideConfiguration> {
-        private BackoffStrategy backoffStrategy;
         private Integer maxAttempts;
         private Duration waitTimeout;
+        private software.amazon.awssdk.core.retry.backoff.BackoffStrategy backoffStrategy;
+        private BackoffStrategy backoffStrategyV2;
 
         private Builder() {
         }
 
         /**
-         * Define the {@link BackoffStrategy} that computes the delay before the next retry request.
+         * Define the {@link software.amazon.awssdk.core.retry.backoff.BackoffStrategy} that computes the delay between resource
+         * polling. Only one of {@link Builder#backoffStrategy()} and {@link Builder#backoffStrategyV2()} may be defined.
+         *
+         * @param backoffStrategy The new backoffStrategy value.
+         * @return This object for method chaining.
+         * @deprecated Use instead {@link #backoffStrategyV2(BackoffStrategy)}
+         */
+        public Builder backoffStrategy(software.amazon.awssdk.core.retry.backoff.BackoffStrategy backoffStrategy) {
+            this.backoffStrategy = backoffStrategy;
+            return this;
+        }
+
+        /**
+         * Define the {@link BackoffStrategy} that computes the delay between resource polling. Only one of
+         * {@link Builder#backoffStrategy()} and {@link Builder#backoffStrategyV2()} may be defined.
          *
          * @param backoffStrategy The new backoffStrategy value.
          * @return This object for method chaining.
          */
-        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
-            this.backoffStrategy = backoffStrategy;
+        public Builder backoffStrategyV2(BackoffStrategy backoffStrategy) {
+            this.backoffStrategyV2 = backoffStrategy;
             return this;
         }
 
@@ -145,10 +185,9 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
         }
 
         /**
-         * Define the amount of time to wait for the resource to transition to the desired state before
-         * timing out. This wait timeout doesn't have strict guarantees on how quickly a request is aborted
-         * when the timeout is breached. The request can timeout early if it is determined that the next
-         * retry will breach the max wait time. It's disabled by default.
+         * Define the amount of time to wait for the resource to transition to the desired state before timing out. This wait
+         * timeout doesn't have strict guarantees on how quickly a request is aborted when the timeout is breached. The request
+         * can timeout early if it is determined that the next retry will breach the max wait time. It's disabled by default.
          *
          * @param waitTimeout The new waitTimeout value.
          * @return This object for method chaining.
@@ -163,4 +202,5 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
             return new WaiterOverrideConfiguration(this);
         }
     }
+
 }

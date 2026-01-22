@@ -24,6 +24,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -42,7 +43,8 @@ public class PutItemRequestMarshallerTest {
         AwsJsonProtocolFactory.builder()
                               .clientConfiguration(
                                   SdkClientConfiguration.builder()
-                                                        .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                        .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                                ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
                                                         .build())
                               .protocolVersion("1.1")
                               .protocol(AwsJsonProtocol.AWS_JSON)

@@ -4,7 +4,7 @@
     "AuditReportCreated" : {
       "description" : "Wait until a Audit Report is created",
       "delay" : 3,
-      "maxAttempts" : 40,
+      "maxAttempts" : 60,
       "operation" : "DescribeCertificateAuthorityAuditReport",
       "acceptors" : [ {
         "matcher" : "path",
@@ -25,7 +25,7 @@
     "CertificateAuthorityCSRCreated" : {
       "description" : "Wait until a Certificate Authority CSR is created",
       "delay" : 3,
-      "maxAttempts" : 40,
+      "maxAttempts" : 60,
       "operation" : "GetCertificateAuthorityCsr",
       "acceptors" : [ {
         "matcher" : "error",
@@ -44,7 +44,7 @@
     "CertificateIssued" : {
       "description" : "Wait until a certificate is issued",
       "delay" : 1,
-      "maxAttempts" : 120,
+      "maxAttempts" : 60,
       "operation" : "GetCertificate",
       "acceptors" : [ {
         "matcher" : "error",

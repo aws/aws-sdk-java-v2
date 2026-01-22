@@ -1,0 +1,18 @@
+{
+    "version": "2.30.5",
+    "date": "2025-01-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Adds ALPN H2 support for Netty client"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added \"future\" allocation type for future dated capacity reservation"
+        }
+    ]
+}

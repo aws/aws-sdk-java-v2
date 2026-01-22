@@ -61,6 +61,8 @@ public class Operation {
 
     private Map<String, OperationContextParam> operationContextParams;
 
+    private boolean unsignedPayload;
+
     public String getName() {
         return name;
     }
@@ -226,5 +228,13 @@ public class Operation {
 
     public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
         this.operationContextParams = operationContextParams;
+    }
+
+    public boolean isUnsignedPayload() {
+        return unsignedPayload;
+    }
+
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 }

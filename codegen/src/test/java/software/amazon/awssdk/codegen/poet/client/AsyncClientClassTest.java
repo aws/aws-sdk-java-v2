@@ -18,11 +18,16 @@ package software.amazon.awssdk.codegen.poet.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithCustomContextParamsModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
@@ -34,29 +39,26 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 public class AsyncClientClassTest {
     @Test
     public void asyncClientClassRestJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels(), true);
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-json-async-client-class.java"));
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels());
+        assertThat(sraAsyncClientClass, generatesTo("test-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassQuery() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(queryServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-query-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels(), true);
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-query-async-client-class.java"));
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels());
+        assertThat(sraAsyncClientClass, generatesTo("test-query-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassAwsJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(awsJsonServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels());
+        assertThat(sraAsyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
+    }
 
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels(), true);
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-aws-json-async-client-class.java"));
+    @Test
+    public void asyncClientClassCbor() {
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels());
+        assertThat(sraAsyncClientClass, generatesTo("test-cbor-async-client-class.java"));
     }
 
     @Test
@@ -67,11 +69,8 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassXml() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(xmlServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-xml-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels(), true);
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-xml-async-client-class.java"));
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels());
+        assertThat(sraAsyncClientClass, generatesTo("test-xml-async-client-class.java"));
     }
 
     @Test
@@ -92,12 +91,31 @@ public class AsyncClientClassTest {
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-async.java"));
     }
 
-    private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
-        return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
+    @Test
+    public void asyncClientClassRpcv2() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(rpcv2ServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-rpcv2-async-client-class.java"));
     }
 
-    private AsyncClientClass createAsyncClientClass(IntermediateModel model, boolean useSraAuth) {
-        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
-        return createAsyncClientClass(model);
+    @Test
+    public void asyncClientBatchManager() {
+        ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
+        assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
+    }
+
+    @Test
+    public void asyncClientWithStreamingUnsignedPayload() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(opsWithSigv4a());
+        assertThat(asyncClientClass, generatesTo("test-unsigned-payload-trait-async-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientWithCustomContextParams() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(serviceWithCustomContextParamsModels());
+        assertThat(asyncClientClass, generatesTo("test-custom-context-params-async-client-class.java"));
+    }
+
+    private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
+        return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
     }
 }

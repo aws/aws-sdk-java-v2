@@ -17,12 +17,16 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -192,8 +196,24 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      *
      * <p>
      * Checksum validation using CRC32 is enabled by default.
+     *
+     * @deprecated This option has been replaced with
+     * {@link S3CrtAsyncClientBuilder#requestChecksumCalculation(RequestChecksumCalculation)} and
+     * {@link S3CrtAsyncClientBuilder#responseChecksumValidation(ResponseChecksumValidation)}. If both this and one of those
+     * options are set, an exception will be thrown.
      */
+    @Deprecated
     S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled);
+
+    /**
+     * Configures the client behavior for request checksum calculation.
+     */
+    S3CrtAsyncClientBuilder requestChecksumCalculation(RequestChecksumCalculation requestChecksumCalculation);
+
+    /**
+     * Configures the client behavior for response checksum validation.
+     */
+    S3CrtAsyncClientBuilder responseChecksumValidation(ResponseChecksumValidation responseChecksumValidation);
 
     /**
      * Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to
@@ -334,6 +354,30 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
 
+    /**
+     * Configure whether to disable this client's usage of Session Auth for S3Express buckets and reverts to using conventional
+     * SigV4 for those.
+     *
+     * @param disableS3ExpressSessionAuth whether Session Auth for S3Express should be disabled
+     * @return an instance of this builder
+     */
+    S3CrtAsyncClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
+
+    /**
+     * Configure an advanced async option. These values are used very rarely, and the majority of SDK customers can ignore
+     * them.
+     *
+     * @param option The option to configure.
+     * @param value The value of the option.
+     * @param <T> The type of the option.
+     */
+    <T> S3CrtAsyncClientBuilder advancedOption(SdkAdvancedAsyncClientOption<T> option, T value);
+
+    /**
+     * Configure the map of advanced override options. This will override all values currently configured. The values in the
+     * map must match the key type of the map, or a runtime exception will be raised.
+     */
+    S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
 
     @Override
     S3AsyncClient build();

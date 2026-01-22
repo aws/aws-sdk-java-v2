@@ -106,53 +106,64 @@ public class HttpChecksumRequiredTest {
     @Test
     public void syncJsonSupportsChecksumRequiredTrait() {
         jsonClient.operationWithRequiredChecksum(r -> r.stringMember("foo"));
-        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("g8VCvPTPCMoU01rBlBVt9w==");
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("tcUDMQ==");
     }
 
     @Test
     public void syncStreamingInputJsonSupportsChecksumRequiredTrait() {
         jsonClient.streamingInputOperationWithRequiredChecksum(r -> {}, RequestBody.fromString("foo"));
-        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("rL0Y20zC+Fzt72VPzMSk2A==");
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("jHNlIQ==");
     }
 
     @Test
     public void syncStreamingInputXmlSupportsChecksumRequiredTrait() {
         xmlClient.streamingInputOperationWithRequiredChecksum(r -> {}, RequestBody.fromString("foo"));
-        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("rL0Y20zC+Fzt72VPzMSk2A==");
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("jHNlIQ==");
     }
 
     @Test
     public void syncXmlSupportsChecksumRequiredTrait() {
         xmlClient.operationWithRequiredChecksum(r -> r.stringMember("foo"));
-        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("vqm481l+Lv0zEvdu+duE6Q==");
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("YP74zg==");
     }
 
     @Test
     public void asyncJsonSupportsChecksumRequiredTrait() {
         jsonAsyncClient.operationWithRequiredChecksum(r -> r.stringMember("foo")).join();
-        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).hasValue("g8VCvPTPCMoU01rBlBVt9w==");
+        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("tcUDMQ==");
     }
 
     @Test
     public void asyncXmlSupportsChecksumRequiredTrait() {
         xmlAsyncClient.operationWithRequiredChecksum(r -> r.stringMember("foo")).join();
-        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).hasValue("vqm481l+Lv0zEvdu+duE6Q==");
+        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isEmpty();
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("YP74zg==");
     }
 
-    @Test(expected = CompletionException.class)
+    @Test
     public void asyncStreamingInputJsonFailsWithChecksumRequiredTrait() {
         jsonAsyncClient.streamingInputOperationWithRequiredChecksum(r -> {}, AsyncRequestBody.fromString("foo")).join();
+        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("jHNlIQ==");
     }
 
-    @Test(expected = CompletionException.class)
+    @Test
     public void asyncStreamingInputXmlFailsWithChecksumRequiredTrait() {
         xmlAsyncClient.streamingInputOperationWithRequiredChecksum(r -> {}, AsyncRequestBody.fromString("foo")).join();
+        assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("jHNlIQ==");
     }
 
     @Test
     public void syncJsonSupportsOperationWithRequestChecksumRequired() {
         jsonClient.operationWithRequestChecksumRequired(r -> r.stringMember("foo"));
-        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("g8VCvPTPCMoU01rBlBVt9w==");
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("tcUDMQ==");
     }
 
     @Test

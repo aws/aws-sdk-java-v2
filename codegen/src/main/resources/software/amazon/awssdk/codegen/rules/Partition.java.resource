@@ -1,7 +1,9 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public class Partition {
@@ -14,6 +16,7 @@ public class Partition {
     private final String regionRegex;
     private final Map<String, RegionOverride> regions;
     private final Outputs outputs;
+    private Pattern regionPattern;
 
     private Partition(Builder builder) {
         this.id = builder.id;
@@ -28,6 +31,13 @@ public class Partition {
 
     public String regionRegex() {
         return regionRegex;
+    }
+
+    public boolean regionMatches(String region) {
+        if (regionPattern == null) {
+            regionPattern = Pattern.compile(regionRegex);
+        }
+        return regionPattern.matcher(region).matches();
     }
 
     public Map<String, RegionOverride> regions() {
@@ -68,6 +78,16 @@ public class Partition {
         result = 31 * result + (regions != null ? regions.hashCode() : 0);
         result = 31 * result + (outputs != null ? outputs.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("Partition")
+                       .add("id", id)
+                       .add("regionRegex", regionRegex)
+                       .add("regions", regions.keySet())
+                       .add("outputs", outputs)
+                       .build();
     }
 
     public static Builder builder() {

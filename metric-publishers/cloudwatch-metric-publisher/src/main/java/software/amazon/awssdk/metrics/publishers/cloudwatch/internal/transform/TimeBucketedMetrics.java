@@ -36,6 +36,7 @@ import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
+import software.amazon.awssdk.utils.MetricValueNormalizer;
 
 /**
  * "Buckets" metrics by the minute in which they were collected. This allows all metric data for a given 1-minute period to be
@@ -127,13 +128,23 @@ class TimeBucketedMetrics {
 
     private void aggregateMetrics(MetricCollection metrics, Map<MetricAggregatorKey, MetricAggregator> bucket) {
         List<Dimension> dimensions = dimensions(metrics);
-        extractAllMetrics(metrics).forEach(metricRecord -> {
+        processMetricsRecursively(metrics, dimensions, bucket);
+    }
+
+    private void processMetricsRecursively(MetricCollection metrics,
+                                           List<Dimension> dimensions,
+                                           Map<MetricAggregatorKey, MetricAggregator> bucket) {
+        for (MetricRecord<?> metricRecord : metrics) {
             MetricAggregatorKey aggregatorKey = new MetricAggregatorKey(metricRecord.metric(), dimensions);
             valueFor(metricRecord).ifPresent(metricValue -> {
                 bucket.computeIfAbsent(aggregatorKey, m -> newAggregator(aggregatorKey))
                       .addMetricValue(MetricValueNormalizer.normalize(metricValue));
             });
-        });
+        }
+
+        for (MetricCollection child : metrics.children()) {
+            processMetricsRecursively(child, dimensions, bucket);
+        }
     }
 
     private List<Dimension> dimensions(MetricCollection metricCollection) {
@@ -151,19 +162,6 @@ class TimeBucketedMetrics {
         // We use descending order just so that "ServiceName" is before "OperationName" when we use the default dimensions.
         result.sort(Comparator.comparing(Dimension::name).reversed());
         return result;
-    }
-
-    private List<MetricRecord<?>> extractAllMetrics(MetricCollection metrics) {
-        List<MetricRecord<?>> result = new ArrayList<>();
-        extractAllMetrics(metrics, result);
-        return result;
-    }
-
-    private void extractAllMetrics(MetricCollection metrics, List<MetricRecord<?>> extractedMetrics) {
-        for (MetricRecord<?> metric : metrics) {
-            extractedMetrics.add(metric);
-        }
-        metrics.children().forEach(child -> extractAllMetrics(child, extractedMetrics));
     }
 
     private MetricAggregator newAggregator(MetricAggregatorKey aggregatorKey) {
@@ -213,11 +211,15 @@ class TimeBucketedMetrics {
     }
 
     private boolean isSupportedCategory(MetricRecord<?> metricRecord) {
-        return metricCategoriesContainsAll ||
-               metricRecord.metric()
-                           .categories()
-                           .stream()
-                           .anyMatch(metricCategories::contains);
+        if (metricCategoriesContainsAll) {
+            return true;
+        }
+        for (MetricCategory category : metricRecord.metric().categories()) {
+            if (metricCategories.contains(category)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isSupportedLevel(MetricRecord<?> metricRecord) {

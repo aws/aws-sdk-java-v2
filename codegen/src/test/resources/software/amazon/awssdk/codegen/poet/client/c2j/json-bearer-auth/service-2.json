@@ -43,7 +43,7 @@
       ],
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -72,7 +72,7 @@
       },
       "exception": true
     },
-    "nestedMember": {
+    "NestedMember": {
       "type": "structure",
       "required": [
         "SubMember",

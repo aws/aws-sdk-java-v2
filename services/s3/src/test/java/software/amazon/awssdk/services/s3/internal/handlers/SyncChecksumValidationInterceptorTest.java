@@ -17,10 +17,10 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.CLIENT_TYPE;
-import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
@@ -33,30 +33,24 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.checksums.ChecksumCalculatingInputStream;
 import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingInputStream;
-import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor.ChecksumCalculatingStreamProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.InterceptorTestUtils;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
@@ -67,19 +61,6 @@ public class SyncChecksumValidationInterceptorTest {
     private static final String INVALID_CHECKSUM = "3902ee7e149eb8313a34757e89e21af6";
 
     private SyncChecksumValidationInterceptor interceptor = new SyncChecksumValidationInterceptor();
-
-    @Test
-    public void modifyHttpContent_putObjectRequestChecksumEnabled_shouldWrapChecksumRequestBody() {
-        ExecutionAttributes executionAttributes = getExecutionAttributes();
-        Context.ModifyHttpRequest modifyHttpRequest =
-            InterceptorTestUtils.modifyHttpRequestContext(PutObjectRequest.builder().build());
-        Optional<RequestBody> requestBody = interceptor.modifyHttpContent(modifyHttpRequest,
-                                                                          executionAttributes);
-
-        assertThat(requestBody.isPresent()).isTrue();
-        assertThat(executionAttributes.getAttribute(CHECKSUM)).isNotNull();
-        assertThat(requestBody.get().contentStreamProvider()).isNotEqualTo(modifyHttpRequest.requestBody().get().contentStreamProvider());
-    }
 
     @Test
     public void modifyHttpContent_nonPutObjectRequest_shouldNotModify() {
@@ -140,31 +121,6 @@ public class SyncChecksumValidationInterceptorTest {
     }
 
     @Test
-    public void checksumCalculatingStreamProvider_shouldReturnNewStreamResetChecksum() throws IOException {
-        List<CloseAwareStream> closeAwareStreams = new ArrayList<>();
-        ContentStreamProvider underlyingStreamProvider = () -> {
-            CloseAwareStream stream = new CloseAwareStream(new StringInputStream("helloWorld"));
-            closeAwareStreams.add(stream);
-            return stream;
-        };
-        SdkChecksum checksum = new Md5Checksum();
-        ChecksumCalculatingStreamProvider checksumCalculatingStreamProvider =
-            new ChecksumCalculatingStreamProvider(underlyingStreamProvider, checksum);
-
-        ChecksumCalculatingInputStream currentStream = (ChecksumCalculatingInputStream) checksumCalculatingStreamProvider.newStream();
-        IoUtils.drainInputStream(currentStream);
-        byte[] checksumBytes = currentStream.getChecksumBytes();
-
-        ChecksumCalculatingInputStream newStream = (ChecksumCalculatingInputStream) checksumCalculatingStreamProvider.newStream();
-        assertThat(closeAwareStreams.get(0).isClosed).isTrue();
-        IoUtils.drainInputStream(newStream);
-        byte[] newStreamChecksumBytes = newStream.getChecksumBytes();
-
-        assertThat(getChecksum(checksumBytes)).isEqualTo(getChecksum(newStreamChecksumBytes));
-        newStream.close();
-    }
-
-    @Test
     public void afterUnmarshalling_putObjectRequest_shouldValidateChecksum() {
         SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
 
@@ -184,37 +140,6 @@ public class SyncChecksumValidationInterceptorTest {
             InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
 
         interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum());
-    }
-
-    @Test
-    public void afterUnmarshalling_putObjectRequest_shouldValidateChecksum_throwExceptionIfInvalid() {
-        SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
-
-        PutObjectResponse response = PutObjectResponse.builder()
-                                                      .eTag(INVALID_CHECKSUM)
-                                                      .build();
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder().build();
-
-        SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
-                                                          .uri(URI.create("http://localhost:8080"))
-                                                          .method(SdkHttpMethod.PUT)
-                                                          .contentStreamProvider(() -> new StringInputStream("Test"))
-                                                          .build();
-
-        Context.AfterUnmarshalling afterUnmarshallingContext =
-            InterceptorContext.builder()
-                              .request(putObjectRequest)
-                              .httpRequest(sdkHttpRequest)
-                              .response(response)
-                              .httpResponse(sdkHttpResponse)
-                              .requestBody(RequestBody.fromString("Test"))
-                              .build();
-
-        ExecutionAttributes attributes = getExecutionAttributesWithChecksum();
-        interceptor.modifyHttpContent(afterUnmarshallingContext, attributes);
-        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, attributes))
-            .hasMessageContaining("Data read has a different checksum than expected.");
     }
 
     @Test
@@ -268,6 +193,8 @@ public class SyncChecksumValidationInterceptorTest {
     private ExecutionAttributes getExecutionAttributes() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         executionAttributes.putAttribute(CLIENT_TYPE, SYNC);
+        executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_SUPPORTED);
+        executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_SUPPORTED);
         return executionAttributes;
     }
 
@@ -280,7 +207,8 @@ public class SyncChecksumValidationInterceptorTest {
 
     private ExecutionAttributes getExecutionAttributesWithChecksumDisabled() {
         ExecutionAttributes executionAttributes = getExecutionAttributes();
-        executionAttributes.putAttribute(SERVICE_CONFIG, S3Configuration.builder().checksumValidationEnabled(false).build());
+        executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_REQUIRED);
+        executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_REQUIRED);
         return executionAttributes;
     }
 

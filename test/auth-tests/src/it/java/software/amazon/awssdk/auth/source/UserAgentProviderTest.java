@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage.HEADER_USER_AGENT;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -47,7 +46,7 @@ class UserAgentProviderTest {
     private MockSyncHttpClient mockHttpClient;
 
     @BeforeEach
-    public void setup() throws UnsupportedEncodingException {
+    public void setup() {
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockResponse());
     }
@@ -68,15 +67,15 @@ class UserAgentProviderTest {
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
         assertThat(lastRequest).isNotNull();
 
-        List<String> userAgentHeaders = lastRequest.headers().get(HEADER_USER_AGENT);
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         assertThat(userAgentHeaders.get(0)).contains(expected);
     }
 
     private static Stream<Arguments> credentialProviders() {
         return Stream.of(
-            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "stat"),
-            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "stat")
+            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "m/D,e"),
+            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "m/D,e")
         );
     }
 

@@ -77,7 +77,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseHeadersDone(httpStream, 0);
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).shutdown();
         verify(crtConn).close();
         verify(httpStream).close();
     }
@@ -121,7 +120,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
 
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).shutdown();
         verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());

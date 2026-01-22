@@ -39,6 +39,7 @@ import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
@@ -72,7 +73,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
-    private static final String PROVIDER_NAME = "ContainerCredentialsProvider";
+    private static final String CLASS_NAME = "ContainerCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_HTTP.value();
     private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
     private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
@@ -90,6 +92,8 @@ public final class ContainerCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String asyncThreadName;
+    private final String sourceChain;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -98,7 +102,11 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
+            ? PROVIDER_NAME 
+            : builder.sourceChain + "," + PROVIDER_NAME;
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -113,6 +121,10 @@ public final class ContainerCredentialsProvider
         }
     }
 
+    public static ContainerCredentialsProvider create() {
+        return builder().build();
+    }
+
     /**
      * Create a builder for creating a {@link ContainerCredentialsProvider}.
      */
@@ -122,7 +134,7 @@ public final class ContainerCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create(PROVIDER_NAME);
+        return ToString.create(CLASS_NAME);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
@@ -314,6 +326,7 @@ public final class ContainerCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
+        private String sourceChain;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -323,6 +336,7 @@ public final class ContainerCredentialsProvider
             this.endpoint = credentialsProvider.endpoint;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
+            this.sourceChain = credentialsProvider.sourceChain;
         }
 
         @Override
@@ -353,6 +367,21 @@ public final class ContainerCredentialsProvider
 
         public void setAsyncThreadName(String asyncThreadName) {
             asyncThreadName(asyncThreadName);
+        }
+
+        /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
+        @Override
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
+            return this;
+        }
+
+        public void setSourceChain(String sourceChain) {
+            sourceChain(sourceChain);
         }
 
         @Override

@@ -1,0 +1,36 @@
+{
+    "version": "2.41.6",
+    "date": "2026-01-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "IAM Policy Builder",
+            "contributor": "",
+            "description": "Allow integer AWS account IDs and boolean values when reading IAM policies from JSON with `IamPolicyReader`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing",
+            "contributor": "",
+            "description": "Cost Categories filtering support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added ultraServerType to the UltraServerInfo structure to support server type identification for SageMaker HyperPod"
+        },
+        {
+            "type": "feature",
+            "category": "Managed integrations for AWS IoT Device Management",
+            "contributor": "",
+            "description": "This release introduces WiFi Simple Setup (WSS) enabling device provisioning via barcode scanning with automated network discovery, authentication, and credential provisioning. Additionally, it introduces 2P Device Capability Rediscovery for updating hub-managed device capabilities post-onboarding."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

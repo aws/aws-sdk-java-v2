@@ -28,6 +28,7 @@ import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWo
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,9 +44,12 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of naming strategy respecting.
@@ -114,19 +118,42 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getServiceName() {
-        String baseName = Stream.of(serviceModel.getMetadata().getServiceId())
-                                .filter(Objects::nonNull)
-                                .filter(s -> !s.trim().isEmpty())
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the c2j model."));
-
+        String baseName = serviceId();
         baseName = pascalCase(baseName);
+        baseName = removeRedundantPrefixesAndSuffixes(baseName);
+        return baseName;
+    }
 
-        // Special cases
-        baseName = Utils.removeLeading(baseName, "Amazon");
-        baseName = Utils.removeLeading(baseName, "Aws");
-        baseName = Utils.removeTrailing(baseName, "Service");
+    @Override
+    public String getServiceNameForEnvironmentVariables() {
+        String baseName = serviceId();
+        baseName = baseName.replace(' ', '_');
+        baseName = StringUtils.upperCase(baseName);
+        return baseName;
+    }
 
+    @Override
+    public String getServiceNameForSystemProperties() {
+        return getServiceName();
+    }
+
+    @Override
+    public String getServiceNameForProfileFile() {
+        return StringUtils.lowerCase(getServiceNameForEnvironmentVariables());
+    }
+
+    private String serviceId() {
+        return Stream.of(serviceModel.getMetadata().getServiceId())
+                     .filter(Objects::nonNull)
+                     .filter(s -> !s.trim().isEmpty())
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the c2j model."));
+    }
+
+    private static String removeRedundantPrefixesAndSuffixes(String baseName) {
+        baseName = Utils.removeLeading(baseName, "amazon");
+        baseName = Utils.removeLeading(baseName, "aws");
+        baseName = Utils.removeTrailing(baseName, "service");
         return baseName;
     }
 
@@ -187,6 +214,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     @Override
     public String getJmesPathPackageName(String serviceName) {
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_JMESPATH_PATTERN);
+    }
+
+    @Override
+    public String getBatchManagerPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_BATCHMANAGER_PATTERN);
     }
 
     @Override
@@ -273,6 +305,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
         // Special cases
         result = result.replace("textORcsv", "TEXT_OR_CSV");
+
+        // leading digits, add a prefix
+        if (result.matches("^\\d.*")) {
+            result = "VALUE_" + result;
+        }
 
         // Split into words
         result = String.join("_", splitOnWordBoundaries(result));
@@ -405,6 +442,22 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getSigningName() {
+        return Optional.ofNullable(serviceModel.getMetadata().getSigningName())
+                       .orElseGet(() -> serviceModel.getMetadata().getEndpointPrefix());
+    }
+
+    @Override
+    public String getSigningNameForEnvironmentVariables() {
+        return screamCase(getSigningName());
+    }
+
+    @Override
+    public String getSigningNameForSystemProperties() {
+        return pascalCase(getSigningName());
+    }
+
+    @Override
     public void validateCustomerVisibleNaming(IntermediateModel trimmedModel) {
         Metadata metadata = trimmedModel.getMetadata();
         validateCustomerVisibleName(metadata.getSyncInterface(), "metadata-derived interface name");
@@ -447,19 +500,41 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
         if (name.contains("_")) {
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
+            List<String> allowedNames = customizationConfig.getAllowedUnderscoreNames();
+            if (allowedNames != null && allowedNames.contains(name)) {
+                return;
+            }
 
             String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
-            Validate.notNull(behavior,
-                             "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
-                             + "This isn't idiomatic in Java. Please either remove the underscores or apply the "
-                             + "'underscoresInNameBehavior' customization for this service (Supported "
-                             + "'underscoresInNameBehavior' values: %s).", name, location, supportedBehaviors);
-            Validate.isTrue(behavior == UnderscoresInNameBehavior.ALLOW,
-                            "Unsupported underscoresInShapeNameBehavior: %s. Supported values: %s", behavior, supportedBehaviors);
+            if (behavior == null) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
+                        + "This isn't idiomatic in Java. Please remove the underscores.",
+                        name, location)
+                ));
+            }
+            if (behavior != UnderscoresInNameBehavior.ALLOW) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Unsupported underscoresInShapeNameBehavior: %s. Supported values: %s",
+                        behavior, supportedBehaviors)
+                ));
+            }
         }
 
-        Validate.isTrue(VALID_IDENTIFIER_NAME.matcher(name).matches(),
-                        "Encountered a name or identifier that is invalid within Java (%s in %s). Please remove invalid "
-                        + "characters.", name, location);
+        if (!VALID_IDENTIFIER_NAME.matcher(name).matches()) {
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                ValidationErrorSeverity.DANGER,
+                String.format(
+                    "Encountered a name or identifier that is invalid within Java (%s in %s). Please remove invalid "
+                    + "characters.", name, location)
+            ));
+        }
     }
 }

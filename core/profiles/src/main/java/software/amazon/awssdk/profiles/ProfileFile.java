@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -82,6 +83,13 @@ public final class ProfileFile {
      */
     public static Aggregator aggregator() {
         return new Aggregator();
+    }
+
+    /**
+     * Create an empty profile file.
+     */
+    static ProfileFile empty() {
+        return new ProfileFile(Collections.emptyMap());
     }
 
     /**
@@ -237,6 +245,14 @@ public final class ProfileFile {
          * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
          * invoked.
          */
+        default Builder content(String content) {
+            return content(new StringInputStream(content));
+        }
+
+        /**
+         * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
+         * invoked.
+         */
         Builder content(InputStream contentStream);
 
         /**
@@ -301,8 +317,10 @@ public final class ProfileFile {
 
         @Override
         public ProfileFile build() {
+            Validate.isTrue(content != null || contentLocation != null,
+                            "content or contentLocation must be set.");
             InputStream stream = content != null ? content :
-                                 FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
+                                  FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
 
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");

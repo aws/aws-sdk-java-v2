@@ -1,0 +1,30 @@
+{
+    "version": "2.29.25",
+    "date": "2024-12-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "Added support for passing role arn corresponding to the supported event destination"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "It allows customers to pass CRC64NVME as a header in S3 Batch Operations copy requests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Add an API parameter that allows customers to set performance configuration for invoking a model."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

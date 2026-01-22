@@ -66,7 +66,7 @@ public final class CompletableFutureUtils {
 
     /**
      * Forward the {@code Throwable} from {@code src} to {@code dst}.
-
+     *
      * @param src The source of the {@code Throwable}.
      * @param dst The destination where the {@code Throwable} will be forwarded to.
      *
@@ -147,8 +147,9 @@ public final class CompletableFutureUtils {
     }
 
     /**
-     * Completes the {@code dst} future based on the result of the {@code src} future, synchronously,
-     * after applying the provided transformation {@link Function} if successful.
+     * Completes the {@code dst} future based on the result of the {@code src} future, synchronously, after applying the provided
+     * transformation {@link Function} if successful. If the function threw an exception, the destination
+     * future will be completed exceptionally with that exception.
      *
      * @param src The source {@link CompletableFuture}
      * @param dst The destination where the {@code Throwable} or transformed result will be forwarded to.
@@ -160,9 +161,16 @@ public final class CompletableFutureUtils {
         src.whenComplete((r, e) -> {
             if (e != null) {
                 dst.completeExceptionally(e);
-            } else {
-                dst.complete(function.apply(r));
+                return;
             }
+            DestT result = null;
+            try {
+                result = function.apply(r);
+            } catch (Throwable functionException) {
+                dst.completeExceptionally(functionException);
+                return;
+            }
+            dst.complete(result);
         });
 
         return src;

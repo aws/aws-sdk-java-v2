@@ -38,9 +38,10 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
 
     static final Map<String, Integer> SYNC_HTTP_SERVICES_PRIORITY =
         ImmutableMap.<String, Integer>builder()
-                    .put("software.amazon.awssdk.http.apache.ApacheSdkHttpService", 1)
-                    .put("software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService", 2)
-                    .put("software.amazon.awssdk.http.crt.AwsCrtSdkHttpService", 3)
+                    .put("software.amazon.awssdk.http.apache5.Apache5SdkHttpService", 1)
+                    .put("software.amazon.awssdk.http.apache.ApacheSdkHttpService", 2)
+                    .put("software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService", 3)
+                    .put("software.amazon.awssdk.http.crt.AwsCrtSdkHttpService", 4)
                     .build();
 
     static final Map<String, Integer> ASYNC_HTTP_SERVICES_PRIORITY =

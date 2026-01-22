@@ -1,0 +1,36 @@
+{
+    "version": "2.28.17",
+    "date": "2024-10-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "Add support for using the template from a previous job during job creation and listing parameter definitions for a job."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Reporting Service",
+            "contributor": "",
+            "description": "Documentation-only update for AWS Marketplace Reporting API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "This release adds support for the following capabilities: Configuration of the Gen AI system via AIAgent and AIPrompts. Integration support for Bedrock Knowledge Base."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Add validation pattern to S3KeyPrefix on the EnableLogging API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

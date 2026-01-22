@@ -51,4 +51,16 @@
         <Details>Bad toBuilder implementation. See the SpotBugs logs for problem details.</Details>
     </BugPattern>
     <BugCode abbrev="BTB">Bad toBuilder implementation</BugCode>
+
+    <BugPattern type="ASYNC_BLOCKING_CALL">
+        <ShortDescription>Blocking call in async code path</ShortDescription>
+        <LongDescription>Blocking call in async code path. See the SpotBugs logs for problem details</LongDescription>
+        <Details>
+            The SDK disallow the usage of blocking calls like CompletableFuture.join() or Thread.sleep() in the
+            asynchronous code path. If this is a legitimate use of a blocking call outside of the async code path or
+            a false positive, this error can be suppressed by updating the spotbugs-suppression.xml file located at
+            build-tools/src/main/resources/software/amazon/awssdk/spotbugs-suppressions.xml
+        </Details>
+    </BugPattern>
+    <BugCode abbrev="ABC">Blocking call in async code path</BugCode>
 </MessageCollection>

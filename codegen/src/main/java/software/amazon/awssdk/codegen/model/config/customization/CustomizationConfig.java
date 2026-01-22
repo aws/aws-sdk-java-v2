@@ -211,6 +211,12 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to duplicate and rename an event that is shared
+     * by multiple EventStreams.
+     */
+    private Map<String, Map<String, String>> duplicateAndRenameSharedEvents = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -259,6 +265,11 @@ public class CustomizationConfig {
     private boolean generateEndpointClientTests;
 
     /**
+     * Whether to use prior knowledge protocol negotiation for H2
+     */
+    private boolean usePriorKnowledgeForH2;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -275,11 +286,6 @@ public class CustomizationConfig {
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
-
-    /**
-     * Whether SRA based auth logic should be used.
-     */
-    private boolean useSraAuth = false;
 
     /**
      * Whether to generate auth scheme params based on endpoint params.
@@ -320,13 +326,6 @@ public class CustomizationConfig {
     private String rootPackageName;
 
     /**
-     * Set to true to read from c2j multi-auth values. Currently defaults to false.
-     *
-     * TODO(multi-auth): full multi-auth support is not implemented
-     */
-    private boolean useMultiAuth;
-
-    /**
      * Special case for a service where model changes for endpoint params were not updated .
      * This should be removed once the service updates its models
      */
@@ -341,6 +340,33 @@ public class CustomizationConfig {
      * API name.
      */
     private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
+
+    /**
+     * A boolean flag to indicate if Automatic Batch Request is supported.
+     */
+    private boolean batchManagerSupported;
+
+    /**
+     * A boolean flag to indicate if the fast unmarshaller code path is enabled.
+     */
+    private boolean enableFastUnmarshaller;
+
+    /**
+     * A boolean flag to indicate if support for configuring a bearer token sourced from the environment should be added to the
+     * generated service. When enabled, the generated client will use bearer auth with the token sourced from the
+     * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
+     */
+    private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
+
+    /**
+     * List of specific shape or member names that are allowed to contain underscores.
+     */
+    private List<String> allowedUnderscoreNames = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -646,6 +672,14 @@ public class CustomizationConfig {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 
+    public Map<String, Map<String, String>> getDuplicateAndRenameSharedEvents() {
+        return duplicateAndRenameSharedEvents;
+    }
+
+    public void  setDuplicateAndRenameSharedEvents(Map<String, Map<String, String>> duplicateAndRenameSharedEvents) {
+        this.duplicateAndRenameSharedEvents = duplicateAndRenameSharedEvents;
+    }
+
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
         return underscoresInNameBehavior;
     }
@@ -736,6 +770,14 @@ public class CustomizationConfig {
         this.generateEndpointClientTests = generateEndpointClientTests;
     }
 
+    public boolean isUsePriorKnowledgeForH2() {
+        return usePriorKnowledgeForH2;
+    }
+
+    public void setUsePriorKnowledgeForH2(boolean usePriorKnowledgeForH2) {
+        this.usePriorKnowledgeForH2 = usePriorKnowledgeForH2;
+    }
+
     public boolean useGlobalEndpoint() {
         return useGlobalEndpoint;
     }
@@ -790,16 +832,6 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
-    }
-
-    public void setUseSraAuth(boolean useSraAuth) {
-        this.useSraAuth = useSraAuth;
-    }
-
-    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
-    //  useSraAuth==true branch going forward.
-    public boolean useSraAuth() {
-        return useSraAuth;
     }
 
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
@@ -868,14 +900,6 @@ public class CustomizationConfig {
         return this;
     }
 
-    public void setUseMultiAuth(boolean useMultiAuth) {
-        this.useMultiAuth = useMultiAuth;
-    }
-
-    public boolean useMultiAuth() {
-        return useMultiAuth;
-    }
-
     public Map<String, ParameterModel> getEndpointParameters() {
         return endpointParameters;
     }
@@ -901,4 +925,43 @@ public class CustomizationConfig {
         this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
     }
 
+    public boolean getBatchManagerSupported() {
+        return batchManagerSupported;
+    }
+
+    public void setBatchManagerSupported(boolean batchManagerSupported) {
+        this.batchManagerSupported = batchManagerSupported;
+    }
+
+    public boolean getEnableFastUnmarshaller() {
+        return enableFastUnmarshaller;
+    }
+
+    public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
+        this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean isEnableEnvironmentBearerToken() {
+        return enableEnvironmentBearerToken;
+    }
+
+    public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
+        this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
+    }
+
+    public List<String> getAllowedUnderscoreNames() {
+        return allowedUnderscoreNames;
+    }
+
+    public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
+        this.allowedUnderscoreNames = allowedUnderscoreNames;
+    }
 }

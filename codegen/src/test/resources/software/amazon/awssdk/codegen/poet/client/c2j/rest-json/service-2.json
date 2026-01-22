@@ -210,7 +210,8 @@
       "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"],
+        "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
     "GetOperationWithChecksum":{
@@ -236,7 +237,7 @@
       ],
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -254,7 +255,7 @@
       "type": "structure",
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -270,7 +271,7 @@
       ],
       "members": {
         "SomeNestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>a member that has nested members</p>"
         },
         "OptionalMember": {
@@ -286,7 +287,7 @@
       ],
       "members": {
         "NestedMember": {
-          "shape": "nestedMember",
+          "shape": "NestedMember",
           "documentation": "<p>A structure containing nested members</p>"
         }
       },
@@ -307,7 +308,7 @@
       },
       "exception": true
     },
-    "nestedMember": {
+    "NestedMember": {
       "type": "structure",
       "required": [
         "SubMember",
@@ -471,6 +472,12 @@
         // Legacy generation uses shape name == event name
         "eventThree": {
           "shape": "LegacyEventThree"
+        },
+        "errorOne": {
+          "shape": "InvalidInputException"
+        },
+        "errorTwo": {
+          "shape": "InvalidInputException"
         }
       },
       "eventstream": true
@@ -517,13 +524,23 @@
       "type": "structure",
       "members": {
         "InputEventOne": {
-          "shape": "InputEvent"
+          "shape": "InputEventOne"
         },
         "InputEventTwo": {
           "shape": "InputEventTwo"
         }
       },
       "eventstream": true
+    },
+    "InputEventOne": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
     },
     "InputEventTwo": {
       "type": "structure",
@@ -571,7 +588,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -589,7 +606,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"stringMember"

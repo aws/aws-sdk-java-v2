@@ -1,0 +1,3 @@
+Method <software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.OptionalAttributeConverter.transformFrom(java.util.Optional)> has raw parameter types [java.util.Optional] in (OptionalAttributeConverter.java:58)
+Method <software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity.getContent(java.util.Optional)> has raw parameter types [java.util.Optional] in (RepeatableInputStreamRequestEntity.java:123)
+Method <software.amazon.awssdk.protocols.query.internal.unmarshall.AwsXmlErrorUnmarshaller.getErrorCode(java.util.Optional)> has raw parameter types [java.util.Optional] in (AwsXmlErrorUnmarshaller.java:146)

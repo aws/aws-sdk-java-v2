@@ -65,12 +65,6 @@ public class SyncHttpChecksumInTrailerTest {
                                        .credentialsProvider(AnonymousCredentialsProvider.create())
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       // TODO(sra-identity-and-auth): we should remove these
-                                       //  overrides once we set up codegen to set chunk-encoding to true
-                                       //  for requests that are streaming and checksum-enabled
-                                       .overrideConfiguration(c -> c.putExecutionAttribute(
-                                           ENABLE_CHUNKED_ENCODING, true
-                                       ))
                                        .build();
     }
 
@@ -78,8 +72,7 @@ public class SyncHttpChecksumInTrailerTest {
     public void sync_streaming_NoSigner_appends_trailer_checksum() {
         stubResponseWithHeaders();
 
-        client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32), RequestBody.fromString("Hello world")
-            , ResponseTransformer.toBytes());
+        client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32), RequestBody.fromString("Hello world"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("52")));
         verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo("x-amz-checksum-crc32")));
         verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
@@ -101,8 +94,7 @@ public class SyncHttpChecksumInTrailerTest {
         client.putOperationWithChecksum(r ->
             r.checksumAlgorithm(ChecksumAlgorithm.CRC32)
                                             .contentEncoding("deflate"),
-                                        RequestBody.fromString("Hello world"),
-                                        ResponseTransformer.toBytes());
+                                        RequestBody.fromString("Hello world"));
         verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
         verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("deflate")));
         //b is hex value of 11.
@@ -121,8 +113,7 @@ public class SyncHttpChecksumInTrailerTest {
         // length of 5 truncates to "Hello"
         RequestBody requestBody = RequestBody.fromContentProvider(provider, 5, "text/plain");
         client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32),
-                                        requestBody,
-                                        ResponseTransformer.toBytes());
+                                        requestBody);
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("46")));
         verify(putRequestedFor(anyUrl()).withHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, equalTo("x-amz-checksum-crc32")));
         verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-UNSIGNED-PAYLOAD-TRAILER")));
@@ -144,8 +135,7 @@ public class SyncHttpChecksumInTrailerTest {
             + "0" + CRLF
             + "x-amz-checksum-sha256:ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=" + CRLF + CRLF;
 
-        client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.SHA256), RequestBody.fromString("abc"),
-                                        ResponseTransformer.toBytes());
+        client.putOperationWithChecksum(r -> r.checksumAlgorithm(ChecksumAlgorithm.SHA256), RequestBody.fromString("abc"));
         List<LoggedRequest> requests = getRecordedRequests();
         assertThat(requests.size()).isEqualTo(2);
         assertThat(requests.get(0).getBody()).contains(expectedRequestBody.getBytes());

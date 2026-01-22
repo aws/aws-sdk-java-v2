@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,11 +58,11 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -76,7 +77,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched on error "
                                                                           + "condition (%s) and transitioned the waiter to "
                                                                           + "failure state";
-    private static final String WAITERS_USER_AGENT = "waiter";
+    private static final String WAITERS_USER_AGENT = "B";
     private final IntermediateModel model;
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
@@ -203,16 +204,17 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                   + ".orElse($L)",
                                   waiterDefinition.getMaxAttempts());
         configMethod.addStatement("$T backoffStrategy = optionalOverrideConfig."
-                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse($T.create($T.ofSeconds($L)))",
+                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategyV2)"
+                                  + ".orElse($T.fixedDelayWithoutJitter($T.ofSeconds($L)))",
                                   BackoffStrategy.class,
-                                  FixedDelayBackoffStrategy.class,
+                                  BackoffStrategy.class,
                                   Duration.class,
                                   waiterDefinition.getDelay());
         configMethod.addStatement("$T waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout)"
                                   + ".orElse(null)",
                                   Duration.class);
 
-        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy"
+        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2"
                                   + "(backoffStrategy).waitTimeout(waitTimeout).build()");
         return configMethod.build();
     }
@@ -403,11 +405,11 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
 
         CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($S).name($S).build())",
+                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().name"
+                                                     + "($S).version($S).build())",
                                                      parameterizedTypeName, ApiName.class,
-                                                     WAITERS_USER_AGENT,
-                                                     "hll")
+                                                     "sdk-metrics",
+                                                     BusinessMetricFeatureId.WAITER)
                                        .addStatement("$T overrideConfiguration =\n"
                                                      + "            request.overrideConfiguration().map(c -> c.toBuilder()"
                                                      + ".applyMutation"
@@ -556,15 +558,30 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+        CodeBlock.Builder builder = CodeBlock.builder()
                         .add("response -> {")
                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".value(), " + expectedType + ");", expected)
-                        .add("}")
-                        .build();
+                        .add(".value(), ")
+                        .add(rhs)
+                        .add(");")
+                        .add("}");
+
+        return builder.build();
     }
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {
@@ -585,18 +602,34 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAnyAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
-                        .add("response -> {")
-                        .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
-                        .add("$T<$T> resultValues = ", List.class, Object.class)
-                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".values();")
-                        .add("return !resultValues.isEmpty() && "
-                             + "resultValues.stream().anyMatch(v -> $T.equals(v, " + expectedType + "));",
-                             Objects.class, expected)
-                        .add("}")
-                        .build();
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+
+        CodeBlock.Builder builder = CodeBlock.builder()
+                         .add("response -> {")
+                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
+                         .add("$T<$T> resultValues = ", List.class, Object.class)
+                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                         .add(".values();")
+                         .add("return !resultValues.isEmpty() &&"
+                              + " resultValues.stream().anyMatch(v " + "-> $T.equals"
+                              + "(v, ", Objects.class)
+                        .add(rhs)
+                        .add("));")
+                        .add("}");
+
+        return builder.build();
     }
 
     private CodeBlock trueForAllResponse() {

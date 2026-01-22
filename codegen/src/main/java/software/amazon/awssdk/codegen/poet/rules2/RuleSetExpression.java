@@ -157,6 +157,16 @@ public final class RuleSetExpression implements RuleExpression {
         return endpoint == null && error == null;
     }
 
+    public String category() {
+        if (isEndpoint()) {
+            return "endpoint";
+        }
+        if (isError()) {
+            return "error";
+        }
+        return "tree";
+    }
+
     @Override
     public RuleType type() {
         return type;
