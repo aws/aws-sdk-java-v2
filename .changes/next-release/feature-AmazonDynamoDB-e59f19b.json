@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Adds additional waiters to Amazon DynamoDB."
-}

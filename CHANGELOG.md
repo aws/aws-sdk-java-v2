@@ -1,4 +1,51 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.13__ __2026-01-22__
+## __AWS Budgets__
+  - ### Features
+    - Add Budget FilterExpression and Metrics fields to DescribeBudgetPerformanceHistory to support more granular filtering options.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Updates the lower range for the maxResults request property for DescribeAffectedEntities, DescribeAffectedEntitiesForOrganization, DescribeEvents, and DescribeEventsForOrganization API request properties.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added GraalVM reachability metadata for sso service
+        - Contributed by: [@gbaso](https://github.com/gbaso)
+    - Updated endpoint and partition metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Customer Identifier parameter deprecation date has been removed. For new implementations, we recommend using the CustomerAWSAccountID. Your current integration will continue to work. When updating your implementation, consider migrating to CustomerAWSAccountID for improved integration.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds additional waiters to Amazon DynamoDB.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add better support for fractional GPU instances in DescribeInstanceTypes API. The new fields, logicalGpuCount, gpuPartitionSize, and workload array enable better GPU resource selection and filtering for both full and fractional GPU instance types.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers Realtime now supports Node.js 24.x runtime on the Amazon Linux 2023 operating system.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding new enum value for ScanStatusReason
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding documentation to user guide and API documentation for how customers can create new encrypted policy stores by passing in their customer managed key during policy store creation.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for Amazon EC2 Auto Scaling group deletion protection
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@gbaso](https://github.com/gbaso)
 # __2.41.12__ __2026-01-21__
 ## __AWS Config__
   - ### Features

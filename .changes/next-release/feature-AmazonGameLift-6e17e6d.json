@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GameLift",
-    "contributor": "",
-    "description": "Amazon GameLift Servers Realtime now supports Node.js 24.x runtime on the Amazon Linux 2023 operating system."
-}
