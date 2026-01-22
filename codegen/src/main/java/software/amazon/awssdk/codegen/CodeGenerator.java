@@ -39,7 +39,6 @@ import software.amazon.awssdk.codegen.validation.ModelValidator;
 import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.smithy.model.Model;
 
 public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);
