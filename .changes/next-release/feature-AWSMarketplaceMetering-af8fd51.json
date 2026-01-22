@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "contributor": "",
+    "description": "Customer Identifier parameter deprecation date has been removed. For new implementations, we recommend using the CustomerAWSAccountID. Your current integration will continue to work. When updating your implementation, consider migrating to CustomerAWSAccountID for improved integration."
+}
