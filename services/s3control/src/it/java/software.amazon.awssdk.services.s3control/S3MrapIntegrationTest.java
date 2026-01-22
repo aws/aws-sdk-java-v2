@@ -16,6 +16,7 @@ package software.amazon.awssdk.services.s3control;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
@@ -31,7 +32,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -45,12 +45,17 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3control.model.BucketAlreadyExistsException;
@@ -66,8 +71,9 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3MrapIntegrationTest.class);
 
-    private static final String SIGV4A_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD";
-    private static final String SIGV4_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
+    private static final String SIGV4A_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER";
+    private static final String SIGV4_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+    private static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final Region REGION = Region.US_WEST_2;
     private static String bucket;
@@ -82,6 +88,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     private static String mrapAlias;
     private static StsClient stsClient;
     private static S3Client s3Client;
+    private static S3AsyncClient s3AsyncClient;
     private static S3Client s3ClientWithPayloadSigning;
 
     @BeforeAll
@@ -94,6 +101,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                                    .build();
 
         s3Client = mrapEnabledS3Client(Collections.singletonList(captureInterceptor));
+        s3AsyncClient = mrapEnabledS3AsyncClient(Collections.singletonList(captureInterceptor));
         s3ClientWithPayloadSigning = mrapEnabledS3ClientWithPayloadSigning(captureInterceptor);
 
         stsClient = StsClient.builder()
@@ -108,12 +116,35 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
         createBucketIfNotExist(bucket);
         createMrapIfNotExist(accountId, mrapName);
         mrapAlias = getMrapAliasAndVerify(accountId, mrapName);
+        s3Client.putObject(r -> r.bucket(constructMrapArn(accountId, mrapAlias)).key(KEY),
+                           RequestBody.fromString(CONTENT));
     }
+
+    @Test
+    void syncClient_checksumRequiredOperation_shouldSucceed() {
+        assertDoesNotThrow(() -> s3Client.deleteObjects(DeleteObjectsRequest.builder()
+                                                                            .bucket(constructMrapArn(accountId, mrapAlias))
+                                                                            .delete(Delete.builder().objects(ObjectIdentifier.builder()
+                                                                                                                             .key(KEY)
+                                                                                                                             .build()).build())
+                                                                            .build()));
+    }
+
+    @Test
+    void asyncClient_checksumRequiredOperation_shouldSucceed() {
+        assertDoesNotThrow(() -> s3AsyncClient.deleteObjects(DeleteObjectsRequest.builder()
+                                                                                 .bucket(constructMrapArn(accountId, mrapAlias))
+                                                                                 .delete(Delete.builder().objects(ObjectIdentifier.builder()
+                                                                                                                                  .key(KEY)
+                                                                                                                                  .build()).build())
+                                                                                 .build())).join();
+    }
+
 
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
     @MethodSource("keys")
     public void when_callingMrapWithDifferentPaths_unsignedPayload_requestIsAccepted(String name, String key, String expected) {
-        putGetDeleteObjectMrap(s3Client, UNSIGNED_PAYLOAD, key, expected);
+        putGetDeleteObjectMrap(s3Client, STREAMING_UNSIGNED_PAYLOAD_TRAILER, key, expected);
     }
 
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
@@ -125,7 +156,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
     @MethodSource("keys")
     public void when_callingS3WithDifferentPaths_unsignedPayload_requestIsAccepted(String name, String key, String expected) {
-        putGetDeleteObjectStandard(s3Client, UNSIGNED_PAYLOAD, key, expected);
+        putGetDeleteObjectStandard(s3Client, STREAMING_UNSIGNED_PAYLOAD_TRAILER, key, expected);
     }
 
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
@@ -146,7 +177,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
 
         String object = applyPresignedUrl(presignedGetObjectRequest, null);
         assertEquals(CONTENT, object);
-        verifySigv4aRequest(captureInterceptor.request(), UNSIGNED_PAYLOAD);
+        verifySigv4aRequest(captureInterceptor.request(), STREAMING_UNSIGNED_PAYLOAD_TRAILER);
     }
 
     public void putGetDeleteObjectMrap(S3Client testClient, String payloadSigningTag, String key, String expected) {
@@ -218,7 +249,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
         );
     }
 
-    private String constructMrapArn(String account, String mrapAlias) {
+    private static String constructMrapArn(String account, String mrapAlias) {
         return String.format("arn:aws:s3::%s:accesspoint:%s", account, mrapAlias);
     }
 
@@ -302,6 +333,17 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                                                             .build())
                        .overrideConfiguration(o -> o.executionInterceptors(executionInterceptors))
                        .build();
+    }
+
+    private static S3AsyncClient mrapEnabledS3AsyncClient(List<ExecutionInterceptor> executionInterceptors) {
+        return S3AsyncClient.builder()
+                            .region(REGION)
+                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                            .serviceConfiguration(S3Configuration.builder()
+                                                                 .useArnRegionEnabled(true)
+                                                                 .build())
+                            .overrideConfiguration(o -> o.executionInterceptors(executionInterceptors))
+                            .build();
     }
 
     private static S3Client mrapEnabledS3ClientWithPayloadSigning(ExecutionInterceptor executionInterceptor) {

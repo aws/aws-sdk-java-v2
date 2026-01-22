@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Output;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 /**
  * Operations with explicit String payloads are not supported for services with Query protocol. We fail the codegen if the
@@ -31,7 +32,7 @@ import software.amazon.awssdk.codegen.model.service.Shape;
 public class ExplicitStringPayloadQueryProtocolProcessor implements CodegenCustomizationProcessor {
     @Override
     public void preprocess(ServiceModel serviceModel) {
-        String protocol = serviceModel.getMetadata().getProtocol();
+        String protocol = ProtocolUtils.resolveProtocol(serviceModel.getMetadata());
         if (!"ec2".equals(protocol) && !"query".equals(protocol)) {
             return;
         }

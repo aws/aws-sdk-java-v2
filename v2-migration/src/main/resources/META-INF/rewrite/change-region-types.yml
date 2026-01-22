@@ -16,6 +16,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.ChangeRegionTypes
 displayName: Change region related classes
+description: Change region related classes from v1 to v2.
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.regions.Regions fromName(String)

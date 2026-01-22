@@ -19,18 +19,27 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.DefaultAsyncResponseTransformerSplitResult;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -38,8 +47,8 @@ import software.amazon.awssdk.utils.Validate;
  * <h2>Synchronization</h2>
  * <p>
  * All operations, including those called on the {@link org.reactivestreams.Subscriber} of the stream are guaranteed to be
- * synchronized externally; i.e. no two methods on this interface or on the {@link org.reactivestreams.Subscriber} will be
- * invoked concurrently. It is <b>not</b> guaranteed that the methods will being invoked by the same thread.
+ * synchronized externally; i.e. no two methods on this interface or on the {@link org.reactivestreams.Subscriber} will be invoked
+ * concurrently. It is <b>not</b> guaranteed that the methods will being invoked by the same thread.
  * <p>
  * <h2>Invocation Order</h2>
  * <p>
@@ -81,11 +90,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Initial call to enable any setup required before the response is handled.
      * <p>
-     * Note that this will be called for each request attempt, up to the number of retries allowed by the configured {@link
-     * software.amazon.awssdk.core.retry.RetryPolicy}.
+     * Note that this will be called for each request attempt, up to the number of retries allowed by the configured
+     * {@link software.amazon.awssdk.core.retry.RetryPolicy}.
      * <p>
-     * This method is guaranteed to be called before the request is executed, and before {@link #onResponse(Object)} is
-     * signaled.
+     * This method is guaranteed to be called before the request is executed, and before {@link #onResponse(Object)} is signaled.
      *
      * @return The future holding the transformed response.
      */
@@ -106,18 +114,68 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void onStream(SdkPublisher<ByteBuffer> publisher);
 
     /**
-     * Called when an error is encountered while making the request or receiving the response.
-     * Implementations should free up any resources in this method. This method may be called
-     * multiple times during the lifecycle of a request if automatic retries are enabled.
+     * Called when an error is encountered while making the request or receiving the response. Implementations should free up any
+     * resources in this method. This method may be called multiple times during the lifecycle of a request if automatic retries
+     * are enabled.
      *
      * @param error Error that occurred.
      */
     void exceptionOccurred(Throwable error);
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
-     * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * Creates an {@link SplitResult} which contains an {@link SplittingTransformer} that splits the
+     * {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}.
+     *
+     * @param splitConfig configuration for the split transformer
+     * @return SplitAsyncResponseTransformer instance.
+     * @see SplittingTransformer
+     * @see SplitResult
+     */
+    default SplitResult<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig) {
+        Validate.notNull(splitConfig, "splitConfig must not be null");
+        CompletableFuture<ResultT> future = new CompletableFuture<>();
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
+            .<ResponseT, ResultT>builder()
+            .upstreamResponseTransformer(this)
+            .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+            .resultFuture(future)
+            .build();
+        return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
+                                            .publisher(transformer)
+                                            .resultFuture(future)
+                                            .build();
+    }
+
+    /**
+     * Creates an {@link SplitResult} which contains an {@link SplittingTransformer} that splits the
+     * {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}.
+     *
+     * @param splitConfig configuration for the split transformer
+     * @return SplitAsyncResponseTransformer instance.
+     * @see SplittingTransformer
+     * @see SplitResult
+     */
+    default SplitResult<ResponseT, ResultT> split(Consumer<SplittingTransformerConfiguration.Builder> splitConfig) {
+        SplittingTransformerConfiguration conf = SplittingTransformerConfiguration.builder()
+                                                                                  .applyMutation(splitConfig)
+                                                                                  .build();
+        return split(conf);
+    }
+
+    /**
+     * Each AsyncResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestTransformer.
+     */
+    default String name() {
+        return TransformerType.UNKNOWN.getName();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
+     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
+     * be thrown.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
@@ -129,8 +187,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
-     * FileTransformerConfiguration}.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
+     * {@link FileTransformerConfiguration}.
      *
      * @param path        Path to file to write to.
      * @param config      configuration for the transformer
@@ -143,8 +201,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
-     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder, avoiding the
+     * need to create one manually via {@link FileTransformerConfiguration#builder()}.
      *
      * @see #toFile(Path, FileTransformerConfiguration)
      */
@@ -155,9 +213,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
-     * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
-     * exception will be thrown.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
+     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
+     * be thrown.
      *
      * @param file        File to write to.
      * @param <ResponseT> Pojo Response type.
@@ -168,8 +226,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
-     * FileTransformerConfiguration}.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
+     * {@link FileTransformerConfiguration}.
      *
      * @param file        File to write to.
      * @param config      configuration for the transformer
@@ -182,8 +240,8 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
-     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder, avoiding the
+     * need to create one manually via {@link FileTransformerConfiguration#builder()}.
      *
      * @see #toFile(File, FileTransformerConfiguration)
      */
@@ -214,6 +272,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * The publisher has a default timeout of 60 seconds that starts when the response body begins streaming. If no subscriber is
+     * registered within this time, the subscription will be automatically cancelled. Use {@link #toPublisher(Duration)} to
+     * specify a custom timeout.
+     * <p>
      * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
      * transformer is only recommended for advanced use cases.
      * <p>
@@ -237,16 +299,42 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an
-     * {@link InputStream}.
+     * Creates an {@link AsyncResponseTransformer} with a custom timeout that publishes the response body content through a
+     * {@link ResponsePublisher}, which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse}
+     * returned by the service.
      * <p>
-     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will
-     * be completed once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This
-     * behavior differs from some other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only
-     * have their {@link CompletableFuture} completed after the entire response body has finished streaming.
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
      * <p>
-     * You are responsible for performing blocking reads from this input stream and closing the stream when you are
-     * finished.
+     * The timeout starts when the response body begins streaming. If no subscriber is registered within the specified timeout,
+     * the subscription will be automatically cancelled. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     * <p>
+     * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
+     * transformer is only recommended for advanced use cases.
+     *
+     * @param timeout Maximum time to wait for subscription before cancelling. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseTransformer instance.
+     * @see #toPublisher()
+     */
+    static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT,
+        ResponsePublisher<ResponseT>> toPublisher(Duration timeout) {
+        return new PublisherAsyncResponseTransformer<>(timeout);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * You are responsible for performing blocking reads from this input stream and closing the stream when you are finished.
      * <p>
      * Example usage:
      * <pre>
@@ -260,7 +348,126 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * </pre>
      */
     static <ResponseT extends SdkResponse>
-            AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
+        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
         return new InputStreamResponseTransformer<>();
+    }
+
+    /**
+     * Helper interface containing the result of {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)
+     * splitting} an AsyncResponseTransformer. This class holds both the publisher of the individual
+     * {@code AsyncResponseTransformer<ResponseT, ResponseT>} and the {@code CompletableFuture <ResultT>} which will
+     * complete when the {@code AsyncResponseTransformer} that was split itself would complete.
+     *
+     * @param <ResponseT> ResponseT of the original AsyncResponseTransformer that was split.
+     * @param <ResultT>   ResultT of the original AsyncResponseTransformer that was split.
+     * @see AsyncResponseTransformer#split(SplittingTransformerConfiguration)
+     */
+    interface SplitResult<ResponseT, ResultT>
+        extends ToCopyableBuilder<AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT>,
+        AsyncResponseTransformer.SplitResult<ResponseT, ResultT>> {
+
+        /**
+         * The individual {@link AsyncResponseTransformer} will be available through the publisher returned by this method.
+         *
+         * @return the publisher which publishes the individual {@link AsyncResponseTransformer}
+         */
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher();
+
+        /**
+         * The future returned by this method will be completed when the future returned by calling the
+         * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
+         *
+         * @return The future
+         */
+        CompletableFuture<ResultT> resultFuture();
+
+        /**
+         * Indicates if the split async response transformer supports sending individual transformer non-serially and
+         * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
+         * @return true if non-serial data is supported, false otherwise
+         */
+        default Boolean parallelSplitSupported() {
+            return false;
+        }
+
+        static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
+            return DefaultAsyncResponseTransformerSplitResult.builder();
+        }
+
+        interface Builder<ResponseT, ResultT>
+            extends CopyableBuilder<AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT>,
+            AsyncResponseTransformer.SplitResult<ResponseT, ResultT>> {
+
+            /**
+             * @return the publisher which was configured on this Builder instance.
+             */
+            SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher();
+
+            /**
+             * Sets the publisher publishing the individual {@link AsyncResponseTransformer}
+             * @param publisher the publisher
+             * @return an instance of this Builder
+             */
+            Builder<ResponseT, ResultT> publisher(SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher);
+
+            /**
+             * @return The future which was configured an this Builder instance.
+             */
+            CompletableFuture<ResultT> resultFuture();
+
+            /**
+             * Sets the future that will be completed when the future returned by calling the
+             * {@link AsyncResponseTransformer#prepare()} method on the AsyncResponseTransformer which was split completes.
+             * @param future the future
+             * @return an instance of this Builder
+             */
+            Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+
+            /**
+             * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently.
+             * @return
+             */
+            Boolean parallelSplitSupported();
+
+            /**
+             * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Builder<ResponseT, ResultT> parallelSplitSupported(Boolean parallelSplitSupported);
+        }
+    }
+
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

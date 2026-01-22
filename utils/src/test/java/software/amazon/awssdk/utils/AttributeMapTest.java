@@ -30,7 +30,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.w3c.dom.Attr;
 
 public class AttributeMapTest {
 
@@ -156,6 +155,20 @@ public class AttributeMapTest {
 
         builtMap.toBuilder().build().toBuilder().build();
         verify(lazyRead, Mockito.times(1)).run();
+    }
+
+    @Test
+    public void lazyAttributes_canUpdateTheMap_andBeUpdatedWithPutLazyIfAbsent() {
+        AttributeMap.Builder map = AttributeMap.builder();
+        map.putLazyIfAbsent(STRING_KEY, c -> {
+            // Force a modification to the underlying map. We wouldn't usually do this so explicitly, but
+            // this can happen internally within AttributeMap when resolving uncached lazy values,
+            // so it needs to be possible.
+            map.put(INTEGER_KEY, 0);
+            return "string";
+        });
+        map.putLazyIfAbsent(STRING_KEY, c -> "string"); // Force the value to be resolved within the putLazyIfAbsent
+        assertThat(map.get(STRING_KEY)).isEqualTo("string");
     }
 
     @Test

@@ -63,7 +63,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void syncClientBuilder_useStandardBuilderWithBuild_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQS;\n"
                  + "import com.amazonaws.services.sqs.AmazonSQSClientBuilder;\n"
@@ -88,7 +87,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void asyncClientBuilder_useStandardBuilderWithBuild_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;\n"
@@ -113,7 +111,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void syncClientBuilder_useStandardBuilderWithoutBuild_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQS;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSClientBuilder;\n"
@@ -139,7 +136,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void asyncClientBuilder_useStandardBuilderWithoutBuild_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;\n"
@@ -166,7 +162,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void syncClientBuilder_useCreate_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQS;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSClientBuilder;\n"
@@ -191,7 +186,6 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void asyncClientBuilder_useCreate_shouldRewrite() {
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;\n"

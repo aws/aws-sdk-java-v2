@@ -21,11 +21,9 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.SqsClientBuilder;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
 
 public final class SdkClientsDependencyFactory {
 
@@ -50,17 +48,17 @@ public final class SdkClientsDependencyFactory {
 
     public static SqsClient sqsClientWithAllSettings() {
         return SqsClient.builder()
-                .region(Region.of("us-west-2"))
-                .httpClientBuilder(ApacheHttpClient.builder()
-                    .connectionMaxIdleTime(Duration.ofMillis(1006))
-                    .tcpKeepAlive(true)
-                    .socketTimeout(Duration.ofMillis(1004))
-                    .connectionTimeToLive(Duration.ofMillis(1005))
-                    .connectionTimeout(Duration.ofMillis(1003))
-                    .maxConnections(1002))
-                .overrideConfiguration(customClientConfiguration())
+                                  .region(Region.of("us-west-2"))
+                                  .httpClientBuilder(ApacheHttpClient.builder()
+                                      .connectionMaxIdleTime(Duration.ofMillis(1006))
+                                      .tcpKeepAlive(true)
+                                      .socketTimeout(Duration.ofMillis(1004))
+                                      .connectionTimeToLive(Duration.ofMillis(1005))
+                                      .connectionTimeout(Duration.ofMillis(1003))
+                                      .maxConnections(1002))
+                                  .overrideConfiguration(customClientConfiguration())
             .credentialsProvider(CredentialsDependencyFactory.defaultCredentialsProviderChain())
-            .build();
+                              .build();
     }
 
     public static SqsClientBuilder sqsClientBuilder() {
@@ -92,6 +90,6 @@ public final class SdkClientsDependencyFactory {
             .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                 .connectionTimeout(Duration.ofMillis(2004)))
             .overrideConfiguration(clientConfiguration)
-            .build();
+                                   .build();
     }
 }

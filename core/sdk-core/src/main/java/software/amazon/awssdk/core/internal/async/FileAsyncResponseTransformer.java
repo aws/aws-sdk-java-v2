@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -40,10 +41,12 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -61,19 +64,33 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private final FileTransformerConfiguration configuration;
 
     public FileAsyncResponseTransformer(Path path) {
-        this.path = path;
-        this.configuration = FileTransformerConfiguration.defaultCreateNew();
-        this.position = 0L;
+        this(path, FileTransformerConfiguration.defaultCreateNew(), 0L);
     }
 
     public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
-        this.path = path;
-        this.configuration = fileConfiguration;
-        this.position = determineFilePositionToWrite(path);
+        this(path, fileConfiguration, determineFilePositionToWrite(path, fileConfiguration));
     }
 
-    private long determineFilePositionToWrite(Path path) {
-        if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
+    private FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileTransformerConfiguration, long position) {
+        this.path = path;
+        this.configuration = fileTransformerConfiguration;
+        this.position = position;
+    }
+
+    FileTransformerConfiguration config() {
+        return configuration.toBuilder().build();
+    }
+
+    Path path() {
+        return path;
+    }
+
+    long position() {
+        return position;
+    }
+
+    private static long determineFilePositionToWrite(Path path, FileTransformerConfiguration fileConfiguration) {
+        if (fileConfiguration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
             try {
                 return Files.size(path);
             } catch (NoSuchFileException e) {
@@ -82,7 +99,10 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 throw SdkClientException.create("Cannot determine the current file size " + path, exception);
             }
         }
-        return  0L;
+        if (fileConfiguration.fileWriteOption() == WRITE_TO_POSITION) {
+            return Validate.getOrDefault(fileConfiguration.position(), () -> 0L);
+        }
+        return 0L;
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
@@ -97,6 +117,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 break;
             case CREATE_NEW:
                 Collections.addAll(options, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
+                break;
+            case WRITE_TO_POSITION:
+                Collections.addAll(options, StandardOpenOption.WRITE);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported file write option: " + configuration.fileWriteOption());
@@ -151,7 +174,17 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                                () -> Files.deleteIfExists(path));
             }
         }
-        cf.completeExceptionally(throwable);
+        if (cf != null) {
+            cf.completeExceptionally(throwable);
+        } else {
+            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
+                           + "The future cannot be completed exceptionally because it is null");
+        }
+    }
+
+    @Override
+    public String name() {
+        return TransformerType.FILE.getName();
     }
 
     /**
@@ -163,6 +196,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private final Path path;
         private final CompletableFuture<Void> future;
         private final Consumer<Throwable> onErrorMethod;
+        private final Object closeLock = new Object();
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
@@ -208,7 +242,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                     if (byteBuffer.hasRemaining()) {
                         performWrite(byteBuffer);
                     } else {
-                        synchronized (FileSubscriber.this) {
+                        synchronized (closeLock) {
                             writeInProgress = false;
                             if (closeOnLastWrite) {
                                 close();
@@ -234,11 +268,14 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
         @Override
         public void onComplete() {
+            log.trace(() -> "onComplete");
             // if write in progress, tell write to close on finish.
-            synchronized (this) {
+            synchronized (closeLock) {
                 if (writeInProgress) {
+                    log.trace(() -> "writeInProgress = true, not closing");
                     closeOnLastWrite = true;
                 } else {
+                    log.trace(() -> "writeInProgress = false, closing");
                     close();
                 }
             }
@@ -249,6 +286,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 if (fileChannel != null) {
                     invokeSafely(fileChannel::close);
                 }
+                log.trace(() -> "Completing File async transformer future future");
                 future.complete(null);
             } catch (RuntimeException exception) {
                 future.completeExceptionally(exception);
@@ -259,5 +297,19 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         public String toString() {
             return getClass() + ":" + path.toString();
         }
+    }
+
+
+    @Override
+    public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
+        if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
+            return AsyncResponseTransformer.super.split(splitConfig);
+        }
+        CompletableFuture<ResponseT> future = new CompletableFuture<>();
+        return (SplitResult<ResponseT, ResponseT>) SplitResult.<ResponseT, ResponseT>builder()
+                                                              .publisher(new FileAsyncResponseTransformerPublisher(this))
+                                                              .resultFuture(future)
+                                                              .parallelSplitSupported(true)
+                                                              .build();
     }
 }

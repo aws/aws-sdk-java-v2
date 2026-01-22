@@ -22,6 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.AttributeKey;
@@ -31,7 +32,13 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.channels.ClosedChannelException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -39,11 +46,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -60,6 +69,8 @@ public final class NettyUtils {
                                                               + "If this is a streaming operation, validate that data is being "
                                                               + "read or written in a timely manner.";
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
+
+    private static final Lazy<Boolean> ALPN_SUPPORTED = new Lazy<>(NettyUtils::checkAlpnSupport);
 
     private NettyUtils() {
     }
@@ -386,6 +397,51 @@ public final class NettyUtils {
             runnable.run();
         } catch (Exception e) {
             log.error(null, () -> errorMsg, e);
+        }
+    }
+
+    //  ALPN supported backported in u251
+    //  https://bugs.openjdk.org/browse/JDK-8242894
+    public static boolean isAlpnSupported(SslProvider sslProvider) {
+        if (sslProvider != SslProvider.JDK) {
+            return true;
+        }
+
+        return ALPN_SUPPORTED.getValue();
+    }
+
+    private static boolean checkAlpnSupport() {
+        try {
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, null, null);
+            SSLEngine engine = context.createSSLEngine();
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+            MethodHandle getApplicationProtocol = AccessController.doPrivileged(
+                (PrivilegedExceptionAction<MethodHandle>) () ->
+                    lookup.findVirtual(SSLEngine.class, "getApplicationProtocol", MethodType.methodType(String.class)));
+
+            getApplicationProtocol.invoke(engine);
+            return true;
+        } catch (PrivilegedActionException e) {
+            log.debug(() -> "ALPN not supported: SSLEngine.getApplicationProtocol() method not found: " + e);
+            return false;
+        } catch (Throwable t) {
+            log.debug(() -> "ALPN support check failed: " + t);
+            return false;
+        }
+    }
+
+    public static String getJavaVersion() {
+        // CHECKSTYLE:OFF
+        return System.getProperty("java.version");
+        // CHECKSTYLE:ON
+    }
+
+    public static void validateAlpnSupported(SslProvider sslProvider) {
+        if (!isAlpnSupported(sslProvider)) {
+            throw new UnsupportedOperationException("ALPN is not supported in the current Java Version: " + getJavaVersion()
+                                                    + "Use SslProvider.OPENSSL or ProtocolNegotiation.ASSUME_PROTOCOL.");
         }
     }
 }

@@ -44,7 +44,10 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactWrit
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
+import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.Put;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 
@@ -86,6 +89,8 @@ public class TransactWriteItemsEnhancedRequestTest {
 
         TransactWriteItemsEnhancedRequest builtObject =
             TransactWriteItemsEnhancedRequest.builder()
+                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
                                              .addPutItem(fakeItemMappedTable, fakeItem)
                                              .addDeleteItem(fakeItemMappedTable, fakeItem)
                                              .addUpdateItem(fakeItemMappedTable, fakeItem)
@@ -102,6 +107,11 @@ public class TransactWriteItemsEnhancedRequestTest {
 
         assertThat(builtObject.transactWriteItems().get(3).conditionCheck(), is(notNullValue()));
         assertThat(builtObject.transactWriteItems().get(3).conditionCheck().key().get("id").s(), is(fakeItem.getId()));
+
+        assertThat(builtObject.returnConsumedCapacity(), is(ReturnConsumedCapacity.TOTAL));
+        assertThat(builtObject.returnConsumedCapacityAsString(), is("TOTAL"));
+        assertThat(builtObject.returnItemCollectionMetrics(), is(ReturnItemCollectionMetrics.SIZE));
+
     }
 
     @Test

@@ -41,8 +41,8 @@
     },
     "defaultTrueParam": {
       "type": "boolean",
-        "default": true,
-        "documentation": "A param that defauls to true"
+      "default": true,
+      "documentation": "A param that defauls to true"
     },
     "defaultStringParam": {
       "type": "string",
@@ -357,6 +357,80 @@
           "conditions": [],
           "error": "{region} is not a valid HTTP host-label",
           "type": "error"
+        },
+        {
+          "conditions": [
+            {
+              "fn": "not",
+              "argv": [
+                {
+                  "fn": "isSet",
+                  "argv": [
+                    {
+                      "ref": "useFIPSEndpoint"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "fn": "isSet",
+              "argv": [
+                {
+                  "ref": "useDualStackEndpoint"
+                }
+              ]
+            },
+            {
+              "fn": "booleanEquals",
+              "argv": [
+                {
+                  "ref": "useDualStackEndpoint"
+                },
+                true
+              ]
+            },
+            {
+              "fn": "isSet",
+              "argv": [
+                {
+                  "ref": "ArnList"
+                }
+              ]
+            },
+            {
+              "fn": "getAttr",
+              "argv": [
+                {
+                  "ref": "ArnList"
+                },
+                "[0]"
+              ],
+              "assign": "FirstArn"
+            },
+            {
+              "fn": "aws.parseArn",
+              "argv": [
+                {
+                  "ref": "FirstArn"
+                }
+              ],
+              "assign": "ParsedArn"
+            }
+          ],
+          "endpoint": {
+            "url": "https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}",
+            "properties": {
+              "authSchemes": [
+                {
+                  "name": "sigv4a",
+                  "signingName": "query",
+                  "signingRegionSet": ["*"]
+                }
+              ]
+            }
+          },
+          "type": "endpoint"
         }
       ],
       "type": "tree"

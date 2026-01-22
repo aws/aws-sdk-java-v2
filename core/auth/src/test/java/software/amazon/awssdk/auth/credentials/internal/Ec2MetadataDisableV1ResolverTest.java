@@ -49,9 +49,11 @@ public class Ec2MetadataDisableV1ResolverTest {
         String systemProperty, String envVar, ProfileFile profileFile, boolean expected) {
 
         setUpSystemSettings(systemProperty, envVar);
-
-        Ec2MetadataDisableV1Resolver resolver = Ec2MetadataDisableV1Resolver.create(() -> profileFile, "test");
-        assertThat(resolver.resolve()).isEqualTo(expected);
+        Ec2MetadataConfigProvider provider = Ec2MetadataConfigProvider.builder()
+                                                                      .profileFile(() -> profileFile)
+                                                                      .profileName("test")
+                                                                      .build();
+        assertThat(provider.isMetadataV1Disabled()).isEqualTo(expected);
     }
 
     private static Stream<Arguments> booleanConfigValues() {
@@ -85,8 +87,11 @@ public class Ec2MetadataDisableV1ResolverTest {
 
         setUpSystemSettings(systemProperty, envVar);
 
-        Ec2MetadataDisableV1Resolver resolver = Ec2MetadataDisableV1Resolver.create(() -> profileFile, "test");
-        assertThatThrownBy(resolver::resolve).isInstanceOf(IllegalStateException.class);
+        Ec2MetadataConfigProvider configProvider = Ec2MetadataConfigProvider.builder()
+                                                                            .profileFile(() -> profileFile)
+                                                                            .profileName("test")
+                                                                            .build();
+        assertThatThrownBy(configProvider::isMetadataV1Disabled).isInstanceOf(IllegalStateException.class);
     }
 
     private static Stream<Arguments> nonBooleanConfigValues() {

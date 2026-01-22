@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.profiles;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.Objects;
@@ -33,10 +34,14 @@ final class ProfileFileSupplierBuilder {
     private Consumer<ProfileFile> onProfileFileLoad;
 
     public ProfileFileSupplierBuilder reloadWhenModified(Path path, ProfileFile.Type type) {
-        ProfileFile.Builder builder = ProfileFile.builder()
-                                                 .content(path)
-                                                 .type(type);
-        this.profileFile = builder::build;
+        this.profileFile = () -> {
+            if (Files.isRegularFile(path) && Files.isReadable(path)) {
+                return ProfileFile.builder()
+                                  .content(path)
+                                  .type(type).build();
+            }
+            return ProfileFile.empty();
+        };
         this.profileFilePath = path;
         this.reloadingSupplier = true;
         return this;

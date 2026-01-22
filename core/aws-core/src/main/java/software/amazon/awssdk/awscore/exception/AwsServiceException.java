@@ -22,6 +22,7 @@ import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.awscore.internal.AwsStatusCode;
+import software.amazon.awssdk.core.exception.SdkDiagnostics;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.ClockSkew;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -31,11 +32,9 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  * by an Amazon web service.
  * <p>
  * <p>
- * AmazonServiceException provides callers several pieces of
+ * AwsServiceException provides callers several pieces of
  * information that can be used to obtain more information about the error and
- * why it occurred. In particular, the errorType field can be used to determine
- * if the caller's request was invalid, or the service encountered an error on
- * the server side while processing it.
+ * why it occurred.
  *
  * @see SdkServiceException
  */
@@ -62,22 +61,37 @@ public class AwsServiceException extends SdkServiceException {
 
     @Override
     public String getMessage() {
-        if (awsErrorDetails != null) {
-            StringJoiner details = new StringJoiner(", ", "(", ")");
-            details.add("Service: " + awsErrorDetails().serviceName());
-            details.add("Status Code: " + statusCode());
-            details.add("Request ID: " + requestId());
-            if (extendedRequestId() != null) {
-                details.add("Extended Request ID: " + extendedRequestId());
-            }
-            String message = super.getMessage();
-            if (message == null) {
-                message = awsErrorDetails().errorMessage();
-            }
-            return message + " " + details;
+        StringJoiner joiner = new StringJoiner(" ");
+        String primaryMessage = rawMessage();
+        if (primaryMessage == null && awsErrorDetails != null) {
+            primaryMessage = awsErrorDetails.errorMessage();
+        }
+        if (primaryMessage != null) {
+            joiner.add(primaryMessage);
         }
 
-        return super.getMessage();
+        if (awsErrorDetails != null) {
+            joiner.add(serviceDiagnostics());
+        }
+
+        if (numAttempts() != null) {
+            SdkDiagnostics diagnostics = SdkDiagnostics.builder().numAttempts(numAttempts()).build();
+            joiner.add(diagnostics.toString());
+        }
+
+        String result = joiner.toString();
+        return result.isEmpty() ? super.getMessage() : result;
+    }
+
+    private String serviceDiagnostics() {
+        StringJoiner details = new StringJoiner(", ", "(", ")");
+        details.add("Service: " + awsErrorDetails().serviceName());
+        details.add("Status Code: " + statusCode());
+        details.add("Request ID: " + requestId());
+        if (extendedRequestId() != null) {
+            details.add("Extended Request ID: " + extendedRequestId());
+        }
+        return details.toString();
     }
 
     @Override
@@ -115,9 +129,9 @@ public class AwsServiceException extends SdkServiceException {
     @Override
     public boolean isThrottlingException() {
         return super.isThrottlingException() ||
-                Optional.ofNullable(awsErrorDetails)
-                        .map(a -> AwsErrorCode.isThrottlingErrorCode(a.errorCode()))
-                        .orElse(false);
+               Optional.ofNullable(awsErrorDetails)
+                       .map(a -> AwsErrorCode.isThrottlingErrorCode(a.errorCode()))
+                       .orElse(false);
     }
 
     /**
@@ -171,6 +185,9 @@ public class AwsServiceException extends SdkServiceException {
 
         @Override
         Builder message(String message);
+
+        @Override
+        Builder numAttempts(Integer numAttempts);
 
         @Override
         Builder cause(Throwable t);
@@ -234,6 +251,12 @@ public class AwsServiceException extends SdkServiceException {
         @Override
         public Builder message(String message) {
             this.message = message;
+            return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 

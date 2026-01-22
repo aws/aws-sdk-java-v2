@@ -17,12 +17,12 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1Class;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1ClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ClientClass;
-import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ModelClass;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.shouldSkip;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -65,10 +66,6 @@ public class ChangeSdkType extends Recipe {
         "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.model\\.\\*";
     private static final String V1_SERVICE_WILD_CARD_CLASS_PATTERN = "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.\\*";
 
-    private static final Set<String> PACKAGES_TO_SKIP = new HashSet<>(
-        Arrays.asList("com.amazonaws.services.s3.transfer",
-                      "com.amazonaws.services.dynamodbv2.datamodeling"));
-
     @Override
     public String getDisplayName() {
         return "Change AWS SDK for Java v1 types to v2 equivalents";
@@ -92,7 +89,11 @@ public class ChangeSdkType extends Recipe {
         private final Set<String> topLevelClassnames = new HashSet<>();
         private final List<String> wildcardImports = new ArrayList<>();
 
-        private Map<String, Pair<JavaType.Class, JavaType>> oldTypeToNewType = new HashMap<>();
+        private Map<String, Pair<JavaType.Class, JavaType>> oldTypeToNewType = new ConcurrentHashMap<>();
+
+        // It's used to maintain the imports that need to be updated. This is needed because oldNameToChangedType may
+        // contain classes that may not need to be imported such as client builder class
+        private Map<String, String> v1ImportsToV2Imports = new ConcurrentHashMap<>();
 
         @Override
         public J visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
@@ -120,10 +121,15 @@ public class ChangeSdkType extends Recipe {
                 return anImport;
             }
 
+            if (shouldSkip(fullyQualified.getFullyQualifiedName())) {
+                return anImport;
+            }
+
             String currentFqcn = fullyQualified.getFullyQualifiedName();
 
-            if (isV1Class(fullyQualified)) {
+            if (isSupportedV1Class(fullyQualified)) {
                 storeV1ClassMetadata(currentFqcn);
+                v1ImportsToV2Imports.put(currentFqcn, getV2Equivalent(fullyQualified.getFullyQualifiedName()));
                 if (anImport.getAlias() != null) {
                     importAlias = anImport.getAlias();
                 }
@@ -135,21 +141,6 @@ public class ChangeSdkType extends Recipe {
         private static boolean isWildcard(String fullName) {
             return fullName.matches(V1_SERVICE_MODEL_WILD_CARD_CLASS_PATTERN) ||
                    fullName.matches(V1_SERVICE_WILD_CARD_CLASS_PATTERN);
-        }
-
-        private static boolean isV1Class(JavaType.FullyQualified fullyQualified) {
-            String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
-            if (shouldSkip(fullyQualifiedName)) {
-                log.info(() -> String.format("Skipping transformation for %s because it is not supported in the migration "
-                                             + "tooling at the moment", fullyQualifiedName));
-                return false;
-            }
-
-            return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
-        }
-
-        private static boolean shouldSkip(String fqcn) {
-            return PACKAGES_TO_SKIP.stream().anyMatch(fqcn::startsWith);
         }
 
         @Override
@@ -201,6 +192,7 @@ public class ChangeSdkType extends Recipe {
                 currentTree = ((TypedTree) tree).withType(updateType(((TypedTree) tree).getType()));
 
             } else if (tree instanceof JavaSourceFile) {
+                v1ImportsToV2Imports.keySet().forEach(i -> maybeRemoveImport(i));
                 currentTree = postVisitSourceFile((JavaSourceFile) tree, ctx, currentTree);
             }
 
@@ -210,36 +202,19 @@ public class ChangeSdkType extends Recipe {
         private J postVisitSourceFile(JavaSourceFile tree, ExecutionContext ctx, J currentTree) {
             JavaSourceFile sourceFile = tree;
 
+            if (oldTypeToNewType.isEmpty()) {
+                return sourceFile;
+            }
+
             for (Pair<JavaType.Class, JavaType> oldToNew : oldTypeToNewType.values()) {
                 JavaType.Class originalType = oldToNew.left();
                 JavaType targetType = oldToNew.right();
-                if (targetType instanceof JavaType.FullyQualified) {
-                    for (J.Import anImport : sourceFile.getImports()) {
-                        if (anImport.isStatic()) {
-                            continue;
-                        }
-
-                        JavaType maybeType = anImport.getQualid().getType();
-                        if (maybeType instanceof JavaType.FullyQualified) {
-                            JavaType.FullyQualified type = (JavaType.FullyQualified) maybeType;
-                            String fullyQualifiedName = originalType.getFullyQualifiedName();
-                            if (fullyQualifiedName.equals(type.getFullyQualifiedName())) {
-                                sourceFile = (JavaSourceFile) new RemoveImport<ExecutionContext>(fullyQualifiedName)
-                                    .visit(sourceFile, ctx, getCursor().getParentOrThrow());
-                            } else if (originalType.getOwningClass() != null &&
-                                       originalType.getOwningClass().getFullyQualifiedName()
-                                                   .equals(type.getFullyQualifiedName())) {
-                                sourceFile =
-                                    (JavaSourceFile) new RemoveImport<ExecutionContext>(
-                                        originalType.getOwningClass().getFullyQualifiedName())
-                                        .visit(sourceFile, ctx, getCursor().getParentOrThrow());
-                            }
-                        }
-                    }
-                }
-
                 JavaType.FullyQualified fullyQualifiedTarget = TypeUtils.asFullyQualified(targetType);
                 if (fullyQualifiedTarget != null) {
+                    if (!v1ImportsToV2Imports.containsKey(originalType.getFullyQualifiedName())) {
+                        continue;
+                    }
+
                     JavaType.FullyQualified owningClass = fullyQualifiedTarget.getOwningClass();
                     if (!topLevelClassnames.contains(getTopLevelClassName(fullyQualifiedTarget).getFullyQualifiedName())) {
                         if (owningClass != null) {
@@ -248,16 +223,11 @@ public class ChangeSdkType extends Recipe {
                         addImport(fullyQualifiedTarget);
                     }
                 }
-
-                if (sourceFile != null) {
-                    sourceFile = sourceFile.withImports(
-                        ListUtils.map(sourceFile.getImports(), i -> visitAndCast(i, ctx,
-                                                                                 super::visitImport)));
-                }
-
-                currentTree = sourceFile;
             }
 
+            sourceFile = sourceFile.withImports(
+                ListUtils.map(sourceFile.getImports(), i -> visitAndCast(i, ctx,
+                                                                         super::visitImport)));
             return removeWildcardImports(ctx, currentTree, sourceFile);
         }
 
@@ -334,7 +304,7 @@ public class ChangeSdkType extends Recipe {
             if (original != null && TypeUtils.isOfClassType(ident.getType(), original.getFullyQualifiedName())) {
                 String fullyQualifiedName = original.getFullyQualifiedName();
 
-                if (isV1Class(original)) {
+                if (isSupportedV1Class(original)) {
                     storeV1ClassMetadata(fullyQualifiedName);
                     JavaType.Class originalType = oldTypeToNewType.get(fullyQualifiedName).left();
                     String className = originalType.getClassName();
@@ -351,6 +321,11 @@ public class ChangeSdkType extends Recipe {
         }
 
         private void storeV1ClassMetadata(String currentFqcn) {
+            if (oldTypeToNewType.containsKey(currentFqcn)
+                || shouldSkip(currentFqcn)) {
+                return;
+            }
+
             JavaType.ShallowClass originalType = JavaType.ShallowClass.build(currentFqcn);
             String v2Equivalent = getV2Equivalent(currentFqcn);
 
@@ -366,7 +341,15 @@ public class ChangeSdkType extends Recipe {
             }
 
             JavaType.FullyQualified declaringType = method.getMethodType().getDeclaringType();
-            if (isV1Class(declaringType)) {
+            JavaType returnType = method.getMethodType().getReturnType();
+            if (isV1ClientClass(returnType) && isSupportedV1ClientClass(returnType)) {
+                if (returnType instanceof JavaType.FullyQualified) {
+                    String fullyQualifiedName = ((JavaType.FullyQualified) returnType).getFullyQualifiedName();
+                    storeV1ClassMetadata(fullyQualifiedName);
+                }
+            }
+
+            if (isSupportedV1Class(declaringType)) {
                 String fullyQualifiedName = declaringType.getFullyQualifiedName();
                 storeV1ClassMetadata(fullyQualifiedName);
 

@@ -1,0 +1,4 @@
+Class <software.amazon.awssdk.core.HttpChecksumConstant> does not reside in any package ['..internal..'] in (HttpChecksumConstant.java:0)
+Class <software.amazon.awssdk.core.checksums.Sha1Checksum> does not reside in any package ['..internal..'] in (Sha1Checksum.java:0)
+Class <software.amazon.awssdk.core.endpointdiscovery.providers.EndpointDiscoveryProvider> does not reside in any package ['..internal..'] in (EndpointDiscoveryProvider.java:0)
+Class <software.amazon.awssdk.core.endpointdiscovery.providers.ProfileEndpointDiscoveryProvider> does not reside in any package ['..internal..'] in (ProfileEndpointDiscoveryProvider.java:0)

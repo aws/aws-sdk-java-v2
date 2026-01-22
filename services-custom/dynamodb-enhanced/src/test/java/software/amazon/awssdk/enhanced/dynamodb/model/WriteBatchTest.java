@@ -15,14 +15,21 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.hamcrest.Matchers.not;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.Map;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +42,9 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
+import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
@@ -110,8 +119,8 @@ public class WriteBatchTest {
 
         Key partitionKey = Key.builder().partitionValue(fakeItem.getId()).build();
         DeleteItemEnhancedRequest deleteItemRequest = DeleteItemEnhancedRequest.builder()
-                                                                        .key(partitionKey)
-                                                                        .build();
+                                                                               .key(partitionKey)
+                                                                               .build();
 
         WriteBatch.Builder<FakeItem> builder = WriteBatch.builder(FakeItem.class);
 
@@ -132,6 +141,17 @@ public class WriteBatchTest {
         String errorMessageDeleteKeyFromItem = "A mappedTableResource is required to derive a key from the given keyItem";
         assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(fakeItem).build(),
                                                      errorMessageDeleteKeyFromItem);
+    }
+
+    @Test
+    public void test_write_batch_equalsAndHashcode() {
+
+        EqualsVerifier.forClass(WriteBatch.class)
+                      .withNonnullFields("tableName", "writeRequests")
+                      .withPrefabValues(WriteRequest.class,
+                                        WriteRequest.builder().putRequest(PutRequest.builder().build()).build(),
+                                        WriteRequest.builder().deleteRequest(DeleteRequest.builder().build()).build())
+                      .verify();
     }
 
 

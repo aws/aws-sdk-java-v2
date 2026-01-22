@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.xml;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -100,10 +102,20 @@ public class AwsXmlProtocolFactory {
      */
     public ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
         return XmlProtocolMarshaller.builder()
-                                    .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                    .endpoint(endpoint(clientConfiguration))
                                     .xmlGenerator(createGenerator(operationInfo))
                                     .operationInfo(operationInfo)
                                     .build();
+    }
+
+    private URI endpoint(SdkClientConfiguration clientConfiguration) {
+        ClientEndpointProvider endpointProvider = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        if (endpointProvider != null) {
+            return endpointProvider.clientEndpoint();
+        }
+
+        // Some old client versions may not use the endpoint provider. In that case, use the legacy endpoint field.
+        return clientConfiguration.option(SdkClientOption.ENDPOINT);
     }
 
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,

@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.query.auth.scheme;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -44,6 +45,11 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
      * Returns the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
      */
     Region region();
+
+    /**
+     * Returns the RegionSet. The regionSet parameter may be used with the "aws.auth#sigv4a" auth scheme.
+     */
+    RegionSet regionSet();
 
     /**
      * A param that defauls to true
@@ -79,6 +85,11 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
          * Set the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
          */
         Builder region(Region region);
+
+        /**
+         * Set the RegionSet. The regionSet parameter may be used with the "aws.auth#sigv4a" auth scheme.
+         */
+        Builder regionSet(RegionSet regionSet);
 
         /**
          * A param that defauls to true

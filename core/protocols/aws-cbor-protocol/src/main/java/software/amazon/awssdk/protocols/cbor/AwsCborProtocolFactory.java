@@ -28,6 +28,11 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.DefaultJsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.DefaultProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Protocol factory for AWS/CBOR protocols. Supports both JSON RPC and REST JSON versions of CBOR. Defaults to
@@ -37,13 +42,23 @@ import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 @SdkProtectedApi
 public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
 
+    private static final Lazy<ProtocolUnmarshallDependencies> PROTOCOL_UNMARSHALL_DEPENDENCIES_LAZY =
+        new Lazy<>(AwsCborProtocolFactory::newProtocolUnmarshallDependencies);
+
     /**
      * Content type resolver implementation for AWS_CBOR enabled services.
      */
     private static final JsonContentTypeResolver AWS_CBOR = new DefaultJsonContentTypeResolver("application/x-amz-cbor-");
 
+    /**
+     * Indicates whether CBOR is enabled for this factory. This is populated and build time and not longer checked against the
+     * system setting
+     */
+    private final boolean isSdkSystemSettingCborEnabled;
+
     private AwsCborProtocolFactory(Builder builder) {
         super(builder);
+        this.isSdkSystemSettingCborEnabled = builder.isSdkSystemSettingCborEnabled;
     }
 
     /**
@@ -74,7 +89,6 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
      */
     @Override
     protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-
         // If Cbor is disabled, getting the default timestamp format from parent class
         if (!isCborEnabled()) {
             return super.getDefaultTimestampFormats();
@@ -87,6 +101,10 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
     }
 
     private boolean isCborEnabled() {
+        return isSdkSystemSettingCborEnabled;
+    }
+
+    private static boolean isSdkSystemSettingCborEnabled() {
         return SdkSystemSetting.CBOR_ENABLED.getBooleanValueOrThrow();
     }
 
@@ -94,17 +112,45 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
         return new Builder();
     }
 
+    public static ProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
+        return PROTOCOL_UNMARSHALL_DEPENDENCIES_LAZY.getValue();
+    }
+
+    public static DefaultProtocolUnmarshallDependencies newProtocolUnmarshallDependencies() {
+        return DefaultProtocolUnmarshallDependencies
+            .builder()
+            .jsonUnmarshallerRegistry(JsonProtocolUnmarshaller.timestampFormatRegistryFactory(defaultFormats()))
+            .nodeValueFactory(JsonValueNodeFactory.DEFAULT)
+            .timestampFormats(defaultFormats())
+            .jsonFactory(AwsStructuredCborFactory.SDK_CBOR_FACTORY.getJsonFactory())
+            .build();
+    }
+
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS);
+        return Collections.unmodifiableMap(formats);
+
+    }
+
     /**
      * Builder for {@link AwsJsonProtocolFactory}.
      */
     public static final class Builder extends BaseAwsJsonProtocolFactory.Builder<Builder> {
 
+        private boolean isSdkSystemSettingCborEnabled = isSdkSystemSettingCborEnabled();
+
         private Builder() {
         }
 
         public AwsCborProtocolFactory build() {
+            if (this.isSdkSystemSettingCborEnabled) {
+                protocolUnmarshallDependencies(AwsCborProtocolFactory::defaultProtocolUnmarshallDependencies);
+            } else {
+                protocolUnmarshallDependencies(JsonProtocolUnmarshaller::defaultProtocolUnmarshallDependencies);
+            }
             return new AwsCborProtocolFactory(this);
         }
-
     }
 }

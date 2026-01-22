@@ -446,6 +446,24 @@
       ],
       "documentation":"<p>Describes the status of importing resources to an application version.</p> <note> <p>If you get a 404 error with <code>ResourceImportStatusNotFoundAppMetadataException</code>, you must call <code>importResourcesToDraftAppVersion</code> after creating the application and before calling <code>describeDraftAppVersionResourcesImportStatus</code> to obtain the status.</p> </note>"
     },
+    "DescribeMetricsExport":{
+      "name":"DescribeMetricsExport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/describe-metrics-export",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeMetricsExportRequest"},
+      "output":{"shape":"DescribeMetricsExportResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Describes the metrics of the application configuration being exported.</p>"
+    },
     "DescribeResiliencyPolicy":{
       "name":"DescribeResiliencyPolicy",
       "http":{
@@ -552,7 +570,7 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Indicates the list of resource drifts that were detected while running an assessment.</p>"
+      "documentation":"<p>List of resource drifts that were detected while running an assessment.</p>"
     },
     "ListAppAssessments":{
       "name":"ListAppAssessments",
@@ -715,6 +733,23 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>Lists your Resilience Hub applications.</p> <note> <p>You can filter applications using only one filter at a time or without using any filter. If you try to filter applications using multiple filters, you will get the following error:</p> <p> <code>An error occurred (ValidationException) when calling the ListApps operation: Only one filter is supported for this operation.</code> </p> </note>"
+    },
+    "ListMetrics":{
+      "name":"ListMetrics",
+      "http":{
+        "method":"POST",
+        "requestUri":"/list-metrics",
+        "responseCode":200
+      },
+      "input":{"shape":"ListMetricsRequest"},
+      "output":{"shape":"ListMetricsResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Lists the metrics that can be exported.</p>"
     },
     "ListRecommendationTemplates":{
       "name":"ListRecommendationTemplates",
@@ -976,6 +1011,25 @@
       ],
       "documentation":"<p>Creates a new application assessment for an application.</p>"
     },
+    "StartMetricsExport":{
+      "name":"StartMetricsExport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/start-metrics-export",
+        "responseCode":200
+      },
+      "input":{"shape":"StartMetricsExportRequest"},
+      "output":{"shape":"StartMetricsExportResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Initiates the export task of metrics.</p>"
+    },
     "StartResourceGroupingRecommendationTask":{
       "name":"StartResourceGroupingRecommendationTask",
       "http":{
@@ -1159,7 +1213,7 @@
         },
         "entries":{
           "shape":"AcceptGroupingRecommendationEntries",
-          "documentation":"<p>Indicates the list of resource grouping recommendations you want to include in your application.</p>"
+          "documentation":"<p>List of resource grouping recommendations you want to include in your application.</p>"
         }
       }
     },
@@ -1176,7 +1230,7 @@
         },
         "failedEntries":{
           "shape":"FailedGroupingRecommendationEntries",
-          "documentation":"<p>Indicates the list of resource grouping recommendations that could not be included in your application.</p>"
+          "documentation":"<p>List of resource grouping recommendations that could not be included in your application.</p>"
         }
       }
     },
@@ -1241,6 +1295,20 @@
       "member":{"shape":"String1024"},
       "max":10,
       "min":1
+    },
+    "Alarm":{
+      "type":"structure",
+      "members":{
+        "alarmArn":{
+          "shape":"Arn",
+          "documentation":"<p>Amazon Resource Name (ARN) of the Amazon CloudWatch alarm.</p>"
+        },
+        "source":{
+          "shape":"String255",
+          "documentation":"<p>Indicates the source of the Amazon CloudWatch alarm. That is, it indicates if the alarm was created using Resilience Hub recommendation (<code>AwsResilienceHub</code>), or if you had created the alarm in Amazon CloudWatch (<code>Customer</code>).</p>"
+        }
+      },
+      "documentation":"<p>Indicates the Amazon CloudWatch alarm detected while running an assessment.</p>"
     },
     "AlarmRecommendation":{
       "type":"structure",
@@ -1332,13 +1400,17 @@
           "shape":"AppAssessmentScheduleType",
           "documentation":"<p>Assessment execution schedule with 'Daily' or 'Disabled' values. </p>"
         },
+        "awsApplicationArn":{
+          "shape":"Arn",
+          "documentation":"<p>Amazon Resource Name (ARN) of Resource Groups group that is integrated with an AppRegistry application. For more information about ARNs, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html\"> Amazon Resource Names (ARNs)</a> in the <i>Amazon Web Services General Reference</i> guide.</p>"
+        },
         "complianceStatus":{
           "shape":"AppComplianceStatusType",
           "documentation":"<p>Current status of compliance for the resiliency policy.</p>"
         },
         "creationTime":{
           "shape":"TimeStamp",
-          "documentation":"<p>Date and time when the app was created.</p>"
+          "documentation":"<p>Date and time when the application was created.</p>"
         },
         "description":{
           "shape":"EntityDescription",
@@ -1473,7 +1545,7 @@
         },
         "summary":{
           "shape":"AssessmentSummary",
-          "documentation":"<p>Indicates a concise summary that provides an overview of the Resilience Hub assessment.</p>"
+          "documentation":"<p>Indicates the AI-generated summary for the Resilience Hub assessment, providing a concise overview that highlights the top risks and recommendations.</p> <note> <p>This property is available only in the US East (N. Virginia) Region.</p> </note>"
         },
         "tags":{
           "shape":"TagMap",
@@ -1704,6 +1776,10 @@
           "shape":"AppAssessmentScheduleType",
           "documentation":"<p> Assessment execution schedule with 'Daily' or 'Disabled' values. </p>"
         },
+        "awsApplicationArn":{
+          "shape":"Arn",
+          "documentation":"<p>Amazon Resource Name (ARN) of Resource Groups group that is integrated with an AppRegistry application. For more information about ARNs, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html\"> Amazon Resource Names (ARNs)</a> in the <i>Amazon Web Services General Reference</i> guide.</p>"
+        },
         "complianceStatus":{
           "shape":"AppComplianceStatusType",
           "documentation":"<p>The current status of compliance for the resiliency policy.</p>"
@@ -1809,7 +1885,7 @@
       "members":{
         "appComponents":{
           "shape":"AppComponentNameList",
-          "documentation":"<p>Indicates the Application Components (AppComponents) that were assessed as part of the assessnent and are associated with the identified risk and recommendation.</p> <note> <p>This property is available only in the US East (N. Virginia) Region.</p> </note>"
+          "documentation":"<p>Indicates the Application Components (AppComponents) that were assessed as part of the assessment and are associated with the identified risk and recommendation.</p> <note> <p>This property is available only in the US East (N. Virginia) Region.</p> </note>"
         },
         "recommendation":{
           "shape":"String255",
@@ -1929,10 +2005,13 @@
       "required":[
         "entryId",
         "excluded",
-        "item",
         "referenceId"
       ],
       "members":{
+        "appComponentId":{
+          "shape":"EntityName255",
+          "documentation":"<p>Indicates the identifier of an AppComponent.</p>"
+        },
         "entryId":{
           "shape":"String255",
           "documentation":"<p>An identifier for an entry in this batch that is used to communicate the result.</p> <note> <p>The <code>entryId</code>s of a batch request need to be unique within a request.</p> </note>"
@@ -1964,7 +2043,7 @@
       "type":"string",
       "max":63,
       "min":1,
-      "pattern":"^[A-za-z0-9_.-]{0,63}$"
+      "pattern":"^[A-Za-z0-9_.-]{0,63}$"
     },
     "ComplianceDrift":{
       "type":"structure",
@@ -2055,6 +2134,45 @@
     "ComponentRecommendationList":{
       "type":"list",
       "member":{"shape":"ComponentRecommendation"}
+    },
+    "Condition":{
+      "type":"structure",
+      "required":[
+        "field",
+        "operator"
+      ],
+      "members":{
+        "field":{
+          "shape":"String255",
+          "documentation":"<p>Indicates the field in the metric.</p>"
+        },
+        "operator":{
+          "shape":"ConditionOperatorType",
+          "documentation":"<p>Indicates the type of operator or comparison to be used when evaluating a condition against the specified field. </p>"
+        },
+        "value":{
+          "shape":"String255",
+          "documentation":"<p>Indicates the value or data against which a condition is evaluated.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the condition based on which you want to filter the metrics.</p>"
+    },
+    "ConditionList":{
+      "type":"list",
+      "member":{"shape":"Condition"},
+      "max":50,
+      "min":0
+    },
+    "ConditionOperatorType":{
+      "type":"string",
+      "enum":[
+        "Equals",
+        "NotEquals",
+        "GreaterThen",
+        "GreaterOrEquals",
+        "LessThen",
+        "LessOrEquals"
+      ]
     },
     "ConfigRecommendation":{
       "type":"structure",
@@ -2181,6 +2299,10 @@
         "assessmentSchedule":{
           "shape":"AppAssessmentScheduleType",
           "documentation":"<p> Assessment execution schedule with 'Daily' or 'Disabled' values. </p>"
+        },
+        "awsApplicationArn":{
+          "shape":"Arn",
+          "documentation":"<p>Amazon Resource Name (ARN) of Resource Groups group that is integrated with an AppRegistry application. For more information about ARNs, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html\"> Amazon Resource Names (ARNs)</a> in the <i>Amazon Web Services General Reference</i> guide.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -2427,11 +2549,11 @@
         },
         "policyDescription":{
           "shape":"EntityDescription",
-          "documentation":"<p>The description for the policy.</p>"
+          "documentation":"<p>Description of the resiliency policy.</p>"
         },
         "policyName":{
           "shape":"EntityName",
-          "documentation":"<p>The name of the policy</p>"
+          "documentation":"<p>Name of the resiliency policy.</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -3024,9 +3146,13 @@
           "shape":"EntityVersion",
           "documentation":"<p>The version of the application.</p>"
         },
+        "errorDetails":{
+          "shape":"ErrorDetailList",
+          "documentation":"<p>List of errors that were encountered while importing resources.</p>"
+        },
         "errorMessage":{
           "shape":"String500",
-          "documentation":"<p>The returned error message for the request.</p>"
+          "documentation":"<p>The error message returned for the resource request.</p>"
         },
         "status":{
           "shape":"ResourceImportStatusType",
@@ -3035,6 +3161,41 @@
         "statusChangeTime":{
           "shape":"TimeStamp",
           "documentation":"<p>The time when the status last changed.</p>"
+        }
+      }
+    },
+    "DescribeMetricsExportRequest":{
+      "type":"structure",
+      "required":["metricsExportId"],
+      "members":{
+        "metricsExportId":{
+          "shape":"String255",
+          "documentation":"<p>Identifier of the metrics export task.</p>"
+        }
+      }
+    },
+    "DescribeMetricsExportResponse":{
+      "type":"structure",
+      "required":[
+        "metricsExportId",
+        "status"
+      ],
+      "members":{
+        "errorMessage":{
+          "shape":"String500",
+          "documentation":"<p>Explains the error that occurred while exporting the metrics.</p>"
+        },
+        "exportLocation":{
+          "shape":"S3Location",
+          "documentation":"<p>Specifies the name of the Amazon S3 bucket where the exported metrics is stored.</p>"
+        },
+        "metricsExportId":{
+          "shape":"String255",
+          "documentation":"<p>Identifier for the metrics export task.</p>"
+        },
+        "status":{
+          "shape":"MetricsExportStatusType",
+          "documentation":"<p>Indicates the status of the metrics export task.</p>"
         }
       }
     },
@@ -3068,7 +3229,7 @@
         },
         "groupingId":{
           "shape":"String255",
-          "documentation":"<p>Indicates the identifier of the grouping recommendation task.</p>"
+          "documentation":"<p>Identifier of the grouping recommendation task.</p>"
         }
       }
     },
@@ -3081,11 +3242,11 @@
       "members":{
         "errorMessage":{
           "shape":"String500",
-          "documentation":"<p>Indicates the error that occurred while generating a grouping recommendation.</p>"
+          "documentation":"<p>Error that occurred while generating a grouping recommendation.</p>"
         },
         "groupingId":{
           "shape":"String255",
-          "documentation":"<p>Indicates the identifier of the grouping recommendation task.</p>"
+          "documentation":"<p>Identifier of the grouping recommendation task.</p>"
         },
         "status":{
           "shape":"ResourcesGroupingRecGenStatusType",
@@ -3263,6 +3424,20 @@
       "type":"string",
       "pattern":"^\\S{1,50}$"
     },
+    "ErrorDetail":{
+      "type":"structure",
+      "members":{
+        "errorMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Provides additional information about the error.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the error that was encountered while importing a resource.</p>"
+    },
+    "ErrorDetailList":{
+      "type":"list",
+      "member":{"shape":"ErrorDetail"}
+    },
     "ErrorMessage":{
       "type":"string",
       "max":500,
@@ -3320,6 +3495,20 @@
         "ComplexityOfImplementation"
       ]
     },
+    "Experiment":{
+      "type":"structure",
+      "members":{
+        "experimentArn":{
+          "shape":"String255",
+          "documentation":"<p>Amazon Resource Name (ARN) of the FIS experiment.</p>"
+        },
+        "experimentTemplateId":{
+          "shape":"String255",
+          "documentation":"<p>Identifier of the FIS experiment template.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the FIS experiment detected while running an assessment.</p>"
+    },
     "FailedGroupingRecommendationEntries":{
       "type":"list",
       "member":{"shape":"FailedGroupingRecommendationEntry"}
@@ -3359,6 +3548,37 @@
         }
       },
       "documentation":"<p>Defines a failure policy.</p>"
+    },
+    "Field":{
+      "type":"structure",
+      "required":["name"],
+      "members":{
+        "aggregation":{
+          "shape":"FieldAggregationType",
+          "documentation":"<p>(Optional) Indicates the type of aggregation or summary operation (such as Sum, Average, and so on) to be performed on a particular field or set of data.</p>"
+        },
+        "name":{
+          "shape":"String255",
+          "documentation":"<p>Name of the field.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the field or attribute of a resource or data structure on which a condition is being applied or evaluated.</p>"
+    },
+    "FieldAggregationType":{
+      "type":"string",
+      "enum":[
+        "Min",
+        "Max",
+        "Sum",
+        "Avg",
+        "Count"
+      ]
+    },
+    "FieldList":{
+      "type":"list",
+      "member":{"shape":"Field"},
+      "max":50,
+      "min":0
     },
     "GroupingAppComponent":{
       "type":"structure",
@@ -3641,7 +3861,7 @@
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>Indicates the maximum number of compliance drifts requested.</p>"
+          "documentation":"<p>Maximum number of compliance drifts requested.</p>"
         },
         "nextToken":{
           "shape":"NextToken",
@@ -3673,7 +3893,7 @@
         },
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>Indicates the maximum number of drift results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>"
+          "documentation":"<p>Maximum number of drift results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>"
         },
         "nextToken":{
           "shape":"NextToken",
@@ -4053,9 +4273,15 @@
           "location":"querystring",
           "locationName":"appArn"
         },
+        "awsApplicationArn":{
+          "shape":"Arn",
+          "documentation":"<p>Amazon Resource Name (ARN) of Resource Groups group that is integrated with an AppRegistry application. For more information about ARNs, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html\"> Amazon Resource Names (ARNs)</a> in the <i>Amazon Web Services General Reference</i> guide.</p>",
+          "location":"querystring",
+          "locationName":"awsApplicationArn"
+        },
         "fromLastAssessmentTime":{
           "shape":"TimeStamp",
-          "documentation":"<p>Indicates the lower limit of the range that is used to filter applications based on their last assessment times.</p>",
+          "documentation":"<p>Lower limit of the range that is used to filter applications based on their last assessment times.</p>",
           "location":"querystring",
           "locationName":"fromLastAssessmentTime"
         },
@@ -4085,7 +4311,7 @@
         },
         "toLastAssessmentTime":{
           "shape":"TimeStamp",
-          "documentation":"<p>Indicates the upper limit of the range that is used to filter the applications based on their last assessment times.</p>",
+          "documentation":"<p>Upper limit of the range that is used to filter the applications based on their last assessment times.</p>",
           "location":"querystring",
           "locationName":"toLastAssessmentTime"
         }
@@ -4102,6 +4328,49 @@
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>Token for the next set of results, or null if there are no more results.</p>"
+        }
+      }
+    },
+    "ListMetricsRequest":{
+      "type":"structure",
+      "members":{
+        "conditions":{
+          "shape":"ConditionList",
+          "documentation":"<p>Indicates the list of all the conditions that were applied on the metrics.</p>"
+        },
+        "dataSource":{
+          "shape":"String255",
+          "documentation":"<p>Indicates the data source of the metrics.</p>"
+        },
+        "fields":{
+          "shape":"FieldList",
+          "documentation":"<p>Indicates the list of fields in the data source.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>Maximum number of results to include in the response. If more results exist than the specified <code>MaxResults</code> value, a token is included in the response so that the remaining results can be retrieved.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Null, or the token from a previous call to get the next set of results.</p>"
+        },
+        "sorts":{
+          "shape":"SortList",
+          "documentation":"<p>(Optional) Indicates the order in which you want to sort the fields in the metrics. By default, the fields are sorted in the ascending order.</p>"
+        }
+      }
+    },
+    "ListMetricsResponse":{
+      "type":"structure",
+      "required":["rows"],
+      "members":{
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for the next set of results, or null if there are no more results.</p>"
+        },
+        "rows":{
+          "shape":"RowList",
+          "documentation":"<p>Specifies all the list of metric values for each row of metrics.</p>"
         }
       }
     },
@@ -4182,7 +4451,7 @@
         },
         "policyName":{
           "shape":"EntityName",
-          "documentation":"<p>The name of the policy</p>",
+          "documentation":"<p>Name of the resiliency policy.</p>",
           "location":"querystring",
           "locationName":"policyName"
         }
@@ -4443,6 +4712,15 @@
       "max":100,
       "min":1
     },
+    "MetricsExportStatusType":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "InProgress",
+        "Failed",
+        "Success"
+      ]
+    },
     "NextToken":{
       "type":"string",
       "pattern":"^\\S{1,2000}$"
@@ -4457,7 +4735,7 @@
         },
         "invokerRoleName":{
           "shape":"IamRoleName",
-          "documentation":"<p>Existing Amazon Web Services IAM role name in the primary Amazon Web Services account that will be assumed by Resilience Hub Service Principle to obtain a read-only access to your application resources while running an assessment.</p> <note> <ul> <li> <p>You must have <code>iam:passRole</code> permission for this role while creating or updating the application.</p> </li> <li> <p>Currently, <code>invokerRoleName</code> accepts only <code>[A-Za-z0-9_+=,.@-]</code> characters.</p> </li> </ul> </note>"
+          "documentation":"<p>Existing Amazon Web Services IAM role name in the primary Amazon Web Services account that will be assumed by Resilience Hub Service Principle to obtain a read-only access to your application resources while running an assessment. </p> <p>If your IAM role includes a path, you must include the path in the <code>invokerRoleName</code> parameter. For example, if your IAM role's ARN is <code>arn:aws:iam:123456789012:role/my-path/role-name</code>, you should pass <code>my-path/role-name</code>. </p> <note> <ul> <li> <p>You must have <code>iam:passRole</code> permission for this role while creating or updating the application.</p> </li> <li> <p>Currently, <code>invokerRoleName</code> accepts only <code>[A-Za-z0-9_+=,.@-]</code> characters.</p> </li> </ul> </note>"
         },
         "type":{
           "shape":"PermissionModelType",
@@ -4677,6 +4955,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies if the recommendation has already been implemented.</p>"
         },
+        "discoveredAlarm":{
+          "shape":"Alarm",
+          "documentation":"<p>Indicates the previously implemented Amazon CloudWatch alarm discovered by Resilience Hub.</p>"
+        },
         "excludeReason":{
           "shape":"ExcludeRecommendationReason",
           "documentation":"<p>Indicates the reason for excluding an operational recommendation.</p>"
@@ -4684,6 +4966,10 @@
         "excluded":{
           "shape":"BooleanOptional",
           "documentation":"<p>Indicates if an operational recommendation item is excluded.</p>"
+        },
+        "latestDiscoveredExperiment":{
+          "shape":"Experiment",
+          "documentation":"<p>Indicates the experiment created in FIS that was discovered by Resilience Hub, which matches the recommendation.</p>"
         },
         "resourceId":{
           "shape":"String500",
@@ -4836,7 +5122,7 @@
         },
         "entries":{
           "shape":"RejectGroupingRecommendationEntries",
-          "documentation":"<p>Indicates the list of resource grouping recommendations you have selected to exclude from your application.</p>"
+          "documentation":"<p>List of resource grouping recommendations you have selected to exclude from your application.</p>"
         }
       }
     },
@@ -4853,7 +5139,7 @@
         },
         "failedEntries":{
           "shape":"FailedGroupingRecommendationEntries",
-          "documentation":"<p>Indicates the list of resource grouping recommendations that failed to get excluded in your application.</p>"
+          "documentation":"<p>List of resource grouping recommendations that failed to get excluded in your application.</p>"
         }
       }
     },
@@ -4947,7 +5233,7 @@
         },
         "policyDescription":{
           "shape":"EntityDescription",
-          "documentation":"<p>The description for the policy.</p>"
+          "documentation":"<p>Description of the resiliency policy.</p>"
         },
         "policyName":{
           "shape":"EntityName",
@@ -5260,6 +5546,14 @@
       "type":"integer",
       "box":true
     },
+    "Row":{
+      "type":"list",
+      "member":{"shape":"String255"}
+    },
+    "RowList":{
+      "type":"list",
+      "member":{"shape":"Row"}
+    },
     "S3Location":{
       "type":"structure",
       "members":{
@@ -5378,6 +5672,27 @@
       "type":"string",
       "enum":["SSM"]
     },
+    "Sort":{
+      "type":"structure",
+      "required":["field"],
+      "members":{
+        "ascending":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Indicates the name or identifier of the field or attribute that should be used as the basis for sorting the metrics.</p>"
+        },
+        "field":{
+          "shape":"String255",
+          "documentation":"<p>Indicates the order in which you want to sort the metrics. By default, the list is sorted in ascending order. To sort the list in descending order, set this field to False.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the sorting order of the fields in the metrics.</p>"
+    },
+    "SortList":{
+      "type":"list",
+      "member":{"shape":"Sort"},
+      "max":50,
+      "min":0
+    },
     "SpecReferenceId":{
       "type":"string",
       "max":500,
@@ -5424,6 +5739,37 @@
         }
       }
     },
+    "StartMetricsExportRequest":{
+      "type":"structure",
+      "members":{
+        "bucketName":{
+          "shape":"EntityName",
+          "documentation":"<p>(Optional) Specifies the name of the Amazon Simple Storage Service bucket where the exported metrics will be stored.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Used for an idempotency token. A client token is a unique, case-sensitive string of up to 64 ASCII characters. You should not reuse the same client token for other API requests.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartMetricsExportResponse":{
+      "type":"structure",
+      "required":[
+        "metricsExportId",
+        "status"
+      ],
+      "members":{
+        "metricsExportId":{
+          "shape":"String255",
+          "documentation":"<p>Identifier of the metrics export task.</p>"
+        },
+        "status":{
+          "shape":"MetricsExportStatusType",
+          "documentation":"<p>Indicates the status of the metrics export task.</p>"
+        }
+      }
+    },
     "StartResourceGroupingRecommendationTaskRequest":{
       "type":"structure",
       "required":["appArn"],
@@ -5448,11 +5794,11 @@
         },
         "errorMessage":{
           "shape":"String500",
-          "documentation":"<p>Indicates the error that occurred while executing a grouping recommendation task.</p>"
+          "documentation":"<p>Error that occurred while executing a grouping recommendation task.</p>"
         },
         "groupingId":{
           "shape":"String255",
-          "documentation":"<p>Indicates the identifier of the grouping recommendation task.</p>"
+          "documentation":"<p>Identifier of the grouping recommendation task.</p>"
         },
         "status":{
           "shape":"ResourcesGroupingRecGenStatusType",
@@ -5569,6 +5915,10 @@
       "type":"structure",
       "required":["referenceId"],
       "members":{
+        "appComponentId":{
+          "shape":"EntityName255",
+          "documentation":"<p>Indicates the identifier of the AppComponent.</p>"
+        },
         "appComponentName":{
           "shape":"EntityId",
           "documentation":"<p>Name of the Application Component.</p>"
@@ -5940,10 +6290,13 @@
       "required":[
         "entryId",
         "excluded",
-        "item",
         "referenceId"
       ],
       "members":{
+        "appComponentId":{
+          "shape":"EntityName255",
+          "documentation":"<p>Indicates the identifier of the AppComponent.</p>"
+        },
         "entryId":{
           "shape":"String255",
           "documentation":"<p>An identifier for an entry in this batch that is used to communicate the result.</p> <note> <p>The <code>entryId</code>s of a batch request need to be unique within a request.</p> </note>"
@@ -5977,7 +6330,7 @@
         },
         "policy":{
           "shape":"DisruptionPolicy",
-          "documentation":"<p>The type of resiliency policy to be created, including the recovery time objective (RTO) and recovery point objective (RPO) in seconds.</p>"
+          "documentation":"<p>Resiliency policy to be created, including the recovery time objective (RTO) and recovery point objective (RPO) in seconds.</p>"
         },
         "policyArn":{
           "shape":"Arn",
@@ -5985,11 +6338,11 @@
         },
         "policyDescription":{
           "shape":"EntityDescription",
-          "documentation":"<p>The description for the policy.</p>"
+          "documentation":"<p>Description of the resiliency policy.</p>"
         },
         "policyName":{
           "shape":"EntityName",
-          "documentation":"<p>The name of the policy</p>"
+          "documentation":"<p>Name of the resiliency policy.</p>"
         },
         "tier":{
           "shape":"ResiliencyPolicyTier",
@@ -6003,7 +6356,7 @@
       "members":{
         "policy":{
           "shape":"ResiliencyPolicy",
-          "documentation":"<p>The type of resiliency policy that was updated, including the recovery time objective (RTO) and recovery point objective (RPO) in seconds.</p>"
+          "documentation":"<p>The resiliency policy that was updated, including the recovery time objective (RTO) and recovery point objective (RPO) in seconds.</p>"
         }
       }
     },

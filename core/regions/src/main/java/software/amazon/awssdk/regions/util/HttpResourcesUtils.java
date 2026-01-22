@@ -109,9 +109,7 @@ public final class HttpResourcesUtils {
 
         while (true) {
             try {
-                HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider.endpoint(),
-                                                                                 endpointProvider.headers(),
-                                                                                 method);
+                HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider, method);
 
                 int statusCode = connection.getResponseCode();
 

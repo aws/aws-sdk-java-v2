@@ -35,6 +35,9 @@ public final class SimpleTypePathMarshaller {
     public static final JsonMarshaller<Short> SHORT =
             new SimplePathMarshaller<>(ValueToStringConverter.FROM_SHORT, PathMarshaller.NON_GREEDY);
 
+    public static final JsonMarshaller<Byte> BYTE =
+        new SimplePathMarshaller<>(ValueToStringConverter.FROM_BYTE, PathMarshaller.NON_GREEDY);
+
     /**
      * Marshallers for Strings bound to a greedy path param. No URL encoding is done on the string
      * so that it preserves the path structure.

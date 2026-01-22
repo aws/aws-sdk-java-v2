@@ -18,6 +18,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.ChangeConfigTypes
 displayName: Change config related classes from v1 to v2
+description: Change config related classes from v1 to v2.
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.ClientConfiguration withRequestTimeout(int)
@@ -148,3 +149,16 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.retry.RetryMode
       newFullyQualifiedTypeName: software.amazon.awssdk.core.retry.RetryMode
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.AmazonWebServiceClient
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.AwsClient
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsSyncClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsAsyncClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder

@@ -15,6 +15,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.EnumGettersToV2
 displayName: Change v1 enum getters to v2
+description: Change v1 enum getters to v2.
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.sqs.model.CreateQueueRequest getAttributes()

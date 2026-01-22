@@ -15,29 +15,28 @@
 
 package foo.bar;
 
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.SqsException;
-import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
-import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
+import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 public class Application {
 
@@ -75,7 +74,7 @@ public class Application {
                 exception.awsErrorDetails().rawResponse().asUtf8String()));
         } catch (AwsServiceException exception) {
             System.out.println(String.format("Error message: %s. Service Name: %s",
-                                             exception.awsErrorDetails().errorMessage(), exception.awsErrorDetails().serviceName()));
+                exception.awsErrorDetails().errorMessage(), exception.awsErrorDetails().serviceName()));
         } catch (SdkException exception) {
             System.out.println("Error message " + exception.getMessage());
         }
@@ -110,13 +109,22 @@ public class Application {
         return result;
     }
 
-    private static void createBucket(S3Client s3, String bucket) {
-        s3.createBucket(CreateBucketRequest.builder().bucket(bucket)
-            .build());
+    void dateToInstant(Date start, Date end) {
+        GetMetricStatisticsRequest getMetricStatisticsRequest = GetMetricStatisticsRequest.builder()
+            .startTime(start.toInstant())
+            .endTime(end.toInstant())
+            .build();
+
+        GetMetricStatisticsRequest getMetricStatisticsRequest2 = GetMetricStatisticsRequest.builder()
+            .build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().startTime(start.toInstant()).build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().endTime(end.toInstant()).build();
     }
 
-    private static void deleteBucket(S3Client s3, String bucket) {
-        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket)
-            .build());
+    void pojoSettersAfterCreation() {
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+            .build();
+        sendMessageRequest = sendMessageRequest.toBuilder().messageGroupId("groupId").build();
+        sendMessageRequest = sendMessageRequest.toBuilder().queueUrl("queueUrl").build();
     }
 }

@@ -1,0 +1,48 @@
+{
+    "version": "2.27.24",
+    "date": "2024-09-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Adds AV1 Codec support, SRT ouputs, and MediaLive Anywhere support."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Amazon Bedrock Knowledge Bases now supports using inference profiles to increase throughput and improve resilience."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Amazon Bedrock Knowledge Bases now supports using inference profiles to increase throughput and improve resilience."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Added KMS_DSSE to EncryptionType"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add support for new statistic types in GetFindingsStatistics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Support new Polly voice engines in VoiceSettings: long-form and generative"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

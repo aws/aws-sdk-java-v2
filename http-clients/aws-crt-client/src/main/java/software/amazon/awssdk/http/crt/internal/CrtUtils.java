@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRE
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.time.Duration;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 @SdkInternalApi
 public final class CrtUtils {
     public static final int CRT_TLS_NEGOTIATION_ERROR_CODE = 1029;
+    public static final int CRT_SOCKET_TIMEOUT = 1048;
 
     private CrtUtils() {
     }
@@ -54,9 +56,12 @@ public final class CrtUtils {
         Throwable toThrow = new IOException("An exception occurred when acquiring a connection", throwable);
         if (throwable instanceof HttpException) {
             HttpException httpException = (HttpException) throwable;
+            int httpErrorCode = httpException.getErrorCode();
 
-            if (httpException.getErrorCode() == CRT_TLS_NEGOTIATION_ERROR_CODE) {
+            if (httpErrorCode == CRT_TLS_NEGOTIATION_ERROR_CODE) {
                 toThrow = new SSLHandshakeException(httpException.getMessage());
+            } else if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
+                toThrow = new ConnectException(httpException.getMessage());
             }
         }
 

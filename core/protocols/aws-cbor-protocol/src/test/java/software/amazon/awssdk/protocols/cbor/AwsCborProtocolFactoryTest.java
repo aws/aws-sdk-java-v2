@@ -22,22 +22,16 @@ import static software.amazon.awssdk.core.traits.TimestampFormatTrait.Format.UNI
 import static software.amazon.awssdk.core.traits.TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS;
 
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class AwsCborProtocolFactoryTest {
 
-    private static AwsCborProtocolFactory factory;
-
-    @BeforeAll
-    public static void setup() {
-        factory = AwsCborProtocolFactory.builder().build();
-    }
-
     @Test
     public void defaultTimestampFormats_cborEnabled() {
+        AwsCborProtocolFactory factory = AwsCborProtocolFactory.builder().build();
         Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats = factory.getDefaultTimestampFormats();
         assertThat(defaultTimestampFormats.get(MarshallLocation.HEADER)).isEqualTo(RFC_822);
         assertThat(defaultTimestampFormats.get(MarshallLocation.PAYLOAD)).isEqualTo(UNIX_TIMESTAMP_MILLIS);
@@ -45,13 +39,12 @@ public class AwsCborProtocolFactoryTest {
 
     @Test
     public void defaultTimestampFormats_cborDisabled() {
-        System.setProperty(CBOR_ENABLED.property(), "false");
-        try {
+        EnvironmentVariableHelper.run(helper -> {
+            helper.set(CBOR_ENABLED, "false");
+            AwsCborProtocolFactory factory = AwsCborProtocolFactory.builder().build();
             Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats = factory.getDefaultTimestampFormats();
             assertThat(defaultTimestampFormats.get(MarshallLocation.HEADER)).isEqualTo(RFC_822);
             assertThat(defaultTimestampFormats.get(MarshallLocation.PAYLOAD)).isEqualTo(UNIX_TIMESTAMP);
-        } finally {
-            System.clearProperty(CBOR_ENABLED.property());
-        }
+        });
     }
 }

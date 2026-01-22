@@ -39,6 +39,7 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
@@ -76,6 +77,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     private final NettyConfiguration configuration;
     private final Protocol protocol;
+    private final ProtocolNegotiation protocolNegotiation;
     private final long maxStreams;
     private final Duration healthCheckPingPeriod;
     private final int initialWindowSize;
@@ -88,13 +90,14 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
+        this.protocolNegotiation = builder.protocolNegotiation;
         this.maxStreams = builder.maxStreams;
         this.healthCheckPingPeriod = builder.healthCheckPingPeriod;
         this.initialWindowSize = builder.initialWindowSize;
         this.sslProvider = builder.sslProvider;
         this.proxyConfiguration = builder.proxyConfiguration;
         this.bootstrapProvider = createBootStrapProvider.apply(builder);
-        this.sslContextProvider = new SslContextProvider(configuration, protocol, sslProvider);
+        this.sslContextProvider = new SslContextProvider(configuration, protocol, protocolNegotiation, sslProvider);
         this.useNonBlockingDnsResolver = builder.useNonBlockingDnsResolver;
     }
 
@@ -126,6 +129,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
 
         ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(protocol,
+                                                                                        protocolNegotiation,
                                                                                         sslContext,
                                                                                         sslProvider,
                                                                                         maxStreams,
@@ -282,6 +286,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private SdkEventLoopGroup sdkEventLoopGroup;
         private NettyConfiguration configuration;
         private Protocol protocol;
+        private ProtocolNegotiation protocolNegotiation;
         private long maxStreams;
         private int initialWindowSize;
         private Duration healthCheckPingPeriod;
@@ -309,6 +314,11 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder protocol(Protocol protocol) {
             this.protocol = protocol;
+            return this;
+        }
+
+        public Builder protocolNegotiation(ProtocolNegotiation protocolNegotiation) {
+            this.protocolNegotiation = protocolNegotiation;
             return this;
         }
 

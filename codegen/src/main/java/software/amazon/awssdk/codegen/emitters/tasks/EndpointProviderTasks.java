@@ -53,7 +53,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         tasks.add(generateParams());
         if (shouldGenerateCompiledEndpointRules()) {
             tasks.add(generateDefaultProvider2());
-            tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+            tasks.add(new RulesEngineRuntimeLiteGeneratorTask(generatorTaskParams));
             tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
         } else {
             tasks.add(generateDefaultProvider());

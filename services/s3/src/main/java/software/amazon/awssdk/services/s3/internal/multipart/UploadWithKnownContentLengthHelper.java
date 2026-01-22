@@ -62,7 +62,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
-        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, partSizeInBytes, multipartUploadThresholdInBytes,
+        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
     }
 
@@ -137,6 +137,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                .partSize(partSize)
                                                                .uploadId(uploadId)
                                                                .numPartsCompleted(numPartsCompleted)
+                                                               .expectedNumParts(partCount)
                                                                .build();
 
         splitAndSubscribe(mpuRequestContext, returnFuture);
@@ -170,6 +171,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                    .partSize(resumeToken.partSize())
                                                                    .uploadId(uploadId)
                                                                    .existingParts(existingParts)
+                                                                   .expectedNumParts(Math.toIntExact(resumeToken.totalNumParts()))
                                                                    .numPartsCompleted(resumeToken.numPartsCompleted())
                                                                    .build();
 
@@ -184,8 +186,8 @@ public final class UploadWithKnownContentLengthHelper {
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
 
         mpuRequestContext.request().right()
-            .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
-                         .bufferSizeInBytes(maxMemoryUsageInBytes))
+            .splitCloseable(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
+                                  .bufferSizeInBytes(maxMemoryUsageInBytes))
             .subscribe(subscriber);
     }
 

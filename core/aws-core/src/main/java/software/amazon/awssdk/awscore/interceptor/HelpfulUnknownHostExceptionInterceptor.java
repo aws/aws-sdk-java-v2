@@ -19,7 +19,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.regions.ServicePartitionMetadata;
  * This interceptor will monitor for {@link UnknownHostException}s and provide the customer with additional information they can
  * use to debug or fix the problem.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class HelpfulUnknownHostExceptionInterceptor implements ExecutionInterceptor {
     @Override
     public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {

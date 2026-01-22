@@ -5,13 +5,15 @@
     "endpointPrefix":"ce",
     "jsonVersion":"1.1",
     "protocol":"json",
+    "protocols":["json"],
     "serviceAbbreviation":"AWS Cost Explorer",
     "serviceFullName":"AWS Cost Explorer Service",
     "serviceId":"Cost Explorer",
     "signatureVersion":"v4",
     "signingName":"ce",
     "targetPrefix":"AWSInsightsIndexService",
-    "uid":"ce-2017-10-25"
+    "uid":"ce-2017-10-25",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "CreateAnomalyMonitor":{
@@ -53,7 +55,7 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Creates a new Cost Category with the requested name and rules.</p>"
+      "documentation":"<p>Creates a new cost category with the requested name and rules.</p>"
     },
     "DeleteAnomalyMonitor":{
       "name":"DeleteAnomalyMonitor",
@@ -95,7 +97,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Deletes a Cost Category. Expenses from this month going forward will no longer be categorized with this Cost Category.</p>"
+      "documentation":"<p>Deletes a cost category. Expenses from this month going forward will no longer be categorized with this cost category.</p>"
     },
     "DescribeCostCategoryDefinition":{
       "name":"DescribeCostCategoryDefinition",
@@ -109,7 +111,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Returns the name, Amazon Resource Name (ARN), rules, definition, and effective dates of a Cost Category that's defined in the account.</p> <p>You have the option to use <code>EffectiveOn</code> to return a Cost Category that's active on a specific date. If there's no <code>EffectiveOn</code> specified, you see a Cost Category that's effective on the current date. If Cost Category is still effective, <code>EffectiveEnd</code> is omitted in the response. </p>"
+      "documentation":"<p>Returns the name, Amazon Resource Name (ARN), rules, definition, and effective dates of a cost category that's defined in the account.</p> <p>You have the option to use <code>EffectiveOn</code> to return a cost category that's active on a specific date. If there's no <code>EffectiveOn</code> specified, you see a Cost Category that's effective on the current date. If cost category is still effective, <code>EffectiveEnd</code> is omitted in the response. </p>"
     },
     "GetAnomalies":{
       "name":"GetAnomalies",
@@ -169,6 +171,21 @@
       ],
       "documentation":"<p>Retrieves estimated usage records for hourly granularity or resource-level data at daily granularity.</p>"
     },
+    "GetCommitmentPurchaseAnalysis":{
+      "name":"GetCommitmentPurchaseAnalysis",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetCommitmentPurchaseAnalysisRequest"},
+      "output":{"shape":"GetCommitmentPurchaseAnalysisResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"AnalysisNotFoundException"},
+        {"shape":"DataUnavailableException"}
+      ],
+      "documentation":"<p>Retrieves a commitment purchase analysis result based on the <code>AnalysisId</code>.</p>"
+    },
     "GetCostAndUsage":{
       "name":"GetCostAndUsage",
       "http":{
@@ -182,9 +199,28 @@
         {"shape":"BillExpirationException"},
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"},
-        {"shape":"RequestChangedException"}
+        {"shape":"RequestChangedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Retrieves cost and usage metrics for your account. You can specify which cost and usage-related metric that you want the request to return. For example, you can specify <code>BlendedCosts</code> or <code>UsageQuantity</code>. You can also filter and group your data by various dimensions, such as <code>SERVICE</code> or <code>AZ</code>, in a specific time range. For a complete list of valid dimensions, see the <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_GetDimensionValues.html\">GetDimensionValues</a> operation. Management account in an organization in Organizations have access to all member accounts.</p> <p>For information about filter limitations, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-limits.html\">Quotas and restrictions</a> in the <i>Billing and Cost Management User Guide</i>.</p>"
+    },
+    "GetCostAndUsageComparisons":{
+      "name":"GetCostAndUsageComparisons",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetCostAndUsageComparisonsRequest"},
+      "output":{"shape":"GetCostAndUsageComparisonsResponse"},
+      "errors":[
+        {"shape":"DataUnavailableException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
+      ],
+      "documentation":"<p>Retrieves cost and usage comparisons for your account between two periods within the last 13 months. If you have enabled multi-year data at monthly granularity, you can go back up to 38 months.</p>"
     },
     "GetCostAndUsageWithResources":{
       "name":"GetCostAndUsageWithResources",
@@ -199,7 +235,9 @@
         {"shape":"LimitExceededException"},
         {"shape":"BillExpirationException"},
         {"shape":"InvalidNextTokenException"},
-        {"shape":"RequestChangedException"}
+        {"shape":"RequestChangedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Retrieves cost and usage metrics with resources for your account. You can specify which cost and usage-related metric, such as <code>BlendedCosts</code> or <code>UsageQuantity</code>, that you want the request to return. You can also filter and group your data by various dimensions, such as <code>SERVICE</code> or <code>AZ</code>, in a specific time range. For a complete list of valid dimensions, see the <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_GetDimensionValues.html\">GetDimensionValues</a> operation. Management account in an organization in Organizations have access to all member accounts.</p> <p>Hourly granularity is only available for EC2-Instances (Elastic Compute Cloud) resource-level data. All other resource-level data is available at daily granularity.</p> <note> <p>This is an opt-in only feature. You can enable this feature from the Cost Explorer Settings page. For information about how to access the Settings page, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/ce-access.html\">Controlling Access for Cost Explorer</a> in the <i>Billing and Cost Management User Guide</i>.</p> </note>"
     },
@@ -216,9 +254,28 @@
         {"shape":"BillExpirationException"},
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"},
-        {"shape":"RequestChangedException"}
+        {"shape":"RequestChangedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
-      "documentation":"<p>Retrieves an array of Cost Category names and values incurred cost.</p> <note> <p>If some Cost Category names and values are not associated with any cost, they will not be returned by this API.</p> </note>"
+      "documentation":"<p>Retrieves an array of cost category names and values incurred cost.</p> <note> <p>If some cost category names and values are not associated with any cost, they will not be returned by this API.</p> </note>"
+    },
+    "GetCostComparisonDrivers":{
+      "name":"GetCostComparisonDrivers",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetCostComparisonDriversRequest"},
+      "output":{"shape":"GetCostComparisonDriversResponse"},
+      "errors":[
+        {"shape":"DataUnavailableException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
+      ],
+      "documentation":"<p>Retrieves key factors driving cost changes between two time periods within the last 13 months, such as usage changes, discount changes, and commitment-based savings. If you have enabled multi-year data at monthly granularity, you can go back up to 38 months.</p>"
     },
     "GetCostForecast":{
       "name":"GetCostForecast",
@@ -230,7 +287,9 @@
       "output":{"shape":"GetCostForecastResponse"},
       "errors":[
         {"shape":"LimitExceededException"},
-        {"shape":"DataUnavailableException"}
+        {"shape":"DataUnavailableException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Retrieves a forecast for how much Amazon Web Services predicts that you will spend over the forecast time period that you select, based on your past costs. </p>"
     },
@@ -247,7 +306,9 @@
         {"shape":"BillExpirationException"},
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"},
-        {"shape":"RequestChangedException"}
+        {"shape":"RequestChangedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Retrieves all available filter values for a specified filter over a period of time. You can search the dimension values for an arbitrary string. </p>"
     },
@@ -264,7 +325,7 @@
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Retrieves the reservation coverage for your account, which you can use to see how much of your Amazon Elastic Compute Cloud, Amazon ElastiCache, Amazon Relational Database Service, or Amazon Redshift usage is covered by a reservation. An organization's management account can see the coverage of the associated member accounts. This supports dimensions, Cost Categories, and nested expressions. For any time period, you can filter data about reservation usage by the following dimensions:</p> <ul> <li> <p>AZ</p> </li> <li> <p>CACHE_ENGINE</p> </li> <li> <p>DATABASE_ENGINE</p> </li> <li> <p>DEPLOYMENT_OPTION</p> </li> <li> <p>INSTANCE_TYPE</p> </li> <li> <p>LINKED_ACCOUNT</p> </li> <li> <p>OPERATING_SYSTEM</p> </li> <li> <p>PLATFORM</p> </li> <li> <p>REGION</p> </li> <li> <p>SERVICE</p> </li> <li> <p>TAG</p> </li> <li> <p>TENANCY</p> </li> </ul> <p>To determine valid values for a dimension, use the <code>GetDimensionValues</code> operation. </p>"
+      "documentation":"<p>Retrieves the reservation coverage for your account, which you can use to see how much of your Amazon Elastic Compute Cloud, Amazon ElastiCache, Amazon Relational Database Service, or Amazon Redshift usage is covered by a reservation. An organization's management account can see the coverage of the associated member accounts. This supports dimensions, cost categories, and nested expressions. For any time period, you can filter data about reservation usage by the following dimensions:</p> <ul> <li> <p>AZ</p> </li> <li> <p>CACHE_ENGINE</p> </li> <li> <p>DATABASE_ENGINE</p> </li> <li> <p>DEPLOYMENT_OPTION</p> </li> <li> <p>INSTANCE_TYPE</p> </li> <li> <p>LINKED_ACCOUNT</p> </li> <li> <p>OPERATING_SYSTEM</p> </li> <li> <p>PLATFORM</p> </li> <li> <p>REGION</p> </li> <li> <p>SERVICE</p> </li> <li> <p>TAG</p> </li> <li> <p>TENANCY</p> </li> </ul> <p>To determine valid values for a dimension, use the <code>GetDimensionValues</code> operation. </p>"
     },
     "GetReservationPurchaseRecommendation":{
       "name":"GetReservationPurchaseRecommendation",
@@ -337,7 +398,7 @@
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Retrieves the Savings Plans covered for your account. This enables you to see how much of your cost is covered by a Savings Plan. An organization’s management account can see the coverage of the associated member accounts. This supports dimensions, Cost Categories, and nested expressions. For any time period, you can filter data for Savings Plans usage with the following dimensions:</p> <ul> <li> <p> <code>LINKED_ACCOUNT</code> </p> </li> <li> <p> <code>REGION</code> </p> </li> <li> <p> <code>SERVICE</code> </p> </li> <li> <p> <code>INSTANCE_FAMILY</code> </p> </li> </ul> <p>To determine valid values for a dimension, use the <code>GetDimensionValues</code> operation.</p>"
+      "documentation":"<p>Retrieves the Savings Plans covered for your account. This enables you to see how much of your cost is covered by a Savings Plan. An organization’s management account can see the coverage of the associated member accounts. This supports dimensions, cost categories, and nested expressions. For any time period, you can filter data for Savings Plans usage with the following dimensions:</p> <ul> <li> <p> <code>LINKED_ACCOUNT</code> </p> </li> <li> <p> <code>REGION</code> </p> </li> <li> <p> <code>SERVICE</code> </p> </li> <li> <p> <code>INSTANCE_FAMILY</code> </p> </li> </ul> <p>To determine valid values for a dimension, use the <code>GetDimensionValues</code> operation.</p>"
     },
     "GetSavingsPlansPurchaseRecommendation":{
       "name":"GetSavingsPlansPurchaseRecommendation",
@@ -395,7 +456,9 @@
         {"shape":"BillExpirationException"},
         {"shape":"DataUnavailableException"},
         {"shape":"InvalidNextTokenException"},
-        {"shape":"RequestChangedException"}
+        {"shape":"RequestChangedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Queries for available tag keys and tag values for a specified period. You can search the tag values for an arbitrary string. </p>"
     },
@@ -410,9 +473,26 @@
       "errors":[
         {"shape":"LimitExceededException"},
         {"shape":"DataUnavailableException"},
-        {"shape":"UnresolvableUsageUnitException"}
+        {"shape":"UnresolvableUsageUnitException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"BillingViewHealthStatusException"}
       ],
       "documentation":"<p>Retrieves a forecast for how much Amazon Web Services predicts that you will use over the forecast time period that you select, based on your past usage. </p>"
+    },
+    "ListCommitmentPurchaseAnalyses":{
+      "name":"ListCommitmentPurchaseAnalyses",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListCommitmentPurchaseAnalysesRequest"},
+      "output":{"shape":"ListCommitmentPurchaseAnalysesResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"DataUnavailableException"}
+      ],
+      "documentation":"<p>Lists the commitment purchase analyses for your account.</p>"
     },
     "ListCostAllocationTagBackfillHistory":{
       "name":"ListCostAllocationTagBackfillHistory",
@@ -453,7 +533,21 @@
       "errors":[
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Returns the name, Amazon Resource Name (ARN), <code>NumberOfRules</code> and effective dates of all Cost Categories defined in the account. You have the option to use <code>EffectiveOn</code> to return a list of Cost Categories that were active on a specific date. If there is no <code>EffectiveOn</code> specified, you’ll see Cost Categories that are effective on the current date. If Cost Category is still effective, <code>EffectiveEnd</code> is omitted in the response. <code>ListCostCategoryDefinitions</code> supports pagination. The request can have a <code>MaxResults</code> range up to 100.</p>"
+      "documentation":"<p>Returns the name, Amazon Resource Name (ARN), <code>NumberOfRules</code> and effective dates of all cost categories defined in the account. You have the option to use <code>EffectiveOn</code> and <code>SupportedResourceTypes</code> to return a list of cost categories that were active on a specific date. If there is no <code>EffectiveOn</code> specified, you’ll see cost categories that are effective on the current date. If cost category is still effective, <code>EffectiveEnd</code> is omitted in the response. <code>ListCostCategoryDefinitions</code> supports pagination. The request can have a <code>MaxResults</code> range up to 100.</p>"
+    },
+    "ListCostCategoryResourceAssociations":{
+      "name":"ListCostCategoryResourceAssociations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListCostCategoryResourceAssociationsRequest"},
+      "output":{"shape":"ListCostCategoryResourceAssociationsResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns resource associations of all cost categories defined in the account. You have the option to use <code>CostCategoryArn</code> to get the association for a specific cost category. <code>ListCostCategoryResourceAssociations</code> supports pagination. The request can have a <code>MaxResults</code> range up to 100. </p>"
     },
     "ListSavingsPlansPurchaseRecommendationGeneration":{
       "name":"ListSavingsPlansPurchaseRecommendationGeneration",
@@ -497,6 +591,22 @@
       ],
       "documentation":"<p>Modifies the feedback property of a given cost anomaly. </p>"
     },
+    "StartCommitmentPurchaseAnalysis":{
+      "name":"StartCommitmentPurchaseAnalysis",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartCommitmentPurchaseAnalysisRequest"},
+      "output":{"shape":"StartCommitmentPurchaseAnalysisResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"DataUnavailableException"},
+        {"shape":"GenerationExistsException"}
+      ],
+      "documentation":"<p>Specifies the parameters of a planned commitment purchase and starts the generation of the analysis. This enables you to estimate the cost, coverage, and utilization impact of your planned commitment purchases.</p>"
+    },
     "StartCostAllocationTagBackfill":{
       "name":"StartCostAllocationTagBackfill",
       "http":{
@@ -509,7 +619,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"BackfillLimitExceededException"}
       ],
-      "documentation":"<p> Request a cost allocation tag backfill. This will backfill the activation status (either <code>active</code> or <code>inactive</code>) for all tag keys from <code>para:BackfillFrom</code> up to the when this request is made.</p> <p>You can request a backfill once every 24 hours. </p>"
+      "documentation":"<p> Request a cost allocation tag backfill. This will backfill the activation status (either <code>active</code> or <code>inactive</code>) for all tag keys from <code>para:BackfillFrom</code> up to the time this request is made.</p> <p>You can request a backfill once every 24 hours. </p>"
     },
     "StartSavingsPlansPurchaseRecommendationGeneration":{
       "name":"StartSavingsPlansPurchaseRecommendationGeneration",
@@ -611,10 +721,16 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Updates an existing Cost Category. Changes made to the Cost Category rules will be used to categorize the current month’s expenses and future expenses. This won’t change categorization for the previous months.</p>"
+      "documentation":"<p>Updates an existing cost category. Changes made to the cost category rules will be used to categorize the current month’s expenses and future expenses. This won’t change categorization for the previous months.</p>"
     }
   },
   "shapes":{
+    "AccountId":{
+      "type":"string",
+      "max":12,
+      "min":12,
+      "pattern":"[0-9]{12}"
+    },
     "AccountScope":{
       "type":"string",
       "enum":[
@@ -624,6 +740,94 @@
     },
     "AmortizedRecurringFee":{"type":"string"},
     "AmortizedUpfrontFee":{"type":"string"},
+    "AnalysesPageSize":{
+      "type":"integer",
+      "max":600,
+      "min":0
+    },
+    "AnalysisDetails":{
+      "type":"structure",
+      "members":{
+        "SavingsPlansPurchaseAnalysisDetails":{
+          "shape":"SavingsPlansPurchaseAnalysisDetails",
+          "documentation":"<p>Details about the Savings Plans purchase analysis.</p>"
+        }
+      },
+      "documentation":"<p>Details about the analysis.</p>"
+    },
+    "AnalysisId":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"^[\\S\\s]{8}-[\\S\\s]{4}-[\\S\\s]{4}-[\\S\\s]{4}-[\\S\\s]{12}$"
+    },
+    "AnalysisIds":{
+      "type":"list",
+      "member":{"shape":"AnalysisId"},
+      "max":600,
+      "min":0
+    },
+    "AnalysisNotFoundException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>The requested analysis can't be found.</p>",
+      "exception":true
+    },
+    "AnalysisStatus":{
+      "type":"string",
+      "enum":[
+        "SUCCEEDED",
+        "PROCESSING",
+        "FAILED"
+      ]
+    },
+    "AnalysisSummary":{
+      "type":"structure",
+      "members":{
+        "EstimatedCompletionTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The estimated time for when the analysis will complete.</p>"
+        },
+        "AnalysisCompletionTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The completion time of the analysis.</p>"
+        },
+        "AnalysisStartedTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The start time of the analysis.</p>"
+        },
+        "AnalysisStatus":{
+          "shape":"AnalysisStatus",
+          "documentation":"<p>The status of the analysis.</p>"
+        },
+        "ErrorCode":{
+          "shape":"ErrorCode",
+          "documentation":"<p>The error code used for the analysis.</p>"
+        },
+        "AnalysisId":{
+          "shape":"AnalysisId",
+          "documentation":"<p>The analysis ID that's associated with the commitment purchase analysis.</p>"
+        },
+        "CommitmentPurchaseAnalysisConfiguration":{
+          "shape":"CommitmentPurchaseAnalysisConfiguration",
+          "documentation":"<p>The configuration for the commitment purchase analysis.</p>"
+        }
+      },
+      "documentation":"<p>A summary of the analysis.</p>"
+    },
+    "AnalysisSummaryList":{
+      "type":"list",
+      "member":{"shape":"AnalysisSummary"}
+    },
+    "AnalysisType":{
+      "type":"string",
+      "enum":[
+        "MAX_SAVINGS",
+        "CUSTOM_COMMITMENT"
+      ]
+    },
     "Anomalies":{
       "type":"list",
       "member":{"shape":"Anomaly"}
@@ -651,7 +855,7 @@
         },
         "DimensionValue":{
           "shape":"GenericString",
-          "documentation":"<p>The dimension for the anomaly (for example, an Amazon Web Service in a service monitor). </p>"
+          "documentation":"<p>The dimension for the anomaly (for example, an Amazon Web Services service in a service monitor). </p>"
         },
         "RootCauses":{
           "shape":"RootCauses",
@@ -728,13 +932,16 @@
         },
         "MonitorType":{
           "shape":"MonitorType",
-          "documentation":"<p>The possible type values. </p>"
+          "documentation":"<p>The type of the monitor. </p> <p>Set this to <code>DIMENSIONAL</code> for an Amazon Web Services managed monitor. Amazon Web Services managed monitors automatically track up to the top 5,000 values by cost within a dimension of your choosing. Each dimension value is evaluated independently. If you start incurring cost in a new value of your chosen dimension, it will automatically be analyzed by an Amazon Web Services managed monitor.</p> <p>Set this to <code>CUSTOM</code> for a customer managed monitor. Customer managed monitors let you select specific dimension values that get monitored in aggregate. </p> <p>For more information about monitor types, see <a href=\"https://docs.aws.amazon.com/cost-management/latest/userguide/getting-started-ad.html#monitor-type-def\">Monitor types</a> in the <i>Billing and Cost Management User Guide</i>.</p>"
         },
         "MonitorDimension":{
           "shape":"MonitorDimension",
-          "documentation":"<p>The dimensions to evaluate. </p>"
+          "documentation":"<p>For customer managed monitors, do not specify this field.</p> <p>For Amazon Web Services managed monitors, this field controls which cost dimension is automatically analyzed by the monitor. For <code>TAG</code> and <code>COST_CATEGORY </code> dimensions, you must also specify MonitorSpecification to configure the specific tag or cost category key to analyze.</p>"
         },
-        "MonitorSpecification":{"shape":"Expression"},
+        "MonitorSpecification":{
+          "shape":"Expression",
+          "documentation":"<p>An <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_Expression.html\">Expression</a> object used to control what costs the monitor analyzes for anomalies.</p> <p>For Amazon Web Services managed monitors:</p> <ul> <li> <p>If MonitorDimension is <code>SERVICE</code> or <code>LINKED_ACCOUNT</code>, do not specify this field</p> </li> <li> <p>If MonitorDimension is <code>TAG</code>, set this field to <code>{ \"Tags\": { \"Key\": \"your tag key\" } }</code> </p> </li> <li> <p>If MonitorDimension is <code>COST_CATEGORY</code>, set this field to <code>{ \"CostCategories\": { \"Key\": \"your cost category key\" } }</code> </p> </li> </ul> <p>For customer managed monitors:</p> <ul> <li> <p>To track linked accounts, set this field to <code>{ \"Dimensions\": { \"Key\": \"LINKED_ACCOUNT\", \"Values\": [ \"your list of up to 10 account IDs\" ] } } </code> </p> </li> <li> <p>To track cost allocation tags, set this field to <code>{ \"Tags\": { \"Key\": \"your tag key\", \"Values\": [ \"your list of up to 10 tag values\" ] } } </code> </p> </li> <li> <p>To track cost categories, set this field to<code>{ \"CostCategories\": { \"Key\": \"your cost category key\", \"Values\": [ \"your cost category value\" ] } } </code> </p> </li> </ul>"
+        },
         "DimensionalValueCount":{
           "shape":"NonNegativeInteger",
           "documentation":"<p>The value for evaluated dimensions. </p>"
@@ -862,6 +1069,57 @@
       },
       "documentation":"<p>The requested report expired. Update the date interval and try again.</p>",
       "exception":true
+    },
+    "BillingViewArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:aws[a-z-]*:(billing)::[0-9]{12}:billingview/[-a-zA-Z0-9/:_+=.-@]{1,43}$"
+    },
+    "BillingViewHealthStatusException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p> The billing view status must be <code>HEALTHY</code> to perform this action. Try again when the status is <code>HEALTHY</code>. </p>",
+      "exception":true
+    },
+    "CommitmentPurchaseAnalysisConfiguration":{
+      "type":"structure",
+      "members":{
+        "SavingsPlansPurchaseAnalysisConfiguration":{
+          "shape":"SavingsPlansPurchaseAnalysisConfiguration",
+          "documentation":"<p>The configuration for the Savings Plans purchase analysis.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for the commitment purchase analysis.</p>"
+    },
+    "ComparisonMetricValue":{
+      "type":"structure",
+      "members":{
+        "BaselineTimePeriodAmount":{
+          "shape":"GenericString",
+          "documentation":"<p>The numeric value for the baseline time period measurement.</p>"
+        },
+        "ComparisonTimePeriodAmount":{
+          "shape":"GenericString",
+          "documentation":"<p>The numeric value for the comparison time period measurement.</p>"
+        },
+        "Difference":{
+          "shape":"GenericString",
+          "documentation":"<p>The calculated difference between <code>ComparisonTimePeriodAmount</code> and <code>BaselineTimePeriodAmount</code>.</p>"
+        },
+        "Unit":{
+          "shape":"GenericString",
+          "documentation":"<p>The unit of measurement applicable to all numeric values in this comparison.</p>"
+        }
+      },
+      "documentation":"<p>Contains cost or usage metric values for comparing two time periods. Each value includes amounts for the baseline and comparison time periods, their difference, and the unit of measurement.</p>"
+    },
+    "ComparisonMetrics":{
+      "type":"map",
+      "key":{"shape":"MetricName"},
+      "value":{"shape":"ComparisonMetricValue"}
     },
     "Context":{
       "type":"string",
@@ -997,6 +1255,27 @@
       "max":1000,
       "min":1
     },
+    "CostAndUsageComparison":{
+      "type":"structure",
+      "members":{
+        "CostAndUsageSelector":{"shape":"Expression"},
+        "Metrics":{
+          "shape":"ComparisonMetrics",
+          "documentation":"<p>A mapping of metric names to their comparison values.</p>"
+        }
+      },
+      "documentation":"<p>Represents a comparison of cost and usage metrics between two time periods.</p>"
+    },
+    "CostAndUsageComparisons":{
+      "type":"list",
+      "member":{"shape":"CostAndUsageComparison"}
+    },
+    "CostAndUsageComparisonsMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":2000,
+      "min":1
+    },
     "CostCategory":{
       "type":"structure",
       "required":[
@@ -1009,25 +1288,25 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         },
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The effective start date of your Cost Category.</p>"
+          "documentation":"<p>The effective start date of your cost category.</p>"
         },
         "EffectiveEnd":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The effective end date of your Cost Category.</p>"
+          "documentation":"<p>The effective end date of your cost category.</p>"
         },
         "Name":{"shape":"CostCategoryName"},
         "RuleVersion":{"shape":"CostCategoryRuleVersion"},
         "Rules":{
           "shape":"CostCategoryRulesList",
-          "documentation":"<p>The rules are processed in order. If there are multiple rules that match the line item, then the first rule to match is used to determine that Cost Category value. </p>"
+          "documentation":"<p>The rules are processed in order. If there are multiple rules that match the line item, then the first rule to match is used to determine that cost category value. </p>"
         },
         "SplitChargeRules":{
           "shape":"CostCategorySplitChargeRulesList",
-          "documentation":"<p> The split charge rules that are used to allocate your charges between your Cost Category values. </p>"
+          "documentation":"<p> The split charge rules that are used to allocate your charges between your cost category values. </p>"
         },
         "ProcessingStatus":{
           "shape":"CostCategoryProcessingStatusList",
@@ -1065,7 +1344,7 @@
     },
     "CostCategoryName":{
       "type":"string",
-      "documentation":"<p>The unique name of the Cost Category.</p>",
+      "documentation":"<p>The unique name of the cost category.</p>",
       "max":50,
       "min":1,
       "pattern":"^(?! )[\\p{L}\\p{N}\\p{Z}-_]*(?<! )$"
@@ -1097,20 +1376,20 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         },
         "Name":{"shape":"CostCategoryName"},
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective start date.</p>"
+          "documentation":"<p>The cost category's effective start date.</p>"
         },
         "EffectiveEnd":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective end date.</p>"
+          "documentation":"<p>The cost category's effective end date.</p>"
         },
         "NumberOfRules":{
           "shape":"NonNegativeInteger",
-          "documentation":"<p>The number of rules that are associated with a specific Cost Category. </p>"
+          "documentation":"<p>The number of rules that are associated with a specific cost category. </p>"
         },
         "ProcessingStatus":{
           "shape":"CostCategoryProcessingStatusList",
@@ -1120,13 +1399,36 @@
           "shape":"CostCategoryValuesList",
           "documentation":"<p>A list of unique cost category values in a specific cost category. </p>"
         },
-        "DefaultValue":{"shape":"CostCategoryValue"}
+        "DefaultValue":{"shape":"CostCategoryValue"},
+        "SupportedResourceTypes":{
+          "shape":"ResourceTypes",
+          "documentation":"<p> The resource types supported by a specific cost category. </p>"
+        }
       },
-      "documentation":"<p>A reference to a Cost Category containing only enough information to identify the Cost Category.</p> <p>You can use this information to retrieve the full Cost Category information using <code>DescribeCostCategory</code>.</p>"
+      "documentation":"<p>A reference to a cost category containing only enough information to identify the Cost Category.</p> <p>You can use this information to retrieve the full cost category information using <code>DescribeCostCategory</code>.</p>"
     },
     "CostCategoryReferencesList":{
       "type":"list",
       "member":{"shape":"CostCategoryReference"}
+    },
+    "CostCategoryResourceAssociation":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"GenericArn",
+          "documentation":"<p> The unique identifier for an associated resource. </p>"
+        },
+        "CostCategoryName":{"shape":"CostCategoryName"},
+        "CostCategoryArn":{
+          "shape":"Arn",
+          "documentation":"<p>The unique identifier for your cost category. </p>"
+        }
+      },
+      "documentation":"<p>A reference to a cost category association that contains information on an associated resource. </p>"
+    },
+    "CostCategoryResourceAssociations":{
+      "type":"list",
+      "member":{"shape":"CostCategoryResourceAssociation"}
     },
     "CostCategoryRule":{
       "type":"structure",
@@ -1134,7 +1436,7 @@
         "Value":{"shape":"CostCategoryValue"},
         "Rule":{
           "shape":"Expression",
-          "documentation":"<p>An <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_Expression.html\">Expression</a> object used to categorize costs. This supports dimensions, tags, and nested expressions. Currently the only dimensions supported are <code>LINKED_ACCOUNT</code>, <code>SERVICE_CODE</code>, <code>RECORD_TYPE</code>, <code>LINKED_ACCOUNT_NAME</code>, <code>REGION</code>, and <code>USAGE_TYPE</code>.</p> <p> <code>RECORD_TYPE</code> is a dimension used for Cost Explorer APIs, and is also supported for Cost Category expressions. This dimension uses different terms, depending on whether you're using the console or API/JSON editor. For a detailed comparison, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/manage-cost-categories.html#cost-categories-terms\">Term Comparisons</a> in the <i>Billing and Cost Management User Guide</i>.</p>"
+          "documentation":"<p>An <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_Expression.html\">Expression</a> object used to categorize costs. This supports dimensions, tags, and nested expressions. Currently the only dimensions supported are <code>LINKED_ACCOUNT</code>, <code>SERVICE_CODE</code>, <code>RECORD_TYPE</code>, <code>LINKED_ACCOUNT_NAME</code>, <code>REGION</code>, and <code>USAGE_TYPE</code>.</p> <p> <code>RECORD_TYPE</code> is a dimension used for Cost Explorer APIs, and is also supported for cost category expressions. This dimension uses different terms, depending on whether you're using the console or API/JSON editor. For a detailed comparison, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/manage-cost-categories.html#cost-categories-terms\">Term Comparisons</a> in the <i>Billing and Cost Management User Guide</i>.</p>"
         },
         "InheritedValue":{
           "shape":"CostCategoryInheritedValueDimension",
@@ -1145,7 +1447,7 @@
           "documentation":"<p>You can define the <code>CostCategoryRule</code> rule type as either <code>REGULAR</code> or <code>INHERITED_VALUE</code>. The <code>INHERITED_VALUE</code> rule type adds the flexibility to define a rule that dynamically inherits the cost category value. This value is from the dimension value that's defined by <code>CostCategoryInheritedValueDimension</code>. For example, suppose that you want to costs to be dynamically grouped based on the value of a specific tag key. First, choose an inherited value rule type, and then choose the tag dimension and specify the tag key to use.</p>"
         }
       },
-      "documentation":"<p>Rules are processed in order. If there are multiple rules that match the line item, then the first rule to match is used to determine that Cost Category value.</p>"
+      "documentation":"<p>Rules are processed in order. If there are multiple rules that match the line item, then the first rule to match is used to determine that cost category value.</p>"
     },
     "CostCategoryRuleType":{
       "type":"string",
@@ -1156,7 +1458,7 @@
     },
     "CostCategoryRuleVersion":{
       "type":"string",
-      "documentation":"<p>The rule schema version in this particular Cost Category.</p>",
+      "documentation":"<p>The rule schema version in this particular cost category.</p>",
       "enum":["CostCategoryExpression.v1"]
     },
     "CostCategoryRulesList":{
@@ -1183,11 +1485,11 @@
       "members":{
         "Source":{
           "shape":"GenericString",
-          "documentation":"<p>The Cost Category value that you want to split. That value can't be used as a source or a target in other split charge rules. To indicate uncategorized costs, you can use an empty string as the source.</p>"
+          "documentation":"<p>The cost category value that you want to split. That value can't be used as a source or a target in other split charge rules. To indicate uncategorized costs, you can use an empty string as the source.</p>"
         },
         "Targets":{
           "shape":"CostCategorySplitChargeRuleTargetsList",
-          "documentation":"<p>The Cost Category values that you want to split costs across. These values can't be used as a source in other split charge rules. </p>"
+          "documentation":"<p>The cost category values that you want to split costs across. These values can't be used as a source in other split charge rules. </p>"
         },
         "Method":{
           "shape":"CostCategorySplitChargeMethod",
@@ -1198,7 +1500,7 @@
           "documentation":"<p>The parameters for a split charge method. This is only required for the <code>FIXED</code> method. </p>"
         }
       },
-      "documentation":"<p>Use the split charge rule to split the cost of one Cost Category value across several other target values. </p>"
+      "documentation":"<p>Use the split charge rule to split the cost of one cost category value across several other target values. </p>"
     },
     "CostCategorySplitChargeRuleParameter":{
       "type":"structure",
@@ -1270,7 +1572,7 @@
         "Key":{"shape":"CostCategoryName"},
         "Values":{
           "shape":"Values",
-          "documentation":"<p>The specific value of the Cost Category.</p>"
+          "documentation":"<p>The specific value of the cost category.</p>"
         },
         "MatchOptions":{
           "shape":"MatchOptions",
@@ -1282,6 +1584,53 @@
     "CostCategoryValuesList":{
       "type":"list",
       "member":{"shape":"CostCategoryValue"}
+    },
+    "CostComparisonDriver":{
+      "type":"structure",
+      "members":{
+        "CostSelector":{"shape":"Expression"},
+        "Metrics":{
+          "shape":"ComparisonMetrics",
+          "documentation":"<p>A mapping of metric names to their comparison values.</p>"
+        },
+        "CostDrivers":{
+          "shape":"CostDrivers",
+          "documentation":"<p>An array of cost drivers, each representing a cost difference between the baseline and comparison time periods. Each entry also includes a metric delta (for example, usage change) that contributed to the cost variance, along with the identifier and type of change.</p>"
+        }
+      },
+      "documentation":"<p>Represents a collection of cost drivers and their associated metrics for cost comparison analysis.</p>"
+    },
+    "CostComparisonDrivers":{
+      "type":"list",
+      "member":{"shape":"CostComparisonDriver"}
+    },
+    "CostComparisonDriversMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":1
+    },
+    "CostDriver":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"GenericString",
+          "documentation":"<p>The category or classification of the cost driver.</p> <p>Values include: BUNDLED_DISCOUNT, CREDIT, OUT_OF_CYCLE_CHARGE, REFUND, RECURRING_RESERVATION_FEE, RESERVATION_USAGE, RI_VOLUME_DISCOUNT, SAVINGS_PLAN_USAGE, SAVINGS_PLAN_RECURRING_FEE, SUPPORT_FEE, TAX, UPFRONT_RESERVATION_FEE, USAGE_CHANGE, COMMITMENT</p>"
+        },
+        "Name":{
+          "shape":"GenericString",
+          "documentation":"<p>The specific identifier of the cost driver.</p>"
+        },
+        "Metrics":{
+          "shape":"ComparisonMetrics",
+          "documentation":"<p>A mapping of metric names to their comparison values, measuring the impact of this cost driver.</p>"
+        }
+      },
+      "documentation":"<p>Represents factors that contribute to cost variations between the baseline and comparison time periods, including the type of driver, an identifier of the driver, and associated metrics.</p>"
+    },
+    "CostDrivers":{
+      "type":"list",
+      "member":{"shape":"CostDriver"}
     },
     "Coverage":{
       "type":"structure",
@@ -1438,17 +1787,17 @@
         "Name":{"shape":"CostCategoryName"},
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective start date. It can only be a billing start date (first day of the month). If the date isn't provided, it's the first day of the current month. Dates can't be before the previous twelve months, or in the future.</p>"
+          "documentation":"<p>The cost category's effective start date. It can only be a billing start date (first day of the month). If the date isn't provided, it's the first day of the current month. Dates can't be before the previous twelve months, or in the future.</p>"
         },
         "RuleVersion":{"shape":"CostCategoryRuleVersion"},
         "Rules":{
           "shape":"CostCategoryRulesList",
-          "documentation":"<p>The Cost Category rules used to categorize costs. For more information, see <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_CostCategoryRule.html\">CostCategoryRule</a>.</p>"
+          "documentation":"<p>The cost category rules used to categorize costs. For more information, see <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_CostCategoryRule.html\">CostCategoryRule</a>.</p>"
         },
         "DefaultValue":{"shape":"CostCategoryValue"},
         "SplitChargeRules":{
           "shape":"CostCategorySplitChargeRulesList",
-          "documentation":"<p> The split charge rules used to allocate your charges between your Cost Category values. </p>"
+          "documentation":"<p> The split charge rules used to allocate your charges between your cost category values. </p>"
         },
         "ResourceTags":{
           "shape":"ResourceTagList",
@@ -1461,11 +1810,11 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your newly created Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your newly created cost category. </p>"
         },
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective start date. It can only be a billing start date (first day of the month).</p>"
+          "documentation":"<p>The cost category's effective start date. It can only be a billing start date (first day of the month).</p>"
         }
       }
     },
@@ -1557,8 +1906,7 @@
     },
     "DeleteAnomalyMonitorResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteAnomalySubscriptionRequest":{
       "type":"structure",
@@ -1572,8 +1920,7 @@
     },
     "DeleteAnomalySubscriptionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCostCategoryDefinitionRequest":{
       "type":"structure",
@@ -1581,7 +1928,7 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         }
       }
     },
@@ -1590,11 +1937,11 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         },
         "EffectiveEnd":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The effective end date of the Cost Category as a result of deleting it. No costs after this date is categorized by the deleted Cost Category. </p>"
+          "documentation":"<p>The effective end date of the cost category as a result of deleting it. No costs after this date is categorized by the deleted cost category. </p>"
         }
       }
     },
@@ -1604,11 +1951,11 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         },
         "EffectiveOn":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The date when the Cost Category was effective. </p>"
+          "documentation":"<p>The date when the cost category was effective. </p>"
         }
       }
     },
@@ -1624,6 +1971,7 @@
         "AZ",
         "INSTANCE_TYPE",
         "LINKED_ACCOUNT",
+        "PAYER_ACCOUNT",
         "LINKED_ACCOUNT_NAME",
         "OPERATION",
         "PURCHASE_TYPE",
@@ -1662,7 +2010,7 @@
       "members":{
         "Key":{
           "shape":"Dimension",
-          "documentation":"<p>The names of the metadata types that you can use to filter and group your results. For example, <code>AZ</code> returns a list of Availability Zones.</p> <p>Not all dimensions are supported in each API. Refer to the documentation for each specific API to see what is supported.</p> <p> <code>LINK_ACCOUNT_NAME</code> and <code>SERVICE_CODE</code> can only be used in <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_CostCategoryRule.html\">CostCategoryRule</a>.</p> <p> <code>ANOMALY_TOTAL_IMPACT_ABSOLUTE</code> and <code>ANOMALY_TOTAL_IMPACT_PERCENTAGE</code> can only be used in <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_AnomalySubscription.html\">AnomalySubscriptions</a>.</p>"
+          "documentation":"<p>The names of the metadata types that you can use to filter and group your results. For example, <code>AZ</code> returns a list of Availability Zones.</p> <p>Not all dimensions are supported in each API. Refer to the documentation for each specific API to see what is supported.</p> <p> <code>LINKED_ACCOUNT_NAME</code> and <code>SERVICE_CODE</code> can only be used in <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_CostCategoryRule.html\">CostCategoryRule</a>.</p> <p> <code>ANOMALY_TOTAL_IMPACT_ABSOLUTE</code> and <code>ANOMALY_TOTAL_IMPACT_PERCENTAGE</code> can only be used in <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_AnomalySubscription.html\">AnomalySubscriptions</a>.</p>"
         },
         "Values":{
           "shape":"Values",
@@ -1670,7 +2018,7 @@
         },
         "MatchOptions":{
           "shape":"MatchOptions",
-          "documentation":"<p>The match options that you can use to filter your results.</p> <p> <code>MatchOptions</code> is only applicable for actions related to Cost Category and Anomaly Subscriptions. Refer to the documentation for each specific API to see what is supported.</p> <p>The default values for <code>MatchOptions</code> are <code>EQUALS</code> and <code>CASE_SENSITIVE</code>.</p>"
+          "documentation":"<p>The match options that you can use to filter your results.</p> <p> <code>MatchOptions</code> is only applicable for actions related to cost category and Anomaly Subscriptions. Refer to the documentation for each specific API to see what is supported.</p> <p>The default values for <code>MatchOptions</code> are <code>EQUALS</code> and <code>CASE_SENSITIVE</code>.</p>"
         }
       },
       "documentation":"<p>The metadata that you can use to filter and group your results. You can use <code>GetDimensionValues</code> to find specific values.</p>"
@@ -1714,6 +2062,20 @@
         }
       },
       "documentation":"<p>The field that contains a list of disk (local storage) metrics that are associated with the current instance. </p>"
+    },
+    "DynamoDBCapacityDetails":{
+      "type":"structure",
+      "members":{
+        "CapacityUnits":{
+          "shape":"GenericString",
+          "documentation":"<p>The capacity unit of the recommended reservation.</p>"
+        },
+        "Region":{
+          "shape":"GenericString",
+          "documentation":"<p>The Amazon Web Services Region of the recommended reservation.</p>"
+        }
+      },
+      "documentation":"<p>The DynamoDB reservations that Amazon Web Services recommends that you purchase.</p>"
     },
     "EBSResourceUtilization":{
       "type":"structure",
@@ -1914,6 +2276,16 @@
       "documentation":"<p>Details about the Amazon ElastiCache reservations that Amazon Web Services recommends that you purchase.</p>"
     },
     "Entity":{"type":"string"},
+    "ErrorCode":{
+      "type":"string",
+      "enum":[
+        "NO_USAGE_FOUND",
+        "INTERNAL_FAILURE",
+        "INVALID_SAVINGS_PLANS_TO_ADD",
+        "INVALID_SAVINGS_PLANS_TO_EXCLUDE",
+        "INVALID_ACCOUNT_ID"
+      ]
+    },
     "ErrorMessage":{"type":"string"},
     "Estimated":{"type":"boolean"},
     "Expression":{
@@ -2006,7 +2378,7 @@
       "members":{
         "Message":{"shape":"ErrorMessage"}
       },
-      "documentation":"<p>A request to generate a recommendation is already in progress.</p>",
+      "documentation":"<p>A request to generate a recommendation or analysis is already in progress.</p>",
       "exception":true
     },
     "GenerationStatus":{
@@ -2047,6 +2419,12 @@
       "type":"list",
       "member":{"shape":"GenerationSummary"}
     },
+    "GenericArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:aws[-a-z0-9]*:[a-z0-9]+:[-a-z0-9]*:[0-9]{12}:[-a-zA-Z0-9/:_]+"
+    },
     "GenericBoolean":{"type":"boolean"},
     "GenericDouble":{"type":"double"},
     "GenericString":{
@@ -2081,7 +2459,8 @@
         },
         "MaxResults":{
           "shape":"PageSize",
-          "documentation":"<p>The number of entries a paginated response contains. </p>"
+          "documentation":"<p>The number of entries a paginated response contains. </p>",
+          "box":true
         }
       }
     },
@@ -2112,7 +2491,8 @@
         },
         "MaxResults":{
           "shape":"PageSize",
-          "documentation":"<p>The number of entries that a paginated response contains. </p>"
+          "documentation":"<p>The number of entries that a paginated response contains. </p>",
+          "box":true
         }
       }
     },
@@ -2147,7 +2527,8 @@
         },
         "MaxResults":{
           "shape":"PageSize",
-          "documentation":"<p>The number of entries a paginated response contains. </p>"
+          "documentation":"<p>The number of entries a paginated response contains. </p>",
+          "box":true
         }
       }
     },
@@ -2203,6 +2584,117 @@
         }
       }
     },
+    "GetCommitmentPurchaseAnalysisRequest":{
+      "type":"structure",
+      "required":["AnalysisId"],
+      "members":{
+        "AnalysisId":{
+          "shape":"AnalysisId",
+          "documentation":"<p>The analysis ID that's associated with the commitment purchase analysis.</p>"
+        }
+      }
+    },
+    "GetCommitmentPurchaseAnalysisResponse":{
+      "type":"structure",
+      "required":[
+        "EstimatedCompletionTime",
+        "AnalysisStartedTime",
+        "AnalysisId",
+        "AnalysisStatus",
+        "CommitmentPurchaseAnalysisConfiguration"
+      ],
+      "members":{
+        "EstimatedCompletionTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The estimated time for when the analysis will complete.</p>"
+        },
+        "AnalysisCompletionTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The completion time of the analysis.</p>"
+        },
+        "AnalysisStartedTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The start time of the analysis.</p>"
+        },
+        "AnalysisId":{
+          "shape":"AnalysisId",
+          "documentation":"<p>The analysis ID that's associated with the commitment purchase analysis.</p>"
+        },
+        "AnalysisStatus":{
+          "shape":"AnalysisStatus",
+          "documentation":"<p>The status of the analysis.</p>"
+        },
+        "ErrorCode":{
+          "shape":"ErrorCode",
+          "documentation":"<p>The error code used for the analysis.</p>"
+        },
+        "AnalysisDetails":{
+          "shape":"AnalysisDetails",
+          "documentation":"<p>Details about the analysis.</p>"
+        },
+        "CommitmentPurchaseAnalysisConfiguration":{
+          "shape":"CommitmentPurchaseAnalysisConfiguration",
+          "documentation":"<p>The configuration for the commitment purchase analysis.</p>"
+        }
+      }
+    },
+    "GetCostAndUsageComparisonsRequest":{
+      "type":"structure",
+      "required":[
+        "BaselineTimePeriod",
+        "ComparisonTimePeriod",
+        "MetricForComparison"
+      ],
+      "members":{
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
+        },
+        "BaselineTimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The reference time period for comparison. This time period serves as the baseline against which other cost and usage data will be compared. The interval must start and end on the first day of a month, with a duration of exactly one month.</p>"
+        },
+        "ComparisonTimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The comparison time period for analysis. This time period's cost and usage data will be compared against the baseline time period. The interval must start and end on the first day of a month, with a duration of exactly one month.</p>"
+        },
+        "MetricForComparison":{
+          "shape":"MetricName",
+          "documentation":"<p>The cost and usage metric to compare. Valid values are <code>AmortizedCost</code>, <code>BlendedCost</code>, <code>NetAmortizedCost</code>, <code>NetUnblendedCost</code>, <code>NormalizedUsageAmount</code>, <code>UnblendedCost</code>, and <code>UsageQuantity</code>.</p>"
+        },
+        "Filter":{"shape":"Expression"},
+        "GroupBy":{
+          "shape":"GroupDefinitions",
+          "documentation":"<p>You can group results using the attributes <code>DIMENSION</code>, <code>TAG</code>, and <code>COST_CATEGORY</code>. </p>"
+        },
+        "MaxResults":{
+          "shape":"CostAndUsageComparisonsMaxResults",
+          "documentation":"<p>The maximum number of results that are returned for the request.</p>",
+          "box":true
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of paginated results.</p>"
+        }
+      }
+    },
+    "GetCostAndUsageComparisonsResponse":{
+      "type":"structure",
+      "members":{
+        "CostAndUsageComparisons":{
+          "shape":"CostAndUsageComparisons",
+          "documentation":"<p>An array of comparison results showing cost and usage metrics between <code>BaselineTimePeriod</code> and <code>ComparisonTimePeriod</code>.</p>"
+        },
+        "TotalCostAndUsage":{
+          "shape":"ComparisonMetrics",
+          "documentation":"<p>A summary of the total cost and usage, comparing amounts between <code>BaselineTimePeriod</code> and <code>ComparisonTimePeriod</code> and their differences. This total represents the aggregate total across all paginated results, if the response spans multiple pages.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of paginated results.</p>"
+        }
+      }
+    },
     "GetCostAndUsageRequest":{
       "type":"structure",
       "required":[
@@ -2230,6 +2722,10 @@
         "GroupBy":{
           "shape":"GroupDefinitions",
           "documentation":"<p>You can group Amazon Web Services costs using up to two different groups, either dimensions, tag keys, cost categories, or any two group by types.</p> <p>Valid values for the <code>DIMENSION</code> type are <code>AZ</code>, <code>INSTANCE_TYPE</code>, <code>LEGAL_ENTITY_NAME</code>, <code>INVOICING_ENTITY</code>, <code>LINKED_ACCOUNT</code>, <code>OPERATION</code>, <code>PLATFORM</code>, <code>PURCHASE_TYPE</code>, <code>SERVICE</code>, <code>TENANCY</code>, <code>RECORD_TYPE</code>, and <code>USAGE_TYPE</code>.</p> <p>When you group by the <code>TAG</code> type and include a valid tag key, you get all tag values, including empty strings.</p>"
+        },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
         },
         "NextPageToken":{
           "shape":"NextPageToken",
@@ -2286,6 +2782,10 @@
           "shape":"GroupDefinitions",
           "documentation":"<p>You can group Amazon Web Services costs using up to two different groups: <code>DIMENSION</code>, <code>TAG</code>, <code>COST_CATEGORY</code>.</p>"
         },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
+        },
         "NextPageToken":{
           "shape":"NextPageToken",
           "documentation":"<p>The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size.</p>"
@@ -2319,7 +2819,7 @@
       "members":{
         "SearchString":{
           "shape":"SearchString",
-          "documentation":"<p>The value that you want to search the filter values for.</p> <p>If you don't specify a <code>CostCategoryName</code>, <code>SearchString</code> is used to filter Cost Category names that match the <code>SearchString</code> pattern. If you specify a <code>CostCategoryName</code>, <code>SearchString</code> is used to filter Cost Category values that match the <code>SearchString</code> pattern.</p>"
+          "documentation":"<p>The value that you want to search the filter values for.</p> <p>If you don't specify a <code>CostCategoryName</code>, <code>SearchString</code> is used to filter cost category names that match the <code>SearchString</code> pattern. If you specify a <code>CostCategoryName</code>, <code>SearchString</code> is used to filter cost category values that match the <code>SearchString</code> pattern.</p>"
         },
         "TimePeriod":{"shape":"DateInterval"},
         "CostCategoryName":{"shape":"CostCategoryName"},
@@ -2327,6 +2827,10 @@
         "SortBy":{
           "shape":"SortDefinitions",
           "documentation":"<p>The value that you sort the data by.</p> <p>The key represents the cost and usage metrics. The following values are supported:</p> <ul> <li> <p> <code>BlendedCost</code> </p> </li> <li> <p> <code>UnblendedCost</code> </p> </li> <li> <p> <code>AmortizedCost</code> </p> </li> <li> <p> <code>NetAmortizedCost</code> </p> </li> <li> <p> <code>NetUnblendedCost</code> </p> </li> <li> <p> <code>UsageQuantity</code> </p> </li> <li> <p> <code>NormalizedUsageAmount</code> </p> </li> </ul> <p>The supported key values for the <code>SortOrder</code> value are <code>ASCENDING</code> and <code>DESCENDING</code>.</p> <p>When you use the <code>SortBy</code> value, the <code>NextPageToken</code> and <code>SearchString</code> key values aren't supported.</p>"
+        },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
@@ -2351,11 +2855,11 @@
         },
         "CostCategoryNames":{
           "shape":"CostCategoryNamesList",
-          "documentation":"<p>The names of the Cost Categories.</p>"
+          "documentation":"<p>The names of the cost categories.</p>"
         },
         "CostCategoryValues":{
           "shape":"CostCategoryValuesList",
-          "documentation":"<p>The Cost Category values.</p> <p>If the <code>CostCategoryName</code> key isn't specified in the request, the <code>CostCategoryValues</code> fields aren't returned. </p>"
+          "documentation":"<p>The cost category values.</p> <p>If the <code>CostCategoryName</code> key isn't specified in the request, the <code>CostCategoryValues</code> fields aren't returned. </p>"
         },
         "ReturnSize":{
           "shape":"PageSize",
@@ -2364,6 +2868,59 @@
         "TotalSize":{
           "shape":"PageSize",
           "documentation":"<p>The total number of objects.</p>"
+        }
+      }
+    },
+    "GetCostComparisonDriversRequest":{
+      "type":"structure",
+      "required":[
+        "BaselineTimePeriod",
+        "ComparisonTimePeriod",
+        "MetricForComparison"
+      ],
+      "members":{
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
+        },
+        "BaselineTimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The reference time period for comparison. This time period serves as the baseline against which other cost and usage data will be compared. The interval must start and end on the first day of a month, with a duration of exactly one month.</p>"
+        },
+        "ComparisonTimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The comparison time period for analysis. This time period's cost and usage data will be compared against the baseline time period. The interval must start and end on the first day of a month, with a duration of exactly one month.</p>"
+        },
+        "MetricForComparison":{
+          "shape":"MetricName",
+          "documentation":"<p>The cost and usage metric to compare. Valid values are <code>AmortizedCost</code>, <code>BlendedCost</code>, <code>NetAmortizedCost</code>, <code>NetUnblendedCost</code>, <code>NormalizedUsageAmount</code>, <code>UnblendedCost</code>, and <code>UsageQuantity</code>.</p>"
+        },
+        "Filter":{"shape":"Expression"},
+        "GroupBy":{
+          "shape":"GroupDefinitions",
+          "documentation":"<p>You can group results using the attributes <code>DIMENSION</code>, <code>TAG</code>, and <code>COST_CATEGORY</code>. Note that <code>SERVICE</code> and <code>USAGE_TYPE</code> dimensions are automatically included in the cost comparison drivers analysis.</p>"
+        },
+        "MaxResults":{
+          "shape":"CostComparisonDriversMaxResults",
+          "documentation":"<p>The maximum number of results that are returned for the request.</p>",
+          "box":true
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of paginated results.</p>"
+        }
+      }
+    },
+    "GetCostComparisonDriversResponse":{
+      "type":"structure",
+      "members":{
+        "CostComparisonDrivers":{
+          "shape":"CostComparisonDrivers",
+          "documentation":"<p>An array of comparison results showing factors that drive significant cost differences between <code>BaselineTimePeriod</code> and <code>ComparisonTimePeriod</code>.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of paginated results.</p>"
         }
       }
     },
@@ -2385,11 +2942,15 @@
         },
         "Granularity":{
           "shape":"Granularity",
-          "documentation":"<p>How granular you want the forecast to be. You can get 3 months of <code>DAILY</code> forecasts or 12 months of <code>MONTHLY</code> forecasts.</p> <p>The <code>GetCostForecast</code> operation supports only <code>DAILY</code> and <code>MONTHLY</code> granularities.</p>"
+          "documentation":"<p>How granular you want the forecast to be. You can get 3 months of <code>DAILY</code> forecasts or 18 months of <code>MONTHLY</code> forecasts.</p> <p>The <code>GetCostForecast</code> operation supports only <code>DAILY</code> and <code>MONTHLY</code> granularities.</p>"
         },
         "Filter":{
           "shape":"Expression",
-          "documentation":"<p>The filters that you want to use to filter your forecast. The <code>GetCostForecast</code> API supports filtering by the following dimensions:</p> <ul> <li> <p> <code>AZ</code> </p> </li> <li> <p> <code>INSTANCE_TYPE</code> </p> </li> <li> <p> <code>LINKED_ACCOUNT</code> </p> </li> <li> <p> <code>LINKED_ACCOUNT_NAME</code> </p> </li> <li> <p> <code>OPERATION</code> </p> </li> <li> <p> <code>PURCHASE_TYPE</code> </p> </li> <li> <p> <code>REGION</code> </p> </li> <li> <p> <code>SERVICE</code> </p> </li> <li> <p> <code>USAGE_TYPE</code> </p> </li> <li> <p> <code>USAGE_TYPE_GROUP</code> </p> </li> <li> <p> <code>RECORD_TYPE</code> </p> </li> <li> <p> <code>OPERATING_SYSTEM</code> </p> </li> <li> <p> <code>TENANCY</code> </p> </li> <li> <p> <code>SCOPE</code> </p> </li> <li> <p> <code>PLATFORM</code> </p> </li> <li> <p> <code>SUBSCRIPTION_ID</code> </p> </li> <li> <p> <code>LEGAL_ENTITY_NAME</code> </p> </li> <li> <p> <code>DEPLOYMENT_OPTION</code> </p> </li> <li> <p> <code>DATABASE_ENGINE</code> </p> </li> <li> <p> <code>INSTANCE_TYPE_FAMILY</code> </p> </li> <li> <p> <code>BILLING_ENTITY</code> </p> </li> <li> <p> <code>RESERVATION_ID</code> </p> </li> <li> <p> <code>SAVINGS_PLAN_ARN</code> </p> </li> </ul>"
+          "documentation":"<p>The filters that you want to use to filter your forecast. The <code>GetCostForecast</code> API supports filtering by the following dimensions:</p> <ul> <li> <p> <code>AZ</code> </p> </li> <li> <p> <code>INSTANCE_TYPE</code> </p> </li> <li> <p> <code>LINKED_ACCOUNT</code> </p> </li> <li> <p> <code>OPERATION</code> </p> </li> <li> <p> <code>PURCHASE_TYPE</code> </p> </li> <li> <p> <code>REGION</code> </p> </li> <li> <p> <code>SERVICE</code> </p> </li> <li> <p> <code>USAGE_TYPE</code> </p> </li> <li> <p> <code>USAGE_TYPE_GROUP</code> </p> </li> <li> <p> <code>RECORD_TYPE</code> </p> </li> <li> <p> <code>OPERATING_SYSTEM</code> </p> </li> <li> <p> <code>TENANCY</code> </p> </li> <li> <p> <code>SCOPE</code> </p> </li> <li> <p> <code>PLATFORM</code> </p> </li> <li> <p> <code>SUBSCRIPTION_ID</code> </p> </li> <li> <p> <code>LEGAL_ENTITY_NAME</code> </p> </li> <li> <p> <code>DEPLOYMENT_OPTION</code> </p> </li> <li> <p> <code>DATABASE_ENGINE</code> </p> </li> <li> <p> <code>INSTANCE_TYPE_FAMILY</code> </p> </li> <li> <p> <code>BILLING_ENTITY</code> </p> </li> <li> <p> <code>RESERVATION_ID</code> </p> </li> <li> <p> <code>SAVINGS_PLAN_ARN</code> </p> </li> </ul>"
+        },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
         },
         "PredictionIntervalLevel":{
           "shape":"PredictionIntervalLevel",
@@ -2431,12 +2992,16 @@
         },
         "Context":{
           "shape":"Context",
-          "documentation":"<p>The context for the call to <code>GetDimensionValues</code>. This can be <code>RESERVATIONS</code> or <code>COST_AND_USAGE</code>. The default value is <code>COST_AND_USAGE</code>. If the context is set to <code>RESERVATIONS</code>, the resulting dimension values can be used in the <code>GetReservationUtilization</code> operation. If the context is set to <code>COST_AND_USAGE</code>, the resulting dimension values can be used in the <code>GetCostAndUsage</code> operation.</p> <p>If you set the context to <code>COST_AND_USAGE</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>AZ - The Availability Zone. An example is <code>us-east-1a</code>.</p> </li> <li> <p>BILLING_ENTITY - The Amazon Web Services seller that your account is with. Possible values are the following:</p> <p>- Amazon Web Services(Amazon Web Services): The entity that sells Amazon Web Services.</p> <p>- AISPL (Amazon Internet Services Pvt. Ltd.): The local Indian entity that's an acting reseller for Amazon Web Services in India.</p> <p>- Amazon Web Services Marketplace: The entity that supports the sale of solutions that are built on Amazon Web Services by third-party software providers.</p> </li> <li> <p>CACHE_ENGINE - The Amazon ElastiCache operating system. Examples are Windows or Linux.</p> </li> <li> <p>DEPLOYMENT_OPTION - The scope of Amazon Relational Database Service deployments. Valid values are <code>SingleAZ</code> and <code>MultiAZ</code>.</p> </li> <li> <p>DATABASE_ENGINE - The Amazon Relational Database Service database. Examples are Aurora or MySQL.</p> </li> <li> <p>INSTANCE_TYPE - The type of Amazon EC2 instance. An example is <code>m4.xlarge</code>.</p> </li> <li> <p>INSTANCE_TYPE_FAMILY - A family of instance types optimized to fit different use cases. Examples are <code>Compute Optimized</code> (for example, <code>C4</code>, <code>C5</code>, <code>C6g</code>, and <code>C7g</code>), <code>Memory Optimization</code> (for example, <code>R4</code>, <code>R5n</code>, <code>R5b</code>, and <code>R6g</code>).</p> </li> <li> <p>INVOICING_ENTITY - The name of the entity that issues the Amazon Web Services invoice.</p> </li> <li> <p>LEGAL_ENTITY_NAME - The name of the organization that sells you Amazon Web Services services, such as Amazon Web Services.</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>OPERATING_SYSTEM - The operating system. Examples are Windows or Linux.</p> </li> <li> <p>OPERATION - The action performed. Examples include <code>RunInstance</code> and <code>CreateBucket</code>.</p> </li> <li> <p>PLATFORM - The Amazon EC2 operating system. Examples are Windows or Linux.</p> </li> <li> <p>PURCHASE_TYPE - The reservation type of the purchase that this usage is related to. Examples include On-Demand Instances and Standard Reserved Instances.</p> </li> <li> <p>RESERVATION_ID - The unique identifier for an Amazon Web Services Reservation Instance.</p> </li> <li> <p>SAVINGS_PLAN_ARN - The unique identifier for your Savings Plans.</p> </li> <li> <p>SAVINGS_PLANS_TYPE - Type of Savings Plans (EC2 Instance or Compute).</p> </li> <li> <p>SERVICE - The Amazon Web Services service such as Amazon DynamoDB.</p> </li> <li> <p>TENANCY - The tenancy of a resource. Examples are shared or dedicated.</p> </li> <li> <p>USAGE_TYPE - The type of usage. An example is DataTransfer-In-Bytes. The response for the <code>GetDimensionValues</code> operation includes a unit attribute. Examples include GB and Hrs.</p> </li> <li> <p>USAGE_TYPE_GROUP - The grouping of common usage types. An example is Amazon EC2: CloudWatch – Alarms. The response for this operation includes a unit attribute.</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>RECORD_TYPE - The different types of charges such as Reserved Instance (RI) fees, usage costs, tax refunds, and credits.</p> </li> <li> <p>RESOURCE_ID - The unique identifier of the resource. ResourceId is an opt-in feature only available for last 14 days for EC2-Compute Service.</p> </li> </ul> <p>If you set the context to <code>RESERVATIONS</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>AZ - The Availability Zone. An example is <code>us-east-1a</code>.</p> </li> <li> <p>CACHE_ENGINE - The Amazon ElastiCache operating system. Examples are Windows or Linux.</p> </li> <li> <p>DEPLOYMENT_OPTION - The scope of Amazon Relational Database Service deployments. Valid values are <code>SingleAZ</code> and <code>MultiAZ</code>.</p> </li> <li> <p>INSTANCE_TYPE - The type of Amazon EC2 instance. An example is <code>m4.xlarge</code>.</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>PLATFORM - The Amazon EC2 operating system. Examples are Windows or Linux.</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>SCOPE (Utilization only) - The scope of a Reserved Instance (RI). Values are regional or a single Availability Zone.</p> </li> <li> <p>TAG (Coverage only) - The tags that are associated with a Reserved Instance (RI).</p> </li> <li> <p>TENANCY - The tenancy of a resource. Examples are shared or dedicated.</p> </li> </ul> <p>If you set the context to <code>SAVINGS_PLANS</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>SAVINGS_PLANS_TYPE - Type of Savings Plans (EC2 Instance or Compute)</p> </li> <li> <p>PAYMENT_OPTION - The payment option for the given Savings Plans (for example, All Upfront)</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>INSTANCE_TYPE_FAMILY - The family of instances (For example, <code>m5</code>)</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>SAVINGS_PLAN_ARN - The unique identifier for your Savings Plans.</p> </li> </ul>"
+          "documentation":"<p>The context for the call to <code>GetDimensionValues</code>. This can be <code>RESERVATIONS</code> or <code>COST_AND_USAGE</code>. The default value is <code>COST_AND_USAGE</code>. If the context is set to <code>RESERVATIONS</code>, the resulting dimension values can be used in the <code>GetReservationUtilization</code> operation. If the context is set to <code>COST_AND_USAGE</code>, the resulting dimension values can be used in the <code>GetCostAndUsage</code> operation.</p> <p>If you set the context to <code>COST_AND_USAGE</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>AZ - The Availability Zone. An example is <code>us-east-1a</code>.</p> </li> <li> <p>BILLING_ENTITY - The Amazon Web Services seller that your account is with. Possible values are the following:</p> <p>- Amazon Web Services(Amazon Web Services): The entity that sells Amazon Web Services services.</p> <p>- AISPL (Amazon Internet Services Pvt. Ltd.): The local Indian entity that's an acting reseller for Amazon Web Services services in India.</p> <p>- Amazon Web Services Marketplace: The entity that supports the sale of solutions that are built on Amazon Web Services by third-party software providers.</p> </li> <li> <p>CACHE_ENGINE - The Amazon ElastiCache operating system. Examples are Windows or Linux.</p> </li> <li> <p>DEPLOYMENT_OPTION - The scope of Amazon Relational Database Service deployments. Valid values are <code>SingleAZ</code> and <code>MultiAZ</code>.</p> </li> <li> <p>DATABASE_ENGINE - The Amazon Relational Database Service database. Examples are Aurora or MySQL.</p> </li> <li> <p>INSTANCE_TYPE - The type of Amazon EC2 instance. An example is <code>m4.xlarge</code>.</p> </li> <li> <p>INSTANCE_TYPE_FAMILY - A family of instance types optimized to fit different use cases. Examples are <code>Compute Optimized</code> (for example, <code>C4</code>, <code>C5</code>, <code>C6g</code>, and <code>C7g</code>), <code>Memory Optimization</code> (for example, <code>R4</code>, <code>R5n</code>, <code>R5b</code>, and <code>R6g</code>).</p> </li> <li> <p>INVOICING_ENTITY - The name of the entity that issues the Amazon Web Services invoice.</p> </li> <li> <p>LEGAL_ENTITY_NAME - The name of the organization that sells you Amazon Web Services services, such as Amazon Web Services.</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>OPERATING_SYSTEM - The operating system. Examples are Windows or Linux.</p> </li> <li> <p>OPERATION - The action performed. Examples include <code>RunInstance</code> and <code>CreateBucket</code>.</p> </li> <li> <p>PLATFORM - The Amazon EC2 operating system. Examples are Windows or Linux.</p> </li> <li> <p>PURCHASE_TYPE - The reservation type of the purchase that this usage is related to. Examples include On-Demand Instances and Standard Reserved Instances.</p> </li> <li> <p>RESERVATION_ID - The unique identifier for an Amazon Web Services Reservation Instance.</p> </li> <li> <p>SAVINGS_PLAN_ARN - The unique identifier for your Savings Plans.</p> </li> <li> <p>SAVINGS_PLANS_TYPE - Type of Savings Plans (EC2 Instance or Compute).</p> </li> <li> <p>SERVICE - The Amazon Web Services service such as Amazon DynamoDB.</p> </li> <li> <p>TENANCY - The tenancy of a resource. Examples are shared or dedicated.</p> </li> <li> <p>USAGE_TYPE - The type of usage. An example is DataTransfer-In-Bytes. The response for the <code>GetDimensionValues</code> operation includes a unit attribute. Examples include GB and Hrs.</p> </li> <li> <p>USAGE_TYPE_GROUP - The grouping of common usage types. An example is Amazon EC2: CloudWatch – Alarms. The response for this operation includes a unit attribute.</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>RECORD_TYPE - The different types of charges such as Reserved Instance (RI) fees, usage costs, tax refunds, and credits.</p> </li> <li> <p>RESOURCE_ID - The unique identifier of the resource. ResourceId is an opt-in feature only available for last 14 days for EC2-Compute Service.</p> </li> </ul> <p>If you set the context to <code>RESERVATIONS</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>AZ - The Availability Zone. An example is <code>us-east-1a</code>.</p> </li> <li> <p>CACHE_ENGINE - The Amazon ElastiCache operating system. Examples are Windows or Linux.</p> </li> <li> <p>DEPLOYMENT_OPTION - The scope of Amazon Relational Database Service deployments. Valid values are <code>SingleAZ</code> and <code>MultiAZ</code>.</p> </li> <li> <p>INSTANCE_TYPE - The type of Amazon EC2 instance. An example is <code>m4.xlarge</code>.</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>PLATFORM - The Amazon EC2 operating system. Examples are Windows or Linux.</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>SCOPE (Utilization only) - The scope of a Reserved Instance (RI). Values are regional or a single Availability Zone.</p> </li> <li> <p>TAG (Coverage only) - The tags that are associated with a Reserved Instance (RI).</p> </li> <li> <p>TENANCY - The tenancy of a resource. Examples are shared or dedicated.</p> </li> </ul> <p>If you set the context to <code>SAVINGS_PLANS</code>, you can use the following dimensions for searching:</p> <ul> <li> <p>SAVINGS_PLANS_TYPE - Type of Savings Plans (EC2 Instance or Compute)</p> </li> <li> <p>PAYMENT_OPTION - The payment option for the given Savings Plans (for example, All Upfront)</p> </li> <li> <p>REGION - The Amazon Web Services Region.</p> </li> <li> <p>INSTANCE_TYPE_FAMILY - The family of instances (For example, <code>m5</code>)</p> </li> <li> <p>LINKED_ACCOUNT - The description in the attribute map that includes the full name of the member account. The value field contains the Amazon Web Services ID of the member account.</p> </li> <li> <p>SAVINGS_PLAN_ARN - The unique identifier for your Savings Plans.</p> </li> </ul>"
         },
         "Filter":{"shape":"Expression"},
         "SortBy":{
           "shape":"SortDefinitions",
           "documentation":"<p>The value that you want to sort the data by.</p> <p>The key represents cost and usage metrics. The following values are supported:</p> <ul> <li> <p> <code>BlendedCost</code> </p> </li> <li> <p> <code>UnblendedCost</code> </p> </li> <li> <p> <code>AmortizedCost</code> </p> </li> <li> <p> <code>NetAmortizedCost</code> </p> </li> <li> <p> <code>NetUnblendedCost</code> </p> </li> <li> <p> <code>UsageQuantity</code> </p> </li> <li> <p> <code>NormalizedUsageAmount</code> </p> </li> </ul> <p>The supported values for the <code>SortOrder</code> key are <code>ASCENDING</code> or <code>DESCENDING</code>.</p> <p>When you specify a <code>SortBy</code> paramater, the context must be <code>COST_AND_USAGE</code>. Further, when using <code>SortBy</code>, <code>NextPageToken</code> and <code>SearchString</code> aren't supported.</p>"
+        },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
@@ -2566,7 +3131,7 @@
           "documentation":"<p>The hardware specifications for the service instances that you want recommendations for, such as standard or convertible Amazon EC2 instances.</p>"
         },
         "PageSize":{
-          "shape":"NonNegativeInteger",
+          "shape":"RecommendationsPageSize",
           "documentation":"<p>The number of recommendations that you want returned in a single response object.</p>"
         },
         "NextPageToken":{
@@ -2610,7 +3175,7 @@
         },
         "Filter":{
           "shape":"Expression",
-          "documentation":"<p>Filters utilization data by dimensions. You can filter by the following dimensions:</p> <ul> <li> <p>AZ</p> </li> <li> <p>CACHE_ENGINE</p> </li> <li> <p>DEPLOYMENT_OPTION</p> </li> <li> <p>INSTANCE_TYPE</p> </li> <li> <p>LINKED_ACCOUNT</p> </li> <li> <p>OPERATING_SYSTEM</p> </li> <li> <p>PLATFORM</p> </li> <li> <p>REGION</p> </li> <li> <p>SERVICE</p> </li> <li> <p>SCOPE</p> </li> <li> <p>TENANCY</p> </li> </ul> <p> <code>GetReservationUtilization</code> uses the same <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_Expression.html\">Expression</a> object as the other operations, but only <code>AND</code> is supported among each dimension, and nesting is supported up to only one level deep. If there are multiple values for a dimension, they are OR'd together.</p>"
+          "documentation":"<p>Filters utilization data by dimensions. You can filter by the following dimensions:</p> <ul> <li> <p>AZ</p> </li> <li> <p>CACHE_ENGINE</p> </li> <li> <p>DEPLOYMENT_OPTION</p> </li> <li> <p>INSTANCE_TYPE</p> </li> <li> <p>LINKED_ACCOUNT</p> </li> <li> <p>OPERATING_SYSTEM</p> </li> <li> <p>PLATFORM</p> </li> <li> <p>REGION</p> </li> <li> <p>SERVICE</p> <note> <p>If not specified, the <code>SERVICE</code> filter defaults to Amazon Elastic Compute Cloud - Compute. Supported values for <code>SERVICE</code> are Amazon Elastic Compute Cloud - Compute, Amazon Relational Database Service, Amazon ElastiCache, Amazon Redshift, and Amazon Elasticsearch Service. The value for the <code>SERVICE</code> filter should not exceed \"1\".</p> </note> </li> <li> <p>SCOPE</p> </li> <li> <p>TENANCY</p> </li> </ul> <p> <code>GetReservationUtilization</code> uses the same <a href=\"https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_Expression.html\">Expression</a> object as the other operations, but only <code>AND</code> is supported among each dimension, and nesting is supported up to only one level deep. If there are multiple values for a dimension, they are OR'd together.</p>"
         },
         "SortBy":{
           "shape":"SortDefinition",
@@ -2659,7 +3224,7 @@
           "documentation":"<p>The specific service that you want recommendations for. The only valid value for <code>GetRightsizingRecommendation</code> is \"<code>AmazonEC2</code>\".</p>"
         },
         "PageSize":{
-          "shape":"NonNegativeInteger",
+          "shape":"RecommendationsPageSize",
           "documentation":"<p>The number of recommendations that you want returned in a single response object.</p>"
         },
         "NextPageToken":{
@@ -2799,7 +3364,7 @@
           "documentation":"<p>The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size.</p>"
         },
         "PageSize":{
-          "shape":"NonNegativeInteger",
+          "shape":"RecommendationsPageSize",
           "documentation":"<p>The number of recommendations that you want returned in a single response object.</p>"
         },
         "LookbackPeriodInDays":{
@@ -2939,6 +3504,10 @@
           "shape":"SortDefinitions",
           "documentation":"<p>The value that you want to sort the data by.</p> <p>The key represents cost and usage metrics. The following values are supported:</p> <ul> <li> <p> <code>BlendedCost</code> </p> </li> <li> <p> <code>UnblendedCost</code> </p> </li> <li> <p> <code>AmortizedCost</code> </p> </li> <li> <p> <code>NetAmortizedCost</code> </p> </li> <li> <p> <code>NetUnblendedCost</code> </p> </li> <li> <p> <code>UsageQuantity</code> </p> </li> <li> <p> <code>NormalizedUsageAmount</code> </p> </li> </ul> <p>The supported values for <code>SortOrder</code> are <code>ASCENDING</code> and <code>DESCENDING</code>.</p> <p>When you use <code>SortBy</code>, <code>NextPageToken</code> and <code>SearchString</code> aren't supported.</p>"
         },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
+        },
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>This field is only used when SortBy is provided in the request. The maximum number of objects that are returned for this request. If MaxResults isn't specified with SortBy, the request returns 1000 results as the default value for this parameter.</p> <p>For <code>GetTags</code>, MaxResults has an upper quota of 1000.</p>"
@@ -2993,11 +3562,15 @@
         },
         "Granularity":{
           "shape":"Granularity",
-          "documentation":"<p>How granular you want the forecast to be. You can get 3 months of <code>DAILY</code> forecasts or 12 months of <code>MONTHLY</code> forecasts.</p> <p>The <code>GetUsageForecast</code> operation supports only <code>DAILY</code> and <code>MONTHLY</code> granularities.</p>"
+          "documentation":"<p>How granular you want the forecast to be. You can get 3 months of <code>DAILY</code> forecasts or 18 months of <code>MONTHLY</code> forecasts.</p> <p>The <code>GetUsageForecast</code> operation supports only <code>DAILY</code> and <code>MONTHLY</code> granularities.</p>"
         },
         "Filter":{
           "shape":"Expression",
           "documentation":"<p>The filters that you want to use to filter your forecast. The <code>GetUsageForecast</code> API supports filtering by the following dimensions:</p> <ul> <li> <p> <code>AZ</code> </p> </li> <li> <p> <code>INSTANCE_TYPE</code> </p> </li> <li> <p> <code>LINKED_ACCOUNT</code> </p> </li> <li> <p> <code>LINKED_ACCOUNT_NAME</code> </p> </li> <li> <p> <code>OPERATION</code> </p> </li> <li> <p> <code>PURCHASE_TYPE</code> </p> </li> <li> <p> <code>REGION</code> </p> </li> <li> <p> <code>SERVICE</code> </p> </li> <li> <p> <code>USAGE_TYPE</code> </p> </li> <li> <p> <code>USAGE_TYPE_GROUP</code> </p> </li> <li> <p> <code>RECORD_TYPE</code> </p> </li> <li> <p> <code>OPERATING_SYSTEM</code> </p> </li> <li> <p> <code>TENANCY</code> </p> </li> <li> <p> <code>SCOPE</code> </p> </li> <li> <p> <code>PLATFORM</code> </p> </li> <li> <p> <code>SUBSCRIPTION_ID</code> </p> </li> <li> <p> <code>LEGAL_ENTITY_NAME</code> </p> </li> <li> <p> <code>DEPLOYMENT_OPTION</code> </p> </li> <li> <p> <code>DATABASE_ENGINE</code> </p> </li> <li> <p> <code>INSTANCE_TYPE_FAMILY</code> </p> </li> <li> <p> <code>BILLING_ENTITY</code> </p> </li> <li> <p> <code>RESERVATION_ID</code> </p> </li> <li> <p> <code>SAVINGS_PLAN_ARN</code> </p> </li> </ul>"
+        },
+        "BillingViewArn":{
+          "shape":"BillingViewArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies a specific billing view. The ARN is used to specify which particular billing view you want to interact with or retrieve information from when making API calls related to Amazon Web Services Billing and Cost Management features. The BillingViewArn can be retrieved by calling the ListBillingViews API.</p>"
         },
         "PredictionIntervalLevel":{
           "shape":"PredictionIntervalLevel",
@@ -3154,6 +3727,40 @@
       "documentation":"<p>You made too many calls in a short period of time. Try again later.</p>",
       "exception":true
     },
+    "ListCommitmentPurchaseAnalysesRequest":{
+      "type":"structure",
+      "members":{
+        "AnalysisStatus":{
+          "shape":"AnalysisStatus",
+          "documentation":"<p>The status of the analysis.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of results.</p>"
+        },
+        "PageSize":{
+          "shape":"AnalysesPageSize",
+          "documentation":"<p>The number of analyses that you want returned in a single response object.</p>"
+        },
+        "AnalysisIds":{
+          "shape":"AnalysisIds",
+          "documentation":"<p>The analysis IDs associated with the commitment purchase analyses.</p>"
+        }
+      }
+    },
+    "ListCommitmentPurchaseAnalysesResponse":{
+      "type":"structure",
+      "members":{
+        "AnalysisSummaryList":{
+          "shape":"AnalysisSummaryList",
+          "documentation":"<p>The list of analyses.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of results.</p>"
+        }
+      }
+    },
     "ListCostAllocationTagBackfillHistoryRequest":{
       "type":"structure",
       "members":{
@@ -3225,7 +3832,7 @@
       "members":{
         "EffectiveOn":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The date when the Cost Category was effective. </p>"
+          "documentation":"<p>The date when the cost category was effective. </p>"
         },
         "NextToken":{
           "shape":"NextPageToken",
@@ -3235,6 +3842,10 @@
           "shape":"CostCategoryMaxResults",
           "documentation":"<p>The number of entries a paginated response contains. </p>",
           "box":true
+        },
+        "SupportedResourceTypes":{
+          "shape":"ResourceTypesFilterInput",
+          "documentation":"<p> Filter cost category definitions that are supported by given resource types based on the latest version. If the filter is present, the result only includes Cost Categories that supports input resource type. If the filter isn't provided, no filtering is applied. The valid values are <code>billing:rispgroupsharing</code> and <code>billing:billingview</code>. </p>"
         }
       }
     },
@@ -3243,11 +3854,42 @@
       "members":{
         "CostCategoryReferences":{
           "shape":"CostCategoryReferencesList",
-          "documentation":"<p>A reference to a Cost Category that contains enough information to identify the Cost Category. </p>"
+          "documentation":"<p>A reference to a cost category that contains enough information to identify the Cost Category. </p>"
         },
         "NextToken":{
           "shape":"NextPageToken",
           "documentation":"<p>The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size. </p>"
+        }
+      }
+    },
+    "ListCostCategoryResourceAssociationsRequest":{
+      "type":"structure",
+      "members":{
+        "CostCategoryArn":{
+          "shape":"Arn",
+          "documentation":"<p>The unique identifier for your cost category.</p>"
+        },
+        "NextToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p> The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size. </p>"
+        },
+        "MaxResults":{
+          "shape":"CostCategoryMaxResults",
+          "documentation":"<p> The number of entries a paginated response contains. </p>",
+          "box":true
+        }
+      }
+    },
+    "ListCostCategoryResourceAssociationsResponse":{
+      "type":"structure",
+      "members":{
+        "CostCategoryResourceAssociations":{
+          "shape":"CostCategoryResourceAssociations",
+          "documentation":"<p> A reference to a cost category association that contains information on an associated resource. </p>"
+        },
+        "NextToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p> The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size. </p>"
         }
       }
     },
@@ -3263,7 +3905,7 @@
           "documentation":"<p>The IDs for each specific recommendation.</p>"
         },
         "PageSize":{
-          "shape":"NonNegativeInteger",
+          "shape":"RecommendationsPageSize",
           "documentation":"<p>The number of recommendations that you want returned in a single response object.</p>"
         },
         "NextPageToken":{
@@ -3422,7 +4064,12 @@
     },
     "MonitorDimension":{
       "type":"string",
-      "enum":["SERVICE"]
+      "enum":[
+        "SERVICE",
+        "LINKED_ACCOUNT",
+        "TAG",
+        "COST_CATEGORY"
+      ]
     },
     "MonitorType":{
       "type":"string",
@@ -3592,6 +4239,10 @@
         "SizeFlexEligible":{
           "shape":"GenericBoolean",
           "documentation":"<p>Determines whether the recommended reservation is size flexible.</p>"
+        },
+        "DeploymentModel":{
+          "shape":"GenericString",
+          "documentation":"<p>Determines whether the recommendation is for a reservation for RDS Custom.</p>"
         }
       },
       "documentation":"<p>Details about the Amazon RDS reservations that Amazon Web Services recommends that you purchase.</p>"
@@ -3759,6 +4410,11 @@
         "SAME_INSTANCE_FAMILY",
         "CROSS_INSTANCE_FAMILY"
       ]
+    },
+    "RecommendationsPageSize":{
+      "type":"integer",
+      "max":6000,
+      "min":0
     },
     "RedshiftInstanceDetails":{
       "type":"structure",
@@ -4000,6 +4656,26 @@
         "RecurringStandardMonthlyCost":{
           "shape":"GenericString",
           "documentation":"<p>How much purchasing this instance costs you on a monthly basis.</p>"
+        },
+        "ReservedCapacityDetails":{
+          "shape":"ReservedCapacityDetails",
+          "documentation":"<p>Details about the reservations that Amazon Web Services recommends that you purchase.</p>"
+        },
+        "RecommendedNumberOfCapacityUnitsToPurchase":{
+          "shape":"GenericString",
+          "documentation":"<p>The number of reserved capacity units that Amazon Web Services recommends that you purchase.</p>"
+        },
+        "MinimumNumberOfCapacityUnitsUsedPerHour":{
+          "shape":"GenericString",
+          "documentation":"<p>The minimum number of provisioned capacity units that you used in an hour during the historical period. Amazon Web Services uses this to calculate your recommended reservation purchases.</p>"
+        },
+        "MaximumNumberOfCapacityUnitsUsedPerHour":{
+          "shape":"GenericString",
+          "documentation":"<p>The maximum number of provisioned capacity units that you used in an hour during the historical period. Amazon Web Services uses this to calculate your recommended reservation purchases.</p>"
+        },
+        "AverageNumberOfCapacityUnitsUsedPerHour":{
+          "shape":"GenericString",
+          "documentation":"<p>The average number of provisioned capacity units that you used in an hour during the historical period. Amazon Web Services uses this to calculate your recommended reservation purchases.</p>"
         }
       },
       "documentation":"<p>Details about your recommended reservation purchase.</p>"
@@ -4074,6 +4750,16 @@
       "type":"list",
       "member":{"shape":"ReservationUtilizationGroup"}
     },
+    "ReservedCapacityDetails":{
+      "type":"structure",
+      "members":{
+        "DynamoDBCapacityDetails":{
+          "shape":"DynamoDBCapacityDetails",
+          "documentation":"<p>The DynamoDB reservations that Amazon Web Services recommends that you purchase.</p>"
+        }
+      },
+      "documentation":"<p>Details about the reservations that Amazon Web Services recommends that you purchase.</p>"
+    },
     "ReservedHours":{"type":"string"},
     "ReservedNormalizedUnits":{"type":"string"},
     "ResourceDetails":{
@@ -4136,6 +4822,20 @@
       "max":256,
       "min":0,
       "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
+    },
+    "ResourceType":{
+      "type":"string",
+      "pattern":"^[-a-zA-Z0-9/_]+:[-a-zA-Z0-9/_]+"
+    },
+    "ResourceTypes":{
+      "type":"list",
+      "member":{"shape":"ResourceType"}
+    },
+    "ResourceTypesFilterInput":{
+      "type":"list",
+      "member":{"shape":"ResourceType"},
+      "max":5,
+      "min":0
     },
     "ResourceUtilization":{
       "type":"structure",
@@ -4281,7 +4981,7 @@
       "members":{
         "Service":{
           "shape":"GenericString",
-          "documentation":"<p>The Amazon Web Service name that's associated with the cost anomaly. </p>"
+          "documentation":"<p>The Amazon Web Services service name that's associated with the cost anomaly. </p>"
         },
         "Region":{
           "shape":"GenericString",
@@ -4291,22 +4991,71 @@
           "shape":"GenericString",
           "documentation":"<p>The member account value that's associated with the cost anomaly. </p>"
         },
+        "LinkedAccountName":{
+          "shape":"GenericString",
+          "documentation":"<p>The member account name value that's associated with the cost anomaly.</p>"
+        },
         "UsageType":{
           "shape":"GenericString",
           "documentation":"<p>The <code>UsageType</code> value that's associated with the cost anomaly. </p>"
         },
-        "LinkedAccountName":{
-          "shape":"GenericString",
-          "documentation":"<p>The member account name value that's associated with the cost anomaly.</p>"
+        "Impact":{
+          "shape":"RootCauseImpact",
+          "documentation":"<p>The dollar impact for the root cause.</p>"
         }
       },
-      "documentation":"<p>The combination of Amazon Web Service, linked account, linked account name, Region, and usage type where a cost anomaly is observed. The linked account name will only be available when the account name can be identified.</p>"
+      "documentation":"<p>The combination of Amazon Web Services service, linked account, linked account name, Region, and usage type where a cost anomaly is observed, along with the dollar and percentage amount of the anomaly impact. The linked account name will only be available when the account name can be identified.</p>"
+    },
+    "RootCauseImpact":{
+      "type":"structure",
+      "required":["Contribution"],
+      "members":{
+        "Contribution":{
+          "shape":"GenericDouble",
+          "documentation":"<p>The dollar amount that this root cause contributed to the anomaly's TotalImpact.</p>"
+        }
+      },
+      "documentation":"<p>The dollar value of the root cause.</p>"
     },
     "RootCauses":{
       "type":"list",
       "member":{"shape":"RootCause"}
     },
     "SavingsPlanArn":{"type":"string"},
+    "SavingsPlans":{
+      "type":"structure",
+      "members":{
+        "PaymentOption":{
+          "shape":"PaymentOption",
+          "documentation":"<p>The payment option for the Savings Plans commitment.</p>"
+        },
+        "SavingsPlansType":{
+          "shape":"SupportedSavingsPlansType",
+          "documentation":"<p>The Savings Plans type.</p>"
+        },
+        "Region":{
+          "shape":"GenericString",
+          "documentation":"<p>The Region associated with the Savings Plans commitment.</p>"
+        },
+        "InstanceFamily":{
+          "shape":"GenericString",
+          "documentation":"<p>The instance family of the Savings Plans commitment.</p>"
+        },
+        "TermInYears":{
+          "shape":"TermInYears",
+          "documentation":"<p>The term that you want the Savings Plans commitment for.</p>"
+        },
+        "SavingsPlansCommitment":{
+          "shape":"SavingsPlansCommitment",
+          "documentation":"<p>The Savings Plans commitment.</p>"
+        },
+        "OfferingId":{
+          "shape":"GenericString",
+          "documentation":"<p>The unique ID that's used to distinguish Savings Plans commitments from one another.</p>"
+        }
+      },
+      "documentation":"<p>The Savings Plans commitment details.</p>"
+    },
     "SavingsPlansAmortizedCommitment":{
       "type":"structure",
       "members":{
@@ -4324,6 +5073,11 @@
         }
       },
       "documentation":"<p>The amortized amount of Savings Plans purchased in a specific account during a specific time interval.</p>"
+    },
+    "SavingsPlansCommitment":{
+      "type":"double",
+      "max":5000,
+      "min":0.001
     },
     "SavingsPlansCoverage":{
       "type":"structure",
@@ -4396,6 +5150,141 @@
         }
       },
       "documentation":"<p>The attribute details on a specific Savings Plan.</p>"
+    },
+    "SavingsPlansId":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"^[\\S\\s]{8}-[\\S\\s]{4}-[\\S\\s]{4}-[\\S\\s]{4}-[\\S\\s]{12}$"
+    },
+    "SavingsPlansPurchaseAnalysisConfiguration":{
+      "type":"structure",
+      "required":[
+        "AnalysisType",
+        "SavingsPlansToAdd",
+        "LookBackTimePeriod"
+      ],
+      "members":{
+        "AccountScope":{
+          "shape":"AccountScope",
+          "documentation":"<p>The account scope that you want your analysis for.</p>"
+        },
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account that the analysis is for.</p>"
+        },
+        "AnalysisType":{
+          "shape":"AnalysisType",
+          "documentation":"<p>The type of analysis.</p>"
+        },
+        "SavingsPlansToAdd":{
+          "shape":"SavingsPlansToAdd",
+          "documentation":"<p>Savings Plans to include in the analysis.</p>"
+        },
+        "SavingsPlansToExclude":{
+          "shape":"SavingsPlansToExclude",
+          "documentation":"<p>Savings Plans to exclude from the analysis.</p>"
+        },
+        "LookBackTimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The time period associated with the analysis.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for the Savings Plans purchase analysis.</p>"
+    },
+    "SavingsPlansPurchaseAnalysisDetails":{
+      "type":"structure",
+      "members":{
+        "CurrencyCode":{
+          "shape":"GenericString",
+          "documentation":"<p>The currency code used for the analysis.</p>"
+        },
+        "LookbackPeriodInHours":{
+          "shape":"GenericString",
+          "documentation":"<p>The lookback period in hours that's used to generate the analysis.</p>"
+        },
+        "CurrentAverageCoverage":{
+          "shape":"GenericString",
+          "documentation":"<p>The average value of hourly coverage over the lookback period.</p>"
+        },
+        "CurrentAverageHourlyOnDemandSpend":{
+          "shape":"GenericString",
+          "documentation":"<p>The average value of hourly On-Demand spend over the lookback period.</p>"
+        },
+        "CurrentMaximumHourlyOnDemandSpend":{
+          "shape":"GenericString",
+          "documentation":"<p>The highest value of hourly On-Demand spend over the lookback period.</p>"
+        },
+        "CurrentMinimumHourlyOnDemandSpend":{
+          "shape":"GenericString",
+          "documentation":"<p>The lowest value of hourly On-Demand spend over the lookback period.</p>"
+        },
+        "CurrentOnDemandSpend":{
+          "shape":"GenericString",
+          "documentation":"<p>The current total On-Demand spend over the lookback period.</p>"
+        },
+        "ExistingHourlyCommitment":{
+          "shape":"GenericString",
+          "documentation":"<p>The existing hourly commitment for the Savings Plan type.</p>"
+        },
+        "HourlyCommitmentToPurchase":{
+          "shape":"GenericString",
+          "documentation":"<p>The recommended or custom hourly commitment.</p>"
+        },
+        "EstimatedAverageCoverage":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated coverage of the Savings Plan.</p>"
+        },
+        "EstimatedAverageUtilization":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated utilization of the Savings Plan.</p>"
+        },
+        "EstimatedMonthlySavingsAmount":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated monthly savings amount based on the Savings Plan.</p>"
+        },
+        "EstimatedOnDemandCost":{
+          "shape":"GenericString",
+          "documentation":"<p>The remaining On-Demand cost estimated to not be covered by the Savings Plan over the length of the lookback period.</p>"
+        },
+        "EstimatedOnDemandCostWithCurrentCommitment":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated On-Demand cost you expect with no additional commitment based on your usage of the selected time period and the Savings Plan you own.</p>"
+        },
+        "EstimatedROI":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated return on investment that's based on the Savings Plan and estimated savings. This is calculated as estimatedSavingsAmount/estimatedSPCost*100.</p>"
+        },
+        "EstimatedSavingsAmount":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated savings amount that's based on the Savings Plan over the length of the lookback period.</p>"
+        },
+        "EstimatedSavingsPercentage":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated savings percentage relative to the total cost over the cost calculation lookback period.</p>"
+        },
+        "EstimatedCommitmentCost":{
+          "shape":"GenericString",
+          "documentation":"<p>The estimated cost of the Savings Plan over the length of the lookback period.</p>"
+        },
+        "LatestUsageTimestamp":{
+          "shape":"GenericString",
+          "documentation":"<p>The date and time of the last hour that went into the analysis.</p>"
+        },
+        "UpfrontCost":{
+          "shape":"GenericString",
+          "documentation":"<p>The upfront cost of the Savings Plan based on the selected payment option.</p>"
+        },
+        "AdditionalMetadata":{
+          "shape":"GenericString",
+          "documentation":"<p>Additional metadata that might be applicable to the commitment.</p>"
+        },
+        "MetricsOverLookbackPeriod":{
+          "shape":"MetricsOverLookbackPeriod",
+          "documentation":"<p>The related hourly cost, coverage, and utilization metrics over the lookback period.</p>"
+        }
+      },
+      "documentation":"<p>Details about the Savings Plans purchase analysis.</p>"
     },
     "SavingsPlansPurchaseRecommendation":{
       "type":"structure",
@@ -4591,6 +5480,18 @@
       },
       "documentation":"<p>The amount of savings that you're accumulating, against the public On-Demand rate of the usage accrued in an account.</p>"
     },
+    "SavingsPlansToAdd":{
+      "type":"list",
+      "member":{"shape":"SavingsPlans"},
+      "max":1,
+      "min":1
+    },
+    "SavingsPlansToExclude":{
+      "type":"list",
+      "member":{"shape":"SavingsPlansId"},
+      "max":1000,
+      "min":0
+    },
     "SavingsPlansUtilization":{
       "type":"structure",
       "members":{
@@ -4745,6 +5646,38 @@
         "DESCENDING"
       ]
     },
+    "StartCommitmentPurchaseAnalysisRequest":{
+      "type":"structure",
+      "required":["CommitmentPurchaseAnalysisConfiguration"],
+      "members":{
+        "CommitmentPurchaseAnalysisConfiguration":{
+          "shape":"CommitmentPurchaseAnalysisConfiguration",
+          "documentation":"<p>The configuration for the commitment purchase analysis.</p>"
+        }
+      }
+    },
+    "StartCommitmentPurchaseAnalysisResponse":{
+      "type":"structure",
+      "required":[
+        "AnalysisId",
+        "AnalysisStartedTime",
+        "EstimatedCompletionTime"
+      ],
+      "members":{
+        "AnalysisId":{
+          "shape":"AnalysisId",
+          "documentation":"<p>The analysis ID that's associated with the commitment purchase analysis.</p>"
+        },
+        "AnalysisStartedTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The start time of the analysis.</p>"
+        },
+        "EstimatedCompletionTime":{
+          "shape":"ZonedDateTime",
+          "documentation":"<p>The estimated time for when the analysis will complete.</p>"
+        }
+      }
+    },
     "StartCostAllocationTagBackfillRequest":{
       "type":"structure",
       "required":["BackfillFrom"],
@@ -4766,8 +5699,7 @@
     },
     "StartSavingsPlansPurchaseRecommendationGenerationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartSavingsPlansPurchaseRecommendationGenerationResponse":{
       "type":"structure",
@@ -4833,7 +5765,8 @@
       "enum":[
         "COMPUTE_SP",
         "EC2_INSTANCE_SP",
-        "SAGEMAKER_SP"
+        "SAGEMAKER_SP",
+        "DATABASE_SP"
       ]
     },
     "TagKey":{
@@ -4865,8 +5798,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValues":{
       "type":"structure",
@@ -4881,7 +5813,7 @@
         },
         "MatchOptions":{
           "shape":"MatchOptions",
-          "documentation":"<p>The match options that you can use to filter your results. <code>MatchOptions</code> is only applicable for actions related to Cost Category. The default values for <code>MatchOptions</code> are <code>EQUALS</code> and <code>CASE_SENSITIVE</code>.</p>"
+          "documentation":"<p>The match options that you can use to filter your results. <code>MatchOptions</code> is only applicable for actions related to cost category. The default values for <code>MatchOptions</code> are <code>EQUALS</code> and <code>CASE_SENSITIVE</code>.</p>"
         }
       },
       "documentation":"<p>The values that are available for a tag.</p> <p>If <code>Values</code> and <code>Key</code> aren't specified, the <code>ABSENT</code> <code>MatchOption</code> is applied to all tags. That is, it's filtered on resources with no tags.</p> <p>If <code>Key</code> is provided and <code>Values</code> isn't specified, the <code>ABSENT</code> <code>MatchOption</code> is applied to the tag <code>Key</code> only. That is, it's filtered on resources without the given tag key.</p>"
@@ -5030,8 +5962,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UnusedHours":{"type":"string"},
     "UnusedUnits":{"type":"string"},
@@ -5158,11 +6089,11 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category.</p>"
+          "documentation":"<p>The unique identifier for your cost category.</p>"
         },
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective start date. It can only be a billing start date (first day of the month). If the date isn't provided, it's the first day of the current month. Dates can't be before the previous twelve months, or in the future.</p>"
+          "documentation":"<p>The cost category's effective start date. It can only be a billing start date (first day of the month). If the date isn't provided, it's the first day of the current month. Dates can't be before the previous twelve months, or in the future.</p>"
         },
         "RuleVersion":{"shape":"CostCategoryRuleVersion"},
         "Rules":{
@@ -5172,7 +6103,7 @@
         "DefaultValue":{"shape":"CostCategoryValue"},
         "SplitChargeRules":{
           "shape":"CostCategorySplitChargeRulesList",
-          "documentation":"<p> The split charge rules used to allocate your charges between your Cost Category values. </p>"
+          "documentation":"<p> The split charge rules used to allocate your charges between your cost category values. </p>"
         }
       }
     },
@@ -5181,11 +6112,11 @@
       "members":{
         "CostCategoryArn":{
           "shape":"Arn",
-          "documentation":"<p>The unique identifier for your Cost Category. </p>"
+          "documentation":"<p>The unique identifier for your cost category. </p>"
         },
         "EffectiveStart":{
           "shape":"ZonedDateTime",
-          "documentation":"<p>The Cost Category's effective start date. It can only be a billing start date (first day of the month).</p>"
+          "documentation":"<p>The cost category's effective start date. It can only be a billing start date (first day of the month).</p>"
         }
       }
     },

@@ -42,12 +42,9 @@ public class SdkClientOptionValidation {
     }
 
     private static void validateClientOptions(SdkClientConfiguration c) {
-        require("endpoint", c.option(SdkClientOption.ENDPOINT));
-
         require("overrideConfiguration.additionalHttpHeaders", c.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS));
         require("overrideConfiguration.executionInterceptors", c.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         require("overrideConfiguration.retryStrategy", c.option(SdkClientOption.RETRY_STRATEGY));
-
         require("overrideConfiguration.advancedOption[USER_AGENT_PREFIX]",
                 c.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
         require("overrideConfiguration.advancedOption[USER_AGENT_SUFFIX]",

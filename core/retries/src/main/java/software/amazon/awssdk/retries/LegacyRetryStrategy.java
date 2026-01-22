@@ -35,8 +35,8 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  *     <li>For throttling exceptions uses the {@link BackoffStrategy#exponentialDelayHalfJitter} backoff strategy, with a base
  *     delay of 500 milliseconds  and max delay of 20 seconds. Adjust with
  *     {@link LegacyRetryStrategy.Builder#throttlingBackoffStrategy}
- *     <li>Circuit breaking (disabling retries) in the event of high downstream failures across the scope of
- *     the strategy. The circuit breaking will never prevent a successful first attempt. Adjust with
+ *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope. The
+ *     circuit breaking will never prevent the first attempt. Adjust with
  *     {@link Builder#circuitBreakerEnabled}
  *     <li>The state of the circuit breaker is not affected by throttling exceptions
  * </ol>
@@ -68,7 +68,12 @@ public interface LegacyRetryStrategy extends RetryStrategy {
                                   .tokenBucketMaxCapacity(DefaultRetryStrategy.Legacy.TOKEN_BUCKET_SIZE)
                                   .build())
             .tokenBucketExceptionCost(DefaultRetryStrategy.Legacy.DEFAULT_EXCEPTION_TOKEN_COST)
-            .tokenBucketThrottlingExceptionCost(DefaultRetryStrategy.Legacy.THROTTLE_EXCEPTION_TOKEN_COST);
+            .tokenBucketThrottlingExceptionCost(DefaultRetryStrategy.Legacy.THROTTLE_EXCEPTION_TOKEN_COST)
+            .backoffStrategy(BackoffStrategy.exponentialDelay(DefaultRetryStrategy.Legacy.BASE_DELAY,
+                                                              DefaultRetryStrategy.Legacy.MAX_BACKOFF))
+            .throttlingBackoffStrategy(BackoffStrategy.exponentialDelayHalfJitter(
+                DefaultRetryStrategy.Legacy.THROTTLED_BASE_DELAY,
+                DefaultRetryStrategy.Legacy.MAX_BACKOFF));
     }
 
     @Override

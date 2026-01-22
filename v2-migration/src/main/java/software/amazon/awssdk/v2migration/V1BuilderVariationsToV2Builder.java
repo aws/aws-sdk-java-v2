@@ -17,6 +17,7 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2AsyncClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2ClientBuilder;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2TransferManager;
 
 import java.util.Collections;
 import org.openrewrite.ExecutionContext;
@@ -33,6 +34,7 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 import software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils;
 
 /**
@@ -79,7 +81,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 return renameAsyncBuilderToBuilder(method, selectType);
             }
 
-            if (isV2ClientBuilder(selectType)) {
+            if (isV2ClientBuilder(selectType) || isV2TransferManager(selectType)) {
                 return renameStandardToBuilderOrDefaultClientToCreate(method, selectType);
             }
 
@@ -87,7 +89,8 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
         }
 
         private static boolean shouldChangeMethod(JavaType selectType) {
-            return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType);
+            return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType)
+                || isV2TransferManager(selectType);
         }
 
         private J.MethodInvocation renameStandardToBuilderOrDefaultClientToCreate(J.MethodInvocation method,
@@ -106,7 +109,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             if ("standard".equals(methodName)) {
                 methodName = "builder";
                 returnType = fullyQualified;
-            } else if ("defaultClient".equals(methodName)) {
+            } else if ("defaultClient".equals(methodName) || "defaultTransferManager".equals(methodName)) {
                 methodName = "create";
                 returnType = v2Client;
             } else {
@@ -123,16 +126,6 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 null
             );
 
-            J.Identifier builderOrCreateMethod = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                methodName,
-                null,
-                null
-            );
-
             JavaType.Method methodType = new JavaType.Method(
                 null,
                 0L,
@@ -142,8 +135,13 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
+
+            J.Identifier builderOrCreateMethod =
+                IdentifierUtils.makeId(methodName, methodType);
 
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -172,16 +170,12 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
 
             if ("asyncBuilder".equals(methodName)) {
                 methodName = "builder";
+                mt = mt.withName(methodName);
+                method = method.withName(method.getName()
+                                               .withSimpleName(methodName)
+                                               .withType(mt))
+                               .withMethodType(mt);
             }
-
-            mt = mt.withName(methodName)
-                   .withReturnType(selectType)
-                   .withDeclaringType(fullyQualified);
-
-            method = method.withName(method.getName()
-                                           .withSimpleName(methodName)
-                                           .withType(mt))
-                           .withMethodType(mt);
             return method;
         }
     }

@@ -27,10 +27,30 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSche
  * Denotes this attribute as recording the version record number to be used for optimistic locking. Every time a record
  * with this attribute is written to the database it will be incremented and a condition added to the request to check
  * for an exact match of the old version.
+ * <p>
+ * <b>Version Calculation:</b> The first version written to a new record is calculated as {@code startAt + incrementBy}.
+ * For example, with {@code startAt=0} and {@code incrementBy=1} (defaults), the first version is 1.
+ * To start versioning from 0, use {@code startAt=-1} and {@code incrementBy=1}, which produces first version = 0.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @BeanTableSchemaAttributeTag(VersionRecordAttributeTags.class)
 public @interface DynamoDbVersionAttribute {
+    /**
+     * The starting value for the version attribute.
+     * Default value - {@code 0}.
+     *
+     * @return the starting value
+     */
+    long startAt() default 0;
+
+    /**
+     * The amount to increment the version by with each update.
+     * Default value - {@code 1}.
+     *
+     * @return the increment value
+     */
+    long incrementBy() default 1;
+
 }

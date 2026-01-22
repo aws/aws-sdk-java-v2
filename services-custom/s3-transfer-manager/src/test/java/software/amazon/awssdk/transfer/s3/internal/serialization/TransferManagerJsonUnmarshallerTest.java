@@ -19,12 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.internal.ArrayJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.NullJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.NumberJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.StringJsonNode;
@@ -57,7 +59,12 @@ class TransferManagerJsonUnmarshallerTest {
                          Arguments.of(new StringJsonNode(BinaryUtils.toBase64(SdkBytes.fromString("100", StandardCharsets.UTF_8)
                                                                                       .asByteArray())),
                                       SdkBytes.fromString("100", StandardCharsets.UTF_8),
-                                      TransferManagerJsonUnmarshaller.SDK_BYTES)
+                                      TransferManagerJsonUnmarshaller.SDK_BYTES),
+                         Arguments.of(new ArrayJsonNode(Arrays.asList(new NumberJsonNode("1"),
+                                                                      new NumberJsonNode("2"),
+                                                                      new NumberJsonNode("3"))),
+                                      Arrays.asList(1, 2, 3),
+                                      TransferManagerJsonUnmarshaller.LIST_INT)
         );
     }
 

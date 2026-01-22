@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.internal;
 
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.Closeable;
 import java.io.File;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -56,11 +58,11 @@ public final class Utils {
     }
 
     public static boolean isListShape(Shape shape) {
-        return shape.getType().equals("list");
+        return shape != null && shape.getType() != null && shape.getType().equals("list");
     }
 
     public static boolean isMapShape(Shape shape) {
-        return shape.getType().equals("map");
+        return shape.getType() != null && shape.getType().equals("map");
     }
 
     public static boolean isEnumShape(Shape shape) {
@@ -133,7 +135,7 @@ public final class Utils {
         if (str == null) {
             return null;
         }
-        if (str.startsWith(toRemove)) {
+        if (lowerCase(str).startsWith(lowerCase(toRemove))) {
             return str.substring(toRemove.length());
         }
         return str;
@@ -143,7 +145,7 @@ public final class Utils {
         if (str == null) {
             return null;
         }
-        if (str.endsWith(toRemove)) {
+        if (lowerCase(str).endsWith(lowerCase(toRemove))) {
             return str.substring(0, str.length() - toRemove.length());
         }
         return str;
@@ -330,10 +332,13 @@ public final class Utils {
                     "The operation parameter must be specified!");
         }
 
+        String protocol = ProtocolUtils.resolveProtocol(service);
+
         ShapeMarshaller marshaller = new ShapeMarshaller()
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
-                .withRequestUri(operation.getHttp().getRequestUri());
+                .withRequestUri(operation.getHttp().getRequestUri())
+                .withProtocol(protocol);
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -343,12 +348,22 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (Metadata.isNotRestProtocol(service.getProtocol())) {
+        if (Metadata.usesOperationIdentifier(protocol)) {
             marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
                                  operation.getName() :
                                  service.getTargetPrefix() + "." + operation.getName());
         }
         return marshaller;
 
+    }
+
+    /**
+     * Create the ShapeMarshaller to the input shape from the specified Operation.
+     * The input shape in the operation could be empty.
+     */
+    public static ShapeMarshaller createSyntheticInputShapeMarshaller(ServiceMetadata service, Operation operation) {
+        ShapeMarshaller result = createInputShapeMarshaller(service, operation);
+        result.withIsSynthetic(true);
+        return result;
     }
 }

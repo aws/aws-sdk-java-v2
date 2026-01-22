@@ -40,16 +40,25 @@ public class SequentialSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onSubscribe(Subscription subscription) {
+        if (this.subscription != null) {
+            subscription.cancel();
+        }
+
         this.subscription = subscription;
         subscription.request(1);
     }
 
     @Override
     public void onNext(T t) {
+        if (t == null) {
+            NullPointerException exception = new NullPointerException("onNext(null) is not allowed.");
+            future.completeExceptionally(exception);
+            throw exception;
+        }
         try {
             consumer.accept(t);
             subscription.request(1);
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
             // Handle the consumer throwing an exception
             subscription.cancel();
             future.completeExceptionally(e);

@@ -15,14 +15,12 @@
 
 package software.amazon.awssdk.core.client.config;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
 
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -64,21 +62,15 @@ public final class SdkClientConfiguration
     public static SdkClientConfiguration fromOverrideConfiguration(ClientOverrideConfiguration configuration) {
         SdkClientConfiguration result = configuration.asSdkClientConfiguration();
 
-        Boolean endpointOverriddenOverride = result.option(SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE);
         Signer signerFromOverride = result.option(SdkAdvancedClientOption.SIGNER);
 
-        if (endpointOverriddenOverride == null && signerFromOverride == null) {
+        if (signerFromOverride == null) {
             return result;
         }
 
-        SdkClientConfiguration.Builder resultBuilder = result.toBuilder();
-        if (signerFromOverride != null) {
-            resultBuilder.option(SIGNER_OVERRIDDEN, true);
-        }
-        if (endpointOverriddenOverride != null) {
-            resultBuilder.option(ENDPOINT_OVERRIDDEN, endpointOverriddenOverride);
-        }
-        return resultBuilder.build();
+        return result.toBuilder()
+                     .option(SIGNER_OVERRIDDEN, true)
+                     .build();
     }
 
     /**

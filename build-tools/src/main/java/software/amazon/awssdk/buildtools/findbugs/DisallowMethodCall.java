@@ -31,6 +31,7 @@ import org.apache.bcel.Const;
  */
 public class DisallowMethodCall extends OpcodeStackDetector {
     private static final Set<Entry<String, String>> PROHIBITED_METHODS = new HashSet<>();
+    private static final Set<Entry<String, String>> PROHIBITED_ASYNC_BLOCKING_METHODS = new HashSet<>();
     private final BugReporter bugReporter;
 
     static {
@@ -44,6 +45,19 @@ public class DisallowMethodCall extends OpcodeStackDetector {
         PROHIBITED_METHODS.add(new SimpleEntry<>("software/amazon/awssdk/http/SdkHttpRequest", "rawQueryParameters"));
         PROHIBITED_METHODS.add(new SimpleEntry<>("software/amazon/awssdk/http/SdkHttpFullRequest", "rawQueryParameters"));
         PROHIBITED_METHODS.add(new SimpleEntry<>("software/amazon/awssdk/http/SdkHttpFullRequest$Builder", "rawQueryParameters"));
+
+        // Blocking calls in async code path
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Thread", "sleep"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Object", "wait"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "join"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "get"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
+            "software/amazon/awssdk/utils/CompletableFutureUtils", "joinLikeSync"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
+            "software/amazon/awssdk/regions/util/HttpResourcesUtils", "readResource"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
+            "software/amazon/awssdk/auth/credentials/internal/HttpCredentialsLoader", "loadCredentials"
+        ));
     }
 
     public DisallowMethodCall(BugReporter bugReporter) {
@@ -68,8 +82,16 @@ public class DisallowMethodCall extends OpcodeStackDetector {
         MethodDescriptor method = getMethodDescriptorOperand();
         SignatureParser signature = new SignatureParser(method.getSignature());
         Entry<String, String> calledMethod = new SimpleEntry<>(method.getSlashedClassName(), method.getName());
+
         if (PROHIBITED_METHODS.contains(calledMethod) && signature.getNumParameters() == 0) {
             bugReporter.reportBug(new BugInstance(this, "SDK_BAD_METHOD_CALL", NORMAL_PRIORITY)
+                                      .addClassAndMethod(this)
+                                      .addSourceLine(this, getPC()));
+            return;
+        }
+
+        if (PROHIBITED_ASYNC_BLOCKING_METHODS.contains(calledMethod)) {
+            bugReporter.reportBug(new BugInstance(this, "ASYNC_BLOCKING_CALL", NORMAL_PRIORITY)
                                       .addClassAndMethod(this)
                                       .addSourceLine(this, getPC()));
         }

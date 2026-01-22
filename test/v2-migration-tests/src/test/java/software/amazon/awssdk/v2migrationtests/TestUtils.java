@@ -18,7 +18,11 @@ package software.amazon.awssdk.v2migrationtests;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +33,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.opentest4j.AssertionFailedError;
+import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -41,22 +46,25 @@ public class TestUtils {
         assertLeftHasRight(b, a);
     }
 
+    public static boolean versionAvailable(String sdkVersion) {
+        try {
+            return SdkVersionUtils.checkVersionAvailability(sdkVersion,
+                                                            "apache-client",
+                                                            "netty-nio-client",
+                                                            "dynamodb",
+                                                            "sqs",
+                                                            "s3",
+                                                            "http-auth-aws-eventstream",
+                                                            "utils");
+        } catch (Exception exception) {
+            log.warn(() -> "Exception occurred, ignoring", exception);
+            return false;
+        }
+    }
+
     public static String getVersion() throws IOException {
-        // TODO: uncomment the following code to dynamically get version
-        //  once we update the version
-        // Path root = Paths.get(".").normalize().toAbsolutePath();
-        // Path pomFile = root.resolve("pom.xml");
-        // Optional<String> versionString =
-        //     Files.readAllLines(pomFile)
-        //          .stream().filter(l -> l.contains("<version>")).findFirst();
-        //
-        // if (!versionString.isPresent()) {
-        //     throw new AssertionError("No version is found");
-        // }
-        //
-        // String string = versionString.get().trim();
-        // String substring = string.substring(9, string.indexOf('/') - 1);
-        return "2.27.0";
+        Path root = Paths.get(".").toAbsolutePath().getParent().getParent().getParent();
+        return SdkVersionUtils.getSdkPreviousReleaseVersion(root.resolve("pom.xml"));
     }
 
     public static String getMigrationToolVersion() throws IOException {
@@ -140,7 +148,14 @@ public class TestUtils {
                 IoUtils.copy(process.getInputStream(), System.out);
                 result.result = process.waitFor();
                 if (!result.wasSuccessful()) {
-                    throw new RuntimeException("Command (" + Arrays.toString(args) + ") failed: " + result.output);
+                    String errorMsg = null;
+                    try (InputStream errorStream = process.getErrorStream()) {
+                        if (errorStream != null) {
+                            errorMsg = IoUtils.toUtf8String(errorStream);
+                        }
+                    }
+                    throw new RuntimeException(String.format("Command (%s) failed of error code: %d, error message: %s",
+                                                             Arrays.toString(args), result.result, errorMsg));
                 }
             } finally {
                 process.destroy();

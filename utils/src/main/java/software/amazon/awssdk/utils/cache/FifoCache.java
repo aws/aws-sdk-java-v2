@@ -1,0 +1,98 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.utils.cache;
+
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.internal.BoundedLinkedHashMap;
+
+/**
+ * A bounded cache that has a FIFO eviction policy when the cache is full.
+ *
+ * @param <T> value type
+ */
+@ThreadSafe
+@SdkProtectedApi
+public final class FifoCache<T> {
+    private final BoundedLinkedHashMap<String, T> map;
+    private final ReadLock rlock;
+    private final WriteLock wlock;
+
+    /**
+     * @param maxSize the maximum number of entries of the cache
+     */
+    public FifoCache(int maxSize) {
+        if (maxSize < 1) {
+            throw new IllegalArgumentException("maxSize " + maxSize
+                                               + " must be at least 1");
+        }
+        map = new BoundedLinkedHashMap<>(maxSize);
+        ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        rlock = lock.readLock();
+        wlock = lock.writeLock();
+    }
+
+    /**
+     * Adds an entry to the cache, evicting the earliest entry if necessary.
+     */
+    public T add(String key, T value) {
+        wlock.lock();
+        try {
+            return map.put(key, value);
+        } finally {
+            wlock.unlock();
+        }
+    }
+
+    /**
+     * Returns the value of the given key; or null of no such entry exists.
+     */
+    public T get(String key) {
+        rlock.lock();
+        try {
+            return map.get(key);
+        } finally {
+            rlock.unlock();
+        }
+    }
+
+    /**
+     * Returns the current size of the cache.
+     */
+    @SdkTestInternalApi
+    int size() {
+        rlock.lock();
+        try {
+            return map.size();
+        } finally {
+            rlock.unlock();
+        }
+    }
+
+    @Override
+    public String toString() {
+        rlock.lock();
+        try {
+            return map.keySet().toString();
+        } finally {
+            rlock.unlock();
+        }
+    }
+}

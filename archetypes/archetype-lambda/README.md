@@ -2,11 +2,12 @@
 
 ## Description
 This is an Apache Maven Archetype to create a lambda function template using [AWS Java SDK 2.x][aws-java-sdk-v2]. The generated template
-has the optimized configurations and follows the best practices to reduce start up time.
+has the optimized configurations and follows the best practices to reduce start up time. Please check out [AWS Dev Guide][aws-dev-guide] for more information.
 
 ## Usage
 
 You can use `mvn archetype:generate` to generate a project using this archetype. See [maven archetype usage guidance][maven-archetype-usage] for more information.
+Note that you need to replace `${version}` with the latest SDK version found in [README.md](./README.md).
 
 - Interactive mode
 
@@ -14,7 +15,7 @@ You can use `mvn archetype:generate` to generate a project using this archetype.
 mvn archetype:generate \
   -DarchetypeGroupId=software.amazon.awssdk \
   -DarchetypeArtifactId=archetype-lambda \
-  -DarchetypeVersion=2.x
+  -DarchetypeVersion=${version}
 ```
 
 - Batch mode
@@ -23,7 +24,7 @@ mvn archetype:generate \
 mvn archetype:generate \
     -DarchetypeGroupId=software.amazon.awssdk \
     -DarchetypeArtifactId=archetype-lambda \
-    -DarchetypeVersion=2.x \
+    -DarchetypeVersion=${version} \
     -DgroupId=com.test \
     -DartifactId=sample-project \
     -Dservice=s3  \
@@ -31,18 +32,18 @@ mvn archetype:generate \
 ```
 
 ### Parameters
-      
-Parameter Name | Default Value | Description
----|---|---
-`service` (required) | n/a | Specifies the service client to be used in the lambda function, eg: s3, dynamodb. You can find available services [here][java-sdk-v2-services].
-`groupId`(required) | n/a | Specifies the group ID of the project
-`artifactId`(required) | n/a | Specifies the artifact ID of the project
-`region` | n/a | Specifies the region to be set for the SDK client in the application
-`httpClient` | url-connection-client | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async). See [http clients][sdk-http-clients]
-`handlerClassName` | `"App"`| Specifies the class name of the handler, which will be used as the lambda function name. It should be camel case.
-`javaSdkVersion` | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used
-`version` | 1.0-SNAPSHOT | Specifies the version of the project
-`package` | ${groupId} | Specifies the package name for the classes
+
+ Parameter Name         | Default Value                         | Description                                                                                                                                                                                            
+------------------------|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ `service` (required)   | n/a                                   | Specifies the service client to be used in the lambda function, eg: s3, dynamodb. You can find available services [here][java-sdk-v2-services].                                                        
+ `groupId`(required)    | n/a                                   | Specifies the group ID of the project                                                                                                                                                                  
+ `artifactId`(required) | n/a                                   | Specifies the artifact ID of the project                                                                                                                                                               
+ `region`               | n/a                                   | Specifies the region to be set for the SDK client in the application                                                                                                                                   
+ `httpClient`           | aws-crt-client                        | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async) and `aws-crt-client`(async). See [http clients][sdk-http-clients] 
+ `handlerClassName`     | `"App"`                               | Specifies the class name of the handler, which will be used as the lambda function name. It should be camel case.                                                                                      
+ `javaSdkVersion`       | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used                                                                                                                                               
+ `version`              | 1.0-SNAPSHOT                          | Specifies the version of the project                                                                                                                                                                   
+ `package`              | ${groupId}                            | Specifies the package name for the classes                                                                                                                                                             
 
 ### Deployment
 
@@ -62,3 +63,4 @@ Please refer to [deploying lambda apps][deploying-lambda-apps] for more info.
 [sam-cli]:https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-getting-started.html
 [maven-archetype-usage]: https://maven.apache.org/archetype/maven-archetype-plugin/usage.html
 [sam-template]: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+[aws-dev-guide]: https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/lambda-optimize-starttime.html

@@ -18,32 +18,44 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.HttpChecksumConstant.AWS_CHUNKED_HEADER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER;
 import static software.amazon.awssdk.core.HttpChecksumConstant.DEFAULT_ASYNC_CHUNK_SIZE;
+import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
-import static software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_STORE;
+import static software.amazon.awssdk.core.internal.io.AwsChunkedInputStream.DEFAULT_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateStreamContentLength;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
+import static software.amazon.awssdk.core.internal.util.HttpChecksumUtils.isHttpChecksumCalculationNeeded;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.HttpChecksumConstant;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -53,6 +65,7 @@ import software.amazon.awssdk.utils.Md5Utils;
  */
 @SdkInternalApi
 public class HttpChecksumStage implements MutableRequestToRequestPipeline {
+    private static final ChecksumAlgorithm DEFAULT_ALGORITHM = DefaultChecksumAlgorithm.CRC32;
 
     private final ClientType clientType;
 
@@ -63,27 +76,58 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        if (md5ChecksumRequired(request, context)) {
-            addMd5ChecksumInHeader(request);
-            return request;
+
+        ensurePayloadChecksumStorePresent(context.executionAttributes());
+
+        SdkHttpFullRequest.Builder result;
+        if (sraSigningEnabled(context)) {
+            result = sraChecksum(request, context);
+        } else {
+            result = legacyChecksum(request, context);
         }
 
+        recordChecksumBusinessMetrics(context.executionAttributes());
+
+        return result;
+    }
+
+    private SdkHttpFullRequest.Builder legacyChecksum(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
         ChecksumSpecs resolvedChecksumSpecs = getResolvedChecksumSpecs(context.executionAttributes());
+        PayloadChecksumStore checksumStore = getPayloadChecksumStore(context.executionAttributes());
+
+        if (md5ChecksumRequired(request, context)) {
+            addMd5ChecksumInHeader(request, checksumStore);
+            return request;
+        }
 
         if (flexibleChecksumInTrailerRequired(context, resolvedChecksumSpecs)) {
             addFlexibleChecksumInTrailer(request, context, resolvedChecksumSpecs);
             return request;
         }
 
-        // If SRA is enabled, skip flexible checksum in header, since it is handled by SRA signer
-        if (sraSigningEnabled(context)) {
+        if (flexibleChecksumInHeaderRequired(context, resolvedChecksumSpecs)) {
+            addFlexibleChecksumInHeader(request, context, resolvedChecksumSpecs, checksumStore);
             return request;
         }
 
-        if (flexibleChecksumInHeaderRequired(context, resolvedChecksumSpecs)) {
-            addFlexibleChecksumInHeader(request, context, resolvedChecksumSpecs);
+        return request;
+    }
+
+    private SdkHttpFullRequest.Builder sraChecksum(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
+        ExecutionAttributes executionAttributes = context.executionAttributes();
+        if (!isHttpChecksumCalculationNeeded(request, executionAttributes)) {
             return request;
         }
+
+        ChecksumSpecs resolvedChecksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+
+        if (resolvedChecksumSpecs == null || resolvedChecksumSpecs.algorithmV2() == null) {
+            resolvedChecksumSpecs = checksumSpecsWithDefaultAlgorithm(resolvedChecksumSpecs);
+            if (resolvedChecksumSpecs.requestAlgorithmHeader() != null) {
+                request.putHeader(resolvedChecksumSpecs.requestAlgorithmHeader(), DEFAULT_ALGORITHM.algorithmId());
+            }
+        }
+        executionAttributes.putAttribute(RESOLVED_CHECKSUM_SPECS, resolvedChecksumSpecs);
 
         return request;
     }
@@ -124,28 +168,29 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
      * that yet.
      */
-    private void addMd5ChecksumInHeader(SdkHttpFullRequest.Builder request) {
+    private void addMd5ChecksumInHeader(SdkHttpFullRequest.Builder request, PayloadChecksumStore checksumStore) {
         try {
-            String payloadMd5 = Md5Utils.md5AsBase64(request.contentStreamProvider().newStream());
-            request.putHeader(Header.CONTENT_MD5, payloadMd5);
+            byte[] payloadMd5 = checksumStore.getChecksumValue(DefaultChecksumAlgorithm.MD5);
+            if (payloadMd5 == null) {
+                payloadMd5 = Md5Utils.computeMD5Hash(request.contentStreamProvider().newStream());
+                checksumStore.putChecksumValue(DefaultChecksumAlgorithm.MD5, payloadMd5);
+            }
+            request.putHeader(Header.CONTENT_MD5, BinaryUtils.toBase64(payloadMd5));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
+    private static ChecksumSpecs checksumSpecsWithDefaultAlgorithm(ChecksumSpecs resolvedChecksumSpecs) {
+        return (resolvedChecksumSpecs == null ? ChecksumSpecs.builder() : resolvedChecksumSpecs.toBuilder())
+            .algorithmV2(DEFAULT_ALGORITHM)
+            .headerName(ChecksumUtil.checksumHeaderName(DEFAULT_ALGORITHM))
+            .build();
+    }
+
     private boolean flexibleChecksumInTrailerRequired(RequestExecutionContext context, ChecksumSpecs checksumSpecs) {
 
-        // If SRA is enabled and it's sync client, skip flexible checksum trailer, since it is handled in SRA signer
-        if (sraSigningEnabled(context) && clientType == ClientType.SYNC) {
-            return false;
-        }
-
-        boolean hasRequestBody = true;
-        if (clientType == ClientType.SYNC) {
-            hasRequestBody = context.executionContext().interceptorContext().requestBody().isPresent();
-        } else if (clientType == ClientType.ASYNC) {
-            hasRequestBody = context.executionContext().interceptorContext().asyncRequestBody().isPresent();
-        }
+        boolean hasRequestBody = hasRequestBody(context);
 
         boolean isContentStreaming = context.executionContext().interceptorContext().requestBody()
                                             .map(requestBody -> requestBody.contentStreamProvider() != null).orElse(false);
@@ -158,8 +203,19 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                    clientType, checksumSpecs, hasRequestBody, isContentStreaming);
     }
 
+    private boolean hasRequestBody(RequestExecutionContext context) {
+        switch (clientType) {
+            case ASYNC:
+                return context.executionContext().interceptorContext().asyncRequestBody().isPresent();
+            case SYNC:
+                return context.executionContext().interceptorContext().requestBody().isPresent();
+            default: throw new UnsupportedOperationException("Unsupported client type: " + clientType);
+        }
+    }
+
     private static boolean sraSigningEnabled(RequestExecutionContext context) {
-        return context.executionAttributes().getAttribute(AUTH_SCHEMES) != null;
+        return context.executionAttributes().getAttribute(AUTH_SCHEMES) != null
+               && context.signer() == null;
     }
 
     /**
@@ -179,26 +235,39 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         int chunkSize = 0;
 
         if (clientType == ClientType.SYNC) {
-            request.contentStreamProvider(new ChecksumCalculatingStreamProvider(request.contentStreamProvider(), checksumSpecs));
+            request.contentStreamProvider(
+                new ChecksumCalculatingStreamProvider(request.contentStreamProvider(),
+                                                      checksumSpecs,
+                                                      getPayloadChecksumStore(context.executionAttributes())
+                ));
             originalContentLength =
                 context.executionContext().interceptorContext().requestBody().get().optionalContentLength().orElse(0L);
             chunkSize = DEFAULT_CHUNK_SIZE;
         } else if (clientType == ClientType.ASYNC) {
             if (context.requestProvider() != null) {
-                context.requestProvider(ChecksumCalculatingAsyncRequestBody.builder()
-                                                                           .asyncRequestBody(context.requestProvider())
-                                                                           .algorithm(checksumSpecs.algorithm())
-                                                                           .trailerHeader(checksumSpecs.headerName()).build());
-                originalContentLength =
-                    context.executionContext().interceptorContext().asyncRequestBody().get().contentLength().orElse(0L);
+                ChecksumCalculatingAsyncRequestBody.Builder checksumBodyBuilder =
+                    ChecksumCalculatingAsyncRequestBody.builder()
+                                                       .asyncRequestBody(context.requestProvider())
+                                                       .algorithm(checksumSpecs.algorithmV2())
+                                                       .checksumStore(getPayloadChecksumStore(context.executionAttributes()))
+                                                       .trailerHeader(checksumSpecs.headerName());
+                Optional<Long> maybeContentLengthHeader = request.firstMatchingHeader("Content-Length")
+                                                                 .map(Long::parseLong);
+                maybeContentLengthHeader.ifPresent(checksumBodyBuilder::contentLengthHeader);
+                context.requestProvider(checksumBodyBuilder.build());
+                originalContentLength = maybeContentLengthHeader
+                    .orElseGet(() -> context.executionContext().interceptorContext().asyncRequestBody()
+                                            .flatMap(AsyncRequestBody::contentLength)
+                                            .orElse(0L));
                 chunkSize = DEFAULT_ASYNC_CHUNK_SIZE;
             }
         }
 
-        long checksumContentLength = calculateChecksumTrailerLength(checksumSpecs.algorithm(), checksumSpecs.headerName());
+        Algorithm legacyAlgo = checksumSpecs.algorithm();
+        long checksumContentLength = calculateChecksumTrailerLength(legacyAlgo, checksumSpecs.headerName());
         long contentLen = checksumContentLength + calculateStreamContentLength(originalContentLength, chunkSize);
 
-        request.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksumSpecs.headerName())
+        request.putHeader(HEADER_FOR_TRAILER_REFERENCE, checksumSpecs.headerName())
                .appendHeader("Content-encoding", AWS_CHUNKED_HEADER)
                .putHeader("x-amz-content-sha256", CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
                .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
@@ -244,14 +313,56 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
      * that yet.
      */
     private void addFlexibleChecksumInHeader(SdkHttpFullRequest.Builder request, RequestExecutionContext context,
-                                             ChecksumSpecs checksumSpecs) {
+                                             ChecksumSpecs checksumSpecs, PayloadChecksumStore checksumStore) {
         try {
-            String payloadChecksum = BinaryUtils.toBase64(HttpChecksumUtils.computeChecksum(
-                context.executionContext().interceptorContext().requestBody().get().contentStreamProvider().newStream(),
-                checksumSpecs.algorithm()));
-            request.putHeader(checksumSpecs.headerName(), payloadChecksum);
+            Algorithm legacyAlgorithm = checksumSpecs.algorithm();
+            ChecksumAlgorithm newAlgorithm = HttpChecksumUtils.toNewChecksumAlgorithm(legacyAlgorithm);
+            byte[] payloadChecksum = checksumStore.getChecksumValue(newAlgorithm);
+            if (payloadChecksum == null) {
+                payloadChecksum = HttpChecksumUtils.computeChecksum(
+                    context.executionContext().interceptorContext().requestBody().get().contentStreamProvider().newStream(),
+                    legacyAlgorithm);
+                checksumStore.putChecksumValue(newAlgorithm, payloadChecksum);
+            }
+            String headerValue = BinaryUtils.toBase64(payloadChecksum);
+            request.putHeader(checksumSpecs.headerName(), headerValue);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private void ensurePayloadChecksumStorePresent(ExecutionAttributes executionAttributes) {
+        PayloadChecksumStore cache = getPayloadChecksumStore(executionAttributes);
+        if (cache == null) {
+            cache = PayloadChecksumStore.create();
+            executionAttributes.putAttribute(CHECKSUM_STORE, cache);
+        }
+    }
+
+    private PayloadChecksumStore getPayloadChecksumStore(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(CHECKSUM_STORE);
+    }
+
+    private void recordChecksumBusinessMetrics(ExecutionAttributes executionAttributes) {
+        BusinessMetricCollection businessMetrics = 
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        
+        if (businessMetrics == null) {
+            return;
+        }
+
+        BusinessMetricsUtils.resolveRequestChecksumCalculationMetric(
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
+            .ifPresent(businessMetrics::addMetric);
+
+        BusinessMetricsUtils.resolveResponseChecksumValidationMetric(
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+            .ifPresent(businessMetrics::addMetric);
+
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+        if (checksumSpecs != null && checksumSpecs.algorithmV2() != null) {
+            BusinessMetricsUtils.resolveChecksumAlgorithmMetric(checksumSpecs.algorithmV2())
+                .ifPresent(businessMetrics::addMetric);
         }
     }
 
@@ -259,15 +370,21 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         private final ContentStreamProvider underlyingInputStreamProvider;
         private final String checksumHeaderForTrailer;
         private final ChecksumSpecs checksumSpecs;
+        private final PayloadChecksumStore checksumStore;
         private InputStream currentStream;
-        private SdkChecksum sdkChecksum;
+        private final ChecksumAlgorithm checksumAlgorithm;
+        private software.amazon.awssdk.core.checksums.SdkChecksum sdkChecksum;
 
         ChecksumCalculatingStreamProvider(ContentStreamProvider underlyingInputStreamProvider,
-                                          ChecksumSpecs checksumSpecs) {
+                                          ChecksumSpecs checksumSpecs,
+                                          PayloadChecksumStore checksumStore) {
             this.underlyingInputStreamProvider = underlyingInputStreamProvider;
-            this.sdkChecksum = SdkChecksum.forAlgorithm(checksumSpecs.algorithm());
+            this.sdkChecksum = software.amazon.awssdk.core.checksums.SdkChecksum.forAlgorithm(
+                checksumSpecs.algorithm());
+            this.checksumAlgorithm = HttpChecksumUtils.toNewChecksumAlgorithm(checksumSpecs.algorithm());
             this.checksumHeaderForTrailer = checksumSpecs.headerName();
             this.checksumSpecs = checksumSpecs;
+            this.checksumStore = checksumStore;
         }
 
         @Override
@@ -275,14 +392,17 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             closeCurrentStream();
             currentStream = AwsUnsignedChunkedEncodingInputStream.builder()
                                                                  .inputStream(underlyingInputStreamProvider.newStream())
+                                                                 .checksumAlgorithm(checksumAlgorithm)
                                                                  .sdkChecksum(sdkChecksum)
+                                                                 .checksumStore(checksumStore)
                                                                  .checksumHeaderForTrailer(checksumHeaderForTrailer)
                                                                  .build();
             return currentStream;
         }
 
         private void closeCurrentStream() {
-            sdkChecksum = SdkChecksum.forAlgorithm(checksumSpecs.algorithm());
+            sdkChecksum = software.amazon.awssdk.core.checksums.SdkChecksum.forAlgorithm(
+                checksumSpecs.algorithm());
             if (currentStream != null) {
                 IoUtils.closeQuietly(currentStream, null);
                 currentStream = null;

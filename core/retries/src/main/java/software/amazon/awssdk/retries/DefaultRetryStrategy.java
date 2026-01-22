@@ -17,7 +17,6 @@ package software.amazon.awssdk.retries;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 
 /**
@@ -51,12 +50,7 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
-        return StandardRetryStrategy.builder()
-                                    .maxAttempts(Standard.MAX_ATTEMPTS)
-                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY, Standard.MAX_BACKOFF))
-                                    .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
-                                        Standard.THROTTLED_BASE_DELAY,
-                                        Standard.MAX_BACKOFF));
+        return StandardRetryStrategy.builder();
     }
 
     /**
@@ -72,12 +66,7 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static LegacyRetryStrategy.Builder legacyStrategyBuilder() {
-        return LegacyRetryStrategy.builder()
-                                  .maxAttempts(Legacy.MAX_ATTEMPTS)
-                                  .backoffStrategy(BackoffStrategy.exponentialDelay(Legacy.BASE_DELAY, Legacy.MAX_BACKOFF))
-                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelayHalfJitter(
-                                      Legacy.THROTTLED_BASE_DELAY,
-                                      Legacy.MAX_BACKOFF));
+        return LegacyRetryStrategy.builder();
     }
 
     /**
@@ -93,13 +82,7 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
-        return AdaptiveRetryStrategy.builder()
-                                    .maxAttempts(Adaptive.MAX_ATTEMPTS)
-                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY,
-                                                                                      Standard.MAX_BACKOFF))
-                                    .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
-                                        Standard.THROTTLED_BASE_DELAY,
-                                        Standard.MAX_BACKOFF));
+        return AdaptiveRetryStrategy.builder();
     }
 
     static final class Standard {

@@ -327,17 +327,17 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
          */
         private Value<?> internalComputeIfAbsent(Key<?> key, Supplier<Value<?>> value) {
             checkCopyOnUpdate();
-            return attributes.compute(key, (k, v) -> {
-                if (v == null || resolveValue(v) == null) {
-                    Value<?> newValue = value.get();
-                    Validate.notNull(newValue, "Supplied value must not be null.");
-                    if (v != null) {
-                        dependencyGraph.valueUpdated(v, newValue);
-                    }
-                    return newValue;
+            Value<?> currentValue = attributes.get(key);
+            if (currentValue == null || resolveValue(currentValue) == null) {
+                Value<?> newValue = value.get();
+                Validate.notNull(newValue, "Supplied value must not be null.");
+                if (currentValue != null) {
+                    dependencyGraph.valueUpdated(currentValue, newValue);
                 }
-                return v;
-            });
+                attributes.put(key, newValue);
+                return newValue;
+            }
+            return currentValue;
         }
 
         private void checkCopyOnUpdate() {

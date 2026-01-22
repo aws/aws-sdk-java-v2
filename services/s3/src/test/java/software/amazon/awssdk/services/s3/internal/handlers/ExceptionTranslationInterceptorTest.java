@@ -64,6 +64,18 @@ public class ExceptionTranslationInterceptorTest {
     }
 
     @Test
+    public void headObject403_shouldTranslateException() {
+        S3Exception s3Exception = create403S3Exception();
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadObjectRequest.builder().build());
+
+        assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes()))
+            .isExactlyInstanceOf(S3Exception.class)
+            .hasMessageStartingWith("No can do")
+            .satisfies(e -> assertThat(((S3Exception) e).awsErrorDetails().errorMessage()).isEqualTo("No can do"));
+    }
+
+    @Test
     public void headObjectOtherException_shouldNotThrowException() {
         S3Exception s3Exception = (S3Exception) S3Exception.builder().statusCode(500).build();
         Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
@@ -93,6 +105,17 @@ public class ExceptionTranslationInterceptorTest {
                                                                                                             .build())
                                                                         .build())
                                         .statusCode(404)
+                                        .build();
+    }
+
+    private S3Exception create403S3Exception() {
+        return (S3Exception) S3Exception.builder()
+                                        .awsErrorDetails(AwsErrorDetails.builder()
+                                                                        .sdkHttpResponse(SdkHttpFullResponse.builder()
+                                                                                                            .statusText("No can do")
+                                                                                                            .build())
+                                                                        .build())
+                                        .statusCode(403)
                                         .build();
     }
 }

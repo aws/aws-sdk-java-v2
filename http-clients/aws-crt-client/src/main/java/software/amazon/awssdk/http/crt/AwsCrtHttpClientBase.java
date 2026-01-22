@@ -44,6 +44,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * Common functionality and configuration for the CRT Http clients.
@@ -65,6 +66,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
     private final int maxConnectionsPerEndpoint;
+    private final long connectionAcquisitionTimeout;
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
@@ -90,6 +92,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+            this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
             this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
         }
     }
@@ -126,7 +129,8 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
-                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
+                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
+                .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
 
         return HttpClientConnectionManager.create(options);
     }
@@ -159,8 +163,8 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     }
 
     URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
-                                          sdkRequest.port(), null, null, null));
+        return invokeSafely(() -> SdkUri.getInstance().newUri(sdkRequest.protocol(), null, sdkRequest.host(),
+                                                              sdkRequest.port(), null, null, null));
     }
 
     @Override

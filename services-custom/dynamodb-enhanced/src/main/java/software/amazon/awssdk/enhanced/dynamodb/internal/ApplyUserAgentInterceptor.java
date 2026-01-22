@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
 
 /**
@@ -30,8 +31,10 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
  */
 @SdkInternalApi
 public final class ApplyUserAgentInterceptor implements ExecutionInterceptor {
-    private static final ApiName API_NAME =
-        ApiName.builder().version("ddb-enh").name("hll").build();
+    private static final ApiName API_NAME = ApiName.builder()
+                                                   .name("sdk-metrics")
+                                                   .version(BusinessMetricFeatureId.DDB_MAPPER.value())
+                                                   .build();
     private static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER =
         b -> b.addApiName(API_NAME);
 

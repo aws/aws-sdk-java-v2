@@ -33,7 +33,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.1000</version>
+                <version>1.12.782</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -54,6 +54,10 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-cloudwatch</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -35,7 +36,8 @@ public class QueryParamBindingTest {
     protected static final AwsXmlProtocolFactory PROTOCOL_FACTORY = AwsXmlProtocolFactory
         .builder()
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                           ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
                                                    .build())
         .build();
 

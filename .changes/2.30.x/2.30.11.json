@@ -1,0 +1,54 @@
+{
+    "version": "2.30.11",
+    "date": "2025-01-31",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue in SdkHttpUtils used in SdkHttpFullRequest where constructing with a query string consisting of a single \"=\" would throw an ArrayIndexOutOfBoundsException."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Stopped populating SessionMode by default for the SDK-created S3 express sessions. This value already matched the service-side default, and was already not sent by most SDK languages."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Added support for CodeBuild self-hosted Buildkite runner builds"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "This change is to deprecate the existing citation field under RetrieveAndGenerateStream API response in lieu of GeneratedResponsePart and RetrievedReferences"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Routes V2",
+            "contributor": "",
+            "description": "The OptimizeWaypoints API now supports 50 waypoints per request (20 with constraints like AccessHours or AppointmentTime). It adds waypoint clustering via Clustering and ClusteringIndex for better optimization. Also, total distance validation is removed for greater flexibility."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "Add support for sending metrics to cross account and CMCK AMP workspaces through RoleConfiguration on Create/Update Scraper."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates to Aurora MySQL and Aurora PostgreSQL API pages with instance log type in the create and modify DB Cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release introduces a new valid value in InstanceType parameter: p5en.48xlarge, in ProductionVariant."
+        }
+    ]
+}

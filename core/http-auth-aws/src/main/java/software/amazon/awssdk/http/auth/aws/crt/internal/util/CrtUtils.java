@@ -15,16 +15,18 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AUTHORIZATION;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.HOST;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CREDENTIAL;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DATE;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_EXPIRES;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_SIGNATURE;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AUTHORIZATION;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CREDENTIAL;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DATE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_EXPIRES;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNATURE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNED_HEADERS;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -38,11 +40,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class CrtUtils {
-    private static final String BODY_HASH_NAME = "x-amz-content-sha256";
     private static final String REGION_SET_NAME = "X-amz-region-set";
 
     private static final Set<String> FORBIDDEN_HEADERS =
-        Stream.of(BODY_HASH_NAME, X_AMZ_DATE, AUTHORIZATION, REGION_SET_NAME)
+        Stream.of(X_AMZ_CONTENT_SHA256, X_AMZ_DATE, AUTHORIZATION, REGION_SET_NAME)
               .collect(Collectors.toCollection(() -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)));
     private static final Set<String> FORBIDDEN_PARAMS =
         Stream.of(X_AMZ_SIGNATURE, X_AMZ_DATE, X_AMZ_CREDENTIAL, X_AMZ_ALGORITHM, X_AMZ_SIGNED_HEADERS, REGION_SET_NAME,
@@ -56,7 +57,7 @@ public final class CrtUtils {
      * Sanitize an {@link SdkHttpRequest}, in order to prepare it for converting to a CRT request destined to be signed.
      * <p>
      * Sanitizing includes checking the path is not empty, filtering headers and query parameters that are forbidden in CRT, and
-     * adding the host header (overriding if already presesnt).
+     * adding the host header
      */
     public static SdkHttpRequest sanitizeRequest(SdkHttpRequest request) {
 
@@ -77,11 +78,17 @@ public final class CrtUtils {
             }
         });
 
-        // Add host, which must be signed. We ignore any pre-existing Host header to match the behavior of the SigV4 signer.
-        String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
-                            ? request.host()
-                            : request.host() + ":" + request.port();
-        builder.putHeader(HOST, hostHeader);
+        // Add host header, which must be signed. If the SdkHttpRequest has an associated Host header
+        // already set, prefer to use that.
+        Optional<String> existingHostHeader = request.firstMatchingHeader(HOST);
+        if (existingHostHeader.isPresent()) {
+            builder.putHeader(HOST, existingHostHeader.get());
+        } else {
+            String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+                                ? request.host()
+                                : request.host() + ":" + request.port();
+            builder.putHeader(HOST, hostHeader);
+        }
 
         builder.clearQueryParameters();
 

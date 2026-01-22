@@ -6,7 +6,7 @@ Resources:
   MyNettyFunctionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: java17
+      Runtime: java25
       Handler: software.amazonaws.test.MyNettyFunction::handleRequest
       Timeout: 60
       MemorySize: 512

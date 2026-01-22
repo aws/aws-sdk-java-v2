@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.internal.DefaultAdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
@@ -40,8 +41,8 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  *     <li>Retries on the conditions configured in the {@link Builder}.
  *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts}
  *     <li>Uses a dynamic backoff delay based on load currently perceived against the downstream resource
- *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope.
- *     Circuit breaking may prevent a first attempt in outage scenarios to protect the downstream service.
+ *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope. The
+ *     circuit breaking will never prevent the first attempt
  * </ol>
  *
  * @see StandardRetryStrategy
@@ -70,7 +71,12 @@ public interface AdaptiveRetryStrategy extends RetryStrategy {
                                               .tokenBucketMaxCapacity(DefaultRetryStrategy.Standard.TOKEN_BUCKET_SIZE)
                                               .build())
             .tokenBucketExceptionCost(DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST)
-            .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore.builder().build());
+            .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore.builder().build())
+            .backoffStrategy(BackoffStrategy.exponentialDelay(DefaultRetryStrategy.Standard.BASE_DELAY,
+                                                              DefaultRetryStrategy.Standard.MAX_BACKOFF))
+            .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
+                DefaultRetryStrategy.Standard.THROTTLED_BASE_DELAY,
+                DefaultRetryStrategy.Standard.MAX_BACKOFF));
     }
 
     @Override
