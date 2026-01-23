@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "Added api for deleting data export configuration for a domain"
+}
