@@ -62,7 +62,13 @@ public final class ResumableFileDownloadSerializer {
                                        jsonGenerator,
                                        "s3ObjectLastModified");
         }
+        if (download.s3ObjectEtag().isPresent()) {
+            TransferManagerJsonMarshaller.STRING.marshall(download.s3ObjectEtag().get(),
+                                                           jsonGenerator,
+                                                           "s3ObjectEtag");
+        }
         marshallDownloadFileRequest(download.downloadFileRequest(), jsonGenerator);
+        TransferManagerJsonMarshaller.LIST.marshall(download.completedParts(), jsonGenerator, "completedParts");
         jsonGenerator.writeEndObject();
 
         return jsonGenerator.getBytes();
@@ -126,6 +132,8 @@ public final class ResumableFileDownloadSerializer {
             (TransferManagerJsonUnmarshaller<Long>) getUnmarshaller(MarshallingType.LONG);
         TransferManagerJsonUnmarshaller<Instant> instantUnmarshaller =
             (TransferManagerJsonUnmarshaller<Instant>) getUnmarshaller(MarshallingType.INSTANT);
+        TransferManagerJsonUnmarshaller<String> stringUnmarshaller =
+            (TransferManagerJsonUnmarshaller<String>) getUnmarshaller(MarshallingType.STRING);
 
         ResumableFileDownload.Builder builder = ResumableFileDownload.builder();
         builder.bytesTransferred(longUnmarshaller.unmarshall(downloadNodes.get("bytesTransferred")));
@@ -137,8 +145,14 @@ public final class ResumableFileDownloadSerializer {
         if (downloadNodes.get("s3ObjectLastModified") != null) {
             builder.s3ObjectLastModified(instantUnmarshaller.unmarshall(downloadNodes.get("s3ObjectLastModified")));
         }
-        builder.downloadFileRequest(parseDownloadFileRequest(downloadNodes.get("downloadFileRequest")));
 
+        if (downloadNodes.get("s3ObjectEtag") != null) {
+            builder.s3ObjectEtag(stringUnmarshaller.unmarshall(downloadNodes.get("s3ObjectEtag")));
+        }
+        builder.downloadFileRequest(parseDownloadFileRequest(downloadNodes.get("downloadFileRequest")));
+        if (downloadNodes.get("completedParts") != null) {
+            builder.completedParts(TransferManagerJsonUnmarshaller.LIST_INT.unmarshall(downloadNodes.get("completedParts")));
+        }
         return builder.build();
     }
 

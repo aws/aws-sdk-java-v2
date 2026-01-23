@@ -49,8 +49,10 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
     @Override
     protected void stubRedirectSuccessSuccess(Integer redirect) {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, CROSS_REGION.id(),
-                                                                                                      null, null))))
+            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect,
+                                                                                                      CROSS_REGION.id(),
+                                                                                                      errorCodeFromRedirect(redirect),
+                                                                                                      null))))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()));
     }
@@ -77,7 +79,10 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
     @Override
     protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect) {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-           .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, CROSS_REGION.id(), null, null))))
+           .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect,
+                                                                                                     CROSS_REGION.id(),
+                                                                                                     errorCodeFromRedirect(redirect),
+                                                                                                     null))))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()
             ));
     }
@@ -112,7 +117,10 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
     @Override
     protected void stubRedirectWithNoRegionAndThenSuccess(Integer redirect) {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, null, null, null))))
+            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect,
+                                                                                                      null,
+                                                                                                      errorCodeFromRedirect(redirect),
+                                                                                                      null))))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()));
     }
@@ -120,7 +128,9 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3CrossRegionRedirectT
     @Override
     protected void stubRedirectThenError(Integer redirect) {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect, CROSS_REGION.id(), null,
+            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(redirect,
+                                                                                                      CROSS_REGION.id(),
+                                                                                                      errorCodeFromRedirect(redirect),
                                                                                                       null))))
             .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(400, null,
                                                                                                        "InvalidArgument", "Invalid id"))));

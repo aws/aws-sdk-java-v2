@@ -19,6 +19,11 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The s3 key provides information about the bucket and object involved in the event. The object key name value is URL encoded.
+ * For example, "red flower.jpg" becomes "red+flower.jpg" (Amazon S3 returns "application/x-www-form-urlencoded" as the content
+ * type in the response).
+ */
 @SdkPublicApi
 public class S3 {
 
@@ -34,14 +39,24 @@ public class S3 {
         this.s3SchemaVersion = s3SchemaVersion;
     }
 
+    /**
+     * @return the ID found in the bucket notification configuration
+     */
     public String getConfigurationId() {
         return configurationId;
     }
 
+    /**
+     * @return the bucket information.
+     */
     public S3Bucket getBucket() {
         return bucket;
     }
 
+    /**
+     *
+     * @return
+     */
     public S3Object getObject() {
         return object;
     }

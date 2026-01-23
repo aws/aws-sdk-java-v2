@@ -218,7 +218,10 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw SdkClientException.builder()
-                                    .message("Unable to calculate the MD5 hash of the message body. " + e.getMessage())
+                                    .message("Unable to calculate the MD5 hash of the message body. "
+                                             + "Potential reasons include JVM configuration or FIPS compliance issues. "
+                                             + "To disable message MD5 validation, you can set checksumValidationEnabled "
+                                             + "to false when instantiating the client." + e.getMessage())
                                     .cause(e)
                                     .build();
         }
@@ -271,7 +274,10 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
             }
         } catch (Exception e) {
             throw SdkClientException.builder()
-                                    .message("Unable to calculate the MD5 hash of the message attributes. " + e.getMessage())
+                                    .message("Unable to calculate the MD5 hash of the message attributes. "
+                                             + "Potential reasons include JVM configuration or FIPS compliance issues. "
+                                             + "To disable message MD5 validation, you can set checksumValidationEnabled "
+                                             + "to false when instantiating the client." + e.getMessage())
                                     .cause(e)
                                     .build();
         }

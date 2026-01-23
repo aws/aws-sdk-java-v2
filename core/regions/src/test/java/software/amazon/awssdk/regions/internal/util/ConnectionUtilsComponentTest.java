@@ -17,58 +17,122 @@ package software.amazon.awssdk.regions.internal.util;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Collections;
-import org.junit.After;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-public class ConnectionUtilsComponentTest {
+class ConnectionUtilsComponentTest {
 
-    @ClassRule
-    public static WireMockRule mockProxyServer = new WireMockRule(WireMockConfiguration.wireMockConfig().port(0), false);
+    private final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
 
-    @Rule
-    public WireMockRule mockServer = new WireMockRule(WireMockConfiguration.wireMockConfig().port(0), false);
+    @RegisterExtension
+    static WireMockExtension mockProxyServer = WireMockExtension.newInstance()
+                                                                .options(WireMockConfiguration.wireMockConfig().port(0))
+                                                                .failOnUnmatchedRequests(false)
+                                                                .build();
+
+    @RegisterExtension static WireMockExtension mockServer = WireMockExtension.newInstance()
+                                                                              .options(WireMockConfiguration.wireMockConfig().port(0))
+                                                                              .failOnUnmatchedRequests(false)
+                                                                              .build();
 
     private final ConnectionUtils sut = ConnectionUtils.create();
 
-    @After
-    public void cleanup() {
+    @AfterEach
+    void cleanup() {
         System.getProperties().remove("http.proxyHost");
         System.getProperties().remove("http.proxyPort");
+        System.clearProperty("aws.ec2MetadataServiceTimeout");
+        environmentVariableHelper.reset();
     }
 
     @Test
-    public void proxiesAreNotUsedEvenIfPropertyIsSet() throws IOException {
+    void proxiesAreNotUsedEvenIfPropertyIsSet() throws IOException {
         assumeTrue(Inet4Address.getLocalHost().isReachable(100));
         System.getProperties().put("http.proxyHost", "localhost");
-        System.getProperties().put("http.proxyPort", String.valueOf(mockProxyServer.port()));
-        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://" + Inet4Address.getLocalHost().getHostAddress() + ":" + mockServer.port()), emptyMap());
+        System.getProperties().put("http.proxyPort", String.valueOf(mockProxyServer.getPort()));
+        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://" + Inet4Address.getLocalHost().getHostAddress() + ":" + mockServer.getPort()), emptyMap());
 
         assertThat(connection.usingProxy()).isFalse();
     }
 
     @Test
-    public void headersArePassedAsPartOfRequest() throws IOException {
-        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://localhost:" + mockServer.port()), Collections.singletonMap("HeaderA", "ValueA"));
+    void headersArePassedAsPartOfRequest() throws IOException {
+        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://localhost:" + mockServer.getPort()), Collections.singletonMap("HeaderA", "ValueA"));
         connection.getResponseCode();
         mockServer.verify(WireMock.getRequestedFor(WireMock.urlMatching("/")).withHeader("HeaderA", WireMock.equalTo("ValueA")));
     }
 
     @Test
-    public void shouldNotFollowRedirects() throws IOException {
-        mockServer.stubFor(WireMock.get(WireMock.urlMatching("/")).willReturn(WireMock.aResponse().withStatus(301).withHeader("Location", "http://localhost:" + mockServer.port() + "/hello")));
-        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://localhost:" + mockServer.port()), Collections.emptyMap());
+    void shouldNotFollowRedirects() throws IOException {
+        mockServer.stubFor(WireMock.get(WireMock.urlMatching("/")).willReturn(WireMock.aResponse().withStatus(301).withHeader("Location", "http://localhost:" + mockServer.getPort() + "/hello")));
+        HttpURLConnection connection = sut.connectToEndpoint(URI.create("http://localhost:" + mockServer.getPort()), Collections.emptyMap());
         assertThat(connection.getResponseCode()).isEqualTo(301);
     }
+
+
+    @Test
+    void connectionUtilsSetDefaultTimeoutIfNotProvided( ) throws IOException {
+
+        ConnectionUtils connectionUtils = ConnectionUtils.create();
+
+        HttpURLConnection connection = connectionUtils.connectToEndpoint(
+            URI.create("http://localhost:" + mockServer.getPort()), emptyMap()
+        );
+
+        int expectedTimeoutMillis = 1000; // Default 1 second
+        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
+        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
+    }
+
+    @Test
+    void connectionUtilsSetsTimeoutAsPassedInProvider( ) throws IOException {
+
+        ConnectionUtils connectionUtils = ConnectionUtils.create();
+        ResourcesEndpointProvider endpointProvider = new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return URI.create("http://localhost:" + mockServer.getPort());
+            }
+            @Override
+            public Optional<Duration> connectionTimeout() {
+                return Optional.of(Duration.ofSeconds(7));
+            }
+        };
+
+        HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider , "GET");
+        int expectedTimeoutMillis = 7000;
+        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
+        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
+    }
+
+    @Test
+    void connectionUtilsSetsTimeoutDefaultIfNotPassedInProvider( ) throws IOException {
+        ConnectionUtils connectionUtils = ConnectionUtils.create();
+        ResourcesEndpointProvider endpointProvider = new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return URI.create("http://localhost:" + mockServer.getPort());
+            }
+        };
+        HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider , "GET");
+        int expectedTimeoutMillis = 1000;
+        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
+        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
+    }
+
 }

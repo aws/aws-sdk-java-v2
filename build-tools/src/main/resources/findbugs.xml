@@ -19,4 +19,5 @@
 
     <BugPattern abbrev="BM" type="SDK_BAD_METHOD_CALL" category="PERFORMANCE" />
     <BugPattern abbrev="BTB" type="BAD_TO_BUILDER" category="BUG" />
+    <BugPattern abbrev="ABC" type="ASYNC_BLOCKING_CALL" category="BUG" />
 </FindbugsPlugin>

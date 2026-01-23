@@ -20,14 +20,16 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
@@ -35,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,20 +51,16 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
-import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -73,11 +71,9 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 public class SyncClientClass extends SyncClientInterface {
 
@@ -87,7 +83,6 @@ public class SyncClientClass extends SyncClientInterface {
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
-    private final boolean useSraAuth;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -97,7 +92,6 @@ public class SyncClientClass extends SyncClientInterface {
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
-        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -133,12 +127,6 @@ public class SyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        if (!useSraAuth) {
-            if (model.containsRequestSigners()) {
-                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            }
-        }
-
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
@@ -148,7 +136,9 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          model));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
@@ -198,7 +188,13 @@ public class SyncClientClass extends SyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".build()", SdkClientOption.class);
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
+                                      + ".build()",
+                                      SdkClientOption.class,
+                                      SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
+                                      ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                    "ServiceVersionInfo"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
@@ -216,8 +212,8 @@ public class SyncClientClass extends SyncClientInterface {
                                                                "EndpointDiscoveryCacheLoader"));
 
             if (model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
-                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == "
-                                         + "Boolean.TRUE)");
+                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)"
+                                         + ".isEndpointOverridden())");
                 builder.addStatement("log.warn(() -> $S)",
                                      "Endpoint discovery is enabled for this client, and an endpoint override was also "
                                      + "specified. This will disable endpoint discovery for methods that require it, instead "
@@ -249,9 +245,8 @@ public class SyncClientClass extends SyncClientInterface {
     private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class);
-        if (!useSraAuth) {
-            method.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
-        }
+
+        addRequestModifierCode(opModel, model).ifPresent(method::addCode);
         method.addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
@@ -260,7 +255,8 @@ public class SyncClientClass extends SyncClientInterface {
             method.addStatement("boolean endpointDiscoveryEnabled = "
                                 + "clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)");
             method.addStatement("boolean endpointOverridden = "
-                                + "clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE");
+                                + "clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)"
+                                + ".isEndpointOverridden()");
 
             if (opModel.getEndpointDiscovery().isRequired()) {
                 if (!model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
@@ -304,7 +300,8 @@ public class SyncClientClass extends SyncClientInterface {
 
             method.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
-                  .addCode("    .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                  .addCode("    .defaultEndpoint(clientConfiguration.option($T.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())",
+                           SdkClientOption.class)
                   .addCode("    .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                            opModel.getInput().getVariableName())
                   .addCode("    .build();");
@@ -339,6 +336,28 @@ public class SyncClientClass extends SyncClientInterface {
               .endControlFlow();
 
         return method.build();
+    }
+
+    public static Optional<CodeBlock> addRequestModifierCode(OperationModel opModel, IntermediateModel model) {
+
+        Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer =
+            model.getCustomizationConfig().getPreClientExecutionRequestCustomizer();
+
+        if (!CollectionUtils.isNullOrEmpty(preClientExecutionRequestCustomizer)) {
+            PreClientExecutionRequestCustomizer requestCustomizer =
+                preClientExecutionRequestCustomizer.get(opModel.getOperationName());
+            if (requestCustomizer != null) {
+                CodeBlock.Builder builder = CodeBlock.builder();
+                ClassName instanceType = classNameFromFqcn(requestCustomizer.getClassName());
+                builder.addStatement("$L = $T.$N($L)",
+                                     opModel.getInput().getVariableName(),
+                                     instanceType,
+                                     requestCustomizer.getMethodName(),
+                                     opModel.getInput().getVariableName());
+                return Optional.of(builder.build());
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -378,6 +397,7 @@ public class SyncClientClass extends SyncClientInterface {
             case AWS_JSON:
             case REST_JSON:
             case CBOR:
+            case SMITHY_RPC_V2_CBOR:
                 return new JsonProtocolSpec(poetExtensions, model);
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
@@ -424,55 +444,5 @@ public class SyncClientClass extends SyncClientInterface {
         return builder.addAnnotation(Override.class)
                       .addStatement("return $T.builder().client(this).build()",
                                     poetExtensions.getSyncWaiterInterface());
-    }
-
-    protected MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
-                                               .addModifiers(PRIVATE)
-                                               .addParameter(SdkRequest.class, "request")
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .returns(SdkClientConfiguration.class);
-
-        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
-                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
-                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
-
-        builder.beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return configuration.build()")
-               .endControlFlow()
-               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
-               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
-               .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(this.model);
-
-        if (model.getCustomizationConfig() == null ||
-            CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomClientContextParams())) {
-            builder.addStatement("return configuration.build()");
-            return builder.build();
-        }
-
-        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
-
-        builder.addCode("$1T newContextParams = configuration.option($2T.CLIENT_CONTEXT_PARAMS);\n"
-                        + "$1T originalContextParams = clientConfiguration.option($2T.CLIENT_CONTEXT_PARAMS);",
-                        AttributeMap.class, SdkClientOption.class);
-
-        builder.addCode("newContextParams = (newContextParams != null) ? newContextParams : $1T.empty();\n"
-                        + "originalContextParams = originalContextParams != null ? originalContextParams : $1T.empty();",
-                        AttributeMap.class);
-
-        customClientConfigParams.forEach((n, m) -> {
-            String keyName = model.getNamingStrategy().getEnumValueName(n);
-            builder.addStatement("$1T.validState($2T.equals(originalContextParams.get($3T.$4N), newContextParams.get($3T.$4N)),"
-                                 + " $5S)",
-                                 Validate.class, Objects.class, endpointRulesSpecUtils.clientContextParamsName(), keyName,
-                                 keyName + " cannot be modified by request level plugins");
-        });
-
-        builder.addStatement("return configuration.build()");
-        return builder.build();
     }
 }

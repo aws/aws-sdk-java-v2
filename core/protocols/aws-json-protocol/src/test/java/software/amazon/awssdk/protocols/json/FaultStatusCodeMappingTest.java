@@ -108,6 +108,7 @@ public class FaultStatusCodeMappingTest {
                                                .exceptions(exceptionMetadata)
                                                .jsonProtocolUnmarshaller(JsonProtocolUnmarshaller.builder()
                                                                                                  .defaultTimestampFormats(Collections.emptyMap())
+                                                                                                 .protocolUnmarshallDependencies(JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies())
                                                                                                  .build())
                                                .jsonFactory(new JsonFactory())
                                                .errorMessageParser((resp, content) -> "Some server error")

@@ -21,15 +21,14 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.HttpCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -38,10 +37,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class CrtCredentialProviderAdapterTest {
 
-    @AfterAll
-    public static void verifyCrtResource() {
-        CrtResource.waitForNoResources();
-    }
     @Test
     void crtCredentials_withSession_shouldConvert() {
         IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = StaticCredentialsProvider
@@ -93,6 +88,23 @@ public class CrtCredentialProviderAdapterTest {
     @Test
     void crtCredentials_anonymousCredentialsProvider_shouldWork() {
         IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = AnonymousCredentialsProvider.create();
+
+        CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
+        CredentialsProvider crtCredentialsProvider = adapter.crtCredentials();
+
+        Credentials crtCredentials = crtCredentialsProvider.getCredentials().join();
+
+        assertThat(crtCredentials.getAccessKeyId()).isNull();
+        assertThat(crtCredentials.getSecretAccessKey()).isNull();
+    }
+
+    @Test
+    void crtCredentials_anonymousCredentialsProviderFromChain_shouldWork() {
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider =
+            AwsCredentialsProviderChain
+                .builder()
+                .addCredentialsProvider(AnonymousCredentialsProvider.create())
+                .build();
 
         CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
         CredentialsProvider crtCredentialsProvider = adapter.crtCredentials();

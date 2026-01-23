@@ -30,11 +30,10 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
+public class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
     public static final String RUNTIME_CLASS_NAME = "WaitersRuntime";
 
     private final String engineInternalClassDir;
-    private final String engineInternalResourcesDir;
     private final String engineInternalPackageName;
     private final String fileHeader;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -42,7 +41,6 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
     public RulesEngineRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
         super(generatorTaskParams);
         this.engineInternalClassDir = generatorTaskParams.getPathProvider().getEndpointRulesInternalDirectory();
-        this.engineInternalResourcesDir = generatorTaskParams.getPathProvider().getEndpointRulesInternalResourcesDirectory();
         this.engineInternalPackageName = generatorTaskParams.getModel().getMetadata().getFullInternalEndpointRulesPackageName();
         this.fileHeader = generatorTaskParams.getModel().getFileHeader();
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(generatorTaskParams.getModel());
@@ -65,7 +63,7 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
         return copyTasks;
     }
 
-    private List<String> rulesEngineJavaFilePaths(Collection<String> runtimeEngineFiles) {
+    protected List<String> rulesEngineJavaFilePaths(Collection<String> runtimeEngineFiles) {
         return runtimeEngineFiles.stream()
                                  .filter(e -> e.endsWith(".java.resource"))
                                  .collect(Collectors.toList());

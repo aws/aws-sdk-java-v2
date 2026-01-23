@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -53,7 +54,8 @@ public class EventTransformTest {
         protocolFactory = AwsJsonProtocolFactory.builder()
                                                 .clientConfiguration(
                                                     SdkClientConfiguration.builder()
-                                                                          .option(SdkClientOption.ENDPOINT, URI.create("http://foo.amazonaws.com"))
+                                                                          .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                                                  ClientEndpointProvider.forEndpointOverride(URI.create("http://foo.amazonaws.com")))
                                                                           .build())
                                                 .protocol(AwsJsonProtocol.AWS_JSON)
                                                 .build();

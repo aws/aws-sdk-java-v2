@@ -30,10 +30,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.EmptySdkResponseHandler;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 
 public class ConnectionPoolMaxConnectionsIntegrationTest {
@@ -57,7 +57,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
     public void leasing_a_new_connection_fails_with_connection_pool_timeout() {
 
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .retryPolicy(RetryPolicy.none())
+                                                       .retryStrategy(DefaultRetryStrategy.doNotRetry())
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                    .connectionTimeout(Duration.ofMillis(100))
                                                                                    .maxConnections(1)

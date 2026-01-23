@@ -224,7 +224,9 @@ class MemberCopierSpec implements ClassSpec {
                 case NONE:
                     return inputVariableName;
                 case ENUM_TO_STRING:
-                    code.add("$T $N = $N.toString();", String.class, outputVariableName, inputVariableName);
+                    code.add(
+                        "$T $N = $N == null ? null : $N.toString();",
+                        String.class, outputVariableName, inputVariableName, inputVariableName);
                     return outputVariableName;
                 case STRING_TO_ENUM:
                     code.add("$1T $2N = $1T.fromValue($3N);", enumType, outputVariableName, inputVariableName);
@@ -269,18 +271,27 @@ class MemberCopierSpec implements ClassSpec {
             code.add("$T $N;", listType, outputVariableName)
                 .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructList.class)
                 .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructList.class)
-                .add("} else {")
-                .add("$T $N = new $T<>();", listType, modifiableVariableName, ArrayList.class);
+                .add("} else {");
+
 
             String entryInputVariable = variableSource.getNew("entry");
-            code.add("$N.forEach($N -> {", inputVariableName, entryInputVariable);
 
-            String entryOutputVariable =
-                copyMethodBody(code, builderTransform, variableSource, enumTransform, entryInputVariable, listEntryModel);
+            // Short-circuit, if the member is simple then we can directly use the constructor
+            // that takes a collection which should have a better performance characteristics.
+            boolean isMemberSimple = listEntryModel.isSimple() && listEntryModel.getEnumType() == null;
+            if (isMemberSimple) {
+                code.add("$T $N = new $T<>($N);", listType, modifiableVariableName, ArrayList.class, inputVariableName);
+            } else {
+                code.add("$T $N = new $T<>($N.size());", listType, modifiableVariableName, ArrayList.class, inputVariableName);
+                code.add("$N.forEach($N -> {", inputVariableName, entryInputVariable);
 
-            code.add("$N.add($N);", modifiableVariableName, entryOutputVariable)
-                .add("});")
-                .add("$N = $T.unmodifiableList($N);", outputVariableName, Collections.class, modifiableVariableName)
+                String entryOutputVariable =
+                    copyMethodBody(code, builderTransform, variableSource, enumTransform, entryInputVariable, listEntryModel);
+
+                code.add("$N.add($N);", modifiableVariableName, entryOutputVariable)
+                    .add("});");
+            }
+            code.add("$N = $T.unmodifiableList($N);", outputVariableName, Collections.class, modifiableVariableName)
                 .add("}");
 
             return outputVariableName;
@@ -299,7 +310,8 @@ class MemberCopierSpec implements ClassSpec {
                 .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructMap.class)
                 .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructMap.class)
                 .add("} else {")
-                .add("$T $N = new $T<>();", outputMapType, modifiableVariableName, LinkedHashMap.class);
+                .add("$T $N = new $T<>($N.size());",
+                     outputMapType, modifiableVariableName, LinkedHashMap.class, inputVariableName);
 
             String keyInputVariable = variableSource.getNew("key");
             String valueInputVariable = variableSource.getNew("value");

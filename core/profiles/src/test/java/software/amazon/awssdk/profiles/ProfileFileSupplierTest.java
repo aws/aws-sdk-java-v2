@@ -24,27 +24,42 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.security.Permission;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 class ProfileFileSupplierTest {
 
@@ -68,7 +83,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_profileFileFixed_doesNotReloadProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         ProfileFileSupplier supplier = builder()
             .fixedProfileFile(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
@@ -76,7 +91,7 @@ class ProfileFileSupplierTest {
 
         ProfileFile file1 = supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
 
         ProfileFile file2 = supplier.get();
 
@@ -85,7 +100,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_profileModifiedWithinJitterPeriod_doesNotReloadCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
         Duration durationWithinJitter = Duration.ofMillis(10);
@@ -95,7 +110,7 @@ class ProfileFileSupplierTest {
 
         ProfileFile file1 = supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plus(durationWithinJitter));
 
         clock.tickForward(durationWithinJitter);
@@ -106,7 +121,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_profileModifiedOutsideJitterPeriod_reloadsCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
 
@@ -118,7 +133,7 @@ class ProfileFileSupplierTest {
 
         supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plus(durationOutsideJitter));
 
         clock.tickForward(durationOutsideJitter);
@@ -136,12 +151,17 @@ class ProfileFileSupplierTest {
             assertThat(awsSecretAccessKeyOptional).isPresent();
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("modifiedSecretAccessKey");
+
+            Optional<String> awsAccountIdOptional = profile.property("aws_account_id");
+            assertThat(awsAccountIdOptional).isPresent();
+            String awsAccountId = awsAccountIdOptional.get();
+            assertThat(awsAccountId).isEqualTo("modifiedAccountId");
         });
     }
 
     @Test
     void get_profileModified_reloadsProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
@@ -151,7 +171,7 @@ class ProfileFileSupplierTest {
         Duration duration = Duration.ofSeconds(10);
         ProfileFile file1 = supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
@@ -162,7 +182,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_profileModifiedOnceButRefreshedMultipleTimes_reloadsProfileFileOnce() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
@@ -173,7 +193,7 @@ class ProfileFileSupplierTest {
         clock.tickForward(Duration.ofSeconds(5));
         ProfileFile file2 = supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(Duration.ofSeconds(5));
@@ -185,7 +205,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_profileModifiedMultipleTimes_reloadsProfileFileOncePerChange() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
@@ -198,13 +218,13 @@ class ProfileFileSupplierTest {
         clock.tickForward(duration);
         ProfileFile file2 = supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
         ProfileFile file3 = supplier.get();
 
-        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
+        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey", "updatedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
@@ -221,7 +241,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_supplierBuiltByReloadWhenModified_loadsProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS);
         ProfileFile file = supplier.get();
@@ -239,12 +259,17 @@ class ProfileFileSupplierTest {
             assertThat(awsSecretAccessKeyOptional).isPresent();
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+
+            Optional<String> awsAccountIdOptional = profile.property("aws_account_id");
+            assertThat(awsAccountIdOptional).isPresent();
+            String awsAccountId = awsAccountIdOptional.get();
+            assertThat(awsAccountId).isEqualTo("defaultAccountId");
         });
     }
 
     @Test
     void get_supplierBuiltByFixedProfileFile_returnsProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(ProfileFile.builder()
                                                                                        .content(credentialsFilePath)
@@ -265,12 +290,17 @@ class ProfileFileSupplierTest {
             assertThat(awsSecretAccessKeyOptional).isPresent();
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+
+            Optional<String> awsAccountIdOptional = profile.property("aws_account_id");
+            assertThat(awsAccountIdOptional).isPresent();
+            String awsAccountId = awsAccountIdOptional.get();
+            assertThat(awsAccountId).isEqualTo("defaultAccountId");
         });
     }
 
     @Test
     void get_supplierBuiltByReloadWhenModifiedAggregate_reloadsCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
         Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
 
         ProfileFileSupplier credentialsProfileFileSupplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath,
@@ -302,7 +332,7 @@ class ProfileFileSupplierTest {
 
     @Test
     void get_supplierBuiltByFixedProfileFileAggregate_returnsAggregateProfileFileInstance() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
         Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
 
         ProfileFileSupplier credentialsProfileFileSupplier
@@ -332,6 +362,11 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
 
+            Optional<String> awsAccountIdOptional = profile.property("aws_account_id");
+            assertThat(awsAccountIdOptional).isPresent();
+            String awsAccountId = awsAccountIdOptional.get();
+            assertThat(awsAccountId).isEqualTo("defaultAccountId");
+
             Optional<String> regionOptional = profile.property("region");
             assertThat(regionOptional).isPresent();
             String region = regionOptional.get();
@@ -341,11 +376,13 @@ class ProfileFileSupplierTest {
 
     @Test
     void aggregate_supplierReturnsSameInstanceMultipleTimesAggregatingProfileFile_aggregatesOnlyDistinctInstances() {
-        ProfileFile credentialFile1 = credentialFile("test1", "key1", "secret1");
-        ProfileFile credentialFile2 = credentialFile("test2", "key2", "secret2");
-        ProfileFile credentialFile3 = credentialFile("test3", "key3", "secret3");
-        ProfileFile credentialFile4 = credentialFile("test4", "key4", "secret4");
-        ProfileFile configFile = configFile("profile test", Pair.of("region", "us-west-2"));
+        ProfileFile credentialFile1 = credentialProfileFile("test1", "key1", "secret1");
+        ProfileFile credentialFile2 = credentialProfileFile("test2", "key2", "secret2");
+        ProfileFile credentialFile3 = credentialProfileFile("test3", "key3", "secret3");
+        ProfileFile credentialFile4 = credentialProfileFile("test4", "key4", "secret4");
+        ProfileFile configFile = configProfileFile("profile test",
+                                                   Pair.of("region", "us-west-2"),
+                                                   Pair.of("aws_account_id", "012354678922"));
 
         List<ProfileFile> orderedCredentialsFiles
             = Arrays.asList(credentialFile1, credentialFile1, credentialFile2, credentialFile3, credentialFile3, credentialFile4,
@@ -370,13 +407,13 @@ class ProfileFileSupplierTest {
 
     @Test
     void aggregate_supplierReturnsSameInstanceMultipleTimesAggregatingProfileFileSupplier_aggregatesOnlyDistinctInstances() {
-        ProfileFile credentialFile1 = credentialFile("test1", "key1", "secret1");
-        ProfileFile credentialFile2 = credentialFile("test2", "key2", "secret2");
-        ProfileFile credentialFile3 = credentialFile("test3", "key3", "secret3");
-        ProfileFile credentialFile4 = credentialFile("test4", "key4", "secret4");
-        ProfileFile configFile1 = configFile("profile test", Pair.of("region", "us-west-1"));
-        ProfileFile configFile2 = configFile("profile test", Pair.of("region", "us-west-2"));
-        ProfileFile configFile3 = configFile("profile test", Pair.of("region", "us-west-3"));
+        ProfileFile credentialFile1 = credentialProfileFile("test1", "key1", "secret1");
+        ProfileFile credentialFile2 = credentialProfileFile("test2", "key2", "secret2");
+        ProfileFile credentialFile3 = credentialProfileFile("test3", "key3", "secret3");
+        ProfileFile credentialFile4 = credentialProfileFile("test4", "key4", "secret4");
+        ProfileFile configFile1 = configProfileFile("profile test", Pair.of("region", "us-west-1"));
+        ProfileFile configFile2 = configProfileFile("profile test", Pair.of("region", "us-west-2"));
+        ProfileFile configFile3 = configProfileFile("profile test", Pair.of("region", "us-west-3"));
 
         List<ProfileFile> orderedCredentialsFiles
             = Arrays.asList(credentialFile1, credentialFile1, credentialFile2, credentialFile2, credentialFile3,
@@ -412,8 +449,10 @@ class ProfileFileSupplierTest {
 
     @Test
     void aggregate_duplicateOptionsGivenFixedProfileFirst_preservesPrecedence() {
-        ProfileFile configFile1 = configFile("profile default", Pair.of("aws_access_key_id", "config-key"));
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        ProfileFile configFile1 = configProfileFile("profile default",
+                                                    Pair.of("aws_access_key_id", "config-key"),
+                                                    Pair.of("aws_account_id", "012354678922"));
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(
             ProfileFileSupplier.fixedProfileFile(configFile1),
@@ -421,15 +460,19 @@ class ProfileFileSupplierTest {
 
         ProfileFile profileFile = supplier.get();
         String accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+        String accountId = profileFile.profile("default").get().property("aws_account_id").get();
 
         assertThat(accessKeyId).isEqualTo("config-key");
+        assertThat(accountId).isEqualTo("012354678922");
 
-        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2");
+        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2", "defaultAccountId2");
 
         profileFile = supplier.get();
         accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+        accountId = profileFile.profile("default").get().property("aws_account_id").get();
 
         assertThat(accessKeyId).isEqualTo("config-key");
+        assertThat(accountId).isEqualTo("012354678922");
     }
 
     @Test
@@ -437,8 +480,8 @@ class ProfileFileSupplierTest {
         Instant startTime = Instant.now();
         AdjustableClock clock = new AdjustableClock(startTime);
 
-        ProfileFile configFile1 = configFile("profile default", Pair.of("aws_access_key_id", "config-key"));
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        ProfileFile configFile1 = configProfileFile("profile default", Pair.of("aws_access_key_id", "config-key"));
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(
             builderWithClock(clock)
@@ -451,7 +494,7 @@ class ProfileFileSupplierTest {
 
         assertThat(accessKeyId).isEqualTo("defaultAccessKey");
 
-        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2");
+        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2", "defaultAccountId2");
 
         Duration tick = Duration.ofMillis(1_000);
 
@@ -469,6 +512,50 @@ class ProfileFileSupplierTest {
     }
 
     @Test
+    void aggregate_concurrentGetAlwaysReturnsCorrectAggregate() throws ExecutionException, InterruptedException {
+        ProfileFile credentialFile = credentialProfileFile("test1", "key1", "secret1");
+        ProfileFile configFile = configProfileFile("profile test",
+                                                   Pair.of("region", "us-west-2"),
+                                                   Pair.of("aws_account_id", "012354678922"));
+
+
+        ProfileFile expectedAggregate = ProfileFile.aggregator().addFile(credentialFile).addFile(configFile).build();
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(() -> credentialFile, () -> configFile);
+
+        ExecutorService executor = Executors.newFixedThreadPool(24);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        List<Future<Boolean>> tasks = new ArrayList<>();
+
+        for(int i = 0; i < 24; i++) {
+            tasks.add(executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    ProfileFile resolved = supplier.get();
+                    return Objects.equals(expectedAggregate, resolved);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+        // All tasks are now submitted — release them
+        startLatch.countDown();
+        executor.shutdown();
+        try {
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS))
+                .as("executor did not terminate")
+                .isTrue();
+        } finally {
+            executor.shutdownNow();
+        }
+
+        // assert that all concurrent get's returned the same, expected aggregate
+        for(Future<Boolean> task : tasks) {
+            assertThat(task.get()).isTrue();
+        }
+    }
+
+    @Test
     void fixedProfileFile_nullProfileFile_returnsNonNullSupplier() {
         ProfileFile file = null;
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
@@ -481,7 +568,7 @@ class ProfileFileSupplierTest {
         int actualProfilesCount = 3;
         AtomicInteger blockCount = new AtomicInteger();
 
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey", "defaultAccountId");
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
@@ -495,13 +582,13 @@ class ProfileFileSupplierTest {
         clock.tickForward(duration);
         supplier.get();
 
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
         supplier.get();
 
-        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
+        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey", "updatedAccountId");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
@@ -513,6 +600,72 @@ class ProfileFileSupplierTest {
         assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
     }
 
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_16)
+    void credentialsFileLocation_securityException_returnsEmpty() throws IOException {
+        SecurityManager originalSecurityManager = System.getSecurityManager();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            // Set up security manager that blocks access to credentials file
+            SecurityManager securityManager = new SecurityManager() {
+                @Override
+                public void checkPermission(Permission perm) {
+                    if (perm instanceof java.io.FilePermission) {
+                        String path = perm.getName();
+                        if (path.contains(".aws") && path.contains("credentials")) {
+                            throw new SecurityException("Access to AWS credentials denied");
+                        }
+                    }
+                }
+            };
+
+            System.setSecurityManager(securityManager);
+
+            // Test the method behavior
+            assertThat(ProfileFileLocation.credentialsFileLocation()).isEmpty();
+
+            // Verify logging behavior
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).hasSize(1);
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                .contains("Security restrictions prevented access to profile file: Access to AWS credentials denied");
+        } finally {
+            System.setSecurityManager(originalSecurityManager);
+        }
+    }
+
+    @Test
+    public void defaultSupplier_noCredentialsFiles_returnsEmptyProvider() {
+        EnvironmentVariableHelper.run(environmentVariableHelper -> {
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "no-such-file");
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "no-such-file");
+            ProfileFileSupplier supplier = ProfileFileSupplier.defaultSupplier();
+            assertThat(supplier.get().profiles()).isEmpty();
+        });
+    }
+
+    @Test
+    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() throws IOException {
+        Path credentialsFilePath = getTestCredentialsFilePath();
+        Files.deleteIfExists(credentialsFilePath);
+
+        AdjustableClock clock = new AdjustableClock();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
+            .build();
+
+        assertThat(supplier.get().profiles()).isEmpty();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey", "modifiedAccountId");
+        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+        clock.tickForward(Duration.ofSeconds(10));
+
+        // supplied ProfileFile should refreshed and now have data under the `default` profile
+        Optional<Profile> fileOptional = supplier.get().profile("default");
+        assertThat(fileOptional).isPresent();
+    }
+
     private Path writeTestFile(String contents, Path path) {
         try {
             Files.createDirectories(testDirectory);
@@ -522,9 +675,10 @@ class ProfileFileSupplierTest {
         }
     }
 
-    private Path generateTestCredentialsFile(String accessKeyId, String secretAccessKey) {
-        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
-                                        accessKeyId, secretAccessKey);
+    private Path generateTestCredentialsFile(String accessKeyId, String secretAccessKey, String accountId) {
+        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n"
+                                        + "aws_account_id = %s\n",
+                                        accessKeyId, secretAccessKey, accountId);
         return writeTestFile(contents, getTestCredentialsFilePath());
     }
 
@@ -549,33 +703,33 @@ class ProfileFileSupplierTest {
         }
     }
 
-    private ProfileFile credentialFile(String credentialFile) {
+    private ProfileFile credentialProfileFile(String credentialFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(credentialFile))
                           .type(ProfileFile.Type.CREDENTIALS)
                           .build();
     }
 
-    private ProfileFile credentialFile(String name, String accessKeyId, String secretAccessKey) {
+    private ProfileFile credentialProfileFile(String name, String accessKeyId, String secretAccessKey) {
         String contents = String.format("[%s]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
                                         name, accessKeyId, secretAccessKey);
-        return credentialFile(contents);
+        return credentialProfileFile(contents);
     }
 
-    private ProfileFile configFile(String credentialFile) {
+    private ProfileFile configProfileFile(String credentialFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(credentialFile))
                           .type(ProfileFile.Type.CONFIGURATION)
                           .build();
     }
 
-    private ProfileFile configFile(String name, Pair<?, ?>... pairs) {
+    private ProfileFile configProfileFile(String name, Pair<?, ?>... pairs) {
         String values = Arrays.stream(pairs)
                               .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
                               .collect(Collectors.joining(System.lineSeparator()));
         String contents = String.format("[%s]\n%s", name, values);
 
-        return configFile(contents);
+        return configProfileFile(contents);
     }
 
     private static <T> Predicate<T> uniqueInstances() {

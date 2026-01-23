@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.utilslite.SdkInternalThreadLocal;
 
 public class TraceIdExecutionInterceptorTest {
     @Test
@@ -108,6 +109,78 @@ public class TraceIdExecutionInterceptorTest {
             env.set("_X_AMZN_TRACE_ID", "bar");
             Context.ModifyHttpRequest context = context();
             assertThat(modifyHttpRequest(context)).isSameAs(context.httpRequest());
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithInternalThreadLocal_shouldAddTraceIdHeader() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+                Context.ModifyHttpRequest context = context();
+
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
+            } finally {
+                SdkInternalThreadLocal.remove("AWS_LAMBDA_X_TRACE_ID");
+            }
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithBothInternalThreadLocalAndSystemProperty_shouldUseInternalThreadLocalValue() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+            Properties props = System.getProperties();
+            props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop-345");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
+                Context.ModifyHttpRequest context = context();
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
+            } finally {
+                SdkInternalThreadLocal.remove("AWS_LAMBDA_X_TRACE_ID");
+                props.remove("com.amazonaws.xray.traceHeader");
+            }
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenNotInLambdaEnvironmentWithInternalThreadLocal_shouldNotAddHeader() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "should-be-ignored");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
+                Context.ModifyHttpRequest context = context();
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).isEmpty();
+            } finally {
+                SdkInternalThreadLocal.remove("AWS_LAMBDA_X_TRACE_ID");
+            }
         });
     }
 

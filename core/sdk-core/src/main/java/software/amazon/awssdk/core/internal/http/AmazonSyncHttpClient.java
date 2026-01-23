@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
@@ -52,7 +51,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -130,18 +128,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         <OutputT> OutputT execute(HttpResponseHandler<Response<OutputT>> combinedResponseHandler);
     }
 
-    private static class NoOpResponseHandler<T> implements HttpResponseHandler<T> {
-        @Override
-        public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
-            return null;
-        }
-
-        @Override
-        public boolean needsConnectionLeftOpen() {
-            return false;
-        }
-    }
-
     private static class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
         private HttpClientDependencies httpClientDependencies;
@@ -195,12 +181,12 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                     .first(RequestPipelineBuilder
                                .first(MakeRequestMutableStage::new)
                                .then(ApplyTransactionIdStage::new)
-                               .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
                                .then(QueryParametersToBodyStage::new)
                                .then(() -> new CompressRequestStage(httpClientDependencies))
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
+                               .then(ApplyUserAgentStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder

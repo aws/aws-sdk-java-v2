@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
 
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
 
 /**
  * Implementation of {@link SdkChecksum} to provide a constant checksum.

@@ -33,6 +33,7 @@ public final class TransferManagerBenchmarkConfig {
     private final Long connectionAcquisitionTimeoutInSec;
     private final Boolean forceCrtHttpClient;
     private final Integer maxConcurrency;
+    private final BenchmarkRunner.TransferManagerBaseS3Client s3Client;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -55,6 +56,7 @@ public final class TransferManagerBenchmarkConfig {
         this.connectionAcquisitionTimeoutInSec = builder.connectionAcquisitionTimeoutInSec;
         this.forceCrtHttpClient = builder.forceCrtHttpClient;
         this.maxConcurrency = builder.maxConcurrency;
+        this.s3Client = builder.s3Client;
     }
 
     public String filePath() {
@@ -121,6 +123,10 @@ public final class TransferManagerBenchmarkConfig {
         return this.maxConcurrency;
     }
 
+    public BenchmarkRunner.TransferManagerBaseS3Client s3Client() {
+        return this.s3Client;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -160,6 +166,7 @@ public final class TransferManagerBenchmarkConfig {
         private Long connectionAcquisitionTimeoutInSec;
         private Boolean forceCrtHttpClient;
         private Integer maxConcurrency;
+        private BenchmarkRunner.TransferManagerBaseS3Client s3Client;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -244,6 +251,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public Builder s3Client(BenchmarkRunner.TransferManagerBaseS3Client s3Client) {
+            this.s3Client = s3Client;
             return this;
         }
 

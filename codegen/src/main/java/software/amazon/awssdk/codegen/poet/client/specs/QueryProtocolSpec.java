@@ -28,10 +28,8 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
-import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -43,12 +41,10 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     protected final PoetExtension poetExtensions;
     protected final IntermediateModel intermediateModel;
-    protected final boolean useSraAuth;
 
     public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtension poetExtensions) {
         this.intermediateModel = intermediateModel;
         this.poetExtensions = poetExtensions;
-        this.useSraAuth = new AuthSchemeSpecUtils(intermediateModel).useSraAuth();
     }
 
     @Override
@@ -123,12 +119,10 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
-        if (!useSraAuth) {
-            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
-
         codeBlock.add(RequestCompressionTrait.create(opModel, intermediateModel));
-
+        if (opModel.hasStreamingOutput()) {
+            codeBlock.add(".withResponseTransformer(responseTransformer)");
+        }
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -164,11 +158,11 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
-        if (!useSraAuth) {
-            builder.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
-
         builder.add(RequestCompressionTrait.create(opModel, intermediateModel));
+
+        if (opModel.hasStreamingOutput()) {
+            builder.add(".withAsyncResponseTransformer(asyncResponseTransformer)");
+        }
 
         builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",
                     opModel.getInput().getVariableName(),

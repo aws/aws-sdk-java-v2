@@ -75,6 +75,14 @@ public abstract class BaseRuleSetClientTest {
         });
     }
 
+    protected static AwsCredentialsProvider credentialsProviderWithAccountId(String accountId) {
+        return StaticCredentialsProvider.create(AwsBasicCredentials.builder()
+                                                                   .accessKeyId("akid")
+                                                                   .secretAccessKey("skid")
+                                                                   .accountId(accountId)
+                                                                   .build());
+    }
+
     protected static void runAndVerify(SyncTestCase testCase) {
         String skipReason = testCase.skipReason();
         Assumptions.assumeTrue(skipReason == null, skipReason);

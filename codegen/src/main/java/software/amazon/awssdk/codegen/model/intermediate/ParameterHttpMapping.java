@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Objects;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
@@ -185,8 +186,6 @@ public class ParameterHttpMapping {
             return MarshallLocation.PAYLOAD;
         }
         switch (location) {
-            default:
-                return MarshallLocation.PAYLOAD;
             case STATUS_CODE:
                 return MarshallLocation.STATUS_CODE;
             case HEADER:
@@ -196,7 +195,45 @@ public class ParameterHttpMapping {
                 return MarshallLocation.QUERY_PARAM;
             case URI:
                 return isGreedy ? MarshallLocation.GREEDY_PATH : MarshallLocation.PATH;
+            default:
+                return MarshallLocation.PAYLOAD;
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ParameterHttpMapping that = (ParameterHttpMapping) o;
+        return isPayload == that.isPayload
+               && isStreaming == that.isStreaming
+               && flattened == that.flattened
+               && isGreedy == that.isGreedy
+               && requiresLength == that.requiresLength
+               && Objects.equals(unmarshallLocationName, that.unmarshallLocationName)
+               && Objects.equals(marshallLocationName, that.marshallLocationName)
+               && Objects.equals(additionalUnmarshallingPath, that.additionalUnmarshallingPath)
+               && Objects.equals(additionalMarshallingPath, that.additionalMarshallingPath)
+               && location == that.location;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(unmarshallLocationName);
+        result = 31 * result + Objects.hashCode(marshallLocationName);
+        result = 31 * result + Objects.hashCode(additionalUnmarshallingPath);
+        result = 31 * result + Objects.hashCode(additionalMarshallingPath);
+        result = 31 * result + Boolean.hashCode(isPayload);
+        result = 31 * result + Boolean.hashCode(isStreaming);
+        result = 31 * result + Objects.hashCode(location);
+        result = 31 * result + Boolean.hashCode(flattened);
+        result = 31 * result + Boolean.hashCode(isGreedy);
+        result = 31 * result + Boolean.hashCode(requiresLength);
+        return result;
+    }
 }

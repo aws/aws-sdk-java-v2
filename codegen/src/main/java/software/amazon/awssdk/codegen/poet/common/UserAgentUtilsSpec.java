@@ -30,11 +30,9 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 
 public class UserAgentUtilsSpec implements ClassSpec {
-
-    private static final String PAGINATOR_USER_AGENT = "PAGINATED";
 
     protected final IntermediateModel model;
     protected final PoetExtension poetExtensions;
@@ -106,12 +104,12 @@ public class UserAgentUtilsSpec implements ClassSpec {
                          .addParameter(typeVariableName, "request")
                          .addTypeVariable(typeVariableName)
                          .addStatement("return applyUserAgentInfo(request, b -> b.addApiName($T.builder()"
-                                       + ".version($T.SDK_VERSION)"
                                        + ".name($S)"
+                                       + ".version($S)"
                                        + ".build()))",
                                        ApiName.class,
-                                       VersionInfo.class,
-                                       PAGINATOR_USER_AGENT)
+                                       "sdk-metrics",
+                                       BusinessMetricFeatureId.PAGINATOR)
                          .returns(typeVariableName)
                          .build();
     }

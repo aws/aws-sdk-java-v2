@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -121,6 +122,13 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
         ResponseInputStream<GetObjectResponse> stream = s3.getObject(getObjectRequest.copy(r -> r.range("bytes=0-1")));
         stream.abort();
         assertThat(stream.response().contentRange()).isEqualTo("bytes 0-1/10000");
+    }
+
+    @Test
+    public void sync_closeAfterAbort_doesNotThrowException() {
+        ResponseInputStream<GetObjectResponse> stream = s3.getObject(getObjectRequest);
+        stream.abort();
+        assertThatCode(stream::close).doesNotThrowAnyException();
     }
 
     private S3Client createClientWithInterceptor(ExecutionInterceptor interceptor) {

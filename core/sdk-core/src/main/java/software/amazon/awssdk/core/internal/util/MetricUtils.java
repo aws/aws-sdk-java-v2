@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -38,11 +38,15 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * Utility methods for working with metrics.
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class MetricUtils {
     private static final long ONE_SEC_IN_NS = 1_000_000_000L;
 
@@ -109,7 +113,8 @@ public final class MetricUtils {
             // Only interested in the service endpoint so don't include any path, query, or fragment component
             URI requestUri = httpRequest.getUri();
             try {
-                URI serviceEndpoint = new URI(requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
+                URI serviceEndpoint = SdkUri.getInstance().newUri(
+                    requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
                 metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, serviceEndpoint);
             } catch (URISyntaxException e) {
                 // This should not happen since getUri() should return a valid URI

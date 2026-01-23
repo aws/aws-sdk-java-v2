@@ -29,7 +29,8 @@ import software.amazon.awssdk.identity.spi.Identity;
 @SdkPublicApi
 public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T> {
     /**
-     * The name of the AWS service. This property is required.
+     * The name of the AWS service. This property is required. This value can be found in the service documentation or
+     * on the service client itself (e.g. {@code S3Client.SERVICE_NAME}).
      */
     SignerProperty<String> SERVICE_SIGNING_NAME =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "ServiceSigningName");
@@ -37,6 +38,8 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
     /**
      * A boolean to indicate whether to double url-encode the resource path when constructing the canonical request. This property
      * defaults to true.
+     * <p>
+     * Note: S3 requires this value to be set to 'false' to prevent signature mismatch errors for certain paths.
      */
     SignerProperty<Boolean> DOUBLE_URL_ENCODE =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "DoubleUrlEncode");
@@ -44,6 +47,8 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
     /**
      * A boolean to indicate whether the resource path should be "normalized" according to RFC3986 when constructing the canonical
      * request. This property defaults to true.
+     * <p>
+     * Note: S3 requires this value to be set to 'false' to prevent signature mismatch errors for certain paths.
      */
     SignerProperty<Boolean> NORMALIZE_PATH =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "NormalizePath");
@@ -64,13 +69,21 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
     /**
      * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
      * payload signing.
+     * <p>
+     * When this value is true and {@link #CHUNK_ENCODING_ENABLED} is false, the whole payload must be read to generate
+     * the payload signature. For very large payloads, this could impact memory usage and call latency. Some services
+     * support this value being disabled, especially over HTTPS where SSL provides some of its own protections against
+     * payload tampering.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "PayloadSigningEnabled");
 
     /**
      * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
-     * enable the `aws-chunk` content-encoding
+     * enable the `aws-chunked` content-encoding.
+     * <p>
+     * Only some services support this value being set to true, but for those services it can prevent the need to read
+     * the whole payload before writing when {@link #PAYLOAD_SIGNING_ENABLED} is true.
      */
     SignerProperty<Boolean> CHUNK_ENCODING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "ChunkEncodingEnabled");

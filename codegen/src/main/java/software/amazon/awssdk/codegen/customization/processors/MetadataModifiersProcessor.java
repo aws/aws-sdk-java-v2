@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.customization.processors;
 
+import java.util.Collections;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.model.config.customization.MetadataConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -44,7 +45,7 @@ public class MetadataModifiersProcessor implements CodegenCustomizationProcessor
 
         String customProtocol = metadataConfig.getProtocol();
         if (customProtocol != null) {
-            serviceMetadata.setProtocol(customProtocol);
+            serviceMetadata.setProtocols(Collections.singletonList(customProtocol));
         }
 
     }

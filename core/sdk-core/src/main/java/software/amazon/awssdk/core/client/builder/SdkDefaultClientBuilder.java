@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOp
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_METADATA;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_USER_AGENT;
@@ -28,6 +29,9 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESS
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_MODE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT_BUILDER;
@@ -41,9 +45,14 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_P
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.USER_AGENT_APP_ID;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -66,6 +75,8 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -77,12 +88,15 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
+import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
+import software.amazon.awssdk.core.internal.useragent.UserAgentConstant;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -91,15 +105,18 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.OptionalUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link SdkClientBuilder}, {@link SdkAsyncClientBuilder} and
@@ -127,12 +144,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     protected final SdkClientConfiguration.Builder clientConfiguration = SdkClientConfiguration.builder();
 
     protected final AttributeMap.Builder clientContextParams = AttributeMap.builder();
-
+    protected ClientOverrideConfiguration overrideConfig;
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
 
-    private ClientOverrideConfiguration overrideConfig;
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -234,11 +250,23 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         if (overrideConfig == null) {
             return configuration;
         }
-
-        return configuration.toBuilder()
-                            .putAll(overrideConfig)
-                            .build();
+        SdkClientConfiguration.Builder builder = configuration.toBuilder();
+        overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
+        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
+                                                                         SdkDefaultRetryStrategy.forRetryMode(retryMode)));
+        overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
+            RetryStrategy.Builder<?, ?> defaultBuilder = SdkDefaultRetryStrategy.defaultRetryStrategy().toBuilder();
+            configurator.accept(defaultBuilder);
+            builder.option(RETRY_STRATEGY, defaultBuilder.build());
+        });
+        builder.putAll(overrideConfig);
+        // Forget anything we configured in the override configuration else it might be re-applied.
+        builder.option(CONFIGURED_RETRY_MODE, null);
+        builder.option(CONFIGURED_RETRY_STRATEGY, null);
+        builder.option(CONFIGURED_RETRY_CONFIGURATOR, null);
+        return builder.build();
     }
+
 
     /**
      * Optionally overridden by child implementations to apply implementation-specific default configuration.
@@ -252,7 +280,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
-        Supplier<ProfileFile> defaultProfileFileSupplier = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+        Supplier<ProfileFile> defaultProfileFileSupplier = ProfileFileSupplier.defaultSupplier();
 
         configuration = configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                                   .option(METRIC_PUBLISHERS, new ArrayList<>())
@@ -261,7 +289,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .lazyOption(PROFILE_FILE, conf -> conf.get(PROFILE_FILE_SUPPLIER).get())
                                                   .option(PROFILE_NAME,
                                                           ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
-                                                  .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
+                                                  .option(USER_AGENT_PREFIX, "")
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                                   .option(CONFIGURED_COMPRESSION_CONFIGURATION,
@@ -304,7 +332,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
-                     .lazyOptionIfAbsent(RETRY_POLICY, this::resolveRetryPolicy)
+                     .lazyOptionIfAbsent(RETRY_STRATEGY, this::resolveRetryStrategy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
@@ -363,21 +391,50 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     private String resolveClientUserAgent(LazyValueSource config) {
-        return ApplyUserAgentStage.resolveClientUserAgent(config.get(USER_AGENT_PREFIX),
-                                                          config.get(INTERNAL_USER_AGENT),
-                                                          config.get(CLIENT_TYPE),
-                                                          config.get(SYNC_HTTP_CLIENT),
-                                                          config.get(ASYNC_HTTP_CLIENT),
-                                                          config.get(RETRY_POLICY));
+        SdkClientUserAgentProperties clientProperties = new SdkClientUserAgentProperties();
+
+        ClientType clientType = config.get(CLIENT_TYPE);
+        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : clientType;
+
+        clientProperties.putProperty(INTERNAL_METADATA_MARKER, StringUtils.trimToEmpty(config.get(INTERNAL_USER_AGENT)));
+        clientProperties.putProperty(IO, StringUtils.lowerCase(resolvedClientType.name()));
+        clientProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
+                                                                             config.get(SYNC_HTTP_CLIENT),
+                                                                             config.get(ASYNC_HTTP_CLIENT))));
+        String appId = config.get(USER_AGENT_APP_ID);
+        String resolvedAppId = appId == null ? resolveAppId(config) : appId;
+        clientProperties.putProperty(APP_ID, resolvedAppId);
+        clientProperties.putProperty(UserAgentConstant.API_METADATA, config.get(API_METADATA));
+        return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }
 
-    private RetryPolicy resolveRetryPolicy(LazyValueSource config) {
+    private String resolveAppId(LazyValueSource config) {
+        Optional<String> appIdFromConfig = AppIdResolver.create()
+                                                        .profileFile(config.get(PROFILE_FILE_SUPPLIER))
+                                                        .profileName(config.get(PROFILE_NAME))
+                                                        .resolve();
+        return appIdFromConfig.orElse(null);
+    }
+
+    private static String clientName(ClientType clientType, SdkHttpClient syncHttpClient, SdkAsyncHttpClient asyncHttpClient) {
+        if (clientType == SYNC) {
+            return syncHttpClient == null ? "null" : syncHttpClient.clientName();
+        }
+
+        if (clientType == ASYNC) {
+            return asyncHttpClient == null ? "null" : asyncHttpClient.clientName();
+        }
+
+        return ClientType.UNKNOWN.name();
+    }
+
+    private RetryStrategy resolveRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(PROFILE_NAME))
                                        .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
                                        .resolve();
-        return RetryPolicy.forRetryMode(retryMode);
+        return SdkDefaultRetryStrategy.forRetryMode(retryMode);
     }
 
     /**
@@ -496,12 +553,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @Override
     public final B endpointOverride(URI endpointOverride) {
         if (endpointOverride == null) {
-            clientConfiguration.option(SdkClientOption.ENDPOINT, null);
-            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
+            clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         } else {
-            Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
-            clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
-            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+            clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                       ClientEndpointProvider.forEndpointOverride(endpointOverride));
         }
         return thisBuilder();
     }

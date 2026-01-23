@@ -43,8 +43,7 @@ public final class HandlerUtils {
     /**
      * Returns whether a FIPS pseudo region is provided.
      */
-    public static boolean isFipsRegion(String clientRegion, String arnRegion,
-                                       S3ControlConfiguration serviceConfig, boolean useArnRegion) {
+    public static boolean isFipsRegion(String clientRegion, String arnRegion, boolean useArnRegion) {
         if (useArnRegion) {
             return isFipsRegion(arnRegion);
         }

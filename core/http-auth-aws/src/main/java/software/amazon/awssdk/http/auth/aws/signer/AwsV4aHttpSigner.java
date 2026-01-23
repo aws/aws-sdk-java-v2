@@ -23,10 +23,67 @@ import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}).
+ * An {@link HttpSigner} that will use the AWS V4a signing algorithm to sign a request using an
+ * {@link AwsCredentialsIdentity}).
+ *
  * <p>
- * The process for signing requests to send to AWS services is documented
+ * AWS request signing is described
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
+ *
+ * <h2>Using the AwsV4aHttpSigner</h2>
+ * <p>
+ * <b>Sign an HTTP request and send it to a service.</b>
+ * <p>
+ * {@snippet :
+ *    AwsV4aHttpSigner signer = AwsV4aHttpSigner.create();
+ *
+ *    // Specify AWS credentials. Credential providers that are used by the SDK by default are
+ *    // available in the module "auth" (e.g. DefaultCredentialsProvider).
+ *    AwsCredentialsIdentity credentials =
+ *        AwsSessionCredentialsIdentity.create("skid", "akid", "stok");
+ *
+ *    // Create the HTTP request to be signed
+ *    SdkHttpRequest httpRequest =
+ *        SdkHttpRequest.builder()
+ *                      .uri("https://s3.us-west-2.amazonaws.com/bucket/object")
+ *                      .method(SdkHttpMethod.PUT)
+ *                      .putHeader("Content-Type", "text/plain")
+ *                      .build();
+ *
+ *    // Create the request payload to be signed
+ *    ContentStreamProvider requestPayload =
+ *        ContentStreamProvider.fromUtf8String("Hello, World!");
+ *
+ *    // Sign the request. Some services require custom signing configuration properties (e.g. S3).
+ *    // See AwsV4aHttpSigner and AwsV4FamilyHttpSigner for the available signing options.
+ *    //    Note: The S3Client class below requires a dependency on the 's3' module. Alternatively, the
+ *    //    signing name can be hard-coded because it is guaranteed to not change.
+ *    SignedRequest signedRequest =
+ *        signer.sign(r -> r.identity(credentials)
+ *                          .request(httpRequest)
+ *                          .payload(requestPayload)
+ *                          .putProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, S3Client.SERVICE_NAME)
+ *                          .putProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create("us-west-2"))
+ *                          .putProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false) // Required for S3 only
+ *                          .putProperty(AwsV4aHttpSigner.NORMALIZE_PATH, false)); // Required for S3 only
+ *
+ *    // Create and HTTP client and send the request. ApacheHttpClient requires the 'apache-client' module.
+ *    try (SdkHttpClient httpClient = ApacheHttpClient.create()) {
+ *        HttpExecuteRequest httpExecuteRequest =
+ *            HttpExecuteRequest.builder()
+ *                              .request(signedRequest.request())
+ *                              .contentStreamProvider(signedRequest.payload().orElse(null))
+ *                              .build();
+ *
+ *        HttpExecuteResponse httpResponse =
+ *            httpClient.prepareRequest(httpExecuteRequest).call();
+ *
+ *        System.out.println("HTTP Status Code: " + httpResponse.httpResponse().statusCode());
+ *    } catch (IOException e) {
+ *        System.err.println("HTTP Request Failed.");
+ *        e.printStackTrace();
+ *    }
+ * }
  */
 @SdkPublicApi
 public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsIdentity> {
@@ -41,5 +98,4 @@ public interface AwsV4aHttpSigner extends AwsV4FamilyHttpSigner<AwsCredentialsId
     static AwsV4aHttpSigner create() {
         return getDefaultAwsCrtV4aHttpSigner();
     }
-
 }

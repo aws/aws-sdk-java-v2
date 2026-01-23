@@ -22,7 +22,6 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -160,16 +159,6 @@ public class OutpostAccessPointArnEndpointResolutionTest {
      */
     private void assertEndpointMatches(SdkHttpRequest capturedRequest, String endpoint) {
         assertThat(capturedRequest.getUri()).isEqualTo(URI.create(endpoint));
-    }
-
-    /**
-     * @param s3ServiceConfiguration Advanced configuration to use for this client.
-     * @return A built client with the given advanced configuration.
-     */
-    private S3Client buildClient(S3Configuration s3ServiceConfiguration) {
-        return clientBuilder()
-                .serviceConfiguration(s3ServiceConfiguration)
-                .build();
     }
 
     /**

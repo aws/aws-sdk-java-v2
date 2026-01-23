@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.utils.DateUtils;
 public final class SimpleTypeJsonMarshaller {
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null",
                                                              Optional.ofNullable(paramName)
                                                                      .orElseGet(() -> "paramName null")));
@@ -82,6 +83,13 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
+    public static final JsonMarshaller<Byte> BYTE = new BaseJsonMarshaller<Byte>() {
+        @Override
+        public void marshall(Byte val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeValue(val);
+        }
+    };
+
     public static final JsonMarshaller<Float> FLOAT = new BaseJsonMarshaller<Float>() {
         @Override
         public void marshall(Float val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
@@ -115,7 +123,8 @@ public final class SimpleTypeJsonMarshaller {
         if (paramName != null) {
             jsonGenerator.writeFieldName(paramName);
         }
-        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class) : null;
+        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class,
+                                                                          TraitType.TIMESTAMP_FORMAT_TRAIT) : null;
         if (trait != null) {
             switch (trait.format()) {
                 case UNIX_TIMESTAMP:
@@ -158,7 +167,7 @@ public final class SimpleTypeJsonMarshaller {
     public static final JsonMarshaller<List<?>> LIST = new BaseJsonMarshaller<List<?>>() {
         @Override
         public void marshall(List<?> list, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeStartArray();
+            jsonGenerator.writeStartArray(list.size());
             for (Object listValue : list) {
                 context.marshall(MarshallLocation.PAYLOAD, listValue);
             }

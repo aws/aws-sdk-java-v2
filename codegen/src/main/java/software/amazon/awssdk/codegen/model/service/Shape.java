@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,8 @@ public class Shape {
     private boolean document;
 
     private boolean union;
+
+    private RetryableTrait retryable;
 
     public boolean isFault() {
         return fault;
@@ -344,5 +347,19 @@ public class Shape {
 
     public void setUnion(boolean union) {
         this.union = union;
+    }
+
+    public void setRetryable(RetryableTrait retryable) {
+        this.retryable = retryable;
+    }
+
+    @JsonIgnore
+    public boolean isRetryable() {
+        return retryable != null;
+    }
+
+    @JsonIgnore
+    public boolean isThrottling() {
+        return retryable != null && retryable.isThrottling();
     }
 }

@@ -20,7 +20,10 @@ import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
 
 /**
  * AWS4 signer implementation for AWS S3
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner} from the 'http-auth-aws' module.
  */
+@Deprecated
 @SdkPublicApi
 public final class AwsS3V4Signer extends AbstractAwsS3V4Signer {
     private AwsS3V4Signer() {

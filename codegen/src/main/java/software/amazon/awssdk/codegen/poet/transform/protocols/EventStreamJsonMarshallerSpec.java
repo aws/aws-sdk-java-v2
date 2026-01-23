@@ -19,7 +19,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -32,7 +31,7 @@ import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
  */
 public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
 
-    public EventStreamJsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
+    public EventStreamJsonMarshallerSpec(ShapeModel shapeModel) {
         super(shapeModel);
     }
 

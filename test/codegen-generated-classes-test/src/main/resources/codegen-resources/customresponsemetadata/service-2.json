@@ -166,6 +166,20 @@
       },
       "documentation": "Some paginated operation with result_key in paginators.json file"
     },
+    "PaginatedOperationWithMoreResults": {
+      "name": "PaginatedOperationWithMoreResults",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithMoreResultsRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithMoreResultsResponse"
+      },
+      "documentation": "Some paginated operation with more_results in paginators.json file"
+    },
     "QueryParamWithoutValue":{
       "name":"QueryParamWithoutValue",
       "http":{
@@ -228,7 +242,7 @@
         "requestChecksumRequired" : true,
         "requestAlgorithmMember": "ChecksumAlgorithm",
         "requestValidationModeMember" : "ChecksumMode",
-        "responseAlgorithms": ["crc32", "crc32c", "sha256", "sha1"]
+        "responseAlgorithms": ["crc64nvme","crc32", "crc32c", "sha256", "sha1"]
       }
     },
     "StreamingInputOperation":{
@@ -280,9 +294,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ChecksumStructureWithStreaming"},
-      "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
-        "requestChecksumRequired": true,
         "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
@@ -321,8 +333,17 @@
       "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC64NVME","CRC32C", "CRC32", "SHA1", "SHA256"]
       }
+    },
+    "GetOperationWithMapEndpointParam":{
+      "name":"GetOperationWithMapEndpointParam",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetOperationWithMapEndpointParamInput"},
+      "output":{"shape":"GetOperationWithMapEndpointParamOutput"}
     },
     "OperationWithChecksumNonStreaming":{
       "name":"OperationWithChecksumNonStreaming",
@@ -336,7 +357,7 @@
         "requestChecksumRequired": true,
         "requestAlgorithmMember": "ChecksumAlgorithm",
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC64NVME","CRC32C", "CRC32", "SHA1", "SHA256"]
       }
     },
     "QueryParameterOperation":{
@@ -776,6 +797,36 @@
       },
       "documentation": "<p>Response type of a single page</p>"
     },
+    "PaginatedOperationWithMoreResultsRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithMoreResultsResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Truncated":{
+          "shape":"Boolean",
+          "documentation":"<p>A flag that indicates whether there are more results in the list. When this value is true, the list in this response is truncated.</p>"
+        }
+      },
+      "documentation": "<p>Response type of multiple pages</p>"
+    },
     "PayloadStructType":{
       "type":"structure",
       "members":{
@@ -928,7 +979,8 @@
         "CRC32",
         "CRC32C",
         "SHA1",
-        "SHA256"
+        "SHA256",
+        "CRC64NVME"
       ]
     },
     "ChecksumMode":{
@@ -956,7 +1008,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -979,7 +1031,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       }
     },
@@ -1070,6 +1122,28 @@
         }
       },
       "payload":"Body"
+    },
+    "GetOperationWithMapEndpointParamInput": {
+      "type": "structure",
+      "required":["MapOfStrings"],
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "GetOperationWithMapEndpointParamOutput": {
+      "type": "structure",
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "MapOfStrings":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
     }
   }
 }

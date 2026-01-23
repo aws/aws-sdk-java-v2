@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.services.s3.multipart.ParallelConfiguration;
 
 public class MultipartConfigurationResolverTest {
 
@@ -60,16 +61,31 @@ public class MultipartConfigurationResolverTest {
     }
 
     @Test
+    void resolveMaxInFlightParts_valueProvidedWithBuilder_shouldHonor() {
+        MultipartConfiguration configuration =
+            MultipartConfiguration.builder()
+                                  .parallelConfiguration(p -> p.maxInFlightParts(1))
+                                  .build();
+        MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(configuration);
+        assertThat(resolver.maxInFlightParts()).isEqualTo(1);
+    }
+
+    @Test
     void valueProvidedForAllFields_shouldHonor() {
-        MultipartConfiguration configuration = MultipartConfiguration.builder()
-                                                                     .minimumPartSizeInBytes(10L)
-                                                                     .thresholdInBytes(8L)
-                                                                     .apiCallBufferSizeInBytes(3L)
-                                                                     .build();
+        MultipartConfiguration configuration =
+            MultipartConfiguration.builder()
+                                  .minimumPartSizeInBytes(10L)
+                                  .thresholdInBytes(8L)
+                                  .apiCallBufferSizeInBytes(3L)
+                                  .parallelConfiguration(ParallelConfiguration.builder()
+                                                                              .maxInFlightParts(1)
+                                                                              .build())
+                                  .build();
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(configuration);
         assertThat(resolver.minimalPartSizeInBytes()).isEqualTo(10L);
         assertThat(resolver.thresholdInBytes()).isEqualTo(8L);
         assertThat(resolver.apiCallBufferSize()).isEqualTo(3L);
+        assertThat(resolver.maxInFlightParts()).isEqualTo(1);
     }
 
     @Test
@@ -79,5 +95,7 @@ public class MultipartConfigurationResolverTest {
         assertThat(resolver.minimalPartSizeInBytes()).isEqualTo(8L * 1024 * 1024);
         assertThat(resolver.thresholdInBytes()).isEqualTo(8L * 1024 * 1024);
         assertThat(resolver.apiCallBufferSize()).isEqualTo(8L * 1024 * 1024 * 4);
+        assertThat(resolver.maxInFlightParts()).isEqualTo(50);
     }
+
 }

@@ -76,6 +76,7 @@ public class RewriteRuleExpressionVisitor implements RuleExpressionVisitor<RuleE
             .builder()
             .name(e.name())
             .type(e.type())
+            .directIndex(e.directIndex())
             .source(e.source().accept(this));
         return builder.build();
     }

@@ -72,6 +72,20 @@
       },
       "documentation": "Some paginated operation with result_key in paginators.json file"
     },
+    "PaginatedOperationWithResultKeyAndMoreResults": {
+      "name": "PaginatedOperationWithResultKeyAndMoreResults",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithResultKeyAndMoreResultsRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithResultKeyAndMoreResultsResponse"
+      },
+      "documentation": "Some paginated operation with more_results in paginators.json file"
+    },
     "PaginatedOperationWithoutResultKey": {
       "name": "PaginatedOperationWithoutResultKey",
       "http": {
@@ -335,6 +349,40 @@
         }
       },
       "documentation": "<p>Response type of a single page</p>"
+    },
+    "PaginatedOperationWithResultKeyAndMoreResultsRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithResultKeyAndMoreResultsResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Items": {
+          "shape": "ListOfSimpleStructs",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        },
+        "Truncated":{
+          "shape":"Boolean",
+          "documentation":"<p>A flag that indicates whether there are more results in the list. When this value is true, the list in this response is truncated.</p>"
+        }
+      },
+      "documentation": "<p>Response type of multiple pages</p>"
     },
     "PaginatedOperationWithoutResultKeyRequest": {
       "type": "structure",

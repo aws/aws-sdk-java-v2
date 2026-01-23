@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithSamlCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlResponse;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -35,7 +37,10 @@ public class StsAssumeRoleWithSamlCredentialsProviderTest
 
     @Override
     protected AssumeRoleWithSamlResponse getResponse(Credentials credentials) {
-        return AssumeRoleWithSamlResponse.builder().credentials(credentials).build();
+        return AssumeRoleWithSamlResponse.builder()
+                                         .credentials(credentials)
+                                         .assumedRoleUser(AssumedRoleUser.builder().arn(ARN).build())
+                                         .build();
     }
 
     @Override
@@ -46,5 +51,10 @@ public class StsAssumeRoleWithSamlCredentialsProviderTest
     @Override
     protected AssumeRoleWithSamlResponse callClient(StsClient client, AssumeRoleWithSamlRequest request) {
         return client.assumeRoleWithSAML(request);
+    }
+
+    @Override
+    protected String providerName() {
+        return BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_SAML.value();
     }
 }

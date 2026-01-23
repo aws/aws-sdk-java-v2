@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.core.SdkBytes;
@@ -86,6 +85,7 @@ public class TypeUtils {
         MARSHALLING_TYPE_MAPPINGS.put("BigDecimal", "BIG_DECIMAL");
         MARSHALLING_TYPE_MAPPINGS.put("InputStream", "STREAM");
         MARSHALLING_TYPE_MAPPINGS.put("Short", "SHORT");
+        MARSHALLING_TYPE_MAPPINGS.put("Byte", "BYTE");
         MARSHALLING_TYPE_MAPPINGS.put(null, "NULL");
         MARSHALLING_TYPE_MAPPINGS.put("Document", "DOCUMENT");
     }
@@ -109,18 +109,10 @@ public class TypeUtils {
     }
 
     /**
-     * Returns the default Java type of the specified shape.
-     */
-    public String getJavaDataType(Map<String, Shape> shapes, String shapeName) {
-        return getJavaDataType(shapes, shapeName, null);
-    }
-
-    /**
      * Returns the Java type of the specified shape with potential customization (such as
      * auto-construct list or map).
      */
-    public String getJavaDataType(Map<String, Shape> shapes, String shapeName,
-                                  CustomizationConfig customConfig) {
+    public String getJavaDataType(Map<String, Shape> shapes, String shapeName) {
 
         if (shapeName == null || shapeName.trim().isEmpty()) {
             throw new IllegalArgumentException(

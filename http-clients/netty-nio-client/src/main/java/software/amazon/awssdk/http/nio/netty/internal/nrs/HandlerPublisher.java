@@ -251,13 +251,13 @@ public class HandlerPublisher<T> extends ChannelDuplexHandler implements Publish
     private void provideChannelContext(ChannelHandlerContext ctx) {
         switch (state) {
             case NO_SUBSCRIBER_OR_CONTEXT:
-                verifyRegisteredWithRightExecutor(ctx);
+                verifyRegisteredWithRightExecutor();
                 this.ctx = ctx;
                 // It's set, we don't have a subscriber
                 state = HandlerPublisher.State.NO_SUBSCRIBER;
                 break;
             case NO_CONTEXT:
-                verifyRegisteredWithRightExecutor(ctx);
+                verifyRegisteredWithRightExecutor();
                 this.ctx = ctx;
                 state = HandlerPublisher.State.IDLE;
                 subscriber.onSubscribe(new ChannelSubscription());
@@ -267,7 +267,7 @@ public class HandlerPublisher<T> extends ChannelDuplexHandler implements Publish
         }
     }
 
-    private void verifyRegisteredWithRightExecutor(ChannelHandlerContext ctx) {
+    private void verifyRegisteredWithRightExecutor() {
         if (!executor.inEventLoop()) {
             throw new IllegalArgumentException("Channel handler MUST be registered with the same EventExecutor that it is "
                                                + "created with.");

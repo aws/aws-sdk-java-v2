@@ -26,19 +26,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -77,49 +76,52 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         }
     }
 
-    @Test
-    void uploadDirectory_filesSentCorrectly() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    void uploadDirectory_filesSentCorrectly(S3TransferManager tm) {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
-                                                                      .bucket(TEST_BUCKET)
-                                                                      .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
+                                                                   .bucket(TEST_BUCKET)
+                                                                   .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
         List<String> keys =
             s3.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().stream().map(S3Object::key)
-                    .collect(Collectors.toList());
+              .collect(Collectors.toList());
 
         assertThat(keys).containsOnly(prefix + "/bar.txt", prefix + "/foo/1.txt", prefix + "/foo/2.txt");
 
         keys.forEach(k -> verifyContent(k, k.substring(prefix.length() + 1) + randomString));
     }
 
-    @Test
-    void uploadDirectory_nonExistsBucket_shouldAddFailedRequest() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    void uploadDirectory_nonExistsBucket_shouldAddFailedRequest(S3TransferManager tm) {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
-                                                                      .bucket("nonExistingTestBucket" + UUID.randomUUID())
-                                                                      .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
+                                                                   .bucket("nonExistingTestBucket" + UUID.randomUUID())
+                                                                   .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).hasSize(3).allSatisfy(f ->
-            assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
+                                                                                         assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
     }
 
-    @Test
-    void uploadDirectory_withDelimiter_filesSentCorrectly() {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    void uploadDirectory_withDelimiter_filesSentCorrectly(S3TransferManager tm) {
         String prefix = "hello";
         String delimiter = "0";
-        DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(directory)
-                                                                      .bucket(TEST_BUCKET)
-                                                                      .s3Delimiter(delimiter)
-                                                                      .s3Prefix(prefix));
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
+                                                                   .bucket(TEST_BUCKET)
+                                                                   .s3Delimiter(delimiter)
+                                                                   .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
         assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
         List<String> keys =
             s3.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().stream().map(S3Object::key)
-                    .collect(Collectors.toList());
+              .collect(Collectors.toList());
 
         assertThat(keys).containsOnly(prefix + "0bar.txt", prefix + "0foo01.txt", prefix + "0foo02.txt");
         keys.forEach(k -> {
@@ -128,18 +130,19 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         });
     }
 
-    @Test
-    void uploadDirectory_withRequestTransformer_usesRequestTransformer() throws Exception {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    void uploadDirectory_withRequestTransformer_usesRequestTransformer(S3TransferManager tm) throws Exception {
         String prefix = "requestTransformerTest";
         Path newSourceForEachUpload = Paths.get(directory.toString(), "bar.txt");
 
         CompletedDirectoryUpload result =
-            tmCrt.uploadDirectory(r -> r.source(directory)
-                                        .bucket(TEST_BUCKET)
-                                        .s3Prefix(prefix)
-                                        .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
-                 .completionFuture()
-                 .get(10, TimeUnit.SECONDS);
+            tm.uploadDirectory(r -> r.source(directory)
+                                     .bucket(TEST_BUCKET)
+                                     .s3Prefix(prefix)
+                                     .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
+              .completionFuture()
+              .get(10, TimeUnit.SECONDS);
         assertThat(result.failedTransfers()).isEmpty();
 
         s3.listObjectsV2Paginator(b -> b.bucket(TEST_BUCKET).prefix(prefix)).contents().forEach(object -> {
@@ -147,8 +150,8 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         });
     }
 
-    public static Collection<String> prefix() {
-        return Arrays.asList(
+    public static Stream<Arguments> prefix() {
+        return Stream.of(
             /* ASCII, 1-byte UTF-8 */
             "E",
             /* ASCII, 2-byte UTF-8 */
@@ -159,16 +162,17 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
             "स",
             /* Non-ASCII, 4-byte UTF-8 */
             "\uD808\uDC8C"
-        );
+        ).flatMap(prefix -> Stream.of(Arguments.of(prefix, tmCrt), Arguments.of(prefix, tmJava)));
     }
 
     /**
-     * Tests the behavior of traversing local directories with special Unicode characters in their path name. These characters have
-     * known to be problematic when using Java's old File API or with Windows (which uses UTF-16 for file-name encoding).
+     * Tests the behavior of traversing local directories with special Unicode characters in their path name. These characters
+     * have known to be problematic when using Java's old File API or with Windows (which uses UTF-16 for file-name encoding).
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("prefix")
-    void uploadDirectory_fileNameWithUnicode_traversedCorrectly(String directoryPrefix) throws IOException {
+    void uploadDirectory_fileNameWithUnicode_traversedCorrectly(String directoryPrefix, S3TransferManager tm)
+        throws IOException {
         assumeTrue(Charset.defaultCharset().equals(StandardCharsets.UTF_8), "Ignoring the test if the test directory can't be "
                                                                             + "created");
         Path testDirectory = null;
@@ -179,8 +183,8 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
             testDirectory = createLocalTestDirectory(directoryPrefix);
 
             Path finalTestDirectory = testDirectory;
-            DirectoryUpload uploadDirectory = tmCrt.uploadDirectory(u -> u.source(finalTestDirectory)
-                                                                          .bucket(TEST_BUCKET));
+            DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(finalTestDirectory)
+                                                                       .bucket(TEST_BUCKET));
             CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
             assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();
 
@@ -224,7 +228,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
 
     private static void verifyContent(String key, String expectedContent) {
         String actualContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(key),
-                                      ResponseTransformer.toBytes()).asUtf8String();
+                                            ResponseTransformer.toBytes()).asUtf8String();
 
         assertThat(actualContent).isEqualTo(expectedContent);
     }

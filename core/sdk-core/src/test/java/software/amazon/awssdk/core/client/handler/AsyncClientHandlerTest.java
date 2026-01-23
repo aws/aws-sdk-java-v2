@@ -49,6 +49,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -145,6 +146,7 @@ public class AsyncClientHandlerTest {
         return HttpTestUtils.testClientConfiguration().toBuilder()
                             .option(SdkClientOption.ASYNC_HTTP_CLIENT, httpClient)
                             .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
+                            .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
                             .build();
     }
 }

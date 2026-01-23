@@ -34,9 +34,11 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -97,7 +99,6 @@ public class AwsServiceModel implements ClassSpec {
         if (shapeModel.isEventStream()) {
             return eventStreamInterfaceSpec();
         }
-
         List<FieldSpec> fields = shapeModelSpec.fields();
 
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className())
@@ -109,8 +110,10 @@ public class AwsServiceModel implements ClassSpec {
                                                .addFields(fields)
                                                .addFields(shapeModelSpec.staticFields())
                                                .addMethod(addModifier(sdkFieldsMethod(), FINAL))
+                                               .addMethod(addModifier(sdkFieldNameToFieldMethod(), FINAL))
                                                .addTypes(nestedModelClassTypes());
 
+        shapeModelSpec.additionalMethods().forEach(specBuilder::addMethod);
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
@@ -315,6 +318,17 @@ public class AwsServiceModel implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec sdkFieldNameToFieldMethod() {
+        ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                       WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        return MethodSpec.methodBuilder("sdkFieldNameToField")
+                         .addModifiers(PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), sdkFieldType))
+                         .addCode("return SDK_NAME_TO_FIELD;")
+                         .build();
+    }
+
     private MethodSpec getterCreator() {
         TypeVariableName t = TypeVariableName.get("T");
         return MethodSpec.methodBuilder("getter")
@@ -437,6 +451,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(builderMethod());
                 methodSpecs.add(serializableBuilderClass());
                 methodSpecs.addAll(memberGetters());
+                methodSpecs.addAll(retryableOverrides());
                 break;
             default:
                 methodSpecs.addAll(addModifier(memberGetters(), FINAL));
@@ -687,6 +702,28 @@ public class AwsServiceModel implements ClassSpec {
     private CodeBlock getterStatement(MemberModel model) {
         VariableModel modelVariable = model.getVariable();
         return CodeBlock.of("return $N;", modelVariable.getVariableName());
+    }
+
+    private List<MethodSpec> retryableOverrides() {
+        if (shapeModel.isRetryable()) {
+            MethodSpec isRetryable = MethodSpec.methodBuilder("isRetryableException")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(PUBLIC)
+                                               .returns(TypeName.BOOLEAN)
+                                               .addStatement("return true")
+                                               .build();
+            if (shapeModel.isThrottling()) {
+                MethodSpec isThrottling = MethodSpec.methodBuilder("isThrottlingException")
+                                                   .addAnnotation(Override.class)
+                                                   .addModifiers(PUBLIC)
+                                                   .returns(TypeName.BOOLEAN)
+                                                   .addStatement("return true")
+                                                   .build();
+                return Arrays.asList(isRetryable, isThrottling);
+            }
+            return Arrays.asList(isRetryable);
+        }
+        return emptyList();
     }
 
     private List<TypeSpec> nestedModelClassTypes() {

@@ -42,10 +42,10 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.ValidSdkObjects;
 
 
@@ -59,7 +59,7 @@ public class HttpClientApiCallTimeoutTest {
     @Before
     public void setup() {
         httpClient = testClientBuilder()
-            .retryPolicy(RetryPolicy.none())
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();
     }
@@ -70,7 +70,7 @@ public class HttpClientApiCallTimeoutTest {
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
         assertThatThrownBy(() -> requestBuilder().execute(combinedSyncResponseHandler(
-            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()), null)))
+            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2), null)))
             .isInstanceOf(ApiCallTimeoutException.class);
     }
 

@@ -15,36 +15,84 @@
 
 package software.amazon.awssdk.core.internal.util;
 
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
+import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.HttpChecksumConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.internal.util.HttpChecksumResolver.getResolvedChecksumSpecs;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.signer.SigningMethod;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
+import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class HttpChecksumUtils {
+    private static final Logger log = Logger.loggerFor(HttpChecksumUtils.class);
 
     private static final int CHECKSUM_BUFFER_SIZE = 16 * 1024;
 
+    private static final ImmutableMap<ChecksumAlgorithm, Algorithm> NEW_CHECKSUM_TO_LEGACY = ImmutableMap.of(
+        SHA256, Algorithm.SHA256,
+        SHA1, Algorithm.SHA1,
+        CRC32, Algorithm.CRC32,
+        CRC32C, Algorithm.CRC32C,
+        CRC64NVME, Algorithm.CRC64NVME
+    );
+
+    private static final ImmutableMap<Algorithm, ChecksumAlgorithm> LEGACY_CHECKSUM_TO_NEW = ImmutableMap.of(
+        Algorithm.SHA256, SHA256,
+        Algorithm.SHA1, SHA1,
+        Algorithm.CRC32, CRC32,
+        Algorithm.CRC32C, CRC32C,
+        Algorithm.CRC64NVME, CRC64NVME
+    );
+
+    private static Lazy<Boolean> isCrc64NvmeAvailable = new Lazy<>(() -> {
+        try {
+            ClassLoaderHelper.loadClass("software.amazon.awssdk.crt.checksums.CRC64NVME", false);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return true;
+    });
+
     private HttpChecksumUtils() {
+    }
+
+    public static Algorithm toLegacyChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
+        return NEW_CHECKSUM_TO_LEGACY.get(checksumAlgorithm);
+    }
+
+    public static ChecksumAlgorithm toNewChecksumAlgorithm(Algorithm checksumAlgorithm) {
+        return LEGACY_CHECKSUM_TO_NEW.get(checksumAlgorithm);
     }
 
     /**
@@ -52,8 +100,7 @@ public final class HttpChecksumUtils {
      * @return Http Checksum header for a given Algorithm.
      */
     public static String httpChecksumHeader(String algorithmName) {
-        return String.format("%s-%s", HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX,
-                             StringUtils.lowerCase(algorithmName));
+        return HTTP_CHECKSUM_HEADER_PREFIX + "-" + StringUtils.lowerCase(algorithmName);
     }
 
     /**
@@ -163,6 +210,64 @@ public final class HttpChecksumUtils {
 
     }
 
+    public static boolean hasLegacyChecksumRequiredTrait(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null;
+    }
+
+    /**
+     * HTTP checksum calculation is needed if one of the following conditions is met:
+     * 1. checksum is required per legacy httpRequired trait or the new HttpChecksum trait OR
+     * 2. user has specified a checksum algorithm OR
+     * 3. checksum is optional per new HttpChecksum trait AND RequestChecksumCalculation == when_supported
+     *
+     * HTTP checksum calculation is not needed if one of the following conditions is met:
+     * 1. the operation does not have legacy httpRequired trait or the new HttpChecksum trait OR
+     * 2. user has provided a checksum value (any header prefixed with "x-amz-checksum-") OR
+     * 3. checksum is not required AND RequestChecksumCalculation == when_required
+     */
+    public static boolean isHttpChecksumCalculationNeeded(SdkHttpFullRequest.Builder request,
+                                                          ExecutionAttributes executionAttributes) {
+
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+        boolean hasFlexibleChecksumTrait = checksumSpecs != null;
+
+        if (!hasLegacyChecksumRequiredTrait(executionAttributes) && !hasFlexibleChecksumTrait) {
+            return false;
+        }
+
+        if (requestAlreadyHasChecksum(request)) {
+            return false;
+        }
+
+        boolean checksumAlgorithmSpecified =
+            hasFlexibleChecksumTrait && checksumSpecs.algorithmV2() != null;
+
+        if (checksumAlgorithmSpecified) {
+            return true;
+        }
+
+        boolean isHttpChecksumRequired =
+            hasLegacyChecksumRequiredTrait(executionAttributes) ||
+            hasFlexibleChecksumTrait && checksumSpecs.isRequestChecksumRequired();
+
+        if (isHttpChecksumRequired) {
+            return true;
+        }
+
+        RequestChecksumCalculation requestChecksumCalculation =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION);
+
+        return requestChecksumCalculation == RequestChecksumCalculation.WHEN_SUPPORTED;
+    }
+
+    private static boolean requestAlreadyHasChecksum(SdkHttpFullRequest.Builder request) {
+        if (request.firstMatchingHeader(HEADER_FOR_TRAILER_REFERENCE).isPresent()) {
+            return true;
+        }
+
+        return request.anyMatchingHeader(k -> k.startsWith(HTTP_CHECKSUM_HEADER_PREFIX));
+    }
+
     private static boolean isTrailerChecksumPresent(SdkHttpRequest sdkHttpRequest, ChecksumSpecs checksumSpec) {
         Optional<String> trailerBasedChecksum = sdkHttpRequest.firstMatchingHeader(X_AMZ_TRAILER);
         if (trailerBasedChecksum.isPresent()) {
@@ -209,18 +314,27 @@ public final class HttpChecksumUtils {
     }
 
     /**
-     * Loops through the Supported list of checksum for the operation, and gets the Header value for the checksum header.
+     * Loops through the supported list of checksum for the operation, and gets the header value for the checksum header.
      * @param sdkHttpResponse response from service.
      * @param resolvedChecksumSpecs Resolved checksum specification for the operation.
      * @return Algorithm and its corresponding checksum value as sent by the service.
      */
-    public static Pair<Algorithm, String> getAlgorithmChecksumValuePair(SdkHttpResponse sdkHttpResponse,
-                                                                        ChecksumSpecs resolvedChecksumSpecs) {
-        return resolvedChecksumSpecs.responseValidationAlgorithms().stream().map(
-            algorithm -> {
-                Optional<String> firstMatchingHeader = sdkHttpResponse.firstMatchingHeader(httpChecksumHeader(algorithm.name()));
-                return firstMatchingHeader.map(s -> Pair.of(algorithm, s)).orElse(null);
-            }).filter(Objects::nonNull).findFirst().orElse(null);
+    public static Pair<ChecksumAlgorithm, String> getAlgorithmChecksumValuePair(SdkHttpResponse sdkHttpResponse,
+                                                                                ChecksumSpecs resolvedChecksumSpecs) {
+        for (ChecksumAlgorithm checksumAlgorithm : resolvedChecksumSpecs.responseValidationAlgorithmsV2()) {
+            Optional<String> firstMatchingHeader =
+                sdkHttpResponse.firstMatchingHeader(httpChecksumHeader(checksumAlgorithm.algorithmId()));
+
+            if (firstMatchingHeader.isPresent()) {
+                if (checksumAlgorithm.equals(CRC64NVME) && !isCrc64NvmeAvailable.getValue()) {
+                    log.debug(() -> "Skip CRC64NVME checksum validation because CRT is not on the classpath and CRC64NVME is "
+                                    + "not available");
+                    continue;
+                }
+                return Pair.of(checksumAlgorithm, firstMatchingHeader.get());
+            }
+        }
+        return null;
     }
 
     /**

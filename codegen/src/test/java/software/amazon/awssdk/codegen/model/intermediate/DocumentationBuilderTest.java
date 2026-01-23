@@ -67,7 +67,9 @@ public class DocumentationBuilderTest {
                                                  "\n" +
                                                  "@param paramOne param one docs\n" +
                                                  "@return CompletableFuture of success<br/>\n" +
-                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
+                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions. "
+                                                 + "The exception returned is wrapped with CompletionException, "
+                                                 + "so you need to invoke {@link Throwable#getCause} to retrieve the underlying exception.\n" +
                                                  "<ul>\n" +
                                                  "<li>FooException Foo docs</li>\n" +
                                                  "<li>BarException Bar docs</li>\n" +
@@ -87,7 +89,9 @@ public class DocumentationBuilderTest {
                                                  "\n" +
                                                  "@param paramOne param one docs\n" +
                                                  "@return A CompletableFuture indicating when result will be completed.<br/>\n" +
-                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions.\n" +
+                                                 "The CompletableFuture returned by this method can be completed exceptionally with the following exceptions. "
+                                                 + "The exception returned is wrapped with CompletionException, so you need to invoke {@link Throwable#getCause} "
+                                                 + "to retrieve the underlying exception.\n" +
                                                  "<ul>\n" +
                                                  "<li>FooException Foo docs</li>\n" +
                                                  "<li>BarException Bar docs</li>\n" +

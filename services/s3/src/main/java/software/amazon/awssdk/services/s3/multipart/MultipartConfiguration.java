@@ -22,19 +22,28 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Class that hold configuration properties related to multipart operation for a {@link S3AsyncClient}. Passing this class to the
- * {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of
- * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
- * respective multipart operation.
+ * Class that holds configuration properties related to multipart operations for a {@link S3AsyncClient}. Passing this class to
+ * the {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of the
+ * following operations to their respective multipart variants:
+ * <ul>
+ * <li>{@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)},
+ * <li>{@link S3AsyncClient#putObject(PutObjectRequest, AsyncRequestBody)}
+ * <li>{@link S3AsyncClient#copyObject(CopyObjectRequest)}
+ * </ul>
  * <p>
- * <em>Note</em>: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is
- * temporarily disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for
- * multipart operation.
+ * Note that multipart download fetches individual parts of the object using {@link GetObjectRequest#partNumber() PartNumber}.
+ * This means the S3 client will only download multiple parts if the object itself was uploaded as a
+ * {@link S3AsyncClient#createMultipartUpload(CreateMultipartUploadRequest) multipart object}
+ * <p>
+ * When performing multipart download, retry is only supported when using an {@link AsyncResponseTransformer} implementation
+ * that downloads the object into memory such, as {@link AsyncResponseTransformer#toBytes()}
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
@@ -42,11 +51,13 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long apiCallBufferSizeInBytes;
+    private final ParallelConfiguration parallelConfiguration;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.apiCallBufferSizeInBytes = builder.apiCallBufferSizeInBytes;
+        this.parallelConfiguration = builder.parallelConfiguration;
     }
 
     public static Builder builder() {
@@ -81,10 +92,22 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
     /**
      * The maximum memory, in bytes, that the SDK will use to buffer requests content into memory.
+     * <p>
+     * This setting does not apply if you are using an {@link AsyncResponseTransformer} implementation that downloads the
+     * object into memory such as {@link AsyncResponseTransformer#toBytes}
+     *
      * @return the value of the configured maximum memory usage.
      */
     public Long apiCallBufferSizeInBytes() {
         return this.apiCallBufferSizeInBytes;
+    }
+
+    /**
+     * Configuration specifically related to parallel multipart operations.
+     * @return the configuration class
+     */
+    public ParallelConfiguration parallelConfiguration() {
+        return this.parallelConfiguration;
     }
 
     /**
@@ -150,6 +173,9 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * Increasing this value may lead to better performance at the cost of using more memory.
          * <p>
          * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
+         * <p>
+         * This setting does not apply if you are using an {@link AsyncResponseTransformer} implementation that downloads the
+         * object into memory such as {@link AsyncResponseTransformer#toBytes}
          *
          * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.
@@ -161,29 +187,72 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return the value of the maximum memory usage.
          */
         Long apiCallBufferSizeInBytes();
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @param parallelConfiguration the configuration class
+         * @return an instance of this builder.
+         */
+        Builder parallelConfiguration(ParallelConfiguration parallelConfiguration);
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @param consumer consumer class for fluent builder
+         * @return an instance of this builder.
+         */
+        Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> consumer);
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @return the configuration class
+         */
+        ParallelConfiguration parallelConfiguration();
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long apiCallBufferSizeInBytes;
+        private ParallelConfiguration parallelConfiguration;
 
+        @Override
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
             return this;
         }
 
+        @Override
         public Long thresholdInBytes() {
             return this.thresholdInBytes;
         }
 
+        @Override
         public Builder minimumPartSizeInBytes(Long minimumPartSizeInBytes) {
             this.minimumPartSizeInBytes = minimumPartSizeInBytes;
             return this;
         }
 
+        @Override
         public Long minimumPartSizeInBytes() {
             return this.minimumPartSizeInBytes;
+        }
+
+        @Override
+        public Builder parallelConfiguration(ParallelConfiguration parallelConfiguration) {
+            this.parallelConfiguration = parallelConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> configuration) {
+            ParallelConfiguration.Builder builder = ParallelConfiguration.builder();
+            configuration.accept(builder);
+            return parallelConfiguration(builder.build());
+        }
+
+        @Override
+        public ParallelConfiguration parallelConfiguration() {
+            return this.parallelConfiguration;
         }
 
         @Override

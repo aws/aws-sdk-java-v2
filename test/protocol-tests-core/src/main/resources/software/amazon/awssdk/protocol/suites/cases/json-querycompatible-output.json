@@ -1,0 +1,50 @@
+[
+  {
+    "id": "QueryCompatibleAwsJson10CborNoCustomCodeError",
+    "description": "Parses simple errors with no query error code",
+    "given": {
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#NoCustomCodeError\",\n    \"Message\": \"Hi\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "QueryCompatibleOperation",
+      "error": "NoCustomCodeError"
+    },
+    "then": {
+      "deserializedAs": {
+        "message": "Hi"
+      }
+    }
+  },
+  {
+    "id": "QueryCompatibleAwsJson10CustomCodeError",
+    "description": "Parses simple errors with query error code",
+    "given": {
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "x-amzn-query-error": "Customized;Sender",
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#CustomCodeError\",\n    \"Message\": \"Hi\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "QueryCompatibleOperation",
+      "error": "CustomCodeError"
+    },
+    "then": {
+      "deserializedAs": {
+        "message": "Hi"
+      },
+      "errorCode": "Customized"
+    }
+  }
+]

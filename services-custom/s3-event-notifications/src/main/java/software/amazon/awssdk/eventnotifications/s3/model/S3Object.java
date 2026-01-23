@@ -22,6 +22,9 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * Object information.
+ */
 @SdkPublicApi
 public class S3Object {
 
@@ -39,6 +42,9 @@ public class S3Object {
         this.sequencer = sequencer;
     }
 
+    /**
+     * @return the object key.
+     */
     public String getKey() {
         return key;
     }
@@ -57,18 +63,33 @@ public class S3Object {
         }
     }
 
+    /**
+     * @return the object size in bytes.
+     */
     public Long getSizeAsLong() {
         return size;
     }
 
+    /**
+     * @return the object eTag
+     */
     public String getETag() {
         return eTag;
     }
 
+    /**
+     * @return the object version if bucket is versioning-enabled, otherwise null
+     */
     public String getVersionId() {
         return versionId;
     }
 
+    /**
+     * The sequencer key provides a way to determine the sequence of events. Event notifications aren't guaranteed to arrive in
+     * the same order that the events occurred. However, notifications from events that create objects (PUTs) and delete
+     * objects contain a sequencer. It can be used to determine the order of events for a given object key.
+     * @return A string representation of a hexadecimal value used to determine event sequence, only used with PUTs and DELETEs.
+     */
     public String getSequencer() {
         return sequencer;
     }

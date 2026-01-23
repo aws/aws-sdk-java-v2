@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.25.18-SNAPSHOT</version>
+    <version>2.41.14-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -67,10 +67,12 @@
         <module>metric-publishers</module>
         <module>release-scripts</module>
         <module>utils</module>
+        <module>utils-lite</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
         <module>third-party</module>
+        <module>v2-migration</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -78,6 +80,7 @@
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
+        <module>test/http-client-benchmarks</module>
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
@@ -88,7 +91,11 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
+        <module>test/v2-migration-tests</module>
+        <module>test/bundle-shading-tests</module>
         <module>test/crt-unavailable-tests</module>
+        <module>test/architecture-tests</module>
+        <module>test/s3-tests</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
@@ -96,20 +103,21 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.25.17</awsjavasdk.previous.version>
-        <jackson.version>2.15.2</jackson.version>
-        <jackson.databind.version>2.15.2</jackson.databind.version>
-        <jacksonjr.version>2.13.2</jacksonjr.version>
+        <awsjavasdk.previous.version>2.41.13</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.41.12</awsjavasdk.previous-previous.version>
+        <jackson.version>2.18.5</jackson.version>
+        <jackson.databind.version>2.18.5</jackson.databind.version>
+        <jacksonjr.version>2.18.5</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
-        <commons.lang.version>3.12.0</commons.lang.version>
+        <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
-        <slf4j.version>1.7.30</slf4j.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
         <commons.io.version>2.11.0</commons.io.version>
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.107.Final</netty.version>
+        <netty.version>4.1.130.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -118,12 +126,13 @@
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
         <rxjava.version>2.2.21</rxjava.version>
-        <commons-codec.verion>1.15</commons-codec.verion>
-        <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.29.9</awscrt.version>
+        <rxjava3.version>3.1.5</rxjava3.version>
+        <commons-codec.verion>1.17.1</commons-codec.verion>
+        <jmh.version>1.37</jmh.version>
+        <awscrt.version>0.40.3</awscrt.version>
 
         <!--Test dependencies -->
-        <junit5.version>5.10.0</junit5.version>
+        <junit5.version>5.10.3</junit5.version>
         <mockito.junit5.version>4.6.0</mockito.junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
@@ -133,12 +142,14 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.6</commons-lang.verson>
-        <netty-open-ssl-version>2.0.61.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.74.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.8.RELEASE</blockhound.version>
         <jetty.version>9.4.45.v20220203</jetty.version>
-        <bytebuddy.version>1.14.8</bytebuddy.version>
+        <bytebuddy.version>1.14.15</bytebuddy.version>
+        <archunit.version>1.3.0</archunit.version>
+        <json-schema-validator.version>1.5.4</json-schema-validator.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
@@ -151,17 +162,19 @@
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
-        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
         <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
         <japicmp-maven-plugin.version>0.15.6</japicmp-maven-plugin.version>
         <versions-maven-plugin.version>2.13.0</versions-maven-plugin.version>
-        <maven-archetype-plugin.version>3.2.1</maven-archetype-plugin.version>
+        <maven-archetype-plugin.version>3.3.0</maven-archetype-plugin.version>
         <!-- Whenever we update maven-wrapper-plugin version, we need to run mvn wrapper:wrapper to update the Maven Wrapper files(mvnw, .maven and mvnw.cmd) -->
         <maven-wrapper-plugin.version>3.2.0</maven-wrapper-plugin.version>
         <ant.version>1.10.14</ant.version>
+        <maven-velocity-plugin.version>0.9</maven-velocity-plugin.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
@@ -173,15 +186,19 @@
 
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.13</httpcomponents.httpcore.version>
-
+        <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
+        <httpcomponents.client5.version>5.6</httpcomponents.client5.version>
+        <httpcomponents.core5.version>5.4</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <!-- S3 Access Grants plugin version -->
-        <s3accessgrants.version>2.0.1</s3accessgrants.version>
+        <s3accessgrants.version>2.1.0</s3accessgrants.version>
+
+        <lakeformations3accessgrants.version>1.1</lakeformations3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
+        <v2.migration.tests.skip>true</v2.migration.tests.skip>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
         <scm.github.url>https://github.com/aws/aws-sdk-java-v2</scm.github.url>
@@ -226,7 +243,6 @@
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
-                            <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
                         </excludes>
                     </configuration>
@@ -528,19 +544,11 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>
-
-                        <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
-
-			<!-- TODO(post-sra-identity-auth): With move to SRA Identity & Auth, most clients won't need a
-                             dependency on auth module. But cannot remove it from services/pom.xml until all services
-                             have switched. Some service modules may still need it, because they have tests that use the
-                             old interfaces, but that should become a test scoped dependency in modules where needed.
-                             And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
-
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.lakeformation.plugin.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
@@ -650,8 +658,12 @@
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
+                            <includeModule>emf-metric-logging-publisher</includeModule>
                             <includeModule>utils</includeModule>
+                            <includeModule>utils-lite</includeModule>
                             <includeModule>imds</includeModule>
+                            <includeModule>retries</includeModule>
+                            <includeModule>retries-spi</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
@@ -660,7 +672,7 @@
                             <includeModule>s3-event-notifications</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-                            <includeModule>s3</includeModule>
+                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
                             <includeModule>sqs</includeModule>
                             <includeModule>rds</includeModule>
@@ -728,7 +740,46 @@
                 <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
-
+        <profile>
+            <!-- This is the new maven publishing profile. It's similar to the "publishing" profile except
+            for the fact that it uses the maven central publishing plugin instead of the nexus publishing plugin.
+            Once OSSRH is disabled we can rename this "publishing", and remove the existing publishing profile -->
+            <id>central-portal-publishing</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--batch</arg>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>publishing</id>
             <build>
@@ -812,6 +863,21 @@
         </profile>
 
         <profile>
+            <id>migration-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <v2.migration.tests.skip>false</v2.migration.tests.skip>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
+            </properties>
+        </profile>
+
+        <profile>
             <id>integration-tests</id>
             <activation>
                 <property>
@@ -853,6 +919,55 @@
                                     </excludes>
                                     <trimStackTrace>false</trimStackTrace>
                                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>s3-regression-tests</id>
+            <activation>
+                <property>
+                    <name>doRelease</name>
+                </property>
+            </activation>
+
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
+                                    <argLine>-Xmx12g -Xms4g</argLine>
+                                    <includes>
+                                        <include>**/*${regression.test}.java</include>
+                                    </includes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                    <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                                    <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
+                                    <parallel>methods</parallel>
+                                    <threadCount>8</threadCount>
+                                    <perCoreThreadCount>false</perCoreThreadCount>
                                 </configuration>
                             </execution>
                         </executions>
@@ -1043,7 +1158,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <minmemory>128m</minmemory>
-                            <maxmemory>12g</maxmemory>
+                            <maxmemory>24g</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
@@ -1080,10 +1195,6 @@
                                 <group>
                                     <title>Marketplace Entitlement</title>
                                     <packages>software.amazon.awssdk.services.marketplaceentitlement*</packages>
-                                </group>
-                                <group>
-                                    <title>CodeStar</title>
-                                    <packages>software.amazon.awssdk.services.codestar*</packages>
                                 </group>
                                 <group>
                                     <title>Lex Model Building</title>
@@ -1190,14 +1301,6 @@
                                 <group>
                                     <title>ElastiCache</title>
                                     <packages>software.amazon.awssdk.services.elasticache*</packages>
-                                </group>
-                                <group>
-                                    <title>Elastic Transcoder</title>
-                                    <packages>software.amazon.awssdk.services.elastictranscoder*</packages>
-                                </group>
-                                <group>
-                                    <title>OpsWorks</title>
-                                    <packages>software.amazon.awssdk.services.opsworks*</packages>
                                 </group>
                                 <group>
                                     <title>CloudFormation</title>
@@ -1360,10 +1463,6 @@
                                     <packages>software.amazon.awssdk.services.budgets*</packages>
                                 </group>
                                 <group>
-                                    <title>Server Migration</title>
-                                    <packages>software.amazon.awssdk.services.sms*</packages>
-                                </group>
-                                <group>
                                     <title>Rekognition</title>
                                     <packages>software.amazon.awssdk.services.rekognition*</packages>
                                 </group>
@@ -1382,10 +1481,6 @@
                                 <group>
                                     <title>X-Ray</title>
                                     <packages>software.amazon.awssdk.services.xray*</packages>
-                                </group>
-                                <group>
-                                    <title>OpsWorks for Chef Automate</title>
-                                    <packages>software.amazon.awssdk.services.opsworkscm*</packages>
                                 </group>
                                 <group>
                                     <title>Pinpoint</title>

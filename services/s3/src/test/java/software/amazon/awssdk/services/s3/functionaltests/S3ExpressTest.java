@@ -126,7 +126,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallUploadPart(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyUploadPart(s3ExpressSessionAuth);
-        verifyUploadPartHeaders(clientType, protocol, checksumAlgorithm);
+        verifyUploadPartHeaders(clientType, protocol);
     }
 
     @ParameterizedTest
@@ -137,7 +137,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallGetObject(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyGetObject(s3ExpressSessionAuth);
-        verifyGetObjectHeaders(protocol);
+        verifyGetObjectHeaders();
     }
 
     @ParameterizedTest
@@ -185,10 +185,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("x-amz-sdk-checksum-algorithm")).isNull();
         assertThat(headers.get("Content-MD5")).isNull();
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
     }
 
-    private void assertSignatureHeader(Protocol protocol, Map<String, List<String>> headers) {
+    private void assertSignatureHeader(Map<String, List<String>> headers) {
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
     }
@@ -264,7 +264,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
 
     private static void verifySessionHeaders() {
         verify(1, getRequestedFor(urlMatching("/.*session"))
-            .withHeader("x-amz-create-session-mode", equalTo("ReadWrite"))
+            .withoutHeader("x-amz-create-session-mode")
             .withHeader("x-amz-content-sha256", equalTo("UNSIGNED-PAYLOAD")));
     }
 
@@ -290,28 +290,22 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
 
-    void verifyUploadPartHeaders(ClientType clientType, Protocol protocol, ChecksumAlgorithm checksumAlgorithm) {
+    void verifyUploadPartHeaders(ClientType clientType, Protocol protocol) {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("Content-Length")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
 
-        if ((protocol == Protocol.HTTPS || clientType == ClientType.ASYNC)  &&
-            checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
-            assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
-        } else {
-            assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
-            String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
-            if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
-                streamingSha256 = checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION ?
-                                  "STREAMING-AWS4-HMAC-SHA256-PAYLOAD" : "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
-            }
-            assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
+        assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
+        String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
+        if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
+            streamingSha256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
         }
+        assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
 
-    void verifyGetObjectHeaders(Protocol protocol) {
+    void verifyGetObjectHeaders() {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
         assertThat(headers.get("x-amz-te")).isNull();
     }
 

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.services.dynamodb.model.ReturnValue.ALL_NEW;
+
 import java.util.Objects;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
@@ -44,7 +47,9 @@ public final class UpdateItemEnhancedRequest<T> {
 
     private final T item;
     private final Boolean ignoreNulls;
+    private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
+    private final String returnValues;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
     private final String returnValuesOnConditionCheckFailure;
@@ -54,6 +59,8 @@ public final class UpdateItemEnhancedRequest<T> {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.ignoreNullsMode = builder.ignoreNullsMode;
+        this.returnValues = builder.returnValues;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
@@ -76,7 +83,9 @@ public final class UpdateItemEnhancedRequest<T> {
     public Builder<T> toBuilder() {
         return new Builder<T>().item(item)
                                .ignoreNulls(ignoreNulls)
+                               .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
+                               .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
@@ -91,9 +100,18 @@ public final class UpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
+     * This is deprecated in favour of ignoreNullsMode()
      */
+    @Deprecated
     public Boolean ignoreNulls() {
         return ignoreNulls;
+    }
+
+    /**
+     * Returns the mode of update to be performed
+     */
+    public IgnoreNullsMode ignoreNullsMode() {
+        return ignoreNullsMode;
     }
 
     /**
@@ -101,6 +119,25 @@ public final class UpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Whether to return the values of the item before this request.
+     *
+     * @see UpdateItemRequest#returnValues()
+     */
+    public ReturnValue returnValues() {
+        return ReturnValue.fromValue(returnValues);
+    }
+
+    /**
+     * Whether to return the values of the item before this request.
+     * <p>
+     * Similar to {@link #returnValues()} but returns the value as a string. This is useful in situations where the value is
+     * not defined in {@link ReturnValue}.
+     */
+    public String returnValuesAsString() {
+        return returnValues;
     }
 
     /**
@@ -173,6 +210,7 @@ public final class UpdateItemEnhancedRequest<T> {
         return Objects.equals(item, that.item)
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
                && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
@@ -183,6 +221,7 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
         result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
@@ -198,7 +237,9 @@ public final class UpdateItemEnhancedRequest<T> {
     public static final class Builder<T> {
         private T item;
         private Boolean ignoreNulls;
+        private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
+        private String returnValues;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
         private String returnValuesOnConditionCheckFailure;
@@ -216,8 +257,14 @@ public final class UpdateItemEnhancedRequest<T> {
          * @param ignoreNulls the boolean value
          * @return a builder of this type
          */
+        @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
             this.ignoreNulls = ignoreNulls;
+            return this;
+        }
+
+        public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
+            this.ignoreNullsMode = ignoreNullsMode;
             return this;
         }
 
@@ -232,6 +279,26 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
+            return this;
+        }
+
+        /**
+         * Whether to return the values of the item before this request.
+         *
+         * @see UpdateItemRequest.Builder#returnValues(ReturnValue)
+         */
+        public UpdateItemEnhancedRequest.Builder<T> returnValues(ReturnValue returnValues) {
+            this.returnValues = returnValues == null ? ALL_NEW.toString() : returnValues.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the values of the item before this request.
+         *
+         * @see UpdateItemRequest.Builder#returnValues(String)
+         */
+        public UpdateItemEnhancedRequest.Builder<T> returnValues(String returnValues) {
+            this.returnValues = returnValues;
             return this;
         }
 

@@ -45,6 +45,11 @@ public final class XmlAttributesTrait implements Trait {
         return attributes;
     }
 
+    @Override
+    public TraitType type() {
+        return TraitType.XML_ATTRIBUTES_TRAIT;
+    }
+
     public static final class AttributeAccessors {
         private final Function<Object, String> attributeGetter;
 

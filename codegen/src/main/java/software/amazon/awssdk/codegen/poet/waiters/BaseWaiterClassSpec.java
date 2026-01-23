@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.lowercaseFirstChar;
 
+import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -31,6 +32,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -46,7 +49,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.codegen.emitters.tasks.WaitersRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.Acceptor;
@@ -56,11 +58,11 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -69,7 +71,13 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 public abstract class BaseWaiterClassSpec implements ClassSpec {
 
-    private static final String WAITERS_USER_AGENT = "waiter";
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER = "A waiter acceptor with the matcher (%s) "
+                                                                         + "was matched on parameter (%s=%s) and "
+                                                                         + "transitioned the waiter to failure state";
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched on error "
+                                                                          + "condition (%s) and transitioned the waiter to "
+                                                                          + "failure state";
+    private static final String WAITERS_USER_AGENT = "B";
     private final IntermediateModel model;
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
@@ -82,8 +90,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         this.modelPackage = model.getMetadata().getFullModelPackageName();
         this.waiters = model.getWaiters();
         this.waiterClassName = waiterClassName;
-        this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(waitersRuntimeClass());
         this.poetExtensions = new PoetExtension(model);
+        this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(poetExtensions.jmesPathRuntimeClass());
     }
 
     @Override
@@ -196,16 +204,17 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                   + ".orElse($L)",
                                   waiterDefinition.getMaxAttempts());
         configMethod.addStatement("$T backoffStrategy = optionalOverrideConfig."
-                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse($T.create($T.ofSeconds($L)))",
+                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategyV2)"
+                                  + ".orElse($T.fixedDelayWithoutJitter($T.ofSeconds($L)))",
                                   BackoffStrategy.class,
-                                  FixedDelayBackoffStrategy.class,
+                                  BackoffStrategy.class,
                                   Duration.class,
                                   waiterDefinition.getDelay());
         configMethod.addStatement("$T waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout)"
                                   + ".orElse(null)",
                                   Duration.class);
 
-        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy"
+        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2"
                                   + "(backoffStrategy).waitTimeout(waitTimeout).build()");
         return configMethod.build();
     }
@@ -367,7 +376,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                            .addCode(");");
         }
 
-        acceptorsMethod.addStatement("result.addAll($T.DEFAULT_ACCEPTORS)", waitersRuntimeClass());
+        acceptorsMethod.addStatement("result.addAll($T.DEFAULT_ACCEPTORS)", poetExtensions.waitersRuntimeClass());
 
         acceptorsMethod.addStatement("return result");
 
@@ -396,11 +405,11 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
 
         CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($S).name($S).build())",
+                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().name"
+                                                     + "($S).version($S).build())",
                                                      parameterizedTypeName, ApiName.class,
-                                                     WAITERS_USER_AGENT,
-                                                     "hll")
+                                                     "sdk-metrics",
+                                                     BusinessMetricFeatureId.WAITER)
                                        .addStatement("$T overrideConfiguration =\n"
                                                      + "            request.overrideConfiguration().map(c -> c.toBuilder()"
                                                      + ".applyMutation"
@@ -459,33 +468,79 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             case "path":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "pathAll":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAllAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "pathAny":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAnyAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "status":
                 // Note: Ignores the result we've built so far because this uses a special acceptor implementation.
                 int expected = Integer.parseInt(acceptor.getExpected().asText());
-                return CodeBlock.of("new $T($L, $T.$L)", waitersRuntimeClass().nestedClass("ResponseStatusAcceptor"),
+                return CodeBlock.of("new $T($L, $T.$L)", poetExtensions.waitersRuntimeClass()
+                                                                       .nestedClass("ResponseStatusAcceptor"),
                                     expected, WaiterState.class, waiterState(acceptor));
             case "error":
-                result.add("OnExceptionAcceptor(");
-                result.add(errorAcceptorBody(acceptor));
-                result.add(")");
+                if (acceptor.getExpected() instanceof JrsBoolean) {
+                    result.add(booleanValueErrorBlock(acceptor, Boolean.parseBoolean(acceptor.getExpected().asText())).build());
+                } else {
+                    result.add("OnExceptionAcceptor(");
+                    result.add(errorAcceptorBody(acceptor));
+                    addAcceptorFailureMessage(result, acceptor, () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER,
+                                                                                    expectedValue(acceptor)));
+                    result.add(")");
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported acceptor matcher: " + acceptor.getMatcher());
         }
 
         return result.build();
+    }
+
+    private void addFailureMessageForPathMatcher(Acceptor acceptor, CodeBlock.Builder result) {
+        addAcceptorFailureMessage(result, acceptor,
+                                  () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER,
+                                                      acceptor.getMatcher(),
+                                                      acceptor.getArgument(),
+                                                      expectedValue(acceptor)));
+    }
+
+    private void addAcceptorFailureMessage(CodeBlock.Builder result, Acceptor acceptor, Supplier<String> messageSupplier) {
+        if ("failure".equals(acceptor.getState())) {
+            result.add(", ");
+            result.add("$S", messageSupplier.get());
+        }
+    }
+
+    private static String expectedValue(Acceptor acceptor) {
+        return acceptor.getExpected() instanceof JrsBoolean
+               ? String.valueOf(((JrsBoolean) acceptor.getExpected()).booleanValue())
+               : acceptor.getExpected().asText();
+    }
+
+    private CodeBlock.Builder booleanValueErrorBlock(Acceptor acceptor, Boolean expectedBoolean) {
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        if (Boolean.FALSE.equals(expectedBoolean)) {
+            codeBlock.add("OnResponseAcceptor(");
+            codeBlock.add(trueForAllResponse());
+        } else {
+            codeBlock.add("OnExceptionAcceptor(");
+            codeBlock.add("error -> errorCode(error) != null");
+        }
+        addAcceptorFailureMessage(codeBlock, acceptor, () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER,
+                                                                           expectedValue(acceptor)));
+        codeBlock.add(")");
+        return codeBlock;
     }
 
     private String waiterState(Acceptor acceptor) {
@@ -503,15 +558,30 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+        CodeBlock.Builder builder = CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
+                        .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".value(), " + expectedType + ");", expected)
-                        .add("}")
-                        .build();
+                        .add(".value(), ")
+                        .add(rhs)
+                        .add(");")
+                        .add("}");
+
+        return builder.build();
     }
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {
@@ -519,7 +589,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
+                        .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("$T<$T> resultValues = ", List.class, Object.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".values();")
@@ -532,17 +602,39 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAnyAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+
+        CodeBlock.Builder builder = CodeBlock.builder()
+                         .add("response -> {")
+                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
+                         .add("$T<$T> resultValues = ", List.class, Object.class)
+                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                         .add(".values();")
+                         .add("return !resultValues.isEmpty() &&"
+                              + " resultValues.stream().anyMatch(v " + "-> $T.equals"
+                              + "(v, ", Objects.class)
+                        .add(rhs)
+                        .add("));")
+                        .add("}");
+
+        return builder.build();
+    }
+
+    private CodeBlock trueForAllResponse() {
         return CodeBlock.builder()
-                        .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
-                        .add("$T<$T> resultValues = ", List.class, Object.class)
-                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".values();")
-                        .add("return !resultValues.isEmpty() && "
-                             + "resultValues.stream().anyMatch(v -> $T.equals(v, " + expectedType + "));",
-                             Objects.class, expected)
-                        .add("}")
+                        .add("response -> true")
                         .build();
     }
 
@@ -562,10 +654,5 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                          .addCode("}")
                          .addCode("return null;")
                          .build();
-    }
-
-    private ClassName waitersRuntimeClass() {
-        return ClassName.get(model.getMetadata().getFullWaitersInternalPackageName(),
-                             WaitersRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
     }
 }

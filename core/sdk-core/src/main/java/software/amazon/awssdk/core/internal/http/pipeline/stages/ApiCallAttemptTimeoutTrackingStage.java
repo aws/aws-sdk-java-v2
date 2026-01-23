@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeSyncTaskIfNeeded;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
@@ -35,12 +35,14 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipel
 import software.amazon.awssdk.core.internal.http.timers.SyncTimeoutTask;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper around a {@link RequestPipeline} to manage the api call attempt timeout feature.
  */
 @SdkInternalApi
 public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements RequestToResponsePipeline<OutputT> {
+    private static final Logger log = Logger.loggerFor(ApiCallAttemptTimeoutTrackingStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
     private final Duration apiCallAttemptTimeout;
@@ -109,7 +111,8 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
         // but before we called timeoutTracker.cancel(). Note that if hasExecuted() returns true, its guaranteed that
         // the timeout tracker has set the interrupt flag, and if it returns false, it guarantees that it did not and
         // will never set the interrupt flag.
-        if (context.apiCallAttemptTimeoutTracker().hasExecuted()) {
+        TimeoutTracker timeoutTracker = context.apiCallAttemptTimeoutTracker();
+        if (timeoutTracker != null && timeoutTracker.hasExecuted()) {
             // Clear the interrupt flag. Since we already have an exception from the call, which may contain information
             // that's useful to the caller, just return that instead of an ApiCallTimeoutException.
             Thread.interrupted();
@@ -129,9 +132,13 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
      */
     private RuntimeException handleInterruptedException(RequestExecutionContext context, InterruptedException e) {
         if (e instanceof SdkInterruptedException) {
-            ((SdkInterruptedException) e).getResponseStream().ifPresent(r -> invokeSafely(r::close));
+            ((SdkInterruptedException) e).getResponseStream()
+                                         .ifPresent(r -> runAndLogError(log.logger(),
+                                                                        "Failed to close the response stream",
+                                                                        r::close));
         }
-        if (context.apiCallAttemptTimeoutTracker().hasExecuted()) {
+        TimeoutTracker timeoutTracker = context.apiCallAttemptTimeoutTracker();
+        if (timeoutTracker != null && timeoutTracker.hasExecuted()) {
             // Clear the interrupt status
             Thread.interrupted();
             return generateApiCallAttemptTimeoutException(context);

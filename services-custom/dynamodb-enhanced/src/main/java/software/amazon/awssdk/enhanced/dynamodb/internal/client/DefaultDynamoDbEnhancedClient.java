@@ -35,6 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequ
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @SdkInternalApi
@@ -100,7 +101,8 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     @Override
     public Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
-        return operation.execute(dynamoDbClient, extension);
+        operation.execute(dynamoDbClient, extension);
+        return null;
     }
 
     @Override
@@ -108,6 +110,20 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return transactWriteItems(builder.build());
+    }
+
+    @Override
+    public TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        return operation.execute(dynamoDbClient, extension);
+    }
+
+    @Override
+    public TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(
+        Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+        TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return transactWriteItemsWithResponse(builder.build());
     }
 
     public DynamoDbClient dynamoDbClient() {
@@ -133,19 +149,19 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
         DefaultDynamoDbEnhancedClient that = (DefaultDynamoDbEnhancedClient) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
+        if (dynamoDbClient != null ? !dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
             return false;
         }
         return extension != null ?
-            extension.equals(that.extension) :
-            that.extension == null;
+               extension.equals(that.extension) :
+               that.extension == null;
     }
 
     @Override
     public int hashCode() {
         int result = dynamoDbClient != null ? dynamoDbClient.hashCode() : 0;
         result = 31 * result + (extension != null ?
-            extension.hashCode() : 0);
+                                extension.hashCode() : 0);
         return result;
     }
 

@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.poet;
 
 import com.squareup.javapoet.ClassName;
+import software.amazon.awssdk.codegen.emitters.tasks.JmesPathRuntimeGeneratorTask;
+import software.amazon.awssdk.codegen.emitters.tasks.WaitersRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -77,6 +79,14 @@ public class PoetExtension {
         return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "UserAgentUtils");
     }
 
+    public ClassName getServiceVersionInfoClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "ServiceVersionInfo");
+    }
+
+    public ClassName getEnvironmentTokenSystemSettingsClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "EnvironmentTokenSystemSettings");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a paginated operation in the base service package.
@@ -107,9 +117,14 @@ public class PoetExtension {
                                                                               "AsyncWaiter");
     }
 
-    public ClassName getEndpointProviderInterfaceName() {
-        return ClassName.get(model.getMetadata().getFullEndpointRulesPackageName(), model.getMetadata().getServiceName() +
-                                                                                    "EndpointProvider");
+    public ClassName waitersRuntimeClass() {
+        return ClassName.get(model.getMetadata().getFullWaitersInternalPackageName(),
+                             WaitersRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
+    }
+
+    public ClassName jmesPathRuntimeClass() {
+        return ClassName.get(model.getMetadata().getFullInternalJmesPathPackageName(),
+                             JmesPathRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
     }
 
     /**
@@ -188,5 +203,10 @@ public class PoetExtension {
 
     public boolean isRequest(ShapeModel shapeModel) {
         return shapeModel.getShapeType() == ShapeType.Request;
+    }
+
+    public ClassName getBatchManagerAsyncInterface() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+                             model.getMetadata().getServiceName() + "AsyncBatchManager");
     }
 }

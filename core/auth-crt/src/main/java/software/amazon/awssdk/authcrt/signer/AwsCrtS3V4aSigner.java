@@ -38,10 +38,13 @@ import software.amazon.awssdk.regions.RegionScope;
  *  <p/>
  *  See <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html">
  *      Amazon S3 Sigv4 documentation</a> for more detailed information.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner} from the 'http-auth-aws' module.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
+@Deprecated
 public interface AwsCrtS3V4aSigner extends Signer, Presigner {
 
     /**

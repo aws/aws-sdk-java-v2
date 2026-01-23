@@ -21,7 +21,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * The ReplicationEventData is only visible for replication events.
+ * The ReplicationEventData is only visible for
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html">replication</a> related events.
  */
 @SdkPublicApi
 public class ReplicationEventData {

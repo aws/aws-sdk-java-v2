@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.io;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.BinaryUtils;

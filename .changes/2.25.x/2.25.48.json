@@ -1,0 +1,48 @@
+{
+    "version": "2.25.48",
+    "date": "2024-05-08",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Bundle",
+            "contributor": "",
+            "description": "Fix unshaded classes in the AWS SDK for Java v2 bundle. See [#5108](https://github.com/aws/aws-sdk-java-v2/issues/5108)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Add EXTERNAL_PROVIDER enum value to UserStatusType."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release adds pull through cache rules support for GitLab container registry in Amazon ECR."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adding Precision Hardware Clock (PHC) to public API DescribeInstanceTypes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Add new engine - generative - that builds the most expressive conversational voices."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "This release adds MessageSystemAttributeNames to ReceiveMessageRequest to replace AttributeNames."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "The policy scope resource tag is always a string value, either a non-empty string or an empty string."
+        }
+    ]
+}

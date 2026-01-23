@@ -59,6 +59,9 @@ public final class AbortedException extends SdkClientException {
 
         @Override
         AbortedException build();
+
+        @Override
+        Builder numAttempts(Integer numAttempts);
     }
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
@@ -85,6 +88,12 @@ public final class AbortedException extends SdkClientException {
         @Override
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
+            return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 

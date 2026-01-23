@@ -18,13 +18,13 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * A wrapped stream to represent a "chunk" of data
  */
 @SdkInternalApi
-public final class ChunkInputStream extends SdkLengthAwareInputStream {
+public final class ChunkInputStream extends LengthAwareInputStream {
 
     public ChunkInputStream(InputStream inputStream, long length) {
         super(inputStream, length);
@@ -34,11 +34,9 @@ public final class ChunkInputStream extends SdkLengthAwareInputStream {
     public void close() throws IOException {
         // Drain this chunk on close, so the stream is left at the end of the chunk.
         long remaining = remaining();
-        if (remaining > 0) {
-            if (skip(remaining) < remaining) {
-                throw new IOException("Unable to drain stream for chunk. The underlying stream did not allow skipping the "
-                                      + "whole chunk.");
-            }
+        if (remaining > 0 && skip(remaining) < remaining) {
+            throw new IOException("Unable to drain stream for chunk. The underlying stream did not allow skipping the "
+                                  + "whole chunk.");
         }
         super.close();
     }

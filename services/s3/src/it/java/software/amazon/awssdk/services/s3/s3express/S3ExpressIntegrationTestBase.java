@@ -40,15 +40,10 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.Waiter;
+import software.amazon.awssdk.utils.Logger;
 
 public class S3ExpressIntegrationTestBase {
-
-    private static final String S3EXPRESS_BUCKET_PATTERN = "s3express-java-integ--%s--x-s3";
-    protected static final String STANDARD_BUCKET = "s3express-java-integ-tests";
-
-    protected static String getS3ExpressBucketNameForAz(String az) {
-        return String.format(S3EXPRESS_BUCKET_PATTERN, az);
-    }
+    private static final Logger log = Logger.loggerFor(S3ExpressIntegrationTestBase.class);
 
     protected static S3ClientBuilder s3ClientBuilder(Region region) {
         return S3Client.builder()
@@ -87,9 +82,9 @@ public class S3ExpressIntegrationTestBase {
                                                    .createBucketConfiguration(bucketConfiguration)
                                                    .build());
         } catch (S3Exception e) {
-            System.err.println("Error attempting to create bucket: " + bucketName);
+           log.error(() -> "Error attempting to create bucket: " + bucketName, e);
             if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
-                System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
+                log.error(() -> bucketName + " bucket already exists, likely leaked by a previous run");
             } else {
                 throw e;
             }

@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.core.retry.conditions;
 
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
+/**
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.RetryStrategy.Builder#retryOnException(Predicate)}.
+ */
 @SdkPublicApi
 @FunctionalInterface
+@Deprecated
 public interface RetryCondition {
     /**
      * Determine whether a request should or should not be retried.

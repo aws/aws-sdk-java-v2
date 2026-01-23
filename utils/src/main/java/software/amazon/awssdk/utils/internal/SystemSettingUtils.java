@@ -18,17 +18,20 @@ package software.amazon.awssdk.utils.internal;
 import static software.amazon.awssdk.utils.OptionalUtils.firstPresent;
 
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
  * A set of static utility methods for shared code in {@link SystemSetting}.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SystemSettingUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
+    private static final Logger LOG = Logger.loggerFor(SystemSettingUtils.class);
 
     private SystemSettingUtils() {
     }
@@ -84,8 +87,9 @@ public final class SystemSettingUtils {
         try {
             return Optional.ofNullable(key).map(SystemSettingUtilsTestBackdoor::getEnvironmentVariable);
         } catch (SecurityException e) {
-            LOG.debug("Unable to load the environment variable '{}' because the security manager did not allow the SDK" +
-                      " to read this system property. This setting will be assumed to be null", key, e);
+            LOG.debug(() -> String.format("Unable to load the environment variable %s because the security manager did not "
+                                          + "allow the SDK to read this system property. This setting will be assumed to be "
+                                          + "null", key), e);
             return Optional.empty();
         }
     }

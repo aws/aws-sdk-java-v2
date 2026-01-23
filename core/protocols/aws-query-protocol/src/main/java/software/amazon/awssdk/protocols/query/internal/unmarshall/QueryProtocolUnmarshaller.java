@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -90,7 +91,7 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
     private boolean responsePayloadIsBlob(SdkPojo sdkPojo) {
         return sdkPojo.sdkFields().stream()
                       .anyMatch(field -> field.marshallingType() == MarshallingType.SDK_BYTES &&
-                                         field.containsTrait(PayloadTrait.class));
+                                         field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT));
     }
 
     /**
@@ -128,7 +129,9 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
     private SdkPojo unmarshall(QueryUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {
         if (root != null) {
             for (SdkField<?> field : sdkPojo.sdkFields()) {
-                if (field.containsTrait(PayloadTrait.class) && field.marshallingType() == MarshallingType.SDK_BYTES) {
+                if (field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT)
+                    && field.marshallingType() == MarshallingType.SDK_BYTES
+                ) {
                     field.set(sdkPojo, SdkBytes.fromUtf8String(root.textContent()));
                 }
 

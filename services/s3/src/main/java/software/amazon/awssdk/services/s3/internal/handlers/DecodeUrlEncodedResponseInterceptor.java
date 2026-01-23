@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
+import software.amazon.awssdk.services.s3.model.DeleteMarkerEntry;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
@@ -114,6 +115,7 @@ public final class DecodeUrlEncodedResponseInterceptor implements ExecutionInter
                        .nextKeyMarker(urlDecode(response.nextKeyMarker()))
                        .commonPrefixes(decodeCommonPrefixes(response.commonPrefixes()))
                        .versions(decodeObjectVersions(response.versions()))
+                       .deleteMarkers(decodeDeleteMarkers(response.deleteMarkers()))
                        .build();
     }
 
@@ -168,5 +170,14 @@ public final class DecodeUrlEncodedResponseInterceptor implements ExecutionInter
         return Collections.unmodifiableList(multipartUploads.stream()
                                                             .map(u -> u.toBuilder().key(urlDecode(u.key())).build())
                                                             .collect(Collectors.toList()));
+    }
+
+    private static List<DeleteMarkerEntry> decodeDeleteMarkers(List<DeleteMarkerEntry> entries) {
+        if (entries == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(entries.stream()
+                                                   .map(entry -> entry.toBuilder().key(urlDecode(entry.key())).build())
+                                                   .collect(Collectors.toList()));
     }
 }

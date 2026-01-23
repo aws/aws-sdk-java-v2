@@ -324,6 +324,7 @@ public class EndpointProviderSpec implements ClassSpec {
             } else {
                 coerce = CodeBlock.builder().build();
             }
+
             CodeBlock valueExpr = endpointRulesSpecUtils.valueCreationCode(
                 model.getType(),
                 CodeBlock.builder()

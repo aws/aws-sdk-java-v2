@@ -20,12 +20,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,6 +41,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -86,7 +90,9 @@ public class WaitersUserAgentTest {
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
         Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
-        assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
+        Optional<String> userAgentHeader = context.getValue().httpRequest().firstMatchingHeader("User-Agent");
+        assertThat(userAgentHeader).isPresent();
+        assertThat(userAgentHeader.get()).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.WAITER.value()));
     }
 
     @Test
@@ -97,7 +103,9 @@ public class WaitersUserAgentTest {
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
         Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
-        assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
+        Optional<String> userAgentHeader = context.getValue().httpRequest().firstMatchingHeader("User-Agent");
+        assertThat(userAgentHeader).isPresent();
+        assertThat(userAgentHeader.get()).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.WAITER.value()));
 
         responseFuture.cancel(true);
     }

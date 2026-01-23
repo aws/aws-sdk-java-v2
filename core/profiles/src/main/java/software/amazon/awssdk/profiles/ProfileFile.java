@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -85,6 +86,13 @@ public final class ProfileFile {
     }
 
     /**
+     * Create an empty profile file.
+     */
+    static ProfileFile empty() {
+        return new ProfileFile(Collections.emptyMap());
+    }
+
+    /**
      * Get the default profile file, using the credentials file from "~/.aws/credentials", the config file from "~/.aws/config"
      * and the "default" profile. This default behavior can be customized using the
      * {@link ProfileFileSystemSetting#AWS_SHARED_CREDENTIALS_FILE}, {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
@@ -125,7 +133,7 @@ public final class ProfileFile {
         Map<String, Profile> profiles = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
         return ToString.builder("ProfileFile")
                        .add("sections", profilesAndSectionsMap.keySet())
-                       .add("profiles", profiles == null ? null : profiles.values())
+                       .add(PROFILES_SECTION_TITLE, profiles == null ? null : profiles.values())
                        .build();
     }
 
@@ -237,6 +245,14 @@ public final class ProfileFile {
          * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
          * invoked.
          */
+        default Builder content(String content) {
+            return content(new StringInputStream(content));
+        }
+
+        /**
+         * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
+         * invoked.
+         */
         Builder content(InputStream contentStream);
 
         /**
@@ -301,8 +317,10 @@ public final class ProfileFile {
 
         @Override
         public ProfileFile build() {
+            Validate.isTrue(content != null || contentLocation != null,
+                            "content or contentLocation must be set.");
             InputStream stream = content != null ? content :
-                                 FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
+                                  FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
 
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");

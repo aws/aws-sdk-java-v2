@@ -101,7 +101,7 @@ public class SubscribeToShardUnmarshallingTest {
             fail("Expected ResourceNotFoundException exception");
         } catch (ResourceNotFoundException e) {
             assertThat(e.requestId()).isEqualTo(REQUEST_ID);
-            assertThat(e.statusCode()).isEqualTo(500);
+            assertThat(e.statusCode()).isEqualTo(400);
             assertThat(e.awsErrorDetails().errorCode()).isEqualTo(errorCode);
             assertThat(e.awsErrorDetails().errorMessage()).isEqualTo("foo");
             assertThat(e.awsErrorDetails().serviceName()).isEqualTo("kinesis");

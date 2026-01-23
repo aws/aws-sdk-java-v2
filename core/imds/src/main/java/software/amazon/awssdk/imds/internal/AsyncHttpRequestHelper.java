@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
@@ -84,14 +86,21 @@ final class AsyncHttpRequestHelper {
             response.content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
         String responseContent = uncheckedInputStreamToUtf8(inputStream);
 
-        // non-retryable error
-        if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
-            throw SdkClientException.builder().message(responseContent).build();
-        }
-
         // retryable error
         if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
             throw RetryableException.create(responseContent);
+        }
+
+        // non-retryable error
+        if (!statusCode.isOneOf(HttpStatusFamily.SUCCESSFUL)) {
+            throw Ec2MetadataClientException.builder()
+                                            .statusCode(response.statusCode())
+                                            .sdkHttpResponse(response)
+                                            .rawResponse(SdkBytes.fromUtf8String(responseContent))
+                                            .message(String.format("Failed to send request to IMDS. "
+                                                                   + "Service returned %d error",
+                                                                   response.statusCode()))
+                                            .build();
         }
         return responseContent;
     }

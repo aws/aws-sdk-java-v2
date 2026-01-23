@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.eventstream.HeaderValue;
@@ -246,7 +247,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
 
     private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {
         return request.toBuilder()
-                      .putHeader(X_AMZ_CONTENT_SHA256, "STREAMING-AWS4-HMAC-SHA256-EVENTS").build();
+                      .putHeader(X_AMZ_CONTENT_SHA256, HTTP_CONTENT_SHA_256).build();
     }
 
     /**

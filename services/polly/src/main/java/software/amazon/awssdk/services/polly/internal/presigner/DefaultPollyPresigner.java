@@ -38,7 +38,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
@@ -180,7 +180,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         Presigner presigner = resolvePresigner(requestToPresign);
         SdkHttpFullRequest signedHttpRequest = null;
         if (presigner != null) {
-            signedHttpRequest = presignRequest(presigner, requestToPresign, marshalledRequest, execAttrs);
+            signedHttpRequest = presignRequest(presigner, marshalledRequest, execAttrs);
         } else {
             SelectedAuthScheme<AwsCredentialsIdentity> authScheme = selectedAuthScheme(requestToPresign, execAttrs);
             signedHttpRequest = doSraPresign(marshalledRequest, authScheme, presignRequest.signatureDuration());
@@ -212,7 +212,6 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private SdkHttpFullRequest presignRequest(Presigner presigner,
-                                              PollyRequest requestToPresign,
                                               SdkHttpFullRequest marshalledRequest,
                                               ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest presigned = presigner.presign(marshalledRequest, executionAttributes);
@@ -251,7 +250,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         AwsCredentialsIdentity credentialsIdentity = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         AuthSchemeOption.Builder optionBuilder = AuthSchemeOption.builder()
                                                                  .schemeId(authScheme.schemeId());
-        optionBuilder.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
+        optionBuilder.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
         String region = attributes.getAttribute(AwsExecutionAttribute.AWS_REGION).id();
         optionBuilder.putSignerProperty(AwsV4HttpSigner.REGION_NAME, region);
         return new SelectedAuthScheme<>(CompletableFuture.completedFuture(credentialsIdentity), authScheme.signer(),
@@ -342,17 +341,20 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private URI resolveEndpoint() {
-        if (endpointOverride != null) {
-            return endpointOverride;
-        }
-
-        return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-            .withRegion(region)
-            .withProfileFile(profileFile)
-            .withProfileName(profileName)
-            .withDualstackEnabled(dualstackEnabled)
-            .withFipsEnabled(fipsEnabled)
-            .getServiceEndpoint();
+        return AwsClientEndpointProvider.builder()
+                                        .clientEndpointOverride(endpointOverride)
+                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_POLLY")
+                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
+                                        .serviceProfileProperty("polly")
+                                        .serviceEndpointPrefix(SERVICE_NAME)
+                                        .defaultProtocol("https")
+                                        .region(region)
+                                        .profileFile(profileFile)
+                                        .profileName(profileName)
+                                        .dualstackEnabled(dualstackEnabled)
+                                        .fipsEnabled(fipsEnabled)
+                                        .build()
+                                        .clientEndpoint();
     }
 
     public static class BuilderImpl implements PollyPresigner.Builder {

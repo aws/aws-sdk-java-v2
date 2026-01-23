@@ -15,9 +15,14 @@
 
 package software.amazon.awssdk.core.internal.util;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+/**
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
+ */
+@SdkProtectedApi
 public final class ClassLoaderHelper {
 
     private ClassLoaderHelper() {

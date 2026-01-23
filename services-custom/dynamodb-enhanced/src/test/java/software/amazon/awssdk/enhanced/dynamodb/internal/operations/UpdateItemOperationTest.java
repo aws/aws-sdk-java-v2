@@ -619,6 +619,21 @@ public class UpdateItemOperationTest {
     }
 
     @Test
+    public void generateRequest_withReturnValues_knownValue_generatesCorrectRequest() {
+        FakeItem item = createUniqueFakeItem();
+        ReturnValue returnValue = ReturnValue.ALL_OLD;
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true).returnValues(returnValue)));
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+        UpdateItemRequest expectedRequest = ddbRequest(ddbKey(item.getId()), b -> b.returnValues(returnValue));
+
+        assertThat(request, is(expectedRequest));
+    }
+
+
+    @Test
     public void transformResponse_withExtension_returnsCorrectTransformedItem() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();

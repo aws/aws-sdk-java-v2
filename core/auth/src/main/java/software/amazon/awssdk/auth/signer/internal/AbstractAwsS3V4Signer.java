@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils.calculateRequestContentLength;
-import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -147,21 +147,19 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
                                          AwsS3V4SignerParams signerParams,
                                          SdkChecksum sdkChecksum) {
 
-        if (useChunkEncoding(mutableRequest, signerParams)) {
-            if (mutableRequest.contentStreamProvider() != null) {
-                ContentStreamProvider streamProvider = mutableRequest.contentStreamProvider();
+        if (useChunkEncoding(mutableRequest, signerParams) && mutableRequest.contentStreamProvider() != null) {
+            ContentStreamProvider streamProvider = mutableRequest.contentStreamProvider();
 
-                String headerForTrailerChecksumLocation = signerParams.checksumParams() != null
-                                                          ? signerParams.checksumParams().checksumHeaderName() : null;
-                mutableRequest.contentStreamProvider(() -> AbstractAwsS3V4Signer.this.asChunkEncodedStream(
-                        streamProvider.newStream(),
-                        signature,
-                        signingKey,
-                        signerRequestParams,
-                        sdkChecksum,
-                        headerForTrailerChecksumLocation)
-                );
-            }
+            String headerForTrailerChecksumLocation = signerParams.checksumParams() != null
+                                                      ? signerParams.checksumParams().checksumHeaderName() : null;
+            mutableRequest.contentStreamProvider(() -> AbstractAwsS3V4Signer.this.asChunkEncodedStream(
+                streamProvider.newStream(),
+                signature,
+                signingKey,
+                signerRequestParams,
+                sdkChecksum,
+                headerForTrailerChecksumLocation)
+            );
         }
     }
 

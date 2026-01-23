@@ -1,0 +1,142 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# TODO: handle Signer classes
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.ChangeAuthTypes
+displayName: Change auth related classes from v1 to v2
+description: Change auth related classes from v1 to v2.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.DefaultAWSCredentialsProviderChain getInstance()
+      newMethodName: create
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.AWSCredentialsProviderChain getCredentials()
+      newMethodName: resolveCredentials
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.AWSCredentials getAWSAccessKeyId()
+      newMethodName: accessKeyId
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.AWSCredentials getAWSSecretKey()
+      newMethodName: secretAccessKey
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.AWSSessionCredentials getSessionToken()
+      newMethodName: sessionToken
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.AWSCredentials
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsCredentials
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicAWSCredentials getAWSAccessKeyId()
+      newMethodName: accessKeyId
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicAWSCredentials getAWSSecretKey()
+      newMethodName: secretAccessKey
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.BasicAWSCredentials
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicSessionCredentials getAWSAccessKeyId()
+      newMethodName: accessKeyId
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicSessionCredentials getAWSSecretKey()
+      newMethodName: secretAccessKey
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicSessionCredentials getSessionToken()
+      newMethodName: sessionToken
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.BasicSessionCredentials
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsSessionCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.AWSCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.AwsCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.AWSStaticCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.StaticCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.EnvironmentVariableCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.EnvironmentVariableCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.profile.ProfileCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.ContainerCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.WebIdentityTokenCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.InstanceProfileCredentialsProvider getInstance()
+      newMethodName: create
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.InstanceProfileCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.StsAssumeRoleCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.STSSessionCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.services.sts.auth.EnvironmentVariableCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.STSAssumeRoleWithWebIdentitySessionCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.StsAssumeRoleWithWebIdentityCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.ProcessCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider getCredentials()
+      newMethodName: resolveCredentials

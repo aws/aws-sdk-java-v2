@@ -1,0 +1,60 @@
+{
+    "version": "2.25.55",
+    "date": "2024-05-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixes bug where pre-signed URL expiration duration using AwsS3V4Signer may get rounded down 1 second"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Prevent calculating crc32 checksum on an incomplete response, due to error"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Simple Storage Service (S3)",
+            "contributor": "",
+            "description": "Decoded encoded keys in the ListObjectVersions.DeleteMarker field"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Aws CodeBuild now supports 36 hours build timeout"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Introduces a new API, GetDataLakePrincipal, that returns the identity of the invoking principal"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Enable use of CloudFormation traits in Smithy model to improve generated CloudFormation schema from the Smithy API model."
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "This release adds dualstack-without-public-ipv4 IP address type for ALB."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

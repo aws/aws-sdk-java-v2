@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider.Builder;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
@@ -34,7 +36,9 @@ public class StsGetSessionTokenCredentialsProviderTest
 
     @Override
     protected GetSessionTokenResponse getResponse(Credentials credentials) {
-        return GetSessionTokenResponse.builder().credentials(credentials).build();
+        return GetSessionTokenResponse.builder()
+                                      .credentials(credentials)
+                                      .build();
     }
 
     @Override
@@ -45,5 +49,10 @@ public class StsGetSessionTokenCredentialsProviderTest
     @Override
     protected GetSessionTokenResponse callClient(StsClient client, GetSessionTokenRequest request) {
         return client.getSessionToken(request);
+    }
+
+    @Override
+    protected String providerName() {
+        return BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
     }
 }

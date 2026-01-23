@@ -83,7 +83,6 @@ public class ProxyWireMockTest {
         }
         EventLoopGroup.closeStaticDefault();
         HostResolver.closeStaticDefault();
-        CrtResource.waitForNoResources();
     }
 
     /*

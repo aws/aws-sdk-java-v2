@@ -33,7 +33,7 @@ public enum JavaSystemSetting implements SystemSetting {
 
     USER_HOME("user.home"),
     USER_LANGUAGE("user.language"),
-    USER_REGION("user.region"),
+    USER_COUNTRY("user.country"),
     USER_NAME("user.name"),
 
     SSL_KEY_STORE("javax.net.ssl.keyStore"),

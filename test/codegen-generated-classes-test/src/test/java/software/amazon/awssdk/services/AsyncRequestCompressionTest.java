@@ -26,7 +26,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -44,17 +45,19 @@ import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 public class AsyncRequestCompressionTest {
     private static final String UNCOMPRESSED_BODY =
         "RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest-RequestCompressionTest";
+    private  static String TRANSFER_ENCODING_HEADER = "Transfer-Encoding";
     private String compressedBody;
     private int compressedLen;
     private MockAsyncHttpClient mockAsyncHttpClient;
     private ProtocolRestJsonAsyncClient asyncClient;
     private Compressor compressor;
+    private static final AwsBasicCredentials CLIENT_CREDENTIALS = AwsBasicCredentials.create("akid", "skid");
 
     @BeforeEach
     public void setUp() {
         mockAsyncHttpClient = new MockAsyncHttpClient();
         asyncClient = ProtocolRestJsonAsyncClient.builder()
-                                                 .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                 .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
                                                  .region(Region.US_EAST_1)
                                                  .httpClient(mockAsyncHttpClient)
                                                  .build();
@@ -129,7 +132,9 @@ public class AsyncRequestCompressionTest {
         assertThat(loggedBody).isEqualTo(compressedBody);
         assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
         assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
-        assertThat(loggedRequest.firstMatchingHeader("Transfer-Encoding").get()).isEqualTo("chunked");
+        assertThat(loggedRequest.firstMatchingHeader(TRANSFER_ENCODING_HEADER).get()).isEqualTo("chunked");
+        assertThat(loggedRequest.firstMatchingHeader("Authorization").get())
+            .doesNotContainIgnoringCase(TRANSFER_ENCODING_HEADER);
     }
 
     @Test
@@ -172,8 +177,8 @@ public class AsyncRequestCompressionTest {
 
         assertThat(loggedBody).isEqualTo(compressedBody);
         assertThat(loggedRequest.firstMatchingHeader("Content-encoding").get()).isEqualTo("gzip");
-        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();
-        assertThat(loggedRequest.firstMatchingHeader("Transfer-Encoding").get()).isEqualTo("chunked");
+        assertThat(loggedRequest.matchingHeaders("Content-Length")).isEmpty();assertThat(loggedRequest.firstMatchingHeader(TRANSFER_ENCODING_HEADER).get()).isEqualTo("chunked");
+        assertThat(loggedRequest.firstMatchingHeader("Authorization").get()).doesNotContainIgnoringCase(TRANSFER_ENCODING_HEADER);
     }
 
     private HttpExecuteResponse mockResponse() {

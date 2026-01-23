@@ -170,7 +170,10 @@ public final class ProfileFileReader {
 
         // If this is a sub-property, make sure it can be parsed correctly by the CLI.
         if (state.validatingContinuationsAsSubProperties) {
-            parsePropertyDefinition(state, line);
+            parsePropertyDefinition(state, line).ifPresent(p -> {
+                String subPropertyDefinition = state.currentPropertyBeingRead + "." + p.left();
+                profileProperties.put(subPropertyDefinition, p.right());
+            });
         }
 
         profileProperties.put(state.currentPropertyBeingRead, newPropertyValue);

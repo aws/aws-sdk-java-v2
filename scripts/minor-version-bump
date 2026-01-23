@@ -7,8 +7,15 @@ NEXT_VERSION_SNAPSHOT=$NEXT_MINOR_VERSION.0-SNAPSHOT
 
 mvn versions:set -DnewVersion=$NEXT_VERSION_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
 
-mkdir -p .changes/$PREVIOUS_MINOR_VERSION.x
-mv .changes/*.json .changes/$PREVIOUS_MINOR_VERSION.x/
-mv CHANGELOG.md changelogs/$PREVIOUS_MINOR_VERSION.x-CHANGELOG.md
+PREVIOUS_VERSION_CHANGELOGS_DIR=.changes/$PREVIOUS_MINOR_VERSION.x
+mkdir -p $PREVIOUS_VERSION_CHANGELOGS_DIR
+mv .changes/*.json $PREVIOUS_VERSION_CHANGELOGS_DIR
+git add $PREVIOUS_VERSION_CHANGELOGS_DIR
+
+PREVIOUS_CHANGELOG=$PREVIOUS_MINOR_VERSION.x-CHANGELOG.md
+mv CHANGELOG.md changelogs/$PREVIOUS_CHANGELOG
+git add changelogs/$PREVIOUS_CHANGELOG
+
+echo " #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._" > CHANGELOG.md
 
 echo "Version bumped to $NEXT_VERSION_SNAPSHOT"

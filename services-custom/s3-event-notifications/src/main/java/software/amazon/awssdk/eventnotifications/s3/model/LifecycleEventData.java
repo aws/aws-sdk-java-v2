@@ -21,7 +21,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * The LifecycleEventData is only visible for S3 Lifecycle transition events.
+ * The LifecycleEventData is only visible for
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html">
+ *     S3 Lifecycle transition</a> related events.
  */
 @SdkPublicApi
 public class LifecycleEventData {

@@ -1,0 +1,54 @@
+{
+    "version": "2.26.1",
+    "date": "2024-06-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Mainframe Modernization Application Testing",
+            "contributor": "",
+            "description": "AWS Mainframe Modernization Application Testing is an AWS Mainframe Modernization service feature that automates functional equivalence testing for mainframe application modernization and migration to AWS, and regression testing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Introducing RotationToken parameter for PutSecretValue API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Tagging support for Traffic Mirroring FilterRule resource"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Ingestion",
+            "contributor": "",
+            "description": "SDK changes for self-managed vpc endpoint to OpenSearch ingestion pipelines."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Updates to remove DC1 and DS2 node types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "This release updates request validation regex to account for non-commercial aws partitions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release adds support for Amazon EventBridge as an email sending events destination."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

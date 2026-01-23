@@ -28,19 +28,25 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.checksums.NoOpPayloadChecksumStore;
+import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Wrapper class to wrap an AsyncRequestBody.
- * This will read the data in chunk format and append Checksum as trailer at the end.
+ * Wrapper class to wrap an AsyncRequestBody to calculate checksum as it reads data and append Checksum as trailer at the end.
+ *
+ * <p>
+ * This is only used by non-sra code path, i.e., when a custom legacy signer is provided.
  */
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
@@ -48,9 +54,10 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     private static final byte[] FINAL_BYTE = new byte[0];
     private final AsyncRequestBody wrapped;
     private final SdkChecksum sdkChecksum;
-    private final Algorithm algorithm;
+    private final ChecksumAlgorithm algorithm;
     private final String trailerHeader;
     private final long totalBytes;
+    private final PayloadChecksumStore payloadChecksumStore;
 
     private ChecksumCalculatingAsyncRequestBody(DefaultBuilder builder) {
 
@@ -61,8 +68,16 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         this.algorithm = builder.algorithm;
         this.sdkChecksum = builder.algorithm != null ? SdkChecksum.forAlgorithm(algorithm) : null;
         this.trailerHeader = builder.trailerHeader;
-        this.totalBytes = wrapped.contentLength()
-                                 .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied."));
+        this.totalBytes = initTotalBytes(wrapped, builder.contentLengthHeader);
+        this.payloadChecksumStore = builder.checksumStore != null ? builder.checksumStore : NoOpPayloadChecksumStore.create();
+    }
+
+    static long initTotalBytes(AsyncRequestBody wrapped, Long contentLengthHeader) {
+        if (contentLengthHeader != null) {
+            return contentLengthHeader;
+        }
+        return wrapped.contentLength()
+                      .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied."));
     }
 
     /**
@@ -88,7 +103,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
          * @param algorithm algorithm that is used to compute the checksum.
          * @return  This builder for method chaining.
          */
-        ChecksumCalculatingAsyncRequestBody.Builder algorithm(Algorithm algorithm);
+        ChecksumCalculatingAsyncRequestBody.Builder algorithm(ChecksumAlgorithm algorithm);
 
         /**
          * Sets the Trailer header where computed SdkChecksum will be updated.
@@ -97,14 +112,27 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
          */
         ChecksumCalculatingAsyncRequestBody.Builder trailerHeader(String trailerHeader);
 
+
+        /**
+         * Optional. The Content-Length header as specified on the request object. Will stop calculating checksum once this
+         * amount of bytes is read from the wrapped {@link AsyncRequestBody}.
+         * Take precedence over content length specified in the {@link AsyncRequestBody}, if both are present and
+         * different.
+         * @param contentLengthHeader the value of the Content-Length header of the http request.
+         * @return This builder for method chaining.
+         */
+        ChecksumCalculatingAsyncRequestBody.Builder contentLengthHeader(Long contentLengthHeader);
+
+        ChecksumCalculatingAsyncRequestBody.Builder checksumStore(PayloadChecksumStore checksumStore);
     }
 
     private static final class DefaultBuilder implements ChecksumCalculatingAsyncRequestBody.Builder {
 
         private AsyncRequestBody asyncRequestBody;
-        private Algorithm algorithm;
+        private ChecksumAlgorithm algorithm;
         private String trailerHeader;
-
+        private Long contentLengthHeader;
+        private PayloadChecksumStore checksumStore;
 
         @Override
         public ChecksumCalculatingAsyncRequestBody build() {
@@ -118,7 +146,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         }
 
         @Override
-        public ChecksumCalculatingAsyncRequestBody.Builder algorithm(Algorithm algorithm) {
+        public ChecksumCalculatingAsyncRequestBody.Builder algorithm(ChecksumAlgorithm algorithm) {
             this.algorithm = algorithm;
             return this;
         }
@@ -128,16 +156,29 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             this.trailerHeader = trailerHeader;
             return this;
         }
+
+        @Override
+        public Builder contentLengthHeader(Long contentLength) {
+            this.contentLengthHeader = contentLength;
+            return this;
+        }
+
+        @Override
+        public Builder checksumStore(PayloadChecksumStore checksumStore) {
+            this.checksumStore = checksumStore;
+            return this;
+        }
     }
 
     @Override
     public Optional<Long> contentLength() {
-        if (wrapped.contentLength().isPresent() && algorithm != null) {
-            return Optional.of(calculateChunkLength(wrapped.contentLength().get())
+        if (algorithm != null) {
+            Algorithm legacyAlgo = HttpChecksumUtils.toLegacyChecksumAlgorithm(algorithm);
+            return Optional.of(calculateChunkLength(totalBytes)
                                + LAST_CHUNK_LEN
-                               + calculateChecksumTrailerLength(algorithm, trailerHeader));
+                               + calculateChecksumTrailerLength(legacyAlgo, trailerHeader));
         }
-        return wrapped.contentLength();
+        return Optional.of(totalBytes);
     }
 
     @Override
@@ -151,9 +192,15 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         if (sdkChecksum != null) {
             sdkChecksum.reset();
         }
+
         SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
-        alwaysInvokeOnNext(wrapped).flatMapIterable(synchronousChunkBuffer::buffer)
-               .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
+        alwaysInvokeOnNext(wrapped.flatMapIterable(synchronousChunkBuffer::buffer))
+                 .subscribe(new ChecksumCalculatingSubscriber(s,
+                                                              algorithm,
+                                                              sdkChecksum,
+                                                              payloadChecksumStore,
+                                                              trailerHeader,
+                                                              totalBytes));
     }
 
     private SdkPublisher<ByteBuffer> alwaysInvokeOnNext(SdkPublisher<ByteBuffer> source) {
@@ -163,17 +210,24 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
 
         private final Subscriber<? super ByteBuffer> wrapped;
+        private final ChecksumAlgorithm algorithm;
         private final SdkChecksum checksum;
+        private final PayloadChecksumStore checksumStore;
         private final String trailerHeader;
         private byte[] checksumBytes;
         private final AtomicLong remainingBytes;
         private Subscription subscription;
 
         ChecksumCalculatingSubscriber(Subscriber<? super ByteBuffer> wrapped,
+                                      ChecksumAlgorithm algorithm,
                                       SdkChecksum checksum,
-                                      String trailerHeader, long totalBytes) {
+                                      PayloadChecksumStore checksumStore,
+                                      String trailerHeader,
+                                      long totalBytes) {
             this.wrapped = wrapped;
+            this.algorithm = algorithm;
             this.checksum = checksum;
+            this.checksumStore = checksumStore;
             this.trailerHeader = trailerHeader;
             this.remainingBytes = new AtomicLong(totalBytes);
         }
@@ -194,12 +248,18 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     byteBuffer.reset();
                 }
                 if (lastByte && checksumBytes == null && checksum != null) {
-                    checksumBytes = checksum.getChecksumBytes();
+                    checksumBytes = checksumStore.getChecksumValue(algorithm);
+                    if (checksumBytes == null) {
+                        checksumBytes = checksum.getChecksumBytes();
+                        checksumStore.putChecksumValue(algorithm, checksumBytes);
+                    }
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
-                } else {
+                } else if (byteBuffer.hasRemaining()) {
                     ByteBuffer allocatedBuffer = createChunk(byteBuffer, false);
                     wrapped.onNext(allocatedBuffer);
+                } else {
+                    wrapped.onNext(byteBuffer);
                 }
             } catch (SdkException sdkException) {
                 this.subscription.cancel();

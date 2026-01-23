@@ -50,6 +50,7 @@ public class HttpTestUtils {
         URL selfSignedJks = SdkHttpClientTestSuite.class.getResource("/selfSigned.jks");
 
         return new WireMockServer(wireMockConfig()
+                                      .dynamicPort()
                                       .dynamicHttpsPort()
                                       .keystorePath(selfSignedJks.toString())
                                       .keystorePassword("changeit")

@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -51,7 +51,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class WebIdentityTokenFileCredentialsProvider
     implements AwsCredentialsProvider, SdkAutoCloseable,
                ToCopyableBuilder<WebIdentityTokenFileCredentialsProvider.Builder, WebIdentityTokenFileCredentialsProvider> {
-    private static final Logger log = Logger.loggerFor(WebIdentityTokenFileCredentialsProvider.class);
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
@@ -110,6 +109,8 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .prefetchTime(prefetchTime)
                                                     .staleTime(staleTime)
                                                     .roleSessionDuration(roleSessionDuration)
+                                                    .sourceChain(BusinessMetricFeatureId
+                                                                         .CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value())
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
@@ -149,7 +150,7 @@ public class WebIdentityTokenFileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create("WebIdentityTokenCredentialsProvider");
+        return ToString.create("WebIdentityTokenFileCredentialsProvider");
     }
 
     @Override

@@ -75,20 +75,18 @@ public class ExecutionAttributeBackwardsCompatibilityTest {
              },
              AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, // Endpoint rules override signing name
              AwsSignerExecutionAttribute.SIGNING_REGION, // Endpoint rules override signing region
-             AwsSignerExecutionAttribute.AWS_CREDENTIALS, // Legacy auth strategy overrides credentials
              AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE); // Endpoint rules override double-url-encode
     }
 
     @Test
     public void canSetSignerExecutionAttributes_modifyRequest() {
         test(attributeModifications -> new ExecutionInterceptor() {
-                 @Override
-                 public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
-                     attributeModifications.accept(executionAttributes);
-                     return context.request();
-                 }
-             },
-             AwsSignerExecutionAttribute.AWS_CREDENTIALS); // Legacy auth strategy overrides credentials
+             @Override
+             public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+                 attributeModifications.accept(executionAttributes);
+                 return context.request();
+            }
+        });
     }
 
     @Test

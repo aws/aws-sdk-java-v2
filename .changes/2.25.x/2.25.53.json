@@ -1,0 +1,54 @@
+{
+    "version": "2.25.53",
+    "date": "2024-05-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Fixes bug where SignedUrl strips the port number from the url."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed a bug in file-based AsyncResponseTransformer that could cause a streaming request to hang if an exception was thrown from `onStream`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "CodeBuild Reserved Capacity VPC Support"
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Task executions now display a CANCELLING status when an execution is in the process of being cancelled."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Added support for importing medical imaging data from Amazon S3 buckets across accounts and regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Documentation-only update for AWS Security Hub"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Updating Bedrock Knowledge Base Metadata & Filters feature with two new filters listContains and stringContains"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Grafana",
+            "contributor": "",
+            "description": "This release adds new ServiceAccount and ServiceAccountToken APIs."
+        }
+    ]
+}

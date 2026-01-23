@@ -1,0 +1,30 @@
+{
+    "version": "2.25.64",
+    "date": "2024-05-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild now supports Self-hosted GitHub Actions runners for Github Enterprise"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Launch Wizard",
+            "contributor": "",
+            "description": "This release adds support for describing workload deployment specifications, deploying additional workload types, and managing tags for Launch Wizard resources with API operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Security",
+            "contributor": "",
+            "description": "This release includes minor model updates and documentation updates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Update to attributes of TestFailover and minor revisions."
+        }
+    ]
+}

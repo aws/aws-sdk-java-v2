@@ -22,11 +22,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.DelegatingProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
@@ -45,6 +47,8 @@ public class DelegatingAsyncClientTest {
 
     MockAsyncHttpClient mockAsyncHttpClient = new MockAsyncHttpClient();
     ProtocolRestJsonAsyncClient defaultClient = ProtocolRestJsonAsyncClient.builder()
+                                                                           .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                                           .region(Region.US_WEST_2)
                                                                            .httpClient(mockAsyncHttpClient)
                                                                            .endpointOverride(URI.create("http://localhost"))
                                                                            .build();

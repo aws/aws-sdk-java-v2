@@ -160,6 +160,11 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                                                                     .getUnmarshallLocationName());
         }
 
+        if (modifyModel.isIgnoreDataTypeConversionFailures()) {
+            MemberModel memberModel = shapeModel.findMemberModelByC2jName(memberName);
+            memberModel.ignoreDataTypeConversionFailures(true);
+        }
+
     }
 
     /**
@@ -219,6 +224,11 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                 member.setDeprecatedMessage(modifyModel.getDeprecatedMessage());
             }
         }
+
+        if (modifyModel.getAlternateBeanPropertyName() != null) {
+            shape.getMembers().get(memberToModify).setAlternateBeanPropertyName(modifyModel.getAlternateBeanPropertyName());
+        }
+
         // Currently only supports emitPropertyName which is to rename the member
         if (modifyModel.getEmitPropertyName() != null) {
             Member member = shape.getMembers().remove(memberToModify);

@@ -22,6 +22,7 @@ import io.reactivex.Flowable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomStringUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -33,8 +34,14 @@ public class S3ApiCallMockUtils {
     }
 
     public static void stubSuccessfulListObjects(ListObjectsHelper helper, String... keys) {
-        List<S3Object> s3Objects = Arrays.stream(keys).map(k -> S3Object.builder().key(k).build()).collect(Collectors.toList());
+        List<S3Object> s3Objects =
+            Arrays.stream(keys).map(k -> S3Object.builder().key(k).size(100L).build()).collect(Collectors.toList());
         when(helper.listS3ObjectsRecursively(any(ListObjectsV2Request.class))).thenReturn(SdkPublisher.adapt(Flowable.fromIterable(s3Objects)));
+    }
+
+    public static void stubSuccessfulListObjects(ListObjectsHelper helper, S3Object... s3Objects) {
+        when(helper.listS3ObjectsRecursively(any(ListObjectsV2Request.class)))
+            .thenReturn(SdkPublisher.adapt(Flowable.fromIterable(Arrays.asList(s3Objects))));
     }
 
 }

@@ -21,7 +21,6 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +40,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
@@ -98,6 +97,8 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -106,11 +107,15 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadBucketPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -121,6 +126,8 @@ import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadReque
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.DeleteObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.HeadBucketRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.HeadObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -142,6 +149,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final S3Configuration serviceConfiguration;
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final HeadObjectRequestMarshaller headObjectRequestMarshaller;
+    private final HeadBucketRequestMarshaller headBucketRequestMarshaller;
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
     private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
@@ -194,6 +203,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         // Copied from DefaultS3Client#getObject
         this.getObjectRequestMarshaller = new GetObjectRequestMarshaller(protocolFactory);
 
+        this.headObjectRequestMarshaller = new HeadObjectRequestMarshaller(protocolFactory);
+
+        this.headBucketRequestMarshaller = new HeadBucketRequestMarshaller(protocolFactory);
+
         // Copied from DefaultS3Client#putObject
         this.putObjectRequestMarshaller = new PutObjectRequestMarshaller(protocolFactory);
 
@@ -238,23 +251,29 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        if (endpointOverride() != null) {
-            return SdkClientConfiguration.builder()
-                                         .option(SdkClientOption.ENDPOINT, endpointOverride())
-                                         .option(SdkClientOption.ENDPOINT_OVERRIDDEN, true)
-                                         .build();
-        } else {
-            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-                .withRegion(region())
-                .withProfileFile(profileFileSupplier())
-                .withProfileName(profileName())
-                .withDualstackEnabled(serviceConfiguration.dualstackEnabled())
-                .withFipsEnabled(fipsEnabled())
-                .getServiceEndpoint();
-            return SdkClientConfiguration.builder()
-                                         .option(SdkClientOption.ENDPOINT, defaultEndpoint)
-                                         .build();
-        }
+        AwsClientEndpointProvider endpointProvider =
+            AwsClientEndpointProvider.builder()
+                                     .clientEndpointOverride(endpointOverride())
+                                     .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                     .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                     .serviceProfileProperty("s3")
+                                     .serviceEndpointPrefix(SERVICE_NAME)
+                                     .defaultProtocol("https")
+                                     .region(region())
+                                     .profileFile(profileFileSupplier())
+                                     .profileName(profileName())
+                                     .dualstackEnabled(serviceConfiguration.dualstackEnabled())
+                                     .fipsEnabled(fipsEnabled())
+                                     .build();
+
+        // Make sure the endpoint resolver can actually resolve an endpoint, so that we fail now instead of
+        // when a request is made.
+        endpointProvider.clientEndpoint();
+
+        return SdkClientConfiguration.builder()
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                             endpointProvider)
+                                     .build();
     }
 
     @Override
@@ -265,6 +284,28 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        GetObjectRequest.class,
                        getObjectRequestMarshaller::marshall,
                        "GetObject")
+            .build();
+    }
+
+    @Override
+    public PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request) {
+        return presign(PresignedHeadObjectRequest.builder(),
+                       request,
+                       request.headObjectRequest(),
+                       HeadObjectRequest.class,
+                       headObjectRequestMarshaller::marshall,
+                       "HeadObject")
+            .build();
+    }
+
+    @Override
+    public PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request) {
+        return presign(PresignedHeadBucketRequest.builder(),
+                       request,
+                       request.headBucketRequest(),
+                       HeadBucketRequest.class,
+                       headBucketRequestMarshaller::marshall,
+                       "HeadBucket")
             .build();
     }
 
@@ -356,7 +397,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         Instant expiration = signingInstant.plus(expirationDuration);
 
         ExecutionContext execCtx =
-            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration);
+            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration, signingClock);
 
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
@@ -370,7 +411,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                ? presignRequest(execCtx, httpRequest)
                                                : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
 
-        initializePresignedRequest(presignedRequest, execCtx, signedHttpRequest, expiration);
+        initializePresignedRequest(presignedRequest, signedHttpRequest, expiration);
 
         return presignedRequest;
     }
@@ -380,7 +421,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private ExecutionContext invokeInterceptorsAndCreateExecutionContext(SdkRequest sdkRequest,
                                                                          String operationName,
-                                                                         Instant expiration) {
+                                                                         Instant expiration,
+                                                                         Clock signingClock) {
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
@@ -392,9 +434,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
             .putAttribute(PRESIGNER_EXPIRATION, expiration)
-            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
-            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
-                          clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK, signingClock)
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                          clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER))
             .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, fipsEnabled())
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
@@ -616,7 +658,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Initialize the provided presigned request.
      */
     private void initializePresignedRequest(PresignedRequest.Builder presignedRequest,
-                                            ExecutionContext execCtx,
                                             SdkHttpFullRequest signedHttpRequest,
                                             Instant expiration) {
         SdkBytes signedPayload = signedHttpRequest.contentStreamProvider()

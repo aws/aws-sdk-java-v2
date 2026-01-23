@@ -55,7 +55,7 @@ public abstract class BaseMockApiCall {
         try {
             runnable().run();
         } catch (AwsServiceException e) {
-            logger.info("Received expected service exception", e.getMessage());
+            logger.info("Received expected service exception: {}", e.getMessage());
         }
 
         mockHttpClient.reset();

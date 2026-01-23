@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -30,7 +29,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
     public void setUp() {
         iam = IamClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                       .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
+                       .overrideConfiguration(c -> c.retryStrategy(b -> b.maxAttempts(50)))
                        .region(Region.AWS_GLOBAL)
                        .build();
     }

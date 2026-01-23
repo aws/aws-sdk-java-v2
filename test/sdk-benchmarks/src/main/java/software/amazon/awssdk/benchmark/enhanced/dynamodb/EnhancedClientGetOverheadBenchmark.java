@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_ENDPOINT_PROVIDER;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -35,6 +35,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.benchmark.utils.MockHttpClient;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -62,7 +63,8 @@ public class EnhancedClientGetOverheadBenchmark {
     private static final AwsJsonProtocolFactory JSON_PROTOCOL_FACTORY = AwsJsonProtocolFactory
             .builder()
             .clientConfiguration(SdkClientConfiguration.builder()
-                    .option(ENDPOINT, URI.create("https://dynamodb.amazonaws.com"))
+                    .option(CLIENT_ENDPOINT_PROVIDER,
+                            ClientEndpointProvider.forEndpointOverride(URI.create("https://dynamodb.amazonaws.com")))
                     .build())
             .defaultServiceExceptionSupplier(DynamoDbException::builder)
             .protocol(AwsJsonProtocol.AWS_JSON)

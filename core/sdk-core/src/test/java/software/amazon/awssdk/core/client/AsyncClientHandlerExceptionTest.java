@@ -26,8 +26,10 @@ import static org.testng.Assert.fail;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -51,6 +54,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -87,6 +91,7 @@ public class AsyncClientHandlerExceptionTest {
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                 .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
                 .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
+                .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
                 .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
                 .build();
 
@@ -118,7 +123,8 @@ public class AsyncClientHandlerExceptionTest {
 
     @Test
     public void responseHandlerThrowsReportedThroughFuture() throws Exception {
-        final SdkClientException e = SdkClientException.create("Could not handle response");
+        final SdkException e = SdkClientException.builder().message("Could not handle response").numAttempts(1).build();
+
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);
     }
@@ -139,7 +145,9 @@ public class AsyncClientHandlerExceptionTest {
     }
 
     private void doVerify(Supplier<CompletableFuture<?>> s, final Throwable expectedException) {
-        doVerify(s, (thrown) -> thrown.getCause() == expectedException);
+        Assertions.assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> s.get().get())
+                  .withCauseInstanceOf(expectedException.getClass())
+                  .withMessageContaining(expectedException.getMessage());
     }
 
     private void doVerify(Supplier<CompletableFuture<?>> s, Predicate<Throwable> assertFn) {

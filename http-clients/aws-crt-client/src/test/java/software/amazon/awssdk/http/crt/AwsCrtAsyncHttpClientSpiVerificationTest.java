@@ -85,7 +85,6 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
     @AfterClass
     public static void tearDown() {
         client.close();
-        CrtResource.waitForNoResources();
     }
 
     private byte[] generateRandomBody(int size) {

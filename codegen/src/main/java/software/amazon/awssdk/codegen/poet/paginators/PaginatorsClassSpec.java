@@ -34,6 +34,10 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 
 public abstract class PaginatorsClassSpec implements ClassSpec {
@@ -63,6 +67,14 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         this.poetExtensions = new PoetExtension(model);
         this.typeProvider = new TypeProvider(model);
         this.operationModel = model.getOperation(c2jOperationName);
+        if (operationModel == null) {
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.UNKNOWN_OPERATION,
+                ValidationErrorSeverity.DANGER,
+                "Invalid paginator definition - The service model does not model the referenced operation '" +
+                c2jOperationName + "'"
+            ));
+        }
         this.paginationDocs = new PaginationDocs(model, operationModel, paginatorDefinition);
     }
 
@@ -169,7 +181,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
     protected CodeBlock hasNextPageMethodBody() {
         if (paginatorDefinition.getMoreResults() != null) {
             return CodeBlock.builder()
-                    .add("return $N.$L.booleanValue()",
+                    .add("return $1N.$2L != null && $1N.$2L.booleanValue()",
                                  PREVIOUS_PAGE_METHOD_ARGUMENT,
                                  fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()))
                     .build();

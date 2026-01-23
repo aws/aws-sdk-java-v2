@@ -24,14 +24,13 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -90,23 +89,35 @@ public class UploadDirectoryHelper {
         validateDirectory(uploadDirectoryRequest);
 
         Collection<FailedFileUpload> failedFileUploads = new ConcurrentLinkedQueue<>();
-        List<CompletableFuture<CompletedFileUpload>> futures;
 
-        try (Stream<Path> entries = listFiles(directory, uploadDirectoryRequest)) {
-            futures = entries.map(path -> {
-                CompletableFuture<CompletedFileUpload> future = uploadSingleFile(uploadDirectoryRequest,
-                                                                                 failedFileUploads, path);
+        Stream<Path> stream = listFiles(directory, uploadDirectoryRequest);
 
-                // Forward cancellation of the return future to all individual futures.
-                CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-                return future;
-            }).collect(Collectors.toList());
-        }
+        SdkPublisher<Path> iterablePublisher = SdkPublisher.fromIterable(() -> stream.iterator())
+                                                           .doAfterOnCancel(() -> stream.close())
+                                                           .doAfterOnError(t -> stream.close())
+                                                           .doAfterOnComplete(() -> stream.close());
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                         .whenComplete((r, t) -> returnFuture.complete(CompletedDirectoryUpload.builder()
-                                                                                               .failedTransfers(failedFileUploads)
-                                                                                               .build()));
+        CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
+
+        AsyncBufferingSubscriber<Path> bufferingSubscriber =
+            new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, path),
+                                           allOfFutures, 
+                                           transferConfiguration.option(
+                                               TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
+                                           ));
+
+        iterablePublisher.subscribe(bufferingSubscriber);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, allOfFutures);
+
+        allOfFutures.whenComplete((r, t) -> {
+            if (t != null) {
+                returnFuture.completeExceptionally(SdkClientException.create("Failed to send request", t));
+                return;
+            }
+            returnFuture.complete(CompletedDirectoryUpload.builder()
+                                                          .failedTransfers(failedFileUploads)
+                                                          .build());
+        });
     }
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {

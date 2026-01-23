@@ -45,46 +45,28 @@ public final class EndpointDiscoveryRefreshCache {
      * @return The endpoint to use for this request
      */
     public URI get(String accessKey, EndpointDiscoveryRequest request) {
-        String key = accessKey;
 
-        // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.
-        if (key == null) {
-            key = "";
-        }
-
-        if (request.cacheKey().isPresent()) {
-            key = key + ":" + request.cacheKey().get();
-        }
-
+        String key = getKey(accessKey, request);
         EndpointDiscoveryEndpoint endpoint = cache.get(key);
 
-        if (endpoint == null) {
-            if (request.required()) {
-                return cache.computeIfAbsent(key, k -> getAndJoin(request)).endpoint();
-            } else {
-                EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
-                                                                                  .endpoint(request.defaultEndpoint())
-                                                                                  .expirationTime(Instant.now().plusSeconds(60))
-                                                                                  .build();
-
-                EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
-                if (previousValue != null) {
-                    // Someone else primed the cache. Use that endpoint (which may be temporary).
-                    return previousValue.endpoint();
-                } else {
-                    // We primed the cache with the temporary endpoint. Kick off discovery in the background.
-                    refreshCacheAsync(request, key);
-                }
-                return tempEndpoint.endpoint();
-            }
+        if (endpoint == null && request.required()) {
+            return cache.computeIfAbsent(key, k -> getAndJoin(request)).endpoint();
         }
+        return returnCachedOrDefaultEndpoint(key, endpoint, request);
+    }
 
-        if (endpoint.expirationTime().isBefore(Instant.now())) {
-            cache.put(key, endpoint.toBuilder().expirationTime(Instant.now().plusSeconds(60)).build());
-            refreshCacheAsync(request, key);
+    public CompletableFuture<URI> getAsync(String accessKey, EndpointDiscoveryRequest request) {
+        String key = getKey(accessKey, request);
+        EndpointDiscoveryEndpoint endpoint = cache.get(key);
+
+        // If a service call needs to be made to discover endpoint
+        // a completable future for the service call is returned, unblocking I/O
+        // and then completed asynchronously
+        if (endpoint == null && request.required()) {
+            return discoverEndpointHandler(key, request);
         }
-
-        return endpoint.endpoint();
+        // In the event of a cache hit, i.e. service call not required, defer to the synchronous code path method.
+        return CompletableFuture.completedFuture(returnCachedOrDefaultEndpoint(key, endpoint, request));
     }
 
     private EndpointDiscoveryEndpoint getAndJoin(EndpointDiscoveryRequest request) {
@@ -108,5 +90,56 @@ public final class EndpointDiscoveryRefreshCache {
 
     public void evict(String key) {
         cache.remove(key);
+    }
+
+    private String getKey(String accessKey, EndpointDiscoveryRequest request) {
+        String key = accessKey;
+
+        // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.
+        if (key == null) {
+            key = "";
+        }
+
+        if (request.cacheKey().isPresent()) {
+            key = key + ":" + request.cacheKey().get();
+        }
+        return key;
+    }
+
+    private CompletableFuture<URI> discoverEndpointHandler(String key, EndpointDiscoveryRequest request) {
+        return discoverEndpoint(request).handle(
+            (endpointDiscoveryEndpoint, throwable) -> {
+                if (throwable != null) {
+                    throw EndpointDiscoveryFailedException.create(throwable.getCause());
+                }
+                return cache.computeIfAbsent(
+                    key, k -> endpointDiscoveryEndpoint
+                ).endpoint();
+            });
+    }
+
+    private URI returnCachedOrDefaultEndpoint(String key, EndpointDiscoveryEndpoint endpoint, EndpointDiscoveryRequest request) {
+        EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
+                                                                          .endpoint(request.defaultEndpoint())
+                                                                          .expirationTime(Instant.now().plusSeconds(60))
+                                                                          .build();
+
+        if (endpoint == null) {
+            EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
+            if (previousValue != null) {
+                // Someone else primed the cache. Use that endpoint (which may be temporary).
+                return previousValue.endpoint();
+            }
+            // We primed the cache with the temporary endpoint. Kick off discovery in the background.
+            refreshCacheAsync(request, key);
+            return tempEndpoint.endpoint();
+        }
+
+        if (endpoint.expirationTime().isBefore(Instant.now())) {
+            cache.put(key, endpoint.toBuilder().expirationTime(Instant.now().plusSeconds(60)).build());
+            refreshCacheAsync(request, key);
+        }
+
+        return endpoint.endpoint();
     }
 }

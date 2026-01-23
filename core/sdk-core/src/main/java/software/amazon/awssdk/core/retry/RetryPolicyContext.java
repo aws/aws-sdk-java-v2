@@ -21,12 +21,13 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Contains useful information about a failed request that can be used to make retry and backoff decisions. See {@link
- * RetryPolicy}.
+ * RetryPolicy} and {@link RetryStrategy}.
  */
 @Immutable
 @SdkPublicApi
@@ -163,5 +164,4 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
         }
 
     }
-
 }

@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.sync.CompressionContentStreamProvider;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -46,7 +47,9 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkInternalApi
 public class CompressRequestStage implements MutableRequestToRequestPipeline {
+
     public static final int DEFAULT_MIN_COMPRESSION_SIZE = 10_240;
+    private static final String COMPRESSION_HEADER = "Content-encoding";
     private static final int MIN_COMPRESSION_SIZE_LIMIT = 10_485_760;
     private final CompressionConfiguration compressionConfig;
 
@@ -66,7 +69,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
         if (!isStreaming(context)) {
             compressEntirePayload(input, compressor);
-            updateContentEncodingHeader(input, compressor);
+            updateContentEncodingHeader(input, compressor, context.executionAttributes());
             updateContentLengthHeader(input);
             return input;
         }
@@ -84,7 +87,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
                                                                .build());
         }
 
-        updateContentEncodingHeader(input, compressor);
+
+        updateContentEncodingHeader(input, compressor, context.executionAttributes());
         return input;
     }
 
@@ -118,11 +122,14 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
     }
 
     private void updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
-                                                                          Compressor compressor) {
-        if (input.firstMatchingHeader("Content-encoding").isPresent()) {
-            input.appendHeader("Content-encoding", compressor.compressorType());
+                                             Compressor compressor,
+                                             ExecutionAttributes executionAttributes) {
+        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS)
+                           .addMetric(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
+        if (input.firstMatchingHeader(COMPRESSION_HEADER).isPresent()) {
+            input.appendHeader(COMPRESSION_HEADER, compressor.compressorType());
         } else {
-            input.putHeader("Content-encoding", compressor.compressorType());
+            input.putHeader(COMPRESSION_HEADER, compressor.compressorType());
         }
     }
 

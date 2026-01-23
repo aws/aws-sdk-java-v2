@@ -3,7 +3,7 @@
 The AWS SDK for Java v2 uses a versioning scheme that follows the format: `MAJOR.MINOR.PATCH[-QUALIFIER]`. Revisions to different version components communicate the risk associated with changes when upgrading to newer versions of the SDK:
 
 * `MAJOR` - Huge changes, expect API incompatibilities and other breaking changes.
-* `MINOR` - Medium risk changes. Upgrading SHOULD usually just work but check the [release notes](CHANGELOG.md). Example changes might include incrementing minimum Java version, deprecating APIs, or significant changes to core runtime components. Changes to `MINOR` version MAY contain backwards incompatible changes under certain scenarios.
+* `MINOR` - Medium risk changes. Upgrading SHOULD usually just work, but check the [release notes](CHANGELOG.md). Example changes might include incrementing the minimum Java version, deprecating APIs, significant changes to core runtime components, or introducing new major features such as the transfer manager or S3 multipart client. Changes to the `MINOR` version MAY contain backward-incompatible changes in certain scenarios.
 * `PATCH` - Zero to low risk changes. New features and bug fixes that should be safe to consume without much worry.
 * `QUALIFIER` - (Optional) Additional release version qualifier (e.g. PREVIEW). Most releases are not expected to have a qualifier.
 
@@ -21,6 +21,12 @@ following in the AWS SDKs and Tools Shared Configuration and Credentials Referen
 ## Component Versioning
 
 The SDK versions all service clients (e.g. `S3`, `EC2`, `DynamoDb`, etc) and the runtime (e.g. `aws-config`) together under a single version. This allows customers to easily upgrade multiple SDK clients at once and keep dependencies, such as the core runtime, compatible. The SDK may in the future consider versioning service clients separately from one another.
+
+## Component Version Compatibility
+**Always use the same version across all AWS SDK dependencies**. Mixed versions can cause runtime exceptions or compile time errors depending on which components are mismatched
+
+The easiest way to ensure version consistency is to use the [AWS SDK BOM](https://github.com/aws/aws-sdk-java-v2/?tab=readme-ov-file#importing-the-bom), which automatically manages all SDK dependency versions for you.
+
 
 ## Internal APIs
 
