@@ -12,11 +12,27 @@ phases:
     commands:
       - |
         if [ ! -z "$INTEGRATION_TEST_ROLE_ARN" ]; then
-          ASSUME_ROLE_OUTPUT=`aws sts assume-role --role-arn "$INTEGRATION_TEST_ROLE_ARN" --role-session-name "integration-tests" --duration-seconds 7200 --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' --output text`
-          AWS_ACCESS_KEY_ID=`echo $ASSUME_ROLE_OUTPUT | awk '{ print $1 }'`
-          AWS_SECRET_ACCESS_KEY=`echo $ASSUME_ROLE_OUTPUT | awk '{ print $2 }'`
-          AWS_SESSION_TOKEN=`echo $ASSUME_ROLE_OUTPUT | awk '{ print $3 }'`
-          echo "Using role $INTEGRATION_TEST_ROLE_ARN with access key $AWS_ACCESS_KEY_ID."
+          echo "Attempting to assume role: $INTEGRATION_TEST_ROLE_ARN"
+          
+          if ! ASSUME_ROLE_OUTPUT=$(aws sts assume-role --role-arn "$INTEGRATION_TEST_ROLE_ARN" --role-session-name "integration-tests" --duration-seconds 3600 --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' --output text 2>&1); then
+            echo "Failed to assume role: $ASSUME_ROLE_OUTPUT"
+            exit 1
+          fi
+          
+          export AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE_OUTPUT | awk '{ print $1 }')
+          export AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE_OUTPUT | awk '{ print $2 }')
+          export AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE_OUTPUT | awk '{ print $3 }')
+          
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
+            echo "Failed to parse credentials from assume role output"
+            exit 1
+          fi
+          
+          echo "Current identity after assume role:"
+          aws sts get-caller-identity
+          echo "Using role $INTEGRATION_TEST_ROLE_ARN with access key $AWS_ACCESS_KEY_ID"
+        else
+          echo "INTEGRATION_TEST_ROLE_ARN not set, using default credentials"
         fi
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
