@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.14__ __2026-01-23__
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now offers public APIs to programmatically configure and run automated tests for contact center experiences. Integrate testing into CICD pipelines, run multiple tests at scale, and retrieve results via API to automate validation of voice interactions and workflows.
+
+## __Amazon DataZone__
+  - ### Features
+    - Added api for deleting data export configuration for a domain
+
+## __Amazon Q Connect__
+  - ### Features
+    - Fixes incorrect types in the UpdateAssistantAIAgent API request, adds MESSAGE to TargetType enum, and other minor changes.
+
 # __2.41.13__ __2026-01-22__
 ## __AWS Budgets__
   - ### Features
