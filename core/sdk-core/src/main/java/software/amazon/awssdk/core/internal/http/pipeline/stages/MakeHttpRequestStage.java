@@ -17,8 +17,10 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.metrics.BytesWrittenTrackingInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -72,7 +75,7 @@ public class MakeHttpRequestStage
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
 
-        request = enforceContentLengthIfPresent(request);
+        request = wrapRequestContentStream(request, context);
 
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
@@ -97,33 +100,42 @@ public class MakeHttpRequestStage
         return measuredExecute.left();
     }
 
-    private static long updateMetricCollectionAttributes(RequestExecutionContext context) {
-        long now = System.nanoTime();
-        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME,
-                                                   now);
-        return now;
-    }
-
-    private static SdkHttpFullRequest enforceContentLengthIfPresent(SdkHttpFullRequest request) {
-        Optional<ContentStreamProvider> requestContentStreamProviderOptional = request.contentStreamProvider();
-
-        if (!requestContentStreamProviderOptional.isPresent()) {
+    private SdkHttpFullRequest wrapRequestContentStream(SdkHttpFullRequest request, RequestExecutionContext context) {
+        Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
+        if (!contentStreamProvider.isPresent()) {
             return request;
         }
+
+        AtomicLong bytesWritten = context.executionAttributes()
+                                         .getAttribute(SdkInternalExecutionAttribute.REQUEST_BYTES_WRITTEN);
+        AtomicLong firstByteWrittenTime = context.executionAttributes()
+                                           .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME);
+        AtomicLong lastByteWrittenTime = context.executionAttributes()
+                                         .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME);
 
         Optional<Long> contentLength = contentLength(request);
         if (!contentLength.isPresent()) {
             LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
                                          + "the amount of data sent to the service: %s", request));
-            return request;
         }
 
-        ContentStreamProvider requestContentProvider = requestContentStreamProviderOptional.get();
-        ContentStreamProvider lengthVerifyingProvider = () -> new LengthAwareInputStream(requestContentProvider.newStream(),
-                                                                                         contentLength.get());
-        return request.toBuilder()
-                      .contentStreamProvider(lengthVerifyingProvider)
-                      .build();
+        ContentStreamProvider wrapped = () -> {
+            InputStream stream = contentStreamProvider.get().newStream();
+            stream = new BytesWrittenTrackingInputStream(stream, bytesWritten, firstByteWrittenTime, lastByteWrittenTime);
+            if (contentLength.isPresent()) {
+                stream = new LengthAwareInputStream(stream, contentLength.get());
+            }
+            return stream;
+        };
+
+        return request.toBuilder().contentStreamProvider(wrapped).build();
+    }
+
+    private static long updateMetricCollectionAttributes(RequestExecutionContext context) {
+        long now = System.nanoTime();
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME,
+                                                   now);
+        return now;
     }
 
     private static Optional<Long> contentLength(SdkHttpFullRequest request) {

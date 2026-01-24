@@ -51,6 +51,7 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
         reportBackoffDelay(context);
 
         resetBytesRead(context);
+        resetBytesWritten(context);
         try {
             Response<OutputT> response = wrapped.execute(input, context);
             collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
@@ -67,6 +68,14 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
 
     private void resetBytesRead(RequestExecutionContext context) {
         context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ, new AtomicLong(0));
+    }
+
+    private void resetBytesWritten(RequestExecutionContext context) {
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BYTES_WRITTEN, new AtomicLong(0));
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME,
+                                                   new AtomicLong(0));
+        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME,
+                                                   new AtomicLong(0));
     }
 
     private void reportBackoffDelay(RequestExecutionContext context) {
