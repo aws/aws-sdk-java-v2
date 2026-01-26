@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.15__ __2026-01-26__
+## __AWS Ground Station__
+  - ### Features
+    - Adds support for AWS Ground Station Telemetry.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Deprecate all Evidently API for AWS CloudWatch Evidently deprecation
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect now enables you to use tag-based access controls to define who can access specific cases. You can associate tags with case templates and configure security profiles to determine which users can access cases with those tags.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DynamoDbEnhancedClient TableSchema::itemToMap to return a map that contains a consistent representation of null top-level (non-flattened) attributes and flattened attributes when their enclosing member is null and ignoreNulls is set to false.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstanceTypes API response now includes an additionalFlexibleNetworkInterfaces field, the number of interfaces attachable to an instance when using flexible Elastic Network Adapter (ENA) queues in addition to the base number specified by maximumNetworkInterfaces.
+
 # __2.41.14__ __2026-01-23__
 ## __Amazon Connect Service__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Ground Station",
-    "contributor": "",
-    "description": "Adds support for AWS Ground Station Telemetry."
-}
