@@ -22,6 +22,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache5.internal.net.SdkSslSocket;
@@ -33,7 +34,7 @@ public class SdkTlsSocketFactory extends DefaultClientTlsStrategy {
     private static final Logger log = Logger.loggerFor(SdkTlsSocketFactory.class);
 
     public SdkTlsSocketFactory(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
-        super(sslContext, hostnameVerifier);
+        super(sslContext, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
         if (sslContext == null) {
             throw new IllegalArgumentException(
                 "sslContext must not be null. Use SSLContext.getDefault() if you are unsure.");
