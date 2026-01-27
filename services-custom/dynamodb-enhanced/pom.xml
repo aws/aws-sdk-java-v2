@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services-custom</artifactId>
-        <version>2.41.15-SNAPSHOT</version>
+        <version>2.41.16-SNAPSHOT</version>
     </parent>
     <artifactId>dynamodb-enhanced</artifactId>
     <name>AWS Java SDK :: DynamoDB :: Enhanced Client</name>
@@ -190,7 +190,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
+            <artifactId>wiremock-jre8-standalone</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
