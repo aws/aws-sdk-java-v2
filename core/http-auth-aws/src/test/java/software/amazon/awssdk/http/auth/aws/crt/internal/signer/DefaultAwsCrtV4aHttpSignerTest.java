@@ -140,7 +140,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).contains(PAYLOAD_SHA256_HEX);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
@@ -172,7 +172,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).contains(PAYLOAD_SHA256_HEX);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
