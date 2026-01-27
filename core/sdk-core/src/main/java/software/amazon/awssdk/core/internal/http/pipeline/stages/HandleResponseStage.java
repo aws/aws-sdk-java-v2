@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -64,11 +65,26 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         long ttlb = now - attemptStartTime;
         attemptMetricCollector.reportMetric(CoreMetric.TIME_TO_LAST_BYTE, Duration.ofNanos(ttlb));
 
-        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
         long responseReadStart = MetricUtils.responseHeadersReadEndNanoTime(context).getAsLong();
-        double throughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
 
-        attemptMetricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, throughput);
+        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
+        double readThroughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
+        attemptMetricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, readThroughput);
+
+        reportWriteThroughput(context, attemptMetricCollector);
+    }
+
+    private void reportWriteThroughput(RequestExecutionContext context, MetricCollector attemptMetricCollector) {
+        OptionalLong firstByteWrittenTimeOpt = MetricUtils.requestBodyFirstByteWrittenNanoTime(context);
+        OptionalLong requestBytesWrittenOpt = MetricUtils.apiCallAttemptRequestBytesWritten(context);
+        if (firstByteWrittenTimeOpt.isPresent() && requestBytesWrittenOpt.isPresent()) {
+            long lastByteWrittenTime = context.executionAttributes()
+                .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME).get();
+            double writeThroughput = MetricUtils.bytesPerSec(requestBytesWrittenOpt.getAsLong(),
+                                                             firstByteWrittenTimeOpt.getAsLong(),
+                                                             lastByteWrittenTime);
+            attemptMetricCollector.reportMetric(CoreMetric.WRITE_THROUGHPUT, writeThroughput);
+        }
     }
 
     private SdkHttpFullResponse trackBytesRead(SdkHttpFullResponse httpFullResponse, RequestExecutionContext context) {

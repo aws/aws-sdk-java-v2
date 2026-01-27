@@ -36,7 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -52,8 +54,11 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -215,6 +220,38 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
             assertThat(s3Client.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY), RequestBody.fromBytes(
                 "helloworld".getBytes()))).isNotNull();
         }
+    }
+
+    @Test
+    public void putObject_withRequestBody_reportsWriteThroughputMetric() {
+        AtomicReference<MetricCollection> metricsRef = new AtomicReference<>();
+        MetricPublisher capturingPublisher = new MetricPublisher() {
+            @Override
+            public void publish(MetricCollection metricCollection) {
+                metricsRef.set(metricCollection);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+
+        try (S3Client client = s3ClientBuilder()
+            .overrideConfiguration(c -> c.addMetricPublisher(capturingPublisher))
+            .build()) {
+
+            client.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY),
+                             RequestBody.fromString(RandomStringUtils.randomAlphanumeric(1024)));
+        }
+
+        MetricCollection metrics = metricsRef.get();
+        assertThat(metrics).isNotNull();
+        assertThat(metrics.children()).isNotEmpty();
+
+        MetricCollection attemptMetrics = metrics.children().get(0);
+        List<Double> writeThroughput = attemptMetrics.metricValues(CoreMetric.WRITE_THROUGHPUT);
+        assertThat(writeThroughput).hasSize(1);
+        assertThat(writeThroughput.get(0)).isGreaterThan(0);
     }
 
     private static class TestContentProvider implements ContentStreamProvider {
