@@ -67,13 +67,16 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "ExpirationDuration");
 
     /**
-     * Whether to indicate that a payload is signed or not. This property defaults to true. This can be set false to disable
-     * payload signing.
+     * Whether to indicate that a payload is signed or not.
      * <p>
-     * When this value is true and {@link #CHUNK_ENCODING_ENABLED} is false, the whole payload must be read to generate
-     * the payload signature. For very large payloads, this could impact memory usage and call latency. Some services
-     * support this value being disabled, especially over HTTPS where SSL provides some of its own protections against
-     * payload tampering.
+     * <b>Default behavior (when not explicitly set):</b>
+     * <ul>
+     *   <li>HTTPS requests: Payload signing is <b>disabled</b> by default for better performance</li>
+     *   <li>HTTP requests: Payload signing is <b>enabled</b> by default for security</li>
+     * </ul>
+     * <p>
+     * <b>Note:</b> Certain features require payload signing regardless of this setting:
+     * chunk encoding ({@link #CHUNK_ENCODING_ENABLED}), event streaming, and flexible checksums with trailers.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "PayloadSigningEnabled");
