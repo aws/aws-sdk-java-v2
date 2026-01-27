@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fixed multipart uploads not propagating content-type from AsyncRequestBody when using S3AsyncClient with multipartEnabled(true). See Issue [#6607](https://github.com/aws/aws-sdk-java-v2/issues/6607)"
+}
