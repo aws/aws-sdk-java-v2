@@ -28,10 +28,12 @@ import static software.amazon.awssdk.services.dynamodb.model.AttributeValue.from
 import static software.amazon.awssdk.services.dynamodb.model.AttributeValue.fromSs;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
@@ -92,7 +94,8 @@ import software.amazon.awssdk.utils.IoUtils;
 // @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 // @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
-@BenchmarkMode(Mode.All)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@BenchmarkMode(Mode.AverageTime)
 public class MarshallingBenchmark {
     private static final AwsJsonProtocolFactory PROTOCOL_FACTORY =
         AwsJsonProtocolFactory.builder()
@@ -234,22 +237,22 @@ public class MarshallingBenchmark {
 
     @Benchmark
     public void oldWaySmallObject(Blackhole blackhole) {
-        blackhole.consume(GET_MARSHALLER.marshall(SMALL_REQUEST));
+        blackhole.consume(GET_MARSHALLER.marshall(SMALL_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
     public void newWaySmallObject(Blackhole blackhole) {
-        blackhole.consume(GET_MARSHALLER.fastMarshall(SMALL_REQUEST));
+        blackhole.consume(GET_MARSHALLER.fastMarshall(SMALL_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
     public void oldWayLargeObject(Blackhole blackhole) {
-        blackhole.consume(PUT_MARSHALLER.marshall(MEDIUM_REQUEST));
+        blackhole.consume(PUT_MARSHALLER.marshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
     public void newWayLargeObject(Blackhole blackhole) {
-        blackhole.consume(PUT_MARSHALLER.fastMarshall(MEDIUM_REQUEST));
+        blackhole.consume(PUT_MARSHALLER.fastMarshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream());
     }
 
     public static void main(String... args) throws Exception {
