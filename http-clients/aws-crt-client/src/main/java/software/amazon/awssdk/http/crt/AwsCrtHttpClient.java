@@ -23,11 +23,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -56,6 +57,9 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
 
     private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
         super(builder, config);
+        if (this.protocol == Protocol.HTTP2) {
+            throw new UnsupportedOperationException("HTTP/2 is not supported in sync client. Use AwsCrtAsyncHttpClient instead");
+        }
     }
 
     public static AwsCrtHttpClient.Builder builder() {
@@ -91,14 +95,13 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()))) {
-            CrtRequestContext context = CrtRequestContext.builder()
-                                                         .crtConnPool(crtConnPool)
-                                                         .readBufferSize(this.readBufferSize)
-                                                         .request(request)
-                                                         .build();
-            return new CrtHttpRequest(context);
-        }
+        HttpStreamManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()));
+        CrtRequestContext context = CrtRequestContext.builder()
+                                                     .crtConnPool(crtConnPool)
+                                                     .readBufferSize(this.readBufferSize)
+                                                     .request(request)
+                                                     .build();
+        return new CrtHttpRequest(context);
     }
 
     private static final class CrtHttpRequest implements ExecutableHttpRequest {
@@ -140,7 +143,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         @Override
         public void abort() {
             if (responseFuture != null) {
-                responseFuture.completeExceptionally(new IOException("Request ws cancelled"));
+                responseFuture.completeExceptionally(new IOException("Request was cancelled"));
             }
         }
     }
