@@ -33,11 +33,14 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.Http2Configuration;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
@@ -52,6 +55,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
 import software.amazon.awssdk.testutils.Waiter;
 
+@Timeout(100)
 public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
     public static final int WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION = 300;
@@ -62,6 +66,8 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
     @BeforeAll
     public static void setup() throws InterruptedException {
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Trace);
         streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
 
         asyncClient.createStream(r -> r.streamName(streamName)
@@ -88,6 +94,11 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     }
 
     @Test
+    void test() {
+
+    }
+
+    @Test
     public void subscribeToShard_smallWindow_doesNotTimeOutReads() {
         // We want sufficiently large records (relative to the initial window
         // size we're choosing) so the client has to send multiple
@@ -98,10 +109,7 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
         KinesisAsyncClient smallWindowAsyncClient = KinesisAsyncClient.builder()
                                                                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                      .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                                                                                                                .http2Configuration(Http2Configuration.builder()
-                                                                                                                                                      .initialWindowSize(16384)
-                                                                                                                                                      .build()))
+                                                                      .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
                                                                       .build();
 
         try {

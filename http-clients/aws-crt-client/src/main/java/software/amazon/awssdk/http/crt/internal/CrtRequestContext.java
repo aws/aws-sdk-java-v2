@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -24,7 +24,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public final class CrtRequestContext {
     private final HttpExecuteRequest request;
     private final long readBufferSize;
-    private final HttpClientConnectionManager crtConnPool;
+    private final HttpStreamManager crtConnPool;
     private final MetricCollector metricCollector;
 
     private CrtRequestContext(Builder builder) {
@@ -46,7 +46,7 @@ public final class CrtRequestContext {
         return readBufferSize;
     }
 
-    public HttpClientConnectionManager crtConnPool() {
+    public HttpStreamManager crtConnPool() {
         return crtConnPool;
     }
 
@@ -57,7 +57,7 @@ public final class CrtRequestContext {
     public static final class Builder {
         private HttpExecuteRequest request;
         private long readBufferSize;
-        private HttpClientConnectionManager crtConnPool;
+        private HttpStreamManager crtConnPool;
 
         private Builder() {
         }
@@ -72,7 +72,7 @@ public final class CrtRequestContext {
             return this;
         }
 
-        public Builder crtConnPool(HttpClientConnectionManager crtConnPool) {
+        public Builder crtConnPool(HttpStreamManager crtConnPool) {
             this.crtConnPool = crtConnPool;
             return this;
         }

@@ -18,19 +18,19 @@ package software.amazon.awssdk.http.crt.internal;
 import static software.amazon.awssdk.http.crt.internal.CrtUtils.reportMetrics;
 import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapConnectionFailureException;
 import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExceptionIfRetryable;
+import static software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter.toAsyncCrtRequest;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
-import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpRequestBase;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -46,6 +46,7 @@ public final class CrtAsyncRequestExecutor {
         // need it regardless.
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
+        AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
 
         long acquireStartTime = 0;
 
@@ -56,17 +57,20 @@ public final class CrtAsyncRequestExecutor {
             acquireStartTime = System.nanoTime();
         }
 
-        CompletableFuture<Void> requestFuture = createAsyncExecutionFuture(executionContext.sdkRequest());
+        CompletableFuture<Void> requestFuture = createAsyncExecutionFuture(asyncRequest);
+
+        HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
+
+        HttpStreamBaseResponseHandler crtResponseHandler =
+            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-        CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
-            executionContext.crtConnPool().acquireConnection();
+        CompletableFuture<HttpStreamBase> httpClientConnectionCompletableFuture =
+            executionContext.crtConnPool().acquireStream(crtRequest, crtResponseHandler);
 
         long finalAcquireStartTime = acquireStartTime;
 
-        httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
-            AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
-
+        httpClientConnectionCompletableFuture.whenComplete((stream, throwable) -> {
             if (shouldPublishMetrics) {
                 reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
             }
@@ -74,40 +78,34 @@ public final class CrtAsyncRequestExecutor {
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
                 Throwable toThrow = wrapConnectionFailureException(throwable);
-                reportAsyncFailure(crtConn, toThrow, requestFuture, asyncRequest.responseHandler());
+                reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
                 return;
             }
 
-            executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
+            // TODO: this is not needed it seems
+            //executeRequest(requestFuture, stream, asyncRequest);
         });
-
         return requestFuture;
     }
 
-    private void executeRequest(CrtAsyncRequestContext executionContext,
-                                CompletableFuture<Void> requestFuture,
-                                HttpClientConnection crtConn,
+    private void executeRequest(CompletableFuture<Void> requestFuture,
+                                HttpStreamBase stream,
                                 AsyncExecuteRequest asyncRequest) {
         // Submit the request on the connection
         try {
-            HttpRequest crtRequest = CrtRequestAdapter.toAsyncCrtRequest(executionContext);
-            HttpStreamResponseHandler crtResponseHandler =
-                CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
-
-            crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
+            stream.activate();
         } catch (HttpException e) {
             Throwable toThrow = wrapWithIoExceptionIfRetryable(e);
-            reportAsyncFailure(crtConn,
-                          toThrow,
-                          requestFuture,
-                          asyncRequest.responseHandler());
+            reportAsyncFailure(toThrow,
+                               requestFuture,
+                               asyncRequest.responseHandler());
         } catch (IllegalStateException | CrtRuntimeException e) {
             // CRT throws IllegalStateException if the connection is closed
-            reportAsyncFailure(crtConn, new IOException("An exception occurred when making the request", e),
-                          requestFuture,
-                          asyncRequest.responseHandler());
+            reportAsyncFailure(new IOException("An exception occurred when making the request", e),
+                               requestFuture,
+                               asyncRequest.responseHandler());
         } catch (Throwable throwable) {
-            reportAsyncFailure(crtConn, throwable,
+            reportAsyncFailure(throwable,
                                requestFuture,
                                asyncRequest.responseHandler());
         }
@@ -115,6 +113,7 @@ public final class CrtAsyncRequestExecutor {
 
     /**
      * Create the execution future and set up the cancellation logic.
+     *
      * @return The created execution future.
      */
     private CompletableFuture<Void> createAsyncExecutionFuture(AsyncExecuteRequest request) {
@@ -137,14 +136,9 @@ public final class CrtAsyncRequestExecutor {
     /**
      * Notify the provided response handler and future of the failure.
      */
-    private void reportAsyncFailure(HttpClientConnection crtConn,
-                               Throwable cause,
-                               CompletableFuture<Void> executeFuture,
-                               SdkAsyncHttpResponseHandler responseHandler) {
-        if (crtConn != null) {
-            crtConn.close();
-        }
-
+    private void reportAsyncFailure(Throwable cause,
+                                    CompletableFuture<Void> executeFuture,
+                                    SdkAsyncHttpResponseHandler responseHandler) {
         try {
             responseHandler.onError(cause);
         } catch (Exception e) {

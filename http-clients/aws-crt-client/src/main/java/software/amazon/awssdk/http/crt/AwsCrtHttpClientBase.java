@@ -28,10 +28,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.Http2StreamManagerOptions;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
+import software.amazon.awssdk.crt.http.HttpVersion;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
@@ -57,7 +60,8 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final long DEFAULT_STREAM_WINDOW_SIZE = 16L * 1024L * 1024L; // 16 MB
 
     protected final long readBufferSize;
-    private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
+    protected final Protocol protocol;
+    private final Map<URI, HttpStreamManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
@@ -70,31 +74,30 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
-        if (config.get(PROTOCOL) == Protocol.HTTP2) {
-            throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtHttpClient yet. Use "
-                                               + "NettyNioAsyncHttpClient instead.");
+        ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
+        SocketOptions clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
+                                                               config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+        TlsContextOptions clientTlsContextOptions =
+            TlsContextOptions.createDefaultClient()
+                             .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
+                             .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
+        this.protocol = config.get(PROTOCOL);
+        if (protocol == Protocol.HTTP2) {
+            clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
         }
 
-        try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
-             SocketOptions clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
-                                                                    config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
-             TlsContextOptions clientTlsContextOptions =
-                 TlsContextOptions.createDefaultClient()
-                                  .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
-                                  .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
-             TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
+        TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions);
 
-            this.bootstrap = registerOwnedResource(clientBootstrap);
-            this.socketOptions = registerOwnedResource(clientSocketOptions);
-            this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
-                                  DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
-            this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-            this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
-            this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
-            this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
-        }
+        this.bootstrap = registerOwnedResource(clientBootstrap);
+        this.socketOptions = registerOwnedResource(clientSocketOptions);
+        this.tlsContext = registerOwnedResource(clientTlsContext);
+        this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
+                              DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
+        this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
+        this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
+        this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+        this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
+        this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
     }
 
     /**
@@ -106,7 +109,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
      */
     private <T extends CrtResource> T registerOwnedResource(T subresource) {
         if (subresource != null) {
-            subresource.addRef();
             ownedSubResources.push(subresource);
         }
         return subresource;
@@ -116,10 +118,10 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         return AWS_COMMON_RUNTIME;
     }
 
-    private HttpClientConnectionManager createConnectionPool(URI uri) {
+    private HttpStreamManager createConnectionPool(URI uri) {
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions()
+        HttpClientConnectionManagerOptions h1Options = new HttpClientConnectionManagerOptions()
                 .withClientBootstrap(bootstrap)
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
@@ -132,7 +134,20 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
                 .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
 
-        return HttpClientConnectionManager.create(options);
+        Http2StreamManagerOptions h2Options = new Http2StreamManagerOptions()
+            .withConnectionManagerOptions(h1Options);
+
+        HttpStreamManagerOptions options = new HttpStreamManagerOptions()
+            .withHTTP1ConnectionManagerOptions(h1Options)
+            .withHTTP2StreamManagerOptions(h2Options);
+
+        if (protocol == Protocol.HTTP2) {
+            options.withExpectedProtocol(HttpVersion.HTTP_2);
+        } else {
+            options.withExpectedProtocol(HttpVersion.HTTP_1_1);
+        }
+
+        return HttpStreamManager.create(options);
     }
 
     /*
@@ -150,14 +165,13 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
      * existing pool.  If we add all of execute() to the scope, we include, at minimum a JNI call to the native
      * pool implementation.
      */
-    HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
+    HttpStreamManager getOrCreateConnectionPool(URI uri) {
         synchronized (this) {
             if (isClosed) {
                 throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
             }
 
-            HttpClientConnectionManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
-            connPool.addRef();
+            HttpStreamManager connPool = connectionPools.computeIfAbsent(uri, this::createConnectionPool);
             return connPool;
         }
     }

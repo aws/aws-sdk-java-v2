@@ -18,12 +18,16 @@ package software.amazon.awssdk.http.crt.internal.request;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.Http2Request;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.http.HttpRequestBase;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
@@ -34,7 +38,7 @@ public final class CrtRequestAdapter {
     private CrtRequestAdapter() {
     }
 
-    public static HttpRequest toAsyncCrtRequest(CrtAsyncRequestContext request) {
+    public static HttpRequestBase toAsyncCrtRequest(CrtAsyncRequestContext request) {
         AsyncExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.request();
 
@@ -47,14 +51,21 @@ public final class CrtRequestAdapter {
         String encodedQueryString = sdkRequest.encodedQueryParameters()
                                               .map(value -> "?" + value)
                                               .orElse("");
+        String path = encodedPath + encodedQueryString;
+        URI uri = sdkRequest.getUri();
+        CrtRequestBodyAdapter crtRequestBodyAdapter = new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
+                                                                                request.readBufferSize());
+        if (request.protocol() == Protocol.HTTP1_1) {
+            HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
+            return new HttpRequest(method,
+                                   path,
+                                   crtHeaderArray,
+                                   crtRequestBodyAdapter);
+        }
 
-        HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
+        HttpHeader[] crtHeaderArray = asArray(createHttp2HeaderList(uri, sdkExecuteRequest, path));
+        return new Http2Request(crtHeaderArray, crtRequestBodyAdapter);
 
-        return new HttpRequest(method,
-                               encodedPath + encodedQueryString,
-                               crtHeaderArray,
-                               new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
-                                                         request.readBufferSize()));
     }
 
     public static HttpRequest toCrtRequest(CrtRequestContext request) {
@@ -83,6 +94,27 @@ public final class CrtRequestAdapter {
                                 .orElse(new HttpRequest(method,
                                                         finalEncodedPath,
                                                         crtHeaderArray, null));
+    }
+
+    private static List<HttpHeader> createHttp2HeaderList(URI uri, AsyncExecuteRequest asyncRequest,
+                                                          String path) {
+        SdkHttpRequest sdkRequest = asyncRequest.request();
+        List<HttpHeader> crtHeaderList = new ArrayList<>();
+        crtHeaderList.add(new HttpHeader(":method", sdkRequest.method().name()));
+        crtHeaderList.add(new HttpHeader(":path", path));
+        crtHeaderList.add(new HttpHeader(":scheme", uri.getScheme()));
+        crtHeaderList.add(new HttpHeader(":authority", uri.getHost()));
+
+        Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
+            crtHeaderList.add(new HttpHeader("content-length", Long.toString(contentLength.get())));
+        }
+
+        sdkRequest.forEachHeader((key, value) ->
+                                     value.stream().map(val -> new HttpHeader(key.toLowerCase(Locale.ROOT), val))
+                                          .forEach(crtHeaderList::add));
+
+        return crtHeaderList;
     }
 
     private static HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {

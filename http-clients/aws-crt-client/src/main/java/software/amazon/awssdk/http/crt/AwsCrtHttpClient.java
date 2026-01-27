@@ -23,8 +23,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -91,14 +91,13 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()))) {
-            CrtRequestContext context = CrtRequestContext.builder()
-                                                         .crtConnPool(crtConnPool)
-                                                         .readBufferSize(this.readBufferSize)
-                                                         .request(request)
-                                                         .build();
-            return new CrtHttpRequest(context);
-        }
+        HttpStreamManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()));
+        CrtRequestContext context = CrtRequestContext.builder()
+                                                     .crtConnPool(crtConnPool)
+                                                     .readBufferSize(this.readBufferSize)
+                                                     .request(request)
+                                                     .build();
+        return new CrtHttpRequest(context);
     }
 
     private static final class CrtHttpRequest implements ExecutableHttpRequest {

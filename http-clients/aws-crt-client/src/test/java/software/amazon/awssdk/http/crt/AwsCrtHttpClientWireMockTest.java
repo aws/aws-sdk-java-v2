@@ -60,7 +60,7 @@ public class AwsCrtHttpClientWireMockTest {
     @BeforeClass
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
-        Log.initLoggingToStdout(Log.LogLevel.Warn);
+        Log.initLoggingToStdout(Log.LogLevel.Trace);
         executorService = Executors.newScheduledThreadPool(1);
     }
 
@@ -75,15 +75,6 @@ public class AwsCrtHttpClientWireMockTest {
 
         client.close();
         assertThatThrownBy(() -> makeSimpleRequest(client, null)).hasMessageContaining("is closed");
-    }
-
-    @Test
-    public void invalidProtocol_shouldThrowException() {
-        AttributeMap attributeMap = AttributeMap.builder()
-                                                .put(PROTOCOL, Protocol.HTTP2)
-                                                .build();
-        assertThatThrownBy(() -> AwsCrtHttpClient.builder().buildWithDefaults(attributeMap))
-            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

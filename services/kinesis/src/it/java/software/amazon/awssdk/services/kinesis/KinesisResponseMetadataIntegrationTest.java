@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -26,6 +27,11 @@ import software.amazon.awssdk.services.kinesis.model.DescribeLimitsResponse;
 import software.amazon.awssdk.services.kinesis.model.KinesisResponse;
 
 public class KinesisResponseMetadataIntegrationTest extends AbstractTestCase {
+
+    static {
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Trace);
+    }
 
     @Test
     public void sync_shouldContainResponseMetadata() {

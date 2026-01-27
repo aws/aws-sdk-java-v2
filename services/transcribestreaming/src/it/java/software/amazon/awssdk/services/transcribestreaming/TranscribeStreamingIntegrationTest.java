@@ -41,9 +41,11 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -74,6 +76,11 @@ public class TranscribeStreamingIntegrationTest {
 
     private static boolean alpnSupported(){
         return NettyUtils.isAlpnSupported(SslProvider.JDK);
+    }
+
+    static {
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Trace);
     }
 
     @ParameterizedTest
@@ -119,10 +126,10 @@ public class TranscribeStreamingIntegrationTest {
                                                .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
                                                                             .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
-                                               .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                                  .protocol(Protocol.HTTP2)
-                                                                                  .protocolNegotiation(protocolNegotiation)
-                                                                                  .build())
+                                               .httpClient(AwsCrtAsyncHttpClient.builder()
+                                                                                .protocol(Protocol.HTTP2)
+                                                                                //.protocolNegotiation(protocolNegotiation)
+                                                                                .build())
                                                .build();
     }
 

@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
@@ -53,13 +53,18 @@ public final class CrtRequestExecutor {
 
         CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
 
+        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-        CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
-            executionContext.crtConnPool().acquireConnection();
+
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+
+        CompletableFuture<HttpStreamBase> httpClientConnectionCompletableFuture =
+            executionContext.crtConnPool().acquireStream(crtRequest, crtResponseHandler);
 
         long finalAcquireStartTime = acquireStartTime;
 
-        httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
+        httpClientConnectionCompletableFuture.whenComplete((streamBase, throwable) -> {
             if (shouldPublishMetrics) {
                 reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
             }
@@ -71,7 +76,7 @@ public final class CrtRequestExecutor {
                 return;
             }
 
-            executeRequest(executionContext, requestFuture, crtConn);
+            executeRequest(executionContext, requestFuture, streamBase);
         });
 
         return requestFuture;
@@ -79,24 +84,19 @@ public final class CrtRequestExecutor {
 
     private void executeRequest(CrtRequestContext executionContext,
                                 CompletableFuture<SdkHttpFullResponse> requestFuture,
-                                HttpClientConnection crtConn) {
-        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
-
+                                HttpStreamBase stream) {
         try {
-            HttpStreamResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(crtConn,
-                                                                                                            requestFuture);
-
             // Submit the request on the connection
-            crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
+            stream.activate();
         } catch (Throwable throwable) {
-            handleException(requestFuture, crtConn, throwable);
+            handleException(requestFuture, stream, throwable);
         }
     }
 
-    private static void handleException(CompletableFuture<SdkHttpFullResponse> requestFuture, HttpClientConnection crtConn,
+    private static void handleException(CompletableFuture<SdkHttpFullResponse> requestFuture, HttpStreamBase stream,
                           Throwable throwable) {
 
-        crtConn.close();
+        stream.close();
 
         if (throwable instanceof HttpException) {
             Throwable toThrow = wrapWithIoExceptionIfRetryable((HttpException) throwable);
