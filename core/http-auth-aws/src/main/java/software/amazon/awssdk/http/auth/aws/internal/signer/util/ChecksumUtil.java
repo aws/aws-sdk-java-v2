@@ -28,6 +28,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_T
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -134,23 +135,39 @@ public final class ChecksumUtil {
 
     public static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
-        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        Boolean payloadSigningEnabled = request.property(PAYLOAD_SIGNING_ENABLED);
         boolean isEncrypted = "https".equals(request.request().protocol());
+        boolean hasPayload = request.payload().isPresent();
 
         if (isAnonymous) {
             return false;
         }
 
-        // presigning requests should always have a null payload, and should always be unsigned-payload
-        if (!isEncrypted && request.payload().isPresent()) {
-            if (!isPayloadSigningEnabled) {
+        if (payloadSigningEnabled != null) {
+            // presigning requests should always have a null payload, and should always be unsigned-payload
+            if (!isEncrypted && hasPayload && !payloadSigningEnabled) {
                 log.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
                                 "Signing will be enabled. Use HTTPS for unsigned payloads.");
+                return true;
             }
+            return payloadSigningEnabled;
+        }
+
+        if (Objects.equals(request.property(CHUNK_ENCODING_ENABLED), Boolean.TRUE)) {
             return true;
         }
 
-        return isPayloadSigningEnabled;
+        if (isEventStreaming(request.request())) {
+            return true;
+        }
+
+        // For HTTPS, skip payload signing by default
+        if (isEncrypted) {
+            return false;
+        }
+
+        // For HTTP, sign payload by default
+        return hasPayload;
     }
 
     public static boolean isEventStreaming(SdkHttpRequest request) {
