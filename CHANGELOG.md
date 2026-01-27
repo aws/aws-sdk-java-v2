@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.16__ __2026-01-27__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive released two new features that allows customers 1) to set Output Timecode for AV1 encoder, 2) to set a Custom Epoch for CMAF Ingest and MediaPackage V2 output groups when using Pipeline Locking or Disabled Locking modes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports editing job names and descriptions after submission.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for task attachments. The StartTaskContact API now accepts file attachments, enabling customers to include files (.csv, .doc, .docx, .heic, .jfif, .jpeg, .jpg, .mov, .mp4, .pdf, .png, .ppt, .pptx, .rtf, .txt, etc.) when creating Task contacts. Supports up to 5 attachments per task.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing new EC2 instances. C8gb and M8gb with highest EBS performance, M8gn with 600 Gbps network bandwidth, X8aedz and M8azn with 5GHz AMD processors, X8i with Intel Xeon 6 processors and up to 6TB memory, and Mac-m4max with Apple M4 Max chip for 25 percent faster builds.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Idle resource sharing enables teams to borrow unused compute resources in your SageMaker HyperPod cluster. This capability maximizes resource utilization by allowing teams to borrow idle compute capacity beyond their allocated compute quotas.
+
+# __2.41.15__ __2026-01-26__
+## __AWS Ground Station__
+  - ### Features
+    - Adds support for AWS Ground Station Telemetry.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Deprecate all Evidently API for AWS CloudWatch Evidently deprecation
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect now enables you to use tag-based access controls to define who can access specific cases. You can associate tags with case templates and configure security profiles to determine which users can access cases with those tags.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DynamoDbEnhancedClient TableSchema::itemToMap to return a map that contains a consistent representation of null top-level (non-flattened) attributes and flattened attributes when their enclosing member is null and ignoreNulls is set to false.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstanceTypes API response now includes an additionalFlexibleNetworkInterfaces field, the number of interfaces attachable to an instance when using flexible Elastic Network Adapter (ENA) queues in addition to the base number specified by maximumNetworkInterfaces.
+
 # __2.41.14__ __2026-01-23__
 ## __Amazon Connect Service__
   - ### Features
