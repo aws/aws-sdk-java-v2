@@ -28,7 +28,6 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_T
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -151,14 +150,6 @@ public final class ChecksumUtil {
                 return true;
             }
             return payloadSigningEnabled;
-        }
-
-        if (Objects.equals(request.property(CHUNK_ENCODING_ENABLED), Boolean.TRUE)) {
-            return true;
-        }
-
-        if (isEventStreaming(request.request())) {
-            return true;
         }
 
         // For HTTPS, skip payload signing by default

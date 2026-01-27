@@ -320,6 +320,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -340,6 +341,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -373,6 +375,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -415,6 +418,7 @@ public class DefaultAwsV4HttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -433,6 +437,7 @@ public class DefaultAwsV4HttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
@@ -453,6 +458,7 @@ public class DefaultAwsV4HttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -473,6 +479,7 @@ public class DefaultAwsV4HttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
@@ -1062,7 +1069,7 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    void asyncSign_WithHTTPAndNoProperties_UsesSignsPayload() {
+    void asyncSign_WithHTTPAndNoProperties_SignsPayload() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> {

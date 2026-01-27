@@ -71,12 +71,9 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
      * <p>
      * <b>Default behavior (when not explicitly set):</b>
      * <ul>
-     *   <li>HTTPS requests: Payload signing is <b>disabled</b> by default for better performance</li>
-     *   <li>HTTP requests: Payload signing is <b>enabled</b> by default for security</li>
+     *   <li>HTTPS requests: Payload signing is disabled by default</li>
+     *   <li>HTTP requests: Payload signing is enabled by default</li>
      * </ul>
-     * <p>
-     * <b>Note:</b> Certain features require payload signing regardless of this setting:
-     * chunk encoding ({@link #CHUNK_ENCODING_ENABLED}), event streaming, and flexible checksums with trailers.
      */
     SignerProperty<Boolean> PAYLOAD_SIGNING_ENABLED =
         SignerProperty.create(AwsV4FamilyHttpSigner.class, "PayloadSigningEnabled");
