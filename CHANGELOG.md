@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.17__ __2026-01-28__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds a follow source mode for audio output channel count, an AES audio frame wrapping option for MXF outputs, and an option to signal DolbyVision compatibility using the SUPPLEMENTAL-CODECS tag in HLS manifests.
+
+## __AWS Lambda__
+  - ### Features
+    - We are launching ESM Metrics and logging for Kafka ESM to allow customers to monitor Kafka event processing using CloudWatch Metrics and Logs.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for NDI flow sources in AWS Elemental MediaConnect. You can now send content to your MediaConnect transport streams directly from your NDI environment using the new NDI source type. Also adds support for LARGE 4X flow size, which can be used when creating CDI JPEG-XS flows.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for the UpdateObjectEncryption API to change the server-side encryption type of objects in general purpose buckets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds support for a new lambda trigger to transform federated user attributes during the authentication with external identity providers on Cognito Managed Login.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for filtering search results based on tags assigned to contacts.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - SearchTransitGatewayRoutes API response now includes a NextToken field, enabling pagination when retrieving large sets of transit gateway routes. Pass the returned NextToken value in subsequent requests to retrieve the next page of results.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed multipart uploads not propagating content-type from AsyncRequestBody when using S3AsyncClient with multipartEnabled(true). See Issue [#6607](https://github.com/aws/aws-sdk-java-v2/issues/6607)
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for the UpdateObjectEncryption API to change the server-side encryption type of objects in general purpose buckets.
+
 # __2.41.16__ __2026-01-27__
 ## __AWS Elemental MediaLive__
   - ### Features
