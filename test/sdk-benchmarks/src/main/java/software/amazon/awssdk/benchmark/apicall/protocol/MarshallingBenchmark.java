@@ -43,9 +43,13 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
+import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
+import software.amazon.awssdk.protocols.json.internal.marshall.DirectJsonProtocolMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import software.amazon.awssdk.services.dynamodb.model.BackupInUseException;
@@ -207,6 +211,27 @@ public class MarshallingBenchmark {
     private static final GetItemRequestMarshaller GET_MARSHALLER = new GetItemRequestMarshaller(PROTOCOL_FACTORY);
     private static final PutItemRequestMarshaller PUT_MARSHALLER = new PutItemRequestMarshaller(PROTOCOL_FACTORY);
 
+    private static final OperationInfo PUT_ITEM_BINDING = OperationInfo.builder().requestUri("/")
+                                                                            .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasImplicitPayloadMembers(true)
+                                                                            .hasPayloadMembers(true).operationIdentifier("DynamoDB_20120810.PutItem").build();
+    private static final OperationInfo GET_ITEM_BINDING = OperationInfo.builder().requestUri("/")
+                                                                            .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasImplicitPayloadMembers(true)
+                                                                            .hasPayloadMembers(true).operationIdentifier("DynamoDB_20120810.GetItem").build();
+
+    private static final DirectJsonProtocolMarshaller DIRECT_GET_MARSHALLER = new DirectJsonProtocolMarshaller(
+        URI.create("https://localhost"),
+        "application/json",
+        PUT_ITEM_BINDING,
+        AwsJsonProtocolMetadata.builder().protocol(AwsJsonProtocol.AWS_JSON).build(),
+        false
+    );
+    private static final DirectJsonProtocolMarshaller DIRECT_PUT_MARSHALLER = new DirectJsonProtocolMarshaller(
+        URI.create("https://localhost"),
+        "application/json",
+        GET_ITEM_BINDING,
+        AwsJsonProtocolMetadata.builder().protocol(AwsJsonProtocol.AWS_JSON).build(),
+        false
+    );
     private static final GetItemRequest SMALL_REQUEST =
         GetItemRequest.builder()
                       .tableName("table")
@@ -236,30 +261,46 @@ public class MarshallingBenchmark {
                       .build();
 
     @Benchmark
-    public void oldWaySmallObject(Blackhole blackhole) {
+    public void jacksonDynamicSmallObject(Blackhole blackhole) {
         blackhole.consume(GET_MARSHALLER.marshall(SMALL_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
-    public void newWaySmallObject(Blackhole blackhole) {
+    public void directCodegenSmallObject(Blackhole blackhole) {
         blackhole.consume(GET_MARSHALLER.fastMarshall(SMALL_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
-    public void oldWayLargeObject(Blackhole blackhole) {
+    public void directDynamicSmallObject(Blackhole blackhole) {
+        blackhole.consume(DIRECT_GET_MARSHALLER.marshall(SMALL_REQUEST).contentStreamProvider().get().newStream());
+    }
+
+
+    @Benchmark
+    public void jacksonDynamicLargeObject(Blackhole blackhole) {
         blackhole.consume(PUT_MARSHALLER.marshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream());
     }
 
     @Benchmark
-    public void newWayLargeObject(Blackhole blackhole) {
+    public void directCodegenLargeObject(Blackhole blackhole) {
         blackhole.consume(PUT_MARSHALLER.fastMarshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream());
+    }
+
+    @Benchmark
+    public void directDynamicLargeObject(Blackhole blackhole) {
+        blackhole.consume(DIRECT_PUT_MARSHALLER.marshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream());
     }
 
     public static void main(String... args) throws Exception {
         System.out.println(IoUtils.toUtf8String(GET_MARSHALLER.marshall(SMALL_REQUEST).contentStreamProvider().get().newStream()));
         System.out.println(IoUtils.toUtf8String(GET_MARSHALLER.fastMarshall(SMALL_REQUEST).contentStreamProvider().get().newStream()));
+        System.out.println(IoUtils.toUtf8String(DIRECT_GET_MARSHALLER.marshall(SMALL_REQUEST).contentStreamProvider().get().newStream()));
+
+        System.out.println("\n\n-------------------------------");
+
         System.out.println(IoUtils.toUtf8String(PUT_MARSHALLER.marshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream()));
         System.out.println(IoUtils.toUtf8String(PUT_MARSHALLER.fastMarshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream()));
+        System.out.println(IoUtils.toUtf8String(DIRECT_PUT_MARSHALLER.marshall(MEDIUM_REQUEST).contentStreamProvider().get().newStream()));
         Options opt = new OptionsBuilder()
             .include(MarshallingBenchmark.class.getSimpleName())
             .build();

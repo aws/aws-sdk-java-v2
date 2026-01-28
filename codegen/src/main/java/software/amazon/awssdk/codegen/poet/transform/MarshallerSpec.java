@@ -376,6 +376,8 @@ public class MarshallerSpec implements ClassSpec {
                           .add("result.append($T.toBase64($L.asByteArrayUnsafe()));", BinaryUtils.class, memberAccessor)
                           .add("result.append('\"');");
                     break;
+                case "BYTE":
+                    break; // TODO: this probably needs to actually be handled but isn't
                 default:
                     throw new IllegalArgumentException("JSON literals not supported for: " + member.getMarshallingType());
             }
