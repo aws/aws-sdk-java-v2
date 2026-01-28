@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.24.4-SNAPSHOT</version>
+        <version>2.41.17-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -43,7 +43,6 @@
         <module>codecommit</module>
         <module>codedeploy</module>
         <module>codepipeline</module>
-        <module>codestar</module>
         <module>cognitoidentity</module>
         <module>cognitoidentityprovider</module>
         <module>cognitosync</module>
@@ -66,7 +65,6 @@
         <module>elasticloadbalancing</module>
         <module>elasticloadbalancingv2</module>
         <module>elasticsearch</module>
-        <module>elastictranscoder</module>
         <module>emr</module>
         <module>cloudwatchevents</module>
         <module>gamelift</module>
@@ -91,8 +89,6 @@
         <module>marketplaceentitlement</module>
         <module>marketplacemetering</module>
         <module>mturk</module>
-        <module>opsworks</module>
-        <module>opsworkscm</module>
         <module>organizations</module>
         <module>pinpoint</module>
         <module>polly</module>
@@ -104,7 +100,6 @@
         <module>route53domains</module>
         <module>s3</module>
         <module>s3control</module>
-        <module>sms</module>
         <module>servicecatalog</module>
         <module>ses</module>
         <module>shield</module>
@@ -122,7 +117,6 @@
         <module>workspaces</module>
         <module>xray</module>
         <module>appsync</module>
-        <module>alexaforbusiness</module>
         <module>migrationhub</module>
         <module>costexplorer</module>
         <module>cloud9</module>
@@ -136,7 +130,6 @@
         <module>mediapackage</module>
         <module>mediastore</module>
         <module>mediastoredata</module>
-        <module>mobile</module>
         <module>mq</module>
         <module>pricing</module>
         <module>resourcegroups</module>
@@ -154,8 +147,6 @@
         <module>dlm</module>
         <module>eks</module>
         <module>iotjobsdataplane</module>
-        <module>iot1clickdevices</module>
-        <module>iot1clickprojects</module>
         <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
@@ -174,7 +165,6 @@
         <module>neptune</module>
         <module>quicksight</module>
         <module>rdsdata</module>
-        <module>robomaker</module>
         <module>transfer</module>
         <module>globalaccelerator</module>
         <module>comprehendmedical</module>
@@ -189,7 +179,6 @@
         <module>apigatewayv2</module>
         <module>docdb</module>
         <module>backup</module>
-        <module>worklink</module>
         <module>textract</module>
         <module>managedblockchain</module>
         <module>mediapackagevod</module>
@@ -207,8 +196,6 @@
         <module>lakeformation</module>
         <module>forecast</module>
         <module>forecastquery</module>
-        <module>qldb</module>
-        <module>qldbsession</module>
         <module>workmailmessageflow</module>
         <module>codestarnotifications</module>
         <module>savingsplans</module>
@@ -222,7 +209,6 @@
         <module>wafv2</module>
         <module>appconfig</module>
         <module>iotsecuretunneling</module>
-        <module>elasticinference</module>
         <module>imagebuilder</module>
         <module>schemas</module>
         <module>accessanalyzer</module>
@@ -242,7 +228,6 @@
         <module>iotsitewise</module>
         <module>macie2</module>
         <module>codeartifact</module>
-        <module>honeycode</module>
         <module>ivs</module>
         <module>braket</module>
         <module>identitystore</module>
@@ -262,7 +247,6 @@
         <module>ecrpublic</module>
         <module>amplifybackend</module>
         <module>connectcontactlens</module>
-        <module>lookoutvision</module>
         <module>customerprofiles</module>
         <module>emrcontainers</module>
         <module>sagemakeredge</module>
@@ -271,17 +255,14 @@
         <module>amp</module>
         <module>greengrassv2</module>
         <module>iotwireless</module>
-        <module>iotfleethub</module>
         <module>iotdeviceadvisor</module>
         <module>location</module>
         <module>wellarchitected</module>
         <module>lexruntimev2</module>
         <module>lexmodelsv2</module>
         <module>fis</module>
-        <module>lookoutmetrics</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
-        <module>nimble</module>
         <module>finspacedata</module>
         <module>finspace</module>
         <module>ssmincidents</module>
@@ -329,8 +310,6 @@
         <module>redshiftserverless</module>
         <module>rolesanywhere</module>
         <module>licensemanagerusersubscriptions</module>
-        <module>backupstorage</module>
-        <module>privatenetworks</module>
         <module>supportapp</module>
         <module>controltower</module>
         <module>iotfleetwise</module>
@@ -340,7 +319,6 @@
         <module>scheduler</module>
         <module>ssmsap</module>
         <module>chimesdkvoice</module>
-        <module>iotroborunner</module>
         <module>oam</module>
         <module>arczonalshift</module>
         <module>simspaceweaver</module>
@@ -397,6 +375,67 @@
         <module>neptunegraph</module>
         <module>networkmonitor</module>
         <module>supplychain</module>
+        <module>artifact</module>
+        <module>chatbot</module>
+        <module>timestreaminfluxdb</module>
+        <module>codeconnections</module>
+        <module>deadline</module>
+        <module>controlcatalog</module>
+        <module>route53profiles</module>
+        <module>mailmanager</module>
+        <module>taxsettings</module>
+        <module>applicationsignals</module>
+        <module>pcaconnectorscep</module>
+        <module>qapps</module>
+        <module>ssmquicksetup</module>
+        <module>pcs</module>
+        <module>directoryservicedata</module>
+        <module>marketplacereporting</module>
+        <module>socialmessaging</module>
+        <module>geoplaces</module>
+        <module>geomaps</module>
+        <module>georoutes</module>
+        <module>billing</module>
+        <module>partnercentralselling</module>
+        <module>connectcampaignsv2</module>
+        <module>notifications</module>
+        <module>notificationscontacts</module>
+        <module>bcmpricingcalculator</module>
+        <module>observabilityadmin</module>
+        <module>securityir</module>
+        <module>invoicing</module>
+        <module>networkflowmonitor</module>
+        <module>s3tables</module>
+        <module>dsql</module>
+        <module>bedrockdataautomationruntime</module>
+        <module>bedrockdataautomation</module>
+        <module>backupsearch</module>
+        <module>iotmanagedintegrations</module>
+        <module>gameliftstreams</module>
+        <module>ssmguiconnect</module>
+        <module>evs</module>
+        <module>mpa</module>
+        <module>aiops</module>
+        <module>workspacesinstances</module>
+        <module>keyspacesstreams</module>
+        <module>odb</module>
+        <module>s3vectors</module>
+        <module>bedrockagentcore</module>
+        <module>bedrockagentcorecontrol</module>
+        <module>arcregionswitch</module>
+        <module>bcmrecommendedactions</module>
+        <module>bcmdashboards</module>
+        <module>rtbfabric</module>
+        <module>mwaaserverless</module>
+        <module>signin</module>
+        <module>partnercentralchannel</module>
+        <module>computeoptimizerautomation</module>
+        <module>sagemakerruntimehttp2</module>
+        <module>partnercentralaccount</module>
+        <module>route53globalresolver</module>
+        <module>partnercentralbenefits</module>
+        <module>novaact</module>
+        <module>wickr</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
@@ -478,6 +517,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <artifactId>apache-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
@@ -550,7 +594,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>wiremock-jre8</artifactId>
+            <artifactId>wiremock-jre8-standalone</artifactId>
             <groupId>com.github.tomakehurst</groupId>
             <scope>test</scope>
         </dependency>

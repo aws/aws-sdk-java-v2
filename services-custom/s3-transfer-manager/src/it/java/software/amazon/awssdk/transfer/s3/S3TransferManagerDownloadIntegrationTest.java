@@ -29,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
@@ -66,11 +67,12 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test
-    void download_toFile() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void download_toFile(S3TransferManager tm) throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download =
-            tmCrt.downloadFile(DownloadFileRequest.builder()
+            tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
                                                .addTransferListener(LoggingTransferListener.create())
@@ -80,44 +82,47 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
         assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
     }
 
-    @Test
-    void download_toFile_shouldReplaceExisting() throws IOException {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void download_toFile_shouldReplaceExisting(S3TransferManager tm) throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         Files.write(path, RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8));
         assertThat(path).exists();
         FileDownload download =
-            tmCrt.downloadFile(DownloadFileRequest.builder()
-                                                  .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                                  .destination(path)
-                                                  .addTransferListener(LoggingTransferListener.create())
-                                                  .build());
+            tm.downloadFile(DownloadFileRequest.builder()
+                                               .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                               .destination(path)
+                                               .addTransferListener(LoggingTransferListener.create())
+                                               .build());
         CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
     }
 
-    @Test
-    void download_toBytes() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void download_toBytes(S3TransferManager tm) throws Exception {
         Download<ResponseBytes<GetObjectResponse>> download =
-            tmCrt.download(DownloadRequest.builder()
-                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                          .responseTransformer(AsyncResponseTransformer.toBytes())
-                                          .addTransferListener(LoggingTransferListener.create())
-                                          .build());
+            tm.download(DownloadRequest.builder()
+                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                       .responseTransformer(AsyncResponseTransformer.toBytes())
+                                       .addTransferListener(LoggingTransferListener.create())
+                                       .build());
         CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponseBytes<GetObjectResponse> result = completedDownload.result();
         assertThat(Md5Utils.md5AsBase64(result.asByteArray())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(result.response().responseMetadata().requestId()).isNotNull();
     }
 
-    @Test
-    void download_toPublisher() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void download_toPublisher(S3TransferManager tm) throws Exception {
         Download<ResponsePublisher<GetObjectResponse>> download =
-            tmCrt.download(DownloadRequest.builder()
-                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                          .responseTransformer(AsyncResponseTransformer.toPublisher())
-                                          .addTransferListener(LoggingTransferListener.create())
-                                          .build());
+            tm.download(DownloadRequest.builder()
+                                       .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                       .responseTransformer(AsyncResponseTransformer.toPublisher())
+                                       .addTransferListener(LoggingTransferListener.create())
+                                       .build());
         CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();
         ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));

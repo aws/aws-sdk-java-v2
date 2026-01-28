@@ -1,0 +1,68 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"fromruleset",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AwsEndpointAuthService",
+    "serviceFullName":"AWS Endpoint Auth Service",
+    "serviceId":"EndpointAuth",
+    "signatureVersion":"v4",
+    "targetPrefix":"EndpointAuth",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "allAuthPropertiesInEndpointRules":{
+      "name":"allSigv4aAuthPropertiesPresent",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allSigv4aAuthPropertiesPresent"
+      },
+      "input":{"shape":"SampleRequest"},
+      "staticContextParams":{
+        "ApiType":{"value":"AllSigv4aAuthPropertiesPresent"}
+      }
+    },
+    "regionsetAbsentInSigv4aPropertiesInEndpointRules":{
+      "name":"regionsetAbsentInSigv4aPropertiesInEndpointRules",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/regionsetAbsentInSigv4aPropertiesInEndpointRules"
+      },
+      "input":{"shape":"SampleRequest"},
+      "staticContextParams":{
+        "ApiType":{"value":"RegionsetAbsentInSigv4aPropertiesInEndpointRules"}
+      }
+    },
+    "noSigv4aPropertiesInEndpointRules": {
+      "name": "noSigv4aPropertiesInEndpointRules",
+      "http": {
+        "method": "GET",
+        "requestUri": "/noSigv4aPropertiesInEndpointRules",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "SampleRequest"
+      },
+      "documentation": "<p>Operation with EndpointParams w</p>",
+      "staticContextParams": {
+        "ApiType": {
+          "value": "NoSigv4aPropertiesInEndpointRules"
+        }
+      }
+    }
+  },
+  "shapes": {
+    "SampleRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

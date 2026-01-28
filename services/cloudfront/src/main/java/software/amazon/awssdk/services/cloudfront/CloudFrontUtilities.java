@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.URI;
 import java.security.InvalidKeyException;
+import java.security.PrivateKey;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -140,18 +141,21 @@ public final class CloudFrontUtilities {
         try {
             String resourceUrl = request.resourceUrl();
             String cannedPolicy = SigningUtils.buildCannedPolicy(resourceUrl, request.expirationDate());
-            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = signPolicy(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
-            String domain = uri.getHost();
             String encodedPath = uri.getRawPath()
                                  + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
                                  + "Expires=" + request.expirationDate().getEpochSecond()
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
-                                   .url(protocol + "://" + domain + encodedPath).build();
+            return DefaultSignedUrl.builder()
+                                   .protocol(protocol)
+                                   .domain(uri.getHost())
+                                   .encodedPath(encodedPath)
+                                   .url(protocol + "://" + uri.getAuthority() + encodedPath)
+                                   .build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -213,7 +217,13 @@ public final class CloudFrontUtilities {
      *
      * @param request
      *            A {@link CustomSignerRequest} configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
+     *            resourceUrl,
+     *            privateKey,
+     *            keyPairId,
+     *            expirationDate,
+     *            activeDate (optional),
+     *            ipRange (optional),
+     *            resourceUrlPattern (optional)
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      *
@@ -230,6 +240,7 @@ public final class CloudFrontUtilities {
      *     Path keyFile = myKeyFile;
      *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
+     *     String resourceUrlPattern = "*"; // If not supplied, defaults to the value of resourceUrl.
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
@@ -238,29 +249,40 @@ public final class CloudFrontUtilities {
      *                                                            .expirationDate(expirationDate)
      *                                                            .activeDate(activeDate)
      *                                                            .ipRange(ipRange)
+     *                                                            .resourceUrlPattern(resourceUrlPattern)
      *                                                            .build();
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCustomPolicy(customRequest);
      *     String url = signedUrl.url();
      * }
      */
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
+        String resourceUrl = request.resourceUrl();
         try {
-            String resourceUrl = request.resourceUrl();
-            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(),
-                                                                       request.expirationDate(), request.ipRange());
-            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
+            String resourceUrlPattern = request.resourceUrlPattern() == null
+                                        ? request.resourceUrl()
+                                        : request.resourceUrlPattern();
+
+            String policy = SigningUtils.buildCustomPolicyForSignedUrl(resourceUrlPattern,
+                                                                       request.activeDate(),
+                                                                       request.expirationDate(),
+                                                                       request.ipRange());
+
+            byte[] signatureBytes = signPolicy(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
-            String domain = uri.getHost();
             String encodedPath = uri.getRawPath()
                                  + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
                                  + "Policy=" + urlSafePolicy
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
-                                   .url(protocol + "://" + domain + encodedPath).build();
+            return DefaultSignedUrl.builder()
+                                   .protocol(protocol)
+                                   .domain(uri.getHost())
+                                   .encodedPath(encodedPath)
+                                   .url(protocol + "://" + uri.getAuthority() + encodedPath)
+                                   .build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -347,7 +369,7 @@ public final class CloudFrontUtilities {
     public CookiesForCannedPolicy getCookiesForCannedPolicy(CannedSignerRequest request) {
         try {
             String cannedPolicy = SigningUtils.buildCannedPolicy(request.resourceUrl(), request.expirationDate());
-            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = signPolicy(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             String expiry = String.valueOf(request.expirationDate().getEpochSecond());
             return DefaultCookiesForCannedPolicy.builder()
@@ -448,7 +470,7 @@ public final class CloudFrontUtilities {
         try {
             String policy = SigningUtils.buildCustomPolicy(request.resourceUrl(), request.activeDate(), request.expirationDate(),
                                                            request.ipRange());
-            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = signPolicy(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             return DefaultCookiesForCustomPolicy.builder()
@@ -458,6 +480,22 @@ public final class CloudFrontUtilities {
                                                 .policyHeaderValue(POLICY_KEY + "=" + urlSafePolicy).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign custom policy cookie", e);
+        }
+    }
+
+    private static byte[] signPolicy(byte[] policyToSign, PrivateKey privateKey) throws InvalidKeyException {
+        // all CloudFront signed urls currently require the SHA1 and currently only support RSA and EC
+        switch (privateKey.getAlgorithm()) {
+            case "RSA":
+                return SigningUtils.signWithSha1Rsa(policyToSign, privateKey);
+            case "EC":
+            case "ECDSA":
+                return SigningUtils.signWithSha1ECDSA(policyToSign, privateKey);
+            default:
+                // do not attempt to use a generic Signer based on the privateKey algorithm:
+                // future supported key types likely require different hash algorithms (eg, SHA256 or higher instead of SHA1)
+                throw new IllegalArgumentException(
+                    "Unsupported key algorithm for CloudFront signed URL: " + privateKey.getAlgorithm());
         }
     }
 

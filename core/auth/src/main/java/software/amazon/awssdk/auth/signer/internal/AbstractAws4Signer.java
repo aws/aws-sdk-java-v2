@@ -41,14 +41,17 @@ import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.cache.FifoCache;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -67,7 +70,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private static final FifoCache<SignerKey> SIGNER_CACHE =
         new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
+        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect", "transfer-encoding", "x-forwarded-for");
 
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
                                                 Aws4SignerRequestParams requestParams,
@@ -331,7 +334,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_DATE, signerParams.getFormattedRequestSigningDateTime());
-        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER, canonicalRequest.signedHeaderString());
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, canonicalRequest.signedHeaderString());
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
     }
@@ -374,9 +377,9 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         long expirationInSeconds = signingParams.expirationTime()
                                                 .map(t -> t.getEpochSecond() -
                                                           (requestParams.getRequestSigningDateTimeMilli() / 1000))
-                                                .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
+                                                .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.getSeconds());
 
-        if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
+        if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.getSeconds()) {
             throw SdkClientException.builder()
                                     .message("Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
                                              " days. The expiration date set on the current request [" +
@@ -414,7 +417,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
                      .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
                      .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET))
+                     .timeOffset(executionAttributes.getAttribute(SdkExecutionAttribute.TIME_OFFSET))
                      .signingClockOverride(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK));
 
         Boolean doubleUrlEncode = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);

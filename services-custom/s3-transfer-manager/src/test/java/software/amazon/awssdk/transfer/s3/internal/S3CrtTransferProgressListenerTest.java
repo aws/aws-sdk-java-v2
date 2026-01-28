@@ -160,7 +160,9 @@ public class S3CrtTransferProgressListenerTest {
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
-        assertMockOnFailure(transferListenerMock);
+        Mockito.verify(transferListenerMock, times(1)).transferFailed(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferComplete(ArgumentMatchers.any());
 
     }
 

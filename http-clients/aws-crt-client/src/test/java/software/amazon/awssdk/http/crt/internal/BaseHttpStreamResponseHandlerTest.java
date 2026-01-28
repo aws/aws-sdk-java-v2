@@ -77,7 +77,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseHeadersDone(httpStream, 0);
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).shutdown();
         verify(crtConn).close();
         verify(httpStream).close();
     }
@@ -121,7 +120,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
 
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).shutdown();
         verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
@@ -183,7 +181,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void publisherWritesFutureCompletesWhenConnectionClosed_shouldNotInvokeIncrementWindow() {
+    void publisherWritesFutureCompletesBeforeConnectionClosed_shouldInvokeIncrementWindow() {
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
         when(simplePublisher.complete()).thenReturn(future);
@@ -199,23 +197,10 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         handler.onResponseBody(httpStream,
                                RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
 
-        // This tracker tracks which of the two operation completes first
-        AtomicInteger whenCompleteTracker = new AtomicInteger(0);
-        CompletableFuture<Void> onResponseComplete = CompletableFuture.runAsync(() -> handler.onResponseComplete(httpStream, 0))
-                                                           .whenComplete((r, t) -> whenCompleteTracker.compareAndSet(0, 1));
-
-        CompletableFuture<Void> writeComplete = CompletableFuture.runAsync(() -> future.complete(null))
-                                                           .whenComplete((r, t) -> whenCompleteTracker.compareAndSet(0, 2));
+        future.complete(null);
+        handler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-
-        CompletableFuture.allOf(onResponseComplete, writeComplete).join();
-
-        if (whenCompleteTracker.get() == 1) {
-            // onResponseComplete finishes first
-            verify(httpStream, never()).incrementWindow(anyInt());
-        } else {
-            verify(httpStream).incrementWindow(anyInt());
-        }
+        verify(httpStream).incrementWindow(anyInt());
 
         verify(crtConn, never()).shutdown();
         verify(crtConn).close();

@@ -70,11 +70,12 @@ import software.amazon.awssdk.services.s3.model.Protocol;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressTest extends BaseRuleSetClientTest {
-
+    private static final Logger log = Logger.loggerFor(S3ExpressTest.class);
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
@@ -125,7 +126,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallUploadPart(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyUploadPart(s3ExpressSessionAuth);
-        verifyUploadPartHeaders(clientType, protocol, checksumAlgorithm);
+        verifyUploadPartHeaders(clientType, protocol);
     }
 
     @ParameterizedTest
@@ -136,7 +137,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallGetObject(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyGetObject(s3ExpressSessionAuth);
-        verifyGetObjectHeaders(protocol);
+        verifyGetObjectHeaders();
     }
 
     @ParameterizedTest
@@ -184,10 +185,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("x-amz-sdk-checksum-algorithm")).isNull();
         assertThat(headers.get("Content-MD5")).isNull();
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
     }
 
-    private void assertSignatureHeader(Protocol protocol, Map<String, List<String>> headers) {
+    private void assertSignatureHeader(Map<String, List<String>> headers) {
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
     }
@@ -263,7 +264,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
 
     private static void verifySessionHeaders() {
         verify(1, getRequestedFor(urlMatching("/.*session"))
-            .withHeader("x-amz-create-session-mode", equalTo("ReadWrite"))
+            .withoutHeader("x-amz-create-session-mode")
             .withHeader("x-amz-content-sha256", equalTo("UNSIGNED-PAYLOAD")));
     }
 
@@ -289,28 +290,22 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
 
-    void verifyUploadPartHeaders(ClientType clientType, Protocol protocol, ChecksumAlgorithm checksumAlgorithm) {
+    void verifyUploadPartHeaders(ClientType clientType, Protocol protocol) {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("Content-Length")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
 
-        if ((protocol == Protocol.HTTPS || clientType == ClientType.ASYNC)  &&
-            checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION) {
-            assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
-        } else {
-            assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
-            String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
-            if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
-                streamingSha256 = checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION ?
-                                  "STREAMING-AWS4-HMAC-SHA256-PAYLOAD" : "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
-            }
-            assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
+        assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
+        String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
+        if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
+            streamingSha256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
         }
+        assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
 
-    void verifyGetObjectHeaders(Protocol protocol) {
+    void verifyGetObjectHeaders() {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
         assertThat(headers.get("x-amz-te")).isNull();
     }
 
@@ -431,9 +426,8 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             this.headers = sdkHttpRequest.headers();
-            System.out.printf("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath());
-            headers.forEach((k, strings) -> System.out.printf("%s, %s%n", k, strings));
-            System.out.println();
+            log.debug(() -> String.format("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath()));
+            headers.forEach((k, strings) -> log.debug(() -> String.format("%s, %s%n", k, strings)));
         }
     }
 }

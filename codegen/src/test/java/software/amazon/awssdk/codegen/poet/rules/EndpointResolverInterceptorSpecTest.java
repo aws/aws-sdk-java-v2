@@ -26,20 +26,24 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 public class EndpointResolverInterceptorSpecTest {
     @Test
     public void endpointResolverInterceptorClass() {
-        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(getModel(true));
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(getModel());
         assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor.java"));
     }
 
-    // TODO(post-sra-identity-auth): This can be deleted when useSraAuth is removed
-    @Test
-    public void endpointResolverInterceptorClass_preSra() {
-        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(getModel(false));
-        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-preSra.java"));
+    private static IntermediateModel getModel() {
+        IntermediateModel model = ClientTestModels.queryServiceModels();
+        return model;
     }
 
-    private static IntermediateModel getModel(boolean useSraAuth) {
-        IntermediateModel model = ClientTestModels.queryServiceModels();
-        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
-        return model;
+    @Test
+    void endpointResolverInterceptorClassWithSigv4aMultiAuth() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.opsWithSigv4a());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-multiauthsigv4a.java"));
+    }
+
+    @Test
+    void endpointResolverInterceptorClassWithEndpointBasedAuth() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModelsEndpointAuthParamsWithoutAllowList());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-endpointsbasedauth.java"));
     }
 }

@@ -28,4 +28,22 @@ public class EndpointRulesClientTestSpecTest {
         ClassSpec endpointProviderSpec = new EndpointRulesClientTestSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-rules-test-class.java"));
     }
+
+    @Test
+    public void endpointProviderTestClassWithStringArray() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.stringArrayServiceModels());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-stringarray-test-class.java"));
+    }
+
+    @Test
+    public void endpointProviderTestClassWithUnknownProperties() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-unknown-property-test-class.java"));
+    }
+
+    @Test
+    public void endpointProviderTestClassWithMetricValues() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-metric-values-test-class.java"));
+    }
 }

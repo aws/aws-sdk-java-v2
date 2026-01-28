@@ -1,5 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints;
 
+import java.util.Arrays;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
@@ -18,6 +20,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final Boolean useFIPSEndpoint;
 
+    private final String accountId;
+
+    private final String accountIdEndpointMode;
+
+    private final List<String> listOfStrings;
+
+    private final List<String> defaultListOfStrings;
+
     private final String endpointId;
 
     private final Boolean defaultTrueParam;
@@ -32,10 +42,18 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final String operationContextParam;
 
+    private final List<String> customEndpointArray;
+
+    private final List<String> arnList;
+
     private QueryEndpointParams(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.accountId = builder.accountId;
+        this.accountIdEndpointMode = builder.accountIdEndpointMode;
+        this.listOfStrings = builder.listOfStrings;
+        this.defaultListOfStrings = builder.defaultListOfStrings;
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = builder.defaultTrueParam;
         this.defaultStringParam = builder.defaultStringParam;
@@ -43,6 +61,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         this.booleanContextParam = builder.booleanContextParam;
         this.stringContextParam = builder.stringContextParam;
         this.operationContextParam = builder.operationContextParam;
+        this.customEndpointArray = builder.customEndpointArray;
+        this.arnList = builder.arnList;
     }
 
     public static Builder builder() {
@@ -59,6 +79,22 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    public String accountId() {
+        return accountId;
+    }
+
+    public String accountIdEndpointMode() {
+        return accountIdEndpointMode;
+    }
+
+    public List<String> listOfStrings() {
+        return listOfStrings;
+    }
+
+    public List<String> defaultListOfStrings() {
+        return defaultListOfStrings;
     }
 
     public String endpointId() {
@@ -90,6 +126,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         return operationContextParam;
     }
 
+    public List<String> customEndpointArray() {
+        return customEndpointArray;
+    }
+
+    public List<String> arnList() {
+        return arnList;
+    }
+
     public Builder toBuilder() {
         return new BuilderImpl(this);
     }
@@ -100,6 +144,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder accountId(String accountId);
+
+        Builder accountIdEndpointMode(String accountIdEndpointMode);
+
+        Builder listOfStrings(List<String> listOfStrings);
+
+        Builder defaultListOfStrings(List<String> defaultListOfStrings);
 
         Builder endpointId(String endpointId);
 
@@ -116,6 +168,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder operationContextParam(String operationContextParam);
 
+        Builder customEndpointArray(List<String> customEndpointArray);
+
+        Builder arnList(List<String> arnList);
+
         QueryEndpointParams build();
     }
 
@@ -125,6 +181,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         private Boolean useDualStackEndpoint;
 
         private Boolean useFIPSEndpoint;
+
+        private String accountId;
+
+        private String accountIdEndpointMode;
+
+        private List<String> listOfStrings;
+
+        private List<String> defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
 
         private String endpointId;
 
@@ -140,6 +204,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private String operationContextParam;
 
+        private List<String> customEndpointArray;
+
+        private List<String> arnList;
+
         private BuilderImpl() {
         }
 
@@ -147,6 +215,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.region = builder.region;
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.accountId = builder.accountId;
+            this.accountIdEndpointMode = builder.accountIdEndpointMode;
+            this.listOfStrings = builder.listOfStrings;
+            this.defaultListOfStrings = builder.defaultListOfStrings;
             this.endpointId = builder.endpointId;
             this.defaultTrueParam = builder.defaultTrueParam;
             this.defaultStringParam = builder.defaultStringParam;
@@ -154,6 +226,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.booleanContextParam = builder.booleanContextParam;
             this.stringContextParam = builder.stringContextParam;
             this.operationContextParam = builder.operationContextParam;
+            this.customEndpointArray = builder.customEndpointArray;
+            this.arnList = builder.arnList;
         }
 
         @Override
@@ -171,6 +245,33 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+
+        @Override
+        public Builder accountIdEndpointMode(String accountIdEndpointMode) {
+            this.accountIdEndpointMode = accountIdEndpointMode;
+            return this;
+        }
+
+        @Override
+        public Builder listOfStrings(List<String> listOfStrings) {
+            this.listOfStrings = listOfStrings;
+            return this;
+        }
+
+        @Override
+        public Builder defaultListOfStrings(List<String> defaultListOfStrings) {
+            this.defaultListOfStrings = defaultListOfStrings;
+            if (this.defaultListOfStrings == null) {
+                this.defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
+            }
             return this;
         }
 
@@ -220,6 +321,18 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder operationContextParam(String operationContextParam) {
             this.operationContextParam = operationContextParam;
+            return this;
+        }
+
+        @Override
+        public Builder customEndpointArray(List<String> customEndpointArray) {
+            this.customEndpointArray = customEndpointArray;
+            return this;
+        }
+
+        @Override
+        public Builder arnList(List<String> arnList) {
+            this.arnList = arnList;
             return this;
         }
 

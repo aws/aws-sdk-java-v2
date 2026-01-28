@@ -30,6 +30,21 @@ public interface NamingStrategy {
     String getServiceName();
 
     /**
+     * Retrieve the service name that should be used for environment variables.
+     */
+    String getServiceNameForEnvironmentVariables();
+
+    /**
+     * Retrieve the service name that should be used for system properties.
+     */
+    String getServiceNameForSystemProperties();
+
+    /**
+     * Retrieve the service name that should be used for profile properties.
+     */
+    String getServiceNameForProfileFile();
+
+    /**
      * Retrieve the client package name that should be used based on the service name.
      */
     String getClientPackageName(String serviceName);
@@ -68,6 +83,16 @@ public interface NamingStrategy {
      * Retrieve the auth scheme package name that should be used based on the service name.
      */
     String getAuthSchemePackageName(String serviceName);
+
+    /**
+     * Retrieve the path runtime package name that should be used based on the service name.
+     */
+    String getJmesPathPackageName(String serviceName);
+
+    /**
+     * Retrieve the batchManager package name that should be used based on the service name.
+     */
+    String getBatchManagerPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.
@@ -174,6 +199,21 @@ public interface NamingStrategy {
      * @return Name of an existence check method.
      */
     String getExistenceCheckMethodName(String memberName, Shape parentShape);
+
+    /**
+     * Retrieve the service's signing name that should be used based on the model.
+     */
+    String getSigningName();
+
+    /**
+     * Retrieve the service's signing name that should be used for environment variables.
+     */
+    String getSigningNameForEnvironmentVariables();
+
+    /**
+     * Retrieve the service's signing name that should be used for system properties.
+     */
+    String getSigningNameForSystemProperties();
 
     /**
      * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.

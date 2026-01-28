@@ -28,10 +28,13 @@ import software.amazon.awssdk.regions.RegionScope;
  *  (Common RunTime) library.
  *  <p/>
  * In CRT signing, payload signing is the default unless an override value is specified.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner} from the 'http-auth-aws' module.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
+@Deprecated
 public interface AwsCrtV4aSigner extends Signer, Presigner {
 
     /**

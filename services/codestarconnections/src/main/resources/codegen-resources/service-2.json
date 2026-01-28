@@ -5,12 +5,14 @@
     "endpointPrefix":"codestar-connections",
     "jsonVersion":"1.0",
     "protocol":"json",
+    "protocols":["json"],
     "serviceFullName":"AWS CodeStar connections",
     "serviceId":"CodeStar connections",
     "signatureVersion":"v4",
     "signingName":"codestar-connections",
     "targetPrefix":"com.amazonaws.codestar.connections.CodeStar_connections_20191201",
-    "uid":"codestar-connections-2019-12-01"
+    "uid":"codestar-connections-2019-12-01",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "CreateConnection":{
@@ -518,7 +520,7 @@
         },
         "ConnectionArn":{
           "shape":"ConnectionArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the connection. The ARN is used as the connection reference when the connection is shared between Amazon Web Services.</p> <note> <p>The ARN is never reused if the connection is deleted.</p> </note>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the connection. The ARN is used as the connection reference when the connection is shared between Amazon Web Services services.</p> <note> <p>The ARN is never reused if the connection is deleted.</p> </note>"
         },
         "ProviderType":{
           "shape":"ProviderType",
@@ -716,6 +718,14 @@
         "SyncType":{
           "shape":"SyncConfigurationType",
           "documentation":"<p>The type of sync configuration.</p>"
+        },
+        "PublishDeploymentStatus":{
+          "shape":"PublishDeploymentStatus",
+          "documentation":"<p>Whether to enable or disable publishing of deployment status to source providers.</p>"
+        },
+        "TriggerResourceUpdateOn":{
+          "shape":"TriggerResourceUpdateOn",
+          "documentation":"<p>When to trigger Git sync to begin the stack update.</p>"
         }
       }
     },
@@ -742,8 +752,7 @@
     },
     "DeleteConnectionOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteHostInput":{
       "type":"structure",
@@ -757,8 +766,7 @@
     },
     "DeleteHostOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteRepositoryLinkInput":{
       "type":"structure",
@@ -772,8 +780,7 @@
     },
     "DeleteRepositoryLinkOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteSyncConfigurationInput":{
       "type":"structure",
@@ -794,8 +801,7 @@
     },
     "DeleteSyncConfigurationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeploymentFilePath":{"type":"string"},
     "Directory":{"type":"string"},
@@ -1306,6 +1312,13 @@
         "GitLabSelfManaged"
       ]
     },
+    "PublishDeploymentStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
     "RepositoryLinkArn":{
       "type":"string",
       "pattern":"^arn:aws(?:-[a-z]+)*:codestar-connections:[a-z\\-0-9]+:\\d{12}:repository-link\\/[a-zA-Z0-9\\-:/]+"
@@ -1800,6 +1813,14 @@
         "SyncType":{
           "shape":"SyncConfigurationType",
           "documentation":"<p>The type of sync for a specific sync configuration.</p>"
+        },
+        "PublishDeploymentStatus":{
+          "shape":"PublishDeploymentStatus",
+          "documentation":"<p>Whether to enable or disable publishing of deployment status to source providers.</p>"
+        },
+        "TriggerResourceUpdateOn":{
+          "shape":"TriggerResourceUpdateOn",
+          "documentation":"<p>When to trigger Git sync to begin the stack update.</p>"
         }
       },
       "documentation":"<p>Information, such as repository, branch, provider, and resource names for a specific sync configuration.</p>"
@@ -1875,8 +1896,7 @@
     },
     "TagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -1899,6 +1919,13 @@
       "max":16384,
       "min":1,
       "pattern":"[\\s\\S]*"
+    },
+    "TriggerResourceUpdateOn":{
+      "type":"string",
+      "enum":[
+        "ANY_CHANGE",
+        "FILE_CHANGE"
+      ]
     },
     "Type":{"type":"string"},
     "UnsupportedOperationException":{
@@ -1936,8 +1963,7 @@
     },
     "UntagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateHostInput":{
       "type":"structure",
@@ -1959,8 +1985,7 @@
     },
     "UpdateHostOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateOutOfSyncException":{
       "type":"structure",
@@ -2076,6 +2101,14 @@
         "SyncType":{
           "shape":"SyncConfigurationType",
           "documentation":"<p>The sync type for the sync configuration to be updated.</p>"
+        },
+        "PublishDeploymentStatus":{
+          "shape":"PublishDeploymentStatus",
+          "documentation":"<p>Whether to enable or disable publishing of deployment status to source providers.</p>"
+        },
+        "TriggerResourceUpdateOn":{
+          "shape":"TriggerResourceUpdateOn",
+          "documentation":"<p>When to trigger Git sync to begin the stack update.</p>"
         }
       }
     },

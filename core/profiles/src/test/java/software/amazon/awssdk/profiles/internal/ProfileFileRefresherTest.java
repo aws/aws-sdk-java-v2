@@ -29,12 +29,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 public class ProfileFileRefresherTest {
 
@@ -64,43 +65,47 @@ public class ProfileFileRefresherTest {
         ProfileFileRefresher refresher = refresherWithClock(clock)
             .profileFile(() -> profileFile(credentialsFilePath))
             .build();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
+        Duration intervalWithinStale = Duration.ofMillis(100);
 
         ProfileFile file1 = refresher.refreshIfStale();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
-        clock.tickForward(intervalWithinJitter);
+        clock.tickForward(intervalWithinStale);
         ProfileFile file2 = refresher.refreshIfStale();
 
         Assertions.assertThat(file2).isSameAs(file1);
     }
 
     @Test
-    void refreshIfStale_profileModifiedWithinJitterPeriod_doesNotReloadProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+    void refreshIfStale_profileModifiedWithinStalePeriod_doesNotReloadProfileFile() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        AdjustableClock clock = new AdjustableClock();
-        ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFile(() -> profileFile(credentialsFilePath))
-            .profileFilePath(credentialsFilePath)
-            .build();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
+            AdjustableClock clock = new AdjustableClock();
+            ProfileFileRefresher refresher = refresherWithClock(clock)
+                .profileFile(() -> profileFile(credentialsFilePath))
+                .profileFilePath(credentialsFilePath)
+                .build();
+            Duration intervalWithinStale = Duration.ofMillis(100);
 
-        ProfileFile file1 = refresher.refreshIfStale();
+            ProfileFile file1 = refresher.refreshIfStale();
 
-        clock.tickForward(intervalWithinJitter);
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-        updateModificationTime(credentialsFilePath, clock.instant());
+            clock.tickForward(intervalWithinStale);
+            generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant());
 
-        ProfileFile file2 = refresher.refreshIfStale();
+            ProfileFile file2 = refresher.refreshIfStale();
 
-        Assertions.assertThat(file2).isSameAs(file1);
+            Assertions.assertThat(file2).isSameAs(file1);
+
+            Assertions.assertThat(logCaptor.loggedEvents()).isEmpty();
+        }
     }
 
     @Test
-    void refreshIfStale_profileModifiedOutsideJitterPeriod_reloadsProfileFile() {
+    void refreshIfStale_profileModifiedOutsideStalePeriod_reloadsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
@@ -247,13 +252,6 @@ public class ProfileFileRefresherTest {
         Assertions.assertThat(refreshOperationsCounter.get()).isEqualTo(actualRefreshOperations);
     }
 
-    private ProfileFile credentialFile(String credentialFile) {
-        return ProfileFile.builder()
-                          .content(new StringInputStream(credentialFile))
-                          .type(ProfileFile.Type.CREDENTIALS)
-                          .build();
-    }
-
     private Path generateTestFile(String contents, String filename) {
         try {
             Files.createDirectories(testDirectory);
@@ -310,10 +308,6 @@ public class ProfileFileRefresherTest {
 
         public void tickForward(TemporalAmount amount) {
             time = time.plus(amount);
-        }
-
-        public void tickBackward(TemporalAmount amount) {
-            time = time.minus(amount);
         }
     }
 }

@@ -20,20 +20,38 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import org.junit.Rule;
-import org.junit.Test;
+import java.security.AccessControlException;
+import java.security.Permission;
+import java.util.List;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.testutils.LogCaptor;
+import org.junit.jupiter.api.condition.JRE;
 
-public class AwsProfileRegionProviderTest {
+class AwsProfileRegionProviderTest {
 
-    @Rule
-    public EnvironmentVariableHelper settingsHelper = new EnvironmentVariableHelper();
+    public EnvironmentVariableHelper settingsHelper;
+
+    @BeforeEach
+    void setUp() {
+        settingsHelper = new EnvironmentVariableHelper();
+    }
+
+    @AfterEach
+    void tearDown() {
+        settingsHelper.reset();
+    }
 
     @Test
-    public void nonExistentDefaultConfigFile_ThrowsException() {
+    void nonExistentDefaultConfigFile_ThrowsException() {
         settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
         settingsHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
         assertThatThrownBy(() -> new AwsProfileRegionProvider().getRegion())
@@ -42,11 +60,48 @@ public class AwsProfileRegionProviderTest {
     }
 
     @Test
-    public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
+    void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
         String testFile = "/profileconfig/test-profiles.tst";
 
         settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, "test");
         settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, Paths.get(getClass().getResource(testFile).toURI()).toString());
         assertThat(new AwsProfileRegionProvider().getRegion()).isEqualTo(Region.of("saa"));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_16)
+    void profilePresentAndRegionIsSet_ProvidesCorrectRegion_withException() throws URISyntaxException {
+        // Set up test configuration
+        String testFile = "/profileconfig/test-profiles.tst";
+        settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, "test");
+        settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, Paths.get(getClass().getResource(testFile).toURI()).toString());
+
+        SecurityManager originalSecurityManager = System.getSecurityManager();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            // Set up security manager that blocks access to credentials file
+            SecurityManager securityManager = new SecurityManager() {
+                @Override
+                public void checkPermission(Permission perm) {
+                    if (perm instanceof java.io.FilePermission) {
+                        String path = perm.getName();
+                        if (path.contains(".aws") && path.contains("credentials")) {
+                            throw new AccessControlException("Access to AWS credentials denied");
+                        }
+                    }
+                }
+            };
+
+            System.setSecurityManager(securityManager);
+            // Test the region provider behavior
+            assertThat(new AwsProfileRegionProvider().getRegion()).isEqualTo(Region.of("saa"));
+
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).hasSize(1);
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                .contains("Security restrictions prevented access to profile file: Access to AWS credentials denied");
+        } finally {
+            System.setSecurityManager(originalSecurityManager);
+        }
     }
 }

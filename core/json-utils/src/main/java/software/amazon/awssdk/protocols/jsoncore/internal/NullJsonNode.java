@@ -17,14 +17,18 @@ package software.amazon.awssdk.protocols.jsoncore.internal;
 
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeVisitor;
 
 /**
  * A null {@link JsonNode}.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class NullJsonNode implements JsonNode {
     private static final NullJsonNode INSTANCE = new NullJsonNode();
 

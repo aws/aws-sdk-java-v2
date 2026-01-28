@@ -31,9 +31,9 @@ import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.async.InputStreamSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
@@ -46,7 +46,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     private final SimplePublisher<ByteBuffer> simplePublisher;
 
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
-    private final HttpClientConnection crtConn;
 
     private final SdkHttpFullResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
@@ -60,7 +59,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
                                                         SimplePublisher<ByteBuffer> simplePublisher) {
-        this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
@@ -87,8 +85,10 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     @Override
     public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
         if (inputStreamSubscriber == null) {
-            inputStreamSubscriber = new AbortableInputStreamSubscriber(() -> responseHandlerHelper.closeConnection(stream),
-                                                                       new InputStreamSubscriber());
+            inputStreamSubscriber =
+                AbortableInputStreamSubscriber.builder()
+                                              .doAfterClose(() -> responseHandlerHelper.closeConnection(stream))
+                                              .build();
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
             // the stream directly.
@@ -147,6 +147,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
+        responseHandlerHelper.releaseConnection(stream);
     }
 }

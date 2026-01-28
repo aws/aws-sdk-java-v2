@@ -17,9 +17,9 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.auth.credentials.internal.ProcessCredentialsTestUtils.copyHappyCaseProcessCredentialsScript;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,9 +32,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.ProcessCredentialsProviderTest;
-import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -44,7 +41,7 @@ public class ProfileCredentialsUtilsTest {
 
     @BeforeAll
     public static void setup()  {
-        scriptLocation = ProcessCredentialsProviderTest.copyHappyCaseProcessCredentialsScript();
+        scriptLocation = copyHappyCaseProcessCredentialsScript();
     }
 
     @AfterAll
@@ -58,7 +55,8 @@ public class ProfileCredentialsUtilsTest {
     public void roleProfileCanInheritFromAnotherFile() {
         String sourceProperties =
             "aws_access_key_id=defaultAccessKey\n" +
-            "aws_secret_access_key=defaultSecretAccessKey";
+            "aws_secret_access_key=defaultSecretAccessKey" +
+            "aws_account_id=defaultAccountId";
 
         String childProperties =
             "source_profile=source\n" +
@@ -117,13 +115,15 @@ public class ProfileCredentialsUtilsTest {
         ProfileFile profileFile = allTypesProfile();
         assertThat(profileFile.profile("default")).hasValueSatisfying(profile -> {
             assertThat(profile.name()).isEqualTo("default");
-            assertThat(profile.property(ProfileProperty.AWS_ACCESS_KEY_ID)).hasValue("defaultAccessKey");
             assertThat(profile.toString()).contains("default");
+            assertThat(profile.property(ProfileProperty.AWS_ACCESS_KEY_ID)).hasValue("defaultAccessKey");
+            assertThat(profile.property(ProfileProperty.AWS_ACCOUNT_ID)).hasValue("defaultAccountId");
             assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
             assertThat(new ProfileCredentialsUtils(profileFile, profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
                     assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                    assertThat(credentials.accountId()).isPresent().hasValue("defaultAccountId");
                 });
             });
         });
@@ -140,6 +140,7 @@ public class ProfileCredentialsUtilsTest {
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
                     assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
                     assertThat(((AwsSessionCredentials) credentials).sessionToken()).isEqualTo("awsSessionToken");
+                    assertThat(credentials.accountId()).isPresent().hasValue("defaultAccountId");
                 });
             });
         });
@@ -155,6 +156,55 @@ public class ProfileCredentialsUtilsTest {
                     assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
                     assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                    assertThat(credentials.accountId()).isNotPresent();
+                });
+            });
+        });
+    }
+
+    @Test
+    public void profileFileWithProcessCredentialsAndAccountIdInFileFindsAccountId() {
+        ProfileFile profileFile = allTypesProfile();
+        assertThat(profileFile.profile("profile-credential-process-account-id")).hasValueSatisfying(profile -> {
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
+            assertThat(new ProfileCredentialsUtils(profileFile, profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
+                    assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+                    assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+                    assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                    assertThat(credentials.accountId()).isPresent().hasValue("123456789012");
+                });
+            });
+        });
+    }
+
+    @Test
+    public void profileFileWithProcessCredentialsAndAccountIdInFileAndProfilePicksFromFile() {
+        ProfileFile profileFile = allTypesProfile();
+        assertThat(profileFile.profile("profile-credential-process-account-id-override")).hasValueSatisfying(profile -> {
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
+            assertThat(new ProfileCredentialsUtils(profileFile, profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
+                    assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+                    assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+                    assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                    assertThat(credentials.accountId()).isPresent().hasValue("123456789012");
+                });
+            });
+        });
+    }
+
+    @Test
+    public void profileFileWithProcessCredentialsAndAccountIdInProfileFindsAccountId() {
+        ProfileFile profileFile = allTypesProfile();
+        assertThat(profileFile.profile("profile-credential-process-local-account-id")).hasValueSatisfying(profile -> {
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
+            assertThat(new ProfileCredentialsUtils(profileFile, profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
+                    assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+                    assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+                    assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                    assertThat(credentials.accountId()).isPresent().hasValue("defaultAccountId");
                 });
             });
         });
@@ -311,11 +361,13 @@ public class ProfileCredentialsUtilsTest {
         return configFile("[default]\n" +
                           "aws_access_key_id = defaultAccessKey\n" +
                           "aws_secret_access_key = defaultSecretAccessKey\n" +
+                          "aws_account_id = defaultAccountId\n" +
                           "\n" +
                           "[profile profile-with-session-token]\n" +
                           "aws_access_key_id = defaultAccessKey\n" +
                           "aws_secret_access_key = defaultSecretAccessKey\n" +
                           "aws_session_token = awsSessionToken\n" +
+                          "aws_account_id = defaultAccountId\n" +
                           "\n" +
                           "[profile profile-with-region]\n" +
                           "region = us-east-1\n" +
@@ -325,6 +377,17 @@ public class ProfileCredentialsUtilsTest {
                           "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
                           "\n" +
                           "[profile profile-credential-process]\n" +
+                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey\n" +
+                          "\n" +
+                          "[profile profile-credential-process-account-id]\n" +
+                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey acctid=123456789012\n" +
+                          "\n" +
+                          "[profile profile-credential-process-account-id-override]\n" +
+                          "aws_account_id = defaultAccountId\n" +
+                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey acctid=123456789012\n" +
+                          "\n" +
+                          "[profile profile-credential-process-local-account-id]\n" +
+                          "aws_account_id = defaultAccountId\n" +
                           "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey\n" +
                           "\n" +
                           "[profile profile-with-container-credential-source]\n" +

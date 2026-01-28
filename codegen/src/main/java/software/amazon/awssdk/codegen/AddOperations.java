@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 /**
  * Constructs the operation model for every operation defined by the service.
@@ -164,7 +165,7 @@ final class AddOperations {
             OperationModel operationModel = new OperationModel();
 
             operationModel.setOperationName(operationName);
-            operationModel.setServiceProtocol(serviceModel.getMetadata().getProtocol());
+            operationModel.setServiceProtocol(ProtocolUtils.resolveProtocol(serviceModel.getMetadata()));
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());
@@ -178,7 +179,9 @@ final class AddOperations {
             operationModel.setHttpChecksum(op.getHttpChecksum());
             operationModel.setRequestcompression(op.getRequestcompression());
             operationModel.setStaticContextParams(op.getStaticContextParams());
+            operationModel.setOperationContextParams(op.getOperationContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
+            operationModel.setUnsignedPayload(op.isUnsignedPayload());
 
             Input input = op.getInput();
             if (input != null) {
@@ -234,17 +237,22 @@ final class AddOperations {
     }
 
     /**
-     * Returns the list of authTypes defined for an operation. If the new auth member is defined we use it, otherwise we retrofit
-     * the list with the value of the authType member if present or return an empty list if not.
+     * Retrieves the list of {@link AuthType} for the given operation.
+     * <p>
+     * If {@link Operation#getAuth()}is available, it is converted to a list of {@link AuthType}.
+     * Otherwise, {@link Operation#getAuthtype()} is returned as a single-element list if present.
+     * If neither is available, an empty list is returned.
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
-        List<String> opAuth = op.getAuth();
-        if (opAuth != null) {
-            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
-        }
+
+        // First we check for legacy AuthType to support backward compatibility
         AuthType legacyAuthType = op.getAuthtype();
         if (legacyAuthType != null) {
             return Collections.singletonList(legacyAuthType);
+        }
+        List<String> opAuth = op.getAuth();
+        if (opAuth != null) {
+            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

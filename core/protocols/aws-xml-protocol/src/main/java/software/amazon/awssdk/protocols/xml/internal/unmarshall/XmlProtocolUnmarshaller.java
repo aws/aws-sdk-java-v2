@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
@@ -168,11 +169,11 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     }
 
     private boolean isAttribute(SdkField<?> field) {
-        return field.containsTrait(XmlAttributeTrait.class);
+        return field.containsTrait(XmlAttributeTrait.class, TraitType.XML_ATTRIBUTE_TRAIT);
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
-        return field.containsTrait(PayloadTrait.class);
+        return field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private boolean hasXmlPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {

@@ -3,13 +3,17 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -28,6 +32,8 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -114,6 +120,17 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("Foo", FOO_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<EventOne, T> g) {
         return obj -> g.apply((EventOne) obj);
     }
@@ -133,6 +150,8 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
         throw new UnsupportedOperationException();
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, EventOne> {
         /**
          * Sets the value of the Foo property for this object.
@@ -176,6 +195,11 @@ public class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventO
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

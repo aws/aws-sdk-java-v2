@@ -86,14 +86,14 @@
         "requestUri":"/2016-03-11/deleteOperation"
       }
     },
-    "FurtherNestedContainers":{
-      "name":"FurtherNestedContainers",
+    "NestedContainersOperation":{
+      "name":"NestedContainersOperation",
       "http":{
         "method":"POST",
-        "requestUri":"/2016-03-11/furtherNestedContainers"
+        "requestUri":"/2016-03-11/nestedcontainersoperation"
       },
-      "input":{"shape":"FurtherNestedContainersStructure"},
-      "output":{"shape":"FurtherNestedContainersStructure"}
+      "input":{"shape":"NestedContainersOperationStructure"},
+      "output":{"shape":"NestedContainersOperationStructure"}
     },
     "GetOperationWithBody":{
       "name":"GetOperationWithBody",
@@ -381,10 +381,13 @@
       "payload":"PayloadMember"
     },
     "Float":{"type":"float"},
-    "FurtherNestedContainersStructure":{
+    "NestedContainersOperationStructure":{
       "type":"structure",
       "members":{
-        "ListOfNested":{"shape":"ListOfNested"}
+        "Nested": {"shape":"NestedContainersStructure"},
+        "ListOfString":{"shape":"ListOfStrings"},
+        "ListOfNested":{"shape":"ListOfNested"},
+        "PojoKeys":{"shape":"PayloadStructType"}
       }
     },
     "GetOperationWithBodyInput":{
@@ -688,6 +691,8 @@
     "NestedContainersStructure":{
       "type":"structure",
       "members":{
+        "ListOfNested":{"shape":"ListOfNested"},
+        "ListOfString":{"shape":"ListOfStrings"},
         "ListOfListsOfStrings":{"shape":"ListOfListsOfStrings"},
         "ListOfListsOfStructs":{"shape":"ListOfListsOfStructs"},
         "ListOfListsOfAllTypesStructs":{"shape":"ListOfListsOfAllTypesStructs"},

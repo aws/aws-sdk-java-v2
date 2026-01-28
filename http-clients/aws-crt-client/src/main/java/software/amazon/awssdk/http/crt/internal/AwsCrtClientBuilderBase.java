@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsCrtClientBuilderBase<BuilderT> {
     private final AttributeMap.Builder standardOptions = AttributeMap.builder();
     private Long readBufferSize;
-    private ProxyConfiguration proxyConfiguration;
+    private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
     private ConnectionHealthConfiguration connectionHealthConfiguration;
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;
@@ -97,6 +97,12 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     public BuilderT connectionTimeout(Duration connectionTimeout) {
         Validate.isPositive(connectionTimeout, "connectionTimeout");
         standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
+        return thisBuilder();
+    }
+
+    public BuilderT connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+        Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
+        standardOptions.put(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
         return thisBuilder();
     }
 

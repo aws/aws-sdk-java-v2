@@ -30,12 +30,16 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,7 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
+import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.FileUtils;
@@ -436,6 +440,28 @@ public class UploadDirectoryHelperTest {
         assertThat(keys).containsOnly("2.txt");
     }
 
+    @Test
+    public void uploadDirectory_requestTransformFunctionThrows_failsUpload() {
+        when(singleUploadFunction.apply(any())).thenReturn(null);
+
+        RuntimeException exception = new RuntimeException("boom");
+
+        Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer = r -> {
+            throw exception;
+        };
+
+        CompletableFuture<CompletedDirectoryUpload> uploadFuture =
+            uploadDirectoryHelper.uploadDirectory(
+                                     UploadDirectoryRequest.builder()
+                                                           .source(directory)
+                                                           .bucket("bucket")
+                                                           .uploadFileRequestTransformer(uploadFileRequestTransformer)
+                                                           .build())
+                                 .completionFuture();
+
+        assertThatThrownBy(uploadFuture::join).getCause().hasCause(exception);
+    }
+
     private DefaultFileUpload completedUpload() {
         return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()
                                                                                           .response(PutObjectResponse.builder().build())
@@ -443,6 +469,7 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
+                                     new PauseObservable(),
                                      UploadFileRequest.builder()
                                                       .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
                                                       .build());
@@ -453,6 +480,7 @@ public class UploadDirectoryHelperTest {
                                      new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
                                                                                                 .transferredBytes(0L)
                                                                                                 .build()),
+                                     new PauseObservable(),
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get(
                                                           "test.txt"))

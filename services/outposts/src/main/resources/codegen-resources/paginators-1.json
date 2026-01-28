@@ -1,16 +1,46 @@
 {
   "pagination": {
+    "GetOutpostBillingInformation": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Subscriptions"
+    },
     "GetOutpostInstanceTypes": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "InstanceTypes"
     },
+    "GetOutpostSupportedInstanceTypes": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "InstanceTypes"
+    },
+    "ListAssetInstances": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AssetInstances"
+    },
     "ListAssets": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "Assets"
+    },
+    "ListBlockingInstancesForCapacityTask": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "BlockingInstances"
+    },
+    "ListCapacityTasks": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "CapacityTasks"
     },
     "ListCatalogItems": {
       "input_token": "NextToken",

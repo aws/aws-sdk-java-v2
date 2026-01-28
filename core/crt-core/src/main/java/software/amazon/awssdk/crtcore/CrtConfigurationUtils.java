@@ -38,6 +38,9 @@ public final class CrtConfigurationUtils {
 
         clientProxyOptions.setHost(proxyConfiguration.host());
         clientProxyOptions.setPort(proxyConfiguration.port());
+        if (!proxyConfiguration.nonProxyHosts().isEmpty()) {
+            clientProxyOptions.setNoProxyHosts(String.join(",", proxyConfiguration.nonProxyHosts()));
+        }
 
         if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
             clientProxyOptions.setTlsContext(tlsContext);
@@ -58,7 +61,6 @@ public final class CrtConfigurationUtils {
         if (config == null) {
             return Optional.empty();
         }
-
         HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
         httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
         int seconds = NumericUtils.saturatedCast(config.minimumThroughputTimeout().getSeconds());

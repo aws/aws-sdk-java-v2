@@ -43,4 +43,9 @@ public class UtilsTest {
         capitalizedToUncapitalized.forEach((capitalized,unCapitalized) ->
                 assertThat(Utils.unCapitalize(capitalized), is(equalTo(unCapitalized))));
     }
+
+    // Dummy No-op function which just returns the input as the return function.
+    public static <T> T dummyRequestModifier(T input) {
+        return input;
+    }
 }

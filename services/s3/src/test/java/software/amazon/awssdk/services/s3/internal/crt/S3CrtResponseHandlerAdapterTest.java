@@ -23,9 +23,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -35,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -42,6 +48,7 @@ import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3CrtResponseHandlerAdapterTest {
@@ -53,7 +60,7 @@ public class S3CrtResponseHandlerAdapterTest {
     private S3FinishedResponseContext context;
 
     @Mock
-    private S3MetaRequest s3MetaRequest;
+    private S3MetaRequestWrapper s3MetaRequest;
     private CompletableFuture<Void> future;
 
     @Before
@@ -62,8 +69,8 @@ public class S3CrtResponseHandlerAdapterTest {
         sdkResponseHandler = spy(new TestResponseHandler());
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
-                                                                 null);
-        responseHandlerAdapter.metaRequest(s3MetaRequest);
+                                                                 null,
+                                                                 CompletableFuture.completedFuture(s3MetaRequest));
     }
 
     @Test
@@ -89,6 +96,21 @@ public class S3CrtResponseHandlerAdapterTest {
         verify(s3MetaRequest, times(2)).incrementReadWindow(11L);
         verify(s3MetaRequest).close();
         verify(sdkResponseHandler).onHeaders(any(SdkHttpResponse.class));
+    }
+
+    @Test
+    public void s3MetaRequestNotFinish_shouldFailFuture() throws Exception {
+        S3CrtResponseHandlerAdapter responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
+                                                                                             sdkResponseHandler,
+                                                                                             null,
+                                                                                             new CompletableFuture<>(),
+                                                                                             Duration.ofMillis(10));
+        int statusCode = 200;
+        responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+            .hasMessageContaining("Timeout waiting for metaRequest");
     }
 
     @Test
@@ -140,6 +162,50 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void requestFailedMidwayDueToServerError_shouldCompleteFutureWithS3Exceptionally() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1, 404, "".getBytes());
+        List<HttpHeader> headers = new ArrayList<>();
+        headers.add(new HttpHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "1234"));
+        headers.add(new HttpHeader(X_AMZ_ID_2_HEADER, "5678"));
+
+        when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
+
+        responseHandlerAdapter.onFinished(errorContext);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
+
+        assertThat(exceptionFromResponseHandler).isInstanceOf(S3Exception.class);
+        assertThat(((S3Exception) exceptionFromResponseHandler).statusCode()).isEqualTo(404);
+        assertThat(((S3Exception) exceptionFromResponseHandler).requestId()).isEqualTo("1234");
+        assertThat(((S3Exception) exceptionFromResponseHandler).extendedRequestId()).isEqualTo("5678");
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
+
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void requestFailedMidwayDueToIoError_shouldInvokeOnError() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1079, 0, "".getBytes());
+        responseHandlerAdapter.onFinished(errorContext);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
+
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
+        assertThat(exceptionFromResponseHandler).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
         RuntimeException cause = new RuntimeException("error");
         S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);
@@ -171,6 +237,8 @@ public class S3CrtResponseHandlerAdapterTest {
     private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
         private SdkHttpResponse sdkHttpResponse;
         private Throwable error;
+        private TestSubscriber subscriber = new TestSubscriber();
+
         @Override
         public void onHeaders(SdkHttpResponse headers) {
             this.sdkHttpResponse = headers;
@@ -178,12 +246,21 @@ public class S3CrtResponseHandlerAdapterTest {
 
         @Override
         public void onStream(Publisher<ByteBuffer> stream) {
-            stream.subscribe(new DrainingSubscriber<>());
+            stream.subscribe(subscriber);
         }
 
         @Override
         public void onError(Throwable error) {
             this.error = error;
+        }
+    }
+
+    private static class TestSubscriber extends DrainingSubscriber {
+        private Throwable error;
+        @Override
+        public void onError(Throwable throwable) {
+            error = throwable;
+            super.onError(throwable);
         }
     }
 }

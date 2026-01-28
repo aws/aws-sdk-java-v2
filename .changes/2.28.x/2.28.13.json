@@ -1,0 +1,30 @@
+{
+    "version": "2.28.13",
+    "date": "2024-10-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "This release adds support to stop an ongoing ingestion job using the StopIngestionJob API in Agents for Amazon Bedrock."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release provides additional support for enabling Aurora Limitless Database DB clusters."
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Add support for the dual stack endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

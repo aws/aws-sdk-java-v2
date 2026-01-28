@@ -23,18 +23,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.URI;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
@@ -76,8 +74,13 @@ public class ContainerCredentialsProviderTest {
                                     .resolveCredentials();
     }
 
+    @Test
+    public void testClassName() {
+        assertThat(credentialsProvider.toString()).contains("ContainerCredentialsProvider");
+    }
+
     /**
-     * Tests that the getCredentials returns a value when it receives a valid 200 response from endpoint.
+     * Tests that the getCredentials returns a valid response from endpoint.
      */
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
@@ -89,6 +92,7 @@ public class ContainerCredentialsProviderTest {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_HTTP.value());
     }
 
     /**
@@ -130,21 +134,5 @@ public class ContainerCredentialsProviderTest {
                "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
                "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
                "\"Expiration\":\"3000-05-03T04:55:54Z\"}";
-    }
-
-    /**
-     * Dummy CredentialsPathProvider that overrides the endpoint and connects to the WireMock server.
-     */
-    private static class TestCredentialsEndpointProvider implements ResourcesEndpointProvider {
-        private final String host;
-
-        public TestCredentialsEndpointProvider(String host) {
-            this.host = host;
-        }
-
-        @Override
-        public URI endpoint() {
-            return invokeSafely(() -> new URI(host + CREDENTIALS_PATH));
-        }
     }
 }

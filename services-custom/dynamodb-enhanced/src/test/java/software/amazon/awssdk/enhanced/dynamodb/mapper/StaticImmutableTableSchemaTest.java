@@ -59,6 +59,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testimmutables.EntityEnvelopeImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -782,6 +783,62 @@ public class StaticImmutableTableSchemaTest {
         }
     }
 
+    public static final class FakeMappedItemWithDeep {
+        private String documentString;
+        private FakeDocumentWithDeep aFakeDocument;
+
+        public String getDocumentString() {
+            return documentString;
+        }
+
+        public void setDocumentString(String documentString) {
+            this.documentString = documentString;
+        }
+
+        @DynamoDbFlatten
+        public FakeDocumentWithDeep getAFakeDocument() {
+            return aFakeDocument;
+        }
+
+        public void setAFakeDocument(FakeDocumentWithDeep aFakeDocument) {
+            this.aFakeDocument = aFakeDocument;
+        }
+    }
+
+    public static final class FakeDocumentWithDeep {
+        private Integer documentInteger;
+        private DeepFakeDocument deepFakeDocument;
+
+        public Integer getDocumentInteger() {
+            return documentInteger;
+        }
+
+        public void setDocumentInteger(Integer documentInteger) {
+            this.documentInteger = documentInteger;
+        }
+
+        @DynamoDbFlatten
+        public DeepFakeDocument getDeepFakeDocument() {
+            return deepFakeDocument;
+        }
+
+        public void setDeepFakeDocument(DeepFakeDocument deepFakeDocument) {
+            this.deepFakeDocument = deepFakeDocument;
+        }
+    }
+
+    public static final class DeepFakeDocument {
+        private String deepString;
+
+        public String getDeepString() {
+            return deepString;
+        }
+
+        public void setDeepString(String deepString) {
+            this.deepString = deepString;
+        }
+    }
+
     @Mock
     private AttributeConverterProvider provider1;
 
@@ -1386,6 +1443,67 @@ public class StaticImmutableTableSchemaTest {
 
         assertThat(tableSchema.itemToMap(item, true),
                    is(singletonMap("documentString", AttributeValue.builder().s("test-string").build())));
+    }
+
+    @Test
+    public void buildAbstractWithFlattenAndIgnoreNullAsFalse() {
+        StaticTableSchema<FakeMappedItem> tableSchema =
+            StaticTableSchema.builder(FakeMappedItem.class)
+                             .flatten(FAKE_DOCUMENT_TABLE_SCHEMA,
+                                      FakeMappedItem::getAFakeDocument,
+                                      FakeMappedItem::setAFakeDocument)
+                             .build();
+
+        FakeDocument document = FakeDocument.of("test-string", null);
+        FakeMappedItem item = FakeMappedItem.builder().aFakeDocument(document).build();
+
+        Map<String, AttributeValue> attributeMapWithNulls = tableSchema.itemToMap(item, false);
+        assertThat(attributeMapWithNulls.size(), is(2));
+        assertThat(attributeMapWithNulls, hasEntry("documentString", AttributeValue.builder().s("test-string").build()));
+        assertThat(attributeMapWithNulls, hasEntry("documentInteger", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void buildAbstractWithNestedFlattenAndIgnoreNullAsFalse() {
+        StaticTableSchema<DeepFakeDocument> deepSchema =
+            StaticTableSchema.builder(DeepFakeDocument.class)
+                             .newItemSupplier(DeepFakeDocument::new)
+                             .addAttribute(String.class, a -> a.name("deepString")
+                                                               .getter(DeepFakeDocument::getDeepString)
+                                                               .setter(DeepFakeDocument::setDeepString))
+                             .build();
+
+        StaticTableSchema<FakeDocumentWithDeep> nestedSchema =
+            StaticTableSchema.builder(FakeDocumentWithDeep.class)
+                             .newItemSupplier(FakeDocumentWithDeep::new)
+                             .addAttribute(Integer.class, a -> a.name("documentInteger")
+                                                                .getter(FakeDocumentWithDeep::getDocumentInteger)
+                                                                .setter(FakeDocumentWithDeep::setDocumentInteger))
+                             .flatten(deepSchema,
+                                      FakeDocumentWithDeep::getDeepFakeDocument,
+                                      FakeDocumentWithDeep::setDeepFakeDocument)
+                             .build();
+
+        StaticTableSchema<FakeMappedItemWithDeep> tableSchema =
+            StaticTableSchema.builder(FakeMappedItemWithDeep.class)
+                             .newItemSupplier(FakeMappedItemWithDeep::new)
+                             .addAttribute(String.class, a -> a.name("documentString")
+                                                               .getter(FakeMappedItemWithDeep::getDocumentString)
+                                                               .setter(FakeMappedItemWithDeep::setDocumentString))
+                             .flatten(nestedSchema,
+                                      FakeMappedItemWithDeep::getAFakeDocument,
+                                      FakeMappedItemWithDeep::setAFakeDocument)
+                             .build();
+
+        FakeMappedItemWithDeep item = new FakeMappedItemWithDeep();
+        item.setDocumentString("top-level-string");
+
+        Map<String, AttributeValue> attributeMap = tableSchema.itemToMap(item, false);
+
+        assertThat(attributeMap.size(), is(3));
+        assertThat(attributeMap, hasEntry("documentString", AttributeValue.builder().s("top-level-string").build()));
+        assertThat(attributeMap, hasEntry("documentInteger", AttributeValue.fromNul(true)));
+        assertThat(attributeMap, hasEntry("deepString", AttributeValue.fromNul(true)));
     }
 
     @Test

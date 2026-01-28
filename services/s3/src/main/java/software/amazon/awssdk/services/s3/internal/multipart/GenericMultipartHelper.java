@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toCompleteMultipartUploadRequest;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -23,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -81,19 +83,21 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        PutObjectRequest request, String uploadId, CompletedPart[] parts) {
+        PutObjectRequest request, String uploadId, CompletedPart[] parts, long contentLength) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                       uploadId));
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest = toCompleteMultipartUploadRequest(request, uploadId,
-                                                                                                         parts);
+                                                                                                         parts, contentLength);
+
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
-    public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(
-        RequestT request,
-        CompletableFuture<ResponseT> returnFuture,
-        String uploadId) {
+    public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(RequestT request,
+        CompletableFuture<ResponseT> returnFuture, String uploadId) {
+        PublisherListener<Long> progressListener = request.overrideConfiguration()
+                                                          .map(c -> c.executionAttributes().getAttribute(JAVA_PROGRESS_LISTENER))
+                                                          .orElseGet(PublisherListener::noOp);
 
         return (completeMultipartUploadResponse, throwable) -> {
             if (throwable != null) {
@@ -103,6 +107,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
             } else {
                 returnFuture.complete(responseConverter.apply(
                     completeMultipartUploadResponse));
+                progressListener.subscriberOnComplete();
             }
 
             return null;

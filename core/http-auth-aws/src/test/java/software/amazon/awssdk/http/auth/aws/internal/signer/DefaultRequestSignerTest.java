@@ -20,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.utils.BinaryUtils.toHex;
 
+import java.util.List;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
+import software.amazon.awssdk.testutils.LogCaptor;
+
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -30,15 +35,13 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 public class DefaultRequestSignerTest {
 
-    V4Properties v4Properties = V4Properties.builder()
+    private V4Properties v4Properties = V4Properties.builder()
                                             .credentials(AwsCredentialsIdentity.create("foo", "bar"))
                                             .credentialScope(new CredentialScope("baz", "qux", Instant.EPOCH))
                                             .signingClock(Clock.fixed(Instant.EPOCH, UTC))
                                             .doubleUrlEncode(true)
                                             .normalizePath(true)
                                             .build();
-
-    DefaultV4RequestSigner requestSigner = new DefaultV4RequestSigner(v4Properties, "quux");
 
     @Test
     public void requestSigner_sign_shouldReturnSignedResult_butNotAddAnyAuthInfoToRequest() {
@@ -55,13 +58,20 @@ public class DefaultRequestSignerTest {
                                                 + "host\nquux";
         String expectedHost = "localhost";
 
-        V4RequestSigningResult requestSigningResult = requestSigner.sign(request);
-
-        assertEquals(expectedContentHash, requestSigningResult.getContentHash());
-        assertEquals(expectedSigningKeyHex, toHex(requestSigningResult.getSigningKey()));
-        assertEquals(expectedSignature, requestSigningResult.getSignature());
-        assertEquals(expectedCanonicalRequestString, requestSigningResult.getCanonicalRequest().getCanonicalRequestString());
-        assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
-        assertThat(requestSigningResult.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            DefaultV4RequestSigner requestSigner = new DefaultV4RequestSigner(v4Properties, "quux");
+            V4RequestSigningResult requestSigningResult = requestSigner.sign(request);
+            assertEquals(expectedContentHash, requestSigningResult.getContentHash());
+            assertEquals(expectedSigningKeyHex, toHex(requestSigningResult.getSigningKey()));
+            assertEquals(expectedSignature, requestSigningResult.getSignature());
+            assertEquals(expectedCanonicalRequestString, requestSigningResult.getCanonicalRequest().getCanonicalRequestString());
+            assertEquals(expectedHost, requestSigningResult.getSignedRequest().firstMatchingHeader("Host").orElse(""));
+            assertThat(requestSigningResult.getSignedRequest().build()).usingRecursiveComparison().isEqualTo(request.build());
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).hasSize(3);
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage()).contains("AWS4 Canonical Request");
+            assertThat(logEvents.get(1).getMessage().getFormattedMessage()).contains("AWS4 Canonical Request Hash");
+            assertThat(logEvents.get(2).getMessage().getFormattedMessage()).contains("AWS4 String to sign");
+        }
     }
 }

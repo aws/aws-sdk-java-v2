@@ -18,15 +18,14 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -47,19 +46,18 @@ public class GetObjectInterceptor implements ExecutionInterceptor {
         if (!(context.request() instanceof GetObjectRequest)) {
             return;
         }
-        ChecksumSpecs resolvedChecksumSpecs = HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
+        ChecksumSpecs resolvedChecksumSpecs = executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);
 
         if (HttpChecksumUtils.isHttpChecksumValidationEnabled(resolvedChecksumSpecs)) {
-            Pair<Algorithm, String> algorithmChecksumValuePair =
+            Pair<ChecksumAlgorithm, String> algorithmChecksumValuePair =
                 HttpChecksumUtils.getAlgorithmChecksumValuePair(context.httpResponse(), resolvedChecksumSpecs);
 
             // Multipart uploaded objects the received Checksum is the checksum of checksums of individual parts and part number.
             if (algorithmChecksumValuePair != null &&
-                algorithmChecksumValuePair.right() != null) {
-                if (MULTIPART_CHECKSUM_PATTERN.matcher(algorithmChecksumValuePair.right()).matches()) {
-                    executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
-                                                     ChecksumValidation.FORCE_SKIP);
-                }
+                algorithmChecksumValuePair.right() != null &&
+                MULTIPART_CHECKSUM_PATTERN.matcher(algorithmChecksumValuePair.right()).matches()) {
+                executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
+                                                 ChecksumValidation.FORCE_SKIP);
             }
         }
     }

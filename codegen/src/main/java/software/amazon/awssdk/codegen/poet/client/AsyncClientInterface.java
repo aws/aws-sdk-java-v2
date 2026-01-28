@@ -96,6 +96,9 @@ public class AsyncClientInterface implements ClassSpec {
         if (model.hasWaiters()) {
             addWaiterMethod(result);
         }
+        if (model.getCustomizationConfig().getBatchManagerSupported()) {
+            addBatchManagerMethod(result);
+        }
         result.addMethod(serviceClientConfigMethod());
         addAdditionalMethods(result);
         addCloseMethod(result);
@@ -162,6 +165,16 @@ public class AsyncClientInterface implements ClassSpec {
         type.addMethod(waiterOperationBody(builder).build());
     }
 
+    protected void addBatchManagerMethod(TypeSpec.Builder type) {
+        ClassName returnType = poetExtensions.getBatchManagerAsyncInterface();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("batchManager")
+                                               .addModifiers(PUBLIC)
+                                               .returns(returnType)
+                                               .addJavadoc("Creates an instance of {@link $T} object with the "
+                                                           + "configuration set on this client.", returnType);
+        type.addMethod(batchManagerOperationBody(builder).build());
+    }
+
     @Override
     public ClassName className() {
         return className;
@@ -169,7 +182,13 @@ public class AsyncClientInterface implements ClassSpec {
 
     private String getJavadoc() {
         return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + " asynchronously. This can be "
-               + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
+               + "created using the static {@link #builder()} method."
+               + "The asynchronous client performs non-blocking I/O when configured "
+               + "with any {@code SdkAsyncHttpClient} supported in the SDK. "
+               + "However, full non-blocking is not guaranteed as the async client may perform "
+               + "blocking calls in some cases such as credentials retrieval and "
+               + "endpoint discovery as part of the async API call."
+               + "\n\n" + model.getMetadata().getDocumentation();
     }
 
     private MethodSpec create() {
@@ -526,4 +545,10 @@ public class AsyncClientInterface implements ClassSpec {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
+
+    protected MethodSpec.Builder batchManagerOperationBody(MethodSpec.Builder builder) {
+        return builder.addModifiers(DEFAULT, PUBLIC)
+                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
 }

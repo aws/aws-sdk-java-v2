@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.provider.Arguments;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
@@ -72,13 +74,14 @@ public class S3IntegrationTestBase extends AwsTestBase {
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
+                                     .maxConcurrency(1)
                                      .build();
         tmCrt = S3TransferManager.builder()
-                              .s3Client(s3CrtAsync)
-                              .build();
-        tmJava = S3TransferManager.builder()
-                                 .s3Client(s3Async)
+                                 .s3Client(s3CrtAsync)
                                  .build();
+        tmJava = S3TransferManager.builder()
+                                  .s3Client(s3Async)
+                                  .build();
 
     }
 
@@ -99,6 +102,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
         return S3AsyncClient.builder()
+                            .multipartEnabled(true)
                             .region(DEFAULT_REGION)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
@@ -170,6 +174,12 @@ public class S3IntegrationTestBase extends AwsTestBase {
         }
 
         s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
+    }
+
+    static Stream<Arguments> transferManagers() {
+        return Stream.of(
+            Arguments.of(tmCrt),
+            Arguments.of(tmJava));
     }
 
 }

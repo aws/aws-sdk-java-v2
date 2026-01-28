@@ -305,7 +305,7 @@ public final class UploadDirectoryRequest
          *
          * UploadDirectoryOverrideConfiguration directoryUploadConfiguration =
          *     UploadDirectoryOverrideConfiguration.builder()
-         *         .uploadFileRequestTransformer(request -> request.addTransferListenerf(LoggingTransferListener.create())
+         *         .uploadFileRequestTransformer(request -> request.addTransferListener(LoggingTransferListener.create())
          *         .build();
          *
          * UploadDirectoryRequest request =

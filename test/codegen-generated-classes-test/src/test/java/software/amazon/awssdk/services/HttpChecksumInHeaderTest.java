@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
 /**
  * Verify that the "HttpChecksum" C2J trait results in a valid checksum of the payload being included in the HTTP
- * request.
+ * request for different protocols.
  */
 public class HttpChecksumInHeaderTest {
 
@@ -97,7 +97,6 @@ public class HttpChecksumInHeaderTest {
 
     @Test
     public void sync_json_nonStreaming_unsignedPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
         jsonClient.operationWithChecksumNonStreaming(
             r -> r.stringMember("Hello world").checksumAlgorithm(ChecksumAlgorithm.SHA1).build());
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
@@ -107,7 +106,6 @@ public class HttpChecksumInHeaderTest {
 
     @Test
     public void aync_json_nonStreaming_unsignedPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
         jsonAsyncClient.operationWithChecksumNonStreaming(
             r -> r.checksumAlgorithm(ChecksumAlgorithm.SHA1).stringMember("Hello world").build());
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
@@ -117,30 +115,24 @@ public class HttpChecksumInHeaderTest {
 
     @Test
     public void sync_xml_nonStreaming_unsignedPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
         xmlClient.operationWithChecksumNonStreaming(r -> r.stringMember("Hello world")
                                                           .checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build());
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form "<?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
     }
 
     @Test
     public void sync_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
         xmlClient.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build());
 
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form "<?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
     }
 
     @Test
     public void aync_xml_nonStreaming_unsignedPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
-
         xmlAsyncClient.operationWithChecksumNonStreaming(r -> r.stringMember("Hello world")
                                                                .checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build()).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
@@ -150,14 +142,11 @@ public class HttpChecksumInHeaderTest {
 
     @Test
     public void aync_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
-        //  jsonClient.flexibleCheckSumOperationWithShaChecksum(r -> r.stringMember("Hello world"));
-
         xmlAsyncClient.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build()).join();
 
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form <?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
     }
 
     private SdkHttpRequest getSyncRequest() {

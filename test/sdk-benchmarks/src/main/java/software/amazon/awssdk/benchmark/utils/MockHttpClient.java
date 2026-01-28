@@ -17,24 +17,36 @@ package software.amazon.awssdk.benchmark.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Mock implementation of {@link SdkHttpClient} to return mock response.
  */
 public final class MockHttpClient implements SdkHttpClient {
 
-    private String successResponseContent;
-    private String errorResponseContent;
+    private byte[] successResponseContent;
+    private byte[] errorResponseContent;
 
-    public MockHttpClient(String successResponseContent, String errorResponseContent) {
+    public MockHttpClient(byte[] successResponseContent, byte[] errorResponseContent) {
         this.successResponseContent = successResponseContent;
         this.errorResponseContent = errorResponseContent;
+    }
+
+    public MockHttpClient(String successResponseContent, String errorResponseContent) {
+        this(successResponseContent.getBytes(StandardCharsets.UTF_8),
+             errorResponseContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static MockHttpClient fromEncoded(String encodedSuccessResponseContent, String encodedErrorResponseContent) {
+        return new MockHttpClient(BinaryUtils.fromHex(encodedSuccessResponseContent),
+                                  BinaryUtils.fromHex(encodedErrorResponseContent));
     }
 
     @Override
@@ -71,7 +83,7 @@ public final class MockHttpClient implements SdkHttpClient {
     private HttpExecuteResponse successResponse() {
 
         AbortableInputStream inputStream =
-            AbortableInputStream.create(new ByteArrayInputStream(successResponseContent.getBytes()));
+            AbortableInputStream.create(new ByteArrayInputStream(successResponseContent));
 
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder()
@@ -84,7 +96,7 @@ public final class MockHttpClient implements SdkHttpClient {
     private HttpExecuteResponse errorResponse() {
 
         AbortableInputStream inputStream =
-            AbortableInputStream.create(new ByteArrayInputStream(errorResponseContent.getBytes()));
+            AbortableInputStream.create(new ByteArrayInputStream(errorResponseContent));
 
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder()

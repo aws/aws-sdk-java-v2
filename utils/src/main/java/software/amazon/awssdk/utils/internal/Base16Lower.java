@@ -15,16 +15,18 @@
 
 package software.amazon.awssdk.utils.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A Base 16 codec API, which encodes into hex string in lower case.
  *
  * See http://www.ietf.org/rfc/rfc4648.txt
  *
- * @author Hanson Char
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class Base16Lower {
 
     private static final Base16Codec CODEC = new Base16Codec(false);

@@ -21,7 +21,72 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An interface to allow retrieving an IdentityProvider based on the identity type.
+ * An interface to allow retrieving an {@link IdentityProvider} based on the identity type.
+ *
+ * <p>
+ * {@code IdentityProviders} is a registry that maps identity types to their corresponding identity providers.
+ * It is used by {@link software.amazon.awssdk.http.auth.spi.scheme.AuthScheme}s to retrieve the appropriate
+ * identity provider for resolving authentication identities.
+ *
+ * <p>
+ * <b>How It Works</b>
+ * <p>
+ * When an auth scheme needs to resolve an identity, it calls {@link #identityProvider(Class)} with the identity
+ * type it requires (e.g., {@link AwsCredentialsIdentity}.class). The registry returns the corresponding provider
+ * that was configured on the client.
+ *
+ * <p>
+ * <b>Default Configuration</b>
+ * <p>
+ * The SDK automatically configures identity providers based on the client configuration:
+ * <ul>
+ *     <li>When you set {@code credentialsProvider()} on the client builder, it registers an
+ *         {@link AwsCredentialsIdentity} provider</li>
+ *     <li>When you set {@code tokenProvider()} on the client builder, it registers a {@link TokenIdentity} provider</li>
+ * </ul>
+ *
+ * <p>
+ * <b>Usage in Auth Schemes</b>
+ * <p>
+ * Auth schemes use {@code IdentityProviders} to retrieve the appropriate identity provider for their
+ * identity type.
+ *
+ * <p>
+ * Example - Auth scheme using IdentityProviders:
+ *
+ * {@snippet :
+ * public class CustomAuthScheme implements AwsV4AuthScheme {
+ *     @Override
+ *     public String schemeId() {
+ *         return AwsV4AuthScheme.SCHEME_ID;
+ *     }
+ *
+ *     @Override
+ *     public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
+ *         // Retrieve the AWS credentials provider from the registry
+ *         return providers.identityProvider(AwsCredentialsIdentity.class);
+ *     }
+ *
+ *     @Override
+ *     public AwsV4HttpSigner signer() {
+ *         return new CustomSigV4Signer();
+ *     }
+ * }
+ * }
+ *
+ * <p>
+ * <b>Standard Identity Types</b>
+ * <p>
+ * The SDK provides standard identity types:
+ * <ul>
+ *     <li>{@link AwsCredentialsIdentity} - AWS access key credentials</li>
+ *     <li>{@link TokenIdentity} - Bearer tokens</li>
+ *     <li>{@link AwsSessionCredentialsIdentity} - AWS credentials with session token</li>
+ * </ul>
+ *
+ * @see IdentityProvider
+ * @see Identity
+ * @see software.amazon.awssdk.http.auth.spi.scheme.AuthScheme
  */
 @SdkPublicApi
 public interface IdentityProviders extends ToCopyableBuilder<IdentityProviders.Builder, IdentityProviders> {

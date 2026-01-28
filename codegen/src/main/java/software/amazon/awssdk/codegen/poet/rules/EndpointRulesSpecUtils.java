@@ -16,8 +16,10 @@
 package software.amazon.awssdk.codegen.poet.rules;
 
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -27,10 +29,18 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -47,6 +57,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointRulesSpecUtils {
+    private static final String RULES_ENGINE_RESOURCE_FILES_PREFIX = "software/amazon/awssdk/codegen/rules/";
     private final IntermediateModel intermediateModel;
 
     public EndpointRulesSpecUtils(IntermediateModel intermediateModel) {
@@ -124,6 +135,8 @@ public class EndpointRulesSpecUtils {
                 return TypeName.get(Boolean.class);
             case "string":
                 return TypeName.get(String.class);
+            case "stringarray":
+                return ParameterizedTypeName.get(ClassName.get(List.class), TypeName.get(String.class));
             default:
                 throw new RuntimeException("Unknown type: " + type);
         }
@@ -137,6 +150,13 @@ public class EndpointRulesSpecUtils {
                 break;
             case "string":
                 methodName = "fromStr";
+                break;
+            case "stringarray":
+                methodName = "fromArray";
+                param = CodeBlock.of("$L.stream().map($T::fromStr).collect($T.toList())",
+                                     param,
+                                     rulesRuntimeClassName("Value"),
+                                     Collectors.class);
                 break;
             default:
                 throw new RuntimeException("Don't know how to create a Value instance from type " + type);
@@ -169,6 +189,10 @@ public class EndpointRulesSpecUtils {
             case VALUE_FALSE:
                 b.add("$L", Validate.isInstanceOf(JrsBoolean.class, treeNode, "Expected boolean").booleanValue());
                 break;
+            case START_ARRAY:
+                handleArrayDefaultValue(b, "stringarray",
+                                        Validate.isInstanceOf(JrsArray.class, treeNode, "Expected string array"));
+                break;
             default:
                 throw new RuntimeException("Don't know how to set default value for parameter of type "
                                            + treeNode.asToken());
@@ -195,11 +219,40 @@ public class EndpointRulesSpecUtils {
 
     public List<String> rulesEngineResourceFiles() {
         URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
+
+        // This would happen if the classes aren't loaded from a JAR, e.g. when unit testing
+        if (!currentJarUrl.toString().endsWith(".jar")) {
+            return rulesEngineFilesFromDirectory(currentJarUrl);
+        }
+
         try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
             return jarFile.stream()
                           .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules/"))
+                          .filter(e -> e.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
                           .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<String> rulesEngineFilesFromDirectory(URL location) {
+        URI locationUri;
+        try {
+            locationUri = location.toURI();
+            if (!"file".equals(locationUri.getScheme())) {
+                throw new RuntimeException("Expected location to be a directory");
+            }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Path directory = Paths.get(locationUri);
+            return Files.walk(directory)
+                        // Remove the root directory if the classes, paths are expected to be relative to this directory
+                        .map(f -> directory.relativize(f).toString())
+                        .filter(f -> f.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
+                        .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -397,6 +450,10 @@ public class EndpointRulesSpecUtils {
             case VALUE_FALSE:
                 b.add("$L", ((JrsBoolean) defaultValue).booleanValue());
                 break;
+            case START_ARRAY:
+                handleArrayDefaultValue(b, parameterModel.getType(), (JrsArray) defaultValue);
+                break;
+
             default:
                 throw new RuntimeException("Don't know how to set default value for parameter of type "
                                            + defaultValue.asToken());
@@ -409,5 +466,18 @@ public class EndpointRulesSpecUtils {
      */
     public String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
+    }
+
+    private void handleArrayDefaultValue(CodeBlock.Builder b, String parameterType, JrsArray defaultValue) {
+        if ("stringarray".equalsIgnoreCase(parameterType)) {
+            Iterator<JrsValue> elementValuesIter = defaultValue.elements();
+            b.add("$T.asList(", Arrays.class);
+            StringJoiner joinerStr = new StringJoiner(",");
+            while (elementValuesIter.hasNext()) {
+                joinerStr.add("\"" + elementValuesIter.next().asText() + "\"");
+            }
+            b.add(joinerStr.toString());
+            b.add(")");
+        }
     }
 }

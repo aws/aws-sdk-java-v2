@@ -212,11 +212,15 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
             }
         } else if (isBuildable && method.getName().equals("toBuilder") && method.getSignature().startsWith("()")) {
             // This is a buildable toBuilder
-            constructorsInvokedFromToBuilder.computeIfAbsent(getDottedClassName(), n -> new HashMap<>());
-            toBuilderModifiedFields.computeIfAbsent(getDottedClassName(), n -> new HashMap<>());
+            String dottedClassName = getDottedClassName();
+            constructorsInvokedFromToBuilder.computeIfAbsent(dottedClassName, n -> new HashMap<>());
+            toBuilderModifiedFields.computeIfAbsent(dottedClassName, n -> new HashMap<>());
             inBuildableToBuilder = true;
             inBuilderConstructor = false;
-
+            if (method.isAbstract()) {
+                // Ignore abstract toBuilder methods, we will still validate the actual implementations.
+                ignoredBuildables.add(dottedClassName);
+            }
             registerIgnoredFields();
         } else {
             inBuildableToBuilder = false;

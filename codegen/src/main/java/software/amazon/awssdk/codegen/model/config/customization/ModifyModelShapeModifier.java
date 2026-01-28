@@ -50,6 +50,12 @@ public class ModifyModelShapeModifier {
     private String emitEnumValue;
 
     /**
+     * An additional, alternate name for this member that should additionally be used when generating bean style
+     * setters/getters for the enclosing shape.
+     */
+    private String alternateBeanPropertyName;
+
+    /**
      * Emit as a different primitive type. Used by AWS Budget Service to change string
      * to BigDecimal (see API-433).
      */
@@ -58,6 +64,11 @@ public class ModifyModelShapeModifier {
     private String marshallLocationName;
 
     private String unmarshallLocationName;
+
+    /**
+     * Indicates whether data type conversion failures are to be ignored
+     */
+    private boolean ignoreDataTypeConversionFailures;
 
     public String getDeprecatedMessage() {
         return deprecatedMessage;
@@ -129,5 +140,21 @@ public class ModifyModelShapeModifier {
 
     public void setEmitAsType(String emitAsType) {
         this.emitAsType = emitAsType;
+    }
+
+    public void setIgnoreDataTypeConversionFailures(boolean ignoreDataTypeConversionFailures) {
+        this.ignoreDataTypeConversionFailures = ignoreDataTypeConversionFailures;
+    }
+
+    public boolean isIgnoreDataTypeConversionFailures() {
+        return ignoreDataTypeConversionFailures;
+    }
+
+    public String getAlternateBeanPropertyName() {
+        return alternateBeanPropertyName;
+    }
+
+    public void setAlternateBeanPropertyName(String alternateBeanPropertyName) {
+        this.alternateBeanPropertyName = alternateBeanPropertyName;
     }
 }

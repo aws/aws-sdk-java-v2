@@ -108,5 +108,4 @@ public final class PoetUtils {
         spec.staticImports().forEach(i -> i.memberNames().forEach(m -> builder.addStaticImport(i.className(), m)));
         return builder.build();
     }
-
 }

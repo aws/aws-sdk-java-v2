@@ -16,6 +16,10 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -37,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class AsyncBufferingSubscriberTest {
     private static final int MAX_CONCURRENT_EXECUTIONS = 5;
@@ -93,23 +98,37 @@ class AsyncBufferingSubscriberTest {
             assertThat(numRequestsInFlightSampling).contains(MAX_CONCURRENT_EXECUTIONS);
         }
         disposable.dispose();
+        numRequestsInFlightSampling.forEach(maxConcurrency -> assertThat(maxConcurrency).isLessThanOrEqualTo(MAX_CONCURRENT_EXECUTIONS));
     }
 
     @Test
-    void onErrorInvoked_shouldCompleteFutureExceptionally() {
-        subscriber.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-
-            }
-
-            @Override
-            public void cancel() {
-
-            }
-        });
+    void onErrorInvoked_shouldCompleteFutureExceptionallyAndCancelRequestsFuture() {
         RuntimeException exception = new RuntimeException("test");
-        subscriber.onError(exception);
+        SimplePublisher<String> simplePublisher = new SimplePublisher<>();
+        simplePublisher.subscribe(subscriber);
+        simplePublisher.send("test");
+        simplePublisher.send("test");
+
+        simplePublisher.error(exception);
         assertThat(returnFuture).isCompletedExceptionally();
+        assertThat(futures.get(0)).isCancelled();
+        assertThat(futures.get(1)).isCancelled();
+    }
+
+    @Test
+    public void consumerFunctionThrows_shouldCancelSubscriptionAndCompleteFutureExceptionally() {
+        RuntimeException exception = new RuntimeException("test");
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(s -> {
+            throw exception;
+        }, future, 1);
+
+        Subscription mockSubscription = mock(Subscription.class);
+
+        subscriber.onSubscribe(mockSubscription);
+        subscriber.onNext("item");
+
+        verify(mockSubscription, times(1)).cancel();
+        assertThatThrownBy(future::join).hasCause(exception);
     }
 }

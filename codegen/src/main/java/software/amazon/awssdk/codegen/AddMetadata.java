@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Constant;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -59,6 +61,7 @@ final class AddMetadata {
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
+                .withBatchmanagerPackageName(namingStrategy.getBatchManagerPackageName(serviceName))
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
@@ -68,21 +71,18 @@ final class AddMetadata {
                 .withBaseExceptionName(String.format(Constant.BASE_EXCEPTION_NAME_PATTERN, serviceName))
                 .withBaseRequestName(String.format(Constant.BASE_REQUEST_NAME_PATTERN, serviceName))
                 .withBaseResponseName(String.format(Constant.BASE_RESPONSE_NAME_PATTERN, serviceName))
-                .withProtocol(Protocol.fromValue(serviceMetadata.getProtocol()))
+                .withProtocol(Protocol.fromValue(ProtocolUtils.resolveProtocol(serviceMetadata)))
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())
                 .withSigningName(serviceMetadata.getSigningName())
-                .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
+                .withAuthType(serviceMetadata.getSignatureVersion() != null ?
+                              AuthType.fromValue(serviceMetadata.getSignatureVersion()) : null)
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))
                 .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
                 .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible())
-                .withAuth(Optional.ofNullable(serviceMetadata.getAuth())
-                                  .orElseGet(() -> Collections.singletonList(serviceMetadata.getSignatureVersion()))
-                                  .stream()
-                                  .map(AuthType::fromValue)
-                                  .collect(Collectors.toList()));
+                .withAuth(getAuthFromServiceMetadata(serviceMetadata));
 
         return metadata;
     }
@@ -107,7 +107,8 @@ final class AddMetadata {
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(service))
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(service))
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(service))
-                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service));
+                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service))
+                .withJmesPathPackageName(namingStrategy.getJmesPathPackageName(service));
     }
 
     /**
@@ -134,5 +135,17 @@ final class AddMetadata {
         } else {
             return serviceMetadata.getJsonVersion();
         }
+    }
+
+    /**
+     * Converts a list of authentication type strings from the given {@link ServiceMetadata} into a list of
+     * {@link AuthType} objects.
+     */
+    private static List<AuthType> getAuthFromServiceMetadata(ServiceMetadata serviceMetadata) {
+        List<String> serviceAuth = serviceMetadata.getAuth();
+        if (serviceAuth != null) {
+            return serviceAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 }

@@ -29,6 +29,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An immutable HTTP request without access to the request body. {@link SdkHttpFullRequest} should be used when access to a
@@ -154,7 +155,7 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
         // Do not include the port in the URI when using the default port for the protocol.
         String portString = SdkHttpUtils.isUsingStandardPort(protocol(), port()) ? "" : ":" + port();
 
-        return URI.create(protocol() + "://" + host() + portString + encodedPath() + encodedQueryString);
+        return SdkUri.getInstance().create(protocol() + "://" + host() + portString + encodedPath() + encodedQueryString);
     }
 
     /**
@@ -189,6 +190,17 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
                             .forEach(this::putRawQueryParameter);
             }
             return builder;
+        }
+
+        /**
+         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()},
+         * {@link #encodedPath()} and extracts query parameters from a URI string.
+         *
+         * @param uri URI containing protocol, host, port and path.
+         * @return This builder for method chaining.
+         */
+        default Builder uri(String uri) {
+            return uri(URI.create(uri));
         }
 
         /**

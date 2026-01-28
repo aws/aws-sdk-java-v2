@@ -39,6 +39,7 @@ public class RecordWithUpdateBehaviors {
     private Instant lastAutoUpdatedOnMillis;
     private Instant formattedLastAutoUpdatedOn;
     private NestedRecordWithUpdateBehavior nestedRecord;
+    private String key;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -48,6 +49,15 @@ public class RecordWithUpdateBehaviors {
     public void setId(String id) {
         this.id = id;
     }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
 
     @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
     @DynamoDbAttribute("created-on")                           // Forces a test on attribute name cleaning

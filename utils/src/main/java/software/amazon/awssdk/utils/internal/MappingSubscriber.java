@@ -18,14 +18,18 @@ package software.amazon.awssdk.utils.internal;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Maps a subscriber of one type to another type. If an exception is thrown by the mapping function itself, the error
  * will be propagated to the downstream subscriber as if it had come from the publisher and then the subscription will
  * be implicitly cancelled and no further events from the publisher will be passed along.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class MappingSubscriber<T, U> implements Subscriber<T> {
 
     private final Subscriber<? super U> delegateSubscriber;

@@ -25,6 +25,7 @@ public class GivenResponse {
     private Integer statusCode;
     private Map<String, List<String>> headers;
     private String body;
+    private String binaryBody;
 
     public Integer getStatusCode() {
         return statusCode;
@@ -46,7 +47,15 @@ public class GivenResponse {
         return body;
     }
 
+    public String getBinaryBody() {
+        return binaryBody;
+    }
+
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public void setBinaryBody(String body) {
+        this.binaryBody = body;
     }
 }

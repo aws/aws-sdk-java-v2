@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -91,8 +92,10 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             Object val = field.getValueOrDefault(pojo);
 
             if (isBinary(field, val)) {
-                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
+                SdkBytes sdkBytes = (SdkBytes) val;
+                request.contentStreamProvider(sdkBytes::asInputStream);
                 setContentTypeHeaderIfNeeded("binary/octet-stream");
+                request.putHeader(CONTENT_LENGTH, Integer.toString(sdkBytes.asByteArrayUnsafe().length));
 
             } else if (isExplicitPayloadMember(field) && val instanceof String) {
                 byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);
@@ -127,7 +130,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
-        return field.containsTrait(PayloadTrait.class);
+        return field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private boolean hasPayloadMembers(SdkPojo sdkPojo) {

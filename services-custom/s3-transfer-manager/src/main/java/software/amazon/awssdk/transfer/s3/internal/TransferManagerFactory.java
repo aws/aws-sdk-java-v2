@@ -52,13 +52,15 @@ public final class TransferManagerFactory {
             return new CrtS3TransferManager(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
         }
 
-        if (s3AsyncClient.getClass().getName().equals("software.amazon.awssdk.services.s3.DefaultS3AsyncClient")) {
-            log.warn(() -> "The provided DefaultS3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                           + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
-                           + "from maximum throughput, consider using S3AsyncClient.crtBuilder().build() instead.");
-        } else {
-            log.debug(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
-                            + " upload/download feature may not be enabled and resumable file upload may not be supported.");
+        if (!s3AsyncClient.getClass().getName().equals("software.amazon.awssdk.services.s3.internal.multipart"
+                                                       + ".MultipartS3AsyncClient")) {
+            log.debug(() -> "The provided S3AsyncClient is neither "
+                            + "an AWS CRT-based S3 async client (S3AsyncClient.crtBuilder().build()) or "
+                            + "a Java-based S3 async client (S3AsyncClient.builder().multipartEnabled(true).build()), "
+                            + "and thus multipart upload/download feature may not be enabled and resumable file upload may not "
+                            + "be supported. To benefit from maximum throughput, consider using "
+                            + "S3AsyncClient.crtBuilder().build() or "
+                            + "S3AsyncClient.builder().multipartEnabled(true).build() instead");
         }
 
         return new GenericS3TransferManager(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
@@ -68,7 +70,7 @@ public final class TransferManagerFactory {
         if (crtInClasspath()) {
             return S3AsyncClient::crtCreate;
         }
-        return S3AsyncClient::create;
+        return S3AsyncClient.builder().multipartEnabled(true)::build;
     }
 
     private static boolean crtInClasspath() {
@@ -84,6 +86,7 @@ public final class TransferManagerFactory {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
         transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
         transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
+        transferConfigBuilder.transferDirectoryMaxConcurrency(tmBuilder.transferDirectoryMaxConcurrency);
         transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
@@ -93,6 +96,7 @@ public final class TransferManagerFactory {
         private Executor executor;
         private Boolean uploadDirectoryFollowSymbolicLinks;
         private Integer uploadDirectoryMaxDepth;
+        private Integer transferDirectoryMaxConcurrency;
 
         @Override
         public DefaultBuilder s3Client(S3AsyncClient s3AsyncClient) {
@@ -132,6 +136,20 @@ public final class TransferManagerFactory {
 
         public Integer getUploadDirectoryMaxDepth() {
             return uploadDirectoryMaxDepth;
+        }
+
+        @Override
+        public DefaultBuilder transferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency) {
+            this.transferDirectoryMaxConcurrency = transferDirectoryMaxConcurrency;
+            return this;
+        }
+
+        public void setTransferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency) {
+            transferDirectoryMaxConcurrency(transferDirectoryMaxConcurrency);
+        }
+
+        public Integer getTransferDirectoryMaxConcurrency() {
+            return transferDirectoryMaxConcurrency;
         }
 
         @Override

@@ -1,0 +1,36 @@
+{
+    "version": "2.32.24",
+    "date": "2025-08-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix bug in progress reporting in upload when using the CRT client."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue Zero ETL now supports On-demand snapshot load"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Avoid extra byte array copying when downloading to memory with AsyncResponseTransformer"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "This release adds support for saving Bedrock Flows while node configuration is still in progress, even if the Flow is not yet able to be invoked"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "Add Resource-based Policy APIs for Amazon Prometheus"
+        }
+    ]
+}

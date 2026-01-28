@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -35,7 +36,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public final class HeaderMarshaller {
 
     public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(
-        (val, field) -> field.containsTrait(JsonValueTrait.class) ?
+        (val, field) -> field.containsTrait(JsonValueTrait.class, TraitType.JSON_VALUE_TRAIT) ?
                         BinaryUtils.toBase64(val.getBytes(StandardCharsets.UTF_8)) : val);
 
     public static final JsonMarshaller<Integer> INTEGER = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_INTEGER);
@@ -43,6 +44,8 @@ public final class HeaderMarshaller {
     public static final JsonMarshaller<Long> LONG = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_LONG);
 
     public static final JsonMarshaller<Short> SHORT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
+    public static final JsonMarshaller<Byte> BYTE = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_BYTE);
 
     public static final JsonMarshaller<Double> DOUBLE = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
@@ -59,7 +62,7 @@ public final class HeaderMarshaller {
         if (isNullOrEmpty(list)) {
             return;
         }
-        SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
+        SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class, TraitType.LIST_TRAIT).memberFieldInfo();
         for (Object listValue : list) {
             if (shouldSkipElement(listValue)) {
                 continue;
@@ -70,7 +73,7 @@ public final class HeaderMarshaller {
     };
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };

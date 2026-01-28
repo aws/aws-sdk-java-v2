@@ -46,11 +46,9 @@ public final class Utils {
     }
 
     public static void createDirectory(File dir) {
-        if (!(dir.exists())) {
-            if (!dir.mkdirs()) {
-                throw new RuntimeException("Not able to create directory. "
-                        + dir.getAbsolutePath());
-            }
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new RuntimeException("Not able to create directory. "
+                                       + dir.getAbsolutePath());
         }
     }
 
@@ -65,11 +63,8 @@ public final class Utils {
 
         File file = new File(dir, fileName);
 
-        if (!(file.exists())) {
-            if (!(file.createNewFile())) {
-                throw new RuntimeException("Not able to create file . "
-                        + file.getAbsolutePath());
-            }
+        if (!file.exists() && !file.createNewFile()) {
+            throw new RuntimeException("Not able to create file . " + file.getAbsolutePath());
         }
 
         return file;

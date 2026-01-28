@@ -104,6 +104,17 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
                                       .build());
 
+        testDataList.add(dataBuilder().scenario("unicodeString")
+                                      .ddbItemMap(map().withKeyValue("stringKey", AttributeValue.fromS("\u001a \u000e")).get())
+                                      .enhancedDocument(
+                                          ((DefaultEnhancedDocument.DefaultBuilder)
+                                              DefaultEnhancedDocument.builder()).putObject("stringKey", "\u001a \u000e")
+                                                                                .addAttributeConverterProvider(defaultProvider()).build())
+                                      .attributeConverterProvider(defaultProvider())
+                                      .json("{\"stringKey\":\"\\u001A \\u000E\"}")
+
+                                      .build());
+
         testDataList.add(dataBuilder().scenario("record")
 
                                       .ddbItemMap(map().withKeyValue("uniqueId", AttributeValue.fromS("id-value"))
@@ -533,8 +544,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                         EnhancedType.of(SdkBytes.class)))
                                       .build());
         testScenarioMap = testDataList.stream().collect(Collectors.toMap(TestData::getScenario, Function.identity()));
-
-        // testScenarioMap = testDataList.stream().collect(Collectors.toMap(k->k.getScenario(), Function.identity()));
     }
 
     public TestData dataForScenario(String scenario) {

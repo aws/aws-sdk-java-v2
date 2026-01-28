@@ -1,0 +1,18 @@
+{
+    "version": "2.31.61",
+    "date": "2025-06-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Documentation updates for Amazon GameLift Streams to address formatting errors, correct resource ID examples, and update links to other guides"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

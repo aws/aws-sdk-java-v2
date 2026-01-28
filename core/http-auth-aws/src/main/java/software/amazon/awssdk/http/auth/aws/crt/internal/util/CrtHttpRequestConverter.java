@@ -15,22 +15,26 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.HOST;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
+import software.amazon.awssdk.crtcore.CrtRequestBodyAdapter;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.crt.internal.io.CrtInputStream;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 @SdkInternalApi
 public final class CrtHttpRequestConverter {
@@ -57,6 +61,22 @@ public final class CrtHttpRequestConverter {
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
     }
 
+    public static HttpRequest toRequest(SdkHttpRequest request, Publisher<ByteBuffer> payload, long contentLength) {
+        String method = request.method().name();
+        String encodedPath = encodedPathToCrtFormat(request.encodedPath());
+
+        String encodedQueryString = request.encodedQueryParameters().map(value -> "?" + value).orElse("");
+
+        HttpHeader[] crtHeaderArray = createHttpHeaderArray(request);
+
+        HttpRequestBodyStream crtInputStream = null;
+        if (payload != null) {
+            crtInputStream = new CrtRequestBodyAdapter(payload, contentLength);
+        }
+
+        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
+    }
+
     /**
      * Convert an {@link HttpRequest} to an {@link SdkHttpRequest}.
      */
@@ -73,13 +93,13 @@ public final class CrtHttpRequestConverter {
             String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
             String encodedPath = encodedPathFromCrtFormat(request.encodedPath(), crtRequest.getEncodedPath());
             String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
-            fullUri = new URI(fullUriString);
+            fullUri = SdkUri.getInstance().newUri(fullUriString);
         } catch (URISyntaxException e) {
             throw new RuntimeException("Full URI could not be formed.", e);
         }
 
         builder.encodedPath(fullUri.getRawPath());
-        String remainingQuery = fullUri.getQuery();
+        String remainingQuery = fullUri.getRawQuery();
 
         builder.clearQueryParameters();
         while (remainingQuery != null && !remainingQuery.isEmpty()) {
@@ -92,7 +112,9 @@ public final class CrtHttpRequestConverter {
                     queryValue = remainingQuery.substring(nextAssign + 1, nextQuery);
                 }
 
-                builder.appendRawQueryParameter(queryName, queryValue);
+                String decodedQueryValue = SdkHttpUtils.urlDecode(queryValue);
+                String decodedQueryName = SdkHttpUtils.urlDecode(queryName);
+                builder.appendRawQueryParameter(decodedQueryName, decodedQueryValue);
             } else {
                 String queryName = remainingQuery;
                 if (nextQuery >= 0) {

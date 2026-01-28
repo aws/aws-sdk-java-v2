@@ -1,0 +1,42 @@
+{
+    "version": "2.30.26",
+    "date": "2025-02-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Transfer-Encoding headers will no longer be signed during SigV4 authentication"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Introduce a new parameter which represents the user-agent header value used by the Bedrock Knowledge Base Web Connector."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Added support for Certificate-Based Authentication on AppStream 2.0 multi-session fleets."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Add ability to provide a custom `MethodHandles.Lookup` object when using either `BeanTableSchema` or `ImmutableTableSchema`. By setting a custom `MethodHandles.Lookup` it allows these schemas to be used in applications where the item class and the SDK are loaded by different `ClassLoader`s."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

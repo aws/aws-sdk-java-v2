@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -27,7 +29,7 @@ import software.amazon.awssdk.regions.Region;
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s.
  */
 @SdkPublicApi
-public final class AwsExecutionAttribute extends SdkExecutionAttribute {
+public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The AWS {@link Region} the client was configured with. This is not always same as the
      * {@link AwsSignerExecutionAttribute#SIGNING_REGION} for global services like IAM.
@@ -46,6 +48,12 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("DualstackEndpointsEnabled");
 
     /**
+     * AWS Sigv4a signing region set used for computing multi-region request signatures.
+     */
+    public static final ExecutionAttribute<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
+        new ExecutionAttribute<>("AwsSigv4aSigningRegionSet");
+
+    /**
      * Whether fips endpoints were enabled for this request.
      */
     public static final ExecutionAttribute<Boolean> FIPS_ENDPOINT_ENABLED =
@@ -57,6 +65,18 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> USE_GLOBAL_ENDPOINT =
         new ExecutionAttribute<>("UseGlobalEndpoint");
+
+    /**
+     * The AWS account ID associated with the identity resolved for this request.
+     */
+    public static final ExecutionAttribute<String> AWS_AUTH_ACCOUNT_ID =
+        new ExecutionAttribute<>("AwsAuthAccountId");
+
+    /**
+     * The mode for an AWS account ID that's resolved for this request. See {@link AccountIdEndpointMode} for values.
+     */
+    public static final ExecutionAttribute<AccountIdEndpointMode> AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE =
+        new ExecutionAttribute<>("AwsAuthAccountIdEndpointMode");
 
     private AwsExecutionAttribute() {
     }

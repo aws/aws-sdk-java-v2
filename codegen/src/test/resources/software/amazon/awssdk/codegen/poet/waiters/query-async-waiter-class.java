@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.query.waiters;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +17,14 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
+import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.QueryRequest;
@@ -47,6 +48,14 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
 
     private final AsyncWaiter<APostOperationResponse> postOperationSuccessWaiter;
 
+    private final AsyncWaiter<APostOperationResponse> floatValueTestWaiter;
+
+    private final AsyncWaiter<APostOperationResponse> bigDecimalValueTestWaiter;
+
+    private final AsyncWaiter<APostOperationResponse> longValueTestWaiter;
+
+    private final AsyncWaiter<APostOperationResponse> doubleValueTestWaiter;
+
     private final ScheduledExecutorService executorService;
 
     private DefaultQueryAsyncWaiter(DefaultBuilder builder) {
@@ -69,6 +78,20 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
                                                      .acceptors(postOperationSuccessWaiterAcceptors())
                                                      .overrideConfiguration(postOperationSuccessWaiterConfig(builder.overrideConfiguration))
                                                      .scheduledExecutorService(executorService).build();
+        this.floatValueTestWaiter = AsyncWaiter.builder(APostOperationResponse.class).acceptors(floatValueTestWaiterAcceptors())
+                                               .overrideConfiguration(floatValueTestWaiterConfig(builder.overrideConfiguration))
+                                               .scheduledExecutorService(executorService).build();
+        this.bigDecimalValueTestWaiter = AsyncWaiter.builder(APostOperationResponse.class)
+                                                    .acceptors(bigDecimalValueTestWaiterAcceptors())
+                                                    .overrideConfiguration(bigDecimalValueTestWaiterConfig(builder.overrideConfiguration))
+                                                    .scheduledExecutorService(executorService).build();
+        this.longValueTestWaiter = AsyncWaiter.builder(APostOperationResponse.class).acceptors(longValueTestWaiterAcceptors())
+                                              .overrideConfiguration(longValueTestWaiterConfig(builder.overrideConfiguration))
+                                              .scheduledExecutorService(executorService).build();
+        this.doubleValueTestWaiter = AsyncWaiter.builder(APostOperationResponse.class)
+                                                .acceptors(doubleValueTestWaiterAcceptors())
+                                                .overrideConfiguration(doubleValueTestWaiterConfig(builder.overrideConfiguration))
+                                                .scheduledExecutorService(executorService).build();
     }
 
     private static String errorCode(Throwable error) {
@@ -76,6 +99,58 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
             return ((AwsServiceException) error).awsErrorDetails().errorCode();
         }
         return null;
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilBigDecimalValueTest(
+        APostOperationRequest aPostOperationRequest) {
+        return bigDecimalValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilBigDecimalValueTest(
+        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+        return bigDecimalValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)),
+                                                  bigDecimalValueTestWaiterConfig(overrideConfig));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilDoubleValueTest(
+        APostOperationRequest aPostOperationRequest) {
+        return doubleValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilDoubleValueTest(
+        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+        return doubleValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)),
+                                              doubleValueTestWaiterConfig(overrideConfig));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilFloatValueTest(
+        APostOperationRequest aPostOperationRequest) {
+        return floatValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilFloatValueTest(
+        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+        return floatValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)),
+                                             floatValueTestWaiterConfig(overrideConfig));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilLongValueTest(
+        APostOperationRequest aPostOperationRequest) {
+        return longValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)));
+    }
+
+    @Override
+    public CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilLongValueTest(
+        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+        return longValueTestWaiter.runAsync(() -> client.aPostOperation(applyWaitersUserAgent(aPostOperationRequest)),
+                                            longValueTestWaiterConfig(overrideConfig));
     }
 
     @Override
@@ -96,9 +171,50 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
         result.add(new WaitersRuntime.ResponseStatusAcceptor(200, WaiterState.SUCCESS));
         result.add(new WaitersRuntime.ResponseStatusAcceptor(404, WaiterState.RETRY));
         result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
-            WaitersRuntime.Value input = new WaitersRuntime.Value(response);
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
             List<Object> resultValues = input.field("foo").field("bar").values();
             return !resultValues.isEmpty() && resultValues.stream().anyMatch(v -> Objects.equals(v, "baz"));
+        }));
+        result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
+        return result;
+    }
+
+    private static List<WaiterAcceptor<? super APostOperationResponse>> floatValueTestWaiterAcceptors() {
+        List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
+        result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
+            return Objects.equals(input.field("FloatValue").value(), new BigDecimal("42.5"));
+        }));
+        result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
+        return result;
+    }
+
+    private static List<WaiterAcceptor<? super APostOperationResponse>> bigDecimalValueTestWaiterAcceptors() {
+        List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
+        result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
+            return Objects.equals(input.field("BigDecimalValue").value(), new BigDecimal(
+                "123132.81289319837183771465876127837183719837123"));
+        }));
+        result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
+        return result;
+    }
+
+    private static List<WaiterAcceptor<? super APostOperationResponse>> longValueTestWaiterAcceptors() {
+        List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
+        result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
+            return Objects.equals(input.field("LongValue").value(), new BigDecimal("9223372036854775807"));
+        }));
+        result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
+        return result;
+    }
+
+    private static List<WaiterAcceptor<? super APostOperationResponse>> doubleValueTestWaiterAcceptors() {
+        List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
+        result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
+            return Objects.equals(input.field("DoubleValue").value(), new BigDecimal("1.7976931348623157E+308"));
         }));
         result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
         return result;
@@ -107,10 +223,50 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
     private static WaiterOverrideConfiguration postOperationSuccessWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
         Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
         int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
-        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse(
-            FixedDelayBackoffStrategy.create(Duration.ofSeconds(1)));
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(1)));
         Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
-        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy(backoffStrategy)
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
+                                          .waitTimeout(waitTimeout).build();
+    }
+
+    private static WaiterOverrideConfiguration floatValueTestWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
+        Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
+        int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(15)));
+        Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
+                                          .waitTimeout(waitTimeout).build();
+    }
+
+    private static WaiterOverrideConfiguration bigDecimalValueTestWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
+        Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
+        int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(15)));
+        Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
+                                          .waitTimeout(waitTimeout).build();
+    }
+
+    private static WaiterOverrideConfiguration longValueTestWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
+        Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
+        int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(15)));
+        Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
+                                          .waitTimeout(waitTimeout).build();
+    }
+
+    private static WaiterOverrideConfiguration doubleValueTestWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
+        Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
+        int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(15)));
+        Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
                                           .waitTimeout(waitTimeout).build();
     }
 
@@ -125,7 +281,7 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
 
     private <T extends QueryRequest> T applyWaitersUserAgent(T request) {
         Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version("waiter").name("hll").build());
+                                                                                                      .name("sdk-metrics").version("B").build());
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
                                                                        .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
                                                                        .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));

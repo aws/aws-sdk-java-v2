@@ -24,8 +24,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import org.apache.commons.lang.math.RandomUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.utils.CancellableOutputStream;
@@ -33,6 +37,7 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.StoringSubscriber;
 
 class BlockingOutputStreamAsyncRequestBodyTest {
+    private Random random = new Random(3470);
     @Test
     public void outputStream_waitsForSubscription() throws IOException {
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
@@ -50,9 +55,9 @@ class BlockingOutputStreamAsyncRequestBodyTest {
 
     @Test
     @Timeout(10)
-    public void outputStream_failsIfSubscriptionNeverComes()  {
+    public void outputStream_overrideSubscribeTimeout_failsIfSubscriptionNeverComes()  {
         BlockingOutputStreamAsyncRequestBody requestBody =
-            new BlockingOutputStreamAsyncRequestBody(0L, Duration.ofSeconds(1));
+            BlockingOutputStreamAsyncRequestBody.builder().contentLength(0L).subscribeTimeout(Duration.ofSeconds(1)).build();
         assertThatThrownBy(requestBody::outputStream).hasMessageContaining("The service request was not made");
     }
 
@@ -75,6 +80,57 @@ class BlockingOutputStreamAsyncRequestBodyTest {
         assertThat(out.remaining()).isEqualTo(2);
         assertThat(out.get()).isEqualTo((byte) 0);
         assertThat(out.get()).isEqualTo((byte) 1);
+    }
+
+    @Test
+    public void outputStream_writesArrayWithOffsetUseSameArray_shouldNotOverride() throws IOException {
+        BlockingOutputStreamAsyncRequestBody requestBody =
+            AsyncRequestBody.forBlockingOutputStream(320L);
+        int totalLength = 320;
+        ByteBuffer expected = ByteBuffer.allocate(totalLength);
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(totalLength);
+        requestBody.subscribe(subscriber);
+
+        int bytesToWrite = 32;
+        CancellableOutputStream outputStream = requestBody.outputStream();
+        byte[] bytes = new byte[512];
+        for (int i = 0; i < 10; i++) {
+            random.nextBytes(bytes);
+            expected.put(bytes, 10, bytesToWrite);
+            outputStream.write(bytes, 10, bytesToWrite);
+        }
+
+        outputStream.close();
+        ByteBuffer out = ByteBuffer.allocate(totalLength);
+        assertThat(subscriber.transferTo(out)).isEqualTo(END_OF_STREAM);
+        out.flip();
+
+        assertThat(out.array()).containsExactly(expected.array());
+    }
+
+    @Test
+    public void outputStream_writesArrayUseSameArray_shouldNotOverride() throws IOException {
+        BlockingOutputStreamAsyncRequestBody requestBody =
+            AsyncRequestBody.forBlockingOutputStream(320L);
+        int totalLength = 320;
+        ByteBuffer expected = ByteBuffer.allocate(totalLength);
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(totalLength);
+        requestBody.subscribe(subscriber);
+
+        CancellableOutputStream outputStream = requestBody.outputStream();
+        byte[] bytes = new byte[32];
+        for (int i = 0; i < 10; i++) {
+            random.nextBytes(bytes);
+            expected.put(bytes);
+            outputStream.write(bytes);
+        }
+
+        outputStream.close();
+        ByteBuffer out = ByteBuffer.allocate(totalLength);
+        assertThat(subscriber.transferTo(out)).isEqualTo(END_OF_STREAM);
+        out.flip();
+
+        assertThat(out.array()).containsExactly(expected.array());
     }
 
 }

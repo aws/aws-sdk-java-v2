@@ -38,4 +38,13 @@ public interface Identity {
     default Optional<Instant> expirationTime() {
         return Optional.empty();
     }
+
+    /**
+     * The source that resolved this identity, normally an identity provider. Note that
+     * this string value would be set by an identity provider implementation and is
+     * intended to be used for for tracking purposes. Avoid building logic on its value.
+     */
+    default Optional<String> providerName() {
+        return Optional.empty();
+    }
 }

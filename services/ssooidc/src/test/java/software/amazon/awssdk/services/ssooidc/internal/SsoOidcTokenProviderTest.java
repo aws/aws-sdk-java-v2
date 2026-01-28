@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -28,8 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +40,6 @@ import java.time.Instant;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
@@ -62,9 +57,6 @@ public class SsoOidcTokenProviderTest {
     public static final String REGION = "region";
     private TokenManager<SsoOidcToken> mockTokenManager;
     private SsoOidcClient ssoOidcClient;
-
-    private FileSystem testFs;
-    private Path cache;
 
     public static String deriveCacheKey(String startUrl) {
         try {
@@ -101,7 +93,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void resolveToken_usesTokenManager() {
+    void resolveToken_usesTokenManager() {
         SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
                                                 .accessToken("accesstoken")
                                                 .expiresAt(Instant.now().plus(Duration.ofDays(1)))
@@ -109,7 +101,9 @@ public class SsoOidcTokenProviderTest {
         mockTokenManager.storeToken(ssoOidcToken);
 
         SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
-        assertThat(tokenProvider.resolveToken()).isEqualTo(ssoOidcToken);
+        SdkToken resolvedToken = tokenProvider.resolveToken();
+        assertThat(resolvedToken).isEqualTo(ssoOidcToken);
+        assertThat(resolvedToken.providerName()).isPresent().contains("SsoOidcTokenProvider");
     }
 
     private SsoOidcTokenProvider.Builder getDefaultSsoOidcTokenProviderBuilder() {
@@ -117,7 +111,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void resolveToken_cachedValueNotPresent_throws() {
+    void resolveToken_cachedValueNotPresent_throws() {
 
         SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
 
@@ -145,7 +139,7 @@ public class SsoOidcTokenProviderTest {
     //             }
     //         },
     @Test
-    public void standardTest_Valid_token_with_all_fields() {
+    void standardTest_Valid_token_with_all_fields() {
         SsoOidcToken token = getDefaultTokenBuilder()
             .expiresAt(Instant.now().plusSeconds(10000)).registrationExpiresAt(Instant.now().plusSeconds(90000))
             .build();
@@ -160,7 +154,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void refresh_returns_cached_token_when_service_calls_fails() {
+    void refresh_returns_cached_token_when_service_calls_fails() {
         SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.now().plusSeconds(5000)).registrationExpiresAt(Instant.now().plusSeconds(10000))
             .build();
@@ -177,7 +171,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void refresh_fails_when_supplier_fails_due_to_Non_service_issues() {
+    void refresh_fails_when_supplier_fails_due_to_Non_service_issues() {
         SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.now().minusSeconds(2)).registrationExpiresAt(Instant.now().minusSeconds(2))
             .build();
@@ -201,7 +195,7 @@ public class SsoOidcTokenProviderTest {
     //             }
     //         },
     @Test
-    public void standardTest_Minimal_valid_cached_token() {
+    void standardTest_Minimal_valid_cached_token() {
         Instant expiresAt = Instant.now().plusSeconds(3600);
         SsoOidcToken ssoOidcToken = SsoOidcToken.builder().accessToken("cachedtoken").expiresAt(expiresAt).build();
         mockTokenManager.storeToken(ssoOidcToken);
@@ -219,7 +213,7 @@ public class SsoOidcTokenProviderTest {
     //             "expectedException": "ExpiredToken"
     //         }
     @Test
-    public void standardTest_Minimal_expired_cached_token() {
+    void standardTest_Minimal_expired_cached_token() {
         String startUrl = START_URL;
         Instant expiresAt = Instant.parse("2021-12-25T13:00:00Z");
         SsoOidcToken ssoOidcToken =
@@ -247,7 +241,7 @@ public class SsoOidcTokenProviderTest {
     //             "expectedException": "InvalidToken"
     //         },
     @Test
-    public void standardTest_Token_missing_the_expiresAt_field() {
+    void standardTest_Token_missing_the_expiresAt_field() {
         SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
                                                 .startUrl(START_URL)
                                                 .accessToken("cachedtoken").clientId("client").clientSecret("secret")
@@ -272,7 +266,7 @@ public class SsoOidcTokenProviderTest {
     //             "expectedException": "InvalidToken"
     //         },
     @Test
-    public void standardTest_Token_missing_the_accessToken_field() {
+    void standardTest_Token_missing_the_accessToken_field() {
         SsoOidcToken ssoOidcToken = SsoOidcToken.builder()
                                                 .startUrl(START_URL)
                                                 .accessToken("cachedtoken").clientId("client").clientSecret("secret")
@@ -290,7 +284,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void refresh_token_from_service_when_token_outside_expiry_window() {
+    void refresh_token_from_service_when_token_outside_expiry_window() {
         SsoOidcToken nearToExpiryToken = getDefaultTokenBuilder()
             .expiresAt(Instant.now().plusSeconds(59))
             .registrationExpiresAt(Instant.now().plusSeconds(59)).build();
@@ -319,7 +313,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void refresh_token_does_not_fetch_from_service_when_token_inside_expiry_window() {
+    void refresh_token_does_not_fetch_from_service_when_token_inside_expiry_window() {
         SsoOidcToken cachedDiskToken = getDefaultTokenBuilder()
             .expiresAt(Instant.now().plusSeconds(120)).registrationExpiresAt(Instant.now().plusSeconds(120))
             .build();
@@ -333,7 +327,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void token_is_obtained_from_inmemory_when_token_is_within_inmemory_stale_time() {
+    void token_is_obtained_from_inmemory_when_token_is_within_inmemory_stale_time() {
         Instant futureExpiryDate = Instant.now().plus(Duration.ofDays(1));
         SsoOidcToken cachedDiskToken = getDefaultTokenBuilder()
             .expiresAt(futureExpiryDate).registrationExpiresAt(Instant.parse("2022-12-25T11:30:00Z")).build();
@@ -354,7 +348,7 @@ public class SsoOidcTokenProviderTest {
 
     // Test to make sure cache fetches from Cached values.
     @Test
-    public void token_is_obtained_from_refresher_and_then_refresher_cache_if_its_within_stale_time() {
+    void token_is_obtained_from_refresher_and_then_refresher_cache_if_its_within_stale_time() {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMinutes(4));
         SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
                                                                .expiresAt(closeToExpireTime)
@@ -383,7 +377,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void token_is_retrieved_from_service_when_service_returns_tokens_with_short_expiration() {
+    void token_is_retrieved_from_service_when_service_returns_tokens_with_short_expiration() {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofSeconds(4));
         SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("fourMinutesToExpire")
                                                                .expiresAt(closeToExpireTime)
@@ -410,7 +404,7 @@ public class SsoOidcTokenProviderTest {
     }
 
     @Test
-    public void token_is_retrieved_automatically_when_prefetch_time_is_set() throws InterruptedException {
+    void token_is_retrieved_automatically_when_prefetch_time_is_set() throws InterruptedException {
         Instant closeToExpireTime = Instant.now().plus(Duration.ofMillis(3));
 
         SsoOidcToken cachedDiskToken = getDefaultTokenBuilder().accessToken("closeToExpire")
@@ -444,19 +438,14 @@ public class SsoOidcTokenProviderTest {
         assertThat(highExpiryDateToken.token()).isEqualTo("tokenVeryHighExpiry");
     }
 
-    private CreateTokenResponse someOne(CreateTokenResponse.Builder builder, String tokenGreaterThanStaleButLessThanPrefetch,
-                                        int i) {
-        return builder.accessToken(tokenGreaterThanStaleButLessThanPrefetch).expiresIn(i).build();
-    }
-
     @Test
-    public void tokenProvider_throws_exception_if_client_is_null() {
+    void tokenProvider_throws_exception_if_client_is_null() {
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(
             () -> SsoOidcTokenProvider.builder().sessionName(START_URL).build()).withMessage("ssoOidcClient must not be null.");
     }
 
     @Test
-    public void tokenProvider_throws_exception_if_start_url_is_null() {
+    void tokenProvider_throws_exception_if_start_url_is_null() {
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(
             () -> SsoOidcTokenProvider.builder().ssoOidcClient(ssoOidcClient).build()).withMessage("sessionName must not be "
                                                                                                    + "null.");

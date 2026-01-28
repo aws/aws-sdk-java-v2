@@ -1,22 +1,10 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
+import java.util.Arrays;
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -29,9 +17,19 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final Region region;
 
+    private final RegionSet regionSet;
+
     private final Boolean useDualStackEndpoint;
 
     private final Boolean useFIPSEndpoint;
+
+    private final String accountId;
+
+    private final String accountIdEndpointMode;
+
+    private final List<String> listOfStrings;
+
+    private final List<String> defaultListOfStrings;
 
     private final String endpointId;
 
@@ -52,8 +50,13 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
+        this.regionSet = builder.regionSet;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.accountId = builder.accountId;
+        this.accountIdEndpointMode = builder.accountIdEndpointMode;
+        this.listOfStrings = builder.listOfStrings;
+        this.defaultListOfStrings = Validate.paramNotNull(builder.defaultListOfStrings, "defaultListOfStrings");
         this.endpointId = builder.endpointId;
         this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
         this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
@@ -79,6 +82,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
+    public RegionSet regionSet() {
+        return regionSet;
+    }
+
+    @Override
     public Boolean useDualStackEndpoint() {
         return useDualStackEndpoint;
     }
@@ -86,6 +94,26 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    @Override
+    public String accountId() {
+        return accountId;
+    }
+
+    @Override
+    public String accountIdEndpointMode() {
+        return accountIdEndpointMode;
+    }
+
+    @Override
+    public List<String> listOfStrings() {
+        return listOfStrings;
+    }
+
+    @Override
+    public List<String> defaultListOfStrings() {
+        return defaultListOfStrings;
     }
 
     @Override
@@ -139,9 +167,19 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private Region region;
 
+        private RegionSet regionSet;
+
         private Boolean useDualStackEndpoint;
 
         private Boolean useFIPSEndpoint;
+
+        private String accountId;
+
+        private String accountIdEndpointMode;
+
+        private List<String> listOfStrings;
+
+        private List<String> defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
 
         private String endpointId;
 
@@ -165,8 +203,13 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         Builder(DefaultQueryAuthSchemeParams params) {
             this.operation = params.operation;
             this.region = params.region;
+            this.regionSet = params.regionSet;
             this.useDualStackEndpoint = params.useDualStackEndpoint;
             this.useFIPSEndpoint = params.useFIPSEndpoint;
+            this.accountId = params.accountId;
+            this.accountIdEndpointMode = params.accountIdEndpointMode;
+            this.listOfStrings = params.listOfStrings;
+            this.defaultListOfStrings = params.defaultListOfStrings;
             this.endpointId = params.endpointId;
             this.defaultTrueParam = params.defaultTrueParam;
             this.defaultStringParam = params.defaultStringParam;
@@ -190,6 +233,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         }
 
         @Override
+        public Builder regionSet(RegionSet regionSet) {
+            this.regionSet = regionSet;
+            return this;
+        }
+
+        @Override
         public Builder useDualStackEndpoint(Boolean useDualStackEndpoint) {
             this.useDualStackEndpoint = useDualStackEndpoint;
             return this;
@@ -198,6 +247,33 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+
+        @Override
+        public Builder accountIdEndpointMode(String accountIdEndpointMode) {
+            this.accountIdEndpointMode = accountIdEndpointMode;
+            return this;
+        }
+
+        @Override
+        public Builder listOfStrings(List<String> listOfStrings) {
+            this.listOfStrings = listOfStrings;
+            return this;
+        }
+
+        @Override
+        public Builder defaultListOfStrings(List<String> defaultListOfStrings) {
+            this.defaultListOfStrings = defaultListOfStrings;
+            if (this.defaultListOfStrings == null) {
+                this.defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
+            }
             return this;
         }
 

@@ -28,7 +28,7 @@ import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -43,7 +43,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @Immutable
 public final class V4CanonicalRequest {
     private static final List<String> HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
+        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect", "transfer-encoding", "x-forwarded-for");
 
     private final SdkHttpRequest request;
     private final String contentHash;
@@ -202,21 +202,16 @@ public final class V4CanonicalRequest {
      * Get the string representing which headers are part of the signing process. Header names are separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
-        String signedHeadersString;
         StringBuilder headersString = new StringBuilder(512);
         for (Pair<String, List<String>> header : canonicalHeaders) {
-            headersString.append(header.left()).append(";");
+            headersString.append(header.left()).append(';');
         }
-        // get rid of trailing semicolon
-        signedHeadersString = headersString.toString();
 
-        boolean trimTrailingSemicolon = signedHeadersString.length() > 1 &&
-                                        signedHeadersString.endsWith(";");
-
-        if (trimTrailingSemicolon) {
-            signedHeadersString = signedHeadersString.substring(0, signedHeadersString.length() - 1);
+        if (headersString.length() > 0) {
+            headersString.setLength(headersString.length() - 1); // remove last semicolon
         }
-        return signedHeadersString;
+
+        return headersString.toString();
     }
 
     /**
@@ -249,10 +244,10 @@ public final class V4CanonicalRequest {
      * Matcher object as well.
      */
     private static void addAndTrim(StringBuilder result, String value) {
-        int valueLength = value.length();
-        if (valueLength == 0) {
+        if (StringUtils.isEmpty(value)) {
             return;
         }
+        int valueLength = value.length();
 
         int start = 0;
         // Find first non-whitespace
@@ -296,12 +291,16 @@ public final class V4CanonicalRequest {
      * If the path is empty, a single-forward slash ('/') is returned.
      */
     private static String getCanonicalUri(SdkHttpRequest request, Options options) {
-        String path = options.normalizePath ? request.getUri().normalize().getRawPath()
-                                            : request.encodedPath();
-
-        if (StringUtils.isEmpty(path)) {
+        String path = request.encodedPath();
+        if (StringUtils.isEmpty(path) || "/".equals(path)) {
             return "/";
         }
+
+        if (options.normalizePath) {
+            path = request.getUri().normalize().getRawPath();
+        }
+
+
 
         if (options.doubleUrlEncode) {
             path = SdkHttpUtils.urlEncodeIgnoreSlashes(path);
@@ -329,6 +328,10 @@ public final class V4CanonicalRequest {
      * Get the sorted map of query parameters that are to be signed.
      */
     private static SortedMap<String, List<String>> getCanonicalQueryParams(SdkHttpRequest request) {
+        if (request.numRawQueryParameters() == 0) {
+            return Collections.emptySortedMap();
+        }
+
         SortedMap<String, List<String>> sorted = new TreeMap<>();
 
         // Signing protocol expects the param values also to be sorted after url

@@ -72,7 +72,11 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_AUTH_SCHEME_PATTERN = "%s.auth.scheme";
 
+    public static final String PACKAGE_NAME_JMESPATH_PATTERN = "%s.jmespath";
+
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
+
+    public static final String PACKAGE_NAME_BATCHMANAGER_PATTERN = "%s.batchmanager";
 
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";
 
@@ -93,6 +97,8 @@ public final class Constant {
     public static final String LF = System.lineSeparator();
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
+
+    public static final String EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/example-meta.json";
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 

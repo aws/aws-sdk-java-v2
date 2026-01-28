@@ -18,14 +18,12 @@ package software.amazon.awssdk.stability.tests.sqs;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 public class SqsCrtAsyncStabilityTest extends SqsBaseStabilityTest {
     private static String queueName;
@@ -52,7 +50,7 @@ public class SqsCrtAsyncStabilityTest extends SqsBaseStabilityTest {
                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                        .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
                                                                     // Retry at test level
-                                                                    .retryPolicy(RetryPolicy.none()))
+                                                                    .retryStrategy(DefaultRetryStrategy.doNotRetry()))
                                        .build();
 
         queueName = "sqscrtasyncstabilitytests" + System.currentTimeMillis();

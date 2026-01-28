@@ -1,0 +1,60 @@
+{
+    "version": "2.25.29",
+    "date": "2024-04-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "eckardnet",
+            "description": "Set keepAile in SocketOptions to true if TcpKeepAliveConfiguration is set."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "AWS Clean Rooms Differential Privacy is now fully available. Differential privacy protects against user-identification attempts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "This release includes API SendDataIntegrationEvent for AWS Supply Chain"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Network Monitor",
+            "contributor": "",
+            "description": "Examples were added to CloudWatch Network Monitor commands."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds new Submit Auto Evaluation Action for Amazon Connect Rules."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "This release adds a new QiC public API updateSession and updates an existing QiC public API createSession"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Added support for ContentType to content moderation detections."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Adding tags field to SoftwareSet. Removing tags fields from Summary objects. Changing the list of exceptions in tagging APIs. Fixing an issue where the SDK returns empty tags in Get APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

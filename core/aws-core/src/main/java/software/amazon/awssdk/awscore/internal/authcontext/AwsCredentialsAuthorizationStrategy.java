@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -84,6 +85,8 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
             resolveCredentialsProvider(request, defaultCredentialsProvider);
         AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+        // TODO: A separate execution attribute is not strictly needed; this can be optimized before release
+        executionAttributes.putAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID, credentials.accountId().orElse(null));
     }
 
     /**
@@ -107,7 +110,7 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
             MetricCollector metricCollector) {
         Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
 
-        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        // TODO(technical-debt-reduction): internal issue JAVA-7739. avoid join for async clients.
         Pair<? extends AwsCredentialsIdentity, Duration> measured =
             MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity()));
 

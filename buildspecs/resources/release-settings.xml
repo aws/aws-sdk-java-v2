@@ -2,7 +2,7 @@
     <servers>
         <server>
             <id>sonatype-nexus-staging</id>
-            <username>amazonwebservices</username>
+            <username>$SONATYPE_USERNAME</username>
             <password>$SONATYPE_PASSWORD</password>
         </server>
     </servers>

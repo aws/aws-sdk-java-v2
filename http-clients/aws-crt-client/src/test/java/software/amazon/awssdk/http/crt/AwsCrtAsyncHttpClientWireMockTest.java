@@ -56,12 +56,6 @@ public class AwsCrtAsyncHttpClientWireMockTest {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
     }
 
-    @AfterClass
-    public static void tearDown() {
-        // Verify there is no resource leak.
-        CrtResource.waitForNoResources();
-    }
-
     @Test
     public void closeClient_reuse_throwException() {
         SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.create();

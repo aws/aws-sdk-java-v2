@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.awscore.client.config;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -62,6 +64,13 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      */
     public static final AwsClientOption<Boolean> DUALSTACK_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
 
+
+    /**
+     * AWS Sigv4a signing region set used for computing multi-region request signatures.
+     */
+    public static final AwsClientOption<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
+        new AwsClientOption<>(new UnsafeValueType(Set.class));
+
     /**
      * Whether the SDK should resolve fips endpoints instead of default endpoints. See
      * {@link AwsClientBuilder#fipsEnabled(Boolean)}.
@@ -90,6 +99,12 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * Option used by the rest of the SDK to read the {@link DefaultsMode}. This will never be {@link DefaultsMode#AUTO}.
      */
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
+
+    /**
+     * Option used by the rest of the SDK to read the {@link DefaultsMode}. This will never be {@link DefaultsMode#AUTO}.
+     */
+    public static final AwsClientOption<AccountIdEndpointMode> ACCOUNT_ID_ENDPOINT_MODE =
+        new AwsClientOption<>(AccountIdEndpointMode.class);
 
     /**
      * Option to specify whether global endpoint should be used.

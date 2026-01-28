@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -24,10 +25,30 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class StaticCredentialsProvider implements AwsCredentialsProvider {
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_CODE.value();
     private final AwsCredentials credentials;
 
     private StaticCredentialsProvider(AwsCredentials credentials) {
-        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+        Validate.notNull(credentials, "Credentials must not be null.");
+        this.credentials = withProviderName(credentials);
+    }
+
+    private AwsCredentials withProviderName(AwsCredentials credentials) {
+        if (credentials instanceof AwsBasicCredentials) {
+            AwsBasicCredentials basicCreds = (AwsBasicCredentials) credentials;
+            if (basicCreds.providerName().isPresent()) {
+                return basicCreds;
+            }
+            return basicCreds.copy(c -> c.providerName(PROVIDER_NAME));
+        }
+        if (credentials instanceof AwsSessionCredentials) {
+            AwsSessionCredentials sessionCreds = (AwsSessionCredentials) credentials;
+            if (sessionCreds.providerName().isPresent()) {
+                return sessionCreds;
+            }
+            return sessionCreds.copy(c -> c.providerName(PROVIDER_NAME));
+        }
+        return credentials;
     }
 
     /**
@@ -44,7 +65,7 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return ToString.builder("StaticCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("credentials", credentials)
                        .build();
     }

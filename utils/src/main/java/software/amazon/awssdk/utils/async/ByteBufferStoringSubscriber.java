@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -56,13 +57,19 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
 
     private final Phaser phaser = new Phaser(1);
 
+    private final AtomicInteger outstandingDemand = new AtomicInteger(0);
+
+    private volatile long byteBufferSizeHint = 0L;
+
     /**
      * The active subscription. Set when {@link #onSubscribe(Subscription)} is invoked.
      */
     private Subscription subscription;
 
     /**
-     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval.
+     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval. The subscriber will
+     * only request more from the subscription when fewer bytes are buffered AND in flight requests from the subscription will
+     * likely be under minimumBytesBuffered.
      */
     public ByteBufferStoringSubscriber(long minimumBytesBuffered) {
         this.minimumBytesBuffered = Validate.isPositive(minimumBytesBuffered, "Data buffer minimum must be positive");
@@ -99,7 +106,9 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
             next = storingSubscriber.peek();
         }
 
-        addBufferedDataAmount(-transferred);
+        if (transferred != 0) {
+            addBufferedDataAmount(-transferred);
+        }
 
         if (!next.isPresent()) {
             return TransferResult.SUCCESS;
@@ -172,14 +181,21 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     public void onSubscribe(Subscription s) {
         storingSubscriber.onSubscribe(new DemandIgnoringSubscription(s));
         subscription = s;
+        outstandingDemand.incrementAndGet();
         subscription.request(1);
         subscriptionLatch.countDown();
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
+        int remaining = byteBuffer.remaining();
+        outstandingDemand.decrementAndGet();
+        // atomic update not required here, in a race it does not matter which thread sets this value since it is not being
+        // incremented, just set.
+        byteBufferSizeHint = byteBuffer.remaining();
+
         storingSubscriber.onNext(byteBuffer.duplicate());
-        addBufferedDataAmount(byteBuffer.remaining());
+        addBufferedDataAmount(remaining);
         phaser.arrive();
     }
 
@@ -201,7 +217,9 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     }
 
     private void maybeRequestMore(long currentDataBuffered) {
-        if (currentDataBuffered < minimumBytesBuffered) {
+        long dataBufferedAndInFlight = currentDataBuffered + (byteBufferSizeHint * outstandingDemand.get());
+        if (dataBufferedAndInFlight < minimumBytesBuffered) {
+            outstandingDemand.incrementAndGet();
             subscription.request(1);
         }
     }

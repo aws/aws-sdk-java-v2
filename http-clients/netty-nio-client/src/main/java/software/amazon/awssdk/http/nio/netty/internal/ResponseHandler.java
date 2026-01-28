@@ -56,7 +56,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -96,7 +95,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .build();
             channelContext.channel().attr(RESPONSE_STATUS_CODE).set(response.status().code());
             channelContext.channel().attr(RESPONSE_CONTENT_LENGTH).set(responseContentLength(response));
-            channelContext.channel().attr(KEEP_ALIVE).set(shouldKeepAlive(response));
+            channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             ChannelUtils.getAttribute(channelContext.channel(), CHANNEL_DIAGNOSTICS)
                         .ifPresent(ChannelDiagnostics::incrementResponseCount);
             requestContext.handler().onHeaders(sdkResponse);
@@ -203,13 +202,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
-    private boolean shouldKeepAlive(HttpResponse response) {
-        if (HttpStatusFamily.of(response.status().code()) == HttpStatusFamily.SERVER_ERROR) {
-            return false;
-        }
-        return HttpUtil.isKeepAlive(response);
-    }
-
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
@@ -314,7 +306,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         SdkCancellationException e = new SdkCancellationException(
                                 "Subscriber cancelled before all events were published");
-                        log.warn(channelContext.channel(), () -> "Subscriber cancelled before all events were published");
+                        log.debug(channelContext.channel(), () -> "Subscriber cancelled before all events were published");
                         executeFuture.completeExceptionally(e);
                     } finally {
                         runAndLogError(channelContext.channel(), () -> "Could not release channel back to the pool",

@@ -30,8 +30,8 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -55,7 +55,7 @@ public class RetriesOn200Test {
                                   .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                                   .region(Region.US_WEST_2)
                                   .credentialsProvider(AnonymousCredentialsProvider.create())
-                                  .overrideConfiguration(c -> c.retryPolicy(RetryMode.STANDARD)
+                                  .overrideConfiguration(c -> c.retryStrategy(RetryMode.STANDARD)
                                                                .addExecutionInterceptor(countingInterceptor))
                                   .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                                   .build();
@@ -72,7 +72,8 @@ public class RetriesOn200Test {
                 assertThat(e.awsErrorDetails().errorCode()).isEqualTo(ERROR_CODE);
                 assertThat(e.awsErrorDetails().errorMessage()).isEqualTo(ERROR_MESSAGE);
             });
-        assertThat(countingInterceptor.attemptCount).isEqualTo(RetryPolicy.forRetryMode(RetryMode.STANDARD).numRetries() + 1);
+        assertThat(countingInterceptor.attemptCount)
+            .isEqualTo(SdkDefaultRetryStrategy.forRetryMode(RetryMode.STANDARD).maxAttempts());
     }
 
     private static final class AttemptCountingInterceptor implements ExecutionInterceptor {

@@ -34,7 +34,10 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 /**
  * AWS Signature Version 4 signer that can include contents of an asynchronous request body into the signature
  * calculation.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner} from the 'http-auth-aws' module.
  */
+@Deprecated
 @SdkPublicApi
 public final class AsyncAws4Signer extends BaseAws4Signer implements AsyncSigner {
 

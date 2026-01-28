@@ -40,6 +40,7 @@ import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestWrapper;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -53,7 +54,7 @@ class CrtFileUploadTest {
     private static final int NUM_OF_PARTS_COMPLETED = 5;
     private static final long PART_SIZE_IN_BYTES = 8 * MB;
     private static final String MULTIPART_UPLOAD_ID = "someId";
-    private S3MetaRequest metaRequest;
+    private S3MetaRequestPauseObservable observable;
     private static FileSystem fileSystem;
     private static File file;
     private static ResumeToken token;
@@ -77,7 +78,7 @@ class CrtFileUploadTest {
 
     @BeforeEach
     void setUpBeforeEachTest() {
-        metaRequest = Mockito.mock(S3MetaRequest.class);
+        observable = Mockito.mock(S3MetaRequestPauseObservable.class);
     }
 
     @Test
@@ -102,17 +103,13 @@ class CrtFileUploadTest {
                                                                                     .sdkResponse(putObjectResponse)
                                                                                     .transferredBytes(0L)
                                                                                     .build());
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-
         UploadFileRequest request = uploadFileRequest();
 
         CrtFileUpload fileUpload =
             new CrtFileUpload(future, transferProgress, observable, request);
 
-        observable.subscribe(metaRequest);
-
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        Mockito.verify(metaRequest, Mockito.never()).pause();
+        Mockito.verify(observable, Mockito.never()).pause();
         assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
@@ -130,10 +127,7 @@ class CrtFileUploadTest {
                                                                                     .transferredBytes(1000L)
                                                                                     .build());
         UploadFileRequest request = uploadFileRequest();
-
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-        when(metaRequest.pause()).thenReturn(token);
-        observable.subscribe(metaRequest);
+        when(observable.pause()).thenReturn(token);
 
         CrtFileUpload fileUpload =
             new CrtFileUpload(future, transferProgress, observable, request);
@@ -154,10 +148,8 @@ class CrtFileUploadTest {
                                                                                     .build());
         UploadFileRequest request = uploadFileRequest();
 
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
         CrtRuntimeException exception = new CrtRuntimeException("exception");
-        when(metaRequest.pause()).thenThrow(exception);
-        observable.subscribe(metaRequest);
+        when(observable.pause()).thenThrow(exception);
 
         CrtFileUpload fileUpload =
             new CrtFileUpload(future, transferProgress, observable, request);
@@ -173,17 +165,14 @@ class CrtFileUploadTest {
         when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
                                                                                     .transferredBytes(0L)
                                                                                     .build());
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-        when(metaRequest.pause()).thenReturn(token);
+        when(observable.pause()).thenReturn(token);
         UploadFileRequest request = uploadFileRequest();
 
         CrtFileUpload fileUpload =
             new CrtFileUpload(future, transferProgress, observable, request);
 
-        observable.subscribe(metaRequest);
-
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        Mockito.verify(metaRequest).pause();
+        Mockito.verify(observable).pause();
         assertThat(resumableFileUpload.totalParts()).hasValue(TOTAL_PARTS);
         assertThat(resumableFileUpload.partSizeInBytes()).hasValue(PART_SIZE_IN_BYTES);
         assertThat(resumableFileUpload.multipartUploadId()).hasValue(MULTIPART_UPLOAD_ID);
@@ -204,17 +193,14 @@ class CrtFileUploadTest {
                                                                                     .sdkResponse(putObjectResponse)
                                                                                     .transferredBytes(0L)
                                                                                     .build());
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-        when(metaRequest.pause()).thenThrow(new CrtRuntimeException(6));
+        when(observable.pause()).thenThrow(new CrtRuntimeException(6));
         UploadFileRequest request = uploadFileRequest();
 
         CrtFileUpload fileUpload =
             new CrtFileUpload(future, transferProgress, observable, request);
 
-        observable.subscribe(metaRequest);
-
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        Mockito.verify(metaRequest).pause();
+        Mockito.verify(observable).pause();
         assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();

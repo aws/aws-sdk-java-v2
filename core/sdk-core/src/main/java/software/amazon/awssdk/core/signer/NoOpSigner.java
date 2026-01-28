@@ -22,8 +22,12 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * A No op implementation of Signer and Presigner interfaces that returns the
  * input {@link SdkHttpFullRequest} without modifications.
+ *
+ * @deprecated Replaced by {@code software.amazon.awssdk.http.auth.spi.signer.HttpSigner#doNotSign()} in
+ * 'http-auth-spi'.
  */
 @SdkPublicApi
+@Deprecated
 public final class NoOpSigner implements Signer, Presigner {
 
     @Override

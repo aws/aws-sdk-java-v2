@@ -1,0 +1,42 @@
+{
+    "version": "2.25.61",
+    "date": "2024-05-28",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed NullPointerException in S3 thrown when null metadata value is provided."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Doc-only update for DynamoDB. Specified the IAM actions needed to authorize a user to create a table with a resource-based policy."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Providing support to accept BgpAsnExtended attribute"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Workflow Service",
+            "contributor": "",
+            "description": "This release adds new APIs for deleting activity type and workflow type resources."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Adds ControllerNodeInfo in ListNodes response to support Raft mode for MSK"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

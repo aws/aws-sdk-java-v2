@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
+import static software.amazon.awssdk.enhanced.dynamodb.JsonTestUtils.toJsonNode;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
@@ -62,6 +63,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbClient lowLevelClient;
@@ -94,21 +96,21 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                                                          .build());
         docMappedtable.createTable();
         neseteddocMappedtable = enhancedClient.table(nestedTableName,
-                                              TableSchema.documentSchemaBuilder()
-                                                         .attributeConverterProviders(
-                                                             new InnerAttribConverterProvider<>(),
-                                                             defaultProvider())
-                                                         .addIndexPartitionKey(TableMetadata.primaryIndexName(),
-                                                                               "outerAttribOne",
-                                                                               AttributeValueType.S)
-                                                         .addIndexSortKey(TableMetadata.primaryIndexName(), "sort",
-                                                                          AttributeValueType.N)
-                                                         .build());
+                                                     TableSchema.documentSchemaBuilder()
+                                                                .attributeConverterProviders(
+                                                                    new InnerAttribConverterProvider<>(),
+                                                                    defaultProvider())
+                                                                .addIndexPartitionKey(TableMetadata.primaryIndexName(),
+                                                                                      "outerAttribOne",
+                                                                                      AttributeValueType.S)
+                                                                .addIndexSortKey(TableMetadata.primaryIndexName(), "sort",
+                                                                                 AttributeValueType.N)
+                                                                .build());
         neseteddocMappedtable.createTable();
 
     }
 
-   @After
+    @After
     public void deleteTable() {
 
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
@@ -121,18 +123,18 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
     private static final List<EnhancedDocument> DOCUMENTS =
         IntStream.range(0, 10)
-            .mapToObj(i -> EnhancedDocument.builder()
-                                           .putString("id", "id-value")
-                                           .putNumber("sort", i)
-                                           .putNumber("value", i)
-                .build()
+                 .mapToObj(i -> EnhancedDocument.builder()
+                                                .putString("id", "id-value")
+                                                .putNumber("sort", i)
+                                                .putNumber("value", i)
+                                                .build()
 
-            ).collect(Collectors.toList());
+                 ).collect(Collectors.toList());
 
     private static final List<EnhancedDocument> DOCUMENTS_WITH_PROVIDERS =
         IntStream.range(0, 10)
                  .mapToObj(i -> EnhancedDocument.builder()
-                     .attributeConverterProviders(defaultProvider())
+                                                .attributeConverterProviders(defaultProvider())
                                                 .putString("id", "id-value")
                                                 .putNumber("sort", i)
                                                 .putNumber("value", i)
@@ -172,24 +174,24 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                      nestedTestRecord.setDotVariable("v"+i);
                      return nestedTestRecord;
                  })
-            .map(BasicQueryTest::createDocumentFromNestedRecord)
+                 .map(BasicQueryTest::createDocumentFromNestedRecord)
 
                  .collect(Collectors.toList());
 
     private static final List<NestedTestRecord> NESTED_TEST_RECORDS =
-            IntStream.range(0, 10)
-                    .mapToObj(i -> {
-                        final NestedTestRecord nestedTestRecord = new NestedTestRecord();
-                        nestedTestRecord.setOuterAttribOne("id-value-" + i);
-                        nestedTestRecord.setSort(i);
-                        final InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
-                        innerAttributeRecord.setAttribOne("attribOne-"+i);
-                        innerAttributeRecord.setAttribTwo(i);
-                        nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
-                        nestedTestRecord.setDotVariable("v"+i);
-                        return nestedTestRecord;
-                    })
-                    .collect(Collectors.toList());
+        IntStream.range(0, 10)
+                 .mapToObj(i -> {
+                     final NestedTestRecord nestedTestRecord = new NestedTestRecord();
+                     nestedTestRecord.setOuterAttribOne("id-value-" + i);
+                     nestedTestRecord.setSort(i);
+                     final InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
+                     innerAttributeRecord.setAttribOne("attribOne-"+i);
+                     innerAttributeRecord.setAttribTwo(i);
+                     nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
+                     nestedTestRecord.setDotVariable("v"+i);
+                     return nestedTestRecord;
+                 })
+                 .collect(Collectors.toList());
 
     private void insertDocuments() {
         DOCUMENTS.forEach(document -> docMappedtable.putItem(r -> r.item(document)));
@@ -210,12 +212,13 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS.stream().map(i -> i
-                       .toBuilder()
-                       .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
-                       .build()
-                       .toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS.stream().map(i -> i
+                                              .toBuilder()
+                                              .attributeConverterProviders(new InnerAttribConverterProvider<>(),
+                                                                           defaultProvider())
+                                              .build())
+                                          .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -225,7 +228,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-               .attributesToProject("value")
+                .attributesToProject("value")
             ).iterator();
 
         assertThat(results.hasNext(), is(true));
@@ -239,17 +242,77 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
+    public void queryAllRecordsDefaultSettings_withSelect_specificAttributes() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select("SPECIFIC_ATTRIBUTES")
+                .attributesToProject("value")
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+        EnhancedDocument firstRecord = page.items().get(0);
+
+        assertThat(firstRecord.getString("id"), is(nullValue()));
+        assertThat(firstRecord.getNumber("sort"), is(nullValue()));
+        assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_allAttributes() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.ALL_ATTRIBUTES)
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+        EnhancedDocument firstRecord = page.items().get(0);
+
+        assertThat(firstRecord.getString("id"), is("id-value"));
+        assertThat(firstRecord.getNumber("sort").intValue(), is(0));
+        assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_count() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select("COUNT")
+            ).iterator();
+
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.count(), is(DOCUMENTS.size()));
+        assertThat(page.scannedCount(), is(DOCUMENTS.size()));
+        assertThat(page.items(), is(empty()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
     public void queryAllRecordsDefaultSettings_shortcutForm_viaItems() {
         insertDocuments();
 
         PageIterable<EnhancedDocument> query = docMappedtable.query(keyEqualTo(k -> k.partitionValue("id-value")));
         SdkIterable<EnhancedDocument> results = query.items();
-        assertThat(results.stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS.stream().map(i -> i
-                       .toBuilder()
-                       .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
-                       .build()
-                       .toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS.stream().map(i -> i
+                                   .toBuilder()
+                                   .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
+                                   .build())
+                                     .collect(Collectors.toList()))));
 
     }
 
@@ -267,19 +330,21 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                                                  .filterExpression(expression)
-                                                  .build())
-                       .iterator();
+                                                     .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                     .filterExpression(expression)
+                                                     .build())
+                          .iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
-                          .map(doc -> doc.toJson())
-                               .collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(
+                       DOCUMENTS_WITH_PROVIDERS.stream().
+                                               filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber(
+                                                   "sort").intValue() <= 5)
+                                               .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -297,11 +362,11 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                                                  .filterExpression(expression)
-                                                  .attributesToProject("value")
-                                                  .build())
-                       .iterator();
+                                                     .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                     .filterExpression(expression)
+                                                     .attributesToProject("value")
+                                                     .build())
+                          .iterator();
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -326,10 +391,10 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
-                                              .map(doc -> doc.toJson())
-                                              .collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.stream()
+                                                         .filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
+                                                         .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -338,10 +403,10 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertDocuments();
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                                                  .limit(5)
-                                                  .build())
-                       .iterator();
+                                                     .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                     .limit(5)
+                                                     .build())
+                          .iterator();
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page1 = results.next();
         assertThat(results.hasNext(), is(true));
@@ -356,13 +421,13 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Map<String, AttributeValue> expectedLastEvaluatedKey2 = new HashMap<>();
         expectedLastEvaluatedKey2.put("id", stringValue("id-value"));
         expectedLastEvaluatedKey2.put("sort", numberValue(9));
-        assertThat(page1.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(0, 5).stream().map( doc -> doc.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page1.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(0, 5))));
         assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
-        assertThat(page2.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(5, 10).stream().map( doc -> doc.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page2.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(5, 10))));
         assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
-        assertThat(page3.items().stream().map(i -> i.toJson()).collect(Collectors.toList()), is(empty()));
+        assertThat(page3.items(), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -392,16 +457,16 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertDocuments();
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                                                  .exclusiveStartKey(exclusiveStartKey)
-                                                  .build())
-                       .iterator();
+                                                     .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                     .exclusiveStartKey(exclusiveStartKey)
+                                                     .build())
+                          .iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.items().stream().map(doc -> doc.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -413,13 +478,13 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertDocuments();
         SdkIterable<EnhancedDocument> results =
             docMappedtable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                                                  .exclusiveStartKey(exclusiveStartKey)
-                                                  .build())
-                       .items();
+                                                     .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                     .exclusiveStartKey(exclusiveStartKey)
+                                                     .build())
+                          .items();
 
-        assertThat(results.stream().map(doc -> doc.toJson()).collect(Collectors.toList()),
-            is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
     }
 
     @Test
@@ -521,7 +586,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             neseteddocMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
-               .addNestedAttributeToProject( NestedAttributeName.create("test.com"))).iterator();
+                .addNestedAttributeToProject( NestedAttributeName.create("test.com"))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -590,8 +655,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(Exception.class).isThrownBy(
             () -> {
                 Iterator<Page<EnhancedDocument>> results =  neseteddocMappedtable.query(b -> b.queryConditional(
-                                                                                              keyEqualTo(k -> k.partitionValue("id-value-3")))
-                                                                                          .attributesToProject("").build()).iterator();
+                                                                                                  keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                                                                              .attributesToProject("").build()).iterator();
                 assertThat(results.hasNext(), is(true));
                 Page<EnhancedDocument> page = results.next();
             });
@@ -599,8 +664,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(Exception.class).isThrownBy(
             () -> {
                 Iterator<Page<EnhancedDocument>> results =  neseteddocMappedtable.query(b -> b.queryConditional(
-                                                                                              keyEqualTo(k -> k.partitionValue("id-value-3")))
-                                                                                          .addNestedAttributeToProject(NestedAttributeName.create("")).build()).iterator();
+                                                                                                  keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                                                                              .addNestedAttributeToProject(NestedAttributeName.create("")).build()).iterator();
                 assertThat(results.hasNext(), is(true));
                 Page<EnhancedDocument> page = results.next();
 

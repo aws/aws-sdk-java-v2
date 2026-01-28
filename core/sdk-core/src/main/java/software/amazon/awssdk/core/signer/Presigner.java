@@ -22,9 +22,12 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Interface for the signer used for pre-signing the requests. All SDK signer implementations that support pre-signing
  * will implement this interface.
+ *
+ * @deprecated Replaced by {@code software.amazon.awssdk.http.auth.spi.signer.HttpSigner} in 'http-auth-spi'.
  */
 @SdkPublicApi
 @FunctionalInterface
+@Deprecated
 public interface Presigner {
     /**
      * Method that takes in an request and returns a pre signed version of the request.

@@ -1,0 +1,86 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "shared-event-stream-service",
+    "globalEndpoint": "shared-event-stream.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Shared Event Stream Service",
+    "serviceFullName": "Service that shares event streams",
+    "serviceId":"Shared Event Stream Service",
+    "signatureVersion": "v4",
+    "uid": "shared-event-stream-service-2010-05-08",
+    "xmlNamespace": "https://shared-event-stream-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "StreamAOperation" : {
+      "name": "StreamAOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/stream-a"
+      },
+      "output": {
+        "shape": "StreamAOutput"
+      }
+    },
+    "StreamBOperation" : {
+      "name": "StreamBOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/stream-b"
+      },
+      "output": {
+        "shape": "StreamBOutput"
+      }
+    }
+  },
+  "shapes": {
+    "String": {
+      "type": "string"
+    },
+    "StreamAOutput": {
+      "type": "structure",
+      "members": {
+        "EventStream": {
+          "shape": "StreamA"
+        }
+      }
+    },
+    "StreamA": {
+      "type": "structure",
+      "members": {
+        "Payload": {
+          "shape": "Payload"
+        }
+      },
+      "eventstream": true
+    },
+    "StreamBOutput": {
+      "type": "structure",
+      "members": {
+        "EventStream": {
+          "shape": "StreamB"
+        }
+      }
+    },
+    "StreamB": {
+      "type": "structure",
+      "members": {
+        "Payload": {
+          "shape": "Payload"
+        }
+      },
+      "eventstream": true
+    },
+    "Payload": {
+      "type": "structure",
+      "members": {
+        "chunk": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    }
+  },
+  "documentation": "A service that streams births and deaths"
+}

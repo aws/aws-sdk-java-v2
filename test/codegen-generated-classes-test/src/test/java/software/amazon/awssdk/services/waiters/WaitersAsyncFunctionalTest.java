@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -225,5 +226,56 @@ public class WaitersAsyncFunctionalTest {
 
         newWaiter.close();
         verify(executorService, never()).shutdown();
+    }
+
+    @Test
+    public void failureResponse_withResponsePath_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .stringMember("UNEXPECTED_VALUE")
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(serviceFuture);
+        assertThatThrownBy(() -> asyncWaiter.waitUntilFailureForSpecificMatchers(b -> b.build()).join())
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(StringMember=UNEXPECTED_VALUE) and transitioned the waiter to failure state")
+            .isInstanceOf(CompletionException.class);
+    }
+
+    @Test
+    public void numberPathMatcher_evaluatesTrue_whenValuesMatch() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .floatMember(42.5F)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(serviceFuture);
+
+        WaiterResponse<AllTypesResponse> waiterResponse = asyncWaiter.waitUntilFloatValueTest(b -> b.build()).join();
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(1);
+        assertThat(waiterResponse.matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response));
+    }
+
+    @Test
+    public void numberPathMatcher_evaluatesFalse_whenValuesDontMatch() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .floatMember(43.5F)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(serviceFuture);
+
+        assertThatThrownBy(() ->
+                               asyncWaiter.waitUntilFloatValueTest(b -> b.build()).join())
+            .hasMessageContaining("exceeded the max retry attempts").hasCauseInstanceOf(SdkClientException.class);
     }
 }

@@ -20,10 +20,6 @@ public class EndpointCapturingInterceptor implements ExecutionInterceptor {
         return endpoints;
     }
 
-    private void reset() {
-        endpoints.clear();
-    }
-
     public class CaptureCompletedException extends RuntimeException {
     }
 }

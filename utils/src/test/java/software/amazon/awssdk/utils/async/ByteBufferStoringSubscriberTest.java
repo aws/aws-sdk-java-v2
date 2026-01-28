@@ -18,20 +18,13 @@ package software.amazon.awssdk.utils.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,11 +36,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
+@ExtendWith(MockitoExtension.class)
 public class ByteBufferStoringSubscriberTest {
+
+    @Mock
+    private Subscription subscription;
+
     @Test
     public void constructorCalled_withNonPositiveSize_throwsException() {
         assertThatCode(() -> new ByteBufferStoringSubscriber(1)).doesNotThrowAnyException();
@@ -61,7 +62,6 @@ public class ByteBufferStoringSubscriberTest {
     @Test
     public void doesNotRequestMoreThanMaxBytes() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(3);
-        Subscription subscription = mock(Subscription.class);
 
         subscriber.onSubscribe(subscription);
         verify(subscription).request(1);
@@ -77,9 +77,23 @@ public class ByteBufferStoringSubscriberTest {
     }
 
     @Test
+    public void doesNotRequestMoreWhenInflightMoreThanMinBytes() {
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(5);
+
+        subscriber.onSubscribe(subscription); // request 1, demand = 1
+        subscriber.onNext(fullByteBufferOfSize(3)); // demand = 0, sizeHint=3
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 1
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 2
+        verify(subscription, times(3)).request(1);
+
+        //sizeHint=3, demand=2, dataBufferedAndInFlight=6. 6 > 5, so no new request
+        subscriber.transferTo(emptyByteBufferOfSize(1));
+        verifyNoMoreInteractions(subscription);
+    }
+
+    @Test
     public void canStoreMoreThanMaxBytesButWontAskForMoreUntilBelowMax() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(3);
-        Subscription subscription = mock(Subscription.class);
 
         subscriber.onSubscribe(subscription);
         verify(subscription).request(1);
@@ -104,7 +118,6 @@ public class ByteBufferStoringSubscriberTest {
 
         try {
             ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(1);
-            Subscription subscription = mock(Subscription.class);
 
             AtomicInteger bufferNumber = new AtomicInteger(0);
             doAnswer(i -> {
@@ -146,9 +159,10 @@ public class ByteBufferStoringSubscriberTest {
         try {
             ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
 
-            subscriber.onSubscribe(mock(Subscription.class));
+            subscriber.onSubscribe(subscription); // request 1
             Future<ByteBuffer> blockingRead = executor.submit(() -> {
                 ByteBuffer out = ByteBuffer.allocate(1024);
+                // request 2
                 TransferResult transferResult = subscriber.blockingTransferTo(out);
                 assertThat(transferResult).isEqualTo(TransferResult.END_OF_STREAM);
                 return out;
@@ -156,7 +170,7 @@ public class ByteBufferStoringSubscriberTest {
 
             ByteBuffer input = fullByteBufferOfSize(1);
 
-            subscriber.onNext(input);
+            subscriber.onNext(input); // request 3
             subscriber.onComplete();
 
             ByteBuffer output = blockingRead.get();
@@ -165,6 +179,8 @@ public class ByteBufferStoringSubscriberTest {
         } finally {
             executor.shutdownNow();
         }
+
+        verify(subscription, times(3)).request(1);
     }
 
     @Test
@@ -175,7 +191,7 @@ public class ByteBufferStoringSubscriberTest {
         try {
             ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
 
-            subscriber.onSubscribe(mock(Subscription.class));
+            subscriber.onSubscribe(subscription);
             Future<?> blockingRead = executor.submit(() -> {
                 subscriber.blockingTransferTo(ByteBuffer.allocate(1024)); // Expected to throw
                 return null;
@@ -202,7 +218,7 @@ public class ByteBufferStoringSubscriberTest {
         AtomicBoolean threadIsInterruptedInCatch = new AtomicBoolean(false);
         AtomicReference<Throwable> failureReason = new AtomicReference<>();
 
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
 
         CountDownLatch threadIsRunning = new CountDownLatch(1);
         Thread thread = new Thread(() -> {
@@ -230,7 +246,7 @@ public class ByteBufferStoringSubscriberTest {
     public void blockingTransfer_returnsEndOfStreamWithRepeatedCalls() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
 
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onComplete();
 
         ByteBuffer buffer = ByteBuffer.allocate(0);
@@ -238,30 +254,33 @@ public class ByteBufferStoringSubscriberTest {
         assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
         assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
         assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
+        verify(subscription).request(1);
     }
 
 
     @Test
     public void noDataTransferredIfNoDataBuffered() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
 
         ByteBuffer out = emptyByteBufferOfSize(1);
 
         assertThat(subscriber.transferTo(out)).isEqualTo(TransferResult.SUCCESS);
         assertThat(out.remaining()).isEqualTo(1);
+        verify(subscription).request(1);
     }
 
     @Test
     public void noDataTransferredIfComplete() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onComplete();
 
         ByteBuffer out = emptyByteBufferOfSize(1);
 
         assertThat(subscriber.transferTo(out)).isEqualTo(TransferResult.END_OF_STREAM);
         assertThat(out.remaining()).isEqualTo(1);
+        verify(subscription).request(1);
     }
 
     @Test
@@ -269,13 +288,14 @@ public class ByteBufferStoringSubscriberTest {
         RuntimeException error = new RuntimeException();
 
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onError(error);
 
         ByteBuffer out = emptyByteBufferOfSize(1);
 
         assertThatThrownBy(() -> subscriber.transferTo(out)).isEqualTo(error);
         assertThat(out.remaining()).isEqualTo(1);
+        verify(subscription).request(1);
     }
 
     @Test
@@ -283,37 +303,40 @@ public class ByteBufferStoringSubscriberTest {
         Exception error = new Exception();
 
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onError(error);
 
         ByteBuffer out = emptyByteBufferOfSize(1);
 
         assertThatThrownBy(() -> subscriber.transferTo(out)).hasCause(error);
         assertThat(out.remaining()).isEqualTo(1);
+        verify(subscription).request(1);
     }
 
     @Test
     public void completeIsReportedEvenWithExactOutSize() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onNext(fullByteBufferOfSize(2));
         subscriber.onComplete();
 
         ByteBuffer out = emptyByteBufferOfSize(2);
         assertThat(subscriber.transferTo(out)).isEqualTo(TransferResult.END_OF_STREAM);
         assertThat(out.remaining()).isEqualTo(0);
+        verify(subscription, times(2)).request(1);
     }
 
     @Test
     public void completeIsReportedEvenWithExtraOutSize() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onNext(fullByteBufferOfSize(2));
         subscriber.onComplete();
 
         ByteBuffer out = emptyByteBufferOfSize(3);
         assertThat(subscriber.transferTo(out)).isEqualTo(TransferResult.END_OF_STREAM);
         assertThat(out.remaining()).isEqualTo(1);
+        verify(subscription, times(2)).request(1);
     }
 
     @Test
@@ -321,7 +344,7 @@ public class ByteBufferStoringSubscriberTest {
         RuntimeException error = new RuntimeException();
 
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onNext(fullByteBufferOfSize(2));
         subscriber.onError(error);
 
@@ -335,7 +358,7 @@ public class ByteBufferStoringSubscriberTest {
         RuntimeException error = new RuntimeException();
 
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(2);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onNext(fullByteBufferOfSize(2));
         subscriber.onError(error);
 
@@ -351,7 +374,7 @@ public class ByteBufferStoringSubscriberTest {
         ByteBuffer buffer3 = fullByteBufferOfSize(1);
 
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(3);
-        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onSubscribe(subscription);
         subscriber.onNext(buffer1);
         subscriber.onNext(buffer2);
         subscriber.onNext(buffer3);

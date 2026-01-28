@@ -17,27 +17,24 @@ import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToListOfListOfStringsCopier {
     static Map<String, List<List<String>>> copy(
-        Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStringsParam) {
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStringsParam) {
         Map<String, List<List<String>>> map;
         if (mapOfStringToListOfListOfStringsParam == null || mapOfStringToListOfListOfStringsParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, List<List<String>>> modifiableMap = new LinkedHashMap<>();
+            Map<String, List<List<String>>> modifiableMap = new LinkedHashMap<>(mapOfStringToListOfListOfStringsParam.size());
             mapOfStringToListOfListOfStringsParam.forEach((key, value) -> {
                 List<List<String>> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<List<String>> modifiableList = new ArrayList<>();
+                    List<List<String>> modifiableList = new ArrayList<>(value.size());
                     value.forEach(entry -> {
                         List<String> list1;
                         if (entry == null || entry instanceof SdkAutoConstructList) {
                             list1 = DefaultSdkAutoConstructList.getInstance();
                         } else {
-                            List<String> modifiableList1 = new ArrayList<>();
-                            entry.forEach(entry1 -> {
-                                modifiableList1.add(entry1);
-                            });
+                            List<String> modifiableList1 = new ArrayList<>(entry);
                             list1 = Collections.unmodifiableList(modifiableList1);
                         }
                         modifiableList.add(list1);

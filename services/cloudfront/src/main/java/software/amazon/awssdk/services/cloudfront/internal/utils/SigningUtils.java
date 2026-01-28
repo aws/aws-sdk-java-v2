@@ -21,19 +21,23 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
-import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class SigningUtils {
@@ -139,6 +143,22 @@ public final class SigningUtils {
     }
 
     /**
+     * Signs the data given with the private key given, using the SHA1withECDSA
+     * algorithm provided by bouncy castle.
+     */
+    public static byte[] signWithSha1ECDSA(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException  {
+        try {
+            Signature signature = Signature.getInstance("SHA1withECDSA");
+            SecureRandom random = new SecureRandom();
+            signature.initSign(privateKey, random);
+            signature.update(dataToSign);
+            return signature.sign();
+        } catch (NoSuchAlgorithmException | SignatureException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
      * Generate a policy document that describes custom access permissions to
      * apply via a private distribution's signed URL.
      *
@@ -175,12 +195,13 @@ public final class SigningUtils {
                                                        Instant activeDate,
                                                        Instant expirationDate,
                                                        String limitToIpAddressCidr) {
-        if (expirationDate == null) {
-            throw SdkClientException.create("Expiration date must be provided to sign CloudFront URLs");
-        }
+
+        Validate.notNull(expirationDate, "Expiration date must be provided to sign CloudFront URLs");
+
         if (resourceUrl == null) {
             resourceUrl = "*";
         }
+
         return buildCustomPolicy(resourceUrl, activeDate, expirationDate, limitToIpAddressCidr);
     }
 
@@ -196,10 +217,35 @@ public final class SigningUtils {
         }
         if (StringUtils.lowerCase(keyFile.toString()).endsWith(".der")) {
             try (InputStream is = Files.newInputStream(keyFile)) {
-                return Rsa.privateKeyFromPkcs8(IoUtils.toByteArray(is));
+                return privateKeyFromPkcs8(IoUtils.toByteArray(is));
             }
         }
         throw SdkClientException.create("Unsupported file type for private key");
     }
 
+    /**
+     * Attempt to load a private key from PKCS8 DER
+     */
+    public static PrivateKey privateKeyFromPkcs8(byte[] derBytes) {
+        EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(derBytes);
+        try {
+            return tryKeyLoadFromSpec(privateKeySpec);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid private key, unable to load as either RSA or ECDSA", e);
+        }
+    }
+
+    /**
+     * We don't have a way to determine which algorithm to use, so we try to load as RSA and EC
+     */
+    private static PrivateKey tryKeyLoadFromSpec(EncodedKeySpec privateKeySpec)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            return KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
+        } catch (InvalidKeySpecException rsaFail) {
+            return KeyFactory.getInstance("EC").generatePrivate(privateKeySpec);
+        }
+    }
 }

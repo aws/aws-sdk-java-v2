@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -38,6 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
@@ -183,6 +185,56 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         assertThatThrownBy(() -> mappedTable.putItem(request).join())
             .isInstanceOf(CompletionException.class)
             .satisfies(e -> assertThat(((ConditionalCheckFailedException) e.getCause()).hasItem()).isTrue());
+    }
+
+    @Test
+    public void updateItem_returnValues_all_old() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord)
+                                                                                                .returnValues(ReturnValue.ALL_OLD))
+                                                                                                .join();
+
+        assertThat(response.attributes().getId()).isEqualTo(record.getId());
+        assertThat(response.attributes().getSort()).isEqualTo(record.getSort());
+        assertThat(response.attributes().getValue()).isEqualTo(null);
+    }
+
+    @Test
+    public void updateItem_returnValues_all_new() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord)
+                                                                                               .returnValues(ReturnValue.ALL_NEW))
+                                                                 .join();
+
+        assertThat(response.attributes().getId()).isEqualTo(updatedRecord.getId());
+        assertThat(response.attributes().getSort()).isEqualTo(updatedRecord.getSort());
+        assertThat(response.attributes().getValue()).isEqualTo(updatedRecord.getValue());
+    }
+
+    @Test
+    public void updateItem_returnValues_not_set() {
+        Record record = new Record().setId("1").setSort(10);
+        mappedTable.putItem(record).join();
+
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord))
+                                                                 .join();
+
+        assertThat(response.attributes().getId()).isEqualTo(updatedRecord.getId());
+        assertThat(response.attributes().getSort()).isEqualTo(updatedRecord.getSort());
+        assertThat(response.attributes().getValue()).isEqualTo(updatedRecord.getValue());
     }
 
     @Test

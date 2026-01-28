@@ -1,7 +1,9 @@
 package software.amazonaws.test;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import java.util.Map;
 import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 
 /**
@@ -10,7 +12,7 @@ import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
  *
  * @see <a href=https://docs.aws.amazon.com/lambda/latest/dg/java-handler.html>Lambda Java Handler</a> for more information
  */
-public class MyDynamoDbStreamsFunction implements RequestHandler<Object, Object> {
+public class MyDynamoDbStreamsFunction implements RequestHandler<Map<String, String>, String> {
     private final DynamoDbStreamsClient dynamoDbStreamsClient;
 
     public MyDynamoDbStreamsFunction() {
@@ -21,8 +23,10 @@ public class MyDynamoDbStreamsFunction implements RequestHandler<Object, Object>
     }
 
     @Override
-    public Object handleRequest(final Object input, final Context context) {
+    public String handleRequest(final Map<String, String> input, final Context context) {
+        LambdaLogger lambdaLogger = context.getLogger();
+        lambdaLogger.log("Start to handle request");
         // TODO: invoking the api call using dynamoDbStreamsClient.
-        return input;
+        return "";
     }
 }

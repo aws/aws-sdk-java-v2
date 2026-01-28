@@ -20,6 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -59,6 +61,7 @@ public abstract class SdkHttpClientTestSuite {
     private static final Logger LOG = Logger.loggerFor(SdkHttpClientTestSuite.class);
 
     private static final ConnectionCountingTrafficListener CONNECTION_COUNTER = new ConnectionCountingTrafficListener();
+    private static final int HTTP_TOO_MANY_REQUESTS = 429;
 
     @Rule
     public WireMockRule mockServer = createWireMockRule();
@@ -146,7 +149,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
-    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+    public void connectionsAreReusedOn5xxErrors() throws Exception {
         int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
 
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
@@ -169,7 +172,7 @@ public abstract class SdkHttpClientTestSuite {
             // connection count increased by at least as many connections as we got 5xx errors back on. But the connection
             // manager also predictively creates connections and we need to take those into account in a way that lets it
             // remain a dynamic behavior.
-            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 5);
+            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections);
         }
     }
 
@@ -216,6 +219,48 @@ public abstract class SdkHttpClientTestSuite {
         httpClientOptions.trustAll(true);
 
         assertThatThrownBy(() -> createSdkHttpClient(httpClientOptions)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void doesNotRetryOn429StatusCode() throws Exception {
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
+            // Test 429 with no retry
+            validateStatusCodeWithRetryCheck(client, HTTP_TOO_MANY_REQUESTS, 1);
+
+            // Reset and test normal request works
+            mockServer.resetAll();
+            validateStatusCodeWithRetryCheck(client, HttpURLConnection.HTTP_OK, 1);
+        }
+    }
+
+    private void validateStatusCodeWithRetryCheck(SdkHttpClient client,
+                                                  int expectedStatusCode,
+                                                  int expectedRequestCount) throws IOException {
+        stubForMockRequest(expectedStatusCode);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+        HttpExecuteResponse response = client.prepareRequest(
+                                                 HttpExecuteRequest.builder()
+                                                                   .request(request)
+                                                                   .contentStreamProvider(request.contentStreamProvider()
+                                                                                                 .orElse(null))
+                                                                   .build())
+                                             .call();
+        validateResponseStatusCode(response, expectedStatusCode);
+        verifyRequestCount(expectedRequestCount);
+    }
+
+    private void verifyRequestCount(int expectedCount) {
+        mockServer.verify(expectedCount,
+                          postRequestedFor(urlEqualTo("/"))
+                              .withHeader("Host", containing("localhost")));
+    }
+
+    private void validateResponseStatusCode(HttpExecuteResponse response, int expectedStatusCode) throws IOException {
+        response.responseBody().ifPresent(IoUtils::drainInputStream);
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatusCode);
     }
 
     protected void testForResponseCode(int returnCode) throws Exception {
@@ -363,7 +408,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     private WireMockRule createWireMockRule() {
-        int maxAttempts = 5;
+        int maxAttempts = 10;
         for (int i = 0; i < maxAttempts; ++i) {
             try {
                 return new WireMockRule(wireMockConfig().dynamicPort()

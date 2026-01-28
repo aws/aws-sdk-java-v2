@@ -1,0 +1,36 @@
+{
+    "version": "2.25.13",
+    "date": "2024-03-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Documentation update, March 2024. Corrects some formatting."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Update LogSamples field in Anomaly model to be a list of LogEvent"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds the new DescribeMacHosts API operation for getting information about EC2 Mac Dedicated Hosts. Users can now see the latest macOS versions that their underlying Apple Mac can support without needing to be updated."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain Query",
+            "contributor": "",
+            "description": "Introduces a new API for Amazon Managed Blockchain Query: ListFilteredTransactionEvents."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Adding new attributes readWrite and onDemand to dataview models for Database Maintenance operations."
+        }
+    ]
+}

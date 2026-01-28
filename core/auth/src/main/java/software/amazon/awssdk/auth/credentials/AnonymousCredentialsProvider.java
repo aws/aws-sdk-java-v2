@@ -25,6 +25,8 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class AnonymousCredentialsProvider implements AwsCredentialsProvider {
 
+    private static final String PROVIDER_NAME = "AnonymousCredentialsProvider";
+
     private AnonymousCredentialsProvider() {
     }
 
@@ -34,11 +36,14 @@ public final class AnonymousCredentialsProvider implements AwsCredentialsProvide
 
     @Override
     public AwsCredentials resolveCredentials() {
-        return AwsBasicCredentials.ANONYMOUS_CREDENTIALS;
+        return AwsBasicCredentials.builder()
+                                  .validateCredentials(false)
+                                  .providerName(PROVIDER_NAME)
+                                  .build();
     }
 
     @Override
     public String toString() {
-        return ToString.create("AnonymousCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 }

@@ -15,14 +15,19 @@
 
 package software.amazon.awssdk.awscore.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+/**
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
+ */
+@SdkProtectedApi
 public enum AwsServiceProtocol {
     EC2("ec2"),
     AWS_JSON("json"),
     REST_JSON("rest-json"),
     CBOR("cbor"),
+    SMITHY_RPC_V2_CBOR("smithy-rpc-v2-cbor"),
     QUERY("query"),
     REST_XML("rest-xml");
 

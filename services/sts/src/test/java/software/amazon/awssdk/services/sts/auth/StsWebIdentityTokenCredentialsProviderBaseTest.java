@@ -25,17 +25,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
- * Validate the functionality of {@link StsWebIdentityTokenFileCredentialsProvider}. Inherits tests from {@link
- * StsCredentialsProviderTestBase}.
+ * Validate the functionality of {@link StsWebIdentityTokenFileCredentialsProvider}. Inherits tests from
+ * {@link StsCredentialsProviderTestBase}.
  */
 public class StsWebIdentityTokenCredentialsProviderBaseTest
     extends StsCredentialsProviderTestBase<AssumeRoleWithWebIdentityRequest, AssumeRoleWithWebIdentityResponse> {
@@ -44,7 +46,7 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
 
 
     @BeforeEach
-    public   void setUp() {
+    public void setUp() {
         String webIdentityTokenPath = Paths.get("src/test/resources/token.jwt").toAbsolutePath().toString();
         ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_ROLE_ARN.environmentVariable(), "someRole");
         ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE.environmentVariable(), webIdentityTokenPath);
@@ -52,7 +54,7 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
     }
 
     @AfterEach
-    public void cleanUp(){
+    public void cleanUp() {
         ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
@@ -64,7 +66,10 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
 
     @Override
     protected AssumeRoleWithWebIdentityResponse getResponse(Credentials credentials) {
-        return AssumeRoleWithWebIdentityResponse.builder().credentials(credentials).build();
+        return AssumeRoleWithWebIdentityResponse.builder()
+                                                .credentials(credentials)
+                                                .assumedRoleUser(AssumedRoleUser.builder().arn(ARN).build())
+                                                .build();
     }
 
     @Override
@@ -75,6 +80,12 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
     @Override
     protected AssumeRoleWithWebIdentityResponse callClient(StsClient client, AssumeRoleWithWebIdentityRequest request) {
         return client.assumeRoleWithWebIdentity(request);
+    }
+
+    @Override
+    protected String providerName() {
+        return String.format("%s,%s", BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID,
+                             BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value());
     }
 
     private String getToken(Path file) {

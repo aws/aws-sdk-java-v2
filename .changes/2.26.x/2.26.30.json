@@ -1,0 +1,42 @@
+{
+    "version": "2.26.30",
+    "date": "2024-08-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Added a description for the Dimension db.sql.tokenized_id on the DimensionGroup data type page."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds create() method for ContainerCredentialsProvider"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "This releases Data Product feature. Data Products allow grouping data assets into cohesive, self-contained units for ease of publishing for data producers, and ease of finding and accessing for data consumers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "Released two new APIs along with documentation updates. The GetAccountSetting API is used to view the current basic scan type version setting for your registry, while the PutAccountSetting API is used to update the basic scan type version for your registry."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video WebRTC Storage",
+            "contributor": "",
+            "description": "Add JoinStorageSessionAsViewer API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

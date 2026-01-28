@@ -71,9 +71,13 @@ public class Metadata {
 
     private String waitersPackageName;
 
+    private String batchManagerPackageName;
+
     private String endpointRulesPackageName;
 
     private String authSchemePackageName;
+
+    private String jmesPathPackageName;
 
     private String serviceAbbreviation;
 
@@ -543,8 +547,13 @@ public class Metadata {
         return protocol == Protocol.CBOR;
     }
 
+    public boolean isRpcV2CborProtocol() {
+        return protocol == Protocol.SMITHY_RPC_V2_CBOR;
+    }
+
     public boolean isJsonProtocol() {
-        return protocol == Protocol.CBOR ||
+        return protocol == Protocol.SMITHY_RPC_V2_CBOR ||
+               protocol == Protocol.CBOR ||
                protocol == Protocol.AWS_JSON ||
                protocol == Protocol.REST_JSON;
     }
@@ -561,12 +570,13 @@ public class Metadata {
     }
 
     /**
-     * @return True for RESTful protocols. False for all other protocols (RPC, Query, etc).
+     * @return True for protocols that require an operation identifier to be sent in the `X-Amz-Target` header.
      */
-    public static boolean isNotRestProtocol(String protocol) {
+    public static boolean usesOperationIdentifier(String protocol) {
         switch (Protocol.fromValue(protocol)) {
             case REST_JSON:
             case REST_XML:
+            case SMITHY_RPC_V2_CBOR:
                 return false;
             default:
                 return true;
@@ -764,4 +774,45 @@ public class Metadata {
     public String getFullInternalPackageName() {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
+
+    public Metadata setJmesPathPackageName(String jmesPathPackageName) {
+        this.jmesPathPackageName = jmesPathPackageName;
+        return this;
+    }
+
+    public Metadata withJmesPathPackageName(String jmesPathPackageName) {
+        setJmesPathPackageName(jmesPathPackageName);
+        return this;
+    }
+
+    public String getJmesPathPackageName() {
+        return jmesPathPackageName;
+    }
+
+    public String getFullJmesPathPackageName() {
+        return joinPackageNames(rootPackageName, getJmesPathPackageName());
+    }
+
+    public String getFullInternalJmesPathPackageName() {
+        return joinPackageNames(getFullJmesPathPackageName(), "internal");
+    }
+
+    public Metadata withBatchmanagerPackageName(String batchmanagerPackageName) {
+        setBatchManagerPackageName(batchmanagerPackageName);
+        return this;
+    }
+
+
+    public String getBatchManagerPackageName() {
+        return batchManagerPackageName;
+    }
+
+    public void setBatchManagerPackageName(String batchManagerPackageName) {
+        this.batchManagerPackageName = batchManagerPackageName;
+    }
+
+    public String getFullBatchManagerPackageName() {
+        return joinPackageNames(rootPackageName, getBatchManagerPackageName());
+    }
+
 }

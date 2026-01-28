@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import org.slf4j.Logger;
@@ -51,12 +50,12 @@ public abstract class BaseGeneratorTasks extends GeneratorTask {
         return true;
     }
 
-    protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) throws IOException {
+    protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) {
         String targetDirectory = baseDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
         return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
     }
 
-    protected final GeneratorTask createPoetGeneratorTestTask(ClassSpec classSpec) throws IOException {
+    protected final GeneratorTask createPoetGeneratorTestTask(ClassSpec classSpec) {
         String targetDirectory = testDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
         return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
     }
@@ -72,6 +71,8 @@ public abstract class BaseGeneratorTasks extends GeneratorTask {
                 ForkJoinTask.invokeAll(createTasks());
                 log.info("  Completed " + taskName + ".");
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

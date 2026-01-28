@@ -23,6 +23,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.binaryValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
@@ -35,6 +37,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,21 +46,31 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractNestedImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DuplicateOrderBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersInvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersValidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedFirstNestedBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedFirstNestedBean.FlattenedSecondNestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedNestedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeKeyMaxBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
@@ -73,6 +87,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SetterAnnotated
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ThreeSortKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedCompositeBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NonSequentialOrderBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedOrderingBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -80,6 +99,11 @@ public class BeanTableSchemaTest {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
+
+    @After
+    public void tearDown() {
+        BeanTableSchema.clearSchemaCache();
+    }
 
     @Test
     public void simpleBean_correctlyAssignsPrimaryPartitionKey() {
@@ -254,6 +278,128 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullImmutableAttributes() {
+        BeanTableSchema<FlattenedImmutableBean> beanTableSchema = BeanTableSchema.create(FlattenedImmutableBean.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().build();
+        FlattenedImmutableBean flattenedImmutableBean = new FlattenedImmutableBean();
+        flattenedImmutableBean.setId("id-value");
+        flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("attribute2", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable2 =
+            AbstractNestedImmutable.builder().attribute2("nested-two").build();
+        AbstractNestedImmutable abstractNestedImmutable1 =
+            AbstractNestedImmutable.builder().attribute2("two").abstractNestedImmutableOne(abstractNestedImmutable2).build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable1);
+
+        Map<String, AttributeValue> nestedAttributesMap = new HashMap<>();
+        nestedAttributesMap.put("abstractNestedImmutableOne", AttributeValue.fromNul(true));
+        nestedAttributesMap.put("attribute2", stringValue("nested-two"));
+
+        AttributeValue expectedNestedAttribute =
+            AttributeValue.builder().m(Collections.unmodifiableMap(nestedAttributesMap)).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("abstractNestedImmutableOne", expectedNestedAttribute));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable = AbstractNestedImmutable.builder().build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("attribute2", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("abstractNestedImmutableOne", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensSecondNullNestedAttributes_IgnoreNullsFalse() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("secondId", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("thirdId", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("flattenedFourthBean", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensSecondNullNestedAttributes_IgnoreNullsTrue() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, true);
+        assertThat(itemMap.size(), is(1));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensThirdNullNestedAttributes_IgnoreNullsFalse() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedSecondNestedBean flattenedSecondNestedBean = new FlattenedSecondNestedBean();
+        flattenedSecondNestedBean.setSecondId("second-id-value");
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+        flattenedFirstNestedBean.setFlattenedSecondNestedBean(flattenedSecondNestedBean);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("secondId", stringValue("second-id-value")));
+        assertThat(itemMap, hasEntry("thirdId", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("flattenedFourthBean", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensThirdNullNestedAttributes_IgnoreNullsTrue() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedSecondNestedBean flattenedSecondNestedBean = new FlattenedSecondNestedBean();
+        flattenedSecondNestedBean.setSecondId("second-id-value");
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+        flattenedFirstNestedBean.setFlattenedSecondNestedBean(flattenedSecondNestedBean);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, true);
+        assertThat(itemMap.size(), is(2));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("secondId", stringValue("second-id-value")));
     }
 
     @Test
@@ -539,7 +685,7 @@ public class BeanTableSchemaTest {
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("integerAttribute", AttributeValues.nullAttributeValue()));
+        assertThat(itemMap, hasEntry("integerAttribute", nullAttributeValue()));
     }
 
     @Test
@@ -927,7 +1073,7 @@ public class BeanTableSchemaTest {
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
 
         Map<String, AttributeValue> expectedMap = new HashMap<>();
-        expectedMap.put("one", AttributeValues.nullAttributeValue());
+        expectedMap.put("one", nullAttributeValue());
         expectedMap.put("three", stringValue("four"));
         AttributeValue expectedMapValue = AttributeValue.builder()
                                                         .m(expectedMap)
@@ -1159,5 +1305,195 @@ public class BeanTableSchemaTest {
         EmptyConverterProvidersValidBean reverse = beanTableSchema.mapToItem(itemMap);
         assertThat(reverse.getId(), is(equalTo("id-value-custom")));
         assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+    }
+
+    @Test
+    public void fluentSetterBean_correctlyMapsBeanAttributes() {
+        BeanTableSchema<FluentSetterBean> beanTableSchema =
+            BeanTableSchema.create(FluentSetterBean.class);
+
+        FluentSetterBean fluentSetterBean = new FluentSetterBean()
+            .setAttribute1(1)
+            .setAttribute2("testAttribute2")
+            .setAttribute3("testAttribute3");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(fluentSetterBean, false);
+
+        assertThat(beanTableSchema.mapToItem(itemMap), is(equalTo(fluentSetterBean)));
+    }
+
+    @Test
+    public void create_withMultipleFlattenMaps_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Multiple @DynamoDbFlatten Map<String, String> properties found. "
+                                + "Only one flattened map per class is supported.");
+        BeanTableSchema.create(MultipleFlattenMapsBean.class);
+    }
+
+    @Test
+    public void create_withInvalidMapType_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+        BeanTableSchema.create(InvalidMapTypeBean.class);
+    }
+
+    @Test
+    public void create_withValidFlattenMap_succeeds() {
+        BeanTableSchema.create(ValidFlattenMapBean.class);
+    }
+
+    @Test
+    public void create_withNonMapFlatten_succeeds() {
+        BeanTableSchema.create(NonMapFlattenBean.class);
+    }
+
+    @Test
+    public void compositeKeyMaxBean_fourPartitionAndFourSortKeys_correctOrder() {
+        BeanTableSchema<CompositeKeyMaxBean> beanTableSchema = BeanTableSchema.create(CompositeKeyMaxBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys, hasSize(4));
+        assertThat(partitionKeys.get(0), is("gsiPk1"));
+        assertThat(partitionKeys.get(1), is("gsiPk2"));
+        assertThat(partitionKeys.get(2), is("gsiPk3"));
+        assertThat(partitionKeys.get(3), is("gsiPk4"));
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys, hasSize(4));
+        assertThat(sortKeys.get(0), is("gsiSk1"));
+        assertThat(sortKeys.get(1), is("gsiSk2"));
+        assertThat(sortKeys.get(2), is("gsiSk3"));
+        assertThat(sortKeys.get(3), is("gsiSk4"));
+    }
+
+    @Test
+    public void compositeKeyBean_twoPartitionKeys_correctOrder() {
+        BeanTableSchema<TwoPartitionKeyBean> beanTableSchema = BeanTableSchema.create(TwoPartitionKeyBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys, hasSize(2));
+        assertThat(partitionKeys, contains("key2", "key1"));
+    }
+
+    @Test
+    public void compositeKeyBean_threeSortKeys_correctOrder() {
+        BeanTableSchema<ThreeSortKeyBean> beanTableSchema = BeanTableSchema.create(ThreeSortKeyBean.class);
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys, hasSize(3));
+        assertThat(sortKeys, contains("sort2", "sort3", "sort1"));
+    }
+
+    @Test
+    public void compositeKeyBean_mixedComposite_twoPartitionThreeSort() {
+        BeanTableSchema<MixedCompositeBean> beanTableSchema = BeanTableSchema.create(MixedCompositeBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys, hasSize(2));
+        assertThat(partitionKeys, contains("pk1", "pk2"));
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys, hasSize(3));
+        assertThat(sortKeys, contains("sk2", "sk1", "sk3"));
+    }
+
+    @Test
+    public void compositeKeyBean_duplicateOrderValues_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Duplicate partition key order 0 for index 'gsi1'");
+        BeanTableSchema.create(DuplicateOrderBean.class);
+    }
+
+    @Test
+    public void compositeKeyBean_nonSequentialOrders_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Non-sequential partition key orders for index 'gsi1'. Expected: 0,1,2,3 but got: [0, 2]");
+        BeanTableSchema.create(NonSequentialOrderBean.class);
+    }
+
+    @Test
+    public void compositeKeyBean_mixedExplicitImplicitOrdering_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Composite partition keys for index 'gsi1' must all have explicit ordering (0,1,2,3)");
+        BeanTableSchema.create(MixedOrderingBean.class);
+    }
+
+    @Test
+    public void rootSchema_areCached_but_flattenedAreNot() {
+        BeanTableSchema<CompositeKeyMaxBean> root1 = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.ROOT);
+        BeanTableSchema<CompositeKeyMaxBean> root2 = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.ROOT);
+        assertThat(root1, is(root2));
+
+        BeanTableSchema<CompositeKeyMaxBean> flattened = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.FLATTENED);
+        assertThat(root1, not(flattened));
+    }
+
+    @DynamoDbBean
+    public static class MultipleFlattenMapsBean {
+        private String id;
+        private Map<String, String> map1;
+        private Map<String, String> map2;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap1() { return map1; }
+        public void setMap1(Map<String, String> map1) { this.map1 = map1; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap2() { return map2; }
+        public void setMap2(Map<String, String> map2) { this.map2 = map2; }
+    }
+
+    @DynamoDbBean
+    public static class InvalidMapTypeBean {
+        private String id;
+        private Map<String, Integer> invalidMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, Integer> getInvalidMap() { return invalidMap; }
+        public void setInvalidMap(Map<String, Integer> invalidMap) { this.invalidMap = invalidMap; }
+    }
+
+    @DynamoDbBean
+    public static class ValidFlattenMapBean {
+        private String id;
+        private Map<String, String> validMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getValidMap() { return validMap; }
+        public void setValidMap(Map<String, String> validMap) { this.validMap = validMap; }
+    }
+
+    @DynamoDbBean
+    public static class NonMapFlattenBean {
+        private String id;
+        private NestedObject nested;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public NestedObject getNested() { return nested; }
+        public void setNested(NestedObject nested) { this.nested = nested; }
+    }
+
+    @DynamoDbBean
+    public static class NestedObject {
+        private String value;
+
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
     }
 }

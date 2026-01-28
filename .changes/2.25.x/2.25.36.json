@@ -1,0 +1,54 @@
+{
+    "version": "2.25.36",
+    "date": "2024-04-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "This release adds examples to several Cloud Map actions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Adding new API to support remote directory listing using SFTP connector"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Releasing the support for simplified configuration and return of control"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Releasing the support for simplified configuration and return of control"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for Real-Time Collaboration and Shared Space for JupyterLab App on SageMaker Studio."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Adding support to TR-31/TR-34 exports for optional headers, allowing customers to add additional metadata (such as key version and KSN) when exporting keys from the service."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Updates description of schedule field for scheduled actions."
+        },
+        {
+            "type": "feature",
+            "category": "Route 53 Profiles",
+            "contributor": "",
+            "description": "Route 53 Profiles allows you to apply a central DNS configuration across many VPCs regardless of account."
+        }
+    ]
+}

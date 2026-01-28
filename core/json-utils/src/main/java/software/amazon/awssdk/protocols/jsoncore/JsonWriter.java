@@ -70,7 +70,7 @@ public class JsonWriter implements SdkAutoCloseable {
     }
 
     public JsonWriter writeNull() {
-        return unsafeWrite(generator::writeEndArray);
+        return unsafeWrite(generator::writeNull);
     }
 
     public JsonWriter writeStartObject() {

@@ -2,9 +2,10 @@
   "version":"2.0",
   "metadata":{
     "apiVersion":"2023-08-22",
+    "auth":["aws.auth#sigv4"],
     "endpointPrefix":"thinclient",
-    "jsonVersion":"1.1",
     "protocol":"rest-json",
+    "protocols":["rest-json"],
     "serviceFullName":"Amazon WorkSpaces Thin Client",
     "serviceId":"WorkSpaces Thin Client",
     "signatureVersion":"v4",
@@ -25,9 +26,9 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Creates an environment for your thin client devices.</p>",
@@ -45,9 +46,9 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deletes a thin client device.</p>",
@@ -66,9 +67,9 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deletes an environment.</p>",
@@ -87,9 +88,9 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ConflictException"},
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deregisters a thin client device.</p>",
@@ -218,8 +219,10 @@
       "output":{"shape":"ListTagsForResourceResponse"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"InternalServiceException"}
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns a list of tags for a resource.</p>",
       "endpoint":{"hostPrefix":"api."}
@@ -235,8 +238,11 @@
       "output":{"shape":"TagResourceResponse"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"InternalServiceException"}
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Assigns one or more tags (key-value pairs) to the specified resource.</p>",
       "endpoint":{"hostPrefix":"api."}
@@ -252,8 +258,11 @@
       "output":{"shape":"UntagResourceResponse"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"InternalServiceException"}
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Removes a tag or tags from a resource.</p>",
       "endpoint":{"hostPrefix":"api."},
@@ -291,6 +300,7 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
@@ -335,7 +345,8 @@
     },
     "ActivationCode":{
       "type":"string",
-      "pattern":"[a-z]{2}[a-z0-9]{6}"
+      "pattern":"[a-z]{2}[a-z0-9]{6}",
+      "sensitive":true
     },
     "ApplyTimeOf":{
       "type":"string",
@@ -385,7 +396,7 @@
         },
         "desktopArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Web, or AppStream 2.0.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Secure Browser, or AppStream 2.0.</p>"
         },
         "desktopEndpoint":{
           "shape":"DesktopEndpoint",
@@ -419,6 +430,10 @@
         "tags":{
           "shape":"TagsMap",
           "documentation":"<p>A map of the key-value pairs of the tag or tags to assign to the resource.</p>"
+        },
+        "deviceCreationTags":{
+          "shape":"DeviceCreationTagsMap",
+          "documentation":"<p>A map of the key-value pairs of the tag or tags to assign to the newly created devices for this environment.</p>"
         }
       }
     },
@@ -621,12 +636,32 @@
           "shape":"KmsKeyArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Key Management Service key used to encrypt the device.</p>"
         },
-        "tags":{
-          "shape":"EmbeddedTag",
-          "documentation":"<p>The tag keys and optional values for the resource.</p>"
+        "lastUserId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID of the most recent session on the device.</p>"
         }
       },
       "documentation":"<p>Describes a thin client device.</p>"
+    },
+    "DeviceCreationTagKey":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"(?!aws:)[A-Za-z0-9 _=@:.+-/]+"
+    },
+    "DeviceCreationTagValue":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[A-Za-z0-9 _=@:.+-/]+"
+    },
+    "DeviceCreationTagsMap":{
+      "type":"map",
+      "key":{"shape":"DeviceCreationTagKey"},
+      "value":{"shape":"DeviceCreationTagValue"},
+      "max":50,
+      "min":0,
+      "sensitive":true
     },
     "DeviceId":{
       "type":"string",
@@ -638,7 +673,9 @@
     },
     "DeviceName":{
       "type":"string",
-      "pattern":"[0-9\\p{IsAlphabetic}+:,.@'\" -]{1,64}",
+      "max":64,
+      "min":0,
+      "pattern":"$|^[0-9\\p{IsAlphabetic}+:,.@'\" -]*",
       "sensitive":true
     },
     "DeviceSoftwareSetComplianceStatus":{
@@ -721,27 +758,12 @@
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the device.</p>"
         },
-        "tags":{
-          "shape":"EmbeddedTag",
-          "documentation":"<p>The tag keys and optional values for the resource.</p>"
+        "lastUserId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID of the most recent session on the device.</p>"
         }
       },
       "documentation":"<p>Describes a thin client device.</p>"
-    },
-    "EmbeddedTag":{
-      "type":"structure",
-      "members":{
-        "resourceArn":{
-          "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a resource to tag.</p>"
-        },
-        "internalId":{
-          "shape":"String",
-          "documentation":"<p>The internal ID of a resource to tag.</p>"
-        }
-      },
-      "documentation":"<p>The resource and internal ID of a resource to tag.</p>",
-      "sensitive":true
     },
     "Environment":{
       "type":"structure",
@@ -756,7 +778,7 @@
         },
         "desktopArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Web, or AppStream 2.0.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Secure Browser, or AppStream 2.0.</p>"
         },
         "desktopEndpoint":{
           "shape":"DesktopEndpoint",
@@ -818,9 +840,9 @@
           "shape":"KmsKeyArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Key Management Service key used to encrypt the environment.</p>"
         },
-        "tags":{
-          "shape":"EmbeddedTag",
-          "documentation":"<p>The tag keys and optional values for the resource.</p>"
+        "deviceCreationTags":{
+          "shape":"DeviceCreationTagsMap",
+          "documentation":"<p>The tag keys and optional values for the newly created devices for this environment.</p>"
         }
       },
       "documentation":"<p>Describes an environment.</p>"
@@ -835,7 +857,9 @@
     },
     "EnvironmentName":{
       "type":"string",
-      "pattern":"[0-9\\p{IsAlphabetic}+:,.@'\" -][0-9\\p{IsAlphabetic}+=:,.@'\" -]{0,63}",
+      "max":64,
+      "min":0,
+      "pattern":"$|^[0-9\\p{IsAlphabetic}+:,.@'\" -][0-9\\p{IsAlphabetic}+=:,.@'\" -]*",
       "sensitive":true
     },
     "EnvironmentSoftwareSetComplianceStatus":{
@@ -859,7 +883,7 @@
         },
         "desktopArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Web, or AppStream 2.0.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Secure Browser, or AppStream 2.0.</p>"
         },
         "desktopEndpoint":{
           "shape":"DesktopEndpoint",
@@ -904,10 +928,6 @@
         "arn":{
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the environment.</p>"
-        },
-        "tags":{
-          "shape":"EmbeddedTag",
-          "documentation":"<p>The tag keys and optional values for the resource.</p>"
         }
       },
       "documentation":"<p>Describes an environment.</p>"
@@ -999,22 +1019,6 @@
         }
       },
       "documentation":"<p>The server encountered an internal error and is unable to complete the request.</p>",
-      "error":{"httpStatusCode":500},
-      "exception":true,
-      "fault":true
-    },
-    "InternalServiceException":{
-      "type":"structure",
-      "members":{
-        "message":{"shape":"ExceptionMessage"},
-        "retryAfterSeconds":{
-          "shape":"RetryAfterSeconds",
-          "documentation":"<p>The number of seconds to wait before retrying the next request.</p>",
-          "location":"header",
-          "locationName":"Retry-After"
-        }
-      },
-      "documentation":"<p>Request processing failed due to some unknown error, exception, or failure.</p>",
       "error":{"httpStatusCode":500},
       "exception":true,
       "fault":true
@@ -1138,6 +1142,7 @@
     },
     "MaintenanceWindow":{
       "type":"structure",
+      "required":["type"],
       "members":{
         "type":{
           "shape":"MaintenanceWindowType",
@@ -1491,10 +1496,6 @@
         "softwareSetUpdateSchedule":{
           "shape":"SoftwareSetUpdateSchedule",
           "documentation":"<p>An option to define if software updates should be applied within a maintenance window.</p>"
-        },
-        "kmsKeyArn":{
-          "shape":"KmsKeyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Key Management Service key to use for the update.</p>"
         }
       }
     },
@@ -1523,7 +1524,7 @@
         },
         "desktopArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Web, or AppStream 2.0.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the desktop to stream from Amazon WorkSpaces, WorkSpaces Secure Browser, or AppStream 2.0.</p>"
         },
         "desktopEndpoint":{
           "shape":"DesktopEndpoint",
@@ -1544,6 +1545,10 @@
         "desiredSoftwareSetId":{
           "shape":"SoftwareSetIdOrEmptyString",
           "documentation":"<p>The ID of the software set to apply.</p>"
+        },
+        "deviceCreationTags":{
+          "shape":"DeviceCreationTagsMap",
+          "documentation":"<p>A map of the key-value pairs of the tag or tags to assign to the newly created devices for this environment.</p>"
         }
       }
     },
@@ -1579,6 +1584,10 @@
       "type":"structure",
       "members":{
       }
+    },
+    "UserId":{
+      "type":"string",
+      "sensitive":true
     },
     "ValidationException":{
       "type":"structure",
@@ -1632,5 +1641,5 @@
       ]
     }
   },
-  "documentation":"<p>Amazon WorkSpaces Thin Client is a affordable device built to work with Amazon Web Services End User Computing (EUC) virtual desktops to provide users with a complete cloud desktop solution. WorkSpaces Thin Client is a compact device designed to connect up to two monitors and USB devices like a keyboard, mouse, headset, and webcam. To maximize endpoint security, WorkSpaces Thin Client devices do not allow local data storage or installation of unapproved applications. The WorkSpaces Thin Client device ships preloaded with device management software.</p> <p>You can use these APIs to complete WorkSpaces Thin Client tasks, such as creating environments or viewing devices. For more information about WorkSpaces Thin Client, including the required permissions to use the service, see the <a href=\"https://docs.aws.amazon.com/workspaces-thin-client/latest/ag/\">Amazon WorkSpaces Thin Client Administrator Guide</a>. For more information about using the Command Line Interface (CLI) to manage your WorkSpaces Thin Client resources, see the <a href=\"https://docs.aws.amazon.com/cli/latest/reference/workspaces-thin-client/index.html\">WorkSpaces Thin Client section of the CLI Reference</a>.</p>"
+  "documentation":"<p>Amazon WorkSpaces Thin Client is an affordable device built to work with Amazon Web Services End User Computing (EUC) virtual desktops to provide users with a complete cloud desktop solution. WorkSpaces Thin Client is a compact device designed to connect up to two monitors and USB devices like a keyboard, mouse, headset, and webcam. To maximize endpoint security, WorkSpaces Thin Client devices do not allow local data storage or installation of unapproved applications. The WorkSpaces Thin Client device ships preloaded with device management software.</p> <p>You can use these APIs to complete WorkSpaces Thin Client tasks, such as creating environments or viewing devices. For more information about WorkSpaces Thin Client, including the required permissions to use the service, see the <a href=\"https://docs.aws.amazon.com/workspaces-thin-client/latest/ag/\">Amazon WorkSpaces Thin Client Administrator Guide</a>. For more information about using the Command Line Interface (CLI) to manage your WorkSpaces Thin Client resources, see the <a href=\"https://docs.aws.amazon.com/cli/latest/reference/workspaces-thin-client/index.html\">WorkSpaces Thin Client section of the CLI Reference</a>.</p>"
 }

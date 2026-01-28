@@ -15,18 +15,52 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
+
+import java.time.Duration;
 import java.util.function.Supplier;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Factory to create the benchmark
  */
 @FunctionalInterface
 public interface TransferManagerBenchmark {
+    Logger logger = Logger.loggerFor(TransferManagerBenchmark.class);
 
     /**
      * The benchmark method to run
      */
     void run();
+
+    static <T extends SdkAsyncHttpClient.Builder<T>> SdkAsyncHttpClient.Builder<T> httpClient(
+        TransferManagerBenchmarkConfig config) {
+        if (config.forceCrtHttpClient()) {
+            logger.info(() -> "Using CRT HTTP client");
+            AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
+            if (config.readBufferSizeInMb() != null) {
+                builder.readBufferSizeInBytes(config.readBufferSizeInMb() * MB);
+            }
+            if (config.maxConcurrency() != null) {
+                builder.maxConcurrency(config.maxConcurrency());
+            }
+            return (T) builder;
+        }
+        NettyNioAsyncHttpClient.Builder builder = NettyNioAsyncHttpClient.builder();
+        if (config.connectionAcquisitionTimeoutInSec() != null) {
+            Duration connAcqTimeout = Duration.ofSeconds(config.connectionAcquisitionTimeoutInSec());
+            builder.connectionAcquisitionTimeout(connAcqTimeout);
+        }
+        if (config.maxConcurrency() != null) {
+            builder.maxConcurrency(config.maxConcurrency());
+        }
+        return (T) builder;
+    }
+
+
 
     static TransferManagerBenchmark v2Download(TransferManagerBenchmarkConfig config) {
         return new TransferManagerDownloadBenchmark(config);

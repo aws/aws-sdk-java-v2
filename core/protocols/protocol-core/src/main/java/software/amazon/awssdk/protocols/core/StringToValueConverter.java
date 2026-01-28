@@ -76,6 +76,8 @@ public final class StringToValueConverter {
 
     public static final SimpleStringToValue<Long> TO_LONG = Long::parseLong;
 
+    public static final SimpleStringToValue<Byte> TO_BYTE = Byte::parseByte;
+
     public static final SimpleStringToValue<Short> TO_SHORT = Short::parseShort;
 
     public static final SimpleStringToValue<Float> TO_FLOAT = Float::parseFloat;

@@ -15,6 +15,16 @@
 
 package software.amazon.awssdk.authcrt.signer.internal;
 
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AUTHORIZATION;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CREDENTIAL;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DATE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_EXPIRES;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNATURE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNED_HEADERS;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -28,6 +38,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
@@ -41,21 +52,10 @@ public class SigningUtils {
      */
     public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("SigningClock");
 
-    private static final String BODY_HASH_NAME = "x-amz-content-sha256";
-    private static final String DATE_NAME = "X-Amz-Date";
-    private static final String AUTHORIZATION_NAME = "Authorization";
     private static final String REGION_SET_NAME = "X-amz-region-set";
-
-    private static final String SIGNATURE_NAME = "X-Amz-Signature";
-    private static final String CREDENTIAL_NAME = "X-Amz-Credential";
-    private static final String ALGORITHM_NAME = "X-Amz-Algorithm";
-    private static final String SIGNED_HEADERS_NAME = "X-Amz-SignedHeaders";
-    private static final String EXPIRES_NAME = "X-Amz-Expires";
 
     private static final Set<String> FORBIDDEN_HEADERS = buildForbiddenHeaderSet();
     private static final Set<String> FORBIDDEN_PARAMS = buildForbiddenQueryParamSet();
-
-    private static final String HOST_HEADER = "Host";
 
     private SigningUtils() {
     }
@@ -81,7 +81,7 @@ public class SigningUtils {
 
         Clock baseClock = Clock.systemUTC();
         Optional<Integer> timeOffset = Optional.ofNullable(executionAttributes.getAttribute(
-            AwsSignerExecutionAttribute.TIME_OFFSET));
+            SdkExecutionAttribute.TIME_OFFSET));
         return timeOffset
             .map(offset -> Clock.offset(baseClock, Duration.ofSeconds(-offset)))
             .orElse(baseClock);
@@ -124,7 +124,7 @@ public class SigningUtils {
         String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
                             ? request.host()
                             : request.host() + ":" + request.port();
-        builder.putHeader(HOST_HEADER, hostHeader);
+        builder.putHeader(HOST, hostHeader);
 
         builder.clearQueryParameters();
 
@@ -141,9 +141,9 @@ public class SigningUtils {
     private static Set<String> buildForbiddenHeaderSet() {
         Set<String> forbiddenHeaders = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 
-        forbiddenHeaders.add(BODY_HASH_NAME);
-        forbiddenHeaders.add(DATE_NAME);
-        forbiddenHeaders.add(AUTHORIZATION_NAME);
+        forbiddenHeaders.add(X_AMZ_CONTENT_SHA256);
+        forbiddenHeaders.add(X_AMZ_DATE);
+        forbiddenHeaders.add(AUTHORIZATION);
         forbiddenHeaders.add(REGION_SET_NAME);
 
         return forbiddenHeaders;
@@ -152,13 +152,13 @@ public class SigningUtils {
     private static Set<String> buildForbiddenQueryParamSet() {
         Set<String> forbiddenParams = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 
-        forbiddenParams.add(SIGNATURE_NAME);
-        forbiddenParams.add(DATE_NAME);
-        forbiddenParams.add(CREDENTIAL_NAME);
-        forbiddenParams.add(ALGORITHM_NAME);
-        forbiddenParams.add(SIGNED_HEADERS_NAME);
+        forbiddenParams.add(X_AMZ_SIGNATURE);
+        forbiddenParams.add(X_AMZ_DATE);
+        forbiddenParams.add(X_AMZ_CREDENTIAL);
+        forbiddenParams.add(X_AMZ_ALGORITHM);
+        forbiddenParams.add(X_AMZ_SIGNED_HEADERS);
         forbiddenParams.add(REGION_SET_NAME);
-        forbiddenParams.add(EXPIRES_NAME);
+        forbiddenParams.add(X_AMZ_EXPIRES);
 
         return forbiddenParams;
     }

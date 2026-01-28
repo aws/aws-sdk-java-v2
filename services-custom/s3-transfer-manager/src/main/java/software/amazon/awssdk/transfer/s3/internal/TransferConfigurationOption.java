@@ -32,12 +32,15 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final TransferConfigurationOption<Boolean> UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS =
         new TransferConfigurationOption<>("UploadDirectoryFileVisitOption", Boolean.class);
 
+    public static final TransferConfigurationOption<Integer> DIRECTORY_TRANSFER_MAX_CONCURRENCY =
+        new TransferConfigurationOption<>("TransferDirectoryMaxConcurrency", Integer.class);
+
     public static final TransferConfigurationOption<Executor> EXECUTOR =
         new TransferConfigurationOption<>("Executor", Executor.class);
 
     public static final String DEFAULT_DELIMITER = "/";
     public static final String DEFAULT_PREFIX = "";
-    public static final int DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY = 100;
+    public static final int DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY = 100;
 
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
 
@@ -45,6 +48,7 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
         .builder()
         .put(UPLOAD_DIRECTORY_MAX_DEPTH, DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH)
         .put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, false)
+        .put(DIRECTORY_TRANSFER_MAX_CONCURRENCY, DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY)
         .build();
 
     private final String name;
@@ -69,4 +73,3 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
         return name;
     }
 }
-

@@ -27,6 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * Abstract base class for concrete implementations of Aws4 signers.
  */
 @SdkInternalApi
+@Deprecated
 public abstract class BaseAws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4PresignerParams> {
 
     @Override

@@ -1,5 +1,7 @@
 package software.amazon.awssdk.core.async;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -7,12 +9,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody;
 
 public class ChecksumCalculatingAsyncRequestBodyTckTest extends PublisherVerification<ByteBuffer> {
@@ -20,7 +20,7 @@ public class ChecksumCalculatingAsyncRequestBodyTckTest extends PublisherVerific
     private static final int MAX_ELEMENTS = 1000;
     private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
     private final Path rootDir = fs.getRootDirectories().iterator().next();
-    private static final int CHUNK_SIZE = 16 * 1024;
+    private static final int CHUNK_SIZE = 128 * 1024;
     private final byte[] chunkData = new byte[CHUNK_SIZE];
 
     public ChecksumCalculatingAsyncRequestBodyTckTest() throws IOException {
@@ -36,7 +36,7 @@ public class ChecksumCalculatingAsyncRequestBodyTckTest extends PublisherVerific
     public Publisher<ByteBuffer> createPublisher(long n) {
         return  ChecksumCalculatingAsyncRequestBody.builder()
                 .asyncRequestBody(AsyncRequestBody.fromFile(fileOfNChunks(n)))
-                .algorithm(Algorithm.CRC32)
+                .algorithm(DefaultChecksumAlgorithm.CRC32)
                 .trailerHeader("x-amz-checksum-crc32")
                 .build();
     }

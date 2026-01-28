@@ -20,6 +20,24 @@
     }
   },
   {
+    "description": "Operation with explicit payload structure, with emtpy output is unmarshalled as null value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": ""
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithExplicitPayloadStructure"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": null
+      }
+    }
+  },
+  {
     "description": "Operation with streaming payload in output is unmarshalled correctly",
     "given": {
       "response": {
@@ -137,6 +155,30 @@
     "then": {
       "deserializedAs": {
         "StatusCodeMember": 201
+      }
+    }
+  },
+  {
+    "description": "Mixed location response with status code and header is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 201,
+        "body": "{\"StringMember\": \"string member value\",\"IntegerMember\":123}",
+        "headers": {
+          "x-amz-string": "header member value"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MixedLocationOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "StatusCodeMember": 201,
+        "StringMember": "string member value",
+        "IntegerMember": 123,
+        "StringHeaderMember": "header member value"
       }
     }
   },

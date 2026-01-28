@@ -503,7 +503,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private ProxyConfiguration proxyConfiguration;
+        private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
 
         private DefaultBuilder() {
         }

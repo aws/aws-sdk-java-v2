@@ -7,6 +7,7 @@ on:
 
 jobs:
   cleanup:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     name: Stale issue job
     runs-on: ubuntu-latest
     permissions:

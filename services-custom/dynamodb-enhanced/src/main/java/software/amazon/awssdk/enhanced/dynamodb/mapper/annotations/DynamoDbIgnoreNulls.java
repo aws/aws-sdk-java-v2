@@ -29,14 +29,14 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * <p>
  * Example using {@link DynamoDbIgnoreNulls}:
- * <pre>
- * <code>
- * &#64;DynamoDbBean
+ *
+ * {@snippet :
+ * @DynamoDbBean
  * public class NestedBean {
  *     private AbstractBean innerBean1;
  *     private AbstractBean innerBean2;
  *
- *     &#64;DynamoDbIgnoreNulls
+ *     @DynamoDbIgnoreNulls
  *     public AbstractBean getInnerBean1() {
  *         return innerBean1;
  *     }
@@ -65,10 +65,9 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * // innerBean1 w/ @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
  * assertThat(itemMap.get("innerBean1").m(), empty());
  *
- * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULLL attribute.
+ * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULL attribute.
  * assertThat(nestedBean.getInnerBean2(), hasEntry("attribute", nullAttributeValue()));
- * </code>
- * </pre>
+ * }
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

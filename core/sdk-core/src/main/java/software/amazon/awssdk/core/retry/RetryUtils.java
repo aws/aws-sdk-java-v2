@@ -66,4 +66,14 @@ public final class RetryUtils {
     public static boolean isThrottlingException(SdkException exception) {
         return isServiceException(exception) && toServiceException(exception).isThrottlingException();
     }
+
+    /**
+     * Returns true if the specified exception is retryable.
+     *
+     * @param exception The exception to test.
+     * @return True if the exception resulted from an exception modeled as retryable.
+     */
+    public static boolean isRetryableException(SdkException exception) {
+        return isServiceException(exception) && toServiceException(exception).isRetryableException();
+    }
 }

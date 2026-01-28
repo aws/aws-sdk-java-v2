@@ -52,6 +52,11 @@
     },
     "then": {
       "serializedAs": {
+        "headers": {
+          "contains": {
+            "Content-length": "22"
+          }
+        },
         "body": {
           "jsonEquals": "{\"StringMember\": \"foo\"}"
         }

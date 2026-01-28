@@ -35,12 +35,18 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +60,7 @@ import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -121,6 +128,37 @@ public class DownloadDirectoryHelperTest {
         assertThat(argumentCaptor.getAllValues()).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key1"));
         assertThat(argumentCaptor.getAllValues()).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
+            "key2"));
+    }
+
+    @Test
+    void downloadDirectory_containsFolderObjects_shouldSkip() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, S3Object.builder().key("key1").size(10L).build(),
+                                  S3Object.builder().key("key2").size(0L).build(),
+                                  S3Object.builder().key("folder/").size(0L).build());
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .build());
+
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        verify(singleDownloadFunction, times(2)).apply(argumentCaptor.capture());
+
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+        List<DownloadFileRequest> allValues = argumentCaptor.getAllValues();
+        assertThat(allValues).size().isEqualTo(2);
+        assertThat(allValues).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
+            "key1"));
+        assertThat(allValues).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
     }
 
@@ -437,6 +475,56 @@ public class DownloadDirectoryHelperTest {
         assertThatThrownBy(() -> downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destination(file)
                                                                                                    .bucket("bucketName").build()).completionFuture().join())
             .hasMessageContaining("is not a directory").hasCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void downloadDirectory_withDownloadRequestTransformer_transformerThrows_failsDownload() {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+
+        RuntimeException exception = new RuntimeException("boom");
+        Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer = b -> {
+            throw exception;
+        };
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .downloadFileRequestTransformer(downloadFileRequestTransformer)
+                                                                              .build());
+
+        assertThatThrownBy(downloadDirectory.completionFuture()::join).getCause().hasCause(exception);
+    }
+
+    @Test
+    void downloadDirectory_withListObjectsRequestTransformer_transformerThrows_failsDownload() {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+
+        RuntimeException exception = new RuntimeException("boom");
+        Consumer<ListObjectsV2Request.Builder> downloadFileRequestTransformer = b -> {
+            throw exception;
+        };
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .listObjectsV2RequestTransformer(downloadFileRequestTransformer)
+                                                                              .build());
+
+        assertThatThrownBy(downloadDirectory.completionFuture()::join).hasCause(exception);
     }
 
     private static DefaultFileDownload completedDownload() {

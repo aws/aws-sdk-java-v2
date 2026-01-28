@@ -49,9 +49,14 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -61,14 +66,17 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class AuthSchemeInterceptorSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final IntermediateModel intermediateModel;
 
     public AuthSchemeInterceptorSpec(IntermediateModel intermediateModel) {
+        this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
@@ -96,7 +104,40 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addMethod(generateTrySelectAuthScheme())
                .addMethod(generateGetIdentityMetric())
                .addMethod(putSelectedAuthSchemeMethodSpec());
+        if (intermediateModel.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            builder.addMethod(generateEnvironmentTokenMetric());
+        }
         return builder.build();
+    }
+
+    private MethodSpec generateEnvironmentTokenMetric() {
+        return MethodSpec
+            .methodBuilder("recordEnvironmentTokenBusinessMetric")
+            .addModifiers(Modifier.PRIVATE)
+            .addTypeVariable(TypeVariableName.get("T", Identity.class))
+            .addParameter(ParameterSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                          TypeVariableName.get("T")),
+                "selectedAuthScheme").build())
+            .addParameter(ExecutionAttributes.class, "executionAttributes")
+            .addStatement("$T tokenFromEnv = executionAttributes.getAttribute($T.TOKEN_CONFIGURED_FROM_ENV)",
+                          String.class, SdkInternalExecutionAttribute.class)
+            .beginControlFlow("if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals($T"
+                              + ".SCHEME_ID) && selectedAuthScheme.identity().isDone())", BearerAuthScheme.class)
+            .beginControlFlow("if (selectedAuthScheme.identity().getNow(null) instanceof $T)", TokenIdentity.class)
+
+            .addStatement("$T configuredToken = ($T) selectedAuthScheme.identity().getNow(null)",
+                          TokenIdentity.class, TokenIdentity.class)
+            .beginControlFlow("if (configuredToken.token().equals(tokenFromEnv))")
+            .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
+                          + ".addMetric($T.BEARER_SERVICE_ENV_VARS.value())",
+                          SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+            .endControlFlow()
+            .endControlFlow()
+            .endControlFlow()
+            .build();
+
+
     }
 
     private MethodSpec generateBeforeExecution() {
@@ -113,6 +154,27 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
                .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");
+
+        if (intermediateModel.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            builder.addStatement("recordEnvironmentTokenBusinessMetric(selectedAuthScheme, "
+                                 + "executionAttributes)");
+        }
+
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            builder.beginControlFlow("if (selectedAuthScheme != null && "
+                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) && "
+                                     + "!$T.isSignerOverridden(context.request(), executionAttributes))",
+                                     AwsV4aAuthScheme.class,
+                                     ClassName.get("software.amazon.awssdk.awscore.util", "SignerOverrideUtils"))
+                   .addStatement("$T businessMetrics = executionAttributes.getAttribute($T.BUSINESS_METRICS)",
+                                 ClassName.get("software.amazon.awssdk.core.useragent", "BusinessMetricCollection"),
+                                 SdkInternalExecutionAttribute.class)
+                   .beginControlFlow("if (businessMetrics != null)")
+                   .addStatement("businessMetrics.addMetric($T.SIGV4A_SIGNING.value())",
+                                 BusinessMetricFeatureId.class)
+                   .endControlFlow()
+                   .endControlFlow();
+        }
         return builder.build();
     }
 
@@ -147,20 +209,17 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         if (!authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,
                                  SdkExecutionAttribute.class);
+            builder.addStatement("$T.Builder builder = $T.builder().operation(operation)",
+                                 authSchemeSpecUtils.parametersInterfaceName(),
+                                 authSchemeSpecUtils.parametersInterfaceName());
+
             if (authSchemeSpecUtils.usesSigV4()) {
                 builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
                                      AwsExecutionAttribute.class);
-                builder.addStatement("return $T.builder()"
-                                     + ".operation(operation)"
-                                     + ".region(region)"
-                                     + ".build()",
-                                     authSchemeSpecUtils.parametersInterfaceName());
-            } else {
-                builder.addStatement("return $T.builder()"
-                                     + ".operation(operation)"
-                                     + ".build()",
-                                     authSchemeSpecUtils.parametersInterfaceName());
+                builder.addStatement("builder.region(region)");
             }
+            generateSigv4aSigningRegionSet(builder);
+            builder.addStatement("return builder.build()");
             return builder.build();
         }
 
@@ -186,6 +245,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                  AwsExecutionAttribute.class);
             builder.addStatement("builder.region(region)");
         }
+        generateSigv4aSigningRegionSet(builder);
         ClassName paramsBuilderClass = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder");
         builder.beginControlFlow("if (builder instanceof $T)",
                                  paramsBuilderClass);
@@ -274,6 +334,19 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                    .endControlFlow();
         }
 
+        builder.addStatement("$T signer",
+                             ParameterizedTypeName.get(ClassName.get(HttpSigner.class), TypeVariableName.get("T")));
+        builder.beginControlFlow("try");
+        {
+            builder.addStatement("signer = authScheme.signer()");
+            builder.nextControlFlow("catch (RuntimeException e)");
+            builder.addStatement("discardedReasons.add(() -> String.format($S, authOption.schemeId(), e.getMessage()))",
+                                 "'%s' signer could not be retrieved: %s")
+                   .addStatement("return null")
+                   .endControlFlow();
+        }
+
+
         builder.addStatement("$T.Builder identityRequestBuilder = $T.builder()",
                              ResolveIdentityRequest.class,
                              ResolveIdentityRequest.class);
@@ -294,7 +367,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                              MetricUtils.class)
                .endControlFlow();
 
-        builder.addStatement("return new $T<>(identity, authScheme.signer(), authOption)", SelectedAuthScheme.class);
+        builder.addStatement("return new $T<>(identity, signer, authOption)", SelectedAuthScheme.class);
         return builder.build();
     }
 
@@ -434,5 +507,18 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             throw new IllegalArgumentException("Don't know how to convert " + valueType + " to TypeName");
         }
         return result;
+    }
+
+    private void generateSigv4aSigningRegionSet(MethodSpec.Builder builder) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            builder.addStatement(
+                "executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
+                "                   .filter(regionSet -> !$T.isNullOrEmpty(regionSet))\n" +
+                "                   .ifPresent(nonEmptyRegionSet -> builder.regionSet($T.create(nonEmptyRegionSet)))",
+                AwsExecutionAttribute.class,
+                CollectionUtils.class,
+                RegionSet.class
+            );
+        }
     }
 }

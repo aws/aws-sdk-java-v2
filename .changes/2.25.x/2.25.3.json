@@ -1,0 +1,30 @@
+{
+    "version": "2.25.3",
+    "date": "2024-03-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Chatbot",
+            "contributor": "",
+            "description": "Minor update to documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "This release contains an endpoint addition"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Adds support for providing custom headers within SendEmail and SendBulkEmail for SESv2."
+        }
+    ]
+}

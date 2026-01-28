@@ -46,6 +46,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_SESSION_TOKEN("aws.sessionToken", null),
 
     /**
+     * Configure the AWS account id associated with credentials supplied through system properties.
+     */
+    AWS_ACCOUNT_ID("aws.accountId", null),
+
+    /**
      * Configure the AWS web identity token file path.
      */
     AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
@@ -84,6 +89,16 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_EC2_METADATA_SERVICE_ENDPOINT("aws.ec2MetadataServiceEndpoint", "http://169.254.169.254"),
 
     AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE("aws.ec2MetadataServiceEndpointMode", "IPv4"),
+
+    /**
+     * The number of seconds (either as an integer or double) before a connection to the instance
+     * metadata service should time out. This value is applied to both the socket connect and read timeouts.
+     *
+     * The timeout can be configured using the system property "aws.ec2MetadataServiceTimeout". If not set,
+     * a default timeout is used. This setting is crucial for ensuring timely responses from the instance
+     * metadata service in environments with varying network conditions.
+     */
+    AWS_METADATA_SERVICE_TIMEOUT("aws.ec2MetadataServiceTimeout", "1"),
 
     /**
      * The elastic container metadata service endpoint that should be called by the ContainerCredentialsProvider
@@ -188,6 +203,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_DEFAULTS_MODE("aws.defaultsMode", null),
 
     /**
+     * Which {@code AccountIdEndpointMode} to use, case insensitive
+     */
+    AWS_ACCOUNT_ID_ENDPOINT_MODE("aws.accountIdEndpointMode", null),
+
+    /**
      * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
      * endpoints.
      */
@@ -210,7 +230,40 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES("aws.requestMinCompressionSizeBytes", null),
 
-    ;
+    /**
+     * Defines a file path from which partition metadata should be loaded. If this isn't specified, the partition
+     * metadata deployed with the SDK client will be used instead.
+     */
+    AWS_PARTITIONS_FILE("aws.partitionsFile", null),
+
+    /**
+     * The request checksum calculation setting. The default value is WHEN_SUPPORTED.
+     */
+    AWS_REQUEST_CHECKSUM_CALCULATION("aws.requestChecksumCalculation", null),
+
+    /**
+     * The response checksum validation setting. The default value is WHEN_SUPPORTED.
+     */
+    AWS_RESPONSE_CHECKSUM_VALIDATION("aws.responseChecksumValidation", null),
+
+    /**
+     * Configure an optional identification value to be appended to the user agent header.
+     * The value should be less than 50 characters in length and is null by default.
+     */
+    AWS_SDK_UA_APP_ID("sdk.ua.appId", null),
+
+    /**
+     * Configure the SIGV4A signing region set.
+     * This is a non-empty, comma-delimited list of AWS region names used during signing.
+     */
+    AWS_SIGV4A_SIGNING_REGION_SET("aws.sigv4a.signing.region.set", null),
+
+
+    /**
+     * Configure the preferred auth scheme to use.
+     * This is a comma-delimited list of AWS auth scheme names used during signing.
+     */
+    AWS_AUTH_SCHEME_PREFERENCE("aws.authSchemePreference", null);
 
     private final String systemProperty;
     private final String defaultValue;

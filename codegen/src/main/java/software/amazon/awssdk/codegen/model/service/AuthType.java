@@ -24,6 +24,7 @@ public enum AuthType {
     CUSTOM("custom"),
     IAM("iam"),
     V4("v4"),
+    V4A("v4a"),
     V4_UNSIGNED_BODY("v4-unsigned-body"),
     S3("s3"),
     S3V4("s3v4"),
@@ -41,10 +42,23 @@ public enum AuthType {
     }
 
     public static AuthType fromValue(String value) {
-        String normalizedValue = StringUtils.lowerCase(value);
-        return Arrays.stream(values())
-                     .filter(authType -> authType.value.equals(normalizedValue))
-                     .findFirst()
-                     .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown AuthType '%s'", normalizedValue)));
+        switch (value) {
+            // TODO(multi-auth): review conversion of smithy auth trait shape IDs
+            case "smithy.api#httpBearerAuth":
+                return BEARER;
+            case "smithy.api#noAuth":
+                return NONE;
+            case "aws.auth#sigv4":
+                return V4;
+            case "aws.auth#sigv4a":
+                return V4A;
+            default:
+                String normalizedValue = StringUtils.lowerCase(value);
+                return Arrays.stream(values())
+                            .filter(authType -> authType.value.equals(normalizedValue))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                String.format("Unknown AuthType '%s'", normalizedValue)));
+        }
     }
 }

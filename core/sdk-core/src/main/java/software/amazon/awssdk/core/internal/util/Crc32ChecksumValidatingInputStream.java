@@ -20,6 +20,7 @@ import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wraps the provided input stream with a {@link Crc32ChecksumCalculatingInputStream} and after the stream is closed
@@ -27,8 +28,11 @@ import software.amazon.awssdk.core.io.SdkFilterInputStream;
  */
 @SdkInternalApi
 public class Crc32ChecksumValidatingInputStream extends SdkFilterInputStream {
+    private static final Logger log = Logger.loggerFor(Crc32ChecksumValidatingInputStream.class);
 
     private final long expectedChecksum;
+
+    private boolean shouldValidateChecksum = true;
 
     /**
      * @param in               Input stream to content.
@@ -53,7 +57,31 @@ public class Crc32ChecksumValidatingInputStream extends SdkFilterInputStream {
         }
     }
 
+    @Override
+    public int read() throws IOException {
+        try {
+            return super.read();
+        } catch (Throwable e) {
+            shouldValidateChecksum = false;
+            throw e;
+        }
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        try {
+            return super.read(b, off, len);
+        } catch (Throwable e) {
+            shouldValidateChecksum = false;
+            throw e;
+        }
+    }
+
     private void validateChecksum() throws Crc32MismatchException {
+        if (!shouldValidateChecksum) {
+            log.debug(() -> "Skipping CRC32 validation due to error encountered while reading from input stream");
+            return;
+        }
         long actualChecksum = ((Crc32ChecksumCalculatingInputStream) in).getCrc32Checksum();
         if (expectedChecksum != actualChecksum) {
             throw Crc32MismatchException.builder()

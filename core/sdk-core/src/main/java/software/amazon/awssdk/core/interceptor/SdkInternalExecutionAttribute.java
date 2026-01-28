@@ -15,21 +15,29 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -44,6 +52,18 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * at the same time.
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
+
+    /**
+     * A collection of business metrics feature ids.
+     */
+    public static final ExecutionAttribute<BusinessMetricCollection> BUSINESS_METRICS =
+        new ExecutionAttribute<>("BusinessMetricsCollection");
+
+    /**
+     * A collection of metadata to be added to the UserAgent.
+     */
+    public static final ExecutionAttribute<List<AdditionalMetadata>> USER_AGENT_METADATA =
+        new ExecutionAttribute<>("UserAgentMetadata");
 
     /**
      * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
@@ -76,6 +96,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     public static final ExecutionAttribute<Boolean> IS_NONE_AUTH_TYPE_REQUEST =
         new ExecutionAttribute<>("IsNoneAuthTypeRequest");
+
+    /**
+     * The endpoint provider used to resolve the endpoint of the client. This will be overridden during the request
+     * pipeline by the {@link #ENDPOINT_PROVIDER}.
+     */
+    public static final ExecutionAttribute<ClientEndpointProvider> CLIENT_ENDPOINT_PROVIDER =
+        new ExecutionAttribute<>("ClientEndpointProvider");
 
     /**
      * The endpoint provider used to resolve the destination endpoint for a request.
@@ -159,6 +186,31 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     public static final ExecutionAttribute<SdkClient> SDK_CLIENT =
         new ExecutionAttribute<>("SdkClient");
+
+    /**
+     * The request checksum calculation setting.
+     */
+    public static final ExecutionAttribute<RequestChecksumCalculation> REQUEST_CHECKSUM_CALCULATION = new ExecutionAttribute<>(
+        "RequestChecksumCalculation");
+
+    /**
+     * The response checksum validation setting.
+     */
+    public static final ExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
+        "ResponseChecksumValidation");
+
+    /**
+     * The token configured from the environment or system properties, used to determine if the BEARER_SERVICE_ENV_VARS
+     * business metric should be set.
+     */
+    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
+        "TokenConfiguredFromEnv");
+
+    /**
+     * The store used by {@link HttpSigner} implementations to store payload checksums.
+     */
+    public static final ExecutionAttribute<PayloadChecksumStore> CHECKSUM_STORE =
+        new ExecutionAttribute<>("ChecksumStore");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

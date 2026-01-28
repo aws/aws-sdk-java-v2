@@ -22,9 +22,12 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Interface for the signer used for signing the async requests.
+ *
+ * @deprecated Replaced by {@code software.amazon.awssdk.http.auth.spi.signer.HttpSigner} in 'http-auth-spi'.
  */
 @SdkPublicApi
 @FunctionalInterface
+@Deprecated
 public interface AsyncRequestBodySigner {
     /**
      * Method that takes in an signed request and async request body provider,

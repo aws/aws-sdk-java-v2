@@ -151,7 +151,8 @@ public class WaitersSyncFunctionalTest {
                                                                                                                          .build())
                                                                                          .build());
         assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
-            .hasMessageContaining("transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on error condition"
+                                  + " (EmptyModeledException) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -176,22 +177,264 @@ public class WaitersSyncFunctionalTest {
     }
 
     @Test
-    public void failureResponse_shouldThrowException() {
+    public void failureResponse_withStatusCode_shouldThrowException() {
         AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
-                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
-                                                                                                        .statusCode(500)
-                                                                                                        .build())
-                                                                        .build();
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(500)
+                                                                                                       .build())
+                                                                       .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor was matched and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on HTTP response status code (500)"
+                                  + " and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
+
 
     @Test
     public void closeWaiterCreatedWithClient_clientDoesNotClose() {
         waiter.close();
         verify(client, never()).close();
+    }
+
+    @Test
+    public void errorMatcherWithExpectedTrueFails_withAPISuccess() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedTrueFails(SdkBuilder::build))
+            .hasMessageContaining("The waiter has exceeded the max retry attempts: 3")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void errorMatcherWithExpectedTrueFails_withAPIError() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(EmptyModeledException.builder()
+                                                                                         .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                                                         .errorCode("EmptyModeledException")
+                                                                                                                         .build())
+                                                                                         .build());
+
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedTrueFails(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor was matched on error condition (true) "
+                                  + "and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    /**
+     * If we are not getting any errors then fail it { "expected": false, "matcher": "error", "state": "failure" }
+     */
+    @Test
+    public void errorMatcherWithExpectedFalseFails() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseFails(SdkBuilder::build))
+            .hasMessageContaining("transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void untilSuccessMatcherWith200Pass404RetryErrorMatcherWithExpectedTrueFails() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(404).build())
+                                                         .thenReturn(response);
+        WaiterResponse<AllTypesResponse> waiterResponse =
+            waiter.waitUntilSuccessMatcherWith200Pass404RetryErrorMatcherWithExpectedTrueFails(SdkBuilder::build);
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(2);
+    }
+
+    @Test
+    public void errorMatcherWithExpectedFalseSuccess_APISuccess() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        WaiterResponse<AllTypesResponse> allTypesResponseWaiterResponse =
+            waiter.waitUntilErrorMatcherWithExpectedFalseSuccess(SdkBuilder::build);
+        assertThat(allTypesResponseWaiterResponse.attemptsExecuted()).isEqualTo(1);
+    }
+
+    // Error reported but not mentioned in Waiter acceptors
+    @Test
+    public void errorMatcherWithExpectedFalseSuccess_APIFailure() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(404).build());
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseSuccess(SdkBuilder::build))
+            .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void errorMatcherWithExpectedTrueAndStateAsSuccess_ApiError() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(EmptyModeledException.builder()
+                                                                                         .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                                                         .errorCode("EmptyModeledException")
+                                                                                                                         .build())
+                                                                                         .build());
+        WaiterResponse<AllTypesResponse> allTypesResponseWaiterResponse =
+            waiter.waitUntilErrorMatcherWithExpectedTrueAndStateAsSuccess(SdkBuilder::build);
+        assertThat(allTypesResponseWaiterResponse.attemptsExecuted()).isEqualTo(1);
+    }
+
+    @Test
+    public void errorMatcherWithExpectedTrueAndStateAsSuccess_ApiSuccess() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedTrueAndStateAsSuccess(SdkBuilder::build))
+            .hasMessageContaining("The waiter has exceeded the max retry attempts:")
+            .isInstanceOf(SdkClientException.class);
+
+    }
+
+    /**
+     * Case with the model just defined that it should Fail when there are no Errors but the waiter does not tell what to do if
+     * there is an error.
+     */
+    @Test
+    public void errorMatcherWithExpectedFalse_TerminatesWaitingIfErrorReported() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(SdkServiceException.builder().statusCode(404).build());
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseFails(SdkBuilder::build))
+            .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
+            .isInstanceOf(SdkClientException.class);
+
+    }
+
+    @Test
+    public void errorMatcherWithExpectedFalseAndStateAsFailure_whenAPISuccess() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+
+
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseFails(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor was matched on error condition (false) "
+                                  + "and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+
+    }
+
+    @Test
+    public void errorMatcherWithExpectedFalseAndStateAsFailure_whenAPIErrors() {
+        when(client.allTypes(any(AllTypesRequest.class))).thenThrow(EmptyModeledException.builder()
+                                                                                         .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                                                         .errorCode("EmptyModeledException")
+                                                                                                                         .build())
+                                                                                         .build());
+
+
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseFails(SdkBuilder::build))
+            .hasMessageContaining("An exception was thrown and did not match any waiter acceptors")
+            .isInstanceOf(SdkClientException.class);
+
+    }
+
+    @Test
+    public void errorMatcherWithExpectedFalseRetries_exhaustAllRetries() {
+        AllTypesResponse response =
+            (AllTypesResponse) AllTypesResponse.builder()
+                                               .sdkHttpResponse(SdkHttpResponse.builder().statusCode(200)
+                                                                               .build())
+                                               .build();
+        when(client.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseRetries(AllTypesRequest.builder().build()))
+            .isInstanceOf(SdkClientException.class).hasMessageContaining("The waiter has exceeded the max retry attempts: 3");
+    }
+
+    /**
+     * This is a case were we want to check if an item is deleted
+     * In this case waiter first calls will say item exist
+     * and then its deleted it will throw exception
+     */
+    @Test
+    public void errorMatcherWithExpectedFalseRetries_passesWhenApiReturnErrors() {
+        AllTypesResponse response =
+            (AllTypesResponse) AllTypesResponse.builder()
+                                               .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                               .statusCode(200)
+                                                                               .build())
+                                               .build();
+        when(client.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(response)
+            .thenReturn(response)
+            .thenThrow(
+                EmptyModeledException.builder()
+                                     .awsErrorDetails(AwsErrorDetails.builder()
+                                                                     .errorCode("EmptyModeledException")
+                                                                     .build())
+                                     .build()
+
+            );
+        WaiterResponse<AllTypesResponse> waiterResponse =
+            waiter.waitUntilErrorMatcherWithExpectedFalseRetries(AllTypesRequest.builder().build());
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(3);
+        // Empty because the waiter specifically waits for Error case.
+        assertThat(waiterResponse.matched().response()).isEmpty();
+    }
+
+    @Test
+    public void failureResponse_withResponsePath_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+            .stringMember("UNEXPECTED_VALUE")
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(StringMember=UNEXPECTED_VALUE) and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void failureResponse_withResponsePathForBoolean_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .booleanMember(false)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(BooleanMember=false) and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void failureResponse_withResponsePathForInteger_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .integerMember(99)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
+        assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
+            .hasMessageContaining("A waiter acceptor with the matcher (pathAny) was matched on parameter "
+                                  + "(IntegerMember=99) and transitioned the waiter to failure state")
+            .isInstanceOf(SdkClientException.class);
     }
 
 }

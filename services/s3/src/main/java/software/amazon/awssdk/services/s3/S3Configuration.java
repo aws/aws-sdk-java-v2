@@ -22,6 +22,8 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -299,6 +301,13 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
 
+        /**
+         * @deprecated This option has been replaced with
+         * {@link S3ClientBuilder#requestChecksumCalculation(RequestChecksumCalculation)} and
+         * {@link S3ClientBuilder#responseChecksumValidation(ResponseChecksumValidation)}. If both this and one of those options
+         * are set, an exception will be thrown.
+         */
+        @Deprecated
         Boolean checksumValidationEnabled();
 
         /**
@@ -325,7 +334,13 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * </ul>
          *
          * @see S3Configuration#checksumValidationEnabled().
+         *
+         * @deprecated This option has been replaced with
+         * {@link S3ClientBuilder#requestChecksumCalculation(RequestChecksumCalculation)} and
+         * {@link S3ClientBuilder#responseChecksumValidation(ResponseChecksumValidation)}. If both this and one of those options
+         * are set, an exception will be thrown.
          */
+        @Deprecated
         Builder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
         Boolean chunkedEncodingEnabled();

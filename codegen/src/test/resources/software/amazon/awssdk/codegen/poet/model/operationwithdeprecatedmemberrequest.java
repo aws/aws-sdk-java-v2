@@ -2,18 +2,23 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.DataTypeConversionFailureHandlingTrait;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -45,8 +50,20 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
                                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("UndeprecatedMember").build())
                                                                               .build();
 
+    private static final SdkField<String> MEMBER_IGNORE_DATA_TYPE_FAILURE_HANDLING_FIELD = SdkField
+        .<String> builder(MarshallingType.STRING)
+        .memberName("MemberIgnoreDataTypeFailureHandling")
+        .getter(getter(OperationWithDeprecatedMemberRequest::memberIgnoreDataTypeFailureHandling))
+        .setter(setter(Builder::memberIgnoreDataTypeFailureHandling))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                             .locationName("MemberIgnoreDataTypeFailureHandling").build(), new DataTypeConversionFailureHandlingTrait())
+        .build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
-        MEMBER_MODELED_AS_DEPRECATED_FIELD, MEMBER_MODIFIED_AS_DEPRECATED_FIELD, UNDEPRECATED_MEMBER_FIELD));
+        MEMBER_MODELED_AS_DEPRECATED_FIELD, MEMBER_MODIFIED_AS_DEPRECATED_FIELD, UNDEPRECATED_MEMBER_FIELD,
+        MEMBER_IGNORE_DATA_TYPE_FAILURE_HANDLING_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String memberModeledAsDeprecated;
 
@@ -54,11 +71,14 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
 
     private final String undeprecatedMember;
 
+    private final String memberIgnoreDataTypeFailureHandling;
+
     private OperationWithDeprecatedMemberRequest(BuilderImpl builder) {
         super(builder);
         this.memberModeledAsDeprecated = builder.memberModeledAsDeprecated;
         this.memberModifiedAsDeprecated = builder.memberModifiedAsDeprecated;
         this.undeprecatedMember = builder.undeprecatedMember;
+        this.memberIgnoreDataTypeFailureHandling = builder.memberIgnoreDataTypeFailureHandling;
     }
 
     /**
@@ -92,6 +112,15 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         return undeprecatedMember;
     }
 
+    /**
+     * Returns the value of the MemberIgnoreDataTypeFailureHandling property for this object.
+     *
+     * @return The value of the MemberIgnoreDataTypeFailureHandling property for this object.
+     */
+    public final String memberIgnoreDataTypeFailureHandling() {
+        return memberIgnoreDataTypeFailureHandling;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -112,6 +141,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         hashCode = 31 * hashCode + Objects.hashCode(memberModeledAsDeprecated());
         hashCode = 31 * hashCode + Objects.hashCode(memberModifiedAsDeprecated());
         hashCode = 31 * hashCode + Objects.hashCode(undeprecatedMember());
+        hashCode = 31 * hashCode + Objects.hashCode(memberIgnoreDataTypeFailureHandling());
         return hashCode;
     }
 
@@ -134,7 +164,8 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         OperationWithDeprecatedMemberRequest other = (OperationWithDeprecatedMemberRequest) obj;
         return Objects.equals(memberModeledAsDeprecated(), other.memberModeledAsDeprecated())
                && Objects.equals(memberModifiedAsDeprecated(), other.memberModifiedAsDeprecated())
-               && Objects.equals(undeprecatedMember(), other.undeprecatedMember());
+               && Objects.equals(undeprecatedMember(), other.undeprecatedMember())
+               && Objects.equals(memberIgnoreDataTypeFailureHandling(), other.memberIgnoreDataTypeFailureHandling());
     }
 
     /**
@@ -146,7 +177,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         return ToString.builder("OperationWithDeprecatedMemberRequest")
                        .add("MemberModeledAsDeprecated", memberModeledAsDeprecated())
                        .add("MemberModifiedAsDeprecated", memberModifiedAsDeprecated()).add("UndeprecatedMember", undeprecatedMember())
-                       .build();
+                       .add("MemberIgnoreDataTypeFailureHandling", memberIgnoreDataTypeFailureHandling()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -157,6 +188,8 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
                 return Optional.ofNullable(clazz.cast(memberModifiedAsDeprecated()));
             case "UndeprecatedMember":
                 return Optional.ofNullable(clazz.cast(undeprecatedMember()));
+            case "MemberIgnoreDataTypeFailureHandling":
+                return Optional.ofNullable(clazz.cast(memberIgnoreDataTypeFailureHandling()));
             default:
                 return Optional.empty();
         }
@@ -167,6 +200,20 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("MemberModeledAsDeprecated", MEMBER_MODELED_AS_DEPRECATED_FIELD);
+        map.put("MemberModifiedAsDeprecated", MEMBER_MODIFIED_AS_DEPRECATED_FIELD);
+        map.put("UndeprecatedMember", UNDEPRECATED_MEMBER_FIELD);
+        map.put("MemberIgnoreDataTypeFailureHandling", MEMBER_IGNORE_DATA_TYPE_FAILURE_HANDLING_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<OperationWithDeprecatedMemberRequest, T> g) {
         return obj -> g.apply((OperationWithDeprecatedMemberRequest) obj);
     }
@@ -175,6 +222,8 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
                                      CopyableBuilder<Builder, OperationWithDeprecatedMemberRequest> {
         /**
@@ -208,6 +257,15 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
          */
         Builder undeprecatedMember(String undeprecatedMember);
 
+        /**
+         * Sets the value of the MemberIgnoreDataTypeFailureHandling property for this object.
+         *
+         * @param memberIgnoreDataTypeFailureHandling
+         *        The new value for the MemberIgnoreDataTypeFailureHandling property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder memberIgnoreDataTypeFailureHandling(String memberIgnoreDataTypeFailureHandling);
+
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -222,6 +280,8 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
 
         private String undeprecatedMember;
 
+        private String memberIgnoreDataTypeFailureHandling;
+
         private BuilderImpl() {
         }
 
@@ -230,6 +290,7 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
             memberModeledAsDeprecated(model.memberModeledAsDeprecated);
             memberModifiedAsDeprecated(model.memberModifiedAsDeprecated);
             undeprecatedMember(model.undeprecatedMember);
+            memberIgnoreDataTypeFailureHandling(model.memberIgnoreDataTypeFailureHandling);
         }
 
         @Deprecated
@@ -280,6 +341,20 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
             return this;
         }
 
+        public final String getMemberIgnoreDataTypeFailureHandling() {
+            return memberIgnoreDataTypeFailureHandling;
+        }
+
+        public final void setMemberIgnoreDataTypeFailureHandling(String memberIgnoreDataTypeFailureHandling) {
+            this.memberIgnoreDataTypeFailureHandling = memberIgnoreDataTypeFailureHandling;
+        }
+
+        @Override
+        public final Builder memberIgnoreDataTypeFailureHandling(String memberIgnoreDataTypeFailureHandling) {
+            this.memberIgnoreDataTypeFailureHandling = memberIgnoreDataTypeFailureHandling;
+            return this;
+        }
+
         @Override
         public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
             super.overrideConfiguration(overrideConfiguration);
@@ -300,6 +375,11 @@ public final class OperationWithDeprecatedMemberRequest extends JsonProtocolTest
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }
