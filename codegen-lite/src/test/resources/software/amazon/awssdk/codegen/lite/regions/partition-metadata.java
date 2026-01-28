@@ -28,9 +28,9 @@ public final class AwsPartitionMetadata implements PartitionMetadata {
 
     private static final String ID = "aws";
 
-    private static final String NAME = "AWS Standard";
+    private static final String NAME = "aws";
 
-    private static final String REGION_REGEX = "^(us|eu|ap|sa|ca|me|af)\\-\\w+\\-\\d+$";
+    private static final String REGION_REGEX = "^(us|eu|ap|sa|ca|me|af|il|mx)\\-\\w+\\-\\d+$";
 
     @Override
     public String id() {

@@ -38,16 +38,16 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.Partition;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class PartitionMetadataGenerator implements PoetClass {
 
-    private final Partition partition;
+    private final PartitionRegionsMetadata partition;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public PartitionMetadataGenerator(Partition partition,
+    public PartitionMetadataGenerator(PartitionRegionsMetadata partition,
                                       String basePackage,
                                       String regionBasePackage) {
         this.partition = partition;
@@ -80,11 +80,11 @@ public class PartitionMetadataGenerator implements PoetClass {
                                           .build())
                        .addField(FieldSpec.builder(String.class, "ID")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getPartition())
+                                          .initializer("$S", partition.getId())
                                           .build())
                        .addField(FieldSpec.builder(String.class, "NAME")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getPartitionName())
+                                          .initializer("$S", partition.getOutputs().getName())
                                           .build())
                        .addField(FieldSpec.builder(String.class, "REGION_REGEX")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
@@ -103,18 +103,30 @@ public class PartitionMetadataGenerator implements PoetClass {
             CodeBlock.builder()
                      .add("$T.<$T, $T>builder()", ImmutableMap.class, partitionEndpointKeyClass(), String.class);
 
+        String defaultDnsSuffix = partition.getOutputs().getDnsSuffix();
+        String dualStackDnsSuffix = partition.getOutputs().getDualStackDnsSuffix();
+
         builder.add(".put(")
                .add(partitionEndpointKey(emptyList()))
-               .add(", $S)", partition.getDnsSuffix());
+               .add(", $S)", defaultDnsSuffix);
 
-        if (partition.getDefaults() != null) {
-            partition.getDefaults().getVariants().forEach(variant -> {
-                if (variant.getDnsSuffix() != null) {
-                    builder.add(".put(")
-                           .add(partitionEndpointKey(variant.getTags()))
-                           .add(", $S)", variant.getDnsSuffix());
-                }
-            });
+        if (partition.getOutputs().isSupportsFIPS()) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Stream.of("fips").collect(Collectors.toList())))
+                   .add(", $S)", defaultDnsSuffix);
+        }
+
+        if (partition.getOutputs().isSupportsDualStack() && partition.getOutputs().isSupportsFIPS() 
+            && dualStackDnsSuffix != null) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Stream.of("dualstack", "fips").collect(Collectors.toList())))
+                   .add(", $S)", dualStackDnsSuffix);
+        }
+
+        if (partition.getOutputs().isSupportsDualStack() && dualStackDnsSuffix != null) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Stream.of("dualstack").collect(Collectors.toList())))
+                   .add(", $S)", dualStackDnsSuffix);
         }
 
         return builder.add(".build()").build();
@@ -125,19 +137,26 @@ public class PartitionMetadataGenerator implements PoetClass {
             CodeBlock.builder()
                      .add("$T.<$T, $T>builder()", ImmutableMap.class, partitionEndpointKeyClass(), String.class);
 
+        builder.add(".put(")
+               .add(partitionEndpointKey(emptyList()))
+               .add(", $S)", "{service}.{region}.{dnsSuffix}");
 
-        if (partition.getDefaults() != null) {
+        if (partition.getOutputs().isSupportsFIPS()) {
             builder.add(".put(")
-                   .add(partitionEndpointKey(emptyList()))
-                   .add(", $S)", partition.getDefaults().getHostname());
+                   .add(partitionEndpointKey(Stream.of("fips").collect(Collectors.toList())))
+                   .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
+        }
 
-            partition.getDefaults().getVariants().forEach(variant -> {
-                if (variant.getHostname() != null) {
-                    builder.add(".put(")
-                           .add(partitionEndpointKey(variant.getTags()))
-                           .add(", $S)", variant.getHostname());
-                }
-            });
+        if (partition.getOutputs().isSupportsDualStack() && partition.getOutputs().isSupportsFIPS()) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Stream.of("dualstack", "fips").collect(Collectors.toList())))
+                   .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
+        }
+
+        if (partition.getOutputs().isSupportsDualStack()) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Stream.of("dualstack").collect(Collectors.toList())))
+                   .add(", $S)", "{service}.{region}.{dnsSuffix}");
         }
 
         return builder.add(".build()").build();
@@ -165,7 +184,7 @@ public class PartitionMetadataGenerator implements PoetClass {
 
     @Override
     public ClassName className() {
-        return ClassName.get(basePackage, Stream.of(partition.getPartition().split("-"))
+        return ClassName.get(basePackage, Stream.of(partition.getId().split("-"))
                                                 .map(Utils::capitalize)
                                                 .collect(Collectors.joining()) + "PartitionMetadata");
     }

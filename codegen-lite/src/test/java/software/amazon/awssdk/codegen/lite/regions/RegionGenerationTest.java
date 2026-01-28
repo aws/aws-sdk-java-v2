@@ -105,7 +105,7 @@ public class RegionGenerationTest {
 
     @Test
     public void partitionMetadataClass() {
-        PartitionMetadataGenerator partitionMetadataGenerator = new PartitionMetadataGenerator(partitions.getPartitions().get(0),
+        PartitionMetadataGenerator partitionMetadataGenerator = new PartitionMetadataGenerator(partitionsRegions.getPartitions().get(0),
                                                                               PARTITION_METADATA_BASE,
                                                                               REGION_BASE);
 

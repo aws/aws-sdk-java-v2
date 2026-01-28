@@ -73,7 +73,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         Partitions partitions = RegionMetadataLoader.build(endpoints);
         PartitionsRegionsMetadata regionPartitions = PartitionsRegionsMetadataLoader.build(partitionsJson);
 
-        generatePartitionMetadataClass(baseSourcesDirectory, partitions);
+        generatePartitionMetadataClass(baseSourcesDirectory, regionPartitions);
         generateRegionClass(baseSourcesDirectory, regionPartitions);
         generateServiceMetadata(baseSourcesDirectory, partitions);
         generateRegions(baseSourcesDirectory, regionPartitions);
@@ -86,7 +86,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
     }
 
-    public void generatePartitionMetadataClass(Path baseSourcesDirectory, Partitions partitions) {
+    public void generatePartitionMetadataClass(Path baseSourcesDirectory, PartitionsRegionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(PARTITION_METADATA_BASE, ".", "/"));
         partitions.getPartitions()
                   .forEach(p -> new CodeGenerator(sourcesDirectory.toString(),
