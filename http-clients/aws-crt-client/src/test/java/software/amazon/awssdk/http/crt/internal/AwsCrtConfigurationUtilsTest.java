@@ -16,18 +16,14 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PQ_DEFAULT;
+import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PREF_TLSv1_0_2023;
 import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
 
 import java.time.Duration;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
@@ -35,22 +31,15 @@ import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 class AwsCrtConfigurationUtilsTest {
     @ParameterizedTest
     @MethodSource("cipherPreferences")
-    void resolveCipherPreference_pqNotSupported_shouldFallbackToSystemDefault(Boolean preferPqTls,
-                                                                              TlsCipherPreference tlsCipherPreference) {
-        Assumptions.assumeFalse(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(preferPqTls)).isEqualTo(tlsCipherPreference);
-    }
-
-    @Test
-    void resolveCipherPreference_pqSupported_shouldHonor() {
-        Assumptions.assumeTrue(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(true)).isEqualTo(TLS_CIPHER_PQ_DEFAULT);
+    void resolveCipherPreference_shouldResolveCorrectly(Boolean postQuantumTlsEnabled,
+                                                        TlsCipherPreference expectedPreference) {
+        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(postQuantumTlsEnabled)).isEqualTo(expectedPreference);
     }
 
     private static Stream<Arguments> cipherPreferences() {
         return Stream.of(
             Arguments.of(null, TLS_CIPHER_SYSTEM_DEFAULT),
-            Arguments.of(false, TLS_CIPHER_SYSTEM_DEFAULT),
+            Arguments.of(false, TLS_CIPHER_PREF_TLSv1_0_2023),
             Arguments.of(true, TLS_CIPHER_SYSTEM_DEFAULT)
         );
     }
