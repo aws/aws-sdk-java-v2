@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -49,6 +50,7 @@ public final class UpdateItemEnhancedRequest<T> {
     private final Boolean ignoreNulls;
     private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
+    private final UpdateExpression updateExpression;
     private final String returnValues;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
@@ -59,6 +61,7 @@ public final class UpdateItemEnhancedRequest<T> {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.updateExpression = builder.updateExpression;
         this.ignoreNullsMode = builder.ignoreNullsMode;
         this.returnValues = builder.returnValues;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
@@ -85,6 +88,7 @@ public final class UpdateItemEnhancedRequest<T> {
                                .ignoreNulls(ignoreNulls)
                                .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
+                               .updateExpression(updateExpression)
                                .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
@@ -119,6 +123,13 @@ public final class UpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Returns the update expression {@link UpdateExpression} set on this request object, or null if it doesn't exist.
+     */
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     /**
@@ -210,6 +221,7 @@ public final class UpdateItemEnhancedRequest<T> {
         return Objects.equals(item, that.item)
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(updateExpression, that.updateExpression)
                && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
@@ -221,6 +233,7 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
         result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
@@ -239,6 +252,7 @@ public final class UpdateItemEnhancedRequest<T> {
         private Boolean ignoreNulls;
         private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
+        private UpdateExpression updateExpression;
         private String returnValues;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
@@ -310,6 +324,30 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Specifies custom update operations using DynamoDB's native update expression syntax.
+         * <p>
+         * <b>Precedence:</b> When performing an update, the final set of attribute modifications is determined as follows:
+         * <ol>
+         *   <li><b>Request-level UpdateExpression</b> (set via this method) has the highest priority and overrides any
+         *   conflicting updates from extensions or POJO item attributes.</li>
+         *   <li><b>Extension-provided UpdateExpression</b> (if present) has medium priority and overrides conflicting updates
+         *   from POJO item attributes.</li>
+         *   <li><b>POJO item attributes</b> have the lowest priority; any conflicts with extension or request expressions are
+         *   overridden.</li>
+         * </ol>
+         * If the same attribute is updated by multiple sources, only the action from the highest-priority source is applied.
+         * <p>
+         * This method does not affect existing behavior if not used.
+         *
+         * @param updateExpression the update operations to perform
+         * @return a builder of this type
+         */
+        public Builder<T> updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
             return this;
         }
 
