@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "HTTPS requests now skip payload signing by default for improved performance. HTTP and signing-dependent features are unaffected."
+}

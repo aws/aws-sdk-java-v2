@@ -24,20 +24,30 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVM
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.isPayloadSigning;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
 import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 public class ChecksumUtilTest {
 
@@ -87,4 +97,32 @@ public class ChecksumUtilTest {
         Mockito.when(mock.read(Mockito.any(byte[].class))).thenThrow(npe);
         assertThatThrownBy(() -> readAll(mock)).isEqualTo(npe);
     }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("payloadSigningTestCases")
+    void isPayloadSigning_returnsExpectedValue(String description, Boolean propertyValue, 
+                                               String protocol, boolean expected) {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create(protocol + "://demo.us-east-1.amazonaws.com")),
+            signRequest -> {
+                if (propertyValue != null) {
+                    signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, propertyValue);
+                }
+            }
+        );
+
+        assertEquals(expected, isPayloadSigning(request));
+    }
+
+    private static Stream<Arguments> payloadSigningTestCases() {
+        return Stream.of(
+            Arguments.of("Explicit true overrides HTTPS", true,  "https", true),
+            Arguments.of("Explicit false with HTTPS",     false, "https", false),
+            Arguments.of("HTTPS with no property skips signing", null, "https", false),
+            Arguments.of("HTTP with no property signs payload",  null, "http",  true)
+        );
+    }
+
+
 }

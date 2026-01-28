@@ -219,7 +219,7 @@ class PresignRequestHandlerTest {
             "&X-Amz-SignedHeaders=host" +
             "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
             "&X-Amz-Expires=604800" +
-            "&X-Amz-Signature=00822ebbba95e2e6ac09112aa85621fbef060a596e3e1480f9f4ac61493e9821";
+            "&X-Amz-Signature=c2ef95311d2d530c13b478b1bea9b8fcec9bc8f2160645b9533b648fe7fd2371";
     }
 
     private Map<String, List<String>> rawQueryParameters(SdkHttpFullRequest request) {
