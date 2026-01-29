@@ -24,9 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -59,11 +61,13 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
         reportBackoffDelay(context);
 
         resetBytesRead(context);
+        resetBytesWritten(context);
         CompletableFuture<Response<OutputT>> executeFuture = wrapped.execute(input, context);
         CompletableFuture<Response<OutputT>> metricsCollectedFuture = executeFuture.whenComplete((r, t) -> {
             if (t == null) {
                 collectHttpMetrics(apiCallAttemptMetrics, r.httpResponse());
                 reportReadMetrics(context);
+                reportWriteThroughput(context);
             }
 
             if (t != null) {
@@ -107,6 +111,26 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
 
     private void resetBytesRead(RequestExecutionContext context) {
         context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ, new AtomicLong(0));
+    }
+
+    private void resetBytesWritten(RequestExecutionContext context) {
+        context.executionAttributes().putAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS,
+                                                   new RequestBodyMetrics());
+    }
+
+    private void reportWriteThroughput(RequestExecutionContext context) {
+        RequestBodyMetrics metrics = context.executionAttributes()
+            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+        if (metrics == null) {
+            return;
+        }
+        long bytesWritten = metrics.bytesWritten().get();
+        long firstByteTime = metrics.firstByteWrittenNanoTime().get();
+        if (bytesWritten > 0 && firstByteTime > 0) {
+            long lastByteTime = metrics.lastByteWrittenNanoTime().get();
+            double writeThroughput = MetricUtils.bytesPerSec(bytesWritten, firstByteTime, lastByteTime);
+            context.attemptMetricCollector().reportMetric(CoreMetric.WRITE_THROUGHPUT, writeThroughput);
+        }
     }
 
 }

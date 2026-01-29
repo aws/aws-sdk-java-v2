@@ -16,15 +16,16 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
-import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -75,14 +76,16 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     }
 
     private void reportWriteThroughput(RequestExecutionContext context, MetricCollector attemptMetricCollector) {
-        OptionalLong firstByteWrittenTimeOpt = MetricUtils.requestBodyFirstByteWrittenNanoTime(context);
-        OptionalLong requestBytesWrittenOpt = MetricUtils.apiCallAttemptRequestBytesWritten(context);
-        if (firstByteWrittenTimeOpt.isPresent() && requestBytesWrittenOpt.isPresent()) {
-            long lastByteWrittenTime = context.executionAttributes()
-                .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME).get();
-            double writeThroughput = MetricUtils.bytesPerSec(requestBytesWrittenOpt.getAsLong(),
-                                                             firstByteWrittenTimeOpt.getAsLong(),
-                                                             lastByteWrittenTime);
+        RequestBodyMetrics metrics = context.executionAttributes()
+            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+        if (metrics == null) {
+            return;
+        }
+        long bytesWritten = metrics.bytesWritten().get();
+        long firstByteTime = metrics.firstByteWrittenNanoTime().get();
+        if (bytesWritten > 0 && firstByteTime > 0) {
+            long lastByteTime = metrics.lastByteWrittenNanoTime().get();
+            double writeThroughput = MetricUtils.bytesPerSec(bytesWritten, firstByteTime, lastByteTime);
             attemptMetricCollector.reportMetric(CoreMetric.WRITE_THROUGHPUT, writeThroughput);
         }
     }
