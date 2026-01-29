@@ -19,171 +19,150 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
 public class BytesWrittenTrackingInputStreamTest {
 
     @Test
     public void readSingleByte_updatesCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[]{1, 2, 3});
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         stream.read();
-        assertThat(counter.get()).isEqualTo(1);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(1);
 
         stream.read();
-        assertThat(counter.get()).isEqualTo(2);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(2);
     }
 
     @Test
-    public void readSingleByte_eof_doesNotUpdateCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+    public void readSingleByte_eof_doesNotUpdateCounters() throws IOException {
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[0]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         int result = stream.read();
 
         assertThat(result).isEqualTo(-1);
-        assertThat(counter.get()).isEqualTo(0);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(0);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isEqualTo(0);
     }
 
     @Test
     public void readByteArray_updatesCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         int bytesRead = stream.read(new byte[5]);
 
         assertThat(bytesRead).isEqualTo(5);
-        assertThat(counter.get()).isEqualTo(5);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(5);
     }
 
     @Test
-    public void readByteArray_eof_doesNotUpdateCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+    public void readByteArray_eof_doesNotUpdateCounters() throws IOException {
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[0]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         int result = stream.read(new byte[5]);
 
         assertThat(result).isEqualTo(-1);
-        assertThat(counter.get()).isEqualTo(0);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(0);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isEqualTo(0);
     }
 
     @Test
     public void readByteArrayWithOffset_updatesCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         int bytesRead = stream.read(new byte[10], 2, 5);
 
         assertThat(bytesRead).isEqualTo(5);
-        assertThat(counter.get()).isEqualTo(5);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(5);
     }
 
     @Test
     public void skip_updatesCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         long skipped = stream.skip(5);
 
         assertThat(skipped).isEqualTo(5);
-        assertThat(counter.get()).isEqualTo(5);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(5);
     }
 
     @Test
     public void skip_zeroBytes_doesNotUpdateCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[0]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         long skipped = stream.skip(5);
 
         assertThat(skipped).isEqualTo(0);
-        assertThat(counter.get()).isEqualTo(0);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(0);
     }
 
     @Test
     public void multipleReads_accumulatesCounter() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[100]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         stream.read();
         stream.read(new byte[10]);
         stream.read(new byte[20], 0, 15);
         stream.skip(5);
 
-        assertThat(counter.get()).isEqualTo(1 + 10 + 15 + 5);
+        assertThat(metrics.bytesWritten().get()).isEqualTo(1 + 10 + 15 + 5);
     }
 
     @Test
     public void firstRead_recordsStartTime() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
-        assertThat(startTime.get()).isEqualTo(0);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isEqualTo(0);
 
         stream.read();
 
-        assertThat(startTime.get()).isGreaterThan(0);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isGreaterThan(0);
     }
 
     @Test
     public void subsequentReads_doNotChangeStartTime() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         stream.read();
-        long firstStartTime = startTime.get();
+        long firstStartTime = metrics.firstByteWrittenNanoTime().get();
 
         stream.read();
         stream.read(new byte[5]);
 
-        assertThat(startTime.get()).isEqualTo(firstStartTime);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isEqualTo(firstStartTime);
     }
 
     @Test
     public void lastReadTime_updatesOnEveryRead() throws IOException {
-        AtomicLong counter = new AtomicLong(0);
-        AtomicLong startTime = new AtomicLong(0);
-        AtomicLong lastReadTime = new AtomicLong(0);
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
         ByteArrayInputStream source = new ByteArrayInputStream(new byte[10]);
-        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, counter, startTime, lastReadTime);
+        BytesWrittenTrackingInputStream stream = new BytesWrittenTrackingInputStream(source, metrics);
 
         stream.read();
-        long firstLastReadTime = lastReadTime.get();
+        long firstLastReadTime = metrics.lastByteWrittenNanoTime().get();
         assertThat(firstLastReadTime).isGreaterThan(0);
 
         stream.read(new byte[5]);
-        assertThat(lastReadTime.get()).isGreaterThanOrEqualTo(firstLastReadTime);
+        assertThat(metrics.lastByteWrittenNanoTime().get()).isGreaterThanOrEqualTo(firstLastReadTime);
     }
 }
