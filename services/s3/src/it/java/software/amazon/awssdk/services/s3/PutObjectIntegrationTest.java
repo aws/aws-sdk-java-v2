@@ -223,18 +223,9 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void putObject_withRequestBody_reportsWriteThroughputMetric() {
+    public void putObject_syncClientWithRequestBody_reportsWriteThroughputMetric() {
         AtomicReference<MetricCollection> metricsRef = new AtomicReference<>();
-        MetricPublisher capturingPublisher = new MetricPublisher() {
-            @Override
-            public void publish(MetricCollection metricCollection) {
-                metricsRef.set(metricCollection);
-            }
-
-            @Override
-            public void close() {
-            }
-        };
+        MetricPublisher capturingPublisher = createCapturingPublisher(metricsRef);
 
         try (S3Client client = s3ClientBuilder()
             .overrideConfiguration(c -> c.addMetricPublisher(capturingPublisher))
@@ -244,7 +235,39 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
                              RequestBody.fromString(RandomStringUtils.randomAlphanumeric(1024)));
         }
 
-        MetricCollection metrics = metricsRef.get();
+        assertWriteThroughputReported(metricsRef.get());
+    }
+
+    @Test
+    public void putObject_asyncClientWithRequestBody_reportsWriteThroughputMetric() {
+        AtomicReference<MetricCollection> metricsRef = new AtomicReference<>();
+        MetricPublisher capturingPublisher = createCapturingPublisher(metricsRef);
+
+        try (S3AsyncClient client = s3AsyncClientBuilder()
+            .overrideConfiguration(c -> c.addMetricPublisher(capturingPublisher))
+            .build()) {
+
+            client.putObject(b -> b.bucket(BUCKET).key(ASYNC_KEY),
+                             AsyncRequestBody.fromString(RandomStringUtils.randomAlphanumeric(1024))).join();
+        }
+
+        assertWriteThroughputReported(metricsRef.get());
+    }
+
+    private MetricPublisher createCapturingPublisher(AtomicReference<MetricCollection> metricsRef) {
+        return new MetricPublisher() {
+            @Override
+            public void publish(MetricCollection metricCollection) {
+                metricsRef.set(metricCollection);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+    }
+
+    private void assertWriteThroughputReported(MetricCollection metrics) {
         assertThat(metrics).isNotNull();
         assertThat(metrics.children()).isNotEmpty();
 

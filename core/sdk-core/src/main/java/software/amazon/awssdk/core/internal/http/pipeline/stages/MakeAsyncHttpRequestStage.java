@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -47,6 +48,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
+import software.amazon.awssdk.core.internal.metrics.BytesWrittenTrackingPublisher;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -131,7 +134,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
-                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
+                                                  : createTrackingContentPublisher(context);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -219,6 +222,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                executionAttributes.getAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX);
     }
 
+    private SdkHttpContentPublisher createTrackingContentPublisher(RequestExecutionContext context) {
+        RequestBodyMetrics metrics = context.executionAttributes()
+            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+        return new SdkHttpContentPublisherAdapter(context.requestProvider(), metrics);
+    }
+
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpContentPublisher requestProvider) {
         if (shouldSetContentLength(request, requestProvider)) {
             return request.toBuilder()
@@ -264,9 +273,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
 
         private final AsyncRequestBody asyncRequestBody;
+        private final Publisher<ByteBuffer> trackingPublisher;
 
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody, RequestBodyMetrics metrics) {
             this.asyncRequestBody = asyncRequestBody;
+            this.trackingPublisher = new BytesWrittenTrackingPublisher(asyncRequestBody, metrics);
         }
 
         @Override
@@ -276,7 +287,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            asyncRequestBody.subscribe(s);
+            trackingPublisher.subscribe(s);
         }
     }
 

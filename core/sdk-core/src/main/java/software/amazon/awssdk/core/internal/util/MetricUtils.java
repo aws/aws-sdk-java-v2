@@ -172,23 +172,6 @@ public final class MetricUtils {
         return OptionalLong.of(read.get());
     }
 
-    public static OptionalLong apiCallAttemptRequestBytesWritten(RequestExecutionContext context) {
-        AtomicLong written = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_BYTES_WRITTEN);
-        if (written == null || written.get() == 0) {
-            return OptionalLong.empty();
-        }
-        return OptionalLong.of(written.get());
-    }
-
-    public static OptionalLong requestBodyFirstByteWrittenNanoTime(RequestExecutionContext context) {
-        AtomicLong firstByteWrittenTime = context.executionAttributes()
-                                      .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME);
-        if (firstByteWrittenTime == null || firstByteWrittenTime.get() == 0) {
-            return OptionalLong.empty();
-        }
-        return OptionalLong.of(firstByteWrittenTime.get());
-    }
-
     public static OptionalLong responseHeadersReadEndNanoTime(RequestExecutionContext context) {
         Long startTime = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.HEADERS_READ_END_NANO_TIME);
         if (startTime == null) {

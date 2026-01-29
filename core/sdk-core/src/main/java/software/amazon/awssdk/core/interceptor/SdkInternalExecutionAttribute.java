@@ -151,32 +151,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("ResponseBytesRead");
 
     /**
-     * The running count of bytes in the request body that have been written by the client. This is updated atomically as the
-     * request is being sent.
-     * <p>
-     * This attribute is set before every API call attempt.
-     */
-    public static final ExecutionAttribute<AtomicLong> REQUEST_BYTES_WRITTEN =
-        new ExecutionAttribute<>("RequestBytesWritten");
-
-    /**
-     * The nano time when the first byte of the request body was written. This is set atomically on the first read from the
-     * request body stream.
-     * <p>
-     * This attribute is set before every API call attempt.
-     */
-    public static final ExecutionAttribute<AtomicLong> REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME =
-        new ExecutionAttribute<>("RequestBodyFirstByteWrittenNanoTime");
-
-    /**
-     * Nano time when the last byte of the request body was written. Used to calculate WRITE_THROUGHPUT metric.
-     * <p>
-     * This attribute is set before every API call attempt.
-     */
-    public static final ExecutionAttribute<AtomicLong> REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME =
-        new ExecutionAttribute<>("RequestBodyLastByteWrittenNanoTime");
-
-    /**
      * The auth scheme provider used to resolve the auth scheme for a request.
      */
     public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER =

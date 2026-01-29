@@ -23,10 +23,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -71,11 +73,8 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
     }
 
     private void resetBytesWritten(RequestExecutionContext context) {
-        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BYTES_WRITTEN, new AtomicLong(0));
-        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME,
-                                                   new AtomicLong(0));
-        context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME,
-                                                   new AtomicLong(0));
+        context.executionAttributes().putAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS,
+                                                   new RequestBodyMetrics());
     }
 
     private void reportBackoffDelay(RequestExecutionContext context) {

@@ -20,15 +20,16 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.metrics.BytesWrittenTrackingInputStream;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -106,12 +107,8 @@ public class MakeHttpRequestStage
             return request;
         }
 
-        AtomicLong bytesWritten = context.executionAttributes()
-                                         .getAttribute(SdkInternalExecutionAttribute.REQUEST_BYTES_WRITTEN);
-        AtomicLong firstByteWrittenTime = context.executionAttributes()
-                                           .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_FIRST_BYTE_WRITTEN_NANO_TIME);
-        AtomicLong lastByteWrittenTime = context.executionAttributes()
-                                         .getAttribute(SdkInternalExecutionAttribute.REQUEST_BODY_LAST_BYTE_WRITTEN_NANO_TIME);
+        RequestBodyMetrics metrics = context.executionAttributes()
+                                            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
 
         Optional<Long> contentLength = contentLength(request);
         if (!contentLength.isPresent()) {
@@ -121,7 +118,7 @@ public class MakeHttpRequestStage
 
         ContentStreamProvider wrapped = () -> {
             InputStream stream = contentStreamProvider.get().newStream();
-            stream = new BytesWrittenTrackingInputStream(stream, bytesWritten, firstByteWrittenTime, lastByteWrittenTime);
+            stream = new BytesWrittenTrackingInputStream(stream, metrics);
             if (contentLength.isPresent()) {
                 stream = new LengthAwareInputStream(stream, contentLength.get());
             }
