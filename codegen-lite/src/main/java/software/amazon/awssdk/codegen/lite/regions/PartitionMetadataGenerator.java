@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.lite.regions;
 
-import static java.util.Collections.emptyList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -29,7 +28,9 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -105,27 +106,29 @@ public class PartitionMetadataGenerator implements PoetClass {
 
         String defaultDnsSuffix = partition.getOutputs().getDnsSuffix();
         String dualStackDnsSuffix = partition.getOutputs().getDualStackDnsSuffix();
+        boolean supportsFips = partition.getOutputs().isSupportsFIPS();
+        boolean supportsDualStack = partition.getOutputs().isSupportsDualStack();
 
         builder.add(".put(")
-               .add(partitionEndpointKey(emptyList()))
+               .add(partitionEndpointKey(Collections.emptyList()))
                .add(", $S)", defaultDnsSuffix);
 
-        if (partition.getOutputs().isSupportsFIPS()) {
+        if (supportsFips) {
             builder.add(".put(")
-                   .add(partitionEndpointKey(Stream.of("fips").collect(Collectors.toList())))
+                   .add(partitionEndpointKey(Collections.singletonList("fips")))
                    .add(", $S)", defaultDnsSuffix);
         }
 
         if (dualStackDnsSuffix != null) {
-            if (partition.getOutputs().isSupportsDualStack() && partition.getOutputs().isSupportsFIPS()) {
+            if (supportsDualStack && supportsFips) {
                 builder.add(".put(")
-                       .add(partitionEndpointKey(Stream.of("dualstack", "fips").collect(Collectors.toList())))
+                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
                        .add(", $S)", dualStackDnsSuffix);
             }
 
-            if (partition.getOutputs().isSupportsDualStack()) {
+            if (supportsDualStack) {
                 builder.add(".put(")
-                       .add(partitionEndpointKey(Stream.of("dualstack").collect(Collectors.toList())))
+                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
                        .add(", $S)", dualStackDnsSuffix);
             }
         }
@@ -138,26 +141,30 @@ public class PartitionMetadataGenerator implements PoetClass {
             CodeBlock.builder()
                      .add("$T.<$T, $T>builder()", ImmutableMap.class, partitionEndpointKeyClass(), String.class);
 
+        boolean supportsFips = partition.getOutputs().isSupportsFIPS();
+        boolean supportsDualStack = partition.getOutputs().isSupportsDualStack();
+        String dualStackDnsSuffix = partition.getOutputs().getDualStackDnsSuffix();
+
         builder.add(".put(")
-               .add(partitionEndpointKey(emptyList()))
+               .add(partitionEndpointKey(Collections.emptyList()))
                .add(", $S)", "{service}.{region}.{dnsSuffix}");
 
-        if (partition.getOutputs().isSupportsFIPS()) {
+        if (supportsFips) {
             builder.add(".put(")
-                   .add(partitionEndpointKey(Stream.of("fips").collect(Collectors.toList())))
+                   .add(partitionEndpointKey(Collections.singletonList("fips")))
                    .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
         }
 
-        if (partition.getOutputs().getDualStackDnsSuffix() != null) {
-            if (partition.getOutputs().isSupportsDualStack() && partition.getOutputs().isSupportsFIPS()) {
+        if (dualStackDnsSuffix != null) {
+            if (supportsDualStack && supportsFips) {
                 builder.add(".put(")
-                       .add(partitionEndpointKey(Stream.of("dualstack", "fips").collect(Collectors.toList())))
+                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
                        .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
             }
 
-            if (partition.getOutputs().isSupportsDualStack()) {
+            if (supportsDualStack) {
                 builder.add(".put(")
-                       .add(partitionEndpointKey(Stream.of("dualstack").collect(Collectors.toList())))
+                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
                        .add(", $S)", "{service}.{region}.{dnsSuffix}");
             }
         }
