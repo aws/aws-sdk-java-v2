@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
-import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +33,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTa
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
@@ -54,31 +51,9 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * Generates an UpdateExpression representing a POJO, with only SET and REMOVE actions.
-     */
-    public static UpdateExpression operationExpression(Map<String, AttributeValue> itemMap,
-                                                       TableMetadata tableMetadata,
-                                                       List<String> nonRemoveAttributes) {
-
-        Map<String, AttributeValue> setAttributes = filterMap(itemMap, e -> !isNullAttributeValue(e.getValue()));
-        UpdateExpression setAttributeExpression = UpdateExpression.builder()
-                                                                  .actions(setActionsFor(setAttributes, tableMetadata))
-                                                                  .build();
-
-        Map<String, AttributeValue> removeAttributes =
-            filterMap(itemMap, e -> isNullAttributeValue(e.getValue()) && !nonRemoveAttributes.contains(e.getKey()));
-
-        UpdateExpression removeAttributeExpression = UpdateExpression.builder()
-                                                                     .actions(removeActionsFor(removeAttributes))
-                                                                     .build();
-
-        return UpdateExpression.mergeExpressions(setAttributeExpression, removeAttributeExpression);
-    }
-
-    /**
      * Creates a list of SET actions for all attributes supplied in the map.
      */
-    private static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
+    static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> setValue(entry.getKey(),
@@ -90,7 +65,7 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a list of REMOVE actions for all attributes supplied in the map.
      */
-    private static List<RemoveAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
+    static List<RemoveAction> removeActionsFor(Map<String, AttributeValue> attributesToSet) {
         return attributesToSet.entrySet()
                               .stream()
                               .map(entry -> remove(entry.getKey()))
