@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.19__ __2026-01-30__
+## __AWS S3 AccessGrants__
+  - ### Features
+    - Updating S3 AccessGrants plugin version to 2.4.0
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds Estimated Wait Time support to the GetContactMetrics API for Amazon Connect.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Improve SessionTag usage guidelines in the GenerateEmbedURLForAnonymousUser API documentation. Update the GetIdentityContext document with the region support context.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
 # __2.41.18__ __2026-01-29__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
