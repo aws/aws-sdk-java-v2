@@ -170,15 +170,10 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 @SdkPublicApi
 public final class CloudWatchMetricPublisher implements MetricPublisher {
     /**
-     * The maximum queue size for the internal {@link #executor} that is used to aggregate metric data and upload it to
+     * The default maximum queue size for the internal {@link #executor} that is used to aggregate metric data and upload it to
      * CloudWatch. If this value is too high, memory is wasted. If this value is too low, metrics could be dropped.
-     *
-     * This value is not currently configurable, because it's unlikely that this is a value that customers should need to modify.
-     * If customers really need control over this value, we might consider letting them instead configure the
-     * {@link BlockingQueue} used on the executor. The value here depends on the type of {@code BlockingQueue} in use, and
-     * we should probably not indirectly couple people to the type of blocking queue we're using.
      */
-    private static final int MAXIMUM_TASK_QUEUE_SIZE = 128;
+    private static final int DEFAULT_TASK_QUEUE_SIZE = 128;
 
     private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
     private static final int DEFAULT_MAXIMUM_CALLS_PER_UPLOAD = 10;
@@ -241,7 +236,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
 
         // Do not increase above 1 thread: access to MetricCollectionAggregator is not thread safe.
         this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                               new ArrayBlockingQueue<>(MAXIMUM_TASK_QUEUE_SIZE),
+                                               resolveTaskQueue(builder),
                                                threadFactory);
 
         long flushFrequencyInMillis = resolveUploadFrequency(builder).toMillis();
@@ -283,6 +278,10 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
 
     private int resolveMaximumCallsPerUpload(Builder builder) {
         return builder.maximumCallsPerUpload == null ? DEFAULT_MAXIMUM_CALLS_PER_UPLOAD : builder.maximumCallsPerUpload;
+    }
+
+    private BlockingQueue<Runnable> resolveTaskQueue(Builder builder) {
+        return builder.taskQueue == null ? new ArrayBlockingQueue<>(DEFAULT_TASK_QUEUE_SIZE) : builder.taskQueue;
     }
 
     @Override
@@ -395,6 +394,7 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
         private Collection<MetricCategory> metricCategories;
         private MetricLevel metricLevel;
         private Collection<SdkMetric<?>> detailedMetrics;
+        private BlockingQueue<Runnable> taskQueue;
 
         private Builder() {
         }
@@ -464,6 +464,22 @@ public final class CloudWatchMetricPublisher implements MetricPublisher {
          */
         public Builder maximumCallsPerUpload(Integer maximumCallsPerUpload) {
             this.maximumCallsPerUpload = maximumCallsPerUpload;
+            return this;
+        }
+
+        /**
+         * Configure the {@link BlockingQueue} used by the internal executor for queuing metric aggregation and upload tasks.
+         *
+         * <p>If this is not specified, a blocking queue with a capacity of 128 is used.
+         *
+         * <p>High-throughput applications may need a larger queue to prevent dropped metrics. When the queue is full, new
+         * metrics are dropped and a warning is logged.
+         *
+         * @param taskQueue the blocking queue to use for the internal executor
+         * @return This object for method chaining.
+         */
+        public Builder taskQueue(BlockingQueue<Runnable> taskQueue) {
+            this.taskQueue = taskQueue;
             return this;
         }
 
