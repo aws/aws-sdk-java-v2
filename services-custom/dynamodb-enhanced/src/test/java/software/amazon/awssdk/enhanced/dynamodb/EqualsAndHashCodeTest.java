@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.lang.reflect.Modifier.isInterface;
+import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.net.URI;
@@ -25,9 +26,11 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -39,14 +42,23 @@ public class EqualsAndHashCodeTest {
     private static final String ROOT_PATH = ROOT_PACKAGE.replace('.', '/');
     private static final Pattern CLASS_PATTERN = Pattern.compile(".class", Pattern.LITERAL);
 
-    @Test
-    public void verifyEqualsAndHashCodeForAllMainClasses() throws Exception {
-        findAllClassesUnderRootPackage()
+
+    @TestFactory
+    Stream<DynamicTest> verifyEqualsAndHashCodeForAllMainClasses() throws Exception {
+        List<Class<?>> testableClasses = findAllClassesUnderRootPackage()
             .stream()
-            .filter(type ->
-                        isConcreteClass(type)
-                        && overridesEqualsOrHashCode(type))
-            .forEach(this::verifyEqualsAndHashCode);
+            .filter(type -> isConcreteClass(type) && overridesEqualsOrHashCode(type))
+            .collect(toList());
+
+        return testableClasses.stream()
+                              .map(this::createEqualsHashCodeTest)
+                              .collect(toList())
+                              .stream();
+    }
+
+    private DynamicTest createEqualsHashCodeTest(Class<?> type) {
+        String testName = "equals/hashCode: " + type.getSimpleName();
+        return DynamicTest.dynamicTest(testName, () -> verifyEqualsAndHashCode(type));
     }
 
     private List<Class<?>> findAllClassesUnderRootPackage() throws Exception {
@@ -86,8 +98,8 @@ public class EqualsAndHashCodeTest {
 
     private boolean isMainClass(File file) {
         return file.getName().endsWith(".class")
-               && file.getPath().contains("target/classes")
-               || file.getPath().contains("build/classes/java/main");
+               && (file.getPath().contains("target/classes")
+                   || file.getPath().contains("build/classes/java/main"));
     }
 
     private boolean isConcreteClass(Class<?> type) {
@@ -101,9 +113,8 @@ public class EqualsAndHashCodeTest {
 
     private boolean overridesEqualsOrHashCode(Class<?> type) {
         try {
-            return
-                (type.getDeclaredMethod("equals", Object.class).getDeclaringClass() != Object.class)
-                || (type.getDeclaredMethod("hashCode").getDeclaringClass() != Object.class);
+            return (type.getDeclaredMethod("equals", Object.class).getDeclaringClass() != Object.class)
+                   || (type.getDeclaredMethod("hashCode").getDeclaringClass() != Object.class);
         } catch (NoSuchMethodException e) {
             return false;
         }
