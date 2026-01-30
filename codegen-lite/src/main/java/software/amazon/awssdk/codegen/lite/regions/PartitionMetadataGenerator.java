@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.lite.regions;
 
-import static java.util.Collections.emptyList;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -29,7 +28,9 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,16 +39,16 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.Partition;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class PartitionMetadataGenerator implements PoetClass {
 
-    private final Partition partition;
+    private final PartitionRegionsMetadata partition;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public PartitionMetadataGenerator(Partition partition,
+    public PartitionMetadataGenerator(PartitionRegionsMetadata partition,
                                       String basePackage,
                                       String regionBasePackage) {
         this.partition = partition;
@@ -80,11 +81,11 @@ public class PartitionMetadataGenerator implements PoetClass {
                                           .build())
                        .addField(FieldSpec.builder(String.class, "ID")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getPartition())
+                                          .initializer("$S", partition.getId())
                                           .build())
                        .addField(FieldSpec.builder(String.class, "NAME")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getPartitionName())
+                                          .initializer("$S", partition.getOutputs().getName())
                                           .build())
                        .addField(FieldSpec.builder(String.class, "REGION_REGEX")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
@@ -103,18 +104,33 @@ public class PartitionMetadataGenerator implements PoetClass {
             CodeBlock.builder()
                      .add("$T.<$T, $T>builder()", ImmutableMap.class, partitionEndpointKeyClass(), String.class);
 
-        builder.add(".put(")
-               .add(partitionEndpointKey(emptyList()))
-               .add(", $S)", partition.getDnsSuffix());
+        String defaultDnsSuffix = partition.getOutputs().getDnsSuffix();
+        String dualStackDnsSuffix = partition.getOutputs().getDualStackDnsSuffix();
+        boolean supportsFips = partition.getOutputs().isSupportsFIPS();
+        boolean supportsDualStack = partition.getOutputs().isSupportsDualStack();
 
-        if (partition.getDefaults() != null) {
-            partition.getDefaults().getVariants().forEach(variant -> {
-                if (variant.getDnsSuffix() != null) {
-                    builder.add(".put(")
-                           .add(partitionEndpointKey(variant.getTags()))
-                           .add(", $S)", variant.getDnsSuffix());
-                }
-            });
+        builder.add(".put(")
+               .add(partitionEndpointKey(Collections.emptyList()))
+               .add(", $S)", defaultDnsSuffix);
+
+        if (supportsFips) {
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Collections.singletonList("fips")))
+                   .add(", $S)", defaultDnsSuffix);
+        }
+
+        if (dualStackDnsSuffix != null) {
+            if (supportsDualStack && supportsFips) {
+                builder.add(".put(")
+                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
+                       .add(", $S)", dualStackDnsSuffix);
+            }
+
+            if (supportsDualStack) {
+                builder.add(".put(")
+                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
+                       .add(", $S)", dualStackDnsSuffix);
+            }
         }
 
         return builder.add(".build()").build();
@@ -125,19 +141,32 @@ public class PartitionMetadataGenerator implements PoetClass {
             CodeBlock.builder()
                      .add("$T.<$T, $T>builder()", ImmutableMap.class, partitionEndpointKeyClass(), String.class);
 
+        boolean supportsFips = partition.getOutputs().isSupportsFIPS();
+        boolean supportsDualStack = partition.getOutputs().isSupportsDualStack();
+        String dualStackDnsSuffix = partition.getOutputs().getDualStackDnsSuffix();
 
-        if (partition.getDefaults() != null) {
+        builder.add(".put(")
+               .add(partitionEndpointKey(Collections.emptyList()))
+               .add(", $S)", "{service}.{region}.{dnsSuffix}");
+
+        if (supportsFips) {
             builder.add(".put(")
-                   .add(partitionEndpointKey(emptyList()))
-                   .add(", $S)", partition.getDefaults().getHostname());
+                   .add(partitionEndpointKey(Collections.singletonList("fips")))
+                   .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
+        }
 
-            partition.getDefaults().getVariants().forEach(variant -> {
-                if (variant.getHostname() != null) {
-                    builder.add(".put(")
-                           .add(partitionEndpointKey(variant.getTags()))
-                           .add(", $S)", variant.getHostname());
-                }
-            });
+        if (dualStackDnsSuffix != null) {
+            if (supportsDualStack && supportsFips) {
+                builder.add(".put(")
+                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
+                       .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
+            }
+
+            if (supportsDualStack) {
+                builder.add(".put(")
+                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
+                       .add(", $S)", "{service}.{region}.{dnsSuffix}");
+            }
         }
 
         return builder.add(".build()").build();
@@ -165,7 +194,7 @@ public class PartitionMetadataGenerator implements PoetClass {
 
     @Override
     public ClassName className() {
-        return ClassName.get(basePackage, Stream.of(partition.getPartition().split("-"))
+        return ClassName.get(basePackage, Stream.of(partition.getId().split("-"))
                                                 .map(Utils::capitalize)
                                                 .collect(Collectors.joining()) + "PartitionMetadata");
     }
