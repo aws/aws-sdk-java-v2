@@ -23,12 +23,15 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.shapes.ServiceShape;
@@ -65,7 +68,7 @@ public class SmithyIntermediateModelBuilder {
 
 
     public IntermediateModel build() {
-        // TODO: crete  a DefaultSmithyCustomizationProcessor and preorpocess the model here
+        // TODO: create a DefaultSmithyCustomizationProcessor and preprocess the model here
 
         Paginators paginators = translatePaginators();
         Waiters waiters = translateWaiters();
@@ -73,7 +76,95 @@ public class SmithyIntermediateModelBuilder {
         Map<String, ShapeModel> shapes = new HashMap<>();
 
         Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this, paginators).constructOperations());
-        return null;
+        
+        Metadata metadata = constructMetadata();
+        
+        // For now, return a basic IntermediateModel with operations and metadata
+        // We'll add shapes and other features incrementally
+        return new IntermediateModel(
+            metadata,
+            operations,
+            shapes,
+            customizationConfig,
+            null, // endpointOperation - will be computed later
+            paginators.getPagination(),
+            namingStrategy,
+            waiters.getWaiters(),
+            null, // endpointRuleSetModel - will be added later
+            null, // endpointTestSuiteModel - will be added later
+            null  // clientContextParams - will be added later
+        );
+    }
+    
+    private Metadata constructMetadata() {
+        Metadata metadata = new Metadata();
+        
+        String serviceName = namingStrategy.getServiceName();
+        String protocol = ProtocolUtils.resolveProtocol(serviceIndex, service);
+        
+        // Configure package names
+        configurePackageName(metadata, serviceName);
+        
+        // Set basic metadata
+        metadata.withApiVersion(service.getVersion())
+                .withAsyncClient(String.format("Default%sAsyncClient", serviceName))
+                .withAsyncInterface(String.format("%sAsyncClient", serviceName))
+                .withAsyncBuilder(String.format("Default%sAsyncClientBuilder", serviceName))
+                .withAsyncBuilderInterface(String.format("%sAsyncClientBuilder", serviceName))
+                .withBaseBuilderInterface(String.format("%sBaseClientBuilder", serviceName))
+                .withBaseBuilder(String.format("Default%sBaseClientBuilder", serviceName))
+                .withServiceName(serviceName)
+                .withSyncClient(String.format("Default%sClient", serviceName))
+                .withSyncInterface(String.format("%sClient", serviceName))
+                .withSyncBuilder(String.format("Default%sClientBuilder", serviceName))
+                .withSyncBuilderInterface(String.format("%sClientBuilder", serviceName))
+                .withBaseExceptionName(String.format("%sException", serviceName))
+                .withBaseRequestName(String.format("%sRequest", serviceName))
+                .withBaseResponseName(String.format("%sResponse", serviceName))
+                .withProtocol(Protocol.fromValue(protocol));
+        
+        // Extract service-specific traits
+        service.getTrait(software.amazon.smithy.aws.traits.ServiceTrait.class).ifPresent(serviceTrait -> {
+            metadata.withServiceId(serviceTrait.getSdkId())
+                    .withServiceAbbreviation(serviceTrait.getSdkId())
+                    .withServiceFullName(serviceTrait.getSdkId())
+                    .withEndpointPrefix(serviceTrait.getArnNamespace());
+        });
+        
+        service.getTrait(software.amazon.smithy.model.traits.DocumentationTrait.class).ifPresent(doc -> {
+            metadata.withDocumentation(doc.getValue());
+        });
+        
+        service.getTrait(software.amazon.smithy.model.traits.TitleTrait.class).ifPresent(title -> {
+            // Only set if not already set by ServiceTrait
+            if (metadata.getDescriptiveServiceName() == null) {
+                metadata.withServiceFullName(title.getValue());
+            }
+        });
+        
+        service.getTrait(software.amazon.smithy.aws.traits.auth.SigV4Trait.class).ifPresent(sigv4 -> {
+            metadata.withSigningName(sigv4.getName());
+        });
+        
+        return metadata;
+    }
+    
+    private void configurePackageName(Metadata metadata, String serviceName) {
+        String rootPackage = customizationConfig.getRootPackageName();
+        if (rootPackage == null) {
+            rootPackage = "software.amazon.awssdk.services";
+        }
+        
+        metadata.withRootPackageName(rootPackage)
+                .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
+                .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
+                .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
+                .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
+                .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
+                .withWaitersPackageName(namingStrategy.getWaitersPackageName(serviceName))
+                .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
+                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(serviceName))
+                .withJmesPathPackageName(namingStrategy.getJmesPathPackageName(serviceName));
     }
 
     public Model getSmithyModel() {

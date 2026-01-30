@@ -18,8 +18,6 @@ package software.amazon.awssdk.codegen.naming;
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.pascalCase;
 
-import java.util.Objects;
-import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -122,7 +120,11 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     @Override
     public String getExceptionName(String errorShapeName) {
-        return "";
+        String baseName = pascalCase(errorShapeName);
+        if (!baseName.endsWith("Exception")) {
+            baseName += "Exception";
+        }
+        return baseName;
     }
 
     @Override
@@ -137,7 +139,12 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     @Override
     public String getResponseClassName(String operationName) {
-        return "";
+        String baseName = pascalCase(operationName) + "Response";
+        if (!operationName.equals(getServiceName())) {
+            return baseName;
+        }
+
+        return COLLISION_DISAMBIGUATION_PREFIX + baseName;
     }
 
     @Override

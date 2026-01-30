@@ -75,7 +75,7 @@ public final class ProtocolUtils {
         for (Map.Entry<ShapeId, Trait> entry : serviceIndex.getProtocols(service).entrySet()) {
             // TODO: Map traits for all protocols
             // "smithy-rpc-v2-cbor", "json", "rest-json", "rest-xml", "query", "ec2"
-            switch(entry.getKey().getName()) {
+            switch (entry.getKey().getName()) {
                 case "restJson1":
                     protocols.add("rest-json");
                     break;

@@ -19,13 +19,14 @@ import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.compression.RequestCompression;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
+import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
@@ -36,7 +37,6 @@ import software.amazon.smithy.aws.traits.HttpChecksumTrait;
 import software.amazon.smithy.aws.traits.auth.UnsignedPayloadTrait;
 import software.amazon.smithy.aws.traits.clientendpointdiscovery.ClientEndpointDiscoveryIndex;
 import software.amazon.smithy.model.Model;
-import software.amazon.smithy.model.knowledge.OperationIndex;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.shapes.OperationShape;
@@ -48,6 +48,7 @@ import software.amazon.smithy.model.traits.AuthTrait;
 import software.amazon.smithy.model.traits.DeprecatedTrait;
 import software.amazon.smithy.model.traits.DocumentationTrait;
 import software.amazon.smithy.model.traits.HttpChecksumRequiredTrait;
+import software.amazon.smithy.model.traits.HttpErrorTrait;
 import software.amazon.smithy.model.traits.RequestCompressionTrait;
 import software.amazon.smithy.model.traits.StringTrait;
 import software.amazon.smithy.model.traits.Trait;
@@ -57,9 +58,7 @@ final class AddOperations {
     private final ServiceShape service;
     private final NamingStrategy namingStrategy;
     private final Map<String, PaginatorDefinition> paginators;
-    private final List<String> deprecatedShapes;
     private final ServiceIndex serviceIndex;
-    private final OperationIndex operationIndex;
     private final TopDownIndex topDownIndex;
     private final ClientEndpointDiscoveryIndex endpointDiscoveryIndex;
 
@@ -68,12 +67,9 @@ final class AddOperations {
         this.model = builder.getSmithyModel();
         this.service = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
-        this.deprecatedShapes = builder.getCustomizationConfig().getDeprecatedShapes();
         this.serviceIndex = builder.getServiceIndex();
-        this.operationIndex = OperationIndex.of(model);
         this.topDownIndex = TopDownIndex.of(model);
         this.endpointDiscoveryIndex = ClientEndpointDiscoveryIndex.of(model);
-
     }
 
     public Map<String, OperationModel> constructOperations() {
@@ -102,30 +98,70 @@ final class AddOperations {
             translateAuthentication(operationShape, operationModel);
             operationModel.setUnsignedPayload(operationShape.hasTrait(UnsignedPayloadTrait.class));
 
-            translateInput(operationShape);
-            translateOutput(operationShape);
-            translateErrors(operationShape);
+            translateInput(operationShape, operationModel);
+            translateOutput(operationShape, operationModel);
+            translateErrors(operationShape, operationModel);
 
+            javaOperationModels.put(operationModel.getOperationName(), operationModel);
         }
 
         return javaOperationModels;
     }
 
     private void translateInput(OperationShape operationShape, OperationModel operationModel) {
-        StructureShape inputShape = model.expectShape(operationShape.getOutputShape(), StructureShape.class);
-        String inputShapeName = inputShape.toShapeId().getName();
-        String inputClassName = namingStrategy.getRequestClassName(operationShape.toShapeId().getName());
-        String documentation = inputShape.getTrait(DocumentationTrait.class)
-            .map(t -> t.getValue())
-            .orElse(null);
-        operationModel.setInput(new VariableModel(unCapitalize(inputClassName), inputClassName)
-                                    .withDocumentation(documentation));
+        if (operationShape.getInput().isPresent()) {
+            ShapeId inputShapeId = operationShape.getInput().get();
+            StructureShape inputShape = model.expectShape(inputShapeId, StructureShape.class);
+            String inputClassName = namingStrategy.getRequestClassName(operationShape.toShapeId().getName());
+            String documentation = inputShape.getTrait(DocumentationTrait.class)
+                .map(t -> t.getValue())
+                .orElse(null);
+            operationModel.setInput(new VariableModel(unCapitalize(inputClassName), inputClassName)
+                                        .withDocumentation(documentation));
+        }
     }
 
     private void translateOutput(OperationShape operationShape, OperationModel operationModel) {
+        if (operationShape.getOutput().isPresent()) {
+            ShapeId outputShapeId = operationShape.getOutput().get();
+            
+            // Always create a response class name, even for Unit outputs
+            String outputClassName = namingStrategy.getResponseClassName(operationShape.toShapeId().getName());
+            ReturnTypeModel returnType = new ReturnTypeModel(outputClassName);
+            
+            // Only set documentation if it's not a Unit shape
+            if (!outputShapeId.toString().equals("smithy.api#Unit")) {
+                StructureShape outputShape = model.expectShape(outputShapeId, StructureShape.class);
+                String documentation = outputShape.getTrait(DocumentationTrait.class)
+                    .map(t -> t.getValue())
+                    .orElse(null);
+                returnType.setDocumentation(documentation);
+            }
+            
+            operationModel.setReturnType(returnType);
+        } else {
+            // No output at all - still create a response type
+            String outputClassName = namingStrategy.getResponseClassName(operationShape.toShapeId().getName());
+            ReturnTypeModel returnType = new ReturnTypeModel(outputClassName);
+            operationModel.setReturnType(returnType);
+        }
     }
 
     private void translateErrors(OperationShape operationShape, OperationModel operationModel) {
+        for (ShapeId errorShapeId : operationShape.getErrors()) {
+            StructureShape errorShape = model.expectShape(errorShapeId, StructureShape.class);
+            String exceptionName = namingStrategy.getExceptionName(errorShapeId.getName());
+            
+            ExceptionModel exceptionModel = new ExceptionModel(exceptionName);
+            
+            errorShape.getTrait(DocumentationTrait.class)
+                .ifPresent(doc -> exceptionModel.setDocumentation(doc.getValue()));
+            
+            errorShape.getTrait(HttpErrorTrait.class)
+                .ifPresent(httpError -> exceptionModel.setHttpStatusCode(httpError.getCode()));
+            
+            operationModel.addException(exceptionModel);
+        }
     }
 
     private void translateContextParams(OperationShape operationShape, OperationModel operationModel) {
