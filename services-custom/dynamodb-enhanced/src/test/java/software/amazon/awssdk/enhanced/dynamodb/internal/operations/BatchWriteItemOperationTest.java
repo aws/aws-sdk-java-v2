@@ -113,6 +113,22 @@ public class BatchWriteItemOperationTest {
     }
 
     @Test
+    public void returnsCorrectOperationName() {
+        WriteBatch batch = WriteBatch.builder(FakeItem.class)
+                                     .mappedTableResource(fakeItemMappedTable)
+                                     .addPutItem(r -> r.item(FAKE_ITEMS.get(0)))
+                                     .build();
+
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(batch)
+                                         .build();
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
+
+        assertThat(operation.operationName().label(), is("BatchWriteItem"));
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
 
         WriteBatch batch = WriteBatch.builder(FakeItem.class)
