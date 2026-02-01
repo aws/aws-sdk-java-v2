@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.document;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
@@ -26,6 +27,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
@@ -267,5 +269,50 @@ class DocumentTableSchemaTest {
                                                                      .build();
         Assertions.assertThat(
             documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
+    }
+
+    @Test
+    void mergeAttributeConverterProviders_withItemHavingConverters_mergesProviders() {
+        DocumentTableSchema schema = DocumentTableSchema.builder().build();
+
+        EnhancedDocument mockItem = mock(EnhancedDocument.class);
+        EnhancedDocument.Builder mockBuilder = mock(EnhancedDocument.Builder.class);
+        EnhancedDocument builtItem = mock(EnhancedDocument.class);
+
+        when(mockItem.attributeConverterProviders()).thenReturn(Arrays.asList(defaultProvider()));
+        when(mockItem.toBuilder()).thenReturn(mockBuilder);
+        when(mockBuilder.attributeConverterProviders((List<AttributeConverterProvider>) any()))
+            .thenReturn(mockBuilder);
+        when(mockBuilder.build()).thenReturn(builtItem);
+        Map<String, AttributeValue> resultMap = Collections.singletonMap("key", AttributeValue.fromS("value"));
+        when(builtItem.toMap()).thenReturn(resultMap);
+
+        Map<String, AttributeValue> result = schema.itemToMap(mockItem, false);
+
+        assertThat(result).containsKey("key");
+    }
+
+    @Test
+    void itemToMapWithAttributes_duplicateKeys_keepsFirstValue() {
+        DocumentTableSchema schema = DocumentTableSchema.builder().build();
+
+        EnhancedDocument mockItem = mock(EnhancedDocument.class);
+        EnhancedDocument.Builder mockBuilder = mock(EnhancedDocument.Builder.class);
+        EnhancedDocument builtItem = mock(EnhancedDocument.class);
+        Map<String, AttributeValue> itemMap = new LinkedHashMap<>();
+        itemMap.put("key1", AttributeValue.fromS("value1"));
+        itemMap.put("key2", AttributeValue.fromS("value2"));
+
+        when(mockItem.toMap()).thenReturn(itemMap);
+        when(mockItem.attributeConverterProviders()).thenReturn(null);
+        when(mockItem.toBuilder()).thenReturn(mockBuilder);
+        when(mockBuilder.attributeConverterProviders((List<AttributeConverterProvider>) any()))
+            .thenReturn(mockBuilder);
+        when(mockBuilder.build()).thenReturn(builtItem);
+        when(builtItem.toMap()).thenReturn(itemMap);
+
+        Map<String, AttributeValue> result = schema.itemToMap(mockItem, Arrays.asList("key1", "key1"));
+
+        assertThat(result).hasSize(1).containsKey("key1");
     }
 }
