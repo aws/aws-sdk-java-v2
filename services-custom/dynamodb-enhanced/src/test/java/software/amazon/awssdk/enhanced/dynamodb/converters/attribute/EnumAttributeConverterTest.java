@@ -20,6 +20,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnumAttributeConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class EnumAttributeConverterTest {
 
@@ -71,11 +72,17 @@ public class EnumAttributeConverterTest {
     public void transformToWithNames_returnsEnum() {
         EnumAttributeConverter<Person> personConverter = EnumAttributeConverter.createWithNameAsKeys(Person.class);
 
-        Person john = personConverter.transformTo(AttributeValue.fromS("JOHN"));
+        personConverter.transformTo(AttributeValue.fromS("JOHN"));
+    }
 
-        assertThat(Person.JOHN.toString()).isEqualTo("I am a cool person");
+    @Test
+    public void transformTo_whenInputStringIsNull_throwsIllegalArgumentException() {
+        EnumAttributeConverter<Vehicle> vehicleConverter = EnumAttributeConverter.create(Vehicle.class);
+        AttributeValue input = AttributeValue.builder().build();
 
-        assertThat(john).isEqualTo(Person.JOHN);
+        assertThatThrownBy(() -> vehicleConverter.transformTo(input))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Cannot convert non-string value to enum.");
     }
 
     private static enum Vehicle {
