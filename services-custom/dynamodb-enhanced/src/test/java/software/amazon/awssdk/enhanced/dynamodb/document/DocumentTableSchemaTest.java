@@ -16,8 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
@@ -30,16 +32,12 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
-import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
-import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -48,6 +46,39 @@ class DocumentTableSchemaTest {
 
     String NO_PRIMARY_KEYS_IN_METADATA = "Attempt to execute an operation that requires a primary index without defining "
                                          + "any primary key attributes in the table metadata.";
+
+    @Test
+    void attributeValue_forNullItem_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        assertThat(documentTableSchema.attributeValue(null, "key")).isNull();
+    }
+
+    @Test
+    void itemToMapWithIgnoreNullsFlag_forNullItem_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        assertThat(documentTableSchema.itemToMap(null, false)).isNull();
+    }
+
+    @Test
+    void itemToMap_withListOfAttributes_forItemToMapNull_returnsNull() {
+        DocumentTableSchema documentTableSchema =
+            DocumentTableSchema.builder()
+                               .attributeConverterProviders(defaultProvider())
+                               .build();
+
+        EnhancedDocument doc = mock(EnhancedDocument.class);
+        when(doc.toMap()).thenReturn(null);
+
+        assertThat(documentTableSchema.itemToMap(doc, Arrays.asList("filterOne", "filterTwo"))).isNull();
+    }
 
     @Test
     void converterForAttribute_APIIsNotSupported() {
