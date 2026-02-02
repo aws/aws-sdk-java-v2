@@ -161,5 +161,9 @@
         "org.openrewrite:rewrite-java-8": {"packageName": "Maven-org-openrewrite_rewrite-java-8", "packageVersion": "8.x"},
         "org.openrewrite:rewrite-java": {"packageName": "Maven-org-openrewrite_rewrite-java", "packageVersion": "8.x"},
         "org.openrewrite.recipe:rewrite-java-dependencies": {"packageName": "Maven-org-openrewrite-recipe_rewrite-java-dependencies", "packageVersion": "1.x"}
+    },
+
+    "test-dependencies": {
+        "s3": ["JUnit5-5.x", "Aws-crt-java-1.0.x"]
     }
 }

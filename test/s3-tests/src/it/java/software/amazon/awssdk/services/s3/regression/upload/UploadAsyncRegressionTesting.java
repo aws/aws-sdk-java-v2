@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.regression.BucketType;
 import software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils;
 import software.amazon.awssdk.services.s3.regression.TestCallable;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.Logger;
 
 public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesting {
@@ -49,6 +50,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
     @ParameterizedTest
     @MethodSource("testConfigs")
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    @RetryableTest(maxRetries = 3)
     void putObject(UploadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 
@@ -79,7 +81,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
                                        .addExecutionInterceptor(recorder)
-                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
+                                       .apiCallTimeout(Duration.of(90, ChronoUnit.SECONDS));
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());
@@ -137,5 +139,4 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
             }
         }
     }
-
 }

@@ -1,0 +1,84 @@
+{
+    "version": "2.40.13",
+    "date": "2025-12-19",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix credential reloading in defaults when shared credential/config files are modified."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Optimize endpoint rule standard functions"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified."
+        },
+        {
+            "type": "feature",
+            "category": "ARC - Region switch",
+            "contributor": "",
+            "description": "Automatic Plan Execution Reports allow customers to maintain a concise record of their Region switch Plan executions. This enables customer SREs and leadership to have a clear view of their recovery posture based on the generated reports for their Plan executions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds event-based logging feature that enables granular event logging controls for AWS IoT logs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Wickr Admin API",
+            "contributor": "",
+            "description": "AWS Wickr now provides a suite of admin APIs to allow you to programmatically manage secure communication for Wickr networks at scale. These APIs enable you to automate administrative workflows including user lifecycle management, network configuration, and security group administration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add support for ECDSA signed URLs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adding support for Custom Metrics and Pre-Defined Attributes to GetCurrentMetricData API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Add support for WebAuthn under user settings."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "Added JobLevelCostAllocationConfiguration field to enable cost allocation reporting at the job level, providing more granular visibility into EMR Serverless charges"
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "It is a internal bug fix for region expansion"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

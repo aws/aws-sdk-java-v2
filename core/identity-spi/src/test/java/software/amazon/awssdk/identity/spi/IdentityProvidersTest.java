@@ -99,7 +99,6 @@ class IdentityProvidersTest {
 
     @Test
     public void identityProviders_notTouched_untilNeeded() {
-        // TODO(sra-identity-auth): This should be removed once everything is on useSraAuth = true
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = Mockito.mock(IdentityProvider.class);
         IdentityProviders providers =
             IdentityProviders.builder()

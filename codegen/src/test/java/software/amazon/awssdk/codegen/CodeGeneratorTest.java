@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -95,6 +96,24 @@ public class CodeGeneratorTest {
                                   Collections.singletonList(mockValidator));
 
         verify(mockValidator).validateModels(any());
+    }
+
+    @Test
+    void execute_conflictingUnderscoreConfigs_throwsValidationError() {
+        CustomizationConfig config = CustomizationConfig.create();
+        config.setAllowedUnderscoreNames(Collections.singletonList("foo_bar"));
+        config.setUnderscoresInNameBehavior(UnderscoresInNameBehavior.ALLOW);
+
+        C2jModels referenceModels = ClientTestModels.awsJsonServiceC2jModels();
+
+        C2jModels modelsWithConflict = C2jModels.builder()
+                 .customizationConfig(config)
+                 .serviceModel(referenceModels.serviceModel())
+                 .build();
+
+        assertThatThrownBy(() -> generateCodeFromC2jModels(modelsWithConflict, outputDir))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Validation failed");
     }
 
     @Test

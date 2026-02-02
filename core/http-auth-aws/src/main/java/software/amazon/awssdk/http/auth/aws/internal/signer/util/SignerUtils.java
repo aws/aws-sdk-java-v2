@@ -184,9 +184,8 @@ public final class SignerUtils {
 
         String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
-            StringBuilder hostHeaderBuilder = new StringBuilder(host);
-            hostHeaderBuilder.append(":").append(requestBuilder.port());
-            requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
+            String hostHeaderValue = host + ":" + requestBuilder.port();
+            requestBuilder.putHeader(SignerConstant.HOST, hostHeaderValue);
         } else {
             requestBuilder.putHeader(SignerConstant.HOST, host);
         }

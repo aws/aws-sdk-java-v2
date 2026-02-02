@@ -401,6 +401,25 @@
       ],
       "documentation":"<p>Returns information, such as the name, about a VPC endpoint.</p>"
     },
+    "GetIdentityCenterAuthToken":{
+      "name":"GetIdentityCenterAuthToken",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetIdentityCenterAuthTokenRequest"},
+      "output":{"shape":"GetIdentityCenterAuthTokenResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"DryRunException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Returns an Identity Center authentication token for accessing Amazon Redshift Serverless workgroups.</p> <p>The token provides secure access to data within the specified workgroups using Identity Center identity propagation. The token expires after a specified duration and must be refreshed for continued access.</p> <p>The Identity and Access Management (IAM) user or role that runs GetIdentityCenterAuthToken must have appropriate permissions to access the specified workgroups and Identity Center integration must be configured for the workgroups.</p>"
+    },
     "GetNamespace":{
       "name":"GetNamespace",
       "http":{
@@ -537,6 +556,7 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"DryRunException"},
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Get the Redshift Serverless version for a specified track.</p>"
@@ -1135,7 +1155,7 @@
       "members":{
         "parameterKey":{
           "shape":"ParameterKey",
-          "documentation":"<p>The key of the parameter. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and query monitoring metrics that let you define performance boundaries. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\">Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
+          "documentation":"<p>The key of the parameter. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and either <code>wlm_json_configuration</code> or query monitoring metrics that let you define performance boundaries. You can either specify individual query monitoring metrics (such as <code>max_scan_row_count</code>, <code>max_query_execution_time</code>) or use <code>wlm_json_configuration</code> to define query queues with rules, but not both. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\">Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
         },
         "parameterValue":{
           "shape":"ParameterValue",
@@ -1573,11 +1593,15 @@
         },
         "configParameters":{
           "shape":"ConfigParameterList",
-          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and query monitoring metrics that let you define performance boundaries. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
+          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and either <code>wlm_json_configuration</code> or query monitoring metrics that let you define performance boundaries. You can either specify individual query monitoring metrics (such as <code>max_scan_row_count</code>, <code>max_query_execution_time</code>) or use <code>wlm_json_configuration</code> to define query queues with rules, but not both. If you're using <code>wlm_json_configuration</code>, the maximum size of <code>parameterValue</code> is 8000 characters. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
         },
         "enhancedVpcRouting":{
           "shape":"Boolean",
           "documentation":"<p>The value that specifies whether to turn on enhanced virtual private cloud (VPC) routing, which forces Amazon Redshift Serverless to route traffic through your VPC instead of over the internet.</p>"
+        },
+        "extraComputeForAutomaticOptimization":{
+          "shape":"Boolean",
+          "documentation":"<p>If <code>true</code>, allocates additional compute resources for running automatic optimization operations.</p> <p>Default: false</p>"
         },
         "ipAddressType":{
           "shape":"IpAddressType",
@@ -2015,6 +2039,30 @@
           "documentation":"<p>The returned VPC endpoint.</p>"
         }
       }
+    },
+    "GetIdentityCenterAuthTokenRequest":{
+      "type":"structure",
+      "required":["workgroupNames"],
+      "members":{
+        "workgroupNames":{
+          "shape":"WorkgroupNameList",
+          "documentation":"<p>A list of workgroup names for which to generate the Identity Center authentication token.</p> <p>Constraints:</p> <ul> <li> <p>Must contain between 1 and 20 workgroup names.</p> </li> <li> <p>Each workgroup name must be a valid Amazon Redshift Serverless workgroup identifier.</p> </li> <li> <p>All specified workgroups must have Identity Center integration enabled.</p> </li> </ul>"
+        }
+      }
+    },
+    "GetIdentityCenterAuthTokenResponse":{
+      "type":"structure",
+      "members":{
+        "expirationTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The date and time when the Identity Center authentication token expires.</p> <p>After this time, a new token must be requested for continued access.</p>"
+        },
+        "token":{
+          "shape":"String",
+          "documentation":"<p>The Identity Center authentication token that can be used to access data in the specified workgroups.</p> <p>This token contains the Identity Center identity information and is encrypted for secure transmission.</p>"
+        }
+      },
+      "sensitive":true
     },
     "GetNamespaceRequest":{
       "type":"structure",
@@ -4295,11 +4343,15 @@
         },
         "configParameters":{
           "shape":"ConfigParameterList",
-          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and query monitoring metrics that let you define performance boundaries. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
+          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and either <code>wlm_json_configuration</code> or query monitoring metrics that let you define performance boundaries. You can either specify individual query monitoring metrics (such as <code>max_scan_row_count</code>, <code>max_query_execution_time</code>) or use <code>wlm_json_configuration</code> to define query queues with rules, but not both. If you're using <code>wlm_json_configuration</code>, the maximum size of <code>parameterValue</code> is 8000 characters. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
         },
         "enhancedVpcRouting":{
           "shape":"Boolean",
           "documentation":"<p>The value that specifies whether to turn on enhanced virtual private cloud (VPC) routing, which forces Amazon Redshift Serverless to route traffic through your VPC.</p>"
+        },
+        "extraComputeForAutomaticOptimization":{
+          "shape":"Boolean",
+          "documentation":"<p>If <code>true</code>, allocates additional compute resources for running automatic optimization operations.</p> <p>Default: false</p>"
         },
         "ipAddressType":{
           "shape":"IpAddressType",
@@ -4479,7 +4531,7 @@
         },
         "configParameters":{
           "shape":"ConfigParameterList",
-          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and query monitoring metrics that let you define performance boundaries. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
+          "documentation":"<p>An array of parameters to set for advanced control over a database. The options are <code>auto_mv</code>, <code>datestyle</code>, <code>enable_case_sensitive_identifier</code>, <code>enable_user_activity_logging</code>, <code>query_group</code>, <code>search_path</code>, <code>require_ssl</code>, <code>use_fips_ssl</code>, and either <code>wlm_json_configuration</code> or query monitoring metrics that let you define performance boundaries. You can either specify individual query monitoring metrics (such as <code>max_scan_row_count</code>, <code>max_query_execution_time</code>) or use <code>wlm_json_configuration</code> to define query queues with rules, but not both. If you're using <code>wlm_json_configuration</code>, the maximum size of <code>parameterValue</code> is 8000 characters. For more information about query monitoring rules and available metrics, see <a href=\"https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-query-monitoring-rules.html#cm-c-wlm-query-monitoring-metrics-serverless\"> Query monitoring metrics for Amazon Redshift Serverless</a>.</p>"
         },
         "creationDate":{
           "shape":"SyntheticTimestamp_date_time",
@@ -4508,6 +4560,10 @@
         "enhancedVpcRouting":{
           "shape":"Boolean",
           "documentation":"<p>The value that specifies whether to enable enhanced virtual private cloud (VPC) routing, which forces Amazon Redshift Serverless to route traffic through your VPC.</p>"
+        },
+        "extraComputeForAutomaticOptimization":{
+          "shape":"Boolean",
+          "documentation":"<p>A boolean value that, if <code>true</code>, indicates that the workgroup allocates additional compute resources to run automatic optimization operations.</p> <p>Default: false</p>"
         },
         "ipAddressType":{
           "shape":"IpAddressType",
@@ -4585,6 +4641,12 @@
       "max":64,
       "min":3,
       "pattern":"^[a-z0-9-]+$"
+    },
+    "WorkgroupNameList":{
+      "type":"list",
+      "member":{"shape":"WorkgroupName"},
+      "max":20,
+      "min":1
     },
     "WorkgroupStatus":{
       "type":"string",
