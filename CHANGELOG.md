@@ -1,4 +1,93 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.20__ __2026-02-02__
+## __AWS Multi-party Approval__
+  - ### Features
+    - Updates to multi-party approval (MPA) service to add support for multi-factor authentication (MFA) for voting operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds tagging support for AgentCore Evaluations (evaluator and online evaluation config)
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add OriginMTLS support to CloudFront Distribution APIs
+
+# __2.41.19__ __2026-01-30__
+## __AWS S3 AccessGrants__
+  - ### Features
+    - Updating S3 AccessGrants plugin version to 2.4.0
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds Estimated Wait Time support to the GetContactMetrics API for Amazon Connect.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Improve SessionTag usage guidelines in the GenerateEmbedURLForAnonymousUser API documentation. Update the GetIdentityContext document with the region support context.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
+# __2.41.18__ __2026-01-29__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - G7e instances feature up to 8 NVIDIA RTX PRO 6000 Blackwell Server Edition GPUs with 768 GB of memory and 5th generation Intel Xeon Scalable processors. Supporting up to 192 vCPUs, 1600 Gbps networking bandwidth with EFA, up to 2 TiB of system memory, and up to 15.2 TB of local NVMe SSD storage.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers now supports automatic scaling to and from zero instances based on game session activity. Fleets scale down to zero following a defined period of no game session activity and scale up from zero when game sessions are requested, providing an option for cost optimization.
+
+# __2.41.17__ __2026-01-28__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds a follow source mode for audio output channel count, an AES audio frame wrapping option for MXF outputs, and an option to signal DolbyVision compatibility using the SUPPLEMENTAL-CODECS tag in HLS manifests.
+
+## __AWS Lambda__
+  - ### Features
+    - We are launching ESM Metrics and logging for Kafka ESM to allow customers to monitor Kafka event processing using CloudWatch Metrics and Logs.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for NDI flow sources in AWS Elemental MediaConnect. You can now send content to your MediaConnect transport streams directly from your NDI environment using the new NDI source type. Also adds support for LARGE 4X flow size, which can be used when creating CDI JPEG-XS flows.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for the UpdateObjectEncryption API to change the server-side encryption type of objects in general purpose buckets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds support for a new lambda trigger to transform federated user attributes during the authentication with external identity providers on Cognito Managed Login.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for filtering search results based on tags assigned to contacts.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - SearchTransitGatewayRoutes API response now includes a NextToken field, enabling pagination when retrieving large sets of transit gateway routes. Pass the returned NextToken value in subsequent requests to retrieve the next page of results.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed multipart uploads not propagating content-type from AsyncRequestBody when using S3AsyncClient with multipartEnabled(true). See Issue [#6607](https://github.com/aws/aws-sdk-java-v2/issues/6607)
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for the UpdateObjectEncryption API to change the server-side encryption type of objects in general purpose buckets.
+
 # __2.41.16__ __2026-01-27__
 ## __AWS Elemental MediaLive__
   - ### Features
