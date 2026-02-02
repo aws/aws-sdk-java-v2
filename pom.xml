@@ -103,8 +103,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.40.13</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.40.12</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.41.20</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.41.19</awsjavasdk.previous-previous.version>
         <jackson.version>2.20.2</jackson.version>
         <jackson.databind.version>2.20.2</jackson.databind.version>
         <jacksonjr.version>2.20.2</jacksonjr.version>
