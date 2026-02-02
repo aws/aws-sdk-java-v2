@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.metrics;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 
@@ -27,53 +26,47 @@ import software.amazon.awssdk.core.io.SdkFilterInputStream;
  */
 @SdkInternalApi
 public final class BytesWrittenTrackingInputStream extends SdkFilterInputStream {
-    private final AtomicLong bytesWritten;
-    private final AtomicLong firstByteWrittenTime;
-    private final AtomicLong lastByteWrittenTime;
+    private final RequestBodyMetrics metrics;
 
-    public BytesWrittenTrackingInputStream(InputStream in, AtomicLong bytesWritten, AtomicLong firstByteWrittenTime,
-                                           AtomicLong lastByteWrittenTime) {
+    public BytesWrittenTrackingInputStream(InputStream in, RequestBodyMetrics metrics) {
         super(in);
-        this.bytesWritten = bytesWritten;
-        this.firstByteWrittenTime = firstByteWrittenTime;
-        this.lastByteWrittenTime = lastByteWrittenTime;
+        this.metrics = metrics;
     }
 
     @Override
     public int read() throws IOException {
-        recordFirstByteWritten();
         int read = super.read();
         if (read >= 0) {
-            bytesWritten.incrementAndGet();
-            lastByteWrittenTime.set(System.nanoTime());
+            recordFirstByteWritten();
+            metrics.bytesWritten().incrementAndGet();
+            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
         }
         return read;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        recordFirstByteWritten();
         int read = super.read(b, off, len);
-        updateBytesWritten(read);
+        if (read > 0) {
+            recordFirstByteWritten();
+            metrics.bytesWritten().addAndGet(read);
+            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+        }
         return read;
     }
 
     @Override
     public long skip(long n) throws IOException {
-        recordFirstByteWritten();
         long skipped = super.skip(n);
-        updateBytesWritten(skipped);
+        if (skipped > 0) {
+            recordFirstByteWritten();
+            metrics.bytesWritten().addAndGet(skipped);
+            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+        }
         return skipped;
     }
 
     private void recordFirstByteWritten() {
-        firstByteWrittenTime.compareAndSet(0, System.nanoTime());
-    }
-
-    private void updateBytesWritten(long bytesRead) {
-        if (bytesRead > 0) {
-            bytesWritten.addAndGet(bytesRead);
-            lastByteWrittenTime.set(System.nanoTime());
-        }
+        metrics.firstByteWrittenNanoTime().compareAndSet(0, System.nanoTime());
     }
 }

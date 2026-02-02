@@ -136,6 +136,8 @@ Tested with real S3 uploads comparing Alternative 2 (TTFB) vs recommended approa
 
 ## Appendix C: Performance Benchmark
 
+### Sync Client: BytesWrittenTrackingInputStream
+
 JMH benchmark comparing `BytesWrittenTrackingInputStream` implementations:
 
 | Data Size | Buffer | Baseline | Alternative 2 | Recommended | Alt2 - Baseline | Rec - Baseline |
@@ -152,8 +154,26 @@ JMH benchmark comparing `BytesWrittenTrackingInputStream` implementations:
 
 **Conclusion:** Recommended approach adds ~60-987 µs overhead vs baseline. Compared to real network I/O (~3 seconds for 100MB at 33 MB/s), this is **<0.03%** - negligible.
 
+### Async Client: BytesWrittenTrackingPublisher
+
+JMH benchmark comparing `BytesWrittenTrackingPublisher` overhead:
+
+| Data Size | Buffer | Baseline | With Tracking | Overhead |
+|-----------|--------|----------|---------------|----------|
+| 10MB | 16KB | 1.2 µs | 45.6 µs | +44.4 µs |
+| 10MB | 64KB | 0.2 µs | 11.3 µs | +11.1 µs |
+| 10MB | 128KB | 0.1 µs | 5.7 µs | +5.6 µs |
+| 100MB | 16KB | 13.6 µs | 450.4 µs | +436.8 µs |
+| 100MB | 64KB | 1.9 µs | 111.8 µs | +109.9 µs |
+| 100MB | 128KB | 0.9 µs | 56.4 µs | +55.5 µs |
+
+**Note:** Async baseline is much faster than sync because it only passes `ByteBuffer` references through reactive streams without simulating actual I/O reads. The absolute overhead (~450 µs for 100MB) is actually lower than sync (~987 µs).
+
+**Conclusion:** Overhead of ~450 µs for 100MB upload is **<0.015%** of real network I/O time (~3 seconds at 33 MB/s) - negligible.
+
 ### Raw JMH Results
 
+**Sync (BytesWrittenTrackingInputStream):**
 ```
 Benchmark                                                    (bufferSize)  (dataSize)  Mode  Cnt     Score     Error  Units
 BytesWrittenTrackingBenchmark.baseline                              16384    10485760  avgt    5   420.387 ±   1.665  us/op
@@ -174,6 +194,23 @@ BytesWrittenTrackingBenchmark.option3_lastReadTimeEveryRead         65536    104
 BytesWrittenTrackingBenchmark.option3_lastReadTimeEveryRead         65536   104857600  avgt    5  8004.015 ± 247.785  us/op
 BytesWrittenTrackingBenchmark.option3_lastReadTimeEveryRead        131072    10485760  avgt    5   442.916 ±   3.713  us/op
 BytesWrittenTrackingBenchmark.option3_lastReadTimeEveryRead        131072   104857600  avgt    5  7989.967 ± 437.852  us/op
+```
+
+**Async (BytesWrittenTrackingPublisher):**
+```
+Benchmark                                            (bufferSize)  (dataSize)  Mode  Cnt    Score    Error  Units
+BytesWrittenTrackingPublisherBenchmark.baseline             16384    10485760  avgt   10    1.150 ±  0.003  us/op
+BytesWrittenTrackingPublisherBenchmark.baseline             16384   104857600  avgt   10   13.620 ±  0.273  us/op
+BytesWrittenTrackingPublisherBenchmark.baseline             65536    10485760  avgt   10    0.186 ±  0.002  us/op
+BytesWrittenTrackingPublisherBenchmark.baseline             65536   104857600  avgt   10    1.862 ±  0.018  us/op
+BytesWrittenTrackingPublisherBenchmark.baseline            131072    10485760  avgt   10    0.100 ±  0.002  us/op
+BytesWrittenTrackingPublisherBenchmark.baseline            131072   104857600  avgt   10    0.928 ±  0.020  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking         16384    10485760  avgt   10   45.559 ±  0.468  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking         16384   104857600  avgt   10  450.381 ± 17.005  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking         65536    10485760  avgt   10   11.341 ±  0.192  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking         65536   104857600  avgt   10  111.815 ±  2.430  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking        131072    10485760  avgt   10    5.677 ±  0.076  us/op
+BytesWrittenTrackingPublisherBenchmark.withTracking        131072   104857600  avgt   10   56.413 ±  0.084  us/op
 ```
 
 ---
