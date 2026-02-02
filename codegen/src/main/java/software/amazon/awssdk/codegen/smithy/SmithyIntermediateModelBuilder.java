@@ -73,14 +73,13 @@ public class SmithyIntermediateModelBuilder {
         Paginators paginators = translatePaginators();
         Waiters waiters = translateWaiters();
 
-        Map<String, ShapeModel> shapes = new HashMap<>();
-
         Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this, paginators).constructOperations());
+        
+        // Add shapes
+        Map<String, ShapeModel> shapes = new AddSmithyShapes(this).constructShapes();
         
         Metadata metadata = constructMetadata();
         
-        // For now, return a basic IntermediateModel with operations and metadata
-        // We'll add shapes and other features incrementally
         return new IntermediateModel(
             metadata,
             operations,

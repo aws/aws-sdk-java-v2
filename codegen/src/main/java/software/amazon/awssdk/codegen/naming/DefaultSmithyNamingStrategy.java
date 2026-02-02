@@ -159,7 +159,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     @Override
     public String getShapeClassName(String shapeName) {
-        return "";
+        return pascalCase(shapeName);
     }
 
     @Override

@@ -18,12 +18,15 @@ package software.amazon.awssdk.codegen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
@@ -52,6 +55,122 @@ public class SmithyIntermediateModelBuilderTest {
         
         // Assert that both models have the same operations
         assertOperationsMatch(c2jIm, smithyIm);
+        
+        // Assert that both models have the same shapes
+        assertShapesMatch(c2jIm, smithyIm);
+    }
+    
+    /**
+     * Asserts that shapes in both models match in terms of names and key properties.
+     */
+    private void assertShapesMatch(IntermediateModel expected, IntermediateModel actual) {
+        assertThat(actual.getShapes().keySet())
+            .as("Shape names should match")
+            .containsExactlyInAnyOrderElementsOf(expected.getShapes().keySet());
+        
+        // For each shape, compare basic properties
+        for (String shapeName : expected.getShapes().keySet()) {
+            ShapeModel expectedShape = expected.getShapes().get(shapeName);
+            ShapeModel actualShape = actual.getShapes().get(shapeName);
+            
+            assertThat(actualShape)
+                .as("Shape %s should exist in both models", shapeName)
+                .isNotNull();
+            
+            assertShapeDetailsMatch(shapeName, expectedShape, actualShape);
+        }
+    }
+    
+    /**
+     * Asserts that two shape models match in their key properties.
+     */
+    private void assertShapeDetailsMatch(String shapeName, ShapeModel expected, ShapeModel actual) {
+        assertThat(actual.getShapeName())
+            .as("Shape name for %s", shapeName)
+            .isEqualTo(expected.getShapeName());
+        
+        assertThat(actual.getType())
+            .as("Shape type for %s", shapeName)
+            .isEqualTo(expected.getType());
+        
+        // Documentation can be null in Smithy or empty string in C2J when not present
+        String expectedDoc = expected.getDocumentation();
+        String actualDoc = actual.getDocumentation();
+        if ((expectedDoc == null || expectedDoc.isEmpty()) && (actualDoc == null || actualDoc.isEmpty())) {
+            // Both are effectively empty - this is fine
+        } else {
+            assertThat(actualDoc)
+                .as("Documentation for shape %s", shapeName)
+                .isEqualTo(expectedDoc);
+        }
+        
+        // Compare members
+        if (expected.getMembers() != null && !expected.getMembers().isEmpty()) {
+            assertThat(actual.getMembers())
+                .as("Members for shape %s should not be null or empty", shapeName)
+                .isNotEmpty();
+            
+            assertThat(actual.getMembers())
+                .as("Number of members for shape %s", shapeName)
+                .hasSameSizeAs(expected.getMembers());
+            
+            // Create maps by c2jName for easier comparison
+            Map<String, MemberModel> expectedMemberMap = expected.getMembers().stream()
+                .collect(Collectors.toMap(MemberModel::getC2jName, m -> m));
+            Map<String, MemberModel> actualMemberMap = actual.getMembers().stream()
+                .collect(Collectors.toMap(MemberModel::getC2jName, m -> m));
+            
+            assertThat(actualMemberMap.keySet())
+                .as("Member names for shape %s", shapeName)
+                .containsExactlyInAnyOrderElementsOf(expectedMemberMap.keySet());
+            
+            // For each member, compare basic properties
+            for (String memberC2jName : expectedMemberMap.keySet()) {
+                assertMemberDetailsMatch(shapeName, memberC2jName, 
+                                       expectedMemberMap.get(memberC2jName),
+                                       actualMemberMap.get(memberC2jName));
+            }
+        } else {
+            assertThat(actual.getMembers())
+                .as("Members for shape %s should be empty", shapeName)
+                .isEmpty();
+        }
+        
+        // TODO: Add more shape property assertions as we implement them:
+        // - Required fields
+        // - Deprecation
+        // - Enums
+        // - etc.
+    }
+    
+    /**
+     * Asserts that two member models match in their key properties.
+     */
+    private void assertMemberDetailsMatch(String shapeName, String memberName, 
+                                         MemberModel expected, MemberModel actual) {
+        assertThat(actual)
+            .as("Member %s in shape %s should exist", memberName, shapeName)
+            .isNotNull();
+        
+        assertThat(actual.getName())
+            .as("Member name for %s.%s", shapeName, memberName)
+            .isEqualTo(expected.getName());
+        
+        assertThat(actual.getC2jName())
+            .as("C2J name for %s.%s", shapeName, memberName)
+            .isEqualTo(expected.getC2jName());
+        
+        assertThat(actual.getVariable().getVariableType())
+            .as("Variable type for %s.%s", shapeName, memberName)
+            .isEqualTo(expected.getVariable().getVariableType());
+        
+        // TODO: Add more member property assertions as we implement them:
+        // - HTTP mappings
+        // - List/Map models
+        // - Enum types
+        // - Required flag
+        // - Deprecation
+        // - etc.
     }
     
     /**
