@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Multi-party Approval",
-    "contributor": "",
-    "description": "Updates to multi-party approval (MPA) service to add support for multi-factor authentication (MFA) for voting operations."
-}

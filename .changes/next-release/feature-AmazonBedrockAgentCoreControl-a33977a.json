@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Control",
-    "contributor": "",
-    "description": "Adds tagging support for AgentCore Evaluations (evaluator and online evaluation config)"
-}
