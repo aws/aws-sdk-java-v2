@@ -23,12 +23,16 @@ import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import nl.jqno.equalsverifier.api.SingleTypeEqualsVerifierApi;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -121,20 +125,85 @@ public class EqualsAndHashCodeTest {
     }
 
     private void verifyEqualsAndHashCode(Class<?> type) {
-        EqualsVerifier.forClass(type)
-                      .withPrefabValues(
-                          EnhancedType.class,
-                          EnhancedType.of(String.class),
-                          EnhancedType.of(Integer.class))
-                      .withPrefabValues(
-                          AttributeValue.class,
-                          AttributeValue.builder().s("one").build(),
-                          AttributeValue.builder().s("two").build())
-                      .suppress(
-                          Warning.NULL_FIELDS,
-                          Warning.STRICT_INHERITANCE,
-                          Warning.ALL_FIELDS_SHOULD_BE_USED,
-                          Warning.STRICT_HASHCODE)
-                      .verify();
+        SingleTypeEqualsVerifierApi<?> verifier =
+            EqualsVerifier.forClass(type)
+                          .withPrefabValues(
+                              EnhancedType.class,
+                              EnhancedType.of(String.class),
+                              EnhancedType.of(Integer.class))
+                          .withPrefabValues(
+                              AttributeValue.class,
+                              AttributeValue.builder().s("one").build(),
+                              AttributeValue.builder().s("two").build());
+
+        String className = type.getName();
+
+        switch (className) {
+            case "software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue": {
+                verifier = verifier.withNonnullFields("type");
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticIndexMetadata": {
+                verifier = verifier.withNonnullFields("partitionKeys", "sortKeys")
+                                   .usingGetClass();
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata": {
+                verifier = verifier.withNonnullFields("order")
+                                   .usingGetClass();
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument": {
+                // Provide non-equal prefab values for nonAttributeValueMap to avoid NullPointerException and Precondition error
+                Map<String, String> map1 = new HashMap<>();
+                Map<String, String> map2 = new HashMap<>();
+                map2.put("key", "value");
+                verifier = verifier.withPrefabValues(
+                                       Map.class,
+                                       map1,
+                                       map2)
+                                   .suppress(Warning.STRICT_HASHCODE)
+                                   .withNonnullFields("nonAttributeValueMap",
+                                                      "attributeValueMap",
+                                                      "attributeConverterProviders",
+                                                      "attributeConverterChain")
+                                   .usingGetClass();
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.EnhancedType": {
+                // Suppress warning about subclass equality
+                verifier = verifier.suppress(nl.jqno.equalsverifier.Warning.STRICT_INHERITANCE)
+                                   .withNonnullFields("rawClass")
+                                   .usingGetClass();
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest": {
+                verifier = verifier.withIgnoredFields("ignoreNullsMode");
+                break;
+            }
+            case "software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest": {
+                verifier = verifier.withIgnoredFields("ignoreNullsMode").usingGetClass();
+                break;
+            }
+            default: {
+                if (Arrays.asList(
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.conditional.EqualToConditional",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyItemConditional",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.conditional.BetweenConditional",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.conditional.BeginsWithConditional",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.mapper.AtomicCounter$CounterAttribute",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbIndex",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbTable",
+                              "software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticIndexMetadata")
+                          .contains(className)) {
+                    verifier = verifier.usingGetClass();
+                }
+                break;
+            }
+        }
+
+        verifier.verify();
     }
 }
