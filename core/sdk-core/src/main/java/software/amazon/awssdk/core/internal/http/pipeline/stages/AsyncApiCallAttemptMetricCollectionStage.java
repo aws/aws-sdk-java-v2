@@ -43,7 +43,6 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements RequestPipeline<SdkHttpFullRequest,
     CompletableFuture<Response<OutputT>>> {
-    private static final long ONE_SECOND_IN_NS = Duration.ofSeconds(1).toNanos();
 
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> wrapped;
 
@@ -94,19 +93,15 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
 
     private void reportReadMetrics(RequestExecutionContext context) {
         MetricCollector metricCollector = context.attemptMetricCollector();
-        long now = System.nanoTime();
-
         long apiCallAttemptStartTime = MetricUtils.apiCallAttemptStartNanoTime(context).getAsLong();
-
-        long headersReadEndNanoTime = MetricUtils.responseHeadersReadEndNanoTime(context).getAsLong();
-        long bytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
-        double bytesReadPerNs = (double) bytesRead / (now - headersReadEndNanoTime);
-        double bytesReadPerSec = bytesReadPerNs * ONE_SECOND_IN_NS;
-
+        long now = System.nanoTime();
         long ttlb = now - apiCallAttemptStartTime;
 
         metricCollector.reportMetric(CoreMetric.TIME_TO_LAST_BYTE, Duration.ofNanos(ttlb));
-        metricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, bytesReadPerSec);
+        long responseReadStart = MetricUtils.responseHeadersReadEndNanoTime(context).getAsLong();
+        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
+        double readThroughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
+        metricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, readThroughput);
     }
 
     private void resetBytesRead(RequestExecutionContext context) {

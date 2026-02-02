@@ -75,6 +75,33 @@ public class BytesWrittenTrackingPublisherTest {
         assertThat(metrics.lastByteWrittenNanoTime().get()).isEqualTo(0);
     }
 
+    @Test
+    public void multipleChunks_firstByteTimeSetOnce_lastByteTimeUpdatedEachChunk() {
+        RequestBodyMetrics metrics = new RequestBodyMetrics();
+        BytesWrittenTrackingPublisher publisher = new BytesWrittenTrackingPublisher(
+            subscriber -> {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        subscriber.onNext(ByteBuffer.wrap(new byte[10]));
+                        subscriber.onNext(ByteBuffer.wrap(new byte[20]));
+                        subscriber.onNext(ByteBuffer.wrap(new byte[30]));
+                        subscriber.onComplete();
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }, metrics);
+
+        publisher.subscribe(new TestSubscriber());
+
+        assertThat(metrics.bytesWritten().get()).isEqualTo(60);
+        assertThat(metrics.firstByteWrittenNanoTime().get()).isGreaterThan(0);
+        assertThat(metrics.lastByteWrittenNanoTime().get()).isGreaterThanOrEqualTo(metrics.firstByteWrittenNanoTime().get());
+    }
+
     private static class TestSubscriber implements Subscriber<ByteBuffer> {
         @Override
         public void onSubscribe(Subscription subscription) {

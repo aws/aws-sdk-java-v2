@@ -110,18 +110,18 @@ public class MakeHttpRequestStage
         RequestBodyMetrics metrics = context.executionAttributes()
                                             .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
 
-        Optional<Long> contentLength = contentLength(request);
-        if (!contentLength.isPresent()) {
-            LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
-                                         + "the amount of data sent to the service: %s", request));
-        }
-
         ContentStreamProvider wrapped = () -> {
             InputStream stream = contentStreamProvider.get().newStream();
             stream = new BytesWrittenTrackingInputStream(stream, metrics);
-            if (contentLength.isPresent()) {
-                stream = new LengthAwareInputStream(stream, contentLength.get());
+
+            Optional<Long> contentLength = contentLength(request);
+            if (!contentLength.isPresent()) {
+                LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
+                                              + "the amount of data sent to the service: %s", request));
+                return stream;
             }
+
+            stream = new LengthAwareInputStream(stream, contentLength.get());
             return stream;
         };
 
