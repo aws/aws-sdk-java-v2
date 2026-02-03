@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.rules;
 
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
@@ -364,6 +365,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 case VALUE_FALSE:
                     b.addStatement("params.$N($L)", setterName, ((JrsBoolean) value).booleanValue());
                     break;
+                case START_ARRAY:
+                    JrsArray arrayValue = (JrsArray) value;
+                    CodeBlock arrayCode = endpointRulesSpecUtils.treeNodeToLiteral(arrayValue);
+                    b.addStatement("params.$N($L)", setterName, arrayCode);
+                    break;
                 default:
                     throw new RuntimeException("Don't know how to set parameter of type " + value.asToken());
             }
@@ -554,7 +560,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
                 String jmesPathString = ((JrsString) value.getPath()).getValue();
                 OperationContextParamsGenerator gen = new OperationContextParamsGenerator(jmesPathString, opModel);
-                gen.generate();
+                CodeBlock newAddParam = gen.generate(); // TODO: This is the new codeblock we must generate, it should replace
+                // the below
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
                                               .add(jmesPathGenerator.interpret(jmesPathString, "input"))

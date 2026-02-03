@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.rules;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.PoetMatchers.generateClass;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,12 @@ public class EndpointResolverInterceptorSpecTest {
     void endpointResolverInterceptorClassWithEndpointBasedAuth() {
         ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModelsEndpointAuthParamsWithoutAllowList());
         assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-endpointsbasedauth.java"));
+    }
+
+    @Test
+    public void endpointProviderTestClassWithStringArray() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.stringArrayServiceModels());
+        // assertThat(endpointProviderSpec, generatesTo("endpoint-rules-stringarray-test-class.java"));
+        System.out.println(generateClass(endpointProviderInterceptor));
     }
 }

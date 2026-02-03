@@ -116,7 +116,7 @@ public class OperationContextParamsGenerator {
                 // keys always has exactly one argument
                 // TODO: Okay, what do we do now??
             } else {
-                throw new IllegalStateException("Unsupported function: " + input.function())
+                throw new IllegalStateException("Unsupported function: " + input.function());
             }
         }
 
