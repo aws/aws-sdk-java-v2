@@ -1,25 +1,33 @@
-From a1c8a16ce264cee063db88040b4a10ea657ed30a Mon Sep 17 00:00:00 2001
+From 99a7e58b814a24554f3123c716a4ca6883e599fb Mon Sep 17 00:00:00 2001
 From: Dongie Agnir <dongie@amazon.com>
-Date: Wed, 3 Dec 2025 14:06:14 -0800
-Subject: [PATCH] Replace Apache 4.x with 5.x
+Date: Tue, 3 Feb 2026 13:54:05 -0800
+Subject: [PATCH] Replace 4.x with 5.x
 
 ---
- .../CloudFrontUtilitiesIntegrationTest.java   | 26 +++++++++----------
+ .../CloudFrontUtilitiesIntegrationTest.java   | 27 +++++++++----------
  .../dynamodb/SignersIntegrationTest.java      |  6 ++---
  .../MediaStoreDataIntegrationTestBase.java    |  5 ----
  ...stCompressionStreamingIntegrationTest.java |  2 --
  ...ransferEncodingChunkedIntegrationTest.java |  4 +--
- services/pom.xml                              |  4 +--
+ services/pom.xml                              |  2 +-
  services/s3/pom.xml                           |  6 +++++
  .../S3AccessPointsIntegrationTest.java        |  4 +--
  .../S3MrapIntegrationTest.java                |  4 +--
- 9 files changed, 30 insertions(+), 31 deletions(-)
+ 9 files changed, 29 insertions(+), 31 deletions(-)
 
 diff --git a/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java b/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
-index a446417b658..91cb54ea284 100644
+index 15c30c812a3..b5c924f326e 100644
 --- a/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
 +++ b/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
-@@ -44,7 +44,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
+@@ -25,7 +25,6 @@ import java.net.URI;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.StandardOpenOption;
+-import java.security.Key;
+ import java.security.KeyPair;
+ import java.security.KeyPairGenerator;
+ import java.security.PrivateKey;
+@@ -51,7 +50,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
  import software.amazon.awssdk.http.SdkHttpClient;
  import software.amazon.awssdk.http.SdkHttpMethod;
  import software.amazon.awssdk.http.SdkHttpRequest;
@@ -28,7 +36,7 @@ index a446417b658..91cb54ea284 100644
  import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
  import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
  import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
-@@ -101,7 +101,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -144,7 +143,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
  
      @Test
      void unsignedUrl_shouldReturn403Response() throws Exception {
@@ -37,8 +45,8 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response =
              client.prepareRequest(HttpExecuteRequest.builder()
                                                      .request(SdkHttpRequest.builder()
-@@ -125,7 +125,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
-                                                          .keyPairId(keyPairId)
+@@ -169,7 +168,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                          .keyPairId(testCase.keyPairId)
                                                           .expirationDate(expirationDate).build();
          SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
 -        SdkHttpClient client = ApacheHttpClient.create();
@@ -46,16 +54,16 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(signedUrl.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -143,7 +143,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
-                                                                                       .privateKey(privateKey)
-                                                                                       .keyPairId(keyPairId)
+@@ -188,7 +187,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                       .privateKey(testCase.privateKey)
+                                                                                       .keyPairId(testCase.keyPairId)
                                                                                        .expirationDate(expirationDate));
 -        SdkHttpClient client = ApacheHttpClient.create();
 +        SdkHttpClient client = Apache5HttpClient.create();
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(signedUrl.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -163,7 +163,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -209,7 +208,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                           .expirationDate(expirationDate)
                                                           .activeDate(activeDate).build();
          SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
@@ -64,8 +72,8 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(signedUrl.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -183,7 +183,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
-                                                                                       .keyPairId(keyPairId)
+@@ -229,7 +228,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                       .keyPairId(rsaKeyPairId)
                                                                                        .expirationDate(expirationDate)
                                                                                        .activeDate(activeDate));
 -        SdkHttpClient client = ApacheHttpClient.create();
@@ -73,8 +81,8 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(signedUrl.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -200,7 +200,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
-                                                                                              .keyPairId(keyPairId)
+@@ -247,7 +246,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                              .keyPairId(testCase.keyPairId)
                                                                                               .expirationDate(expirationDate));
  
 -        SdkHttpClient client = ApacheHttpClient.create();
@@ -82,7 +90,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(cookies.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -221,7 +221,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -268,7 +267,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                           .expirationDate(expirationDate).build();
          CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
  
@@ -91,7 +99,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(cookies.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -240,7 +240,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -288,7 +287,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                               .expirationDate(expirationDate)
                                                                                               .activeDate(activeDate));
  
@@ -100,7 +108,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(cookies.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -263,7 +263,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -311,7 +310,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                           .activeDate(activeDate).build();
          CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
  
@@ -109,7 +117,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(cookies.createHttpGetRequest())
                                                                                 .build()).call();
-@@ -296,7 +296,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -345,7 +344,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
          URI modifiedUri = URI.create(urlWithDynamicParam);
  
  
@@ -118,7 +126,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(SdkHttpRequest.builder()
                                                                                                        .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
-@@ -332,7 +332,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -382,7 +381,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
  
  
          URI modifiedUri = URI.create(signedUrl.url().replace("/specific-file","/other-file"));
@@ -127,7 +135,7 @@ index a446417b658..91cb54ea284 100644
          HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                 .request(SdkHttpRequest.builder()
                                                                                                        .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
-@@ -367,7 +367,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+@@ -418,7 +417,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
  
  
          URI modifiedUri = URI.create(signedUrl.url().replace("/s3ObjectKey","/foo/other-file"));
@@ -239,23 +247,20 @@ index 421a031a12b..f4f4322eb57 100644
                                                     .build();
  
 diff --git a/services/pom.xml b/services/pom.xml
-index 2f0fbb22fc3..23044600d67 100644
+index cc299a618c4..31452a36bda 100644
 --- a/services/pom.xml
 +++ b/services/pom.xml
-@@ -522,9 +522,9 @@
+@@ -522,7 +522,7 @@
              <version>${awsjavasdk.version}</version>
          </dependency>
          <dependency>
 -            <artifactId>apache-client</artifactId>
 +            <artifactId>apache5-client</artifactId>
              <groupId>software.amazon.awssdk</groupId>
--            <version>${awsjavasdk.version}</version>
-+            <version>${awsjavasdk.version}-PREVIEW</version>
+             <version>${awsjavasdk.version}</version>
              <scope>runtime</scope>
-         </dependency>
-         <dependency>
 diff --git a/services/s3/pom.xml b/services/s3/pom.xml
-index 9d55ab2030a..e605ca89305 100644
+index d52b9ec937d..24ca92afa03 100644
 --- a/services/s3/pom.xml
 +++ b/services/s3/pom.xml
 @@ -197,6 +197,12 @@
