@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.21__ __2026-02-03__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch Array Job Visibility feature support. Includes new statusSummaryLastUpdatedAt for array job parent DescribeJobs responses for the last time the statusSummary was updated. Includes both statusSummary and statusSummaryLastUpdatedAt in ListJobs responses for array job parents.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Adds support for Catalog API us-east-1 dualstack endpoint catalog-marketplace.us-east-1.api.aws
+
+## __AWS Organizations__
+  - ### Features
+    - Updated the CloseAccount description.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Added new Region management APIs to support multi-Region replication in IAM Identity Center.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change supports the creation of multi-account global tables. It adds two new arguments to CreateTable, GlobalTableSourceArn and GlobalTableSettingsReplicationMode. DescribeTable is also updated to include information about GlobalTableSettingsReplicationMode.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Adds StreamId parameter to AWS Kinesis Data Streams APIs that is reserved for future use.
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - Added support for optional style parameters in maps, including 3D terrain and 3D Buildings
+
 # __2.41.20__ __2026-02-02__
 ## __AWS Multi-party Approval__
   - ### Features
