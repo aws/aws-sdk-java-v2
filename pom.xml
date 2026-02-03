@@ -109,8 +109,6 @@
         <jackson.databind.version>2.20.2</jackson.databind.version>
         <jacksonjr.version>2.20.2</jacksonjr.version>
         <jackson.annotations.version>2.20</jackson.annotations.version>
-        <awsjavasdk.previous.version>2.41.21</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.41.20</awsjavasdk.previous-previous.version>
         <jackson.version>2.18.5</jackson.version>
         <jackson.databind.version>2.18.5</jackson.databind.version>
         <jacksonjr.version>2.18.5</jacksonjr.version>
