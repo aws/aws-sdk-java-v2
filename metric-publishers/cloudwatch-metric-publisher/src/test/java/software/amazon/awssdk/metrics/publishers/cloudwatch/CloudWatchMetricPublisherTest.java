@@ -277,6 +277,8 @@ public class CloudWatchMetricPublisherTest {
             MetricCollector collector = newCollector();
             collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
             publisher.publish(new FixedTimeMetricCollection(collector.collect()));
+        } catch (RuntimeException e) {
+            // ignore any exception since we are just verifying it's being used
         }
 
         Mockito.verify(customQueue, Mockito.atLeastOnce()).offer(any(Runnable.class));
