@@ -73,7 +73,7 @@ public class JmesPathParser {
     private Expression parse() {
         ParseResult<Expression> expression = parseExpression(0, input.length());
         if (!expression.hasResult()) {
-            throw new IllegalArgumentException("Failed to parse expression.");
+            throw new IllegalArgumentException("Failed to parse expression: " + input);
         }
 
         return expression.result();
@@ -246,13 +246,22 @@ public class JmesPathParser {
         endPosition = trimRightWhitespace(startPosition, endPosition);
 
         List<Integer> bracketPositions = findCharacters(startPosition + 1, endPosition - 1, "[");
-        for (Integer bracketPosition : bracketPositions) {
+        
+        // Try bracket positions from right to left to support chaining multiple bracket specifiers
+        // e.g., listOfUnions[*][string, object.key][] should parse as:
+        //   - left: listOfUnions[*][string, object.key]
+        //   - right: []
+        // This allows the left side to be recursively parsed as another index expression
+        for (int i = bracketPositions.size() - 1; i >= 0; i--) {
+            Integer bracketPosition = bracketPositions.get(i);
             ParseResult<Expression> leftSide = parseExpression(startPosition, bracketPosition);
             if (!leftSide.hasResult()) {
                 continue;
             }
 
-            ParseResult<BracketSpecifier> rightSide = parseBracketSpecifier(bracketPosition, endPosition);
+            // Use the special bracket specifier parser that supports multi-select-lists
+            // This is safe here because we know there's a left-hand expression
+            ParseResult<BracketSpecifier> rightSide = parseBracketSpecifierWithMultiSelect(bracketPosition, endPosition);
             if (!rightSide.hasResult()) {
                 continue;
             }
@@ -270,6 +279,74 @@ public class JmesPathParser {
     private ParseResult<MultiSelectList> parseMultiSelectList(int startPosition, int endPosition) {
         return parseMultiSelect(startPosition, endPosition, '[', ']', this::parseExpression)
             .mapResult(MultiSelectList::new);
+    }
+
+    /**
+     * Parse multi-select-list content without the surrounding brackets.
+     * Used when parsing bracket specifier contents like [string, object.key] or [string]
+     * This parses: expression *( "," expression )
+     */
+    private ParseResult<MultiSelectList> parseMultiSelectListContent(int startPosition, int endPosition) {
+        startPosition = trimLeftWhitespace(startPosition, endPosition);
+        endPosition = trimRightWhitespace(startPosition, endPosition);
+
+        List<Integer> commaPositions = findCharacters(startPosition, endPosition, ",");
+
+        // Single expression case (no commas)
+        if (commaPositions.isEmpty()) {
+            ParseResult<Expression> singleExpr = parseExpression(startPosition, endPosition);
+            if (!singleExpr.hasResult()) {
+                return ParseResult.error();
+            }
+            return ParseResult.success(new MultiSelectList(Collections.singletonList(singleExpr.result())));
+        }
+
+        // Multiple expressions separated by commas
+        List<Expression> expressions = new ArrayList<>();
+
+        // Find first valid entry before a comma
+        int startOfSecondEntry = -1;
+        for (Integer comma : commaPositions) {
+            ParseResult<Expression> result = parseExpression(startPosition, comma);
+            if (!result.hasResult()) {
+                continue;
+            }
+
+            expressions.add(result.result());
+            startOfSecondEntry = comma + 1;
+            break;
+        }
+
+        if (expressions.size() == 0) {
+            logError("multi-select-list-content", "Invalid value", startPosition);
+            return ParseResult.error();
+        }
+
+        // Find any subsequent entries
+        int startPositionAfterComma = startOfSecondEntry;
+        for (Integer commaPosition : commaPositions) {
+            if (startPositionAfterComma > commaPosition) {
+                continue;
+            }
+
+            ParseResult<Expression> entry = parseExpression(startPositionAfterComma, commaPosition);
+            if (!entry.hasResult()) {
+                continue;
+            }
+
+            expressions.add(entry.result());
+            startPositionAfterComma = commaPosition + 1;
+        }
+
+        // Parse the last entry after the final comma
+        ParseResult<Expression> entry = parseExpression(startPositionAfterComma, endPosition);
+        if (!entry.hasResult()) {
+            logError("multi-select-list-content", "Invalid final entry", startPositionAfterComma);
+            return ParseResult.error();
+        }
+        expressions.add(entry.result());
+
+        return ParseResult.success(new MultiSelectList(expressions));
     }
 
     /**
@@ -407,6 +484,39 @@ public class JmesPathParser {
         return CompositeParser.firstTry(this::parseNumber, BracketSpecifier::withNumberContents)
                               .thenTry(this::parseWildcardExpression, BracketSpecifier::withWildcardExpressionContents)
                               .thenTry(this::parseSliceExpression, BracketSpecifier::withSliceExpressionContents)
+                              .parse(startPosition + 1, endPosition - 1);
+    }
+
+    /**
+     * bracket-specifier-with-multiselect = "[" multi-select-list-content "]"
+     * This is a special case for bracket specifiers that can contain multi-select-lists,
+     * only used when there's a left-hand expression (to avoid conflicting with standalone multi-select-lists).
+     */
+    private ParseResult<BracketSpecifier> parseBracketSpecifierWithMultiSelect(int startPosition, int endPosition) {
+        startPosition = trimLeftWhitespace(startPosition, endPosition);
+        endPosition = trimRightWhitespace(startPosition, endPosition);
+
+        if (!startsAndEndsWith(startPosition, endPosition, '[', ']')) {
+            logError("bracket-specifier-with-multiselect", "Expecting '[' and ']'", startPosition);
+            return ParseResult.error();
+        }
+
+        // "[]"
+        if (charsInRange(startPosition, endPosition) == 2) {
+            return ParseResult.success(BracketSpecifier.withoutContents());
+        }
+
+        // "[?" expression "]"
+        if (input.charAt(startPosition + 1) == '?') {
+            return parseExpression(startPosition + 2, endPosition - 1)
+                .mapResult(e -> BracketSpecifier.withQuestionMark(new BracketSpecifierWithQuestionMark(e)));
+        }
+
+        // "[" (number / "*" / slice-expression / multi-select-list-content) "]"
+        return CompositeParser.firstTry(this::parseNumber, BracketSpecifier::withNumberContents)
+                              .thenTry(this::parseWildcardExpression, BracketSpecifier::withWildcardExpressionContents)
+                              .thenTry(this::parseSliceExpression, BracketSpecifier::withSliceExpressionContents)
+                              .thenTry(this::parseMultiSelectListContent, BracketSpecifier::withMultiSelectListContents)
                               .parse(startPosition + 1, endPosition - 1);
     }
 
