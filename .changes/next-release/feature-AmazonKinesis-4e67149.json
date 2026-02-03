@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis",
+    "contributor": "",
+    "description": "Adds StreamId parameter to AWS Kinesis Data Streams APIs that is reserved for future use."
+}
