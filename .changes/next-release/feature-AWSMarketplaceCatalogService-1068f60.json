@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "contributor": "",
+    "description": "Adds support for Catalog API us-east-1 dualstack endpoint catalog-marketplace.us-east-1.api.aws"
+}
