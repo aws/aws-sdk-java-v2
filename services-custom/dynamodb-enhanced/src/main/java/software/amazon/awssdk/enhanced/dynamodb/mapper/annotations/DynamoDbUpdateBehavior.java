@@ -31,6 +31,10 @@ import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
  * {@link IgnoreNullsMode#SCALAR_ONLY}. In {@link IgnoreNullsMode#MAPS_ONLY} or {@link IgnoreNullsMode#DEFAULT},
  * the annotation has no effect. When applied to a list of nested objects, the annotation is not supported,
  * as individual elements cannot be updated — the entire list is replaced during an update operation.
+ * <p>
+ * Note: This annotation must not be applied to fields whose names contain the reserved marker "_NESTED_ATTR_UPDATE_".
+ * This marker is used internally by the Enhanced Client to represent flattened paths for nested attribute updates.
+ * If a field name contains this marker, an IllegalArgumentException will be thrown during schema registration.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

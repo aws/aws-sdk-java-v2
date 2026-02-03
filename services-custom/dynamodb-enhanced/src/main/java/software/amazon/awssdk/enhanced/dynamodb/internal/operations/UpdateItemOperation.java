@@ -171,6 +171,7 @@ public class UpdateItemOperation<T>
         Map<String, AttributeValue> nestedAttributes = new HashMap<>();
         
         itemToMap.forEach((key, value) -> {
+            validateAttributeName(key);
             if (value.hasM() && isNotEmptyMap(value.m())) {
                 nestedAttributes.put(key, value);
             }
@@ -192,8 +193,9 @@ public class UpdateItemOperation<T>
                                  String key,
                                  AttributeValue attributeValue) {
         attributeValue.m().forEach((mapKey, mapValue) -> {
-            String nestedAttributeKey = key + NESTED_OBJECT_UPDATE + mapKey;
+            validateAttributeName(mapKey);
             if (attributeValueNonNullOrShouldWriteNull(mapValue)) {
+                String nestedAttributeKey = key + NESTED_OBJECT_UPDATE + mapKey;
                 if (mapValue.hasM()) {
                     nestedItemToMap(itemToMap, nestedAttributeKey, mapValue);
                 } else {
@@ -354,5 +356,13 @@ public class UpdateItemOperation<T>
             expressionValues = Expression.joinValues(expressionValues, secondExpression.expressionValues());
         }
         return expressionValues;
+    }
+
+    private static void validateAttributeName(String attributeName) {
+        if (attributeName.contains(NESTED_OBJECT_UPDATE)) {
+            throw new IllegalArgumentException(
+                String.format("Attribute name '%s' contains reserved marker '%s' and is not allowed.",
+                              attributeName, NESTED_OBJECT_UPDATE));
+        }
     }
 }
