@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.20__ __2026-02-02__
+## __AWS Multi-party Approval__
+  - ### Features
+    - Updates to multi-party approval (MPA) service to add support for multi-factor authentication (MFA) for voting operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds tagging support for AgentCore Evaluations (evaluator and online evaluation config)
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add OriginMTLS support to CloudFront Distribution APIs
+
 # __2.41.19__ __2026-01-30__
 ## __AWS S3 AccessGrants__
   - ### Features
