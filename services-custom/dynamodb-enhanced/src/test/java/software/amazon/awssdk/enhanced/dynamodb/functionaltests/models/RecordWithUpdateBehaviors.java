@@ -41,7 +41,7 @@ public class RecordWithUpdateBehaviors {
     private Instant formattedLastAutoUpdatedOn;
     private NestedRecordWithUpdateBehavior nestedRecord;
     private String key;
-    private List<NestedRecordListElement> nestedRecordList;
+    private List<TimestampListElement> nestedRecordList;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -136,9 +136,9 @@ public class RecordWithUpdateBehaviors {
         this.nestedRecord = nestedRecord;
     }
 
-    public List<NestedRecordListElement> getNestedRecordList() { return nestedRecordList;}
+    public List<TimestampListElement> getNestedRecordList() { return nestedRecordList;}
 
-    public void setNestedRecordList(List<NestedRecordListElement> nestedRecordList) {
+    public void setNestedRecordList(List<TimestampListElement> nestedRecordList) {
         this.nestedRecordList = nestedRecordList;
     }
 }

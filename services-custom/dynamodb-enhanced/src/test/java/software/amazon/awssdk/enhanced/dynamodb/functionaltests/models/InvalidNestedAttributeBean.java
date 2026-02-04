@@ -15,63 +15,73 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import java.time.Instant;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior.WRITE_IF_NOT_EXISTS;
 
-public class RecordWithInvalidAttributeNameOnNestedLevel {
+import java.time.Instant;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
+
+@DynamoDbBean
+public class InvalidNestedAttributeBean {
 
     private String id;
-    private RecordWithReservedMarkerNestedChildAttribute nestedChildAttribute;
+    private InvalidNestedAttributeChild nestedChildAttribute;
 
+    @DynamoDbPartitionKey
     public String getId() {
         return id;
     }
 
-    public RecordWithInvalidAttributeNameOnNestedLevel setId(String id) {
+    public InvalidNestedAttributeBean setId(String id) {
         this.id = id;
         return this;
     }
 
-    public RecordWithReservedMarkerNestedChildAttribute getNestedChildAttribute() {
+    public InvalidNestedAttributeChild getNestedChildAttribute() {
         return nestedChildAttribute;
     }
 
-    public RecordWithInvalidAttributeNameOnNestedLevel setNestedChildAttribute(
-        RecordWithReservedMarkerNestedChildAttribute nestedChildAttribute) {
+    public InvalidNestedAttributeBean setNestedChildAttribute(
+        InvalidNestedAttributeChild nestedChildAttribute) {
         this.nestedChildAttribute = nestedChildAttribute;
         return this;
     }
 
 
-    public static class RecordWithReservedMarkerNestedChildAttribute {
+    @DynamoDbBean
+    public static class InvalidNestedAttributeChild {
 
         private String id;
-        private RecordWithReservedMarkerNestedChildAttribute nestedChildAttribute;
+        private InvalidNestedAttributeChild nestedChildAttribute;
         private Instant childAttr_NESTED_ATTR_UPDATE_;
 
+        @DynamoDbPartitionKey
         public String getId() {
             return id;
         }
 
-        public RecordWithReservedMarkerNestedChildAttribute setId(String id) {
+        public InvalidNestedAttributeChild setId(String id) {
             this.id = id;
             return this;
         }
 
-        public RecordWithReservedMarkerNestedChildAttribute getNestedChildAttribute() {
+        public InvalidNestedAttributeChild getNestedChildAttribute() {
             return nestedChildAttribute;
         }
 
-        public RecordWithReservedMarkerNestedChildAttribute setNestedChildAttribute(
-            RecordWithReservedMarkerNestedChildAttribute nestedChildAttribute) {
+            public InvalidNestedAttributeChild setNestedChildAttribute(
+            InvalidNestedAttributeChild nestedChildAttribute) {
             this.nestedChildAttribute = nestedChildAttribute;
             return this;
         }
 
+        @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
         public Instant getAttr_NESTED_ATTR_UPDATE_() {
             return childAttr_NESTED_ATTR_UPDATE_;
         }
 
-        public RecordWithReservedMarkerNestedChildAttribute setAttr_NESTED_ATTR_UPDATE_(Instant attr_NESTED_ATTR_UPDATE_) {
+        public InvalidNestedAttributeChild setAttr_NESTED_ATTR_UPDATE_(Instant attr_NESTED_ATTR_UPDATE_) {
             this.childAttr_NESTED_ATTR_UPDATE_ = attr_NESTED_ATTR_UPDATE_;
             return this;
         }

@@ -23,7 +23,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordListElement;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.TimestampListElement;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -37,7 +37,7 @@ public class NestedRecordUtilsTest {
         TableSchema<?> childSchema = getTableSchemaForListElement(parentSchema, "nestedRecordList");
 
         Assertions.assertNotNull(childSchema);
-        Assertions.assertEquals(TableSchema.fromBean(NestedRecordListElement.class), childSchema);
+        Assertions.assertEquals(TableSchema.fromBean(TimestampListElement.class), childSchema);
     }
 
     @Test

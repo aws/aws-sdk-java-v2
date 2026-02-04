@@ -17,7 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
 import java.time.Instant;
 
-public class RecordWithInvalidAttributeNameOnRoot {
+public class InvalidRootAttributeRecord {
 
     private String id;
     private Instant attr_NESTED_ATTR_UPDATE_;
@@ -26,7 +26,7 @@ public class RecordWithInvalidAttributeNameOnRoot {
         return id;
     }
 
-    public RecordWithInvalidAttributeNameOnRoot setId(String id) {
+    public InvalidRootAttributeRecord setId(String id) {
         this.id = id;
         return this;
     }
@@ -35,7 +35,7 @@ public class RecordWithInvalidAttributeNameOnRoot {
         return attr_NESTED_ATTR_UPDATE_;
     }
 
-    public RecordWithInvalidAttributeNameOnRoot setAttr_NESTED_ATTR_UPDATE_(Instant attr_NESTED_ATTR_UPDATE_) {
+    public InvalidRootAttributeRecord setAttr_NESTED_ATTR_UPDATE_(Instant attr_NESTED_ATTR_UPDATE_) {
         this.attr_NESTED_ATTR_UPDATE_ = attr_NESTED_ATTR_UPDATE_;
         return this;
     }

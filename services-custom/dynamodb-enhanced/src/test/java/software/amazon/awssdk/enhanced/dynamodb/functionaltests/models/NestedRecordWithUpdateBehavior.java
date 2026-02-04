@@ -36,7 +36,7 @@ public class NestedRecordWithUpdateBehavior {
     private Long nestedCounter;
     private NestedRecordWithUpdateBehavior nestedRecord;
     private String attribute;
-    private List<NestedRecordListElement> nestedRecordList;
+    private List<TimestampListElement> nestedRecordList;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -109,9 +109,9 @@ public class NestedRecordWithUpdateBehavior {
         this.attribute = attribute;
     }
 
-    public List<NestedRecordListElement> getNestedRecordList() { return nestedRecordList;}
+    public List<TimestampListElement> getNestedRecordList() { return nestedRecordList;}
 
-    public void setNestedRecordList(List<NestedRecordListElement> nestedRecordList) {
+    public void setNestedRecordList(List<TimestampListElement> nestedRecordList) {
         this.nestedRecordList = nestedRecordList;
     }
 }
