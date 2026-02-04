@@ -70,7 +70,10 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public String transformTo(AttributeValue input) {
-        return Visitor.toString(input);
+        if (input.s() != null) {
+            return input.s();
+        }
+        return EnhancedAttributeValue.fromAttributeValue(input).convert(Visitor.INSTANCE);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<String> {
