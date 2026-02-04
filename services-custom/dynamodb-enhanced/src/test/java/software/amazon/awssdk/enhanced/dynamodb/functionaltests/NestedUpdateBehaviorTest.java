@@ -100,7 +100,7 @@ public class NestedUpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         table.updateItem(r -> r.item(result).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
 
         SimpleBeanWithList updated = table.getItem(r -> r.key(k -> k.partitionValue("1")));
-        assertThat(updated.getAttr()).isEqualTo("updated_level1"); // should NOT change
+        assertThat(updated.getAttr()).isEqualTo("attr_level1"); // should NOT change
 
         table.deleteTable();
     }
