@@ -165,10 +165,10 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         }
 
         // if any operation has operationContextParams then we must include jmesPathRuntime
-        return  model.getOperations().values().stream()
-                .anyMatch(op -> {
-                    Map<String, ?> opContextParams = op.getOperationContextParams();
-                    return opContextParams != null && !opContextParams.isEmpty();
-                });
+        return model.getOperations().values().stream()
+                    .anyMatch(op -> {
+                        Map<String, ?> opContextParams = op.getOperationContextParams();
+                        return opContextParams != null && !opContextParams.isEmpty();
+                    });
     }
 }
