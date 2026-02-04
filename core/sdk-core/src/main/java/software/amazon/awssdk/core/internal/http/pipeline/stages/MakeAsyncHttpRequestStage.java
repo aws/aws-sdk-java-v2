@@ -132,9 +132,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
-        SdkHttpContentPublisher requestProvider = context.requestProvider() == null
+        SdkHttpContentPublisher basePublisher = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
-                                                  : createTrackingContentPublisher(context);
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
+        SdkHttpContentPublisher requestProvider = wrapWithMetricsTracking(basePublisher, context);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -222,10 +223,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                executionAttributes.getAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX);
     }
 
-    private SdkHttpContentPublisher createTrackingContentPublisher(RequestExecutionContext context) {
+    private SdkHttpContentPublisher wrapWithMetricsTracking(SdkHttpContentPublisher publisher,
+                                                            RequestExecutionContext context) {
         RequestBodyMetrics metrics = context.executionAttributes()
             .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
-        return new SdkHttpContentPublisherAdapter(context.requestProvider(), metrics);
+        return new TrackingHttpContentPublisher(publisher, metrics);
     }
 
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpContentPublisher requestProvider) {
@@ -271,18 +273,38 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      * {@link SdkHttpContentPublisher} which the HTTP client SPI expects.
      */
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
-
         private final AsyncRequestBody asyncRequestBody;
-        private final Publisher<ByteBuffer> trackingPublisher;
 
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody, RequestBodyMetrics metrics) {
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
             this.asyncRequestBody = asyncRequestBody;
-            this.trackingPublisher = new BytesWrittenTrackingPublisher(asyncRequestBody, metrics);
         }
 
         @Override
         public Optional<Long> contentLength() {
             return asyncRequestBody.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            asyncRequestBody.subscribe(s);
+        }
+    }
+
+    /**
+     * Wraps an {@link SdkHttpContentPublisher} with write throughput tracking.
+     */
+    private static final class TrackingHttpContentPublisher implements SdkHttpContentPublisher {
+        private final SdkHttpContentPublisher delegate;
+        private final Publisher<ByteBuffer> trackingPublisher;
+
+        private TrackingHttpContentPublisher(SdkHttpContentPublisher delegate, RequestBodyMetrics metrics) {
+            this.delegate = delegate;
+            this.trackingPublisher = new BytesWrittenTrackingPublisher(delegate, metrics);
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return delegate.contentLength();
         }
 
         @Override

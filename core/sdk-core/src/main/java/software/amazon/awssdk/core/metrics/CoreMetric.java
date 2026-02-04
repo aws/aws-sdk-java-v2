@@ -158,14 +158,17 @@ public final class CoreMetric {
 
     /**
      * The write throughput of the client, defined as
-     * {@code RequestBytesWritten / (LastByteWrittenTime - FirstByteWrittenTime)},
-     * where FirstByteWrittenTime is when the first byte is read from the request body and LastByteWrittenTime is when
-     * the last byte is read. This value is in bytes per second.
+     * {@code RequestBytesWritten / (LastByteWrittenTime - FirstByteWrittenTime)}.
+     * This value is in bytes per second.
      * <p>
-     * This metric measures the rate at which bytes are read from the request body stream. It excludes connection setup,
-     * TLS handshake time, and server processing time.
+     * This metric measures the rate at which the SDK provides the request body to the HTTP client.
+     * It excludes connection setup, TLS handshake time, and server processing time.
      * <p>
-     * Note: This metric does not account for buffering in  the HTTP client layer. The actual network transmission rate may
+     * Note: This metric only measures the request body, not HTTP headers. For requests with small
+     * payloads where the body size is comparable to the headers size, this metric may not accurately
+     * reflect overall network throughput.
+     * <p>
+     * Note: This metric does not account for buffering in the HTTP client layer. The actual network transmission rate may
      * be lower if the HTTP client buffers data before sending. This metric represents an upper bound of the network
      * throughput.
      * <p>

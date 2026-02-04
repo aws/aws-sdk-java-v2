@@ -102,4 +102,23 @@ public class SyncWriteThroughputMetricTest {
         List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
         assertThat(writeThroughputValues).isEmpty();
     }
+
+    @Test
+    public void nonStreamingOperation_withRequestBody_writeThroughputReported() {
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse().withStatus(200).withBody("{}")));
+
+        client.allTypes(r -> r.stringMember("test"));
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(mockPublisher).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<MetricCollection> attemptMetrics = capturedCollection.children();
+
+        assertThat(attemptMetrics).hasSize(1);
+        List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
+        assertThat(writeThroughputValues).hasSize(1);
+        assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
+    }
 }
