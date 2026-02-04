@@ -251,7 +251,7 @@ public class JmesPathParser {
         // e.g., listOfUnions[*][string, object.key][] should parse as:
         //   - left: listOfUnions[*][string, object.key]
         //   - right: []
-        // This allows the left side to be recursively parsed as another index expression
+        // This allows both the left and right side to be recursively parsed
         for (int i = bracketPositions.size() - 1; i >= 0; i--) {
             Integer bracketPosition = bracketPositions.get(i);
             ParseResult<Expression> leftSide = parseExpression(startPosition, bracketPosition);
@@ -259,9 +259,8 @@ public class JmesPathParser {
                 continue;
             }
 
-            // Use the special bracket specifier parser that supports multi-select-lists
-            // This is safe here because we know there's a left-hand expression
-            ParseResult<BracketSpecifier> rightSide = parseBracketSpecifierWithMultiSelect(bracketPosition, endPosition);
+            // we know there is a left hand expression and that the Rhs is a bracketSpecifier
+            ParseResult<BracketSpecifier> rightSide = parseBracketSpecifierWithLhsExpression(bracketPosition, endPosition);
             if (!rightSide.hasResult()) {
                 continue;
             }
@@ -488,11 +487,10 @@ public class JmesPathParser {
     }
 
     /**
+     * This is a special case for bracket specifiers with a left-hand expression and which can contain multi-select-lists.
      * bracket-specifier-with-multiselect = "[" multi-select-list-content "]"
-     * This is a special case for bracket specifiers that can contain multi-select-lists,
-     * only used when there's a left-hand expression (to avoid conflicting with standalone multi-select-lists).
      */
-    private ParseResult<BracketSpecifier> parseBracketSpecifierWithMultiSelect(int startPosition, int endPosition) {
+    private ParseResult<BracketSpecifier> parseBracketSpecifierWithLhsExpression(int startPosition, int endPosition) {
         startPosition = trimLeftWhitespace(startPosition, endPosition);
         endPosition = trimRightWhitespace(startPosition, endPosition);
 

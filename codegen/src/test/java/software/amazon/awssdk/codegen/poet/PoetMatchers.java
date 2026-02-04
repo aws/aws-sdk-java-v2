@@ -95,7 +95,7 @@ public final class PoetMatchers {
         }
     }
 
-    public static String generateClass(ClassSpec spec) {
+    private static String generateClass(ClassSpec spec) {
         StringBuilder output = new StringBuilder();
         try {
             buildJavaFile(spec).writeTo(output);
