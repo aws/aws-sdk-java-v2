@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.22__ __2026-02-04__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports SRT listener mode for inputs and outputs, in addition to the existing SRT caller mode.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for structured outputs to Converse and ConverseStream APIs.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect Cases now supports larger, multi-line text fields with up to 4,100 characters. Administrators can use the Admin UI to select the appropriate configuration (single-line or multi-line) on a per-field basis, improving case documentation capabilities.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Update delete cluster description
+
+## __Amazon Redshift__
+  - ### Features
+    - We have increased the maximum duration for a deferred maintenance window from 45 days to 60 days for Amazon Redshift provisioned clusters. This enhancement provides customers with greater flexibility in scheduling patching and maintenance activities while also maintaining security compliance.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Support for configuring and managing custom domain names for WorkSpaces Secure Browser portals.
+
+## __CloudWatch Metric Publisher__
+  - ### Features
+    - Add `taskQueue` configuration option to `CloudWatchMetricPublisher.Builder` to allow customizing the internal executor queue. This enables high-throughput applications to use a larger queue to prevent dropped metrics.
+
 # __2.41.21__ __2026-02-03__
 ## __AWS Batch__
   - ### Features
