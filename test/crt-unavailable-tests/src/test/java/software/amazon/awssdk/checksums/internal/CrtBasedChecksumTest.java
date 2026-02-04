@@ -35,7 +35,7 @@ class CrtBasedChecksumTest {
 
     @Test
     void createCrtBased32CWithoutCrtDependency(){
-        assertNull(CrcChecksumProvider.createCrtCrc32C());
+        assertNull(ChecksumProvider.createCrtCrc32C());
     }
 
 }
