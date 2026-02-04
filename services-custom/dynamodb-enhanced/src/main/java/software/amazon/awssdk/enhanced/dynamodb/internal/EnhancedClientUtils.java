@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -203,5 +204,25 @@ public final class EnhancedClientUtils {
      */
     public static boolean isNullAttributeValue(AttributeValue attributeValue) {
         return attributeValue.nul() != null && attributeValue.nul();
+    }
+
+    /**
+     * Retrieves the {@link TableSchema} for a nested attribute within the given parent schema. When the attribute is a
+     * parameterized type (e.g., List<?>), it retrieves the schema of the first type parameter. Otherwise, it retrieves the schema
+     * directly from the attribute's enhanced type.
+     *
+     * @param parentSchema  the schema of the parent bean class
+     * @param attributeName the name of the nested attribute
+     * @return an {@link Optional} containing the nested attribute's {@link TableSchema}, or empty if unavailable
+     */
+    public static Optional<? extends TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, String attributeName) {
+        EnhancedType<?> enhancedType = parentSchema.converterForAttribute(attributeName).type();
+        List<EnhancedType<?>> rawClassParameters = enhancedType.rawClassParameters();
+
+        if (rawClassParameters != null && !rawClassParameters.isEmpty()) {
+            enhancedType = rawClassParameters.get(0);
+        }
+
+        return enhancedType.tableSchema();
     }
 }
