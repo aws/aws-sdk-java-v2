@@ -132,7 +132,7 @@ public class UpdateItemOperation<T>
         Map<String, AttributeValue> keyAttributes = filterMap(itemMap, entry -> primaryKeys.contains(entry.getKey()));
         Map<String, AttributeValue> nonKeyAttributes = filterMap(itemMap, entry -> !primaryKeys.contains(entry.getKey()));
 
-        Expression updateExpression = generateUpdateExpressionIfExist(tableSchema, transformation, nonKeyAttributes);
+        Expression updateExpression = generateUpdateExpressionIfExist(tableMetadata, transformation, nonKeyAttributes);
         Expression conditionExpression = generateConditionExpressionIfExist(transformation, request);
 
         Map<String, String> expressionNames = coalesceExpressionNames(updateExpression, conditionExpression);
@@ -171,7 +171,6 @@ public class UpdateItemOperation<T>
         Map<String, AttributeValue> nestedAttributes = new HashMap<>();
         
         itemToMap.forEach((key, value) -> {
-            validateAttributeName(key);
             if (value.hasM() && isNotEmptyMap(value.m())) {
                 nestedAttributes.put(key, value);
             }
@@ -193,9 +192,8 @@ public class UpdateItemOperation<T>
                                  String key,
                                  AttributeValue attributeValue) {
         attributeValue.m().forEach((mapKey, mapValue) -> {
-            validateAttributeName(mapKey);
+            String nestedAttributeKey = key + NESTED_OBJECT_UPDATE + mapKey;
             if (attributeValueNonNullOrShouldWriteNull(mapValue)) {
-                String nestedAttributeKey = key + NESTED_OBJECT_UPDATE + mapKey;
                 if (mapValue.hasM()) {
                     nestedItemToMap(itemToMap, nestedAttributeKey, mapValue);
                 } else {
@@ -277,7 +275,7 @@ public class UpdateItemOperation<T>
      * if there are attributes to be updated (most likely). If both exist, they are merged and the code generates a final
      * Expression that represent the result.
      */
-    private Expression generateUpdateExpressionIfExist(TableSchema<T> tableSchema,
+    private Expression generateUpdateExpressionIfExist(TableMetadata tableMetadata,
                                                        WriteModification transformation,
                                                        Map<String, AttributeValue> attributes) {
         UpdateExpression updateExpression = null;
@@ -286,7 +284,7 @@ public class UpdateItemOperation<T>
         }
         if (!attributes.isEmpty()) {
             List<String> nonRemoveAttributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
-            UpdateExpression operationUpdateExpression = operationExpression(attributes, tableSchema, nonRemoveAttributes);
+            UpdateExpression operationUpdateExpression = operationExpression(attributes, tableMetadata, nonRemoveAttributes);
             if (updateExpression == null) {
                 updateExpression = operationUpdateExpression;
             } else {
@@ -356,13 +354,5 @@ public class UpdateItemOperation<T>
             expressionValues = Expression.joinValues(expressionValues, secondExpression.expressionValues());
         }
         return expressionValues;
-    }
-
-    private static void validateAttributeName(String attributeName) {
-        if (attributeName.contains(NESTED_OBJECT_UPDATE)) {
-            throw new IllegalArgumentException(
-                String.format("Attribute name '%s' contains reserved marker '%s' and is not allowed.",
-                              attributeName, NESTED_OBJECT_UPDATE));
-        }
     }
 }
