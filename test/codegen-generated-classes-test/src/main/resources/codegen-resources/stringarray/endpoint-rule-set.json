@@ -2,10 +2,16 @@
   "version": "1.0",
   "parameters": {
     "stringArrayParam": {
-      "type": "stringArray",
+      "type": "StringArray",
       "required": true,
       "default": ["defaultValue1", "defaultValue2"],
-      "documentation": "docs"
+      "documentation": "StringArray test parameters"
+    },
+    "Region": {
+      "builtIn": "AWS::Region",
+      "required": true,
+      "documentation": "The AWS region used to dispatch the request.",
+      "type": "String"
     }
   },
   "rules": [
@@ -24,7 +30,16 @@
         }
       ],
       "endpoint": {
-        "url": "https://example.com/{arrayValue}"
+        "url": "https://example.com/{arrayValue}",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "{Region}",
+              "signingName": "stringarray"
+            }
+          ]
+        }
       },
       "type": "endpoint"
     },
