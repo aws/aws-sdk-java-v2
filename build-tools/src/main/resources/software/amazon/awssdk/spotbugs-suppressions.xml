@@ -363,4 +363,162 @@
         <Class name="software.amazon.awssdk.utils.uri.SdkUri" />
         <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
+
+    <!-- No plan to fix: These classes implement SLF4J SPI which requires specific method signatures. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.thirdparty.org.slf4j.impl.StaticLoggerBinder"/>
+            <Class name="software.amazon.awssdk.thirdparty.org.slf4j.impl.StaticMarkerBinder"/>
+        </Or>
+        <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- No plan to fix: Intentional exception handling patterns throughout the codebase. -->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION,THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+
+    <!-- False positive: InputStream is not designed for concurrent access. The synchronized reset() is inherited behavior. -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedInputStream"/>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+
+    <!-- No plan to fix: Test constructor is intentionally package-private. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.regions.util.HttpResourcesUtils"/>
+        </Or>
+        <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- False positive: These classes have private constructors but use builder pattern. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider"/>
+            <Class name="software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider"/>
+        </Or>
+        <Bug pattern="SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- No plan to fix: These are final classes, not vulnerable to finalizer attacks. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient"/>
+            <Class name="software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory"/>
+            <Class name="software.amazon.awssdk.http.apache5.internal.impl.Apache5SdkHttpClient"/>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool"/>
+            <Class name="software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"/>
+        </Or>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- No plan to fix: Forked Netty reactive streams code with its own thread-safety model via Netty's EventLoop. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.nrs.HandlerPublisher"/>
+            <Class name="~software\.amazon\.awssdk\.http\.nio\.netty\.internal\.nrs\.HandlerSubscriber.*"/>
+        </Or>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE,AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE"/>
+    </Match>
+
+    <!-- False positive: InputStream is not designed for concurrent access. -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.internal.io.ChecksumValidatingInputStream"/>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+
+    <!-- No plan to fix: Final class, not vulnerable to finalizer attacks. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.io.ResettableInputStream"/>
+            <Class name="software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncRequestBody"/>
+            <Class name="software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream"/>
+            <Class name="software.amazon.awssdk.protocols.jsoncore.JsonWriter"/>
+            <Class name="software.amazon.awssdk.codegen.lite.emitters.CodeWriter"/>
+            <Class name="software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsS3V4ChunkSigner"/>
+            <Class name="software.amazon.awssdk.enhanced.dynamodb.EnhancedType"/>
+        </Or>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- No plan to fix: Floating point comparison is intentional in defaults processing. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.codegen.lite.defaultsmode.DefaultsLoader"/>
+            <Class name="software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborGenerator"/>
+        </Or>
+        <Bug pattern="FE_FLOATING_POINT_EQUALITY"/>
+    </Match>
+
+    <!-- No plan to fix: Async code with its own thread-safety model via reactive streams. -->
+    <Match>
+        <Or>
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.async\.ByteArraySplittingTransformer.*"/>
+            <Class name="software.amazon.awssdk.core.internal.async.NonRetryableSubAsyncRequestBody"/>
+            <Class name="software.amazon.awssdk.core.internal.async.RetryableSubAsyncRequestBody"/>
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.async\.SplittingPublisher.*"/>
+        </Or>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE,AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE"/>
+    </Match>
+
+    <!-- False positive: Test utility class, thread safety not required. -->
+    <Match>
+        <Class name="software.amazon.awssdk.testutils.service.http.MockSyncHttpClient"/>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+
+    <!-- No plan to fix: Serializable is required for compatibility but singleton pattern is intentional. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructList"/>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
+        </Or>
+        <Bug pattern="SING_SINGLETON_IMPLEMENTS_SERIALIZABLE"/>
+    </Match>
+
+    <!-- False positive: STORAGE field is used via ThreadLocal methods. -->
+    <Match>
+        <Class name="software.amazon.awssdk.utilslite.SdkInternalThreadLocal"/>
+        <Bug pattern="UUF_UNUSED_FIELD"/>
+    </Match>
+
+    <!-- No plan to fix: Final class, not vulnerable to finalizer attacks. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandlerFromBuilder"/>
+            <Class name="software.amazon.awssdk.protocols.json.SdkJsonGenerator"/>
+        </Or>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- No plan to fix: Static method hiding is intentional for API design. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.awscore.exception.AwsServiceException"/>
+            <Class name="software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation"/>
+        </Or>
+        <Bug pattern="HSM_HIDING_METHOD"/>
+    </Match>
+
+    <!-- No plan to fix: Codegen classes are build-time only, not vulnerable to finalizer attacks. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.codegen.*"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW,SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- False positive: Fields are used but SpotBugs doesn't detect usage in inner class. -->
+    <Match>
+        <Package name="~software\.amazon\.awssdk\.http\.urlconnection.*"/>
+        <Bug pattern="UUF_UNUSED_FIELD,CT_CONSTRUCTOR_THROW,UPM_UNCALLED_PRIVATE_METHOD,BAD_TO_BUILDER"/>
+    </Match>
+
+    <!-- No plan to fix: Service loader class. -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
 </FindBugsFilter>

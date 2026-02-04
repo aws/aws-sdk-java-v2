@@ -29,6 +29,9 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 public final class DefaultAwsV4aAuthScheme implements AwsV4aAuthScheme {
     private static final DefaultAwsV4aAuthScheme DEFAULT = new DefaultAwsV4aAuthScheme();
 
+    private DefaultAwsV4aAuthScheme() {
+    }
+
     /**
      * Returns an instance of the {@link DefaultAwsV4aAuthScheme}.
      */
