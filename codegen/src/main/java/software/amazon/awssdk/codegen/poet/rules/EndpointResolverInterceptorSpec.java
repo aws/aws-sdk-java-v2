@@ -559,9 +559,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 String setterName = endpointRulesSpecUtils.paramMethodName(key);
 
                 String jmesPathString = ((JrsString) value.getPath()).getValue();
-                OperationContextParamsGenerator gen = new OperationContextParamsGenerator(jmesPathString, opModel);
-                CodeBlock newAddParam = gen.generate(); // TODO: This is the new codeblock we must generate, it should replace
-                // the below
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
                                               .add(jmesPathGenerator.interpret(jmesPathString, "input"))
