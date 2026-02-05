@@ -79,6 +79,8 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
                                               .doAfterClose(() -> responseHandlerHelper.closeStream())
                                               .build();
             simplePublisher.subscribe(inputStreamSubscriber);
+            // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
+            // the stream directly.
             responseBuilder.content(AbortableInputStream.create(inputStreamSubscriber));
             requestCompletionFuture.complete(responseBuilder.build());
         }
@@ -86,6 +88,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         CompletableFuture<Void> writeFuture = simplePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
         if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
+            // Optimization: If write succeeded immediately, return non-zero to avoid the extra call back into the CRT.
             return bodyBytesIn.length;
         }
 
@@ -100,6 +103,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             responseHandlerHelper.incrementWindow(bodyBytesIn.length);
         });
 
+        // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
         return 0;
     }
 
@@ -120,7 +124,11 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     }
 
     private void onSuccessfulResponseComplete() {
+        // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
+        // in onResponseComplete callback since onResponseBody will never be invoked.
+
         requestCompletionFuture.complete(responseBuilder.build());
+        // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
         responseHandlerHelper.closeStream();
     }

@@ -129,7 +129,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>1.0.0-SNAPSHOT</awscrt.version>
+        <awscrt.version>0.43.1</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>

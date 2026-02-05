@@ -59,6 +59,9 @@ public final class CrtAsyncRequestExecutor {
         long acquireStartTime = 0;
 
         if (shouldPublishMetrics) {
+            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
+            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
+            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
             acquireStartTime = System.nanoTime();
         }
 

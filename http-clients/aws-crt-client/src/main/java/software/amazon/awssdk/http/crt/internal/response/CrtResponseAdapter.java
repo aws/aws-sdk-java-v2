@@ -89,6 +89,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         CompletableFuture<Void> writeFuture = responsePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
         if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
+            // Optimization: If write succeeded immediately, return non-zero to avoid the extra call back into the CRT.
             return bodyBytesIn.length;
         }
 
