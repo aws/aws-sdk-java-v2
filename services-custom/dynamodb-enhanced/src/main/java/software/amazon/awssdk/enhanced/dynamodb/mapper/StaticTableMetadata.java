@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -47,6 +48,7 @@ public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, Object> customMetadata;
     private final Map<String, IndexMetadata> indexByNameMap;
     private final Map<String, KeyAttributeMetadata> keyAttributes;
+    private final ConcurrentHashMap<String, List<String>> partitionKeyCache = new ConcurrentHashMap<>();
 
     private StaticTableMetadata(Builder builder) {
         this.customMetadata = Collections.unmodifiableMap(builder.customMetadata);
@@ -84,6 +86,10 @@ public final class StaticTableMetadata implements TableMetadata {
 
     @Override
     public List<String> indexPartitionKeys(String indexName) {
+        return partitionKeyCache.computeIfAbsent(indexName, this::computePartitionKeys);
+    }
+
+    private List<String> computePartitionKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
         
         List<KeyAttributeMetadata> partitionKeys = index.partitionKeys();
