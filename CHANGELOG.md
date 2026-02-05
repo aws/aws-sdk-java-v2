@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.23__ __2026-02-05__
+## __ARC - Region switch__
+  - ### Features
+    - Updates documentation for ARC Region switch and provides stronger validation for Amazon Aurora Global Database execution block parameters.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Outputs using the AV1 codec in CMAF Ingest output groups in MediaLive now have the ability to specify a target bit depth of 8 or 10.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds the capability to easily create custom AWS Glue connections to data sources with REST APIs.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Added ListSourceAssociations API. Allows RAM resource share owners to list source associations that determine which sources can access resources through service principal associations. Supports filtering by resource share ARN, source ID, source type, or status, with pagination.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Jackson to 2.20.2
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adds support for the customer to send custom HTTP headers and configure an AS2 Connector to receive Asynchronous MDNs from their trading partner
+
+## __Amazon Athena__
+  - ### Features
+    - Reduces the minimum TargetDpus to create or update capacity reservations from 24 to 4.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Support Browser profile persistence (cookies and local storage) across sessions for AgentCore Browser.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Support Browser profile persistence (cookies and local storage) across sessions for AgentCore Browser.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Minor neptune-graph documentation changes
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for 12 new graphics-optimized compute types - Graphics.g6 (xlarge, 2xlarge, 4xlarge, 8xlarge, 16xlarge), Graphics.gr6 (4xlarge, 8xlarge), Graphics.g6f (large, xlarge, 2xlarge, 4xlarge), and Graphics.gr6f (4xlarge).
+
 # __2.41.22__ __2026-02-04__
 ## __AWS Elemental MediaLive__
   - ### Features
