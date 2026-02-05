@@ -441,6 +441,7 @@
             <Class name="software.amazon.awssdk.codegen.lite.emitters.CodeWriter"/>
             <Class name="software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsS3V4ChunkSigner"/>
             <Class name="software.amazon.awssdk.enhanced.dynamodb.EnhancedType"/>
+            <Class name="software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableIntrospector"/>
         </Or>
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
