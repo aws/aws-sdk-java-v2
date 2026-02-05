@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "Reduces the minimum TargetDpus to create or update capacity reservations from 24 to 4."
-}

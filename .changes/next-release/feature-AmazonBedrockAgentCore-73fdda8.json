@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Support Browser profile persistence (cookies and local storage) across sessions for AgentCore Browser."
-}
