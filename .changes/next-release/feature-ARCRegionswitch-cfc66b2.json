@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "ARC - Region switch",
+    "contributor": "",
+    "description": "Updates documentation for ARC Region switch and provides stronger validation for Amazon Aurora Global Database execution block parameters."
+}
