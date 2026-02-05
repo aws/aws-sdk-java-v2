@@ -14,4 +14,6 @@ grant {
 
     // This permission is explicitly not granted to test that the InternalConfig can be deserialized without needing access to private/protected methods
     // permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
+    // permission jdk.net.NetworkPermission "*";
 };

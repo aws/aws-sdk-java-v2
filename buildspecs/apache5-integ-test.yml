@@ -18,7 +18,7 @@ phases:
           AWS_SESSION_TOKEN=`echo $ASSUME_ROLE_OUTPUT | awk '{ print $3 }'`
           echo "Using role $INTEGRATION_TEST_ROLE_ARN with access key $AWS_ACCESS_KEY_ID."
         fi
-      - git apply buildspecs/apache5-integ-test/0001-Replace-Apache-4.x-with-5.x.patch
+      - git apply -v buildspecs/apache5-integ-test/0001-Replace-Apache-4.x-with-5.x.patch
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
