@@ -1,4 +1,129 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.23__ __2026-02-05__
+## __ARC - Region switch__
+  - ### Features
+    - Updates documentation for ARC Region switch and provides stronger validation for Amazon Aurora Global Database execution block parameters.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Outputs using the AV1 codec in CMAF Ingest output groups in MediaLive now have the ability to specify a target bit depth of 8 or 10.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds the capability to easily create custom AWS Glue connections to data sources with REST APIs.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Added ListSourceAssociations API. Allows RAM resource share owners to list source associations that determine which sources can access resources through service principal associations. Supports filtering by resource share ARN, source ID, source type, or status, with pagination.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Jackson to 2.20.2
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adds support for the customer to send custom HTTP headers and configure an AS2 Connector to receive Asynchronous MDNs from their trading partner
+
+## __Amazon Athena__
+  - ### Features
+    - Reduces the minimum TargetDpus to create or update capacity reservations from 24 to 4.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Support Browser profile persistence (cookies and local storage) across sessions for AgentCore Browser.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Support Browser profile persistence (cookies and local storage) across sessions for AgentCore Browser.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Minor neptune-graph documentation changes
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for 12 new graphics-optimized compute types - Graphics.g6 (xlarge, 2xlarge, 4xlarge, 8xlarge, 16xlarge), Graphics.gr6 (4xlarge, 8xlarge), Graphics.g6f (large, xlarge, 2xlarge, 4xlarge), and Graphics.gr6f (4xlarge).
+
+# __2.41.22__ __2026-02-04__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports SRT listener mode for inputs and outputs, in addition to the existing SRT caller mode.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for structured outputs to Converse and ConverseStream APIs.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect Cases now supports larger, multi-line text fields with up to 4,100 characters. Administrators can use the Admin UI to select the appropriate configuration (single-line or multi-line) on a per-field basis, improving case documentation capabilities.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Update delete cluster description
+
+## __Amazon Redshift__
+  - ### Features
+    - We have increased the maximum duration for a deferred maintenance window from 45 days to 60 days for Amazon Redshift provisioned clusters. This enhancement provides customers with greater flexibility in scheduling patching and maintenance activities while also maintaining security compliance.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Support for configuring and managing custom domain names for WorkSpaces Secure Browser portals.
+
+## __CloudWatch Metric Publisher__
+  - ### Features
+    - Add `taskQueue` configuration option to `CloudWatchMetricPublisher.Builder` to allow customizing the internal executor queue. This enables high-throughput applications to use a larger queue to prevent dropped metrics.
+
+# __2.41.21__ __2026-02-03__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch Array Job Visibility feature support. Includes new statusSummaryLastUpdatedAt for array job parent DescribeJobs responses for the last time the statusSummary was updated. Includes both statusSummary and statusSummaryLastUpdatedAt in ListJobs responses for array job parents.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Adds support for Catalog API us-east-1 dualstack endpoint catalog-marketplace.us-east-1.api.aws
+
+## __AWS Organizations__
+  - ### Features
+    - Updated the CloseAccount description.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Added new Region management APIs to support multi-Region replication in IAM Identity Center.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change supports the creation of multi-account global tables. It adds two new arguments to CreateTable, GlobalTableSourceArn and GlobalTableSettingsReplicationMode. DescribeTable is also updated to include information about GlobalTableSettingsReplicationMode.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Adds StreamId parameter to AWS Kinesis Data Streams APIs that is reserved for future use.
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - Added support for optional style parameters in maps, including 3D terrain and 3D Buildings
+
+# __2.41.20__ __2026-02-02__
+## __AWS Multi-party Approval__
+  - ### Features
+    - Updates to multi-party approval (MPA) service to add support for multi-factor authentication (MFA) for voting operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds tagging support for AgentCore Evaluations (evaluator and online evaluation config)
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add OriginMTLS support to CloudFront Distribution APIs
+
 # __2.41.19__ __2026-01-30__
 ## __AWS S3 AccessGrants__
   - ### Features
