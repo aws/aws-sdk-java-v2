@@ -856,6 +856,18 @@
         </profile>
 
         <profile>
+            <!-- SpotBugs 4.9.x has severe performance regression on JDK 17 (99% CPU, 6x slower than JDK 21).
+                 Skip SpotBugs on JDK 17; it still runs on JDK 11, 21, and 25. -->
+            <id>jdk-17-spotbugs-skip</id>
+            <activation>
+                <jdk>17</jdk>
+            </activation>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
+            </properties>
+        </profile>
+
+        <profile>
             <id>quick</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
