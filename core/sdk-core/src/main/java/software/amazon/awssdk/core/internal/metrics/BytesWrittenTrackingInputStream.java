@@ -37,9 +37,10 @@ public final class BytesWrittenTrackingInputStream extends SdkFilterInputStream 
     public int read() throws IOException {
         int read = super.read();
         if (read >= 0) {
-            recordFirstByteWritten();
+            long now = System.nanoTime();
+            recordFirstByteWritten(now);
             metrics.bytesWritten().incrementAndGet();
-            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+            metrics.lastByteWrittenNanoTime().set(now);
         }
         return read;
     }
@@ -48,9 +49,10 @@ public final class BytesWrittenTrackingInputStream extends SdkFilterInputStream 
     public int read(byte[] b, int off, int len) throws IOException {
         int read = super.read(b, off, len);
         if (read > 0) {
-            recordFirstByteWritten();
+            long now = System.nanoTime();
+            recordFirstByteWritten(now);
             metrics.bytesWritten().addAndGet(read);
-            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+            metrics.lastByteWrittenNanoTime().set(now);
         }
         return read;
     }
@@ -59,14 +61,15 @@ public final class BytesWrittenTrackingInputStream extends SdkFilterInputStream 
     public long skip(long n) throws IOException {
         long skipped = super.skip(n);
         if (skipped > 0) {
-            recordFirstByteWritten();
+            long now = System.nanoTime();
+            recordFirstByteWritten(now);
             metrics.bytesWritten().addAndGet(skipped);
-            metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+            metrics.lastByteWrittenNanoTime().set(now);
         }
         return skipped;
     }
 
-    private void recordFirstByteWritten() {
-        metrics.firstByteWrittenNanoTime().compareAndSet(0, System.nanoTime());
+    private void recordFirstByteWritten(long time) {
+        metrics.firstByteWrittenNanoTime().compareAndSet(0, time);
     }
 }

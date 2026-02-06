@@ -58,9 +58,10 @@ public final class BytesWrittenTrackingPublisher implements Publisher<ByteBuffer
         public void onNext(ByteBuffer byteBuffer) {
             int bytes = byteBuffer.remaining();
             if (bytes > 0) {
-                metrics.firstByteWrittenNanoTime().compareAndSet(0, System.nanoTime());
+                long now = System.nanoTime();
+                metrics.firstByteWrittenNanoTime().compareAndSet(0, now);
                 metrics.bytesWritten().addAndGet(bytes);
-                metrics.lastByteWrittenNanoTime().set(System.nanoTime());
+                metrics.lastByteWrittenNanoTime().set(now);
             }
             downstream.onNext(byteBuffer);
         }
