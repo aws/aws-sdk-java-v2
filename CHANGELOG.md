@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.24__ __2026-02-06__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update session credentials builder in HttpsCredentialsLoader to include expiration time so it's set in session credentials for ContainerCredentialsProvider
+        - Contributed by: [@carhaz](https://github.com/carhaz)
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tagging jobs during job creation
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding g7e instance support in Sagemaker Training
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adding support for Custom(General) Authorization in managed integrations for AWS IoT Device Management cloud connectors.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Releasing AWS Opportunity Snapshots for SDK release.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Add OutputConfiguration to InvokeDataAutomation input and output to support S3 output
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@carhaz](https://github.com/carhaz)
 # __2.41.23__ __2026-02-05__
 ## __ARC - Region switch__
   - ### Features
