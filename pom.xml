@@ -108,10 +108,10 @@
         <jackson.version>2.20.2</jackson.version>
         <jackson.databind.version>2.20.2</jackson.databind.version>
         <jacksonjr.version>2.20.2</jacksonjr.version>
-        <jackson.annotations.version>2.20</jackson.annotations.version>
-        <jackson.version>2.18.5</jackson.version>
-        <jackson.databind.version>2.18.5</jackson.databind.version>
-        <jacksonjr.version>2.18.5</jacksonjr.version>
+        <jackson.annotations.version>2.21</jackson.annotations.version>
+        <jackson.version>2.21.0</jackson.version>
+        <jackson.databind.version>2.21.0</jackson.databind.version>
+        <jacksonjr.version>2.21.0</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
