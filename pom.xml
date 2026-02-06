@@ -690,58 +690,6 @@
 
     <profiles>
         <profile>
-            <id>spotbugs-java11</id>
-            <activation>
-                <jdk>[11,)</jdk>
-            </activation>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>com.github.spotbugs</groupId>
-                            <artifactId>spotbugs-maven-plugin</artifactId>
-                            <version>${spotbugs.version}</version>
-                            <dependencies>
-                                <dependency>
-                                    <groupId>software.amazon.awssdk</groupId>
-                                    <artifactId>build-tools</artifactId>
-                                    <version>1.0</version>
-                                </dependency>
-                                <dependency>
-                                    <groupId>org.apache.ant</groupId>
-                                    <artifactId>ant</artifactId>
-                                    <version>${ant.version}</version>
-                                </dependency>
-                            </dependencies>
-                            <executions>
-                                <execution>
-                                    <id>findbugs</id>
-                                    <phase>process-classes</phase>
-                                    <goals>
-                                        <goal>check</goal>
-                                    </goals>
-                                </execution>
-                            </executions>
-                            <configuration>
-                                <failOnError>true</failOnError>
-                                <fork>false</fork>
-                                <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
-                                <threshold>Low</threshold>
-                                <effort>Max</effort>
-                                <plugins>
-                                    <dependency>
-                                        <groupId>software.amazon.awssdk</groupId>
-                                        <artifactId>build-tools</artifactId>
-                                        <version>1.0</version>
-                                    </dependency>
-                                </plugins>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-        <profile>
             <id>sonar-generate</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
@@ -848,6 +796,52 @@
             <properties>
                 <maven.compiler.release>8</maven.compiler.release>
             </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.github.spotbugs</groupId>
+                            <artifactId>spotbugs-maven-plugin</artifactId>
+                            <version>${spotbugs.version}</version>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>software.amazon.awssdk</groupId>
+                                    <artifactId>build-tools</artifactId>
+                                    <version>1.0</version>
+                                </dependency>
+                                <dependency>
+                                    <groupId>org.apache.ant</groupId>
+                                    <artifactId>ant</artifactId>
+                                    <version>${ant.version}</version>
+                                </dependency>
+                            </dependencies>
+                            <executions>
+                                <execution>
+                                    <id>findbugs</id>
+                                    <phase>process-classes</phase>
+                                    <goals>
+                                        <goal>check</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <failOnError>true</failOnError>
+                                <fork>false</fork>
+                                <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
+                                <threshold>Low</threshold>
+                                <effort>Max</effort>
+                                <plugins>
+                                    <dependency>
+                                        <groupId>software.amazon.awssdk</groupId>
+                                        <artifactId>build-tools</artifactId>
+                                        <version>1.0</version>
+                                    </dependency>
+                                </plugins>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
 
         <profile>
