@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Runtime for Amazon Bedrock Data Automation",
+    "contributor": "",
+    "description": "Add OutputConfiguration to InvokeDataAutomation input and output to support S3 output"
+}
