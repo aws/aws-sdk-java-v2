@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "WillChilds-Klein",
+    "description": "Java CRT 0.39.3 enables and prefers PQ by default, so `TLS_CIPHER_SYSTEM_DEFAULT` now uses PQ cipher suites. The `postQuantumTlsEnabled` builder option in aws-sdk-java-v2 now becomes an opt-out mechanism; setting it to false explicitly disables PQ by using policy `TLS_CIPHER_PREF_TLSv1_0_2023`."
+}
