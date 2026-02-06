@@ -38,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -319,6 +320,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -339,6 +341,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -372,6 +375,7 @@ public class DefaultAwsV4HttpSignerTest {
             httpRequest -> httpRequest
                 .putHeader("Content-Type", "application/vnd.amazon.eventstream"),
             signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
             }
         );
 
@@ -414,6 +418,7 @@ public class DefaultAwsV4HttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -432,6 +437,7 @@ public class DefaultAwsV4HttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
@@ -452,6 +458,7 @@ public class DefaultAwsV4HttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -472,6 +479,7 @@ public class DefaultAwsV4HttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
@@ -979,6 +987,103 @@ public class DefaultAwsV4HttpSignerTest {
             .hasMessageContaining("Content-Length header must be specified");
     }
 
+    @Test
+    void sign_WithHttpsAndNoProperties_UsesUnsignedPayload() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    void asyncSign_WithHttpsAndNoProperties_UsesUnsignedPayload() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> {
+            }
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
+    }
+
+    @Test
+    void sign_WithHttpsExplicitSigning_SignsPayload() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
+            }
+        );
+
+        byte[] sha256Value = computeChecksum(SHA256, testPayload());
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue(BinaryUtils.toHex(sha256Value));
+    }
+
+    @Test
+    void asyncSign_WithHttpsExplicitSigning_SignsPayload() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> {
+                signRequest.putProperty(PAYLOAD_SIGNING_ENABLED, true);
+            }
+        );
+
+        byte[] sha256Value = computeChecksum(SHA256, testPayload());
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue(BinaryUtils.toHex(sha256Value));
+    }
+
+    @Test
+    void sign_WithHTTPAndNoProperties_SignsPayload() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+                httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com"));
+            },
+            signRequest -> {
+            }
+        );
+
+        byte[] sha256Value = computeChecksum(SHA256, testPayload());
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue(BinaryUtils.toHex(sha256Value));
+    }
+
+    @Test
+    void asyncSign_WithHTTPAndNoProperties_SignsPayload() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+                httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com"));
+            },
+            signRequest -> {
+            }
+        );
+
+        byte[] sha256Value = computeChecksum(SHA256, testPayload());
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue(BinaryUtils.toHex(sha256Value));
+    }
 
     private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
         SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);
