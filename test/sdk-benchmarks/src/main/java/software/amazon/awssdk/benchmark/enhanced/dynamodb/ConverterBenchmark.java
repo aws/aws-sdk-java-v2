@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * Micro-benchmark to isolate String and ByteArray converter optimization impact.
  */
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 5, time = 1)
 @Measurement(iterations = 10, time = 1)
