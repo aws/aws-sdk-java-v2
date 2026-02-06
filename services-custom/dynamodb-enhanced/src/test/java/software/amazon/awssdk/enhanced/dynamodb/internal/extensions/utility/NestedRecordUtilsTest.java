@@ -17,11 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.extensions.utility;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -231,11 +233,66 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void reconstructCompositeKey_realWorldExample_userAddressZipCode() {
-        String result = NestedRecordUtils.reconstructCompositeKey("user.address.location", "zipCode");
+    public void getTableSchemaForListElement_withNestedPathAndMissingSchema_throwsIllegalArgumentException() {
+        String nestedKey = String.join(NESTED_OBJECT_UPDATE, "parent", "child", "listAttribute");
 
-        String expected = String.join(NESTED_OBJECT_UPDATE,
-                                      "user", "address", "location", "zipCode");
+        // Mock the parent schema resolution to return empty
+        when(mockSchema.converterForAttribute("parent")).thenReturn(null);
+
+        assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, nestedKey))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Unable to resolve schema for list element at: " + nestedKey);
+    }
+
+    @Test
+    public void resolveSchemasPerPath_withDeepNestedPaths_buildsCorrectSchemaMap() {
+        Map<String, AttributeValue> deepNestedAttributes = new HashMap<>();
+        deepNestedAttributes.put(String.join(NESTED_OBJECT_UPDATE, "level1", "level2", "level3", "attr"),
+                                 AttributeValue.builder().s("deep-value").build());
+
+        TableSchema<Object> level1Schema = mock(TableSchema.class);
+        TableSchema<Object> level2Schema = mock(TableSchema.class);
+        TableSchema<Object> level3Schema = mock(TableSchema.class);
+
+        when(mockSchema.converterForAttribute("level1")).thenReturn(mockConverter);
+        when(mockConverter.type()).thenReturn(mockType);
+        when(mockType.tableSchema()).thenReturn(Optional.of(level1Schema));
+
+        when(mockConverter.type()).thenReturn(mockType);
+        when(mockType.tableSchema()).thenReturn(Optional.of(level2Schema));
+
+        when(mockConverter.type()).thenReturn(mockType);
+        when(mockType.tableSchema()).thenReturn(Optional.of(level3Schema));
+
+        Map<String, TableSchema<?>> result = NestedRecordUtils.resolveSchemasPerPath(deepNestedAttributes, mockSchema);
+
+        assertThat(result).containsKey("");
+        assertThat(result.get("")).isEqualTo(mockSchema);
+        assertThat(result.size()).isGreaterThan(1);
+    }
+
+    @Test
+    public void reconstructCompositeKey_withMultipleDots_handlesCorrectly() {
+        String result = NestedRecordUtils.reconstructCompositeKey("a.b.c.d.e", "finalAttribute");
+
+        String expected = String.join(NESTED_OBJECT_UPDATE, "a", "b", "c", "d", "e", "finalAttribute");
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void reconstructCompositeKey_withWhitespaceInPath_preservesWhitespace() {
+        String result = NestedRecordUtils.reconstructCompositeKey("parent with spaces.child with spaces", "attr");
+
+        String expected = String.join(NESTED_OBJECT_UPDATE, "parent with spaces", "child with spaces", "attr");
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void reconstructCompositeKey_withSpecialCharactersInPath_preservesCharacters() {
+        String result = NestedRecordUtils.reconstructCompositeKey(
+            "parent-with-dashes.child_with_underscores", "attr");
+
+        String expected = String.join(NESTED_OBJECT_UPDATE, "parent-with-dashes", "child_with_underscores", "attr");
         assertThat(result).isEqualTo(expected);
     }
 }

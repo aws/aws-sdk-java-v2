@@ -222,4 +222,143 @@ public class EnhancedClientUtilsTest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(mockNestedSchema);
     }
+
+    @Test
+    public void keyRef_withSimpleKey_returnsFormattedKey() {
+        String result = EnhancedClientUtils.keyRef("simpleKey");
+
+        assertThat(result).isEqualTo("#AMZN_MAPPED_simpleKey");
+    }
+
+    @Test
+    public void keyRef_withSpecialCharacters_cleansAndFormatsKey() {
+        String result = EnhancedClientUtils.keyRef("key*with.special-chars");
+
+        assertThat(result).isEqualTo("#AMZN_MAPPED_key_with_special_chars");
+    }
+
+    @Test
+    public void keyRef_withNestedKey_handlesNestedDelimiter() {
+        String nestedKey = "parent_NESTED_ATTR_UPDATE_child";
+        String result = EnhancedClientUtils.keyRef(nestedKey);
+
+        assertThat(result).contains("#AMZN_MAPPED_");
+        assertThat(result).contains("parent");
+        assertThat(result).contains("child");
+    }
+
+    @Test
+    public void valueRef_withSimpleValue_returnsFormattedValue() {
+        String result = EnhancedClientUtils.valueRef("simpleValue");
+
+        assertThat(result).isEqualTo(":AMZN_MAPPED_simpleValue");
+    }
+
+    @Test
+    public void valueRef_withSpecialCharacters_cleansAndFormatsValue() {
+        String result = EnhancedClientUtils.valueRef("value*with.special-chars");
+
+        assertThat(result).isEqualTo(":AMZN_MAPPED_value_with_special_chars");
+    }
+
+    @Test
+    public void valueRef_withNestedValue_handlesNestedDelimiter() {
+        String nestedValue = "parent_NESTED_ATTR_UPDATE_child";
+        String result = EnhancedClientUtils.valueRef(nestedValue);
+
+        assertThat(result).startsWith(":AMZN_MAPPED_");
+        assertThat(result).contains("parent");
+        assertThat(result).contains("child");
+    }
+
+    @Test
+    public void cleanAttributeName_withNoSpecialCharacters_returnsOriginal() {
+        String original = "normalAttributeName123";
+        String result = EnhancedClientUtils.cleanAttributeName(original);
+
+        assertThat(result).isSameAs(original); // Should return same instance when no changes needed
+    }
+
+    @Test
+    public void isNullAttributeValue_withNullAttributeValue_returnsTrue() {
+        AttributeValue nullValue = AttributeValue.builder().nul(true).build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(nullValue);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void isNullAttributeValue_withNonNullAttributeValue_returnsFalse() {
+        AttributeValue stringValue = AttributeValue.builder().s("test").build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(stringValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void isNullAttributeValue_withFalseNullValue_returnsFalse() {
+        AttributeValue falseNullValue = AttributeValue.builder().nul(false).build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(falseNullValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void createKeyFromItem_withPartitionKeyOnly_createsCorrectKey() {
+        FakeItem item = new FakeItem();
+        item.setId("test-id");
+
+        Key result = EnhancedClientUtils.createKeyFromItem(item, FakeItem.getTableSchema(),
+                                                           TableMetadata.primaryIndexName());
+
+        assertThat(result.partitionKeyValue()).isEqualTo(AttributeValue.builder().s("test-id").build());
+        assertThat(result.sortKeyValue()).isEmpty();
+    }
+
+    @Test
+    public void createKeyFromItem_withPartitionAndSortKey_createsCorrectKey() {
+        FakeItemWithSort item = new FakeItemWithSort();
+        item.setId("test-id");
+        item.setSort("test-sort");
+
+        Key result = EnhancedClientUtils.createKeyFromItem(item, FakeItemWithSort.getTableSchema(),
+                                                           TableMetadata.primaryIndexName());
+
+        assertThat(result.partitionKeyValue()).isEqualTo(AttributeValue.builder().s("test-id").build());
+        assertThat(result.sortKeyValue()).isPresent();
+        assertThat(result.sortKeyValue().get()).isEqualTo(AttributeValue.builder().s("test-sort").build());
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
+        Object result = EnhancedClientUtils.readAndTransformSingleItem(null, mockSchema, null, null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
+        Map<String, AttributeValue> emptyMap = Collections.emptyMap();
+
+        Object result = EnhancedClientUtils.readAndTransformSingleItem(emptyMap, mockSchema, null, null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getItemsFromSupplier_withNullList_returnsNull() {
+        List<Object> result = EnhancedClientUtils.getItemsFromSupplier(null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getItemsFromSupplier_withEmptyList_returnsNull() {
+        List<Object> result = EnhancedClientUtils.getItemsFromSupplier(Collections.emptyList());
+
+        assertThat(result).isNull();
+    }
 }
