@@ -58,7 +58,7 @@ public class EnhancedClientUtilsTest {
     private TableSchema<Object> mockNestedSchema;
 
     @Test
-    public void hasMap_returnsTrue() {
+    public void hasMap_forNotNullAttributeValueWithMap_returnsTrue() {
         AttributeValue nullValue = AttributeValue.builder().nul(false).m(new HashMap<>()).build();
 
         boolean result = EnhancedClientUtils.hasMap(nullValue);
