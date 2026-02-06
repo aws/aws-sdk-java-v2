@@ -209,6 +209,10 @@ public final class EnhancedClientUtils {
         return attributeValue.nul() != null && attributeValue.nul();
     }
 
+    public static boolean hasMap(AttributeValue attributeValue) {
+        return attributeValue != null && attributeValue.hasM();
+    }
+
     /**
      * Retrieves the nested {@link TableSchema} for an attribute from the parent schema.
      * For parameterized types (e.g., Set, List, Map), extracts the first type parameter's schema.

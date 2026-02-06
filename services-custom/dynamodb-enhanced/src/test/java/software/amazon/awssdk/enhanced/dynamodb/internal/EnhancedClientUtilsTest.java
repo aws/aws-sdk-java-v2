@@ -58,6 +58,41 @@ public class EnhancedClientUtilsTest {
     private TableSchema<Object> mockNestedSchema;
 
     @Test
+    public void hasMap_returnsTrue() {
+        AttributeValue nullValue = AttributeValue.builder().nul(false).m(new HashMap<>()).build();
+
+        boolean result = EnhancedClientUtils.hasMap(nullValue);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void hasMap_forNullAttributeValue_returnsFalse() {
+        AttributeValue nullValue = AttributeValue.builder().nul(true).build();
+
+        boolean result = EnhancedClientUtils.hasMap(nullValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void hasMap_forNotNullAttributeValueWithoutMap_returnsFalse() {
+        AttributeValue nullValue = AttributeValue.builder().nul(false).build();
+
+        boolean result = EnhancedClientUtils.hasMap(nullValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void hasMap_forAttributeValueNull_returnsFalse() {
+
+        boolean result = EnhancedClientUtils.hasMap(null);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
     public void createKeyFromMap_partitionOnly() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("id", PARTITION_VALUE);
