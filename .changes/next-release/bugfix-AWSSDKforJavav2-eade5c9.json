@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Improve support for operationContextParams with chained index and multi-select expressions and improve support for StringArray endpoint parametes."
+}

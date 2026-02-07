@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -160,21 +159,16 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             return true;
         }
 
-        Map<String, ParameterModel> endpointParameters = model.getCustomizationConfig().getEndpointParameters();
+        Map<String, ParameterModel> endpointParameters = model.getEndpointRuleSetModel().getParameters();
         if (endpointParameters == null) {
             return false;
         }
 
-        return endpointParameters.values().stream().anyMatch(this::paramRequiresPathParserRuntime);
-    }
-
-    private boolean paramRequiresPathParserRuntime(ParameterModel parameterModel) {
-        return paramIsOperationalContextParam(parameterModel) &&
-               "stringarray".equals(parameterModel.getType().toLowerCase(Locale.US));
-    }
-
-    //TODO (string-array-params): resolve this logical test before finalizing coding
-    private boolean paramIsOperationalContextParam(ParameterModel parameterModel) {
-        return true;
+        // if any operation has operationContextParams then we must include jmesPathRuntime
+        return model.getOperations().values().stream()
+                    .anyMatch(op -> {
+                        Map<String, ?> opContextParams = op.getOperationContextParams();
+                        return opContextParams != null && !opContextParams.isEmpty();
+                    });
     }
 }

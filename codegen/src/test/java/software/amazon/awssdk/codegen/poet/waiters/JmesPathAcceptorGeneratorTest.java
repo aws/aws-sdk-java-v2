@@ -186,6 +186,13 @@ class JmesPathAcceptorGeneratorTest {
     }
 
     @Test
+    void testMultiSelectListAndFlatten() {
+        testConversion("listOfUnions[*][string, object.key][]",
+                       "input.field(\"listOfUnions\").wildcard().multiSelectList(x0 -> x0.field(\"string\"), "
+                       + "x1 -> x1.field(\"object\").field(\"key\")).flatten()");
+    }
+
+    @Test
     void testMultiSelectHash2() {
         assertThatThrownBy(() -> testConversion("{fooK : fooV, barK : barV}", ""))
             .isInstanceOf(UnsupportedOperationException.class);
