@@ -49,6 +49,7 @@ public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, IndexMetadata> indexByNameMap;
     private final Map<String, KeyAttributeMetadata> keyAttributes;
     private final ConcurrentHashMap<String, List<String>> partitionKeyCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<String>> sortKeyCache = new ConcurrentHashMap<>();
 
     private StaticTableMetadata(Builder builder) {
         this.customMetadata = Collections.unmodifiableMap(builder.customMetadata);
@@ -104,21 +105,25 @@ public final class StaticTableMetadata implements TableMetadata {
                                                + "Index name: " + indexName);
         }
 
-        return partitionKeys.stream()
+        return Collections.unmodifiableList(partitionKeys.stream()
                            .filter(Objects::nonNull)
                            .map(KeyAttributeMetadata::name)
-                           .collect(Collectors.toList());
+                           .collect(Collectors.toList()));
     }
 
     @Override
     public List<String> indexSortKeys(String indexName) {
+        return sortKeyCache.computeIfAbsent(indexName, this::computeSortKeys);
+    }
+
+    private List<String> computeSortKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
-        
+
         List<KeyAttributeMetadata> sortKeys = index.sortKeys();
-        return sortKeys.stream()
-                      .filter(Objects::nonNull)
-                      .map(KeyAttributeMetadata::name)
-                      .collect(Collectors.toList());
+        return Collections.unmodifiableList(sortKeys.stream()
+                       .filter(Objects::nonNull)
+                       .map(KeyAttributeMetadata::name)
+                       .collect(Collectors.toList()));
     }
 
     @Override
