@@ -31,14 +31,34 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
 
     private static final StaticTableSchema<CounterRecord> TABLE_SCHEMA =
-        StaticTableSchema.builder(CounterRecord.class).newItemSupplier(CounterRecord::new).addAttribute(String.class,
-                                                                                                        a -> a.name("id1").getter(CounterRecord::getId).setter(CounterRecord::setId).addTag(primaryPartitionKey())).addAttribute(String.class, a -> a.name("data").getter(CounterRecord::getData).setter(CounterRecord::setData)).addAttribute(Long.class, a -> a.name("defaultCounter").getter(CounterRecord::getDefaultCounter).setter(CounterRecord::setDefaultCounter).addTag(atomicCounter())).addAttribute(Long.class, a -> a.name("customCounter").getter(CounterRecord::getCustomCounter).setter(CounterRecord::setCustomCounter).addTag(atomicCounter(5, 10))).build();
+        StaticTableSchema.builder(CounterRecord.class)
+                         .newItemSupplier(CounterRecord::new)
+                         .addAttribute(String.class,
+                                       a -> a.name("id1")
+                                             .getter(CounterRecord::getId)
+                                             .setter(CounterRecord::setId)
+                                             .addTag(primaryPartitionKey()))
+                         .addAttribute(String.class,
+                                       a -> a.name("data")
+                                             .getter(CounterRecord::getData)
+                                             .setter(CounterRecord::setData))
+                         .addAttribute(Long.class,
+                                       a -> a.name("defaultCounter")
+                                             .getter(CounterRecord::getDefaultCounter)
+                                             .setter(CounterRecord::setDefaultCounter)
+                                             .addTag(atomicCounter()))
+                         .addAttribute(Long.class,
+                                       a -> a.name("customCounter")
+                                             .getter(CounterRecord::getCustomCounter)
+                                             .setter(CounterRecord::setCustomCounter)
+                                             .addTag(atomicCounter(5, 10)))
+                         .build();
 
     private final DynamoDbEnhancedClient enhancedClient =
         DynamoDbEnhancedClient.builder().dynamoDbClient(getDynamoDbClient()).build();
 
-    private final DynamoDbTable<CounterRecord> mappedTable = enhancedClient.table(getConcreteTableName("atomic-counter-table"),
-                                                                                  TABLE_SCHEMA);
+    private final DynamoDbTable<CounterRecord> mappedTable = enhancedClient.table(
+        getConcreteTableName("atomic-counter-table"), TABLE_SCHEMA);
 
     @Before
     public void createTable() {
@@ -47,7 +67,8 @@ public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
 
     @After
     public void deleteTable() {
-        getDynamoDbClient().deleteTable(r -> r.tableName(getConcreteTableName("atomic-counter-table")));
+        getDynamoDbClient().deleteTable(r -> r.tableName(
+            getConcreteTableName("atomic-counter-table")));
     }
 
     @Test
@@ -166,8 +187,10 @@ public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
                 return false;
             }
             CounterRecord that = (CounterRecord) o;
-            return Objects.equals(id, that.id) && Objects.equals(data, that.data) && Objects.equals(defaultCounter,
-                                                                                                    that.defaultCounter) && Objects.equals(customCounter, that.customCounter);
+            return Objects.equals(id, that.id)
+                   && Objects.equals(data, that.data)
+                   && Objects.equals(defaultCounter, that.defaultCounter)
+                   && Objects.equals(customCounter, that.customCounter);
         }
 
         @Override
