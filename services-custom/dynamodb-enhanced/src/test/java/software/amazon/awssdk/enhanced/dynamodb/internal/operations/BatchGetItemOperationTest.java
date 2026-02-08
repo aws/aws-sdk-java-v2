@@ -393,12 +393,14 @@ public class BatchGetItemOperationTest {
                 .when(mockExtension)
                 .afterRead(
                     argThat(extensionContext ->
+                                extensionContext.tableSchema().equals(FakeItem.getTableSchema()) &&
                                 extensionContext.operationContext().tableName().equals(TABLE_NAME) &&
                                 extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
                     ));
             doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
                 .afterRead(argThat(extensionContext ->
+                                       extensionContext.tableSchema().equals(FakeItemWithSort.getTableSchema()) &&
                                        extensionContext.operationContext().tableName().equals(TABLE_NAME_2) &&
                                        extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
                 ));
