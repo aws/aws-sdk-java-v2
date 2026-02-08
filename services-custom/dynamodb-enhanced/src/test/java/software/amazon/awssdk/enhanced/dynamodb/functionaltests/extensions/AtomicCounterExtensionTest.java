@@ -28,7 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
-public class AtomicCounterIntegrationTest extends LocalDynamoDbSyncTestBase {
+public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
 
     private static final StaticTableSchema<CounterRecord> TABLE_SCHEMA =
         StaticTableSchema.builder(CounterRecord.class).newItemSupplier(CounterRecord::new).addAttribute(String.class,
