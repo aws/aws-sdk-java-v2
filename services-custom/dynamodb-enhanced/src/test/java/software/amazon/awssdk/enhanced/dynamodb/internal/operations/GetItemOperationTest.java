@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -66,6 +67,17 @@ public class GetItemOperationTest {
 
     @Mock
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
+
+    @Test
+    public void returnsCorrectOperationName() {
+        FakeItem keyItem = createUniqueFakeItem();
+        GetItemOperation<FakeItem> operation =
+            GetItemOperation.create(GetItemEnhancedRequest.builder()
+                                                          .key(k -> k.partitionValue(keyItem.getId()))
+                                                          .consistentRead(true).build());
+
+        assertThat(operation.operationName().label(), is("GetItem"));
+    }
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {

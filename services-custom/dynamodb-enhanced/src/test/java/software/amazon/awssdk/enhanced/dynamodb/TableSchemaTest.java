@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeMetadataBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CrossIndexBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DuplicateOrderBean;
@@ -39,6 +42,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.OrderPreservati
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleKeyBean;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class TableSchemaTest {
     @Rule
@@ -202,6 +207,59 @@ public class TableSchemaTest {
 
         List<String> gsi3SortKeys = schema.tableMetadata().indexSortKeys("gsi3");
         assertThat(gsi3SortKeys.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void mapToItem_whenPreserveEmptyObjectTrue_throwsUnsupportedOperationException() {
+        exception.expect(UnsupportedOperationException.class);
+        exception.expectMessage("preserveEmptyObject is not supported. You can set preserveEmptyObject to "
+                                + "false to continue to call this operation. If you wish to enable "
+                                + "preserveEmptyObject, please reach out to the maintainers of the "
+                                + "implementation class for assistance.");
+
+        TableSchema<CommonTypesBean> schema = new TableSchema<CommonTypesBean>() {
+            @Override
+            public CommonTypesBean mapToItem(Map<String, AttributeValue> attributeMap) {
+                return null;
+            }
+
+            @Override
+            public Map<String, AttributeValue> itemToMap(CommonTypesBean item, boolean ignoreNulls) {
+                return null;
+            }
+
+            @Override
+            public Map<String, AttributeValue> itemToMap(CommonTypesBean item, Collection<String> attributes) {
+                return null;
+            }
+
+            @Override
+            public AttributeValue attributeValue(CommonTypesBean item, String attributeName) {
+                return null;
+            }
+
+            @Override
+            public TableMetadata tableMetadata() {
+                return null;
+            }
+
+            @Override
+            public EnhancedType<CommonTypesBean> itemType() {
+                return null;
+            }
+
+            @Override
+            public List<String> attributeNames() {
+                return null;
+            }
+
+            @Override
+            public boolean isAbstract() {
+                return false;
+            }
+        };
+
+        schema.mapToItem(ImmutableMap.of("abc", AttributeValue.builder().build()), true);
     }
 
     @Test

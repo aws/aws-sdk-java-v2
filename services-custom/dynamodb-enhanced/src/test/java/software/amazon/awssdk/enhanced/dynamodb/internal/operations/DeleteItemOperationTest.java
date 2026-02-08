@@ -48,8 +48,10 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -92,6 +94,19 @@ public class DeleteItemOperationTest {
 
     @Mock
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
+
+    @Test
+    public void returnsCorrectOperationName() {
+        FakeItem keyItem = createUniqueFakeItem();
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+        DeleteItemOperation<FakeItem> operation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(keyItem.getId()))
+                                                                .returnConsumedCapacity(returnConsumedCapacity)
+                                                                .build());
+
+        assertThat(operation.operationName().label(), is("DeleteItem"));
+    }
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {

@@ -118,6 +118,14 @@ public class CreateTableOperationTest {
     }
 
     @Test
+    public void returnsCorrectOperationName() {
+        CreateTableOperation<FakeItemWithIndices> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
+
+        assertThat(operation.operationName().label(), is("CreateTable"));
+    }
+
+    @Test
     public void generateRequest_withLsiAndGsi() {
         Projection projection1 = Projection.builder().projectionType(ProjectionType.ALL).build();
         Projection projection2 = Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build();

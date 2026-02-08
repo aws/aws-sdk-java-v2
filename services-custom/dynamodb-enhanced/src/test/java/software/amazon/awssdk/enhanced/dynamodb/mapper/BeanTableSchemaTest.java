@@ -22,8 +22,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.binaryValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
@@ -35,18 +35,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.List;
+import org.apache.logging.log4j.core.LogEvent;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
+import software.amazon.awssdk.enhanced.dynamodb.LogCaptor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -56,6 +60,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractNestedI
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeKeyMaxBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DuplicateOrderBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersInvalidBean;
@@ -70,13 +75,15 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedNested
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeKeyMaxBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedCompositeBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedOrderingBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBeanIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NoConstructorConverterProvidersBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NonSequentialOrderBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedAbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedDocumentBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.PrimitiveTypesBean;
@@ -87,11 +94,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SetterAnnotated
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ThreeSortKeyBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedCompositeBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NonSequentialOrderBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedOrderingBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -1426,6 +1430,19 @@ public class BeanTableSchemaTest {
 
         BeanTableSchema<CompositeKeyMaxBean> flattened = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.FLATTENED);
         assertThat(root1, not(flattened));
+    }
+
+    @Test
+    public void whenCreatingBeanTableSchema_logsDebugMessage() {
+        try (LogCaptor logCaptor = new LogCaptor("software.amazon.awssdk.enhanced.dynamodb.beans", Level.DEBUG)) {
+
+            BeanTableSchema.create(SimpleBean.class);
+
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            Assertions.assertThat(logEvents.get(0).getLevel().name()).isEqualTo(Level.DEBUG.name());
+            Assertions.assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                      .contains("software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean - Creating bean schema");
+        }
     }
 
     @DynamoDbBean

@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -32,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
+import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeleteTableOperationTest {
@@ -46,6 +48,11 @@ public class DeleteTableOperationTest {
     @Mock
     private DynamoDbClient mockDynamoDbClient;
 
+    @Test
+    public void returnsCorrectOperationName() {
+        DeleteTableOperation<FakeItemWithIndices> operation = DeleteTableOperation.create();
+        assertThat(operation.operationName().label(), is("DeleteItem"));
+    }
 
     @Test
     public void getServiceCall_makesTheRightCall() {
