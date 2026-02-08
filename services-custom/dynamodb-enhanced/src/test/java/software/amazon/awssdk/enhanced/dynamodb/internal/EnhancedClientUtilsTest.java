@@ -24,10 +24,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
@@ -35,9 +39,13 @@ import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
+@RunWith(MockitoJUnitRunner.class)
 public class EnhancedClientUtilsTest {
     private static final AttributeValue PARTITION_VALUE = AttributeValue.builder().s("id123").build();
     private static final AttributeValue SORT_VALUE = AttributeValue.builder().s("sort123").build();
+
+    @Mock
+    private TableSchema<Object> mockSchema;
 
     @Test
     public void createKeyFromMap_partitionOnly() {
@@ -222,129 +230,141 @@ public class EnhancedClientUtilsTest {
     }
 
     @Test
-    public void createKeyFromItem_partitionAndSortKey_returnsKeyWithBoth() {
-        FakeItemWithSort item = new FakeItemWithSort();
-        item.setId("id123");
-        item.setSort("sort123");
+    public void keyRef_withSimpleKey_returnsFormattedKey() {
+        String result = EnhancedClientUtils.keyRef("simpleKey");
 
-        Key key = EnhancedClientUtils.createKeyFromItem(
-            item,
-            FakeItemWithSort.getTableSchema(),
-            TableMetadata.primaryIndexName());
-
-        assertThat(Objects.requireNonNull(key.partitionKeyValue()).s()).isEqualTo("id123");
-        assertThat(key.sortKeyValue().get().s()).isEqualTo("sort123");
+        assertThat(result).isEqualTo("#AMZN_MAPPED_simpleKey");
     }
 
     @Test
-    public void createKeyFromMap_missingPartitionKey_throwsException() {
-        Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("sort", SORT_VALUE);
+    public void keyRef_withSpecialCharacters_cleansAndFormatsKey() {
+        String result = EnhancedClientUtils.keyRef("key*with.special-chars");
 
-        try {
-            EnhancedClientUtils.createKeyFromMap(itemMap,
-                                                 FakeItemWithSort.getTableSchema(),
-                                                 TableMetadata.primaryIndexName());
-            assertThat(false).as("Expected IllegalArgumentException").isTrue();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage()).contains("partitionValue should not be null");
-        }
+        assertThat(result).isEqualTo("#AMZN_MAPPED_key_with_special_chars");
     }
 
     @Test
-    public void getItemsFromSupplier_nullSupplierList_returnsNull() {
-        assertThat(EnhancedClientUtils.getItemsFromSupplier(null)).isNull();
-    }
+    public void keyRef_withNestedKey_handlesNestedDelimiter() {
+        String nestedKey = "parent_NESTED_ATTR_UPDATE_child";
+        String result = EnhancedClientUtils.keyRef(nestedKey);
 
-    @Test
-    public void getItemsFromSupplier_emptySupplierList_returnsNull() {
-        assertThat(EnhancedClientUtils.getItemsFromSupplier(Collections.emptyList())).isNull();
-    }
-
-    @Test
-    public void getItemsFromSupplier_nonEmptySupplierList_returnsItems() {
-        assertThat(
-            EnhancedClientUtils.getItemsFromSupplier(Collections.singletonList(() -> "item")))
-            .containsExactly("item");
-    }
-
-    @Test
-    public void isNullAttributeValue_nullAttribute_returnsTrue() {
-        AttributeValue nullAttr = AttributeValue.builder().nul(true).build();
-        assertThat(EnhancedClientUtils.isNullAttributeValue(nullAttr)).isTrue();
-    }
-
-    @Test
-    public void isNullAttributeValue_nonNullAttribute_returnsFalse() {
-        AttributeValue notNullAttr = AttributeValue.builder().s("value").build();
-        assertThat(EnhancedClientUtils.isNullAttributeValue(notNullAttr)).isFalse();
-    }
-
-    @Test
-    public void isNullAttributeValue_nullAttributeValueObject_throwsNullPointerException() {
-        try {
-            EnhancedClientUtils.isNullAttributeValue(null);
-            assertThat(false).as("Expected NullPointerException").isTrue();
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void isNullAttributeValue_attributeWithNulFalse_returnsFalse() {
-        AttributeValue attr = AttributeValue.builder().nul(false).build();
-        assertThat(EnhancedClientUtils.isNullAttributeValue(attr)).isFalse();
-    }
-
-    @Test
-    public void readAndTransformSingleItem_withExtensionReturningNull_returnsOriginalItem() {
-        Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("id", PARTITION_VALUE);
-        DynamoDbEnhancedClientExtension extension = new DynamoDbEnhancedClientExtension() {
-            @Override
-            public ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
-                return null;
-            }
-        };
-
-        assertThat(
-            EnhancedClientUtils.readAndTransformSingleItem(
-                itemMap,
-                FakeItem.getTableSchema(),
-                null, extension))
-            .isNotNull();
-    }
-
-    @Test
-    public void keyRef_nestedAttributeWithSpecialChars_returnsNestedReference() {
-        String result = EnhancedClientUtils.keyRef("foo[0].bar");
         assertThat(result).contains("#AMZN_MAPPED_");
+        assertThat(result).contains("parent");
+        assertThat(result).contains("child");
     }
 
     @Test
-    public void valueRef_nestedAttributeWithSpecialChars_returnsNestedReference() {
-        String result = EnhancedClientUtils.valueRef("foo[0].bar");
-        assertThat(result).contains(":AMZN_MAPPED_");
+    public void valueRef_withSimpleValue_returnsFormattedValue() {
+        String result = EnhancedClientUtils.valueRef("simpleValue");
+
+        assertThat(result).isEqualTo(":AMZN_MAPPED_simpleValue");
     }
 
     @Test
-    public void createKeyFromItem_tableWithoutSortKey_returnsKeyWithPartitionOnly() {
+    public void valueRef_withSpecialCharacters_cleansAndFormatsValue() {
+        String result = EnhancedClientUtils.valueRef("value*with.special-chars");
+
+        assertThat(result).isEqualTo(":AMZN_MAPPED_value_with_special_chars");
+    }
+
+    @Test
+    public void valueRef_withNestedValue_handlesNestedDelimiter() {
+        String nestedValue = "parent_NESTED_ATTR_UPDATE_child";
+        String result = EnhancedClientUtils.valueRef(nestedValue);
+
+        assertThat(result).startsWith(":AMZN_MAPPED_");
+        assertThat(result).contains("parent");
+        assertThat(result).contains("child");
+    }
+
+    @Test
+    public void cleanAttributeName_withNoSpecialCharacters_returnsOriginal() {
+        String original = "normalAttributeName123";
+        String result = EnhancedClientUtils.cleanAttributeName(original);
+
+        assertThat(result).isSameAs(original); // Should return same instance when no changes needed
+    }
+
+    @Test
+    public void isNullAttributeValue_withNullAttributeValue_returnsTrue() {
+        AttributeValue nullValue = AttributeValue.builder().nul(true).build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(nullValue);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void isNullAttributeValue_withNonNullAttributeValue_returnsFalse() {
+        AttributeValue stringValue = AttributeValue.builder().s("test").build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(stringValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void isNullAttributeValue_withFalseNullValue_returnsFalse() {
+        AttributeValue falseNullValue = AttributeValue.builder().nul(false).build();
+
+        boolean result = EnhancedClientUtils.isNullAttributeValue(falseNullValue);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    public void createKeyFromItem_withPartitionKeyOnly_createsCorrectKey() {
         FakeItem item = new FakeItem();
-        item.setId("id123");
+        item.setId("test-id");
 
-        Key key = EnhancedClientUtils.createKeyFromItem(item, FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
+        Key result = EnhancedClientUtils.createKeyFromItem(item, FakeItem.getTableSchema(),
+                                                           TableMetadata.primaryIndexName());
 
-        assertThat(Objects.requireNonNull(key.partitionKeyValue()).s()).isEqualTo("id123");
-        assertThat(key.sortKeyValue()).isEmpty();
+        assertThat(result.partitionKeyValue()).isEqualTo(AttributeValue.builder().s("test-id").build());
+        assertThat(result.sortKeyValue()).isEmpty();
     }
 
     @Test
-    public void createKeyFromMap_tableWithoutSortKey_returnsKeyWithPartitionOnly() {
-        Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("id", PARTITION_VALUE);
+    public void createKeyFromItem_withPartitionAndSortKey_createsCorrectKey() {
+        FakeItemWithSort item = new FakeItemWithSort();
+        item.setId("test-id");
+        item.setSort("test-sort");
 
-        Key key = EnhancedClientUtils.createKeyFromMap(itemMap, FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
+        Key result = EnhancedClientUtils.createKeyFromItem(item, FakeItemWithSort.getTableSchema(),
+                                                           TableMetadata.primaryIndexName());
 
-        assertThat(key.partitionKeyValue()).isEqualTo(PARTITION_VALUE);
-        assertThat(key.sortKeyValue()).isEmpty();
+        assertThat(result.partitionKeyValue()).isEqualTo(AttributeValue.builder().s("test-id").build());
+        assertThat(result.sortKeyValue()).isPresent();
+        assertThat(result.sortKeyValue().get()).isEqualTo(AttributeValue.builder().s("test-sort").build());
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
+        Object result = EnhancedClientUtils.readAndTransformSingleItem(null, mockSchema, null, null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
+        Map<String, AttributeValue> emptyMap = Collections.emptyMap();
+
+        Object result = EnhancedClientUtils.readAndTransformSingleItem(emptyMap, mockSchema, null, null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getItemsFromSupplier_withNullList_returnsNull() {
+        List<Object> result = EnhancedClientUtils.getItemsFromSupplier(null);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getItemsFromSupplier_withEmptyList_returnsNull() {
+        List<Object> result = EnhancedClientUtils.getItemsFromSupplier(Collections.emptyList());
+
+        assertThat(result).isNull();
     }
 }
