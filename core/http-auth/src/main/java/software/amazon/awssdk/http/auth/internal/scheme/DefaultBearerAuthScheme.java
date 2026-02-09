@@ -30,6 +30,9 @@ public final class DefaultBearerAuthScheme implements BearerAuthScheme {
     private static final DefaultBearerAuthScheme DEFAULT = new DefaultBearerAuthScheme();
     private static final BearerHttpSigner DEFAULT_SIGNER = BearerHttpSigner.create();
 
+    private DefaultBearerAuthScheme() {
+    }
+
     /**
      * Returns an instance of the {@link DefaultBearerAuthScheme}.
      */

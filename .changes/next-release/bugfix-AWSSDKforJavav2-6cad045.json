@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "carhaz",
-    "description": "Update session credentials builder in HttpsCredentialsLoader to include expiration time so it's set in session credentials for ContainerCredentialsProvider"
-}
