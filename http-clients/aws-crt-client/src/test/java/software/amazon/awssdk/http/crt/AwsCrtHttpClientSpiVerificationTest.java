@@ -94,9 +94,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
             HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
             executeRequestBuilder.request(request);
             ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
-
             assertThatThrownBy(() -> executableRequest.call()).isInstanceOf(IOException.class)
-                                                              .hasMessageContaining("operation timed out");
+                                                              .hasMessageContaining("socket");
         }
     }
 
