@@ -199,7 +199,7 @@
         <!-- S3 Access Grants plugin version -->
         <s3accessgrants.version>2.4.0</s3accessgrants.version>
 
-        <lakeformations3accessgrants.version>1.1</lakeformations3accessgrants.version>
+        <lakeformations3accessgrants.version>1.2</lakeformations3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <v2.migration.tests.skip>true</v2.migration.tests.skip>
