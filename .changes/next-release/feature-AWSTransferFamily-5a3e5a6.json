@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "This release adds a documentation update for MdnResponse of type \"ASYNC\""
-}

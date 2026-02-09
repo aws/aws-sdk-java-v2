@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "Allow cross account v5 in put data lake settings"
-}
