@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -38,6 +39,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class EnhancedClientUtils {
@@ -147,7 +150,7 @@ public final class EnhancedClientUtils {
                                               .scannedCount(scannedCount.apply(response))
                                               .consumedCapacity(consumedCapacity.apply(response));
 
-        if (getLastEvaluatedKey.apply(response) != null && !getLastEvaluatedKey.apply(response).isEmpty()) {
+        if (CollectionUtils.isNotEmpty(getLastEvaluatedKey.apply(response))) {
             pageBuilder.lastEvaluatedKey(getLastEvaluatedKey.apply(response));
         }
         return pageBuilder.build();
@@ -206,20 +209,38 @@ public final class EnhancedClientUtils {
         return attributeValue.nul() != null && attributeValue.nul();
     }
 
-    /**
-     * Retrieves the {@link TableSchema} for a nested attribute within the given parent schema. When the attribute is a
-     * parameterized type (e.g., List<?>), it retrieves the schema of the first type parameter. Otherwise, it retrieves the schema
-     * directly from the attribute's enhanced type.
-     *
-     * @param parentSchema  the schema of the parent bean class
-     * @param attributeName the name of the nested attribute
-     * @return an {@link Optional} containing the nested attribute's {@link TableSchema}, or empty if unavailable
-     */
-    public static Optional<? extends TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, String attributeName) {
-        EnhancedType<?> enhancedType = parentSchema.converterForAttribute(attributeName).type();
-        List<EnhancedType<?>> rawClassParameters = enhancedType.rawClassParameters();
+    public static boolean hasMap(AttributeValue attributeValue) {
+        return attributeValue != null && attributeValue.hasM();
+    }
 
-        if (rawClassParameters != null && !rawClassParameters.isEmpty()) {
+    /**
+     * Retrieves the nested {@link TableSchema} for an attribute from the parent schema.
+     * For parameterized types (e.g., Set, List, Map), extracts the first type parameter's schema.
+     *
+     * @param parentSchema the parent schema; must not be null
+     * @param attributeName the attribute name; must not be null or empty
+     * @return the nested schema, or empty if unavailable
+     */
+    public static Optional<? extends TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, CharSequence attributeName) {
+        if (parentSchema == null) {
+            throw new IllegalArgumentException("Parent schema cannot be null.");
+        }
+        if (StringUtils.isEmpty(attributeName)) {
+            throw new IllegalArgumentException("Attribute name cannot be null or empty.");
+        }
+
+        AttributeConverter<?> converter = parentSchema.converterForAttribute(attributeName);
+        if (converter == null) {
+            return Optional.empty();
+        }
+
+        EnhancedType<?> enhancedType = converter.type();
+        if (enhancedType == null) {
+            return Optional.empty();
+        }
+
+        List<EnhancedType<?>> rawClassParameters = enhancedType.rawClassParameters();
+        if (!CollectionUtils.isNullOrEmpty(rawClassParameters)) {
             enhancedType = rawClassParameters.get(0);
         }
 

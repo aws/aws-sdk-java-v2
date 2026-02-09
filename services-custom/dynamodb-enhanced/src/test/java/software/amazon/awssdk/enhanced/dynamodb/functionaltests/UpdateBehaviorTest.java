@@ -3,7 +3,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.BeanWithInvalidNestedAttributeName.BeanWithInvalidNestedAttributeNameChild;
+import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.BeanWithInvalidNestedAttributeName.ChildBeanWithInvalidAttributeName;
 
 import com.google.common.collect.ImmutableList;
 import java.time.Instant;
@@ -786,16 +786,16 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     public void updateBehaviour_onItemWithNestedAttributeNameContainingReservedMarker_throwsException() {
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Attribute name 'attr_NESTED_ATTR_UPDATE_' contains reserved marker "
+        thrown.expectMessage("Attribute name 'childAttr_NESTED_ATTR_UPDATE_' contains reserved marker "
                              + "'_NESTED_ATTR_UPDATE_' and is not allowed.");
 
         BeanWithInvalidNestedAttributeName record = new BeanWithInvalidNestedAttributeName();
         record.setId("1");
 
-        BeanWithInvalidNestedAttributeNameChild childBean = new BeanWithInvalidNestedAttributeNameChild();
+        ChildBeanWithInvalidAttributeName childBean = new ChildBeanWithInvalidAttributeName();
         childBean.setId("2");
-        childBean.setAttr_NESTED_ATTR_UPDATE_(INSTANT_1);
-        record.setNestedChildAttribute(childBean);
+        childBean.setChildAttr_NESTED_ATTR_UPDATE_(INSTANT_1);
+        record.setChild(childBean);
 
         beanWithInvalidNestedAttrNameMappedTable.updateItem(r -> r.item(record)
                                                                   .ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));

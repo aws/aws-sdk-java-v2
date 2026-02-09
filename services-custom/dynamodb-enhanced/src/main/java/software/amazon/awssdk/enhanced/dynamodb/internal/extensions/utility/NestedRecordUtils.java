@@ -19,12 +19,17 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class NestedRecordUtils {
@@ -35,7 +40,7 @@ public final class NestedRecordUtils {
     }
 
     /**
-     * Resolves and returns the {@link TableSchema} for the element type of a list attribute from the provided root schema.
+     * Resolves and returns the {@link TableSchema} for the element type of list attribute from the provided root schema.
      * <p>
      * This method is useful when dealing with lists of nested objects in a DynamoDB-enhanced table schema, particularly in
      * scenarios where the list is part of a flattened nested structure.
@@ -54,11 +59,20 @@ public final class NestedRecordUtils {
         try {
             if (!key.contains(NESTED_OBJECT_UPDATE)) {
                 Optional<? extends TableSchema<?>> staticSchema = getNestedSchema(rootSchema, key);
-                listElementSchema =
-                    staticSchema.isPresent()
-                    ? staticSchema.get()
-                    : TableSchema.fromClass(Class.forName(
-                        rootSchema.converterForAttribute(key).type().rawClassParameters().get(0).rawClass().getName()));
+                if (staticSchema.isPresent()) {
+                    listElementSchema = staticSchema.get();
+                } else {
+                    AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
+                    if (converter == null) {
+                        throw new IllegalArgumentException("No converter found for attribute: " + key);
+                    }
+                    List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
+                    if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
+                        throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
+                    }
+                    listElementSchema = TableSchema.fromClass(
+                        Class.forName(rawClassParameters.get(0).rawClass().getName()));
+                }
 
             } else {
                 String[] parts = NESTED_OBJECT_PATTERN.split(key);
@@ -130,10 +144,24 @@ public final class NestedRecordUtils {
         return schemaMap;
     }
 
+    /**
+     * Converts a dot-separated path to a composite key using nested object delimiters. Example:
+     * {@code reconstructCompositeKey("parent.child", "attr")} returns
+     * {@code "parent_NESTED_ATTR_UPDATE_child_NESTED_ATTR_UPDATE_attr"}
+     *
+     * @param path          the dot-separated path; may be null or empty
+     * @param attributeName the attribute name to append; must not be null
+     * @return the composite key with nested object delimiters
+     */
     public static String reconstructCompositeKey(String path, String attributeName) {
-        if (path == null || path.isEmpty()) {
+        if (attributeName == null) {
+            throw new IllegalArgumentException("Attribute name cannot be null");
+        }
+
+        if (StringUtils.isEmpty(path)) {
             return attributeName;
         }
+
         return String.join(NESTED_OBJECT_UPDATE, path.split("\\."))
                + NESTED_OBJECT_UPDATE + attributeName;
     }
