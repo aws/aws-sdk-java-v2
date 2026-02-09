@@ -114,7 +114,7 @@ public final class UpdateExpressionConverter {
         List<String> groupExpressions = new ArrayList<>();
         if (!expression.setActions().isEmpty()) {
             groupExpressions.add(SET + expression.setActions().stream()
-                                                 .map(a -> String.format("%s = %s", a.path(), a.value()))
+                                                 .map(a -> a.path() + " = " + a.value())
                                                  .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         if (!expression.removeActions().isEmpty()) {
@@ -124,12 +124,12 @@ public final class UpdateExpressionConverter {
         }
         if (!expression.deleteActions().isEmpty()) {
             groupExpressions.add(DELETE + expression.deleteActions().stream()
-                                                    .map(a -> String.format("%s %s", a.path(), a.value()))
+                                                    .map(a -> a.path() + " " + a.value())
                                                     .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         if (!expression.addActions().isEmpty()) {
             groupExpressions.add(ADD + expression.addActions().stream()
-                                                 .map(a -> String.format("%s %s", a.path(), a.value()))
+                                                 .map(a -> a.path() + " " + a.value())
                                                  .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         return groupExpressions;
