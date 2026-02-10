@@ -16,10 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.NestedStaticChildRecord;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticImmutableSchemaForNestedRecord;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticImmutableSchemaForSimpleRecord;
+import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticImmutableSchema_NoChildSchemaDefined;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticSchemaForNestedRecord;
+import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticSchemaForNestedRecord_NoChildSchemaDefined;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.buildStaticSchemaForSimpleRecord;
 
 import java.time.Clock;
@@ -422,6 +425,47 @@ public class NestedUpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThat(afterUpdate.getWriteOnceField()).isEqualTo("initial_writeOnce"); // should NOT change
 
         table.deleteTable();
+    }
+
+    @Test
+    public void buildStaticSchema_forNestedRecordWithChildSchemaNotDefined_throwsIllegalStateException() {
+        NestedStaticRecord item = new NestedStaticRecord()
+            .setId("1")
+            .setWriteAlwaysField("initial_writeAlways")
+            .setWriteOnceField("initial_writeOnce")
+            .setChild(new NestedStaticChildRecord()
+                          .setChildAlwaysUpdate("child_initial_writeAlways")
+                          .setChildWriteOnce("child_initial_writeOnce"));
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> createAndPut("nested-static-update-behavior",
+                                           buildStaticSchemaForNestedRecord_NoChildSchemaDefined(),
+                                           item))
+
+            .withMessageContaining("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb"
+                                   + ".functionaltests.models.UpdateBehaviorTestModels$NestedStaticChildRecord)");
+    }
+
+    @Test
+    public void buildStaticImmutableSchema_forNestedRecordWithChildSchemaNotDefined_throwsIllegalStateException() {
+        NestedImmutableRecord item = NestedImmutableRecord.builder()
+                                                          .id("1")
+                                                          .writeAlwaysField("initial_writeAlways")
+                                                          .writeOnceField("initial_writeOnce")
+                                                          .child(UpdateBehaviorTestModels.NestedImmutableChild
+                                                                     .builder()
+                                                                     .childAlwaysUpdate("child_initial_writeAlways")
+                                                                     .childWriteOnce("child_initial_writeOnce")
+                                                                     .build())
+                                                          .build();
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> createAndPut("nested-static-immutable-update-behavior",
+                                           buildStaticImmutableSchema_NoChildSchemaDefined(),
+                                           item))
+
+            .withMessageContaining("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb"
+                                   + ".functionaltests.models.UpdateBehaviorTestModels$NestedImmutableChild)");
     }
 
     private <T> DynamoDbTable<T> createAndPut(String tableSuffix, TableSchema<T> schema, T item) {

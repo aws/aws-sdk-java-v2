@@ -592,6 +592,31 @@ public final class UpdateBehaviorTestModels {
             .build();
     }
 
+    public static TableSchema<NestedStaticRecord> buildStaticSchemaForNestedRecord_NoChildSchemaDefined() {
+        TableSchema<NestedStaticChildRecord> childSchema = null;
+
+        return StaticTableSchema
+            .builder(NestedStaticRecord.class)
+            .newItemSupplier(NestedStaticRecord::new)
+            .addAttribute(String.class, a -> a.name("id")
+                                              .getter(NestedStaticRecord::getId)
+                                              .setter(NestedStaticRecord::setId)
+                                              .tags(primaryPartitionKey()))
+            .addAttribute(String.class, a -> a.name("writeAlwaysField")
+                                              .getter(NestedStaticRecord::getWriteAlwaysField)
+                                              .setter(NestedStaticRecord::setWriteAlwaysField)
+                                              .tags(updateBehavior(UpdateBehavior.WRITE_ALWAYS)))
+            .addAttribute(String.class, a -> a.name("writeOnceField")
+                                              .getter(NestedStaticRecord::getWriteOnceField)
+                                              .setter(NestedStaticRecord::setWriteOnceField)
+                                              .tags(updateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)))
+            .addAttribute(EnhancedType.documentOf(NestedStaticChildRecord.class, childSchema),
+                          a -> a.name("child")
+                                .getter(NestedStaticRecord::getChild)
+                                .setter(NestedStaticRecord::setChild))
+            .build();
+    }
+
     public static TableSchema<SimpleImmutableRecord> buildStaticImmutableSchemaForSimpleRecord() {
         TableSchema<SimpleImmutableChild> childSchema = StaticImmutableTableSchema
             .builder(SimpleImmutableChild.class, SimpleImmutableChild.Builder.class)
@@ -648,6 +673,31 @@ public final class UpdateBehaviorTestModels {
                                               .setter(NestedImmutableChild.Builder::childWriteOnce)
                                               .tags(updateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)))
             .build();
+
+        return StaticImmutableTableSchema
+            .builder(NestedImmutableRecord.class, NestedImmutableRecord.Builder.class)
+            .newItemBuilder(NestedImmutableRecord::builder, NestedImmutableRecord.Builder::build)
+            .addAttribute(String.class, a -> a.name("id")
+                                              .getter(NestedImmutableRecord::getId)
+                                              .setter(NestedImmutableRecord.Builder::id)
+                                              .tags(primaryPartitionKey()))
+            .addAttribute(String.class, a -> a.name("writeAlwaysField")
+                                              .getter(NestedImmutableRecord::getWriteAlwaysField)
+                                              .setter(NestedImmutableRecord.Builder::writeAlwaysField)
+                                              .tags(updateBehavior(UpdateBehavior.WRITE_ALWAYS)))
+            .addAttribute(String.class, a -> a.name("writeOnceField")
+                                              .getter(NestedImmutableRecord::getWriteOnceField)
+                                              .setter(NestedImmutableRecord.Builder::writeOnceField)
+                                              .tags(updateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)))
+            .addAttribute(EnhancedType.documentOf(NestedImmutableChild.class, childSchema),
+                          a -> a.name("child")
+                                .getter(NestedImmutableRecord::getChild)
+                                .setter(NestedImmutableRecord.Builder::child))
+            .build();
+    }
+
+    public static TableSchema<NestedImmutableRecord> buildStaticImmutableSchema_NoChildSchemaDefined() {
+        TableSchema<NestedImmutableChild> childSchema = null;
 
         return StaticImmutableTableSchema
             .builder(NestedImmutableRecord.class, NestedImmutableRecord.Builder.class)
