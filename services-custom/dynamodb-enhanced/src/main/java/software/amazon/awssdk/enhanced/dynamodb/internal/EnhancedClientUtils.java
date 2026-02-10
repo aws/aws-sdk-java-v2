@@ -21,12 +21,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -40,9 +38,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 @SdkInternalApi
 public final class EnhancedClientUtils {
-    private static final Set<Character> SPECIAL_CHARACTERS = Stream.of(
-        '*', '.', '-', '#', '+', ':', '/', '(', ')', ' ',
-        '&', '<', '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
+    private static final Pattern SPECIAL_CHARACTERS_PATTERN = Pattern.compile("\\W");
     private static final Pattern NESTED_OBJECT_PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
     private EnhancedClientUtils() {
@@ -57,18 +53,7 @@ public final class EnhancedClientUtils {
      * @return A key that has all these characters scrubbed and overwritten with an underscore.
      */
     public static String cleanAttributeName(String key) {
-        boolean somethingChanged = false;
-
-        char[] chars = key.toCharArray();
-
-        for (int i = 0; i < chars.length; ++i) {
-            if (SPECIAL_CHARACTERS.contains(chars[i])) {
-                chars[i] = '_';
-                somethingChanged = true;
-            }
-        }
-
-        return somethingChanged ? new String(chars) : key;
+        return SPECIAL_CHARACTERS_PATTERN.matcher(key).replaceAll("_");
     }
 
     private static boolean isNestedAttribute(String key) {
