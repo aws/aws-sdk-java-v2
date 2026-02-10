@@ -176,13 +176,12 @@ public final class UpdateExpressionConverter {
             return;
         }
         source.forEach((key, value) -> {
-            String oldValue = target.get(key);
+            String oldValue = target.put(key, value);
             if (oldValue != null && !oldValue.equals(value)) {
                 throw new IllegalArgumentException(
                     String.format("Attempt to coalesce two expressions with conflicting expression names. "
                                   + "Expression name key = '%s'", key));
             }
-            target.put(key, value);
         });
     }
 
@@ -191,13 +190,12 @@ public final class UpdateExpressionConverter {
             return;
         }
         source.forEach((key, value) -> {
-            AttributeValue oldValue = target.get(key);
+            AttributeValue oldValue = target.put(key, value);
             if (oldValue != null && !oldValue.equals(value)) {
                 throw new IllegalArgumentException(
                     String.format("Attempt to coalesce two expressions with conflicting expression values. "
                                   + "Expression value key = '%s'", key));
             }
-            target.put(key, value);
         });
     }
 
