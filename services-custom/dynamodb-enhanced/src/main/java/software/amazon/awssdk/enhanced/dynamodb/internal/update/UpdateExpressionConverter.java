@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -114,7 +115,7 @@ public final class UpdateExpressionConverter {
         List<String> groupExpressions = new ArrayList<>();
         if (!expression.setActions().isEmpty()) {
             groupExpressions.add(SET + expression.setActions().stream()
-                                                 .map(a -> String.format("%s = %s", a.path(), a.value()))
+                                                 .map(a -> a.path() + " = " + a.value())
                                                  .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         if (!expression.removeActions().isEmpty()) {
@@ -124,42 +125,80 @@ public final class UpdateExpressionConverter {
         }
         if (!expression.deleteActions().isEmpty()) {
             groupExpressions.add(DELETE + expression.deleteActions().stream()
-                                                    .map(a -> String.format("%s %s", a.path(), a.value()))
+                                                    .map(a -> a.path() + " " + a.value())
                                                     .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         if (!expression.addActions().isEmpty()) {
             groupExpressions.add(ADD + expression.addActions().stream()
-                                                 .map(a -> String.format("%s %s", a.path(), a.value()))
+                                                 .map(a -> a.path() + " " + a.value())
                                                  .collect(Collectors.joining(ACTION_SEPARATOR)));
         }
         return groupExpressions;
     }
 
-    private static Stream<Map<String, String>> streamOfExpressionNames(UpdateExpression expression) {
-        return Stream.concat(expression.setActions().stream().map(SetAction::expressionNames),
-                             Stream.concat(expression.removeActions().stream().map(RemoveAction::expressionNames),
-                                           Stream.concat(expression.deleteActions().stream()
-                                                                   .map(DeleteAction::expressionNames),
-                                                         expression.addActions().stream()
-                                                                   .map(AddAction::expressionNames))));
-    }
-
     private static Map<String, AttributeValue> mergeExpressionValues(UpdateExpression expression) {
-        return streamOfExpressionValues(expression)
-            .reduce(Expression::joinValues)
-            .orElseGet(Collections::emptyMap);
-    }
+        Map<String, AttributeValue> merged = new HashMap<>();
 
-    private static Stream<Map<String, AttributeValue>> streamOfExpressionValues(UpdateExpression expression) {
-        return Stream.concat(expression.setActions().stream().map(SetAction::expressionValues),
-                             Stream.concat(expression.deleteActions().stream().map(DeleteAction::expressionValues),
-                                           expression.addActions().stream().map(AddAction::expressionValues)));
+        for (SetAction action : expression.setActions()) {
+            mergeValuesInto(merged, action.expressionValues());
+        }
+        for (DeleteAction action : expression.deleteActions()) {
+            mergeValuesInto(merged, action.expressionValues());
+        }
+        for (AddAction action : expression.addActions()) {
+            mergeValuesInto(merged, action.expressionValues());
+        }
+
+        return merged.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(merged);
     }
 
     private static Map<String, String> mergeExpressionNames(UpdateExpression expression) {
-        return streamOfExpressionNames(expression)
-            .reduce(Expression::joinNames)
-            .orElseGet(Collections::emptyMap);
+        Map<String, String> merged = new HashMap<>();
+
+        for (SetAction action : expression.setActions()) {
+            mergeNamesInto(merged, action.expressionNames());
+        }
+        for (RemoveAction action : expression.removeActions()) {
+            mergeNamesInto(merged, action.expressionNames());
+        }
+        for (DeleteAction action : expression.deleteActions()) {
+            mergeNamesInto(merged, action.expressionNames());
+        }
+        for (AddAction action : expression.addActions()) {
+            mergeNamesInto(merged, action.expressionNames());
+        }
+
+        return merged.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(merged);
+    }
+
+    private static void mergeNamesInto(Map<String, String> target, Map<String, String> source) {
+        if (source == null || source.isEmpty()) {
+            return;
+        }
+        source.forEach((key, value) -> {
+            String oldValue = target.get(key);
+            if (oldValue != null && !oldValue.equals(value)) {
+                throw new IllegalArgumentException(
+                    String.format("Attempt to coalesce two expressions with conflicting expression names. "
+                                  + "Expression name key = '%s'", key));
+            }
+            target.put(key, value);
+        });
+    }
+
+    private static void mergeValuesInto(Map<String, AttributeValue> target, Map<String, AttributeValue> source) {
+        if (source == null || source.isEmpty()) {
+            return;
+        }
+        source.forEach((key, value) -> {
+            AttributeValue oldValue = target.get(key);
+            if (oldValue != null && !oldValue.equals(value)) {
+                throw new IllegalArgumentException(
+                    String.format("Attempt to coalesce two expressions with conflicting expression values. "
+                                  + "Expression value key = '%s'", key));
+            }
+            target.put(key, value);
+        });
     }
 
     private static List<String> listPathsWithoutTokens(UpdateExpression expression) {
