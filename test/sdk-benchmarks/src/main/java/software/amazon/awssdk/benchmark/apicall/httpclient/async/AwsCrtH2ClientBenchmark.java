@@ -39,7 +39,6 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockH2Server;
 import software.amazon.awssdk.crt.Log;
@@ -72,14 +71,16 @@ public class AwsCrtH2ClientBenchmark implements SdkHttpClientBenchmark {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        mockServer = new MockH2Server( true);
+        mockServer = new MockH2Server(true);
         mockServer.start();
 
         sdkHttpClient = AwsCrtAsyncHttpClient.builder()
-                                             .buildWithDefaults(AttributeMap.builder()
-                                                                            .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
-                                                                            .put(SdkHttpConfigurationOption.PROTOCOL, Protocol.HTTP2)
-                                                                            .build());
+                                             .buildWithDefaults(
+                                                 AttributeMap.builder()
+                                                             .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+                                                             .put(SdkHttpConfigurationOption.PROTOCOL,
+                                                                  Protocol.HTTP2)
+                                                             .build());
 
         client = ProtocolRestJsonAsyncClient.builder()
                                             .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
