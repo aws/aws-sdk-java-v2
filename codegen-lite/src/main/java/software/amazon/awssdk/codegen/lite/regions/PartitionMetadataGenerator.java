@@ -44,6 +44,18 @@ import software.amazon.awssdk.utils.ImmutableMap;
 
 public class PartitionMetadataGenerator implements PoetClass {
 
+    private static final Map<String, String> PARTITION_DISPLAY_NAMES =
+            ImmutableMap.<String, String>builder()
+                        .put("aws", "AWS Standard")
+                        .put("aws-cn", "AWS China")
+                        .put("aws-us-gov", "AWS GovCloud (US)")
+                        .put("aws-iso", "AWS ISO (US)")
+                        .put("aws-iso-b", "AWS ISOB (US)")
+                        .put("aws-iso-e", "AWS ISOE (Europe)")
+                        .put("aws-iso-f", "AWS ISOF")
+                        .put("aws-eusc", "AWS EUSC")
+                        .build();
+
     private final PartitionRegionsMetadata partition;
     private final String basePackage;
     private final String regionBasePackage;
@@ -85,7 +97,8 @@ public class PartitionMetadataGenerator implements PoetClass {
                                           .build())
                        .addField(FieldSpec.builder(String.class, "NAME")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getOutputs().getName())
+                                          .initializer("$S", PARTITION_DISPLAY_NAMES.getOrDefault(
+                                              partition.getId(), partition.getId()))
                                           .build())
                        .addField(FieldSpec.builder(String.class, "REGION_REGEX")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
