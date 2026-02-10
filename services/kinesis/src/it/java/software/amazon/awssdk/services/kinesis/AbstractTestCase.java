@@ -24,11 +24,9 @@ import java.util.Properties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
-import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AbstractTestCase extends AwsTestBase {
@@ -51,9 +49,7 @@ public class AbstractTestCase extends AwsTestBase {
     }
 
     protected static KinesisAsyncClientBuilder kinesisAsyncClientBuilder() {
-        return KinesisAsyncClient.builder().httpClientBuilder(AwsCrtAsyncHttpClient.builder())
-            .overrideConfiguration(o -> o.retryStrategy(DefaultRetryStrategy.doNotRetry()))
-                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+        return KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
     protected static boolean alpnSupported(){
