@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore",
+    "contributor": "",
+    "description": "Added AgentCore browser proxy configuration support, allowing routing of browser traffic through HTTP and HTTPS proxy servers with authentication and bypass rules."
+}
