@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "modify VersionedRecordExtension to support updating existing records with version=0 using OR condition"
-}

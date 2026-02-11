@@ -7449,6 +7449,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for Channel"
@@ -7605,6 +7610,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for ChannelSummary"
@@ -7785,6 +7795,11 @@
           "shape": "LinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "The linked channel settings for the channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for CreateChannel"
@@ -7880,6 +7895,11 @@
           "shape": "LinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "The linked channel settings for the channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "A request to create a channel"
@@ -8518,6 +8538,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for DeleteChannelResponse"
@@ -8988,6 +9013,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for DescribeChannelResponse"
@@ -9326,6 +9356,11 @@
           "shape": "__listOfInputWhitelistRule",
           "locationName": "whitelistRules",
           "documentation": "Whitelist rules and their sync status"
+        },
+        "Channels": {
+          "shape": "__listOf__string",
+          "locationName": "channels",
+          "documentation": "The list of channels currently using this Input Security Group as their channel security group."
         }
       },
       "documentation": "Placeholder documentation for DescribeInputSecurityGroupResponse"
@@ -13607,6 +13642,11 @@
           "shape": "__listOfInputWhitelistRule",
           "locationName": "whitelistRules",
           "documentation": "Whitelist rules and their sync status"
+        },
+        "Channels": {
+          "shape": "__listOf__string",
+          "locationName": "channels",
+          "documentation": "The list of channels currently using this Input Security Group as their channel security group."
         }
       },
       "documentation": "An Input Security Group"
@@ -13838,7 +13878,8 @@
         "MULTICAST",
         "SMPTE_2110_RECEIVER_GROUP",
         "SDI",
-        "MEDIACONNECT_ROUTER"
+        "MEDIACONNECT_ROUTER",
+        "SRT_LISTENER"
       ]
     },
     "InputVpcRequest": {
@@ -16527,6 +16568,10 @@
         "PipelineLockingSettings": {
           "shape": "PipelineLockingSettings",
           "locationName": "pipelineLockingSettings"
+        },
+        "DisabledLockingSettings": {
+          "shape": "DisabledLockingSettings",
+          "locationName": "disabledLockingSettings"
         }
       },
       "documentation": "Output Locking Settings"
@@ -16643,6 +16688,11 @@
           "shape": "PipelineLockingMethod",
           "locationName": "pipelineLockingMethod",
           "documentation": "The method to use to lock the video frames in the pipelines. sourceTimecode (default): Use the timecode in the source. videoAlignment: Lock frames that the encoder identifies as having matching content. If videoAlignment is selected, existing timecodes will not be used for any locking decisions."
+        },
+        "CustomEpoch": {
+          "shape": "__string",
+          "locationName": "customEpoch",
+          "documentation": "Optional. Only applies to CMAF Ingest Output Group and MediaPackage V2 Output Group Only. Enter a value here to use a custom epoch, instead of the standard epoch (which started at 1970-01-01T00:00:00 UTC). Specify the start time of the custom epoch, in YYYY-MM-DDTHH:MM:SS in UTC. The time must be 2000-01-01T00:00:00 or later. Always set the MM:SS portion to 00:00."
         }
       },
       "documentation": "Pipeline Locking Settings"
@@ -18028,6 +18078,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for StartChannelResponse"
@@ -18457,6 +18512,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for StopChannelResponse"
@@ -19132,6 +19192,11 @@
           "shape": "LinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "The linked channel settings for the channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for UpdateChannel"
@@ -19262,6 +19327,11 @@
           "shape": "LinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "The linked channel settings for the channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "A request to update a channel.",
@@ -21102,6 +21172,11 @@
           "shape": "DescribeLinkedChannelSettings",
           "locationName": "linkedChannelSettings",
           "documentation": "Linked Channel Settings for this channel."
+        },
+        "ChannelSecurityGroups": {
+          "shape": "__listOf__string",
+          "locationName": "channelSecurityGroups",
+          "documentation": "A list of IDs for all the Input Security Groups attached to the channel."
         }
       },
       "documentation": "Placeholder documentation for RestartChannelPipelinesResponse"
@@ -25744,9 +25819,13 @@
         "SrtCallerSources": {
           "shape": "__listOfSrtCallerSource",
           "locationName": "srtCallerSources"
+        },
+        "SrtListenerSettings": {
+          "shape": "SrtListenerSettings",
+          "locationName": "srtListenerSettings"
         }
       },
-      "documentation": "The configured sources for this SRT input."
+      "documentation": "The configured settings for SRT inputs (caller and listener)."
     },
     "SrtSettingsRequest": {
       "type": "structure",
@@ -25754,9 +25833,13 @@
         "SrtCallerSources": {
           "shape": "__listOfSrtCallerSourceRequest",
           "locationName": "srtCallerSources"
+        },
+        "SrtListenerSettings": {
+          "shape": "SrtListenerSettingsRequest",
+          "locationName": "srtListenerSettings"
         }
       },
-      "documentation": "Configures the sources for this SRT input. For a single-pipeline input, include one srtCallerSource in the array. For a standard-pipeline input, include two srtCallerSource."
+      "documentation": "Configures the settings for SRT inputs. Provide either srtCallerSources (for SRT_CALLER type) OR srtListenerSettings (for SRT_LISTENER type), not both."
     },
     "__listOfSrtCallerSource": {
       "type": "list",
@@ -25982,6 +26065,16 @@
           "shape": "Av1TemporalAq",
           "locationName": "temporalAq",
           "documentation": "Temporal AQ makes adjustments within each frame based on variations in content complexity over time. Enabled: MediaLive will determine the appropriate level of temporal AQ to apply. Disabled: No temporal AQ. For more information, see the topic about video adaptive quantization in the MediaLive user guide."
+        },
+        "TimecodeInsertion": {
+          "shape": "Av1TimecodeInsertionBehavior",
+          "locationName": "timecodeInsertion",
+          "documentation": "Controls how MediaLive inserts timecodes into the video output encode.\nDISABLED: Do not insert timecodes.\nMETADATA_OBU: Include timecodes. MediaLive inserts timecode metadata based on the timecode from the source specified in the Timecode Config property. The timecode metadata is a metadata OBU (Open Bitstream Unit) of type METADATA_TYPE_TIMECODE, in accordance with https://aomediacodec.github.io/av1-spec/#metadata-timecode-syntax."
+        },
+        "BitDepth": {
+          "shape": "Av1BitDepth",
+          "locationName": "bitDepth",
+          "documentation": "Specifies the bit depth for the output encode. Choose a value. Or leave the field empty to use the default, which is 8 bit."
         }
       },
       "documentation": "Av1 Settings",
@@ -27884,6 +27977,11 @@
           "shape": "__string",
           "locationName": "physicalInterfaceName",
           "documentation": "The name of the physical interface on the hardware that will be running Elemental anywhere."
+        },
+        "PhysicalInterfaceIpAddresses": {
+          "shape": "__listOf__string",
+          "locationName": "physicalInterfaceIpAddresses",
+          "documentation": "The IP addresses associated with the physical interface on the node hardware."
         }
       },
       "documentation": "A mapping that's used to pair a logical network interface name on a Node with the physical interface name exposed in the operating system."
@@ -28020,6 +28118,16 @@
           "shape": "__string",
           "locationName": "url",
           "documentation": "A URL specifying a destination"
+        },
+        "ConnectionMode": {
+          "shape": "ConnectionMode",
+          "locationName": "connectionMode",
+          "documentation": "Specifies the mode the output should use for connection establishment. CALLER mode requires URL, LISTENER mode requires port."
+        },
+        "ListenerPort": {
+          "shape": "__integerMin1Max65535",
+          "locationName": "listenerPort",
+          "documentation": "Port number for listener mode connections (required when connectionMode is LISTENER, must not be provided when connectionMode is CALLER)."
         }
       },
       "documentation": "Placeholder documentation for SrtOutputDestinationSettings"
@@ -30197,6 +30305,129 @@
         "shape": "MediaPackageAdditionalDestinations"
       },
       "documentation": "Placeholder documentation for __listOfMediaPackageAdditionalDestinations"
+    },
+    "Av1TimecodeInsertionBehavior": {
+      "type": "string",
+      "documentation": "Av1 Timecode Insertion Behavior",
+      "enum": [
+        "DISABLED",
+        "METADATA_OBU"
+      ]
+    },
+    "DisabledLockingSettings": {
+      "type": "structure",
+      "members": {
+        "CustomEpoch": {
+          "shape": "__string",
+          "locationName": "customEpoch",
+          "documentation": "Optional. Only applies to CMAF Ingest Output Group and MediaPackage V2 Output Group. Enter a value here to use a custom epoch, instead of the standard epoch (which started at 1970-01-01T00:00:00 UTC). Specify the start time of the custom epoch, in YYYY-MM-DDTHH:MM:SS in UTC. The time must be 2000-01-01T00:00:00 or later. Always set the MM:SS portion to 00:00."
+        }
+      },
+      "documentation": "Disabled Locking Settings"
+    },
+    "ConnectionMode": {
+      "type": "string",
+      "enum": [
+        "CALLER",
+        "LISTENER"
+      ],
+      "documentation": "Placeholder documentation for ConnectionMode"
+    },
+    "SrtListenerDecryption": {
+      "type": "structure",
+      "members": {
+        "Algorithm": {
+          "shape": "Algorithm",
+          "locationName": "algorithm",
+          "documentation": "The algorithm used to decrypt content."
+        },
+        "PassphraseSecretArn": {
+          "shape": "__string",
+          "locationName": "passphraseSecretArn",
+          "documentation": "The ARN for the secret in Secrets Manager that holds the passphrase for decryption."
+        }
+      },
+      "documentation": "Decryption settings for SRT listener. If present, both algorithm and passphraseSecretArn are required.",
+      "required": [
+        "PassphraseSecretArn",
+        "Algorithm"
+      ]
+    },
+    "SrtListenerDecryptionRequest": {
+      "type": "structure",
+      "members": {
+        "Algorithm": {
+          "shape": "Algorithm",
+          "locationName": "algorithm",
+          "documentation": "Required. The decryption algorithm."
+        },
+        "PassphraseSecretArn": {
+          "shape": "__string",
+          "locationName": "passphraseSecretArn",
+          "documentation": "Required. The ARN for the secret in Secrets Manager that holds the passphrase."
+        }
+      },
+      "documentation": "Decryption settings. If specified, both algorithm and passphraseSecretArn are required.",
+      "required": [
+        "PassphraseSecretArn",
+        "Algorithm"
+      ]
+    },
+    "SrtListenerSettings": {
+      "type": "structure",
+      "members": {
+        "Decryption": {
+          "shape": "SrtListenerDecryption",
+          "locationName": "decryption"
+        },
+        "MinimumLatency": {
+          "shape": "__integer",
+          "locationName": "minimumLatency",
+          "documentation": "The preferred latency (in milliseconds) for implementing packet loss and recovery. Range 120-15000."
+        },
+        "StreamId": {
+          "shape": "__string",
+          "locationName": "streamId",
+          "documentation": "The stream ID, if the upstream system uses this identifier."
+        }
+      },
+      "documentation": "Settings for SRT Listener input."
+    },
+    "SrtListenerSettingsRequest": {
+      "type": "structure",
+      "members": {
+        "Decryption": {
+          "shape": "SrtListenerDecryptionRequest",
+          "locationName": "decryption"
+        },
+        "MinimumLatency": {
+          "shape": "__integer",
+          "locationName": "minimumLatency",
+          "documentation": "Required. The preferred latency in milliseconds for packet loss and recovery. Range 120-15000."
+        },
+        "StreamId": {
+          "shape": "__string",
+          "locationName": "streamId",
+          "documentation": "Optional. The stream ID if the upstream system uses this identifier."
+        }
+      },
+      "documentation": "Configuration for SRT Listener input. Encryption is REQUIRED for all SRT Listener inputs for security reasons. You must provide decryption settings including algorithm and passphrase secret ARN.",
+      "required": [
+        "MinimumLatency",
+        "Decryption"
+      ]
+    },
+    "__integerMin1Max65535": {
+      "type": "integer",
+      "documentation": "Placeholder documentation for __integerMin1Max65535"
+    },
+    "Av1BitDepth": {
+      "type": "string",
+      "documentation": "Av1 Bit Depth",
+      "enum": [
+        "DEPTH_10",
+        "DEPTH_8"
+      ]
     }
   },
   "documentation": "API for AWS Elemental MediaLive"
