@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS S3 AccessGrants",
+    "contributor": "prime025",
+    "description": "Updating S3 AccessGrants plugin version to 2.4.1"
+}
