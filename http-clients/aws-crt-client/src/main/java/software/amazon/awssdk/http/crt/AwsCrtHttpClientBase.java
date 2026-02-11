@@ -71,6 +71,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final long maxConnectionIdleInMilliseconds;
     private final int maxConnectionsPerEndpoint;
     private final long connectionAcquisitionTimeout;
+    private final TlsContextOptions tlsContextOptions;
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
@@ -86,6 +87,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
         }
 
+        this.tlsContextOptions = registerOwnedResource(clientTlsContextOptions);
         TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions);
 
         this.bootstrap = registerOwnedResource(clientBootstrap);
