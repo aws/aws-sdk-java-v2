@@ -122,7 +122,7 @@ public class RegionGenerationTest {
     @Test
     public void partitionMetadataProviderClass() {
         PartitionMetadataProviderGenerator partitionMetadataProviderGenerator =
-            new PartitionMetadataProviderGenerator(partitions, PARTITION_METADATA_BASE, REGION_BASE);
+            new PartitionMetadataProviderGenerator(partitionsRegions, PARTITION_METADATA_BASE, REGION_BASE);
 
         assertThat(partitionMetadataProviderGenerator, generatesTo("partition-metadata-provider.java"));
     }
