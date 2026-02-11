@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "\"Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json\""
+    "description": "Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json"
 }
