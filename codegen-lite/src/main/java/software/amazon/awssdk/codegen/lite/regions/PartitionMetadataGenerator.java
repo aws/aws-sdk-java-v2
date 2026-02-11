@@ -44,6 +44,12 @@ import software.amazon.awssdk.utils.ImmutableMap;
 
 public class PartitionMetadataGenerator implements PoetClass {
 
+    /**
+     * Hardcoded mapping of partition IDs to display names.
+     * This preserves backward compatibility since partitions.json only provides
+     * partition IDs, while the old endpoints.json had separate partitionName fields.
+     * New partitions will fall back to using their ID as the display name.
+     */
     private static final Map<String, String> PARTITION_DISPLAY_NAMES =
             ImmutableMap.<String, String>builder()
                         .put("aws", "AWS Standard")
