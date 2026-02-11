@@ -77,7 +77,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         generateRegionClass(baseSourcesDirectory, regionPartitions);
         generateServiceMetadata(baseSourcesDirectory, partitions);
         generateRegions(baseSourcesDirectory, regionPartitions);
-        generatePartitionProvider(baseSourcesDirectory, partitions);
+        generatePartitionProvider(baseSourcesDirectory, regionPartitions);
         generateRegionProvider(baseSourcesDirectory, regionPartitions);
         generateServiceProvider(baseSourcesDirectory, partitions);
         generateEndpointTags(baseSourcesDirectory, partitions);
@@ -125,7 +125,7 @@ public class RegionGenerationMojo extends AbstractMojo {
                                                                .generate()));
     }
 
-    public void generatePartitionProvider(Path baseSourcesDirectory, Partitions partitions) {
+    public void generatePartitionProvider(Path baseSourcesDirectory, PartitionsRegionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new PartitionMetadataProviderGenerator(partitions,
                                                                                               PARTITION_METADATA_BASE,
