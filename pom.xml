@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.41.4-SNAPSHOT</version>
+    <version>2.41.27-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -103,8 +103,12 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.41.3</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.41.2</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.41.26</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.41.25</awsjavasdk.previous-previous.version>
+        <jackson.version>2.20.2</jackson.version>
+        <jackson.databind.version>2.20.2</jackson.databind.version>
+        <jacksonjr.version>2.20.2</jacksonjr.version>
+        <jackson.annotations.version>2.20</jackson.annotations.version>
         <jackson.version>2.18.5</jackson.version>
         <jackson.databind.version>2.18.5</jackson.databind.version>
         <jacksonjr.version>2.18.5</jacksonjr.version>
@@ -113,7 +117,7 @@
         <wiremock.version>2.32.0</wiremock.version>
         <slf4j.version>1.7.36</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
-        <commons.io.version>2.11.0</commons.io.version>
+        <commons.io.version>2.21.0</commons.io.version>
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
@@ -121,7 +125,7 @@
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.7.3.5</spotbugs.version>
+        <spotbugs.version>4.9.8.2</spotbugs.version>
         <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
@@ -132,7 +136,7 @@
         <awscrt.version>0.40.3</awscrt.version>
 
         <!--Test dependencies -->
-        <junit5.version>5.10.0</junit5.version>
+        <junit5.version>5.10.3</junit5.version>
         <mockito.junit5.version>4.6.0</mockito.junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
@@ -145,9 +149,9 @@
         <netty-open-ssl-version>2.0.74.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
-        <blockhound.version>1.0.8.RELEASE</blockhound.version>
+        <blockhound.version>1.0.16.RELEASE</blockhound.version>
         <jetty.version>9.4.45.v20220203</jetty.version>
-        <bytebuddy.version>1.14.15</bytebuddy.version>
+        <bytebuddy.version>1.17.5</bytebuddy.version>
         <archunit.version>1.3.0</archunit.version>
         <json-schema-validator.version>1.5.4</json-schema-validator.version>
 
@@ -162,7 +166,7 @@
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
@@ -187,13 +191,15 @@
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
-        <httpcomponents.client5.version>5.5</httpcomponents.client5.version>
-        <httpcomponents.core5.version>5.3.4</httpcomponents.core5.version>
+        <httpcomponents.client5.version>5.6</httpcomponents.client5.version>
+        <httpcomponents.core5.version>5.4</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <!-- S3 Access Grants plugin version -->
-        <s3accessgrants.version>2.1.0</s3accessgrants.version>
+        <s3accessgrants.version>2.4.0</s3accessgrants.version>
+
+        <lakeformations3accessgrants.version>1.2</lakeformations3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <v2.migration.tests.skip>true</v2.migration.tests.skip>
@@ -387,47 +393,6 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>com.github.spotbugs</groupId>
-                    <artifactId>spotbugs-maven-plugin</artifactId>
-                    <version>${spotbugs.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>software.amazon.awssdk</groupId>
-                            <artifactId>build-tools</artifactId>
-                            <version>1.0</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.apache.ant</groupId>
-                            <artifactId>ant</artifactId>
-                            <version>${ant.version}</version>
-                        </dependency>
-                    </dependencies>
-                    <executions>
-                        <execution>
-                            <id>findbugs</id>
-                            <phase>process-classes</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <failOnError>true</failOnError>
-                        <fork>false</fork>
-                        <spotbugsXmlOutput>true</spotbugsXmlOutput>
-                        <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
-                        <threshold>Low</threshold>
-                        <effort>Max</effort>
-                        <plugins>
-                            <dependency>
-                                <groupId>software.amazon.awssdk</groupId>
-                                <artifactId>build-tools</artifactId>
-                                <version>1.0</version>
-                            </dependency>
-                        </plugins>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
                     <version>${maven-checkstyle-plugin.version}</version>
@@ -546,6 +511,7 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.lakeformation.plugin.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
@@ -834,6 +800,52 @@
             <properties>
                 <maven.compiler.release>8</maven.compiler.release>
             </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.github.spotbugs</groupId>
+                            <artifactId>spotbugs-maven-plugin</artifactId>
+                            <version>${spotbugs.version}</version>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>software.amazon.awssdk</groupId>
+                                    <artifactId>build-tools</artifactId>
+                                    <version>1.0</version>
+                                </dependency>
+                                <dependency>
+                                    <groupId>org.apache.ant</groupId>
+                                    <artifactId>ant</artifactId>
+                                    <version>${ant.version}</version>
+                                </dependency>
+                            </dependencies>
+                            <executions>
+                                <execution>
+                                    <id>findbugs</id>
+                                    <phase>process-classes</phase>
+                                    <goals>
+                                        <goal>check</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <failOnError>true</failOnError>
+                                <fork>false</fork>
+                                <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
+                                <threshold>Low</threshold>
+                                <effort>Max</effort>
+                                <plugins>
+                                    <dependency>
+                                        <groupId>software.amazon.awssdk</groupId>
+                                        <artifactId>build-tools</artifactId>
+                                        <version>1.0</version>
+                                    </dependency>
+                                </plugins>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
         </profile>
 
         <profile>
@@ -843,7 +855,19 @@
             </activation>
             <properties>
                 <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
-                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
+                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods -Dreactor.blockhound.shaded.net.bytebuddy.experimental=true</argLine>
+            </properties>
+        </profile>
+
+        <profile>
+            <!-- SpotBugs 4.9.x has severe performance regression on JDK 17 (99% CPU, 6x slower than JDK 21).
+                 Skip SpotBugs on JDK 17; it still runs on JDK 11, 21, and 25. -->
+            <id>jdk-17-spotbugs-skip</id>
+            <activation>
+                <jdk>17</jdk>
+            </activation>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
             </properties>
         </profile>
 
