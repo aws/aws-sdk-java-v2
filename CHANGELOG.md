@@ -1,4 +1,92 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.26__ __2026-02-10__
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added AgentCore browser proxy configuration support, allowing routing of browser traffic through HTTP and HTTPS proxy servers with authentication and bypass rules.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now supports per-channel auto-accept and After Contact Work (ACW) timeouts. Configure agents with auto-accept and ACW timeout settings for chat, tasks, emails, and callbacks. Use the new UpdateUserConfig API to manage these settings.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing an optional policy field, an IAM policy applied to pod identity associations in addition to IAM role policies. When specified, pod permissions are the intersection of IAM role policies and the policy field, ensuring the principle of least privilege.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds backup configuration for RDS and Aurora restores, letting customers set backup retention period and preferred backup window during restore. It also enables viewing backup settings when describing snapshots or automated backups for instances and clusters.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK adds three new APIs, CreateTopic, UpdateTopic, and DeleteTopic for managing Kafka topics in your MSK clusters.
+
+# __2.41.25__ __2026-02-09__
+## __AWS Lake Formation__
+  - ### Features
+    - Allow cross account v5 in put data lake settings
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Introduces RESUMING state for clusters, compute node groups, and queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds a documentation update for MdnResponse of type "ASYNC"
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon Secondary Networks is a networking feature that provides high-performance, low-latency connectivity for specialized workloads.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS adds a new DescribeUpdate update type, VendedLogsUpdate, to support an integration between EKS Auto Mode and Amazon CloudWatch Vended Logs.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Added edgeOnlyLoad boolean parameter to Neptune bulk load request. When TRUE, files are loaded in order without scanning. When FALSE (default), the loader scans files first, then loads vertex files before edge files automatically.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Add the missing event type for WhatsApp
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports wildcard patterns in lifecycle policies with recipes and enhances the experience of tag-scoped policies.
+
+# __2.41.24__ __2026-02-06__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update session credentials builder in HttpsCredentialsLoader to include expiration time so it's set in session credentials for ContainerCredentialsProvider
+        - Contributed by: [@carhaz](https://github.com/carhaz)
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tagging jobs during job creation
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding g7e instance support in Sagemaker Training
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adding support for Custom(General) Authorization in managed integrations for AWS IoT Device Management cloud connectors.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Releasing AWS Opportunity Snapshots for SDK release.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Add OutputConfiguration to InvokeDataAutomation input and output to support S3 output
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@carhaz](https://github.com/carhaz)
 # __2.41.23__ __2026-02-05__
 ## __ARC - Region switch__
   - ### Features
