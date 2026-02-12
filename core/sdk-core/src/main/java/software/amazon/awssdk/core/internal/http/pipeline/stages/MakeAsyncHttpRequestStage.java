@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -47,6 +48,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
+import software.amazon.awssdk.core.internal.metrics.BytesWrittenTrackingPublisher;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -129,9 +132,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
-        SdkHttpContentPublisher requestProvider = context.requestProvider() == null
+        SdkHttpContentPublisher basePublisher = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
                                                   : new SdkHttpContentPublisherAdapter(context.requestProvider());
+        SdkHttpContentPublisher requestProvider = wrapWithMetricsTracking(basePublisher, context);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -219,6 +223,13 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                executionAttributes.getAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX);
     }
 
+    private SdkHttpContentPublisher wrapWithMetricsTracking(SdkHttpContentPublisher publisher,
+                                                            RequestExecutionContext context) {
+        RequestBodyMetrics metrics = context.executionAttributes()
+            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+        return new TrackingHttpContentPublisher(publisher, metrics);
+    }
+
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpContentPublisher requestProvider) {
         if (shouldSetContentLength(request, requestProvider)) {
             return request.toBuilder()
@@ -262,7 +273,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      * {@link SdkHttpContentPublisher} which the HTTP client SPI expects.
      */
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
-
         private final AsyncRequestBody asyncRequestBody;
 
         private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
@@ -277,6 +287,29 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             asyncRequestBody.subscribe(s);
+        }
+    }
+
+    /**
+     * Wraps an {@link SdkHttpContentPublisher} with write throughput tracking.
+     */
+    private static final class TrackingHttpContentPublisher implements SdkHttpContentPublisher {
+        private final SdkHttpContentPublisher delegate;
+        private final Publisher<ByteBuffer> trackingPublisher;
+
+        private TrackingHttpContentPublisher(SdkHttpContentPublisher delegate, RequestBodyMetrics metrics) {
+            this.delegate = delegate;
+            this.trackingPublisher = new BytesWrittenTrackingPublisher(delegate, metrics);
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return delegate.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            trackingPublisher.subscribe(s);
         }
     }
 

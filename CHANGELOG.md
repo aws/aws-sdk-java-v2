@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.27__ __2026-02-11__
+## __AWS Batch__
+  - ### Features
+    - Add support for listing jobs by share identifier and getting snapshots of active capacity utilization by job queue and share.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - R8i instances powered by custom Intel Xeon 6 processors available only on AWS with sustained all-core 3.9 GHz turbo frequency
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for Windows Server 2025 in Amazon EKS Managed Node Groups.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports setting partition specifications and sort orders on tables. Partition specs allow users to define how data is organized using transform functions. Sort order configurations enable users to specify sort directions and null ordering preferences for optimized data layout.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support configurable upper limits on task count during autoscaling operations via maxAutoscalingTaskCount parameter.
+
 # __2.41.26__ __2026-02-10__
 ## __Amazon Bedrock AgentCore__
   - ### Features
