@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.28__ __2026-02-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `WRITE_THROUGHPUT` metric to measure request body upload speed (bytes/sec). This metric is reported at the API call attempt level for requests with a body.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching nested virtualization. This feature allows you to run nested VMs inside virtual (non-bare metal) EC2 instances.
+
 # __2.41.27__ __2026-02-11__
 ## __AWS Batch__
   - ### Features
