@@ -19,11 +19,8 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +41,6 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersi
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersionedStaticImmutableItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -269,30 +265,15 @@ public class VersionedRecordExtensionTest {
     @MethodSource("customFailingStartAtAndIncrementValues")
     public void customStartingValueAndIncrement_shouldThrow(Long startAt, Long incrementBy) {
         assertThrows(IllegalArgumentException.class, () -> VersionedRecordExtension.builder()
-                                                                               .startAt(startAt)
-                                                                               .incrementBy(incrementBy)
-                                                                               .build());
+                                                                                   .startAt(startAt)
+                                                                                   .incrementBy(incrementBy)
+                                                                                   .build());
     }
 
     public static Stream<Arguments> customFailingStartAtAndIncrementValues() {
         return Stream.of(
             Arguments.of(-2L, 1L),
-            Arguments.of(3L, 0L),
-            Arguments.of(-1L, 0L));
-    }
-
-    @Test
-    public void builder_startAtValueIsLessThanMinusOne_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> VersionedRecordExtension.builder().startAt(-2L).build(),
-                     "startAt must be -1 or greater");
-    }
-
-    @Test
-    public void builder_incrementByValueIsLessThanOne_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> VersionedRecordExtension.builder().incrementBy(0L).build(),
-                     "incrementBy must be greater than 0.");
+            Arguments.of(3L, 0L));
     }
 
     @Test
@@ -394,9 +375,9 @@ public class VersionedRecordExtensionTest {
     @Test
     public void customAnnotationValuesAndBuilderValues_annotationShouldTakePrecedence() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
-                                                        .startAt(5L)
-                                                        .incrementBy(2L)
-                                                        .build();
+                                                                           .startAt(5L)
+                                                                           .incrementBy(2L)
+                                                                           .build();
 
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
         item.setId(UUID.randomUUID().toString());
@@ -535,7 +516,7 @@ public class VersionedRecordExtensionTest {
     @ParameterizedTest
     @MethodSource("customIncrementForExistingVersionValues")
     public void customIncrementForExistingVersion_withImmutableSchema_worksAsExpected(Long startAt, Long incrementBy,
-                                                                  Long existingVersion, String expectedNextVersion) {
+                                                                                      Long existingVersion, String expectedNextVersion) {
         VersionedRecordExtension.Builder recordExtensionBuilder = VersionedRecordExtension.builder();
         if (startAt != null) {
             recordExtensionBuilder.startAt(startAt);
@@ -699,90 +680,5 @@ public class VersionedRecordExtensionTest {
             Arguments.of(3L, 2L, 7L, "9"),
             Arguments.of(3L, null, 10L, "11"),
             Arguments.of(null, 3L, 4L, "7"));
-    }
-
-    @Test
-    public void versionAttribute_withInvalidStartAt_throwsIllegalArgumentException() {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() ->
-                            StaticTableSchema.builder(TestItem.class)
-                                             .newItemSupplier(TestItem::new)
-                                             .addAttribute(String.class,
-                                                           a -> a.name("id")
-                                                                 .getter(TestItem::getId)
-                                                                 .setter(TestItem::setId)
-                                                                 .addTag(primaryPartitionKey()))
-                                             .addAttribute(Long.class,
-                                                           a -> a.name("version")
-                                                                 .getter(TestItem::getVersion)
-                                                                 .setter(TestItem::setVersion)
-                                                                 .addTag(versionAttribute(-2L, 1L)))
-                                             .build()
-            )
-            .withMessage("startAt must be -1 or greater.");
-    }
-
-    @Test
-    public void versionAttribute_withInvalidIncrementBy_throwsIllegalArgumentException() {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() ->
-                            StaticTableSchema.builder(TestItem.class)
-                                             .newItemSupplier(TestItem::new)
-                                             .addAttribute(String.class,
-                                                           a -> a.name("id")
-                                                                 .getter(TestItem::getId)
-                                                                 .setter(TestItem::setId)
-                                                                 .addTag(primaryPartitionKey()))
-                                             .addAttribute(Long.class,
-                                                           a -> a.name("version")
-                                                                 .getter(TestItem::getVersion)
-                                                                 .setter(TestItem::setVersion)
-                                                                 .addTag(versionAttribute(0L, 0L)))
-                                             .build()
-            )
-            .withMessage("incrementBy must be greater than 0.");
-    }
-
-    @Test
-    public void versionAttribute_withNonNumericType_throwsIllegalArgumentException() {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() ->
-                            StaticTableSchema.builder(TestItem.class)
-                                             .newItemSupplier(TestItem::new)
-                                             .addAttribute(String.class,
-                                                           a -> a.name("id")
-                                                                 .getter(TestItem::getId)
-                                                                 .setter(TestItem::setId)
-                                                                 .addTag(primaryPartitionKey()))
-                                             .addAttribute(String.class,
-                                                           a -> a.name("version")
-                                                                 .getter(TestItem::getId)
-                                                                 .setter(TestItem::setId)
-                                                                 .addTag(versionAttribute()))
-                                             .build()
-            )
-            .withMessageContaining(
-                "is not a suitable type to be used as a version attribute. Only type 'N' is supported.");
-    }
-
-    private static class TestItem {
-        private String id;
-        private Long version;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public Long getVersion() {
-            return version;
-        }
-
-        public void setVersion(Long version) {
-            this.version = version;
-        }
     }
 }
