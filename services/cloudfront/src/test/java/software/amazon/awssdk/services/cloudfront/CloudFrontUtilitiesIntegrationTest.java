@@ -25,7 +25,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
@@ -144,7 +143,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void unsignedUrl_shouldReturn403Response() throws Exception {
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
                                                     .request(SdkHttpRequest.builder()
@@ -169,7 +168,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .keyPairId(testCase.keyPairId)
                                                          .expirationDate(expirationDate).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -188,7 +187,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                       .privateKey(testCase.privateKey)
                                                                                       .keyPairId(testCase.keyPairId)
                                                                                       .expirationDate(expirationDate));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -209,7 +208,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -229,7 +228,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                       .keyPairId(rsaKeyPairId)
                                                                                       .expirationDate(expirationDate)
                                                                                       .activeDate(activeDate));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
                                                                                .build()).call();
@@ -247,7 +246,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                              .keyPairId(testCase.keyPairId)
                                                                                              .expirationDate(expirationDate));
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -268,7 +267,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .expirationDate(expirationDate).build();
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -288,7 +287,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                              .expirationDate(expirationDate)
                                                                                              .activeDate(activeDate));
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -311,7 +310,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .activeDate(activeDate).build();
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(cookies.createHttpGetRequest())
                                                                                .build()).call();
@@ -345,7 +344,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         URI modifiedUri = URI.create(urlWithDynamicParam);
 
 
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
@@ -382,7 +381,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
 
         URI modifiedUri = URI.create(signedUrl.url().replace("/specific-file","/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
@@ -418,7 +417,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
 
         URI modifiedUri = URI.create(signedUrl.url().replace("/s3ObjectKey","/foo/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
