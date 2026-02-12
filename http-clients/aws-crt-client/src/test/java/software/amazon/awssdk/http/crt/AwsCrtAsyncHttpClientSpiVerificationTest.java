@@ -127,7 +127,8 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
             SdkHttpRequest request = createRequest(uri);
             RecordingResponseHandler recorder = new RecordingResponseHandler();
             client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
-            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(ConnectException.class);
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
+                                                              .hasMessageContaining("socket");
         }
     }
 
