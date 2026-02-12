@@ -522,7 +522,7 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>apache-client</artifactId>
+            <artifactId>apache5-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
