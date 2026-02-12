@@ -63,7 +63,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdat
  *   <li>{@link UpdateBehavior#WRITE_ALWAYS} (default) – Generate a new UUID whenever the attribute is missing during write.</li>
  *   <li>{@link UpdateBehavior#WRITE_IF_NOT_EXISTS} – Generate a UUID only on the first write, preserving the value on
  *   subsequent updates.</li>
- * </ul></p>
+ * </ul>
+ * </p>
  *
  * <h3>Type restriction</h3>
  * This annotation is only valid on attributes of type {@link String}.
