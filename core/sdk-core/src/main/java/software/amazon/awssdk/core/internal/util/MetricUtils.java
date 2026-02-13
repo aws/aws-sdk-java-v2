@@ -182,9 +182,6 @@ public final class MetricUtils {
 
     public static double bytesPerSec(long totalBytes, long nanoStart, long nanoEnd) {
         long duration = nanoEnd - nanoStart;
-        if (duration <= 0) {
-            return 0.0;
-        }
         double bytesPerNs = (double) totalBytes / duration;
         return bytesPerNs * ONE_SEC_IN_NS;
     }

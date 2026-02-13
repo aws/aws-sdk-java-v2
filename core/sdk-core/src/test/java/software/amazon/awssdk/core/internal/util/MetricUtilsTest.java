@@ -171,13 +171,6 @@ public class MetricUtilsTest {
     }
 
     @Test
-    public void bytesPerSec_zeroDuration_returnsZero() {
-        long sameTime = System.nanoTime();
-        double result = MetricUtils.bytesPerSec(50, sameTime, sameTime);
-        assertThat(result).isEqualTo(0.0);
-    }
-
-    @Test
     public void collectHttpMetrics_collectsAllExpectedMetrics() {
         MetricCollector mockCollector = mock(MetricCollector.class);
 
