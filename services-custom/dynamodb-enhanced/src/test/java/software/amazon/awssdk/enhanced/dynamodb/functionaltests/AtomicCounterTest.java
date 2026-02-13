@@ -16,18 +16,21 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import java.util.stream.IntStream;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.LogCaptor;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.AtomicCounterExtension;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AtomicCounterRecord;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
 
@@ -193,5 +196,24 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
         persistedRecord = mappedTable.getItem(record);
         assertThat(persistedRecord.getAttribute1()).isEqualTo(STRING_VALUE);
         assertThat(persistedRecord.getDefaultCounter()).isEqualTo(1L);
+    }
+
+    @Test
+    public void updateItem_withAtomicCounters_logsFilteredAttributes() {
+        AtomicCounterRecord record = new AtomicCounterRecord();
+        record.setId(RECORD_ID);
+        record.setAttribute1(STRING_VALUE);
+
+        try (LogCaptor logCaptor = new LogCaptor(AtomicCounterExtension.class, Level.DEBUG)) {
+            mappedTable.updateItem(record);
+
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).hasSize(1);
+            assertThat(logEvents.get(0).getLevel().name()).isEqualTo(Level.DEBUG.name());
+            assertThat(logEvents.get(0).getMessage().getFormattedMessage()).contains("Filtered atomic counter attributes from "
+                                                                                    + "existing update item to avoid "
+                                                                                    + "collisions: customCounter,"
+                                                                                    + "defaultCounter,decreasingCounter");
+        }
     }
 }

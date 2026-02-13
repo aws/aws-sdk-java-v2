@@ -20,12 +20,14 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
@@ -41,12 +43,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -59,12 +63,14 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedReques
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.paginators.BatchGetItemIterable;
+import software.amazon.awssdk.services.dynamodb.paginators.BatchGetItemPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchGetItemOperationTest {
@@ -105,6 +111,12 @@ public class BatchGetItemOperationTest {
                 DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extensions().build();
         fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
         fakeItemWithSortMappedTable = enhancedClient.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
+    }
+
+    @Test
+    public void returnsCorrectOperationName() {
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
+        assertThat(operation.operationName().label(), is("BatchGetItem"));
     }
 
     @Test
@@ -381,14 +393,16 @@ public class BatchGetItemOperationTest {
                 .when(mockExtension)
                 .afterRead(
                     argThat(extensionContext ->
-                                extensionContext.operationContext().tableName().equals(TABLE_NAME) &&
-                                extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
+                                extensionContext.tableSchema().equals(FakeItem.getTableSchema())
+                                && extensionContext.operationContext().tableName().equals(TABLE_NAME)
+                                && extensionContext.items().equals(FAKE_ITEM_MAPS.get(i))
                     ));
             doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
                 .afterRead(argThat(extensionContext ->
-                                       extensionContext.operationContext().tableName().equals(TABLE_NAME_2) &&
-                                       extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
+                                       extensionContext.tableSchema().equals(FakeItemWithSort.getTableSchema())
+                                       && extensionContext.operationContext().tableName().equals(TABLE_NAME_2)
+                                       && extensionContext.items().equals(FAKESORT_ITEM_MAPS.get(i))
                 ));
         });
 
@@ -411,6 +425,219 @@ public class BatchGetItemOperationTest {
         BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, null);
 
         assertThat(resultsPage.resultsForTable(fakeItemMappedTable), is(emptyList()));
+    }
+
+    @Test
+    public void generateRequest_mergesKeysAndAttributes_bothConsistentReadNull() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(Key.builder().partitionValue("1").build())
+                                    .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(Key.builder().partitionValue("2").build())
+                                    .build();
+        BatchGetItemEnhancedRequest req = BatchGetItemEnhancedRequest.builder()
+                                                                     .readBatches(batch1, batch2)
+                                                                     .build();
+        BatchGetItemOperation op = BatchGetItemOperation.create(req);
+
+        BatchGetItemRequest result = op.generateRequest(null);
+
+        List<Map<String, AttributeValue>> keys = result.requestItems().get(TABLE_NAME).keys();
+        assertThat(keys, containsInAnyOrder(
+            FakeItem.getTableSchema().itemToMap(FakeItem.builder().id("1").build(), FakeItem.getTableMetadata().primaryKeys()),
+            FakeItem.getTableSchema().itemToMap(FakeItem.builder().id("2").build(), FakeItem.getTableMetadata().primaryKeys())));
+        assertThat(result.requestItems().get(TABLE_NAME).consistentRead(), nullValue());
+    }
+
+    @Test
+    public void generateRequest_mergesKeysAndAttributes_consistentReadTrue() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(GetItemEnhancedRequest.builder()
+                                                                      .key(Key.builder().partitionValue("1").build())
+                                                                      .consistentRead(true)
+                                                                      .build())
+                                    .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(GetItemEnhancedRequest.builder()
+                                                                      .key(Key.builder().partitionValue("2").build())
+                                                                      .consistentRead(true)
+                                                                      .build())
+                                    .build();
+        BatchGetItemEnhancedRequest req = BatchGetItemEnhancedRequest.builder()
+                                                                     .readBatches(batch1, batch2)
+                                                                     .build();
+        BatchGetItemOperation op = BatchGetItemOperation.create(req);
+
+        BatchGetItemRequest result = op.generateRequest(null);
+
+        List<Map<String, AttributeValue>> keys = result.requestItems().get(TABLE_NAME).keys();
+        assertThat(keys, containsInAnyOrder(
+            FakeItem.getTableSchema().itemToMap(FakeItem.builder().id("1").build(), FakeItem.getTableMetadata().primaryKeys()),
+            FakeItem.getTableSchema().itemToMap(FakeItem.builder().id("2").build(), FakeItem.getTableMetadata().primaryKeys())));
+        assertThat(result.requestItems().get(TABLE_NAME).consistentRead(), is(true));
+    }
+
+    @Test
+    public void generateRequest_mergesKeysAndAttributes_incompatibleConsistentRead_throws() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(GetItemEnhancedRequest.builder()
+                                                                      .key(Key.builder().partitionValue("1").build())
+                                                                      .consistentRead(true)
+                                                                      .build())
+                                    .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+                                    .mappedTableResource(fakeItemMappedTable)
+                                    .addGetItem(GetItemEnhancedRequest.builder()
+                                                                      .key(Key.builder().partitionValue("2").build())
+                                                                      .consistentRead(false)
+                                                                      .build())
+                                    .build();
+        BatchGetItemEnhancedRequest req = BatchGetItemEnhancedRequest.builder()
+                                                                     .readBatches(batch1, batch2)
+                                                                     .build();
+        BatchGetItemOperation op = BatchGetItemOperation.create(req);
+
+        try {
+            op.generateRequest(null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("same 'consistentRead' setting"));
+        }
+    }
+
+    @Test
+    public void generateRequest_allowsAllNullConsistentReadAcrossBatches() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(Key.builder().partitionValue("1").build())
+            .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(Key.builder().partitionValue("2").build())
+            .build();
+        BatchGetItemEnhancedRequest request = BatchGetItemEnhancedRequest.builder()
+            .readBatches(batch1, batch2)
+            .build();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
+        operation.generateRequest(null); // Should not throw
+    }
+
+    @Test
+    public void generateRequest_throwsIfFirstBatchTrueSecondBatchNullConsistentRead() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("3").build()).consistentRead(true).build())
+            .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(Key.builder().partitionValue("4").build())
+            .build();
+        BatchGetItemEnhancedRequest request = BatchGetItemEnhancedRequest.builder()
+            .readBatches(batch1, batch2)
+            .build();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
+        try {
+            operation.generateRequest(null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("same 'consistentRead' setting"));
+        }
+    }
+
+    @Test
+    public void generateRequest_throwsIfFirstBatchNullSecondBatchFalseConsistentRead() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(Key.builder().partitionValue("5").build())
+            .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("6").build()).consistentRead(false).build())
+            .build();
+        BatchGetItemEnhancedRequest request = BatchGetItemEnhancedRequest.builder()
+            .readBatches(batch1, batch2)
+            .build();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
+        try {
+            operation.generateRequest(null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("same 'consistentRead' setting"));
+        }
+    }
+
+    @Test
+    public void generateRequest_allowsAllTrueConsistentReadAcrossBatches() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("7").build()).consistentRead(true).build())
+            .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("8").build()).consistentRead(true).build())
+            .build();
+        BatchGetItemEnhancedRequest request = BatchGetItemEnhancedRequest.builder()
+            .readBatches(batch1, batch2)
+            .build();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
+        operation.generateRequest(null); // Should not throw
+    }
+
+    @Test
+    public void generateRequest_throwsIfBatchesHaveDifferentNonNullConsistentReadValues() {
+        ReadBatch batch1 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("9").build()).consistentRead(true).build())
+            .build();
+        ReadBatch batch2 = ReadBatch.builder(FakeItem.class)
+            .mappedTableResource(fakeItemMappedTable)
+            .addGetItem(GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("10").build()).consistentRead(false).build())
+            .build();
+        BatchGetItemEnhancedRequest request = BatchGetItemEnhancedRequest.builder()
+            .readBatches(batch1, batch2)
+            .build();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
+        try {
+            operation.generateRequest(null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("same 'consistentRead' setting"));
+        }
+    }
+
+    @Test
+    public void serviceCall_returnsSyncPaginatorFunction() {
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
+        DynamoDbClient mockSyncClient = mock(DynamoDbClient.class);
+        BatchGetItemRequest request = BatchGetItemRequest.builder().build();
+        BatchGetItemIterable mockIterable = mock(BatchGetItemIterable.class);
+        when(mockSyncClient.batchGetItemPaginator(request)).thenReturn(mockIterable);
+
+        Function<BatchGetItemRequest, SdkIterable<BatchGetItemResponse>> syncCall = operation.serviceCall(mockSyncClient);
+        SdkIterable<BatchGetItemResponse> result = syncCall.apply(request);
+
+        assertThat(result, is(mockIterable));
+        verify(mockSyncClient).batchGetItemPaginator(request);
+    }
+
+    @Test
+    public void asyncServiceCall_returnsAsyncPaginatorFunction_publicApi() {
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
+        DynamoDbAsyncClient mockAsyncClient = mock(DynamoDbAsyncClient.class);
+        BatchGetItemRequest request = BatchGetItemRequest.builder().build();
+        BatchGetItemPublisher mockPublisher = mock(BatchGetItemPublisher.class);
+        when(mockAsyncClient.batchGetItemPaginator(any(BatchGetItemRequest.class))).thenReturn(mockPublisher);
+
+        Function<BatchGetItemRequest, SdkPublisher<BatchGetItemResponse>> asyncCall = operation.asyncServiceCall(mockAsyncClient);
+        SdkPublisher<BatchGetItemResponse> result = asyncCall.apply(request);
+
+        assertThat(result, is(mockPublisher));
+        verify(mockAsyncClient).batchGetItemPaginator(any(BatchGetItemRequest.class));
     }
 
     private static BatchGetItemEnhancedRequest emptyRequest() {

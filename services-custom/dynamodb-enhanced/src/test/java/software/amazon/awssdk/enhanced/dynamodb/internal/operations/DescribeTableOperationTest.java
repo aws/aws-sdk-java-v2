@@ -47,6 +47,12 @@ public class DescribeTableOperationTest {
     private DynamoDbClient mockDynamoDbClient;
 
     @Test
+    public void returnsCorrectOperationName() {
+        DescribeTableOperation<FakeItem> operation = DescribeTableOperation.create();
+        assertThat(operation.operationName().label(), is("DescribeTable"));
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCall() {
         DescribeTableOperation<FakeItem> operation = DescribeTableOperation.create();
         DescribeTableRequest describeTableRequest = DescribeTableRequest.builder().build();

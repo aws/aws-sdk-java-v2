@@ -77,4 +77,14 @@ class TableMetadataCompositeKeyTest {
         assertThat(newPartitionKeys).hasSize(1);
         assertThat(newPartitionKeys.get(0)).isEqualTo(deprecatedPartitionKey);
     }
+
+    @Test
+    void indexPartitionKeys_withValidIndex_returnsSingletonList() {
+        TableMetadata metadata = INDEXED_SCHEMA.tableMetadata();
+
+        List<String> result = metadata.indexPartitionKeys("gsi_1");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo("gsi_id");
+    }
 }

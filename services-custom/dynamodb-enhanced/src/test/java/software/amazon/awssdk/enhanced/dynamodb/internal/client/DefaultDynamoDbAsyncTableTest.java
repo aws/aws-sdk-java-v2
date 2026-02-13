@@ -68,6 +68,7 @@ public class DefaultDynamoDbAsyncTableTest {
         assertThat(dynamoDbMappedIndex.dynamoDbClient(), is(sameInstance(mockDynamoDbAsyncClient)));
         assertThat(dynamoDbMappedIndex.mapperExtension(), is(sameInstance(mockDynamoDbEnhancedClientExtension)));
         assertThat(dynamoDbMappedIndex.tableSchema(), is(sameInstance(FakeItemWithIndices.getTableSchema())));
+        assertThat(dynamoDbMappedIndex.tableName(), is(TABLE_NAME));
         assertThat(dynamoDbMappedIndex.indexName(), is("gsi_1"));
     }
 
@@ -169,6 +170,7 @@ public class DefaultDynamoDbAsyncTableTest {
 
         assertThat(request.localSecondaryIndexes().size(), is(1));
         Iterator<LocalSecondaryIndex> lsiIterator = request.localSecondaryIndexes().iterator();
+        assertThat(dynamoDbMappedIndex.tableName(), is("test_table"));
         assertThat(lsiIterator.next().indexName(), is("lsi_1"));
 
         assertThat(request.globalSecondaryIndexes().size(), is(2));

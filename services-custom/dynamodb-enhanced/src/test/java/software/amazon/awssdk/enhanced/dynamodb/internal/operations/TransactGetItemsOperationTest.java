@@ -104,6 +104,12 @@ public class TransactGetItemsOperationTest {
     }
 
     @Test
+    public void returnsCorrectOperationName() {
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
+        assertThat(operation.operationName().label(), is("TransactGetItems"));
+    }
+
+    @Test
     public void generateRequest_getsFromMultipleTables_usingShortcutForm() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()

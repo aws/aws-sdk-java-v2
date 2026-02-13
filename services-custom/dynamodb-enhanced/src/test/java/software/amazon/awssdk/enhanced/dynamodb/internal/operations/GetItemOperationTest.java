@@ -68,6 +68,17 @@ public class GetItemOperationTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
+    public void returnsCorrectOperationName() {
+        FakeItem keyItem = createUniqueFakeItem();
+        GetItemOperation<FakeItem> operation =
+            GetItemOperation.create(GetItemEnhancedRequest.builder()
+                                                          .key(k -> k.partitionValue(keyItem.getId()))
+                                                          .consistentRead(true).build());
+
+        assertThat(operation.operationName().label(), is("GetItem"));
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
