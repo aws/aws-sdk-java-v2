@@ -74,6 +74,9 @@ public class SmithyIntermediateModelBuilderTest {
 
         // Assert that both models have the same shapes
         assertShapesMatch(c2jIm, smithyIm);
+
+        // Assert that the Smithy model has endpoint rules loaded from traits
+        assertEndpointModelsPopulated(smithyIm);
     }
 
     /**
@@ -516,5 +519,28 @@ public class SmithyIntermediateModelBuilderTest {
                 .as("Request compression for operation %s should be null", operationName)
                 .isNull();
         }
+    }
+
+    /**
+     * Asserts that the Smithy intermediate model has endpoint rule set and test suite populated
+     * from the service's Smithy traits.
+     */
+    private void assertEndpointModelsPopulated(IntermediateModel smithyModel) {
+        assertThat(smithyModel.getEndpointRuleSetModel())
+            .as("Endpoint rule set model should be populated from Smithy traits")
+            .isNotNull();
+        assertThat(smithyModel.getEndpointRuleSetModel().getRules())
+            .as("Endpoint rule set should have rules")
+            .isNotEmpty();
+        assertThat(smithyModel.getEndpointRuleSetModel().getParameters())
+            .as("Endpoint rule set should have parameters")
+            .isNotEmpty();
+
+        assertThat(smithyModel.getEndpointTestSuiteModel())
+            .as("Endpoint test suite model should be populated from Smithy traits")
+            .isNotNull();
+        assertThat(smithyModel.getEndpointTestSuiteModel().getTestCases())
+            .as("Endpoint test suite should have test cases")
+            .isNotEmpty();
     }
 }

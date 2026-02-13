@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.smithy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -30,7 +32,9 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
@@ -38,9 +42,12 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
+import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.Trait;
+import software.amazon.smithy.rulesengine.traits.EndpointRuleSetTrait;
+import software.amazon.smithy.rulesengine.traits.EndpointTestsTrait;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -86,6 +93,9 @@ public class SmithyIntermediateModelBuilder {
         
         Metadata metadata = constructMetadata();
         
+        EndpointRuleSetModel endpointRuleSetModel = translateEndpointRuleSet();
+        EndpointTestSuiteModel endpointTestSuiteModel = translateEndpointTestSuite();
+
         return new IntermediateModel(
             metadata,
             operations,
@@ -95,8 +105,8 @@ public class SmithyIntermediateModelBuilder {
             paginators.getPagination(),
             namingStrategy,
             waiters.getWaiters(),
-            null, // endpointRuleSetModel - will be added later
-            null, // endpointTestSuiteModel - will be added later
+            endpointRuleSetModel,
+            endpointTestSuiteModel,
             null  // clientContextParams - will be added later
         );
     }
@@ -228,5 +238,41 @@ public class SmithyIntermediateModelBuilder {
     private static Paginators translatePaginators() {
         // TODO - transform these!'
         return Paginators.none();
+    }
+
+    /**
+     * Extracts the endpoint rule set from the service's {@code @smithy.rules#endpointRuleSet} trait.
+     * The trait's Node is serialized to JSON and deserialized into the codegen EndpointRuleSetModel.
+     * Returns null if the trait is not present.
+     */
+    private EndpointRuleSetModel translateEndpointRuleSet() {
+        return service.getTrait(EndpointRuleSetTrait.class)
+                      .map(trait -> {
+                          try {
+                              String json = Node.printJson(trait.getRuleSet());
+                              return Jackson.load(EndpointRuleSetModel.class, json);
+                          } catch (IOException e) {
+                              throw new RuntimeException("Failed to deserialize endpoint rule set from Smithy model", e);
+                          }
+                      })
+                      .orElse(null);
+    }
+
+    /**
+     * Extracts the endpoint test suite from the service's {@code @smithy.rules#endpointTests} trait.
+     * The trait's Node is serialized to JSON and deserialized into the codegen EndpointTestSuiteModel.
+     * Returns null if the trait is not present.
+     */
+    private EndpointTestSuiteModel translateEndpointTestSuite() {
+        return service.getTrait(EndpointTestsTrait.class)
+                      .map(trait -> {
+                          try {
+                              String json = Node.printJson(trait.toNode());
+                              return Jackson.load(EndpointTestSuiteModel.class, json);
+                          } catch (IOException e) {
+                              throw new RuntimeException("Failed to deserialize endpoint test suite from Smithy model", e);
+                          }
+                      })
+                      .orElse(null);
     }
 }
