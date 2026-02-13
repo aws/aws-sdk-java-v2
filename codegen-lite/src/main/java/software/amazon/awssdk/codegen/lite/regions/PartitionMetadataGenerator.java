@@ -120,6 +120,8 @@ public class PartitionMetadataGenerator implements PoetClass {
         return builder.add(".build()").build();
     }
 
+
+    //checking build failure
     private CodeBlock hostnames() {
         CodeBlock.Builder builder =
             CodeBlock.builder()

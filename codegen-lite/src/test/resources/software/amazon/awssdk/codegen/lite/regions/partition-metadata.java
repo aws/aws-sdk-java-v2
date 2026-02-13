@@ -42,8 +42,6 @@ public final class AwsPartitionMetadata implements PartitionMetadata {
         return NAME;
     }
 
-    //
-
     @Override
     public String regionRegex() {
         return REGION_REGEX;
