@@ -26,7 +26,9 @@ import com.networknt.schema.ValidationMessage;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -249,5 +251,141 @@ public class MetricEmfConverterTest {
         assertThat(emfLogs).containsOnly("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\","
                                          + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],"
                                          + "\"Metrics\":[{\"Name\":\"TestMetric\"}]}]},\"TestMetric\":42}");
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_withCustomProperties_propertiesAppearInOutput() {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("RequestId", "abc-123");
+        properties.put("FunctionName", "myLambda");
+
+        MetricEmfConverter converter = converterWithProperties(properties);
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(1);
+        String emfLog = emfLogs.get(0);
+        assertThat(emfLog).contains("\"RequestId\":\"abc-123\"");
+        assertThat(emfLog).contains("\"FunctionName\":\"myLambda\"");
+        assertThat(emfLog).contains("\"AvailableConcurrency\":5");
+        assertThat(emfLog).contains("\"_aws\":{");
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_noProperties_identicalToCurrentBehavior() {
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).containsOnly(
+            "{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\","
+            + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],"
+            + "\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_emptyProperties_noExtraKeys() {
+        MetricEmfConverter converter = converterWithProperties(new HashMap<String, String>());
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(1);
+        String emfLog = emfLogs.get(0);
+        assertThat(emfLog).doesNotContain("\"RequestId\"");
+        assertThat(emfLog).doesNotContain("\"FunctionName\"");
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_propertyKeyMatchesAwsKey_awsObjectPreserved() {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("_aws", "should-be-overwritten");
+
+        MetricEmfConverter converter = converterWithProperties(properties);
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(1);
+        String emfLog = emfLogs.get(0);
+        assertThat(emfLog).contains("\"_aws\":{\"Timestamp\":");
+        assertThat(emfLog).contains("\"CloudWatchMetrics\":");
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_propertyKeyMatchesDimensionName_dimensionPreserved() {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("OperationName", "should-be-overwritten");
+
+        MetricEmfConverter converter = converterWithProperties(properties);
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetObject");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(1);
+        String emfLog = emfLogs.get(0);
+        assertThat(emfLog).contains("\"OperationName\":\"GetObject\"");
+        int customIndex = emfLog.indexOf("\"OperationName\":\"should-be-overwritten\"");
+        int realIndex = emfLog.indexOf("\"OperationName\":\"GetObject\"");
+        assertThat(customIndex).isGreaterThanOrEqualTo(0);
+        assertThat(realIndex).isGreaterThan(customIndex);
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_propertyKeyMatchesMetricName_metricPreserved() {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("AvailableConcurrency", "should-be-overwritten");
+
+        MetricEmfConverter converter = converterWithProperties(properties);
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(1);
+        String emfLog = emfLogs.get(0);
+        assertThat(emfLog).contains("\"AvailableConcurrency\":5");
+        int customIndex = emfLog.indexOf("\"AvailableConcurrency\":\"should-be-overwritten\"");
+        int realIndex = emfLog.indexOf("\"AvailableConcurrency\":5");
+        assertThat(customIndex).isGreaterThanOrEqualTo(0);
+        assertThat(realIndex).isGreaterThan(customIndex);
+    }
+
+    @Test
+    void convertMetricCollectionToEmf_batchedRecords_allContainCustomProperties() {
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("RequestId", "batch-test-123");
+        properties.put("TraceId", "trace-abc");
+
+        MetricEmfConverter converter = converterWithProperties(properties);
+        MetricCollector metricCollector = MetricCollector.create("test");
+        for (int i = 0; i < 220; i++) {
+            metricCollector.reportMetric(
+                SdkMetric.create("cp_batch_metric_" + i, Integer.class, MetricLevel.INFO, MetricCategory.CORE), i);
+        }
+
+        List<String> emfLogs = converter.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).hasSize(3);
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).contains("\"RequestId\":\"batch-test-123\"");
+            assertThat(emfLog).contains("\"TraceId\":\"trace-abc\"");
+            assertThat(emfLog).contains("\"_aws\":{");
+        }
+    }
+
+    private MetricEmfConverter converterWithProperties(Map<String, String> properties) {
+        EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
+            .logGroupName("my_log_group_name")
+            .propertiesSupplier(() -> properties)
+            .build();
+        return new MetricEmfConverter(config, fixedClock);
     }
 }
