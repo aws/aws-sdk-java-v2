@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Added 0 check before writeThroughpt calculation to prevent divide by 0"
+}
