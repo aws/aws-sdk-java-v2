@@ -38,16 +38,12 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Functional tests for WRITE_THROUGHPUT metric for async client using WireMock.
  */
 @WireMockTest
 public class AsyncWriteThroughputMetricTest {
-
-    // Use a larger payload to ensure multiple chunks and different first/last byte timestamps
-    private static final String LARGE_PAYLOAD = StringUtils.repeat("x", 128 * 1024);
 
     private MetricPublisher mockPublisher;
     private ProtocolRestJsonAsyncClient client;
@@ -75,7 +71,7 @@ public class AsyncWriteThroughputMetricTest {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        client.streamingInputOperation(r -> r.build(), AsyncRequestBody.fromString(LARGE_PAYLOAD)).join();
+        client.streamingInputOperation(r -> r.build(), AsyncRequestBody.fromString("test body content")).join();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(mockPublisher).publish(collectionCaptor.capture());
@@ -112,7 +108,7 @@ public class AsyncWriteThroughputMetricTest {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        client.allTypes(r -> r.stringMember(LARGE_PAYLOAD)).join();
+        client.allTypes(r -> r.stringMember("test")).join();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(mockPublisher).publish(collectionCaptor.capture());

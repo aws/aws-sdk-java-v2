@@ -38,16 +38,12 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Functional tests for WRITE_THROUGHPUT metric using WireMock.
  */
 @WireMockTest
 public class SyncWriteThroughputMetricTest {
-
-    // Use a larger payload to ensure multiple chunks and different first/last byte timestamps
-    private static final String LARGE_PAYLOAD = StringUtils.repeat("x", 128 * 1024);
 
     private MetricPublisher mockPublisher;
     private ProtocolRestJsonClient client;
@@ -75,7 +71,7 @@ public class SyncWriteThroughputMetricTest {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        client.streamingInputOperation(r -> r.build(), RequestBody.fromString(LARGE_PAYLOAD));
+        client.streamingInputOperation(r -> r.build(), RequestBody.fromString("test body content"));
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(mockPublisher).publish(collectionCaptor.capture());
@@ -85,9 +81,8 @@ public class SyncWriteThroughputMetricTest {
 
         assertThat(attemptMetrics).hasSize(1);
         List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
-        //TODO fix the test so that we are testing the write throughpt
-        // assertThat(writeThroughputValues).hasSize(1);
-        // assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
+        assertThat(writeThroughputValues).hasSize(1);
+        assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
     }
 
     @Test
@@ -113,7 +108,7 @@ public class SyncWriteThroughputMetricTest {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        client.allTypes(r -> r.stringMember(LARGE_PAYLOAD));
+        client.allTypes(r -> r.stringMember("test"));
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(mockPublisher).publish(collectionCaptor.capture());
@@ -123,8 +118,7 @@ public class SyncWriteThroughputMetricTest {
 
         assertThat(attemptMetrics).hasSize(1);
         List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
-        //TODO fix the test so that we are testing the write throughpt
-        // assertThat(writeThroughputValues).hasSize(1);
-        // assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
+        assertThat(writeThroughputValues).hasSize(1);
+        assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
     }
 }
