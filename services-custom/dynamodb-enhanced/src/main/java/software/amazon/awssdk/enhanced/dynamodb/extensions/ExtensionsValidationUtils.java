@@ -35,34 +35,34 @@ public final class ExtensionsValidationUtils {
      * thrown with a message indicating the attribute and the conflicting annotations.
      *
      * @param tableMetadata        The metadata of the table to validate.
-     * @param firstMetadataKey     The metadata key for the first annotation to check for.
-     * @param secondMetadataKey    The metadata key for the second annotation to check for.
+     * @param firstAnnotationMetadataKey     The metadata key for the first annotation to check for.
+     * @param secondAnnotationMetadataKey    The metadata key for the second annotation to check for.
      * @param firstAnnotationName  The name of the first annotation to use in the error message if a conflict is found.
      * @param secondAnnotationName The name of the second annotation to use in the error message if a conflict is found.
      */
     public static void validateNoAnnotationConflict(TableMetadata tableMetadata,
-                                                    String firstMetadataKey,
-                                                    String secondMetadataKey,
+                                                    String firstAnnotationMetadataKey,
+                                                    String secondAnnotationMetadataKey,
                                                     String firstAnnotationName,
                                                     String secondAnnotationName) {
 
-        Collection<?> attributesWithFirstAnnotation =
-            tableMetadata.customMetadataObject(firstMetadataKey, Collection.class).orElse(Collections.emptyList());
+        Collection<?> attributesHavingFirstAnnotation =
+            tableMetadata.customMetadataObject(firstAnnotationMetadataKey, Collection.class).orElse(Collections.emptyList());
 
-        if (attributesWithFirstAnnotation.isEmpty()) {
+        if (attributesHavingFirstAnnotation.isEmpty()) {
             return;
         }
 
-        Collection<?> attributesWithSecondAnnotation =
-            tableMetadata.customMetadataObject(secondMetadataKey, Collection.class).orElse(Collections.emptyList());
+        Collection<?> attributesHavingSecondAnnotation =
+            tableMetadata.customMetadataObject(secondAnnotationMetadataKey, Collection.class).orElse(Collections.emptyList());
 
-        if (attributesWithSecondAnnotation.isEmpty()) {
+        if (attributesHavingSecondAnnotation.isEmpty()) {
             return;
         }
 
-        attributesWithFirstAnnotation
+        attributesHavingFirstAnnotation
             .stream()
-            .filter(attributesWithSecondAnnotation::contains)
+            .filter(attributesHavingSecondAnnotation::contains)
             .findFirst()
             .ifPresent(attribute -> {
                 throw new IllegalArgumentException(
