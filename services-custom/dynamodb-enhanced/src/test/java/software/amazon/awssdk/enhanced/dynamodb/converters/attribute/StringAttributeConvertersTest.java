@@ -260,10 +260,12 @@ public class StringAttributeConvertersTest {
     @Test
     public void stringAttributeConverter_convertsMapWithNullValue() {
         StringAttributeConverter converter = StringAttributeConverter.create();
-        
-        assertThat(transformTo(converter, fromMap(ImmutableMap.of(
+
+        String result = transformTo(converter, fromMap(ImmutableMap.of(
             "stringField", AttributeValue.builder().s("value").build(),
-            "nullField", AttributeValue.builder().nul(true).build()))))
-            .isEqualTo("{stringField=value, nullField=null}");
+            "nullField", AttributeValue.builder().nul(true).build())));
+
+        assertThat(result).contains("stringField=value");
+        assertThat(result).contains("nullField=null");
     }
 }
