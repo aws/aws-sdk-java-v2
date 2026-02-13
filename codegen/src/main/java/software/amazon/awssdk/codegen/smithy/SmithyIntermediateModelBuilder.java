@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.codegen.smithy;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
@@ -27,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
@@ -35,6 +39,8 @@ import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.Trait;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -97,13 +103,13 @@ public class SmithyIntermediateModelBuilder {
     
     private Metadata constructMetadata() {
         Metadata metadata = new Metadata();
-        
+
         String serviceName = namingStrategy.getServiceName();
         String protocol = ProtocolUtils.resolveProtocol(serviceIndex, service);
-        
+
         // Configure package names
         configurePackageName(metadata, serviceName);
-        
+
         // Set basic metadata
         metadata.withApiVersion(service.getVersion())
                 .withAsyncClient(String.format("Default%sAsyncClient", serviceName))
@@ -120,31 +126,55 @@ public class SmithyIntermediateModelBuilder {
                 .withBaseExceptionName(String.format("%sException", serviceName))
                 .withBaseRequestName(String.format("%sRequest", serviceName))
                 .withBaseResponseName(String.format("%sResponse", serviceName))
-                .withProtocol(Protocol.fromValue(protocol));
-        
+                .withProtocol(Protocol.fromValue(protocol))
+                .withBatchmanagerPackageName(namingStrategy.getBatchManagerPackageName(serviceName));
+
         // Extract service-specific traits
         service.getTrait(software.amazon.smithy.aws.traits.ServiceTrait.class).ifPresent(serviceTrait -> {
-            metadata.withServiceId(serviceTrait.getSdkId())
-                    .withServiceAbbreviation(serviceTrait.getSdkId())
-                    .withServiceFullName(serviceTrait.getSdkId())
+            String sdkId = serviceTrait.getSdkId();
+            metadata.withServiceId(sdkId)
                     .withEndpointPrefix(serviceTrait.getArnNamespace());
+
+            // Derive uid from sdkId and version: "Account" + "2021-02-01" -> "account-2021-02-01"
+            String uid = sdkId.toLowerCase().replace(' ', '-') + "-" + service.getVersion();
+            metadata.withUid(uid);
         });
-        
+
+        // Set service full name and abbreviation from @title trait (matches C2J serviceFullName)
+        service.getTrait(software.amazon.smithy.model.traits.TitleTrait.class).ifPresent(title -> {
+            metadata.withServiceFullName(title.getValue());
+            metadata.withServiceAbbreviation(title.getValue());
+        });
+
         service.getTrait(software.amazon.smithy.model.traits.DocumentationTrait.class).ifPresent(doc -> {
             metadata.withDocumentation(doc.getValue());
         });
-        
-        service.getTrait(software.amazon.smithy.model.traits.TitleTrait.class).ifPresent(title -> {
-            // Only set if not already set by ServiceTrait
-            if (metadata.getDescriptiveServiceName() == null) {
-                metadata.withServiceFullName(title.getValue());
-            }
-        });
-        
+
         service.getTrait(software.amazon.smithy.aws.traits.auth.SigV4Trait.class).ifPresent(sigv4 -> {
             metadata.withSigningName(sigv4.getName());
         });
-        
+
+        // Set authType and auth list from service auth traits
+        Map<ShapeId, Trait> serviceAuthSchemes = serviceIndex.getEffectiveAuthSchemes(service);
+        if (!serviceAuthSchemes.isEmpty()) {
+            // authType is derived from the first/primary auth scheme (typically sigv4 -> "v4")
+            ShapeId primaryAuthScheme = serviceAuthSchemes.keySet().iterator().next();
+            metadata.withAuthType(AuthType.fromValue(primaryAuthScheme.toString()));
+
+            // auth list contains all auth scheme IDs
+            List<AuthType> authList = new ArrayList<>();
+            for (ShapeId authSchemeId : serviceAuthSchemes.keySet()) {
+                authList.add(AuthType.fromValue(authSchemeId.toString()));
+            }
+            metadata.withAuth(authList);
+        }
+
+        // Set jsonVersion for JSON protocols (default to "1.1" like C2J does)
+        Protocol resolvedProtocol = Protocol.fromValue(protocol);
+        if (resolvedProtocol == Protocol.AWS_JSON || resolvedProtocol == Protocol.REST_JSON) {
+            metadata.withJsonVersion("1.1");
+        }
+
         return metadata;
     }
     
