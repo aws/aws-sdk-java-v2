@@ -40,7 +40,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteAnomalyDetectorInput"},
-      "output":{"shape":"DeleteAnomalyDetectorOutput"},
+      "output":{
+        "shape":"DeleteAnomalyDetectorOutput",
+        "resultWrapper":"DeleteAnomalyDetectorResult"
+      },
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServiceFault"},
@@ -57,7 +60,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteDashboardsInput"},
-      "output":{"shape":"DeleteDashboardsOutput"},
+      "output":{
+        "shape":"DeleteDashboardsOutput",
+        "resultWrapper":"DeleteDashboardsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"DashboardNotFoundError"},
@@ -73,7 +79,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteInsightRulesInput"},
-      "output":{"shape":"DeleteInsightRulesOutput"},
+      "output":{
+        "shape":"DeleteInsightRulesOutput",
+        "resultWrapper":"DeleteInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -87,7 +96,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteMetricStreamInput"},
-      "output":{"shape":"DeleteMetricStreamOutput"},
+      "output":{
+        "shape":"DeleteMetricStreamOutput",
+        "resultWrapper":"DeleteMetricStreamResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -119,7 +131,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmHistoryInput"},
-      "output":{"shape":"DescribeAlarmHistoryOutput"},
+      "output":{
+        "shape":"DescribeAlarmHistoryOutput",
+        "resultWrapper":"DescribeAlarmHistoryResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -132,7 +147,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmsInput"},
-      "output":{"shape":"DescribeAlarmsOutput"},
+      "output":{
+        "shape":"DescribeAlarmsOutput",
+        "resultWrapper":"DescribeAlarmsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -145,7 +163,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmsForMetricInput"},
-      "output":{"shape":"DescribeAlarmsForMetricOutput"},
+      "output":{
+        "shape":"DescribeAlarmsForMetricOutput",
+        "resultWrapper":"DescribeAlarmsForMetricResult"
+      },
       "documentation":"<p>Retrieves the alarms for the specified metric. To filter the results, specify a statistic, period, or unit.</p> <p>This operation retrieves only standard alarms that are based on the specified metric. It does not return alarms based on math expressions that use the specified metric, or composite alarms that use the specified metric.</p>"
     },
     "DescribeAnomalyDetectors":{
@@ -155,7 +176,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAnomalyDetectorsInput"},
-      "output":{"shape":"DescribeAnomalyDetectorsOutput"},
+      "output":{
+        "shape":"DescribeAnomalyDetectorsOutput",
+        "resultWrapper":"DescribeAnomalyDetectorsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"},
         {"shape":"InternalServiceFault"},
@@ -171,7 +195,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeInsightRulesInput"},
-      "output":{"shape":"DescribeInsightRulesOutput"},
+      "output":{
+        "shape":"DescribeInsightRulesOutput",
+        "resultWrapper":"DescribeInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -193,7 +220,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DisableInsightRulesInput"},
-      "output":{"shape":"DisableInsightRulesOutput"},
+      "output":{
+        "shape":"DisableInsightRulesOutput",
+        "resultWrapper":"DisableInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -216,7 +246,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"EnableInsightRulesInput"},
-      "output":{"shape":"EnableInsightRulesOutput"},
+      "output":{
+        "shape":"EnableInsightRulesOutput",
+        "resultWrapper":"EnableInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -231,7 +264,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetDashboardInput"},
-      "output":{"shape":"GetDashboardOutput"},
+      "output":{
+        "shape":"GetDashboardOutput",
+        "resultWrapper":"GetDashboardResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"DashboardNotFoundError"},
@@ -246,7 +282,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetInsightRuleReportInput"},
-      "output":{"shape":"GetInsightRuleReportOutput"},
+      "output":{
+        "shape":"GetInsightRuleReportOutput",
+        "resultWrapper":"GetInsightRuleReportResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -261,7 +300,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricDataInput"},
-      "output":{"shape":"GetMetricDataOutput"},
+      "output":{
+        "shape":"GetMetricDataOutput",
+        "resultWrapper":"GetMetricDataResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -274,7 +316,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricStatisticsInput"},
-      "output":{"shape":"GetMetricStatisticsOutput"},
+      "output":{
+        "shape":"GetMetricStatisticsOutput",
+        "resultWrapper":"GetMetricStatisticsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -290,7 +335,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricStreamInput"},
-      "output":{"shape":"GetMetricStreamOutput"},
+      "output":{
+        "shape":"GetMetricStreamOutput",
+        "resultWrapper":"GetMetricStreamResult"
+      },
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServiceFault"},
@@ -307,7 +355,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricWidgetImageInput"},
-      "output":{"shape":"GetMetricWidgetImageOutput"},
+      "output":{
+        "shape":"GetMetricWidgetImageOutput",
+        "resultWrapper":"GetMetricWidgetImageResult"
+      },
       "documentation":"<p>You can use the <code>GetMetricWidgetImage</code> API to retrieve a snapshot graph of one or more Amazon CloudWatch metrics as a bitmap image. You can then embed this image into your services and products, such as wiki pages, reports, and documents. You could also retrieve images regularly, such as every minute, and create your own custom live dashboard.</p> <p>The graph you retrieve can include all CloudWatch metric graph features, including metric math and horizontal and vertical annotations.</p> <p>There is a limit of 20 transactions per second for this API. Each <code>GetMetricWidgetImage</code> action has the following limits:</p> <ul> <li> <p>As many as 100 metrics in the graph.</p> </li> <li> <p>Up to 100 KB uncompressed payload.</p> </li> </ul>"
     },
     "ListDashboards":{
@@ -317,7 +368,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListDashboardsInput"},
-      "output":{"shape":"ListDashboardsOutput"},
+      "output":{
+        "shape":"ListDashboardsOutput",
+        "resultWrapper":"ListDashboardsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"InternalServiceFault"}
@@ -331,7 +385,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListManagedInsightRulesInput"},
-      "output":{"shape":"ListManagedInsightRulesOutput"},
+      "output":{
+        "shape":"ListManagedInsightRulesOutput",
+        "resultWrapper":"ListManagedInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -346,7 +403,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListMetricStreamsInput"},
-      "output":{"shape":"ListMetricStreamsOutput"},
+      "output":{
+        "shape":"ListMetricStreamsOutput",
+        "resultWrapper":"ListMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"},
         {"shape":"InternalServiceFault"},
@@ -362,7 +422,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListMetricsInput"},
-      "output":{"shape":"ListMetricsOutput"},
+      "output":{
+        "shape":"ListMetricsOutput",
+        "resultWrapper":"ListMetricsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"}
@@ -376,7 +439,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListTagsForResourceInput"},
-      "output":{"shape":"ListTagsForResourceOutput"},
+      "output":{
+        "shape":"ListTagsForResourceOutput",
+        "resultWrapper":"ListTagsForResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
@@ -391,7 +457,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutAnomalyDetectorInput"},
-      "output":{"shape":"PutAnomalyDetectorOutput"},
+      "output":{
+        "shape":"PutAnomalyDetectorOutput",
+        "resultWrapper":"PutAnomalyDetectorResult"
+      },
       "errors":[
         {"shape":"LimitExceededException"},
         {"shape":"InternalServiceFault"},
@@ -420,7 +489,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutDashboardInput"},
-      "output":{"shape":"PutDashboardOutput"},
+      "output":{
+        "shape":"PutDashboardOutput",
+        "resultWrapper":"PutDashboardResult"
+      },
       "errors":[
         {"shape":"DashboardInvalidInputError"},
         {"shape":"InternalServiceFault"},
@@ -435,7 +507,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutInsightRuleInput"},
-      "output":{"shape":"PutInsightRuleOutput"},
+      "output":{
+        "shape":"PutInsightRuleOutput",
+        "resultWrapper":"PutInsightRuleResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -450,7 +525,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutManagedInsightRulesInput"},
-      "output":{"shape":"PutManagedInsightRulesOutput"},
+      "output":{
+        "shape":"PutManagedInsightRulesOutput",
+        "resultWrapper":"PutManagedInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -492,7 +570,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutMetricStreamInput"},
-      "output":{"shape":"PutMetricStreamOutput"},
+      "output":{
+        "shape":"PutMetricStreamOutput",
+        "resultWrapper":"PutMetricStreamResult"
+      },
       "errors":[
         {"shape":"ConcurrentModificationException"},
         {"shape":"InternalServiceFault"},
@@ -522,7 +603,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"StartMetricStreamsInput"},
-      "output":{"shape":"StartMetricStreamsOutput"},
+      "output":{
+        "shape":"StartMetricStreamsOutput",
+        "resultWrapper":"StartMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -537,7 +621,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"StopMetricStreamsInput"},
-      "output":{"shape":"StopMetricStreamsOutput"},
+      "output":{
+        "shape":"StopMetricStreamsOutput",
+        "resultWrapper":"StopMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -552,7 +639,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"TagResourceInput"},
-      "output":{"shape":"TagResourceOutput"},
+      "output":{
+        "shape":"TagResourceOutput",
+        "resultWrapper":"TagResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
@@ -569,7 +659,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"UntagResourceInput"},
-      "output":{"shape":"UntagResourceOutput"},
+      "output":{
+        "shape":"UntagResourceOutput",
+        "resultWrapper":"UntagResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
@@ -970,6 +1063,11 @@
       "type":"structure",
       "members":{},
       "documentation":"<p>More than one process tried to modify a resource at the same time.</p>",
+      "error":{
+        "code":"ConcurrentModificationException",
+        "httpStatusCode":429,
+        "senderFault":true
+      },
       "exception":true
     },
     "ConflictException":{
@@ -989,7 +1087,7 @@
     },
     "ContributorId":{
       "type":"string",
-      "max":1024,
+      "max":16,
       "min":1
     },
     "Counts":{
@@ -1032,6 +1130,11 @@
         "dashboardValidationMessages":{"shape":"DashboardValidationMessages"}
       },
       "documentation":"<p>Some part of the dashboard data is invalid.</p>",
+      "error":{
+        "code":"InvalidParameterInput",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "DashboardName":{"type":"string"},
@@ -1046,6 +1149,11 @@
         "message":{"shape":"DashboardErrorMessage"}
       },
       "documentation":"<p>The specified dashboard does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "DashboardValidationMessage":{
@@ -1682,7 +1790,11 @@
     },
     "EvaluationState":{
       "type":"string",
-      "enum":["PARTIAL_DATA"]
+      "enum":[
+        "PARTIAL_DATA",
+        "EVALUATION_FAILURE",
+        "EVALUATION_ERROR"
+      ]
     },
     "ExceptionType":{"type":"string"},
     "ExtendedStatistic":{"type":"string"},
@@ -2218,6 +2330,10 @@
         }
       },
       "documentation":"<p>Request processing has failed due to some unknown error, exception, or failure.</p>",
+      "error":{
+        "code":"InternalServiceError",
+        "httpStatusCode":500
+      },
       "exception":true,
       "xmlOrder":["Message"]
     },
@@ -2230,6 +2346,11 @@
         }
       },
       "documentation":"<p>Data was not syntactically valid JSON.</p>",
+      "error":{
+        "code":"InvalidFormat",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "InvalidNextToken":{
@@ -2241,6 +2362,11 @@
         }
       },
       "documentation":"<p>The next token specified is invalid.</p>",
+      "error":{
+        "code":"InvalidNextToken",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "InvalidParameterCombinationException":{
@@ -2252,6 +2378,11 @@
         }
       },
       "documentation":"<p>Parameters were used together that cannot be used together.</p>",
+      "error":{
+        "code":"InvalidParameterCombination",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
     },
@@ -2264,6 +2395,11 @@
         }
       },
       "documentation":"<p>The value of an input parameter is bad or out-of-range.</p>",
+      "error":{
+        "code":"InvalidParameterValue",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
     },
@@ -2282,6 +2418,11 @@
       "type":"structure",
       "members":{},
       "documentation":"<p>The operation exceeded one or more limits.</p>",
+      "error":{
+        "code":"LimitExceededException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "LimitExceededFault":{
@@ -2293,6 +2434,11 @@
         }
       },
       "documentation":"<p>The quota for alarms for this customer has already been reached.</p>",
+      "error":{
+        "code":"LimitExceeded",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "ListDashboardsInput":{
@@ -2685,7 +2831,7 @@
         },
         "EvaluationState":{
           "shape":"EvaluationState",
-          "documentation":"<p>If the value of this field is <code>PARTIAL_DATA</code>, the alarm is being evaluated based on only partial data. This happens if the query used for the alarm returns more than 10,000 metrics. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Metrics_Insights_Alarm.html\">Create alarms on Metrics Insights queries</a>.</p>"
+          "documentation":"<p>If the value of this field is <code>PARTIAL_DATA</code>, it indicates that not all the available data was able to be retrieved due to quota limitations. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Metrics_Insights_Alarm.html\">Create alarms on Metrics Insights queries</a>.</p> <p>If the value of this field is <code>EVALUATION_ERROR</code>, it indicates configuration errors in alarm setup that require review and correction. Refer to StateReason field of the alarm for more details.</p> <p>If the value of this field is <code>EVALUATION_FAILURE</code>, it indicates temporary CloudWatch issues. We recommend manual monitoring until the issue is resolved </p>"
         },
         "StateTransitionedTimestamp":{
           "shape":"Timestamp",
@@ -3060,6 +3206,11 @@
         }
       },
       "documentation":"<p>An input parameter that is required is missing.</p>",
+      "error":{
+        "code":"MissingParameter",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
     },
@@ -3505,6 +3656,11 @@
         }
       },
       "documentation":"<p>The named resource does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "ResourceNotFoundException":{
@@ -3514,6 +3670,11 @@
         "ResourceId":{"shape":"ResourceId"}
       },
       "documentation":"<p>The named resource does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFoundException",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "ResourceType":{"type":"string"},
