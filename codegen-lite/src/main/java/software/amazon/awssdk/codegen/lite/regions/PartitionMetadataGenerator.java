@@ -138,18 +138,18 @@ public class PartitionMetadataGenerator implements PoetClass {
                    .add(", $S)", defaultDnsSuffix);
         }
 
-        if (dualStackDnsSuffix != null) {
-            if (supportsDualStack && supportsFips) {
-                builder.add(".put(")
-                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
-                       .add(", $S)", dualStackDnsSuffix);
-            }
+        if (supportsDualStack && supportsFips) {
+            validateDualStackDnsSuffix(dualStackDnsSuffix);
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
+                   .add(", $S)", dualStackDnsSuffix);
+        }
 
-            if (supportsDualStack) {
-                builder.add(".put(")
-                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
-                       .add(", $S)", dualStackDnsSuffix);
-            }
+        if (supportsDualStack) {
+            validateDualStackDnsSuffix(dualStackDnsSuffix);
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Collections.singletonList("dualstack")))
+                   .add(", $S)", dualStackDnsSuffix);
         }
 
         return builder.add(".build()").build();
@@ -174,18 +174,18 @@ public class PartitionMetadataGenerator implements PoetClass {
                    .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
         }
 
-        if (dualStackDnsSuffix != null) {
-            if (supportsDualStack && supportsFips) {
-                builder.add(".put(")
-                       .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
-                       .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
-            }
+        if (supportsDualStack && supportsFips) {
+            validateDualStackDnsSuffix(dualStackDnsSuffix);
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Arrays.asList("dualstack", "fips")))
+                   .add(", $S)", "{service}-fips.{region}.{dnsSuffix}");
+        }
 
-            if (supportsDualStack) {
-                builder.add(".put(")
-                       .add(partitionEndpointKey(Collections.singletonList("dualstack")))
-                       .add(", $S)", "{service}.{region}.{dnsSuffix}");
-            }
+        if (supportsDualStack) {
+            validateDualStackDnsSuffix(dualStackDnsSuffix);
+            builder.add(".put(")
+                   .add(partitionEndpointKey(Collections.singletonList("dualstack")))
+                   .add(", $S)", "{service}.{region}.{dnsSuffix}");
         }
 
         return builder.add(".build()").build();
@@ -225,6 +225,13 @@ public class PartitionMetadataGenerator implements PoetClass {
                          .returns(String.class)
                          .addStatement("return $L", field)
                          .build();
+    }
+
+    private void validateDualStackDnsSuffix(String dualStackDnsSuffix) {
+        if (dualStackDnsSuffix == null) {
+            throw new IllegalStateException("Partition " + partition.getId() 
+                + " claims to support dualstack but dualStackDnsSuffix is null");
+        }
     }
 
     private CodeBlock partitionEndpointKey(Collection<String> tags) {
