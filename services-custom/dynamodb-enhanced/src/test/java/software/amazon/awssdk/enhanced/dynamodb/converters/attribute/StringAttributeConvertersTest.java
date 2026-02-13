@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.converters.attribute;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.assertFails;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformFrom;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Url
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.UuidAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneIdAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneOffsetAttributeConverter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class StringAttributeConvertersTest {
@@ -253,5 +255,15 @@ public class StringAttributeConvertersTest {
     public void stringSetAttributeConverter_ReturnsSSType() {
         SetAttributeConverter<Set<String>> converter = SetAttributeConverter.setConverter(StringAttributeConverter.create());
         assertThat(converter.attributeValueType()).isEqualTo(AttributeValueType.SS);
+    }
+
+    @Test
+    public void stringAttributeConverter_convertsMapWithNullValue() {
+        StringAttributeConverter converter = StringAttributeConverter.create();
+        
+        assertThat(transformTo(converter, fromMap(ImmutableMap.of(
+            "stringField", AttributeValue.builder().s("value").build(),
+            "nullField", AttributeValue.builder().nul(true).build()))))
+            .isEqualTo("{stringField=value, nullField=null}");
     }
 }
