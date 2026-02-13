@@ -41,6 +41,7 @@ import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
 import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class PartitionMetadataGenerator implements PoetClass {
 
@@ -228,9 +229,9 @@ public class PartitionMetadataGenerator implements PoetClass {
     }
 
     private void validateDualStackDnsSuffix(String dualStackDnsSuffix) {
-        if (dualStackDnsSuffix == null) {
+        if (StringUtils.isBlank(dualStackDnsSuffix)) {
             throw new IllegalStateException("Partition " + partition.getId() 
-                + " claims to support dualstack but dualStackDnsSuffix is null");
+                + " claims to support dualstack but dualStackDnsSuffix is null or empty");
         }
     }
 
