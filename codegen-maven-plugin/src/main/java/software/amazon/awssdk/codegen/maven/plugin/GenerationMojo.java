@@ -46,6 +46,8 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
+import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
+import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
@@ -91,9 +93,10 @@ public class GenerationMojo extends AbstractMojo {
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         List<GenerationParams> generationParams;
-
         try {
+            System.out.println("WARBLEGARBLE creating gen params....");
             generationParams = initGenerationParams();
+            System.out.println("WARBLEGARBLE created params...");
         } catch (ModelInvalidException e) {
             if (writeValidationReport) {
                 ModelValidationReport report = new ModelValidationReport();
@@ -109,6 +112,8 @@ public class GenerationMojo extends AbstractMojo {
             params -> {
                 IntermediateModel model = params.intermediateModel;
                 String lowercaseServiceName = StringUtils.lowerCase(model.getMetadata().getServiceName());
+                System.out.println("WARBLEGARBLE intermediate model for: " + lowercaseServiceName);
+
                 IntermediateModel previous = serviceNameToModelMap.put(lowercaseServiceName, model);
                 if (previous != null) {
                     String warning = String.format("Multiple service models found with service name %s. Model validation "
@@ -139,6 +144,23 @@ public class GenerationMojo extends AbstractMojo {
         return modelRoots.stream().map(r -> {
             Path modelRootPath = r.modelRoot;
             getLog().info("Loading from: " + modelRootPath.toString());
+            Path smithyModelFile = modelRootPath.resolve(SMITHY_MODEL_FILE);
+            if (Files.exists(smithyModelFile)) {
+                getLog().info("Detected Smithy model, using Smithy for codegen.");
+                System.out.println("\n--------------------------------\nWARBLEGARBLE\nSMITHY\n");
+
+                SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations
+                    .builder().smithyModel(smithyModelFile).customizationConfig(r.customizationConfig).build();
+                IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModel).build();
+                String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(intermediateModel);
+                return new GenerationParams().withIntermediateModel(intermediateModel)
+                                             .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
+
+            }
+
+            getLog().info("No smithy model found (model.json), falling back to C2J");
+            System.out.println("\n--------------------------------\nWARBLEGARBLE\nc2J\n");
+
             C2jModels c2jModels = C2jModels.builder()
                                            .customizationConfig(r.customizationConfig)
                                            .serviceModel(loadServiceModel(modelRootPath))
@@ -172,7 +194,7 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private boolean isModelFile(Path p, BasicFileAttributes a) {
-        return p.toString().endsWith(MODEL_FILE);
+        return p.toString().endsWith(MODEL_FILE) || p.toString().endsWith(SMITHY_MODEL_FILE);
     }
 
     private void generateCode(GenerationParams params) {
@@ -190,6 +212,10 @@ public class GenerationMojo extends AbstractMojo {
 
     private String intermediateModelFileNamePrefix(C2jModels models) {
         return writeIntermediateModel ? Utils.getFileNamePrefix(models.serviceModel()) : null;
+    }
+
+    private String intermediateModelFileNamePrefix(IntermediateModel intermediateModel) {
+        return writeIntermediateModel ? Utils.getFileNamePrefix(intermediateModel) : null;
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {

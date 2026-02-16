@@ -26,8 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -96,7 +98,7 @@ public class SmithyIntermediateModelBuilder {
         EndpointRuleSetModel endpointRuleSetModel = translateEndpointRuleSet();
         EndpointTestSuiteModel endpointTestSuiteModel = translateEndpointTestSuite();
 
-        return new IntermediateModel(
+        IntermediateModel model = new IntermediateModel(
             metadata,
             operations,
             shapes,
@@ -109,6 +111,13 @@ public class SmithyIntermediateModelBuilder {
             endpointTestSuiteModel,
             null  // clientContextParams - will be added later
         );
+
+        // Link members to their target ShapeModels and operations to their input/output shapes.
+        // This mirrors the post-processing done in the C2J IntermediateModelBuilder.
+        linkMembersToShapes(model);
+        linkOperationsToInputOutputShapes(model);
+
+        return model;
     }
     
     private Metadata constructMetadata() {
@@ -204,6 +213,37 @@ public class SmithyIntermediateModelBuilder {
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
                 .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(serviceName))
                 .withJmesPathPackageName(namingStrategy.getJmesPathPackageName(serviceName));
+    }
+
+    /**
+     * Links each member model to its target ShapeModel in the intermediate model.
+     * This allows members to navigate to their shape definition.
+     */
+    private static void linkMembersToShapes(IntermediateModel model) {
+        for (ShapeModel shape : model.getShapes().values()) {
+            if (shape.getMembers() != null) {
+                for (MemberModel member : shape.getMembers()) {
+                    member.setShape(
+                        Utils.findMemberShapeModelByC2jNameIfExists(model, member.getC2jShape()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Links each operation to its input and output ShapeModels.
+     * The input shape is looked up by the input variable's type name,
+     * and the output shape by the return type name.
+     */
+    private static void linkOperationsToInputOutputShapes(IntermediateModel model) {
+        for (OperationModel operation : model.getOperations().values()) {
+            if (operation.getInput() != null) {
+                operation.setInputShape(model.getShapes().get(operation.getInput().getSimpleType()));
+            }
+            if (operation.getReturnType() != null) {
+                operation.setOutputShape(model.getShapes().get(operation.getReturnType().getReturnType()));
+            }
+        }
     }
 
     public Model getSmithyModel() {

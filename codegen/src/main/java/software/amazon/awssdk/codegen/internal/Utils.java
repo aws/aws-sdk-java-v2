@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -157,6 +158,11 @@ public final class Utils {
      */
     public static String getFileNamePrefix(ServiceModel serviceModel) {
         return String.format("%s-%s", serviceModel.getMetadata().getEndpointPrefix(), serviceModel.getMetadata().getApiVersion());
+    }
+
+    public static String getFileNamePrefix(IntermediateModel intermediateModel) {
+        return String.format("%s-%s", intermediateModel.getMetadata().getServiceId(),
+                             intermediateModel.getMetadata().getApiVersion());
     }
 
     /**
