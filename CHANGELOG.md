@@ -1,4 +1,35 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.30__ __2026-02-16__
+## __ARC - Region switch__
+  - ### Features
+    - Clarify documentation on ARC Region Switch start-plan-execution operation
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for Decrypt and ReEncrypt API's to use dry run feature without ciphertext for authorization validation
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Migrate PartitionMetadata code generation from endpoints.json to partitions.json
+    - Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2 Secondary Networks
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for enabling blob mounting, and removes support for Clair based image scanning
+
+## __Amazon Q Connect__
+  - ### Features
+    - Update MessageType enum to include missing types.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports dual-stack connectivity (IPv4 and IPv6) for existing MSK clusters. You can enable dual-stack on existing clusters by specifying the NetworkType parameter in updateConnectivity API.
+
 # __2.41.29__ __2026-02-13__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
