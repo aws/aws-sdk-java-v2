@@ -292,7 +292,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
-                                           .s3Client(s3)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();
@@ -319,7 +319,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
-                                           .s3Client(s3)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();
@@ -346,6 +346,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();
