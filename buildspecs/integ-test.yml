@@ -19,6 +19,8 @@ phases:
         role_arn = $INTEGRATION_TEST_ROLE_ARN
         EOF
           echo "Created AWS config for assuming role $INTEGRATION_TEST_ROLE_ARN with auto-refresh."
+          echo "Verifying assumed role identity:"
+          aws sts get-caller-identity
         fi
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
