@@ -430,11 +430,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>iotanalytics</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>iotdataplane</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

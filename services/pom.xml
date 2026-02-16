@@ -147,7 +147,6 @@
         <module>dlm</module>
         <module>eks</module>
         <module>iotjobsdataplane</module>
-        <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
         <module>mediatailor</module>
