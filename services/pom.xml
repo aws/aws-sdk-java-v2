@@ -147,7 +147,6 @@
         <module>dlm</module>
         <module>eks</module>
         <module>iotjobsdataplane</module>
-        <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
         <module>mediatailor</module>
@@ -292,7 +291,6 @@
         <module>appconfigdata</module>
         <module>migrationhubrefactorspaces</module>
         <module>inspector2</module>
-        <module>evidently</module>
         <module>rum</module>
         <module>rbin</module>
         <module>iottwinmaker</module>
