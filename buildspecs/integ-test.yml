@@ -15,12 +15,10 @@ phases:
           mkdir -p ~/.aws
           cat > ~/.aws/config << EOF
         [default]
-        credential_source = Environment
+        credential_source = Ec2InstanceMetadata
         role_arn = $INTEGRATION_TEST_ROLE_ARN
         EOF
           echo "Created AWS config for assuming role $INTEGRATION_TEST_ROLE_ARN with auto-refresh."
-          echo "Current CodeBuild role identity:"
-          aws sts get-caller-identity
         fi
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
