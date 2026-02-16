@@ -291,7 +291,6 @@
         <module>appconfigdata</module>
         <module>migrationhubrefactorspaces</module>
         <module>inspector2</module>
-        <module>evidently</module>
         <module>rum</module>
         <module>rbin</module>
         <module>iottwinmaker</module>
