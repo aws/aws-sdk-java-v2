@@ -1,0 +1,18 @@
+{
+    "version": "2.41.28",
+    "date": "2026-02-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add `WRITE_THROUGHPUT` metric to measure request body upload speed (bytes/sec). This metric is reported at the API call attempt level for requests with a body."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Launching nested virtualization. This feature allows you to run nested VMs inside virtual (non-bare metal) EC2 instances."
+        }
+    ]
+}

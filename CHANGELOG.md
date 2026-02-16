@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.29__ __2026-02-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve support for operationContextParams with chained index and multi-select expressions and improve support for StringArray endpoint parametes.
+    - Updating S3 AccessGrants plugin version to 2.4.1
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adding new evaluation states that provides information about the alarm evaluation process. Evaluation error Indicates configuration errors in alarm setup that require review and correction. Evaluation failure Indicates temporary CloudWatch issues.
+
+## __Amazon Connect Service__
+  - ### Features
+    - API release for headerr notifications in the admin website. APIs allow customers to publish brief messages (including URLs) to a specified audience, and a new header icon will indicate when unread messages are available.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds geography information to EC2 region and availability zone APIs. DescribeRegions now includes a Geography field, while DescribeAvailabilityZones includes both Geography and SubGeography fields, enabling better geographic classification for AWS regions and zones.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable g7e instance type support for SageMaker Processing, and enable single file configuration provisioning for HyperPod Slurm, where customers have the option to use HyperPod API to provide the provisioning parameters.
+
+## __Inspector2__
+  - ### Features
+    - Added .Net 10 (dotnet10) and Node 24.x (node24.x) runtime support for lambda package scanning
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
+# __2.41.28__ __2026-02-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `WRITE_THROUGHPUT` metric to measure request body upload speed (bytes/sec). This metric is reported at the API call attempt level for requests with a body.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching nested virtualization. This feature allows you to run nested VMs inside virtual (non-bare metal) EC2 instances.
+
 # __2.41.27__ __2026-02-11__
 ## __AWS Batch__
   - ### Features
