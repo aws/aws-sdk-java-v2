@@ -20,9 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -127,6 +126,45 @@ public class TestUtils {
             throw new UncheckedIOException(String.format("Failed to convert %s to file tree", root), e);
         }
         return sb.toString();
+    }
+
+    public static void normalizeImports(Path directory) throws IOException {
+        try (Stream<Path> paths = Files.walk(directory)) {
+            paths.filter(p -> p.toString().endsWith(".java"))
+                 .forEach(TestUtils::normalizeFileImports);
+        }
+    }
+
+    private static void normalizeFileImports(Path file) {
+        try {
+            List<String> lines = Files.readAllLines(file);
+            int importStart = -1;
+            int importEnd = -1;
+            List<String> imports = new ArrayList<>();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (line.startsWith("import ")) {
+                    if (importStart == -1) {
+                        importStart = i;
+                    }
+                    importEnd = i;
+                    imports.add(line);
+                } else if (importStart != -1 && line.startsWith("public class ")) {
+                    break;
+                }
+            }
+
+            if (importStart != -1) {
+                Collections.sort(imports);
+                List<String> result = new ArrayList<>(lines.subList(0, importStart));
+                result.addAll(imports);
+                result.addAll(lines.subList(importEnd + 1, lines.size()));
+                Files.write(file, result);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public static Result run(Path dir, String... args) {
