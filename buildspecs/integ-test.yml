@@ -14,13 +14,13 @@ phases:
         if [ ! -z "$INTEGRATION_TEST_ROLE_ARN" ]; then
           mkdir -p ~/.aws
           cat > ~/.aws/config << EOF
-        [default]
+        [profile aws-test-account]
         credential_source = EcsContainer
         role_arn = $INTEGRATION_TEST_ROLE_ARN
         EOF
           echo "Created AWS config for assuming role $INTEGRATION_TEST_ROLE_ARN with auto-refresh."
           echo "Verifying assumed role identity:"
-          aws sts get-caller-identity
+          aws sts get-caller-identity --profile aws-test-account
         fi
       - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
