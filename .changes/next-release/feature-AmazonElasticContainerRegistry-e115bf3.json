@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry",
+    "contributor": "",
+    "description": "Adds support for enabling blob mounting, and removes support for Clair based image scanning"
+}
