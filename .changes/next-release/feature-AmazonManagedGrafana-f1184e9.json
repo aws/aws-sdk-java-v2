@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Grafana",
+    "contributor": "",
+    "description": "This release updates Amazon Managed Grafana's APIs to support customer managed KMS keys."
+}
