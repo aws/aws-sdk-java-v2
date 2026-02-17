@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.31__ __2026-02-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Operator field to CreatePlacementGroup and DescribePlacementGroup APIs.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release updates Amazon Managed Grafana's APIs to support customer managed KMS keys.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for the StorageEncryptionType field to specify encryption type for DB clusters, DB instances, snapshots, automated backups, and global clusters.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Adds support for branding customization without requiring a custom wallpaper.
+
 # __2.41.30__ __2026-02-16__
 ## __ARC - Region switch__
   - ### Features
