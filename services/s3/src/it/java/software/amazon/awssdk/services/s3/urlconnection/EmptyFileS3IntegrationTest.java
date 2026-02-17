@@ -94,7 +94,7 @@ public class EmptyFileS3IntegrationTest extends UrlHttpConnectionS3IntegrationTe
 
     @Test
     public void asyncEmptyObjectWithChecksumValidation_returnsEmpty() throws Exception {
-        try (S3AsyncClient s3Async = S3AsyncClient.builder().region(DEFAULT_REGION).build()) {
+        try (S3AsyncClient s3Async = S3AsyncClient.builder().region(DEFAULT_REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build()) {
             s3Async.putObject(r -> r.bucket(BUCKET).key("x"),AsyncRequestBody.empty()).join();
 
 
