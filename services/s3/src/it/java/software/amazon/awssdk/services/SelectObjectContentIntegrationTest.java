@@ -60,8 +60,10 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
-        s3.createBucket(r -> r.bucket(BUCKET_NAME));
+        System.out.println("[SelectObjectContent] Creating bucket: " + BUCKET_NAME + " in region: " + DEFAULT_REGION);
+        createBucket(BUCKET_NAME);
         s3.waiter().waitUntilBucketExists(r -> r.bucket(BUCKET_NAME));
+        System.out.println("[SelectObjectContent] Bucket created successfully: " + BUCKET_NAME);
         s3.putObject(r -> r.bucket(BUCKET_NAME).key(KEY), RequestBody.fromString(CSV_CONTENTS));
         s3CrtClient = crtClientBuilder().build();
     }
@@ -135,6 +137,8 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
                                                                       .outputSerialization(outputSerialization)
                                                                       .build();
 
+        String clientType = (client == s3CrtClient) ? "s3CrtClient" : "s3Async";
+        System.out.println("[SelectObjectContent] Executing query on bucket: " + BUCKET_NAME + ", key: " + KEY + ", client: " + clientType + " (" + client.getClass().getSimpleName() + ")");
         return client.selectObjectContent(select, handler);
     }
 

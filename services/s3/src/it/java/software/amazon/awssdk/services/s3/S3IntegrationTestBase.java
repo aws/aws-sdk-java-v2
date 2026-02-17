@@ -101,6 +101,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
     }
 
     private static void createBucket(String bucketName, int retryCount) {
+        System.out.println("[S3IntegrationTestBase] Creating bucket: " + bucketName + " in region: " + DEFAULT_REGION + " with locationConstraint: US_WEST_2");
         try {
             s3.createBucket(
                 CreateBucketRequest.builder()
@@ -110,6 +111,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                                                 .locationConstraint(BucketLocationConstraint.US_WEST_2)
                                                                 .build())
                                    .build());
+            System.out.println("[S3IntegrationTestBase] Successfully created bucket: " + bucketName);
         } catch (S3Exception e) {
             System.err.println("Error attempting to create bucket: " + bucketName);
             if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
