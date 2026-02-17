@@ -15,7 +15,7 @@ jobs:
   api-surface-area-review-verification:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Verifies updates to protected/public APIs have been reviewed and approved by the team, if any
         id: api-surface-area-review-verification
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-api-surface-area-change') }}
