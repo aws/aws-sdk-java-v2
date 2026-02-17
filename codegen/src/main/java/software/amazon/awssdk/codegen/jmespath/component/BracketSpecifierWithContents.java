@@ -24,12 +24,14 @@ import software.amazon.awssdk.utils.Validate;
  *     <li>A number, as in [1]</li>
  *     <li>A star expression, as in [*]</li>
  *     <li>A slice expression, as in [1:2:3]</li>
+ *     <li>A multi-select-list, as in [string, object.key]</li>
  * </ul>
  */
 public class BracketSpecifierWithContents {
     private Integer number;
     private WildcardExpression wildcardExpression;
     private SliceExpression sliceExpression;
+    private MultiSelectList multiSelectList;
 
     private BracketSpecifierWithContents() {
     }
@@ -55,6 +57,13 @@ public class BracketSpecifierWithContents {
         return result;
     }
 
+    public static BracketSpecifierWithContents multiSelectList(MultiSelectList multiSelectList) {
+        Validate.notNull(multiSelectList, "multiSelectList");
+        BracketSpecifierWithContents result = new BracketSpecifierWithContents();
+        result.multiSelectList = multiSelectList;
+        return result;
+    }
+
     public boolean isNumber() {
         return number != null;
     }
@@ -65,6 +74,10 @@ public class BracketSpecifierWithContents {
 
     public boolean isSliceExpression() {
         return sliceExpression != null;
+    }
+
+    public boolean isMultiSelectList() {
+        return multiSelectList != null;
     }
 
     public int asNumber() {
@@ -82,6 +95,11 @@ public class BracketSpecifierWithContents {
         return sliceExpression;
     }
 
+    public MultiSelectList asMultiSelectList() {
+        Validate.validState(isMultiSelectList(), "Not a MultiSelectList");
+        return multiSelectList;
+    }
+
     public void visit(JmesPathVisitor visitor) {
         if (isNumber()) {
             visitor.visitNumber(asNumber());
@@ -89,6 +107,8 @@ public class BracketSpecifierWithContents {
             visitor.visitWildcardExpression(asWildcardExpression());
         } else if (isSliceExpression()) {
             visitor.visitSliceExpression(asSliceExpression());
+        } else if (isMultiSelectList()) {
+            visitor.visitMultiSelectList(asMultiSelectList());
         } else {
             throw new IllegalStateException();
         }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.retries.api.RetryToken;
 
 /**
@@ -35,6 +36,12 @@ public final class InternalCoreExecutionAttribute extends SdkExecutionAttribute 
 
     public static final ExecutionAttribute<RetryToken> RETRY_TOKEN =
         new ExecutionAttribute<>("SdkInternalRetryToken");
+
+    /**
+     * Metrics for tracking request body bytes written and timing for WRITE_THROUGHPUT calculation.
+     */
+    public static final ExecutionAttribute<RequestBodyMetrics> REQUEST_BODY_METRICS =
+        new ExecutionAttribute<>("RequestBodyMetrics");
 
     private InternalCoreExecutionAttribute() {
     }

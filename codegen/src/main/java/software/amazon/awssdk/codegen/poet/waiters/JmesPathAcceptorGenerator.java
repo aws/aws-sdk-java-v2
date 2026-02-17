@@ -123,6 +123,8 @@ public class JmesPathAcceptorGenerator {
                 codeBlock.add(".index(" + input.asNumber() + ")");
             } else if (input.isWildcardExpression()) {
                 codeBlock.add(".wildcard()");
+            } else if (input.isMultiSelectList()) {
+                visitMultiSelectList(input.asMultiSelectList());
             } else {
                 throw new UnsupportedOperationException();
             }
