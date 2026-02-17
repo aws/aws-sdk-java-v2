@@ -46,4 +46,10 @@ public class EndpointResolverInterceptorSpecTest {
         ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModelsEndpointAuthParamsWithoutAllowList());
         assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-endpointsbasedauth.java"));
     }
+
+    @Test
+    public void endpointProviderTestClassWithStringArray() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.stringArrayServiceModels());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-stringarray.java"));
+    }
 }
