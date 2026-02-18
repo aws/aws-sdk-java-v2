@@ -22,8 +22,10 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.http.HttpRequestBase;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
@@ -34,7 +36,7 @@ public final class CrtRequestAdapter {
     private CrtRequestAdapter() {
     }
 
-    public static HttpRequest toAsyncCrtRequest(CrtAsyncRequestContext request) {
+    public static HttpRequestBase toAsyncCrtRequest(CrtAsyncRequestContext request) {
         AsyncExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.request();
 
@@ -47,14 +49,15 @@ public final class CrtRequestAdapter {
         String encodedQueryString = sdkRequest.encodedQueryParameters()
                                               .map(value -> "?" + value)
                                               .orElse("");
-
-        HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
-
+        String path = encodedPath + encodedQueryString;
+        CrtRequestBodyAdapter crtRequestBodyAdapter = new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
+                                                                                request.readBufferSize());
+        HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest,
+                                                                        request.protocol()));
         return new HttpRequest(method,
-                               encodedPath + encodedQueryString,
+                               path,
                                crtHeaderArray,
-                               new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
-                                                         request.readBufferSize()));
+                               crtRequestBodyAdapter);
     }
 
     public static HttpRequest toCrtRequest(CrtRequestContext request) {
@@ -89,7 +92,8 @@ public final class CrtRequestAdapter {
         return crtHeaderList.toArray(new HttpHeader[0]);
     }
 
-    private static List<HttpHeader> createAsyncHttpHeaderList(URI uri, AsyncExecuteRequest sdkExecuteRequest) {
+    private static List<HttpHeader> createAsyncHttpHeaderList(URI uri, AsyncExecuteRequest sdkExecuteRequest,
+                                                                 Protocol protocol) {
         SdkHttpRequest sdkRequest = sdkExecuteRequest.request();
         // worst case we may add 3 more headers here
         List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.numHeaders() + 3);
@@ -99,8 +103,8 @@ public final class CrtRequestAdapter {
             crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
         }
 
-        // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
-        if (!sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
+        // Add Connection Keep Alive Header for HTTP/1.1 only (forbidden in HTTP/2 per RFC 7540)
+        if (protocol != Protocol.HTTP2 && !sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 

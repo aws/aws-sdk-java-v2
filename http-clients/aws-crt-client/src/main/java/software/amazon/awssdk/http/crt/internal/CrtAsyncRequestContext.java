@@ -16,7 +16,8 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -24,14 +25,16 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public final class CrtAsyncRequestContext {
     private final AsyncExecuteRequest request;
     private final long readBufferSize;
-    private final HttpClientConnectionManager crtConnPool;
+    private final HttpStreamManager crtConnPool;
     private final MetricCollector metricCollector;
+    private final Protocol protocol;
 
     private CrtAsyncRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
         this.metricCollector = request.metricCollector().orElse(null);
+        this.protocol = builder.protocol;
     }
 
     public static Builder builder() {
@@ -46,7 +49,11 @@ public final class CrtAsyncRequestContext {
         return readBufferSize;
     }
 
-    public HttpClientConnectionManager crtConnPool() {
+    public Protocol protocol() {
+        return protocol;
+    }
+
+    public HttpStreamManager crtConnPool() {
         return crtConnPool;
     }
 
@@ -57,7 +64,8 @@ public final class CrtAsyncRequestContext {
     public static final class Builder {
         private AsyncExecuteRequest request;
         private long readBufferSize;
-        private HttpClientConnectionManager crtConnPool;
+        private HttpStreamManager crtConnPool;
+        private Protocol protocol;
 
         private Builder() {
         }
@@ -72,13 +80,19 @@ public final class CrtAsyncRequestContext {
             return this;
         }
 
-        public Builder crtConnPool(HttpClientConnectionManager crtConnPool) {
+        public Builder crtConnPool(HttpStreamManager crtConnPool) {
             this.crtConnPool = crtConnPool;
+            return this;
+        }
+
+        public Builder protocol(Protocol protocol) {
+            this.protocol = protocol;
             return this;
         }
 
         public CrtAsyncRequestContext build() {
             return new CrtAsyncRequestContext(this);
         }
+
     }
 }

@@ -25,12 +25,14 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
@@ -52,30 +54,40 @@ public final class CrtUtils {
         return toThrow;
     }
 
-    public static Throwable wrapConnectionFailureException(Throwable throwable) {
-        Throwable toThrow = new IOException("An exception occurred when acquiring a connection", throwable);
+    public static Throwable wrapCrtException(Throwable throwable) {
+        if (throwable instanceof CompletionException) {
+            throwable = throwable.getCause();
+        }
         if (throwable instanceof HttpException) {
             HttpException httpException = (HttpException) throwable;
             int httpErrorCode = httpException.getErrorCode();
 
             if (httpErrorCode == CRT_TLS_NEGOTIATION_ERROR_CODE) {
-                toThrow = new SSLHandshakeException(httpException.getMessage());
-            } else if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
-                toThrow = new ConnectException(httpException.getMessage());
+                return new SSLHandshakeException(httpException.getMessage());
             }
+            // TODO: check with CRT team, could CRT_SOCKET_TIMEOUT be thrown
+            //  from processes other than tcp connect?
+            if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
+                return new ConnectException(httpException.getMessage());
+            }
+
+            return wrapWithIoExceptionIfRetryable((HttpException) throwable);
         }
 
-        return toThrow;
+        if (throwable instanceof IllegalStateException || throwable instanceof CrtRuntimeException) {
+            // CRT throws IllegalStateException if the connection is closed
+            return new IOException("An exception occurred when making the request", throwable);
+        }
+
+        return throwable;
     }
 
-    public static void reportMetrics(HttpClientConnectionManager connManager, MetricCollector metricCollector,
-                                      long acquireStartTime) {
+    public static void reportMetrics(HttpStreamManager connManager, MetricCollector metricCollector,
+                                     long acquireStartTime) {
         long acquireCompletionTime = System.nanoTime();
         Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
         metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
         HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
-        // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
-        // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
         metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
         metricCollector.reportMetric(AVAILABLE_CONCURRENCY, saturatedCast(managerMetrics.getAvailableConcurrency()));
         metricCollector.reportMetric(LEASED_CONCURRENCY, saturatedCast(managerMetrics.getLeasedConcurrency()));
