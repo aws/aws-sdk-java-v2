@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.32__ __2026-02-18__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for federated catalogs in Athena-sourced configured tables.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.3
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Correcting in-app notifications API documentation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
 # __2.41.31__ __2026-02-17__
 ## __AWS SDK for Java v2__
   - ### Features
