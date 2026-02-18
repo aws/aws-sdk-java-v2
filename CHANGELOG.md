@@ -1,4 +1,175 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.31__ __2026-02-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Operator field to CreatePlacementGroup and DescribePlacementGroup APIs.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release updates Amazon Managed Grafana's APIs to support customer managed KMS keys.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for the StorageEncryptionType field to specify encryption type for DB clusters, DB instances, snapshots, automated backups, and global clusters.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Adds support for branding customization without requiring a custom wallpaper.
+
+# __2.41.30__ __2026-02-16__
+## __ARC - Region switch__
+  - ### Features
+    - Clarify documentation on ARC Region Switch start-plan-execution operation
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for Decrypt and ReEncrypt API's to use dry run feature without ciphertext for authorization validation
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Migrate PartitionMetadata code generation from endpoints.json to partitions.json
+    - Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2 Secondary Networks
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for enabling blob mounting, and removes support for Clair based image scanning
+
+## __Amazon Q Connect__
+  - ### Features
+    - Update MessageType enum to include missing types.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports dual-stack connectivity (IPv4 and IPv6) for existing MSK clusters. You can enable dual-stack on existing clusters by specifying the NetworkType parameter in updateConnectivity API.
+
+# __2.41.29__ __2026-02-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve support for operationContextParams with chained index and multi-select expressions and improve support for StringArray endpoint parametes.
+    - Updating S3 AccessGrants plugin version to 2.4.1
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adding new evaluation states that provides information about the alarm evaluation process. Evaluation error Indicates configuration errors in alarm setup that require review and correction. Evaluation failure Indicates temporary CloudWatch issues.
+
+## __Amazon Connect Service__
+  - ### Features
+    - API release for headerr notifications in the admin website. APIs allow customers to publish brief messages (including URLs) to a specified audience, and a new header icon will indicate when unread messages are available.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds geography information to EC2 region and availability zone APIs. DescribeRegions now includes a Geography field, while DescribeAvailabilityZones includes both Geography and SubGeography fields, enabling better geographic classification for AWS regions and zones.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable g7e instance type support for SageMaker Processing, and enable single file configuration provisioning for HyperPod Slurm, where customers have the option to use HyperPod API to provide the provisioning parameters.
+
+## __Inspector2__
+  - ### Features
+    - Added .Net 10 (dotnet10) and Node 24.x (node24.x) runtime support for lambda package scanning
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
+# __2.41.28__ __2026-02-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `WRITE_THROUGHPUT` metric to measure request body upload speed (bytes/sec). This metric is reported at the API call attempt level for requests with a body.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching nested virtualization. This feature allows you to run nested VMs inside virtual (non-bare metal) EC2 instances.
+
+# __2.41.27__ __2026-02-11__
+## __AWS Batch__
+  - ### Features
+    - Add support for listing jobs by share identifier and getting snapshots of active capacity utilization by job queue and share.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - R8i instances powered by custom Intel Xeon 6 processors available only on AWS with sustained all-core 3.9 GHz turbo frequency
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for Windows Server 2025 in Amazon EKS Managed Node Groups.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports setting partition specifications and sort orders on tables. Partition specs allow users to define how data is organized using transform functions. Sort order configurations enable users to specify sort directions and null ordering preferences for optimized data layout.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support configurable upper limits on task count during autoscaling operations via maxAutoscalingTaskCount parameter.
+
+# __2.41.26__ __2026-02-10__
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added AgentCore browser proxy configuration support, allowing routing of browser traffic through HTTP and HTTPS proxy servers with authentication and bypass rules.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now supports per-channel auto-accept and After Contact Work (ACW) timeouts. Configure agents with auto-accept and ACW timeout settings for chat, tasks, emails, and callbacks. Use the new UpdateUserConfig API to manage these settings.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing an optional policy field, an IAM policy applied to pod identity associations in addition to IAM role policies. When specified, pod permissions are the intersection of IAM role policies and the policy field, ensuring the principle of least privilege.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds backup configuration for RDS and Aurora restores, letting customers set backup retention period and preferred backup window during restore. It also enables viewing backup settings when describing snapshots or automated backups for instances and clusters.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK adds three new APIs, CreateTopic, UpdateTopic, and DeleteTopic for managing Kafka topics in your MSK clusters.
+
+# __2.41.25__ __2026-02-09__
+## __AWS Lake Formation__
+  - ### Features
+    - Allow cross account v5 in put data lake settings
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Introduces RESUMING state for clusters, compute node groups, and queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds a documentation update for MdnResponse of type "ASYNC"
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon Secondary Networks is a networking feature that provides high-performance, low-latency connectivity for specialized workloads.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS adds a new DescribeUpdate update type, VendedLogsUpdate, to support an integration between EKS Auto Mode and Amazon CloudWatch Vended Logs.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Added edgeOnlyLoad boolean parameter to Neptune bulk load request. When TRUE, files are loaded in order without scanning. When FALSE (default), the loader scans files first, then loads vertex files before edge files automatically.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Add the missing event type for WhatsApp
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports wildcard patterns in lifecycle policies with recipes and enhances the experience of tag-scoped policies.
+
 # __2.41.24__ __2026-02-06__
 ## __AWS SDK for Java v2__
   - ### Bugfixes

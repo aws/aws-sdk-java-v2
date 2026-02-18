@@ -17,7 +17,7 @@ jobs:
     outputs:
       run_tests: ${{ contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') || steps.check-changes.outputs.has_s3_related_changes }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Check for changes related to s3

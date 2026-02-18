@@ -429,7 +429,7 @@ class CloudFrontUtilitiesTest {
         StringJoiner conditions = new StringJoiner(",", "{", "}");
         conditions.add("\"DateLessThan\":{\"AWS:EpochTime\":" + expiration.getEpochSecond() + "}");
 
-        expectedPolicy.append("{\"Statement\": [{")
+        expectedPolicy.append("{\"Statement\":[{")
                       .append("\"Resource\":\"").append(expectedResource).append("\",")
                       .append("\"Condition\":").append(conditions)
                       .append("}]}");

@@ -35,15 +35,15 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsRegionsMetadata;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class PartitionMetadataProviderGenerator implements PoetClass {
-    private final Partitions partitions;
+    private final PartitionsRegionsMetadata partitions;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public PartitionMetadataProviderGenerator(Partitions partitions,
+    public PartitionMetadataProviderGenerator(PartitionsRegionsMetadata partitions,
                                            String basePackage,
                                            String regionBasePackage) {
         this.partitions = partitions;
@@ -78,11 +78,11 @@ public class PartitionMetadataProviderGenerator implements PoetClass {
         return ClassName.get(regionBasePackage, "GeneratedPartitionMetadataProvider");
     }
 
-    private CodeBlock partitions(Partitions partitions) {
+    private CodeBlock partitions(PartitionsRegionsMetadata partitions) {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, PartitionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()
-                  .forEach(p -> builder.add(".put($S, new $T())", p.getPartition(), partitionMetadataClass(p.getPartition())));
+                  .forEach(p -> builder.add(".put($S, new $T())", p.getId(), partitionMetadataClass(p.getId())));
 
         return builder.add(".build()").build();
     }
