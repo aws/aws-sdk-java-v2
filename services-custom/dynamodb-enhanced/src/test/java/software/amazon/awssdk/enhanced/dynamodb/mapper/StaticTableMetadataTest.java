@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.sameInstance;
 import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
 
 import java.util.Collection;
@@ -357,6 +358,43 @@ public class StaticTableMetadataTest {
         builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
         StaticTableMetadata metadata2 = builder.build();
         assertThat(metadata2.indexPartitionKeys("gsi1"), contains("key1", "key2"));
+    }
+
+    @Test
+    public void indexPartitionKeys_shouldReturnCachedPartitionKeysList() {
+        StaticTableMetadata metadata = StaticTableMetadata.builder()
+                                                                 .addIndexPartitionKey(primaryIndexName(),
+                                                                                       ATTRIBUTE_NAME,
+                                                                                       AttributeValueType.S)
+                                                                 .build();
+        List<String> first = metadata.indexPartitionKeys(primaryIndexName());
+        List<String> second = metadata.indexPartitionKeys(primaryIndexName());
+
+        assertThat(first, sameInstance(second));
+    }
+
+    @Test
+    public void indexSortKeys_shouldReturnCachedSortKeysList() {
+        StaticTableMetadata metadata = StaticTableMetadata.builder()
+                                                          .addIndexSortKey(primaryIndexName(),
+                                                                                ATTRIBUTE_NAME,
+                                                                                AttributeValueType.S)
+                                                          .build();
+        List<String> first = metadata.indexSortKeys(primaryIndexName());
+        List<String> second = metadata.indexSortKeys(primaryIndexName());
+
+        assertThat(first, sameInstance(second));
+    }
+
+    @Test
+    public void indexSortKeys_shouldReturnUnmodifiableList() {
+        StaticTableMetadata metadata = StaticTableMetadata.builder()
+                                                          .addIndexSortKey(primaryIndexName(),
+                                                                           ATTRIBUTE_NAME,
+                                                                           AttributeValueType.S)
+                                                          .build();
+        List<String> result = metadata.indexSortKeys(primaryIndexName());
+        assertThatThrownBy(() -> result.add("foo")).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
