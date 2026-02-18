@@ -134,23 +134,31 @@ public final class ChecksumUtil {
 
     public static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
         boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
-        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        Boolean payloadSigningEnabled = request.property(PAYLOAD_SIGNING_ENABLED);
         boolean isEncrypted = "https".equals(request.request().protocol());
+        boolean hasPayload = request.payload().isPresent();
 
         if (isAnonymous) {
             return false;
         }
 
-        // presigning requests should always have a null payload, and should always be unsigned-payload
-        if (!isEncrypted && request.payload().isPresent()) {
-            if (!isPayloadSigningEnabled) {
+        if (payloadSigningEnabled != null) {
+            // presigning requests should always have a null payload, and should always be unsigned-payload
+            if (!isEncrypted && hasPayload && !payloadSigningEnabled) {
                 log.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
                                 "Signing will be enabled. Use HTTPS for unsigned payloads.");
+                return true;
             }
-            return true;
+            return payloadSigningEnabled;
         }
 
-        return isPayloadSigningEnabled;
+        // For HTTPS, skip payload signing by default
+        if (isEncrypted) {
+            return false;
+        }
+
+        // For HTTP, sign payload by default
+        return hasPayload;
     }
 
     public static boolean isEventStreaming(SdkHttpRequest request) {

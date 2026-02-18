@@ -140,7 +140,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).contains(PAYLOAD_SHA256_HEX);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
@@ -172,7 +172,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).contains(PAYLOAD_SHA256_HEX);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
@@ -564,6 +564,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, "20"),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -587,6 +588,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putHeader(Header.CONTENT_LENGTH, contentLength),
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
@@ -610,6 +612,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -636,6 +639,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
             signRequest -> signRequest
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
