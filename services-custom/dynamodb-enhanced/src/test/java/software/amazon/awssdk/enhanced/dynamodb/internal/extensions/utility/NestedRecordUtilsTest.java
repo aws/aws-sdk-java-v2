@@ -34,6 +34,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -68,7 +69,7 @@ public class NestedRecordUtilsTest {
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(objectSchema, "nonExistentAttribute"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No converter found for attribute: nonExistentAttribute");
+            .hasMessage("No converter found for attribute: nonExistentAttribute");
     }
 
     @Test
@@ -78,7 +79,7 @@ public class NestedRecordUtilsTest {
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(objectSchema, "emptyParamsAttribute"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No type parameters found for list attribute: emptyParamsAttribute");
+            .hasMessage("No type parameters found for list attribute: emptyParamsAttribute");
     }
 
     @Test
@@ -88,7 +89,7 @@ public class NestedRecordUtilsTest {
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(objectSchema, "nullParamsAttribute"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No type parameters found for list attribute: nullParamsAttribute");
+            .hasMessage("No type parameters found for list attribute: nullParamsAttribute");
     }
 
     @Test
@@ -131,7 +132,7 @@ public class NestedRecordUtilsTest {
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(objectSchema, nestedKey))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unable to resolve schema for list element at: " + nestedKey);
+            .hasMessage("Unable to resolve schema for list element at: " + nestedKey);
     }
 
     @Test
@@ -184,7 +185,7 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void getTableSchemaForListElement_withClassNotFound_throwsIllegalArgumentException() {
+    public void getTableSchemaForListElement_withClassNotBeingADynamoDbBean_throwsIllegalArgumentException() {
         String badAttr = "badAttr";
         when(objectSchema.converterForAttribute(badAttr)).thenReturn(objectConverter);
 
@@ -195,11 +196,12 @@ public class NestedRecordUtilsTest {
         when(enhancedType.rawClassParameters()).thenReturn(Collections.singletonList(paramType));
 
         when(paramType.tableSchema()).thenReturn(Optional.empty());
-        when(paramType.rawClass()).thenReturn((Class) int.class);
+        when(paramType.rawClass()).thenReturn((Class) InvalidBean.class);
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(objectSchema, badAttr))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Class not found for field name: " + badAttr);
+            .hasMessage("Class does not appear to be a valid DynamoDb annotated class. "
+                        + "[class = \"class software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean\"]");
     }
 
     @Test
@@ -336,7 +338,7 @@ public class NestedRecordUtilsTest {
     public void reconstructCompositeKey_withNullAttributeName_throwsIllegalArgumentException() {
         assertThatThrownBy(() -> NestedRecordUtils.reconstructCompositeKey("parent", null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Attribute name cannot be null");
+            .hasMessage("Attribute name cannot be null");
     }
 
     @Test
