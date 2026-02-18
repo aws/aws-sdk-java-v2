@@ -55,43 +55,54 @@ public final class NestedRecordUtils {
      * @throws IllegalArgumentException If the list element class cannot be found via reflection.
      */
     public static TableSchema<?> getTableSchemaForListElement(TableSchema<?> rootSchema, String key) {
+        return getTableSchemaForListElement(rootSchema, key, new HashMap<>());
+    }
+
+    /**
+     * Same as {@link #getTableSchemaForListElement(TableSchema, String)} but allows callers to provide a shared per-operation
+     * cache for nested schema lookups.
+     */
+    public static TableSchema<?> getTableSchemaForListElement(
+        TableSchema<?> rootSchema,
+        String key,
+        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> nestedSchemaCache) {
         TableSchema<?> listElementSchema;
-        try {
-            if (!key.contains(NESTED_OBJECT_UPDATE)) {
-                Optional<? extends TableSchema<?>> staticSchema = getNestedSchema(rootSchema, key);
-                if (staticSchema.isPresent()) {
-                    listElementSchema = staticSchema.get();
-                } else {
-                    AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
-                    if (converter == null) {
-                        throw new IllegalArgumentException("No converter found for attribute: " + key);
-                    }
-                    List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
-                    if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
-                        throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
-                    }
-                    listElementSchema = TableSchema.fromClass(
-                        Class.forName(rawClassParameters.get(0).rawClass().getName()));
-                }
 
+        if (!key.contains(NESTED_OBJECT_UPDATE)) {
+            Optional<? extends TableSchema<?>> staticSchema = getNestedSchemaCached(nestedSchemaCache, rootSchema, key);
+            if (staticSchema.isPresent()) {
+                listElementSchema = staticSchema.get();
             } else {
-                String[] parts = NESTED_OBJECT_PATTERN.split(key);
-                TableSchema<?> currentSchema = rootSchema;
-
-                for (int i = 0; i < parts.length - 1; i++) {
-                    Optional<? extends TableSchema<?>> nestedSchema = getNestedSchema(currentSchema, parts[i]);
-                    if (nestedSchema.isPresent()) {
-                        currentSchema = nestedSchema.get();
-                    }
+                AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
+                if (converter == null) {
+                    throw new IllegalArgumentException("No converter found for attribute: " + key);
                 }
-                String attributeName = parts[parts.length - 1];
-                Optional<? extends TableSchema<?>> nestedListSchema = getNestedSchema(currentSchema, attributeName);
-                listElementSchema = nestedListSchema
-                    .orElseThrow(() -> new IllegalArgumentException("Unable to resolve schema for list element at: " + key));
+                List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
+                if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
+                    throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
+                }
+                listElementSchema = TableSchema.fromClass(rawClassParameters.get(0).rawClass());
             }
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Class not found for field name: " + key, e);
+        } else {
+            String[] parts = NESTED_OBJECT_PATTERN.split(key);
+            TableSchema<?> currentSchema = rootSchema;
+
+            for (int i = 0; i < parts.length - 1; i++) {
+                Optional<? extends TableSchema<?>> nestedSchema =
+                    getNestedSchemaCached(nestedSchemaCache, currentSchema, parts[i]);
+                if (nestedSchema.isPresent()) {
+                    currentSchema = nestedSchema.get();
+                }
+            }
+
+            String attributeName = parts[parts.length - 1];
+            Optional<? extends TableSchema<?>> nestedListSchema =
+                getNestedSchemaCached(nestedSchemaCache, currentSchema, attributeName);
+
+            listElementSchema = nestedListSchema.orElseThrow(
+                () -> new IllegalArgumentException("Unable to resolve schema for list element at: " + key));
         }
+
         return listElementSchema;
     }
 
@@ -113,6 +124,18 @@ public final class NestedRecordUtils {
      */
     public static Map<String, TableSchema<?>> resolveSchemasPerPath(Map<String, AttributeValue> attributesToSet,
                                                                     TableSchema<?> rootSchema) {
+        return resolveSchemasPerPath(attributesToSet, rootSchema, new HashMap<>());
+    }
+
+    /**
+     * Same as {@link #resolveSchemasPerPath(Map, TableSchema)} but allows callers to provide a shared per-operation cache for
+     * nested schema lookups.
+     */
+    public static Map<String, TableSchema<?>> resolveSchemasPerPath(
+        Map<String, AttributeValue> attributesToSet,
+        TableSchema<?> rootSchema,
+        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> nestedSchemaCache) {
+
         Map<String, TableSchema<?>> schemaMap = new HashMap<>();
         schemaMap.put("", rootSchema);
 
@@ -131,16 +154,20 @@ public final class NestedRecordUtils {
                 String path = pathBuilder.toString();
 
                 if (!schemaMap.containsKey(path)) {
-                    Optional<? extends TableSchema<?>> nestedSchema = getNestedSchema(currentSchema, parts[i]);
+                    Optional<? extends TableSchema<?>> nestedSchema =
+                        getNestedSchemaCached(nestedSchemaCache, currentSchema, parts[i]);
+
                     if (nestedSchema.isPresent()) {
-                        schemaMap.put(path, nestedSchema.get());
-                        currentSchema = nestedSchema.get();
+                        TableSchema<?> resolved = nestedSchema.get();
+                        schemaMap.put(path, resolved);
+                        currentSchema = resolved;
                     }
                 } else {
                     currentSchema = schemaMap.get(path);
                 }
             }
         }
+
         return schemaMap;
     }
 
@@ -164,5 +191,73 @@ public final class NestedRecordUtils {
 
         return String.join(NESTED_OBJECT_UPDATE, path.split("\\."))
                + NESTED_OBJECT_UPDATE + attributeName;
+    }
+
+    /**
+     * Cached wrapper around {@link software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils#getNestedSchema}. Cache
+     * key is based on (parent schema identity, attribute name).
+     */
+    public static Optional<? extends TableSchema<?>> getNestedSchemaCached(
+        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> cache,
+        TableSchema<?> parentSchema,
+        String attributeName) {
+
+        SchemaLookupKey key = new SchemaLookupKey(parentSchema, attributeName);
+        return cache.computeIfAbsent(key, k -> getNestedSchema(parentSchema, attributeName));
+    }
+
+    /**
+     * Cached wrapper for resolving list element schema, storing results (including null) in the provided cache.
+     * <p>
+     * Note: {@link #getTableSchemaForListElement(TableSchema, String, Map)} does not return null today, but this helper is used
+     * by callers that previously cached the list element schema separately, and it keeps the "cache null" behavior.
+     */
+    public static TableSchema<?> getListElementSchemaCached(
+        Map<SchemaLookupKey, TableSchema<?>> cache,
+        TableSchema<?> parentSchema,
+        String attributeName) {
+
+        SchemaLookupKey key = new SchemaLookupKey(parentSchema, attributeName);
+
+        if (cache.containsKey(key)) {
+            return cache.get(key);
+        }
+
+        TableSchema<?> schema = getTableSchemaForListElement(parentSchema, attributeName, new HashMap<>());
+        cache.put(key, schema);
+        return schema;
+    }
+
+    /**
+     * Identity-based cache key for schema lookups: - compares TableSchema by identity (==) to avoid depending on its
+     * equals/hashCode semantics - compares attribute name by value
+     */
+    public static final class SchemaLookupKey {
+        private final TableSchema<?> parentSchema;
+        private final String attributeName;
+        private final int hash;
+
+        public SchemaLookupKey(TableSchema<?> parentSchema, String attributeName) {
+            this.parentSchema = parentSchema;
+            this.attributeName = attributeName;
+            this.hash = 31 * System.identityHashCode(parentSchema) + attributeName.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof SchemaLookupKey)) {
+                return false;
+            }
+            SchemaLookupKey other = (SchemaLookupKey) o;
+            return this.parentSchema == other.parentSchema && this.attributeName.equals(other.attributeName);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
     }
 }

@@ -150,7 +150,7 @@ public final class EnhancedClientUtils {
                                               .scannedCount(scannedCount.apply(response))
                                               .consumedCapacity(consumedCapacity.apply(response));
 
-        if (getLastEvaluatedKey.apply(response) != null && !getLastEvaluatedKey.apply(response).isEmpty()) {
+        if (CollectionUtils.isNotEmpty(getLastEvaluatedKey.apply(response))) {
             pageBuilder.lastEvaluatedKey(getLastEvaluatedKey.apply(response));
         }
         return pageBuilder.build();

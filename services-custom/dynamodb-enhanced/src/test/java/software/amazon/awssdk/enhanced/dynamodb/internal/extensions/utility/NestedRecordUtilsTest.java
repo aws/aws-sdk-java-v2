@@ -17,12 +17,15 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.extensions.utility;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.Test;
@@ -32,6 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,13 +46,77 @@ public class NestedRecordUtilsTest {
     private static final Pattern NESTED_ATTR_UPDATE_ = Pattern.compile("_NESTED_ATTR_UPDATE_");
 
     @Mock
-    private TableSchema<Object> mockSchema;
+    private TableSchema<Record> mockSchema;
 
     @Mock
-    private AttributeConverter<Object> mockConverter;
+    private EnhancedType<Record> mockEnhancedType;
 
     @Mock
-    private EnhancedType<Object> mockType;
+    private AttributeConverter<Record> mockAttributeConverter;
+
+    @Test
+    public void getListElementSchemaCached_cacheNotPopulated_populatesCacheAndReturnsSchema() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+        Map<NestedRecordUtils.SchemaLookupKey, TableSchema<?>> cache = new HashMap<>();
+        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children");
+
+        assertNotNull(result);
+        assertThat(result.itemType().rawClass()).isEqualTo(ChildRecord.class);
+
+        NestedRecordUtils.SchemaLookupKey expectedKey =
+            new NestedRecordUtils.SchemaLookupKey(rootSchema, "children");
+
+        assertThat(cache).containsKey(expectedKey);
+        assertThat(cache.get(expectedKey)).isSameAs(result);
+    }
+
+    @Test
+    public void getListElementSchemaCached_whenElementFoundInCache_returnsCachedSchema() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+        TableSchema<?> cachedSchema = TableSchema.fromBean(ChildRecord.class);
+
+        Map<NestedRecordUtils.SchemaLookupKey, TableSchema<?>> cache = new HashMap<>();
+        NestedRecordUtils.SchemaLookupKey key = new NestedRecordUtils.SchemaLookupKey(rootSchema, "children");
+        cache.put(key, cachedSchema);
+
+        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children");
+        assertThat(result).isSameAs(cachedSchema);
+        assertThat(cache.get(key)).isSameAs(cachedSchema);
+    }
+
+    @Test
+    public void getTableSchemaForListElement_simpleHierarchy_resolvesCorrectSchema() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(rootSchema, "children");
+
+        assertNotNull(result);
+        assertThat(result.itemType().rawClass()).isEqualTo(ChildRecord.class);
+    }
+
+    @Test
+    public void getTableSchemaForListElement_nestedHierarchy_resolvesCorrectSchema() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+        String key = "nestedItem" + NESTED_OBJECT_UPDATE + "children";
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(rootSchema, key);
+
+        assertNotNull(result);
+        assertThat(result.itemType().rawClass()).isEqualTo(ChildRecord.class);
+    }
+
+    @Test
+    public void getTableSchemaForListElement_withRawClassParameters_returnsCorrectSchema() {
+        List<EnhancedType<?>> rawClassParameters = Collections.singletonList(EnhancedType.of(ChildRecord.class));
+        when(mockSchema.converterForAttribute("child")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.rawClassParameters()).thenReturn(rawClassParameters);
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "child");
+
+        assertNotNull(result);
+        assertThat(result.itemType().rawClass()).isEqualTo(ChildRecord.class);
+    }
 
     @Test
     public void getTableSchemaForListElement_withNullConverter_throwsIllegalArgumentException() {
@@ -61,9 +129,9 @@ public class NestedRecordUtilsTest {
 
     @Test
     public void getTableSchemaForListElement_withEmptyRawClassParameters_throwsIllegalArgumentException() {
-        when(mockSchema.converterForAttribute("emptyParamsAttribute")).thenReturn(mockConverter);
-        when(mockConverter.type()).thenReturn(mockType);
-        when(mockType.rawClassParameters()).thenReturn(Collections.emptyList());
+        when(mockSchema.converterForAttribute("emptyParamsAttribute")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.rawClassParameters()).thenReturn(Collections.emptyList());
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, "emptyParamsAttribute"))
             .isInstanceOf(IllegalArgumentException.class)
@@ -72,9 +140,9 @@ public class NestedRecordUtilsTest {
 
     @Test
     public void getTableSchemaForListElement_withNullRawClassParameters_throwsIllegalArgumentException() {
-        when(mockSchema.converterForAttribute("nullParamsAttribute")).thenReturn(mockConverter);
-        when(mockConverter.type()).thenReturn(mockType);
-        when(mockType.rawClassParameters()).thenReturn(null);
+        when(mockSchema.converterForAttribute("nullParamsAttribute")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.rawClassParameters()).thenReturn(null);
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, "nullParamsAttribute"))
             .isInstanceOf(IllegalArgumentException.class)
@@ -82,7 +150,7 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void getTableSchemaForListElement_withDeepNestedPath_returnsCorrectSchema() {
+    public void getTableSchemaForListElement_withDeepNestedPath_returnsCorrectParts() {
         String nestedKey = "nestedItem" + NESTED_OBJECT_UPDATE + "tags";
         String[] parts = PATTERN.split(nestedKey);
 
@@ -160,7 +228,7 @@ public class NestedRecordUtilsTest {
 
         assertThat(parts1[0]).isEqualTo("nestedItem");
         assertThat(parts2[0]).isEqualTo("nestedItem");
-        assertThat(parts1[0]).isEqualTo(parts2[0]); // Same nested path
+        assertThat(parts1[0]).isEqualTo(parts2[0]);
     }
 
     @Test
@@ -173,19 +241,59 @@ public class NestedRecordUtilsTest {
 
         Map<String, TableSchema<?>> result = NestedRecordUtils.resolveSchemasPerPath(duplicateNestedAttributes, mockSchema);
 
-        // Assert - Should have root schema
         assertThat(result).containsKey("");
         assertThat(result.get("")).isEqualTo(mockSchema);
 
-        // Verify both attributes share the same nested path
         String path1 = "nestedItem" + NESTED_OBJECT_UPDATE + "name";
         String path2 = "nestedItem" + NESTED_OBJECT_UPDATE + "tags";
 
         String[] parts1 = PATTERN.split(path1);
         String[] parts2 = PATTERN.split(path2);
 
-        assertThat(parts1[0]).isEqualTo(parts2[0]); // Same parent path
+        assertThat(parts1[0]).isEqualTo(parts2[0]);
         assertThat(parts1[0]).isEqualTo("nestedItem");
+    }
+
+    @Test
+    public void resolveSchemasPerPath_withRepeatedNestedPrefix_getsSchemaFromCache() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+
+        Map<String, AttributeValue> attributes = new HashMap<>();
+        attributes.put("nestedItem" + NESTED_OBJECT_UPDATE + "children",
+                       AttributeValue.builder().l(Collections.emptyList()).build());
+        attributes.put("nestedItem" + NESTED_OBJECT_UPDATE + "children",
+                       AttributeValue.builder().l(Collections.emptyList()).build());
+
+        attributes.clear();
+        attributes.put("nestedItem" + NESTED_OBJECT_UPDATE + "children",
+                       AttributeValue.builder().l(Collections.emptyList()).build());
+        attributes.put("nestedItem" + NESTED_OBJECT_UPDATE + "children2",
+                       AttributeValue.builder().l(Collections.emptyList()).build());
+
+        Map<String, TableSchema<?>> result = NestedRecordUtils.resolveSchemasPerPath(attributes, rootSchema);
+
+        assertThat(result).containsEntry("", rootSchema);
+        assertThat(result).containsKey("nestedItem");
+        assertThat(result.get("nestedItem").itemType().rawClass()).isEqualTo(Record.class);
+    }
+
+    @Test
+    public void resolveSchemasPerPath_withRepeatedDeepNestedPrefix_resolvesCorrectSchema() {
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+
+        String prefix = "nestedItem" + NESTED_OBJECT_UPDATE + "nestedItem" + NESTED_OBJECT_UPDATE;
+
+        Map<String, AttributeValue> attributes = new HashMap<>();
+        attributes.put(prefix + "children", AttributeValue.builder().l(Collections.emptyList()).build());
+        attributes.put(prefix + "children2", AttributeValue.builder().l(Collections.emptyList()).build());
+
+        Map<String, TableSchema<?>> result = NestedRecordUtils.resolveSchemasPerPath(attributes, rootSchema);
+
+        assertThat(result).containsEntry("", rootSchema);
+        assertThat(result).containsKey("nestedItem");
+        assertThat(result).containsKey("nestedItem.nestedItem");
+        assertThat(result.get("nestedItem").itemType().rawClass()).isEqualTo(Record.class);
+        assertThat(result.get("nestedItem.nestedItem").itemType().rawClass()).isEqualTo(Record.class);
     }
 
     @Test
@@ -236,7 +344,6 @@ public class NestedRecordUtilsTest {
     public void getTableSchemaForListElement_withNestedPathAndMissingSchema_throwsIllegalArgumentException() {
         String nestedKey = String.join(NESTED_OBJECT_UPDATE, "parent", "child", "listAttribute");
 
-        // Mock the parent schema resolution to return empty
         when(mockSchema.converterForAttribute("parent")).thenReturn(null);
 
         assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, nestedKey))
@@ -250,19 +357,19 @@ public class NestedRecordUtilsTest {
         deepNestedAttributes.put(String.join(NESTED_OBJECT_UPDATE, "level1", "level2", "level3", "attr"),
                                  AttributeValue.builder().s("deep-value").build());
 
-        TableSchema<Object> level1Schema = mock(TableSchema.class);
-        TableSchema<Object> level2Schema = mock(TableSchema.class);
-        TableSchema<Object> level3Schema = mock(TableSchema.class);
+        TableSchema<Record> level1Schema = mock(TableSchema.class);
+        TableSchema<Record> level2Schema = mock(TableSchema.class);
+        TableSchema<Record> level3Schema = mock(TableSchema.class);
 
-        when(mockSchema.converterForAttribute("level1")).thenReturn(mockConverter);
-        when(mockConverter.type()).thenReturn(mockType);
-        when(mockType.tableSchema()).thenReturn(Optional.of(level1Schema));
+        when(mockSchema.converterForAttribute("level1")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(level1Schema));
 
-        when(mockConverter.type()).thenReturn(mockType);
-        when(mockType.tableSchema()).thenReturn(Optional.of(level2Schema));
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(level2Schema));
 
-        when(mockConverter.type()).thenReturn(mockType);
-        when(mockType.tableSchema()).thenReturn(Optional.of(level3Schema));
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(level3Schema));
 
         Map<String, TableSchema<?>> result = NestedRecordUtils.resolveSchemasPerPath(deepNestedAttributes, mockSchema);
 
@@ -294,5 +401,74 @@ public class NestedRecordUtilsTest {
 
         String expected = String.join(NESTED_OBJECT_UPDATE, "parent-with-dashes", "child_with_underscores", "attr");
         assertThat(result).isEqualTo(expected);
+    }
+
+    @DynamoDbBean
+    public static class Record {
+        private Record nestedItem;
+        private List<ChildRecord> children;
+
+        public Record getNestedItem() {
+            return nestedItem;
+        }
+
+        public void setNestedItem(Record nestedItem) {
+            this.nestedItem = nestedItem;
+        }
+
+        public List<ChildRecord> getChildren() {
+            return children;
+        }
+
+        public Record setChildren(List<ChildRecord> children) {
+            this.children = children;
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Record record = (Record) o;
+            return Objects.equals(nestedItem, record.nestedItem) &&
+                   Objects.equals(children, record.children);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(nestedItem, children);
+        }
+    }
+
+    @DynamoDbBean
+    public static class ChildRecord {
+
+        private List<String> attribute;
+
+        public List<String> getAttribute() {
+            return attribute;
+        }
+
+        public ChildRecord setAttribute(List<String> attribute) {
+            this.attribute = attribute;
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ChildRecord that = (ChildRecord) o;
+            return Objects.equals(attribute, that.attribute);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(attribute);
+        }
     }
 }
