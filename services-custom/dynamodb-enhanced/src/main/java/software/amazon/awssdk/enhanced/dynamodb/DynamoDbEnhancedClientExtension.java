@@ -32,6 +32,21 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 @SdkPublicApi
 @ThreadSafe
 public interface DynamoDbEnhancedClientExtension {
+
+    /**
+     * Determines whether this extension should process operations for the given table.
+     * <p>
+     * This method is called before invoking {@link #beforeWrite} or {@link #afterRead} to allow
+     * extensions to skip processing when they are not configured for a particular table schema.
+     *
+     * @param metadata the table metadata to check
+     * @return {@code true} if this extension should process operations for the table,
+     * {@code false} to skip this extension for the table
+     */
+    default boolean shouldProcess(TableMetadata metadata) {
+        return true;
+    }
+
     /**
      * This hook is called just before an operation is going to write data to the database. The extension that
      * implements this method can choose to transform the item itself, or add a condition to the write operation

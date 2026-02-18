@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag.CUSTOM_METADATA_KEY_PREFIX;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.ifNotExists;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbAtomicCounter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.AtomicCounter;
@@ -104,6 +106,11 @@ public final class AtomicCounterExtension implements DynamoDbEnhancedClientExten
 
     public static AtomicCounterExtension.Builder builder() {
         return new AtomicCounterExtension.Builder();
+    }
+
+    @Override
+    public boolean shouldProcess(TableMetadata metadata) {
+        return metadata.customMetadataObject(CUSTOM_METADATA_KEY_PREFIX, Map.class).isPresent();
     }
 
     /**
