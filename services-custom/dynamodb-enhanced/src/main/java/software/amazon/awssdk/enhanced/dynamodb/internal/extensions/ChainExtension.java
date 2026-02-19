@@ -99,6 +99,9 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
         UpdateExpression updateExpression = null;
 
         for (DynamoDbEnhancedClientExtension extension : this.extensionChain) {
+            if (!extension.shouldProcess(context.tableMetadata())) {
+                continue;
+            }
             Map<String, AttributeValue> itemToTransform = transformedItem == null ? context.items() : transformedItem;
 
             DynamoDbExtensionContext.BeforeWrite beforeWrite =

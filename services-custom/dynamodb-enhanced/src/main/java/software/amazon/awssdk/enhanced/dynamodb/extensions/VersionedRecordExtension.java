@@ -32,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -139,6 +140,11 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                        .addCustomMetadataObject(INCREMENT_BY_METADATA_KEY, incrementBy)
                                        .markAttributeAsKey(attributeName, attributeValueType);
         }
+    }
+
+    @Override
+    public boolean shouldProcess(TableMetadata metadata) {
+        return metadata.customMetadataObject(CUSTOM_METADATA_KEY, String.class).isPresent();
     }
 
     @Override
