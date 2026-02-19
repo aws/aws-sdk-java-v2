@@ -46,7 +46,23 @@ public abstract class AwsIntegrationTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file.
      */
-    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
+    private static final AwsCredentials CREDENTIALS;
+    
+    static {
+        System.out.println("[DEBUG] AwsIntegrationTestBase: Attempting to load credentials for profile: " + TEST_CREDENTIALS_PROFILE_NAME);
+        try {
+            CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
+            System.out.println("[DEBUG] AwsIntegrationTestBase: Successfully loaded credentials");
+            System.out.println("[DEBUG] AwsIntegrationTestBase: Account ID from credentials: " + 
+                (CREDENTIALS.accountId().isPresent() ? CREDENTIALS.accountId().get() : "NOT_PRESENT"));
+            System.out.println("[DEBUG] AwsIntegrationTestBase: Provider name: " + 
+                (CREDENTIALS.providerName().isPresent() ? CREDENTIALS.providerName().get() : "NOT_PRESENT"));
+        } catch (Exception e) {
+            System.err.println("[DEBUG] AwsIntegrationTestBase: FAILED to load credentials: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
     /**
      * @return AWSCredentials to use during tests. Setup by base fixture

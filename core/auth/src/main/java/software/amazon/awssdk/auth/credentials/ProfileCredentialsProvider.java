@@ -164,14 +164,35 @@ public final class ProfileCredentialsProvider
     }
 
     private AwsCredentialsProvider createCredentialsProvider(ProfileFile profileFile, String profileName) {
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Looking for profile '" + profileName + "'");
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: ProfileFile: " + profileFile);
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Available profiles: " + profileFile.profiles().keySet());
+        
         // Load the profile and credentials provider
-        return profileFile.profile(profileName)
-                          .flatMap(p -> new ProfileCredentialsUtils(profileFile, p, profileFile::profile).credentialsProvider())
-                          .orElseThrow(() -> {
-                              String errorMessage = String.format("Profile file contained no credentials for " +
-                                                                  "profile '%s': %s", profileName, profileFile);
-                              return SdkClientException.builder().message(errorMessage).build();
-                          });
+        Optional<software.amazon.awssdk.profiles.Profile> profileOpt = profileFile.profile(profileName);
+        if (!profileOpt.isPresent()) {
+            System.err.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Profile '" + profileName + "' NOT FOUND in profile file");
+            String errorMessage = String.format("Profile file contained no credentials for " +
+                                              "profile '%s': %s", profileName, profileFile);
+            throw SdkClientException.builder().message(errorMessage).build();
+        }
+        
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Profile '" + profileName + "' FOUND");
+        software.amazon.awssdk.profiles.Profile profile = profileOpt.get();
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Profile properties: " + profile.properties());
+        
+        ProfileCredentialsUtils utils = new ProfileCredentialsUtils(profileFile, profile, profileFile::profile);
+        Optional<AwsCredentialsProvider> providerOpt = utils.credentialsProvider();
+        
+        if (!providerOpt.isPresent()) {
+            System.err.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Could NOT create credentials provider from profile");
+            String errorMessage = String.format("Profile file contained no credentials for " +
+                                              "profile '%s': %s", profileName, profileFile);
+            throw SdkClientException.builder().message(errorMessage).build();
+        }
+        
+        System.out.println("[DEBUG] ProfileCredentialsProvider.createCredentialsProvider: Successfully created credentials provider: " + providerOpt.get().getClass().getName());
+        return providerOpt.get();
     }
 
     /**
