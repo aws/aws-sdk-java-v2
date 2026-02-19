@@ -129,7 +129,6 @@ public final class ChecksumProvider {
      * Creates an instance of the CRT-based XXHASH64 checksum using AWS's CRT library.
      *
      * @return An {@link SdkChecksum} instance for XXHASH64.
-     * @throws IllegalStateException if instantiation fails.
      * @throws RuntimeException if the CRT implementation is not available.
      */
     public static SdkChecksum xxHash64CrtImplementation() {
@@ -140,7 +139,6 @@ public final class ChecksumProvider {
      * Creates an instance of the CRT-based XXHASH3 checksum using AWS's CRT library.
      *
      * @return An {@link SdkChecksum} instance for XXHASH3.
-     * @throws IllegalStateException if instantiation fails.
      * @throws RuntimeException if the CRT implementation is not available.
      */
     public static SdkChecksum xxHash3CrtImplementation() {
@@ -151,7 +149,6 @@ public final class ChecksumProvider {
      * Creates an instance of the CRT-based XXHASH128 checksum using AWS's CRT library.
      *
      * @return An {@link SdkChecksum} instance for XXHASH128.
-     * @throws IllegalStateException if instantiation fails.
      * @throws RuntimeException if the CRT implementation is not available.
      */
     public static SdkChecksum xxHash128CrtImplementation() {
@@ -161,8 +158,8 @@ public final class ChecksumProvider {
     static SdkChecksum crtXxHash(ChecksumAlgorithm algorithm) {
         if (!isXxHashAvailable.getValue()) {
             throw new RuntimeException(
-                "Could not load " + CRT_XXHASH_PATH + ". Add dependency on '" + CRT_MODULE
-                + "' module.");
+                String.format("Could not load %s for algorithm: %s. Add dependency on '%s' module.", CRT_XXHASH_PATH,
+                              algorithm.algorithmId(), CRT_MODULE));
         }
 
         return new XxHashChecksum(algorithm);

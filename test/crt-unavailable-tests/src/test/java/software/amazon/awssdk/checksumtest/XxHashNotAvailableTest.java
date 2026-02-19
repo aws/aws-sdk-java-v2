@@ -18,6 +18,9 @@ package software.amazon.awssdk.checksumtest;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH128;
+import static software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH3;
+import static software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH64;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
@@ -25,7 +28,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.protocolrestjson.model.ChecksumMode;
 import software.amazon.awssdk.services.protocolrestjson.model.OperationWithCustomRequestChecksumRequest;
 
@@ -103,7 +106,7 @@ public class XxHashNotAvailableTest {
     @ParameterizedTest
     @MethodSource("xxHashServiceAlgorithms")
     public void asyncChecksumCalculation_xxHashNotAvailable_shouldThrowException(
-        software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm serviceAlgorithm) throws IOException {
+        ChecksumAlgorithm serviceAlgorithm) throws IOException {
         stubResponse(SdkHttpFullResponse.builder());
         assertThatThrownBy(() -> asyncClient.operationWithCustomRequestChecksum(
             OperationWithCustomRequestChecksumRequest.builder()
@@ -115,7 +118,7 @@ public class XxHashNotAvailableTest {
     @ParameterizedTest
     @MethodSource("xxHashServiceAlgorithms")
     public void syncChecksumCalculation_xxHashNotAvailable_shouldThrowException(
-        software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm serviceAlgorithm) throws IOException {
+        ChecksumAlgorithm serviceAlgorithm) throws IOException {
         stubResponse(SdkHttpFullResponse.builder());
         assertThatThrownBy(() -> client.operationWithCustomRequestChecksum(
             OperationWithCustomRequestChecksumRequest.builder()
@@ -150,12 +153,8 @@ public class XxHashNotAvailableTest {
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
     }
 
-    static Stream<Arguments> xxHashServiceAlgorithms() {
-        return Stream.of(
-            Arguments.of(software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH64, "XXHASH64"),
-            Arguments.of(software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH3, "XXHASH3"),
-            Arguments.of(software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm.XXHASH128, "XXHASH128")
-        );
+    static Stream<ChecksumAlgorithm> xxHashServiceAlgorithms() {
+        return Stream.of(XXHASH64, XXHASH3, XXHASH128);
     }
 
     static Stream<String> xxHashValidationHeaders() {
