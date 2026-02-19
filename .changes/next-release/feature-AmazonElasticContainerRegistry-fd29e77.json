@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry",
+    "contributor": "",
+    "description": "Adds multiple artifact types filter support in ListImageReferrers API."
+}
