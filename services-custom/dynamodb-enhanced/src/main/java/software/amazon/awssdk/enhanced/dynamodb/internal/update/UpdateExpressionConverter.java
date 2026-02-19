@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -113,24 +114,24 @@ public final class UpdateExpressionConverter {
     private static List<String> groupExpressions(UpdateExpression expression) {
         List<String> groupExpressions = new ArrayList<>();
         if (!expression.setActions().isEmpty()) {
-            groupExpressions.add(SET + expression.setActions().stream()
-                                                 .map(a -> a.path() + " = " + a.value())
-                                                 .collect(Collectors.joining(ACTION_SEPARATOR)));
+            StringJoiner joiner = new StringJoiner(ACTION_SEPARATOR, SET, "");
+            expression.setActions().forEach(a -> joiner.add(a.path() + " = " + a.value()));
+            groupExpressions.add(joiner.toString());
         }
         if (!expression.removeActions().isEmpty()) {
-            groupExpressions.add(REMOVE + expression.removeActions().stream()
-                                                    .map(RemoveAction::path)
-                                                    .collect(Collectors.joining(ACTION_SEPARATOR)));
+            StringJoiner joiner = new StringJoiner(ACTION_SEPARATOR, REMOVE, "");
+            expression.removeActions().forEach(a -> joiner.add(a.path()));
+            groupExpressions.add(joiner.toString());
         }
         if (!expression.deleteActions().isEmpty()) {
-            groupExpressions.add(DELETE + expression.deleteActions().stream()
-                                                    .map(a -> a.path() + " " + a.value())
-                                                    .collect(Collectors.joining(ACTION_SEPARATOR)));
+            StringJoiner joiner = new StringJoiner(ACTION_SEPARATOR, DELETE, "");
+            expression.deleteActions().forEach(a -> joiner.add(a.path() + " " + a.value()));
+            groupExpressions.add(joiner.toString());
         }
         if (!expression.addActions().isEmpty()) {
-            groupExpressions.add(ADD + expression.addActions().stream()
-                                                 .map(a -> a.path() + " " + a.value())
-                                                 .collect(Collectors.joining(ACTION_SEPARATOR)));
+            StringJoiner joiner = new StringJoiner(ACTION_SEPARATOR, ADD, "");
+            expression.addActions().forEach(a -> joiner.add(a.path() + " " + a.value()));
+            groupExpressions.add(joiner.toString());
         }
         return groupExpressions;
     }
