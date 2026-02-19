@@ -35,16 +35,26 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ReservedKeywordMember").build())
         .build();
 
-    private static final List<SdkField<?>> SDK_FIELDS = Collections
-        .unmodifiableList(Arrays.asList(RESERVED_KEYWORD_MEMBER_FIELD));
+    private static final SdkField<UnionWithTypeMember> UNION_WITH_TYPE_MEMBER_FIELD = SdkField
+        .<UnionWithTypeMember> builder(MarshallingType.SDK_POJO).memberName("UnionWithTypeMember")
+        .getter(getter(OperationWithReservedKeywordMemberRequest::unionWithTypeMember))
+        .setter(setter(Builder::unionWithTypeMember)).constructor(UnionWithTypeMember::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("UnionWithTypeMember").build())
+        .build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(RESERVED_KEYWORD_MEMBER_FIELD,
+                                                                                                   UNION_WITH_TYPE_MEMBER_FIELD));
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final ContainsReservedKeyword reservedKeywordMember;
 
+    private final UnionWithTypeMember unionWithTypeMember;
+
     private OperationWithReservedKeywordMemberRequest(BuilderImpl builder) {
         super(builder);
         this.reservedKeywordMember = builder.reservedKeywordMember;
+        this.unionWithTypeMember = builder.unionWithTypeMember;
     }
 
     /**
@@ -54,6 +64,15 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
      */
     public final ContainsReservedKeyword reservedKeywordMember() {
         return reservedKeywordMember;
+    }
+
+    /**
+     * Returns the value of the UnionWithTypeMember property for this object.
+     *
+     * @return The value of the UnionWithTypeMember property for this object.
+     */
+    public final UnionWithTypeMember unionWithTypeMember() {
+        return unionWithTypeMember;
     }
 
     @Override
@@ -74,6 +93,7 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(reservedKeywordMember());
+        hashCode = 31 * hashCode + Objects.hashCode(unionWithTypeMember());
         return hashCode;
     }
 
@@ -94,7 +114,8 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
             return false;
         }
         OperationWithReservedKeywordMemberRequest other = (OperationWithReservedKeywordMemberRequest) obj;
-        return Objects.equals(reservedKeywordMember(), other.reservedKeywordMember());
+        return Objects.equals(reservedKeywordMember(), other.reservedKeywordMember())
+               && Objects.equals(unionWithTypeMember(), other.unionWithTypeMember());
     }
 
     /**
@@ -104,13 +125,15 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
     @Override
     public final String toString() {
         return ToString.builder("OperationWithReservedKeywordMemberRequest")
-                       .add("ReservedKeywordMember", reservedKeywordMember()).build();
+                       .add("ReservedKeywordMember", reservedKeywordMember()).add("UnionWithTypeMember", unionWithTypeMember()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
             case "ReservedKeywordMember":
                 return Optional.ofNullable(clazz.cast(reservedKeywordMember()));
+            case "UnionWithTypeMember":
+                return Optional.ofNullable(clazz.cast(unionWithTypeMember()));
             default:
                 return Optional.empty();
         }
@@ -129,6 +152,7 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
     private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
         Map<String, SdkField<?>> map = new HashMap<>();
         map.put("ReservedKeywordMember", RESERVED_KEYWORD_MEMBER_FIELD);
+        map.put("UnionWithTypeMember", UNION_WITH_TYPE_MEMBER_FIELD);
         return Collections.unmodifiableMap(map);
     }
 
@@ -172,6 +196,34 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
             return reservedKeywordMember(ContainsReservedKeyword.builder().applyMutation(reservedKeywordMember).build());
         }
 
+        /**
+         * Sets the value of the UnionWithTypeMember property for this object.
+         *
+         * @param unionWithTypeMember
+         *        The new value for the UnionWithTypeMember property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder unionWithTypeMember(UnionWithTypeMember unionWithTypeMember);
+
+        /**
+         * Sets the value of the UnionWithTypeMember property for this object.
+         *
+         * This is a convenience method that creates an instance of the {@link UnionWithTypeMember.Builder} avoiding the
+         * need to create one manually via {@link UnionWithTypeMember#builder()}.
+         *
+         * <p>
+         * When the {@link Consumer} completes, {@link UnionWithTypeMember.Builder#build()} is called immediately and
+         * its result is passed to {@link #unionWithTypeMember(UnionWithTypeMember)}.
+         *
+         * @param unionWithTypeMember
+         *        a consumer that will call methods on {@link UnionWithTypeMember.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #unionWithTypeMember(UnionWithTypeMember)
+         */
+        default Builder unionWithTypeMember(Consumer<UnionWithTypeMember.Builder> unionWithTypeMember) {
+            return unionWithTypeMember(UnionWithTypeMember.builder().applyMutation(unionWithTypeMember).build());
+        }
+
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -182,12 +234,15 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
         private ContainsReservedKeyword reservedKeywordMember;
 
+        private UnionWithTypeMember unionWithTypeMember;
+
         private BuilderImpl() {
         }
 
         private BuilderImpl(OperationWithReservedKeywordMemberRequest model) {
             super(model);
             reservedKeywordMember(model.reservedKeywordMember);
+            unionWithTypeMember(model.unionWithTypeMember);
         }
 
         public final ContainsReservedKeyword.Builder getReservedKeywordMember() {
@@ -201,6 +256,20 @@ public final class OperationWithReservedKeywordMemberRequest extends JsonProtoco
         @Override
         public final Builder reservedKeywordMember(ContainsReservedKeyword reservedKeywordMember) {
             this.reservedKeywordMember = reservedKeywordMember;
+            return this;
+        }
+
+        public final UnionWithTypeMember.Builder getUnionWithTypeMember() {
+            return unionWithTypeMember != null ? unionWithTypeMember.toBuilder() : null;
+        }
+
+        public final void setUnionWithTypeMember(UnionWithTypeMember.BuilderImpl unionWithTypeMember) {
+            this.unionWithTypeMember = unionWithTypeMember != null ? unionWithTypeMember.build() : null;
+        }
+
+        @Override
+        public final Builder unionWithTypeMember(UnionWithTypeMember unionWithTypeMember) {
+            this.unionWithTypeMember = unionWithTypeMember;
             return this;
         }
 
