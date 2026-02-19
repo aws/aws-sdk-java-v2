@@ -973,9 +973,12 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                             .requestChecksumRequired(false)
                             .isRequestStreaming(true)
                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
-                                                  DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
-                                                  DefaultChecksumAlgorithm.SHA256).build())
+                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.XXHASH3,
+                                                  DefaultChecksumAlgorithm.XXHASH128, DefaultChecksumAlgorithm.CRC64NVME,
+                                                  DefaultChecksumAlgorithm.CRC32C, DefaultChecksumAlgorithm.CRC32,
+                                                  DefaultChecksumAlgorithm.XXHASH64, DefaultChecksumAlgorithm.SHA512,
+                                                  DefaultChecksumAlgorithm.SHA256, DefaultChecksumAlgorithm.SHA1,
+                                                  DefaultChecksumAlgorithm.MD5).build())
                     .withAsyncResponseTransformer(asyncResponseTransformer).withAsyncRequestBody(requestBody)
                     .withInput(putOperationWithChecksumRequest), asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
