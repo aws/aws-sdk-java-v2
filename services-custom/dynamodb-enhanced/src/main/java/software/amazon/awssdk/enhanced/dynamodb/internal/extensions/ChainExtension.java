@@ -166,13 +166,8 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
         Iterator<DynamoDbEnhancedClientExtension> iterator = extensionChain.descendingIterator();
 
         while (iterator.hasNext()) {
-            DynamoDbEnhancedClientExtension extension = iterator.next();
-            if (!extension.shouldProcess(context.tableMetadata())) {
-                continue;
-            }
             Map<String, AttributeValue> itemToTransform =
                 transformedItem == null ? context.items() : transformedItem;
-
 
             DynamoDbExtensionContext.AfterRead afterRead =
                 DefaultDynamoDbExtensionContext.builder().items(itemToTransform)
@@ -181,7 +176,7 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
                                                .tableSchema(context.tableSchema())
                                                .build();
 
-            ReadModification readModification = extension.afterRead(afterRead);
+            ReadModification readModification = iterator.next().afterRead(afterRead);
 
             if (readModification.transformedItem() != null) {
                 transformedItem = readModification.transformedItem();
