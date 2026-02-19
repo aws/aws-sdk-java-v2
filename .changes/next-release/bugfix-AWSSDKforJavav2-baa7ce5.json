@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Correctly handle unions with members named \"type\" by renaming the member variable to avoid conflicts with the existing SDK added \"type\" field."
-}
