@@ -300,6 +300,16 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getVariableName(String name, Shape parentShape) {
+        if (isJavaKeyword(name) ||
+            isDisallowedNameForShape(unCapitalize(name), parentShape)) {
+            return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
+        }
+
+        return unCapitalize(name);
+    }
+
+    @Override
     public String getEnumValueName(String enumValue) {
         String result = enumValue;
 
