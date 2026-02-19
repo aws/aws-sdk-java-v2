@@ -1,4 +1,108 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.32__ __2026-02-18__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for federated catalogs in Athena-sourced configured tables.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.3
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Correcting in-app notifications API documentation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
+# __2.41.31__ __2026-02-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Operator field to CreatePlacementGroup and DescribePlacementGroup APIs.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release updates Amazon Managed Grafana's APIs to support customer managed KMS keys.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for the StorageEncryptionType field to specify encryption type for DB clusters, DB instances, snapshots, automated backups, and global clusters.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Adds support for branding customization without requiring a custom wallpaper.
+
+# __2.41.30__ __2026-02-16__
+## __ARC - Region switch__
+  - ### Features
+    - Clarify documentation on ARC Region Switch start-plan-execution operation
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for Decrypt and ReEncrypt API's to use dry run feature without ciphertext for authorization validation
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Migrate PartitionMetadata code generation from endpoints.json to partitions.json
+    - Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2 Secondary Networks
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for enabling blob mounting, and removes support for Clair based image scanning
+
+## __Amazon Q Connect__
+  - ### Features
+    - Update MessageType enum to include missing types.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports dual-stack connectivity (IPv4 and IPv6) for existing MSK clusters. You can enable dual-stack on existing clusters by specifying the NetworkType parameter in updateConnectivity API.
+
+# __2.41.29__ __2026-02-13__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve support for operationContextParams with chained index and multi-select expressions and improve support for StringArray endpoint parametes.
+    - Updating S3 AccessGrants plugin version to 2.4.1
+        - Contributed by: [@prime025](https://github.com/prime025)
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adding new evaluation states that provides information about the alarm evaluation process. Evaluation error Indicates configuration errors in alarm setup that require review and correction. Evaluation failure Indicates temporary CloudWatch issues.
+
+## __Amazon Connect Service__
+  - ### Features
+    - API release for headerr notifications in the admin website. APIs allow customers to publish brief messages (including URLs) to a specified audience, and a new header icon will indicate when unread messages are available.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds geography information to EC2 region and availability zone APIs. DescribeRegions now includes a Geography field, while DescribeAvailabilityZones includes both Geography and SubGeography fields, enabling better geographic classification for AWS regions and zones.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable g7e instance type support for SageMaker Processing, and enable single file configuration provisioning for HyperPod Slurm, where customers have the option to use HyperPod API to provide the provisioning parameters.
+
+## __Inspector2__
+  - ### Features
+    - Added .Net 10 (dotnet10) and Node 24.x (node24.x) runtime support for lambda package scanning
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prime025](https://github.com/prime025)
 # __2.41.28__ __2026-02-12__
 ## __AWS SDK for Java v2__
   - ### Features
