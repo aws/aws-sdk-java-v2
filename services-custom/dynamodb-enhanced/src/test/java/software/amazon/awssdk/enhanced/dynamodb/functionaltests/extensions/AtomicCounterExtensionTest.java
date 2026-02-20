@@ -263,22 +263,16 @@ public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            StaticCounterRecord that = (StaticCounterRecord) o;
-            return Objects.equals(id, that.id)
-                   && Objects.equals(data, that.data)
-                   && Objects.equals(defaultCounter, that.defaultCounter)
-                   && Objects.equals(customCounter, that.customCounter);
+            BeanCounterRecord that = (BeanCounterRecord) o;
+            return Objects.equals(id, that.id) && Objects.equals(data, that.data) && Objects.equals(defaultCounter, that.defaultCounter) && Objects.equals(customCounter, that.customCounter);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, defaultCounter, customCounter);
+            return Objects.hash(id, data, defaultCounter, customCounter);
         }
     }
 
@@ -322,22 +316,16 @@ public class AtomicCounterExtensionTest extends LocalDynamoDbSyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
             StaticCounterRecord that = (StaticCounterRecord) o;
-            return Objects.equals(id, that.id)
-                   && Objects.equals(data, that.data)
-                   && Objects.equals(defaultCounter, that.defaultCounter)
-                   && Objects.equals(customCounter, that.customCounter);
+            return Objects.equals(id, that.id) && Objects.equals(data, that.data) && Objects.equals(defaultCounter, that.defaultCounter) && Objects.equals(customCounter, that.customCounter);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, defaultCounter, customCounter);
+            return Objects.hash(id, data, defaultCounter, customCounter);
         }
     }
 }

@@ -41,7 +41,7 @@ public class AbstractImmutable {
         return sort;
     }
 
-    public String stringAttribute() {
+    public String getStringAttribute() {
         return stringAttribute;
     }
 
