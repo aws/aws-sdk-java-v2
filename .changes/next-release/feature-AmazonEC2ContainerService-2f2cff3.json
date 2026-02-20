@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Migrated to Smithy. No functional changes"
+}
