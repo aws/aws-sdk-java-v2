@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "Add support for AssociationDispatchAssumeRole in AWS SSM State Manager."
+}
