@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.33__ __2026-02-19__
+## __AWS Billing and Cost Management Dashboards__
+  - ### Features
+    - The Billing and Cost Management GetDashboard API now returns identifier for each widget, enabling users to uniquely identify widgets within their dashboards.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Correctly handle unions with members named "type" by renaming the member variable to avoid conflicts with the existing SDK added "type" field.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds multiple artifact types filter support in ListImageReferrers API.
+
+## __Private CA Connector for SCEP__
+  - ### Features
+    - AWS Private CA Connector for SCEP now supports AWS PrivateLink, allowing your clients to request certificates from within your Amazon Virtual Private Cloud (VPC) without traversing the public internet. With this launch, you can create VPC endpoints to connect to your SCEP connector privately.
+
+# __2.41.32__ __2026-02-18__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for federated catalogs in Athena-sourced configured tables.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.3
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Correcting in-app notifications API documentation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
 # __2.41.31__ __2026-02-17__
 ## __AWS SDK for Java v2__
   - ### Features
