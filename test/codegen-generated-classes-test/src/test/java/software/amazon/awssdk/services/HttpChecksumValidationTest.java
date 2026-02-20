@@ -130,7 +130,7 @@ public class HttpChecksumValidationTest {
             client.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), ResponseTransformer.toBytes());
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.XXHASH3);
     }
 
     @Test
@@ -286,7 +286,7 @@ public class HttpChecksumValidationTest {
             asyncClient.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), AsyncResponseTransformer.toBytes()).join();
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.XXHASH3);
     }
 
     @Test
