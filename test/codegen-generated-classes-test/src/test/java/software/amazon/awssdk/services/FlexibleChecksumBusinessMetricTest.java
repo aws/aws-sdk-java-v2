@@ -17,6 +17,19 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32C;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC64;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA1;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA256;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA512;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH128;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH3;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH64;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED;
+import static software.amazon.awssdk.core.useragent.BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -69,10 +82,10 @@ class FlexibleChecksumBusinessMetricTest {
         String userAgent = getUserAgentFromLastRequest();
 
         assertThat(userAgent)
-            .matches(METRIC_SEARCH_PATTERN.apply("Z"))
-            .matches(METRIC_SEARCH_PATTERN.apply("b"))
-            .doesNotMatch(METRIC_SEARCH_PATTERN.apply("a"))
-            .doesNotMatch(METRIC_SEARCH_PATTERN.apply("c"));
+            .matches(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value()))
+            .matches(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value()))
+            .doesNotMatch(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value()))
+            .doesNotMatch(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value()));
     }
 
     @ParameterizedTest
@@ -93,11 +106,15 @@ class FlexibleChecksumBusinessMetricTest {
 
     static Stream<Arguments> checksumAlgorithmTestCases() {
         return Stream.of(
-            Arguments.of(ChecksumAlgorithm.CRC32, "U"),
-            Arguments.of(ChecksumAlgorithm.CRC32_C, "V"),
-            Arguments.of(ChecksumAlgorithm.CRC64_NVME, "W"),
-            Arguments.of(ChecksumAlgorithm.SHA1, "X"),
-            Arguments.of(ChecksumAlgorithm.SHA256, "Y")
+            Arguments.of(ChecksumAlgorithm.CRC32, FLEXIBLE_CHECKSUMS_REQ_CRC32.value()),
+            Arguments.of(ChecksumAlgorithm.CRC32_C, FLEXIBLE_CHECKSUMS_REQ_CRC32C.value()),
+            Arguments.of(ChecksumAlgorithm.CRC64_NVME, FLEXIBLE_CHECKSUMS_REQ_CRC64.value()),
+            Arguments.of(ChecksumAlgorithm.SHA1, FLEXIBLE_CHECKSUMS_REQ_SHA1.value()),
+            Arguments.of(ChecksumAlgorithm.SHA256, FLEXIBLE_CHECKSUMS_REQ_SHA256.value()),
+            Arguments.of(ChecksumAlgorithm.SHA512, FLEXIBLE_CHECKSUMS_REQ_SHA512.value()),
+            Arguments.of(ChecksumAlgorithm.XXHASH64, FLEXIBLE_CHECKSUMS_REQ_XXHASH64.value()),
+            Arguments.of(ChecksumAlgorithm.XXHASH3, FLEXIBLE_CHECKSUMS_REQ_XXHASH3.value()),
+            Arguments.of(ChecksumAlgorithm.XXHASH128, FLEXIBLE_CHECKSUMS_REQ_XXHASH128.value())
         );
     }
 
@@ -126,13 +143,21 @@ class FlexibleChecksumBusinessMetricTest {
     static Stream<Arguments> checksumConfigurationTestCases() {
         return Stream.of(
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED,
-                         ResponseChecksumValidation.WHEN_SUPPORTED, "Z", "b"),
+                         ResponseChecksumValidation.WHEN_SUPPORTED,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED,
-                         ResponseChecksumValidation.WHEN_REQUIRED, "a", "c"),
+                         ResponseChecksumValidation.WHEN_REQUIRED,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED,
-                         ResponseChecksumValidation.WHEN_SUPPORTED, "a", "b"),
+                         ResponseChecksumValidation.WHEN_SUPPORTED,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED,
-                         ResponseChecksumValidation.WHEN_REQUIRED, "Z", "c")
+                         ResponseChecksumValidation.WHEN_REQUIRED,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value())
         );
     }
 
@@ -169,37 +194,91 @@ class FlexibleChecksumBusinessMetricTest {
         return Stream.of(
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED, 
                          ResponseChecksumValidation.WHEN_SUPPORTED, 
-                         ChecksumAlgorithm.CRC32, "Z", "b", "U"),
+                         ChecksumAlgorithm.CRC32,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC32.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED, 
                          ResponseChecksumValidation.WHEN_SUPPORTED, 
-                         ChecksumAlgorithm.CRC32_C, "Z", "b", "V"),
+                         ChecksumAlgorithm.CRC32_C,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC32C.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED, 
                          ResponseChecksumValidation.WHEN_SUPPORTED, 
-                         ChecksumAlgorithm.SHA256, "Z", "b", "Y"),
+                         ChecksumAlgorithm.SHA256,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_SHA256.value()),
 
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
                          ResponseChecksumValidation.WHEN_REQUIRED, 
-                         ChecksumAlgorithm.CRC32, "a", "c", "U"),
+                         ChecksumAlgorithm.CRC32,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC32.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
                          ResponseChecksumValidation.WHEN_REQUIRED, 
-                         ChecksumAlgorithm.CRC64_NVME, "a", "c", "W"),
+                         ChecksumAlgorithm.CRC64_NVME,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC64.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
                          ResponseChecksumValidation.WHEN_REQUIRED, 
-                         ChecksumAlgorithm.SHA1, "a", "c", "X"),
+                         ChecksumAlgorithm.SHA1,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_SHA1.value()),
+            Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
+                         ResponseChecksumValidation.WHEN_REQUIRED, 
+                         ChecksumAlgorithm.SHA512,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_SHA512.value()),
+            Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
+                         ResponseChecksumValidation.WHEN_REQUIRED, 
+                         ChecksumAlgorithm.XXHASH64,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_XXHASH64.value()),
+            Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
+                         ResponseChecksumValidation.WHEN_REQUIRED, 
+                         ChecksumAlgorithm.XXHASH3,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_XXHASH3.value()),
+            Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
+                         ResponseChecksumValidation.WHEN_REQUIRED, 
+                         ChecksumAlgorithm.XXHASH128,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_XXHASH128.value()),
 
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
                          ResponseChecksumValidation.WHEN_SUPPORTED, 
-                         ChecksumAlgorithm.CRC32_C, "a", "b", "V"),
+                         ChecksumAlgorithm.CRC32_C,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC32C.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_REQUIRED, 
                          ResponseChecksumValidation.WHEN_SUPPORTED, 
-                         ChecksumAlgorithm.SHA256, "a", "b", "Y"),
+                         ChecksumAlgorithm.SHA256,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_SHA256.value()),
 
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED, 
                          ResponseChecksumValidation.WHEN_REQUIRED, 
-                         ChecksumAlgorithm.CRC64_NVME, "Z", "c", "W"),
+                         ChecksumAlgorithm.CRC64_NVME,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_CRC64.value()),
             Arguments.of(RequestChecksumCalculation.WHEN_SUPPORTED, 
                          ResponseChecksumValidation.WHEN_REQUIRED, 
-                         ChecksumAlgorithm.SHA1, "Z", "c", "X")
+                         ChecksumAlgorithm.SHA1,
+                         FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value(),
+                         FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value(),
+                         FLEXIBLE_CHECKSUMS_REQ_SHA1.value())
         );
     }
 
