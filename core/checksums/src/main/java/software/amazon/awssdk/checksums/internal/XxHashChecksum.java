@@ -45,9 +45,12 @@ public final class XxHashChecksum implements SdkChecksum {
 
     @Override
     public byte[] getChecksumBytes() {
-        return xxHash.digest();
+        try {
+            return xxHash.digest();
+        } finally {
+            xxHash.close();
+        }
     }
-
 
     @Override
     public void update(int b) {

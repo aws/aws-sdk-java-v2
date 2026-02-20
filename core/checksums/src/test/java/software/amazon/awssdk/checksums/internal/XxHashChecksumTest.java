@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.checksums.internal;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -78,5 +80,15 @@ class XxHashChecksumTest {
         byte[] bytes = "Hello world".getBytes(StandardCharsets.UTF_8);
         checksum.update(bytes, 0, bytes.length);
         assertEquals(expectedBase64, BinaryUtils.toBase64(checksum.getChecksumBytes()));
+    }
+
+    @Test
+    void getChecksumBytes_closesResource_subsequentGetChecksumBytesThrows() {
+        SdkChecksum checksum = ChecksumProvider.crtXxHash(DefaultChecksumAlgorithm.XXHASH64);
+        checksum.update("Hello".getBytes(StandardCharsets.UTF_8));
+        checksum.getChecksumBytes();
+
+        // Second call should fail since resource is closed
+        assertThatThrownBy(() -> checksum.getChecksumBytes()).hasMessageContaining("failed to finalize hash");
     }
 }
