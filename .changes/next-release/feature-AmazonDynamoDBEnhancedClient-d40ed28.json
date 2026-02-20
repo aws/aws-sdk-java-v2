@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "DynamoDb enhanced client: support UpdateExpressions in single-request update"
+}
