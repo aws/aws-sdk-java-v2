@@ -13,14 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.checksums.internal;
+package software.amazon.awssdk.benchmark.checksum;
 
-import org.junit.jupiter.api.BeforeEach;
+public final class BenchmarkConstant {
+    public static final int KB = 1024;
+    public static final int MB = 1024 * KB;
 
-public class SdkImplmenetedCRC32CChecksumTest extends Crc32CChecksumTest {
-
-    @BeforeEach
-    public void setUp() {
-        sdkChecksum = ChecksumProvider.createSdkBasedCrc32C();
+    private BenchmarkConstant() {
     }
 }

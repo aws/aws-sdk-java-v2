@@ -29,7 +29,7 @@ public final class Crc64NvmeChecksum implements SdkChecksum {
     private final SdkChecksum sdkChecksum;
 
     public Crc64NvmeChecksum() {
-        this.sdkChecksum = CrcChecksumProvider.crc64NvmeCrtImplementation();
+        this.sdkChecksum = ChecksumProvider.crc64NvmeCrtImplementation();
     }
 
     @Override
