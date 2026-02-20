@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -27,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
@@ -268,5 +270,20 @@ public class DeleteItemEnhancedRequestTest {
                                                                          .build();
 
         assertThat(containsKey.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void withOptimisticLockingBuilder_addsVersinConditionExpression() {
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+
+        DeleteItemEnhancedRequest request =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(Key.builder().partitionValue("id").build())
+                                     .withOptimisticLocking(versionValue, "version")
+                                     .build();
+
+        assertThat(request.conditionExpression(), notNullValue());
+        assertThat(request.conditionExpression().expression(), is("version = :version_value"));
+        assertThat(request.conditionExpression().expressionValues().get(":version_value"), equalTo(versionValue));
     }
 }

@@ -245,6 +245,10 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
+    default T deleteItem(T keyItem, boolean useOptimisticLocking) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Deletes a single item from the mapped table using a supplied primary {@link Key}.
      * <p>

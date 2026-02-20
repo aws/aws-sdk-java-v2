@@ -247,6 +247,10 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
+    default CompletableFuture<T> deleteItem(T keyItem, boolean useOptimisticLocking) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Deletes a single item from the mapped table using a supplied primary {@link Key}.
      * <p>
