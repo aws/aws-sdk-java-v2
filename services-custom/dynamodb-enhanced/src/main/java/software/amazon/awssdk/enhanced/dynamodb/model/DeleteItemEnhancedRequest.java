@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.createVersionCondition;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -24,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -287,6 +290,22 @@ public final class DeleteItemEnhancedRequest {
         public Builder returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
+        }
+
+        /**
+         * Adds optimistic locking to this delete request.
+         * <p>
+         * This method applies a condition expression that ensures the delete operation only succeeds
+         * if the version attribute of the item matches the provided expected value.
+         *
+         * @param versionValue the expected version value that must match for the deletion to succeed
+         * @param versionAttributeName the name of the version attribute in the DynamoDB table
+         * @return a builder of this type with optimistic locking condition applied
+         * @throws IllegalArgumentException if any parameter is null
+         */
+        public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
+            Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
+            return conditionExpression(optimisticLockingCondition);
         }
 
         public DeleteItemEnhancedRequest build() {

@@ -246,6 +246,11 @@ public final class TransactWriteItemsEnhancedRequest {
          * the delete action, see the low-level operation description in for instance
          * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)} and how to construct the low-level request in
          * {@link TransactDeleteItemEnhancedRequest}.
+         * <p>
+         * For optimistic locking support, use
+         * {@link TransactDeleteItemEnhancedRequest.Builder#withOptimisticLocking(
+         * software.amazon.awssdk.services.dynamodb.model.AttributeValue, String)}
+         * to create a request with version checking conditions before adding it to the transaction.
          *
          * @param mappedTableResource the table where the key is located
          * @param request             A {@link TransactDeleteItemEnhancedRequest}
@@ -272,13 +277,19 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
-         * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
-         * on the delete action, see the low-level operation description in for instance
+         * Adds the supplied item and its associated table to the transaction for deletion.
+         * <p>
+         * Unlike {@link #addDeleteItem(MappedTableResource, Key)}, this variant allows you to provide the full modeled item
+         * instead of only its primary key.
+         *
+         * <strong>Does not support Optimistic Locking.</strong>
+         * <p>
+         * For more information on the delete action, see the low-level operation description in for instance
          * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
          *
-         * @param mappedTableResource the table where the key is located
-         * @param keyItem             an item that will have its key fields used to match a record to retrieve from the database
-         * @param <T>                 the type of modelled objects in the table
+         * @param mappedTableResource the table where the item is located
+         * @param keyItem             the modeled item to be deleted as part of the transaction
+         * @param <T>                 the type of modeled objects in the table
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {

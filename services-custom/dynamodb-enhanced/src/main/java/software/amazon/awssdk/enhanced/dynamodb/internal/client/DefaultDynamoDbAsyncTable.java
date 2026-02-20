@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -124,6 +125,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
                                                      .build());
     }
 
+    /**
+     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     */
     @Override
     public CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
         TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
@@ -131,6 +135,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
                         .thenApply(DeleteItemEnhancedResponse::attributes);
     }
 
+    /**
+     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     */
     @Override
     public CompletableFuture<T> deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
@@ -138,14 +145,35 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         return deleteItem(builder.build());
     }
 
+    /**
+     * Does not support optimistic locking. Use {@link #deleteItem(Object, boolean)} for optimistic locking support.
+     */
     @Override
     public CompletableFuture<T> deleteItem(Key key) {
         return deleteItem(r -> r.key(key));
     }
 
+    /**
+     * @deprecated Use {@link #deleteItem(Object, boolean)} instead to explicitly control optimistic locking behavior.
+     */
     @Override
+    @Deprecated
     public CompletableFuture<T> deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return deleteItem(keyItem, false);
+    }
+
+    /**
+     * Deletes an item from the table with optional optimistic locking.
+     *
+     * @param keyItem the item containing the key to delete
+     * @param useOptimisticLocking if true, applies optimistic locking if the item has version information
+     * @return a CompletableFuture containing the deleted item, or null if the item was not found
+     */
+    @Override
+    public CompletableFuture<T> deleteItem(T keyItem, boolean useOptimisticLocking) {
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
+        request = conditionallyApplyOptimisticLocking(request, keyItem, tableSchema, useOptimisticLocking);
+        return deleteItem(request);
     }
 
     @Override
@@ -311,7 +339,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     public Key keyFrom(T item) {
         return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
     }
-
+    
 
     @Override
     public CompletableFuture<Void> deleteTable() {
