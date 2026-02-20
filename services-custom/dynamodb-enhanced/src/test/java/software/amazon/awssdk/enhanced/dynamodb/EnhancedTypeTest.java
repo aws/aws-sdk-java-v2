@@ -239,6 +239,31 @@ public class EnhancedTypeTest {
         assertThat(type.documentConfiguration().get().preserveEmptyObject()).isTrue();
     }
 
+    @Test
+    public void wildcardType_hashCode_doesNotRaiseNPE() {
+        // When using a wildcard type like List<?>, the type parameter is a wildcard
+        // with rawClass = null. hashCode() should handle this without NPE.
+        EnhancedType<List<?>> listWithWildcard = new EnhancedType<List<?>>(){};
+        EnhancedType<?> wildcardParam = listWithWildcard.rawClassParameters().get(0);
+
+        // This should not throw NPE
+        assertThatCode(() -> wildcardParam.hashCode()).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void wildcardType_equals_handlesNullRawClass() {
+        // Wildcard types should be comparable via equals without NPE
+        EnhancedType<List<?>> listWithWildcard1 = new EnhancedType<List<?>>(){};
+        EnhancedType<List<?>> listWithWildcard2 = new EnhancedType<List<?>>(){};
+
+        EnhancedType<?> wildcard1 = listWithWildcard1.rawClassParameters().get(0);
+        EnhancedType<?> wildcard2 = listWithWildcard2.rawClassParameters().get(0);
+
+        // Wildcards should be equal to each other
+        assertThat(wildcard1).isEqualTo(wildcard2);
+        assertThat(wildcard1.hashCode()).isEqualTo(wildcard2.hashCode());
+    }
+
     public class InnerType {
     }
 
