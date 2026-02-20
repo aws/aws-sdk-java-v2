@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.41.34__ __2026-02-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Signer Data Plane__
+  - ### Features
+    - This release introduces AWS Signer Data Plane SDK client supporting GetRevocationStatus API. The new client enables AWS PrivateLink connectivity with both private DNS and VPC endpoint URLs.
+
+## __Amazon AppStream__
+  - ### Features
+    - Adding new attribute to disable IMDS v1 APIs for fleet, Image Builder and AppBlockBuilder instances.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Migrated to Smithy. No functional changes
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Added support for S3OutputPathExtension and Filename parameters to the InvokeEndpointAsync API to allow users to customize the S3 output path and file name for async inference response payloads.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add support for AssociationDispatchAssumeRole in AWS SSM State Manager.
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - Adding a new enum attribute(statusReason) to TrustedAdvisorAPI response. This attribute explains reasoning behind check status for certain specific scenarios.
+
 # __2.41.33__ __2026-02-19__
 ## __AWS Billing and Cost Management Dashboards__
   - ### Features
