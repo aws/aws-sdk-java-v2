@@ -20,6 +20,7 @@ import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.checksums.XXHash;
+import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
 public final class XxHashChecksum implements SdkChecksum {
@@ -48,7 +49,7 @@ public final class XxHashChecksum implements SdkChecksum {
         try {
             return xxHash.digest();
         } finally {
-            xxHash.close();
+            IoUtils.closeQuietlyV2(xxHash, null);
         }
     }
 
