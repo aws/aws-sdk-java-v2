@@ -84,6 +84,17 @@ public class TransactWriteItemsOperationTest {
     }
 
     @Test
+    public void returnsCorrectOperationName() {
+        TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .addPutItem(fakeItemMappedTable, fakeItem1)
+                                             .build();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
+
+        assertThat(operation.operationName().label(), is("TransactWriteItems"));
+    }
+
+    @Test
     public void generateRequest_singleTransaction() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()

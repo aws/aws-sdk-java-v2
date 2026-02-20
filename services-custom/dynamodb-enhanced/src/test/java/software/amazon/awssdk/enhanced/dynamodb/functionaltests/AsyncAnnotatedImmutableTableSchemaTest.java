@@ -20,13 +20,15 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
+import java.util.concurrent.CompletionException;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -46,30 +48,34 @@ import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 
-public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase {
+public class AsyncAnnotatedImmutableTableSchemaTest extends LocalDynamoDbAsyncTestBase {
 
     private static final String TABLE_NAME = "table-name";
 
     private static final TableSchema<SimpleImmutable> TABLE_SCHEMA = TableSchema.fromClass(SimpleImmutable.class);
 
-    private final DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-                                                                                .dynamoDbClient(getDynamoDbClient())
-                                                                                .build();
+    private final DynamoDbEnhancedAsyncClient enhancedClient = DynamoDbEnhancedAsyncClient.builder()
+                                                                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                                                                          .build();
 
-    private final DynamoDbTable<SimpleImmutable> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME),
-                                                                                    TABLE_SCHEMA);
+    private final DynamoDbAsyncTable<SimpleImmutable> asyncMappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME),
+                                                                                              TABLE_SCHEMA);
 
     @Before
     public void createTable() {
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        asyncMappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
+
+        getDynamoDbAsyncClient().waiter().waitUntilTableExists(b -> b.tableName(getConcreteTableName(TABLE_NAME))).join();
     }
 
     @After
     public void deleteTable() {
         try {
-            getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
-                                                              .tableName(getConcreteTableName(TABLE_NAME))
-                                                              .build());
+            getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                                   .tableName(getConcreteTableName(TABLE_NAME))
+                                                                   .build()).join();
+
+            getDynamoDbAsyncClient().waiter().waitUntilTableNotExists(b -> b.tableName(getConcreteTableName(TABLE_NAME))).join();
         } catch (ResourceNotFoundException ignored) {
             // Table doesn't exist, nothing to delete
         }
@@ -77,7 +83,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
 
     @Test
     public void describeTable_succeeds() {
-        DescribeTableEnhancedResponse describeTableEnhancedResponse = mappedTable.describeTable();
+        DescribeTableEnhancedResponse describeTableEnhancedResponse = asyncMappedTable.describeTable().join();
         Assertions.assertThat(describeTableEnhancedResponse.table()).isNotNull();
         Assertions.assertThat(describeTableEnhancedResponse.table().tableName()).isEqualTo(getConcreteTableName(TABLE_NAME));
     }
@@ -86,10 +92,12 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
     public void createTableWithDefaults_thenDeleteTable_succeeds() {
         String tableName = TABLE_NAME + "-1";
 
-        DynamoDbTable<SimpleImmutable> mappedTable = enhancedClient.table(getConcreteTableName(tableName), TABLE_SCHEMA);
-        mappedTable.createTable();
+        DynamoDbAsyncTable<SimpleImmutable> asyncMappedTable = enhancedClient.table(getConcreteTableName(tableName),
+                                                                                    TABLE_SCHEMA);
+        asyncMappedTable.createTable().join();
 
-        TableDescription tableDescription = mappedTable.describeTable().table();
+        DescribeTableEnhancedResponse describeTableEnhancedResponse = asyncMappedTable.describeTable().join();
+        TableDescription tableDescription = describeTableEnhancedResponse.table();
 
         String actualTableName = tableDescription.tableName();
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
@@ -99,12 +107,15 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
         MatcherAssert.assertThat(actualReadCapacityUnits, is(0L));
         MatcherAssert.assertThat(actualWriteCapacityUnits, is(0L));
 
-        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName(tableName))
-                                                          .build());
+        getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(getConcreteTableName(tableName))
+                                                               .build()).join();
 
-        assertThatThrownBy(mappedTable::describeTable)
-            .isInstanceOf(ResourceNotFoundException.class)
+        getDynamoDbAsyncClient().waiter().waitUntilTableNotExists(b -> b.tableName(getConcreteTableName(tableName))).join();
+
+        assertThatThrownBy(() -> asyncMappedTable.describeTable().join())
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("Cannot do operations on a non-existent table");
     }
 
@@ -112,10 +123,12 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
     public void createTableWithProvisionedThroughput_succeeds() {
         String tableName = TABLE_NAME + "-1";
 
-        DynamoDbTable<SimpleImmutable> mappedTable = enhancedClient.table(getConcreteTableName(tableName), TABLE_SCHEMA);
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        DynamoDbAsyncTable<SimpleImmutable> asyncMappedTable = enhancedClient.table(getConcreteTableName(tableName),
+                                                                                    TABLE_SCHEMA);
+        asyncMappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
 
-        TableDescription tableDescription = mappedTable.describeTable().table();
+        DescribeTableEnhancedResponse describeTableEnhancedResponse = asyncMappedTable.describeTable().join();
+        TableDescription tableDescription = describeTableEnhancedResponse.table();
 
         String actualTableName = tableDescription.tableName();
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
@@ -125,21 +138,25 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
         MatcherAssert.assertThat(actualReadCapacityUnits, is(getDefaultProvisionedThroughput().readCapacityUnits()));
         MatcherAssert.assertThat(actualWriteCapacityUnits, is(getDefaultProvisionedThroughput().writeCapacityUnits()));
 
-        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName(tableName))
-                                                          .build());
+        getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(getConcreteTableName(tableName))
+                                                               .build()).join();
 
-        assertThatThrownBy(mappedTable::describeTable)
-            .isInstanceOf(ResourceNotFoundException.class)
+        getDynamoDbAsyncClient().waiter().waitUntilTableNotExists(b -> b.tableName(getConcreteTableName(tableName))).join();
+
+        assertThatThrownBy(() -> asyncMappedTable.describeTable().join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("Cannot do operations on a non-existent table");
     }
 
     @Test
     public void createTableWithDefaults_throwsIllegalArgumentException() {
         TableSchema<AbstractImmutable> tableSchema = TableSchema.fromClass(AbstractImmutable.class);
-        DynamoDbTable<AbstractImmutable> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
+        DynamoDbAsyncTable<AbstractImmutable> asyncMappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME),
+                                                                                      tableSchema);
 
-        assertThatThrownBy(mappedTable::createTable)
+        assertThatThrownBy(() -> asyncMappedTable.createTable().join())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Attempt to execute an operation that requires a primary index without defining any primary"
                         + " key attributes in the table metadata.");
@@ -148,9 +165,10 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
     @Test
     public void createTableWithProvisionedThroughput_throwsIllegalArgumentException() {
         TableSchema<AbstractImmutable> tableSchema = TableSchema.fromClass(AbstractImmutable.class);
-        DynamoDbTable<AbstractImmutable> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
+        DynamoDbAsyncTable<AbstractImmutable> asyncMappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME),
+                                                                                      tableSchema);
 
-        assertThatThrownBy(() -> mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())))
+        assertThatThrownBy(() -> asyncMappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Attempt to execute an operation that requires a primary index without defining any primary"
                         + " key attributes in the table metadata.");
@@ -164,14 +182,14 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(nullValue()));
     }
 
     @Test
     public void getItemWithResponse_itemNotFound_returnsNullValue() {
         GetItemEnhancedResponse<SimpleImmutable> getItemEnhancedResponse =
-            mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            asyncMappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         MatcherAssert.assertThat(getItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(getItemEnhancedResponse.consumedCapacity(), is(nullValue()));
@@ -184,9 +202,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -196,9 +214,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .id("id-value")
                                               .sort("sort-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -209,19 +227,19 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value-item1")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
                               .sort("sort-value")
                               .stringAttribute("stringAttribute-value-item2")
                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        long itemCount = mappedTable.scan().items().stream().count();
-        MatcherAssert.assertThat(itemCount, is(1L));
+        SdkPublisher<SimpleImmutable> publisher = asyncMappedTable.scan().items();
+        drainPublisher(publisher, 1);
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -234,9 +252,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .build();
 
         PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse =
-            mappedTable.putItemWithResponse(r -> r.item(item));
+            asyncMappedTable.putItemWithResponse(r -> r.item(item)).join();
         GetItemEnhancedResponse<SimpleImmutable> getItemEnhancedResponse =
-            mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
+            asyncMappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         MatcherAssert.assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(getItemEnhancedResponse.attributes(), is(item));
@@ -249,7 +267,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -265,12 +283,12 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                    .putExpressionValue(":value1", stringValue("stringAttribute-value"))
                                                    .build();
 
-        mappedTable.putItem(PutItemEnhancedRequest.builder(SimpleImmutable.class)
-                                                  .item(item)
-                                                  .conditionExpression(conditionExpression)
-                                                  .build());
+        asyncMappedTable.putItem(PutItemEnhancedRequest.builder(SimpleImmutable.class)
+                                                       .item(item)
+                                                       .conditionExpression(conditionExpression)
+                                                       .build()).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -281,7 +299,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -302,8 +320,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                                                                .conditionExpression(conditionExpression)
                                                                                                .build();
 
-        assertThatThrownBy(() -> mappedTable.putItem(putItemEnhancedRequest))
-            .isInstanceOf(ConditionalCheckFailedException.class)
+        assertThatThrownBy(() -> asyncMappedTable.putItem(putItemEnhancedRequest).join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(ConditionalCheckFailedException.class)
             .hasMessageContaining("The conditional request failed");
     }
 
@@ -314,7 +333,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -322,11 +341,11 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                               .stringAttribute("stringAttribute-value-updated")
                               .build();
 
-        SimpleImmutable result = mappedTable.updateItem(item);
+        SimpleImmutable result = asyncMappedTable.updateItem(item).join();
         MatcherAssert.assertThat(result, is(item));
 
-        long itemCount = mappedTable.scan().stream().count();
-        MatcherAssert.assertThat(itemCount, is(1L));
+        SdkPublisher<SimpleImmutable> publisher = asyncMappedTable.scan().items();
+        drainPublisher(publisher, 1);
     }
 
     @Test
@@ -337,7 +356,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        SimpleImmutable result = mappedTable.updateItem(item);
+        SimpleImmutable result = asyncMappedTable.updateItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -348,7 +367,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .build();
 
-        SimpleImmutable result = mappedTable.updateItem(item);
+        SimpleImmutable result = asyncMappedTable.updateItem(item).join();
         MatcherAssert.assertThat(result, is(item));
 
         item = SimpleImmutable.builder()
@@ -357,7 +376,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                               .stringAttribute("stringAttribute-value")
                               .build();
 
-        result = mappedTable.updateItem(item);
+        result = asyncMappedTable.updateItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -368,7 +387,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.updateItem(item);
+        asyncMappedTable.updateItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -376,7 +395,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                               .stringAttribute(null)
                               .build();
 
-        SimpleImmutable result = mappedTable.updateItem(item);
+        SimpleImmutable result = asyncMappedTable.updateItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -388,7 +407,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                .stringAttribute("stringAttribute-value")
                                                .build();
 
-        mappedTable.putItem(item1);
+        asyncMappedTable.putItem(item1).join();
 
         SimpleImmutable item2 = SimpleImmutable.builder()
                                                .id("id-value")
@@ -401,7 +420,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                      .ignoreNulls(true)
                                      .build();
 
-        SimpleImmutable result = mappedTable.updateItem(updateItemEnhancedRequest);
+        SimpleImmutable result = asyncMappedTable.updateItem(updateItemEnhancedRequest).join();
         MatcherAssert.assertThat(result, is(item1));
     }
 
@@ -413,7 +432,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -435,9 +454,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                      .conditionExpression(conditionExpression)
                                      .build();
 
-        mappedTable.updateItem(updateItemEnhancedRequest);
+        asyncMappedTable.updateItem(updateItemEnhancedRequest).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
     }
 
@@ -449,7 +468,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
         item = SimpleImmutable.builder()
                               .id("id-value")
@@ -471,8 +490,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                      .conditionExpression(conditionExpression)
                                      .build();
 
-        assertThatThrownBy(() -> mappedTable.updateItem(updateItemEnhancedRequest))
-            .isInstanceOf(ConditionalCheckFailedException.class)
+        assertThatThrownBy(() -> asyncMappedTable.updateItem(updateItemEnhancedRequest).join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(ConditionalCheckFailedException.class)
             .hasMessageContaining("The conditional request failed");
     }
 
@@ -484,7 +504,8 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse = mappedTable.putItemWithResponse(r -> r.item(item));
+        PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse =
+            asyncMappedTable.putItemWithResponse(r -> r.item(item)).join();
 
         SimpleImmutable item2 = SimpleImmutable.builder()
                                                .id("id-value")
@@ -493,7 +514,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                .build();
 
         UpdateItemEnhancedResponse<SimpleImmutable> updateItemEnhancedResponse =
-            mappedTable.updateItemWithResponse(r -> r.item(item2));
+            asyncMappedTable.updateItemWithResponse(r -> r.item(item2)).join();
 
         MatcherAssert.assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(updateItemEnhancedResponse.attributes(), is(item2));
@@ -508,7 +529,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .build();
 
         PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse =
-            mappedTable.putItemWithResponse(r -> r.item(item));
+            asyncMappedTable.putItemWithResponse(r -> r.item(item)).join();
 
 
         SimpleImmutable item2 = SimpleImmutable.builder()
@@ -518,7 +539,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                .build();
 
         UpdateItemEnhancedResponse<SimpleImmutable> updateItemEnhancedResponse =
-            mappedTable.updateItemWithResponse(r -> r.item(item).returnValues(ReturnValue.ALL_OLD));
+            asyncMappedTable.updateItemWithResponse(r -> r.item(item2).returnValues(ReturnValue.ALL_OLD)).join();
 
         MatcherAssert.assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(updateItemEnhancedResponse.attributes(), is(item));
@@ -533,7 +554,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .build();
 
         PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse =
-            mappedTable.putItemWithResponse(r -> r.item(item));
+            asyncMappedTable.putItemWithResponse(r -> r.item(item)).join();
 
         SimpleImmutable item2 = SimpleImmutable.builder()
                                                .id("id-value")
@@ -542,7 +563,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                .build();
 
         UpdateItemEnhancedResponse<SimpleImmutable> updateItemEnhancedResponse =
-            mappedTable.updateItemWithResponse(r -> r.item(item2).returnValues(ReturnValue.NONE));
+            asyncMappedTable.updateItemWithResponse(r -> r.item(item2).returnValues(ReturnValue.NONE)).join();
 
         MatcherAssert.assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(updateItemEnhancedResponse.attributes(), is(nullValue()));
@@ -556,7 +577,7 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .stringAttribute("stringAttribute-value")
                                               .build();
 
-        SimpleImmutable result = mappedTable.deleteItem(item);
+        SimpleImmutable result = asyncMappedTable.deleteItem(item).join();
         MatcherAssert.assertThat(result, is(nullValue()));
     }
 
@@ -567,10 +588,10 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        SimpleImmutable beforeDeleteResult = mappedTable.deleteItem(item);
-        SimpleImmutable afterDeleteResult = mappedTable.getItem(item);
+        SimpleImmutable beforeDeleteResult = asyncMappedTable.deleteItem(item).join();
+        SimpleImmutable afterDeleteResult = asyncMappedTable.getItem(item).join();
 
         MatcherAssert.assertThat(beforeDeleteResult, is(item));
         MatcherAssert.assertThat(afterDeleteResult, is(nullValue()));
@@ -583,9 +604,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
 
         Expression conditionExpression = Expression.builder()
@@ -596,15 +617,15 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                    .putExpressionValue(":value1", stringValue("stringAttribute-value"))
                                                    .build();
 
-        Key key = mappedTable.keyFrom(item);
+        Key key = asyncMappedTable.keyFrom(item);
         DeleteItemEnhancedRequest deleteItemEnhancedRequest = DeleteItemEnhancedRequest.builder()
                                                                                        .key(key)
                                                                                        .conditionExpression(conditionExpression)
                                                                                        .build();
 
-        mappedTable.deleteItem(deleteItemEnhancedRequest);
+        asyncMappedTable.deleteItem(deleteItemEnhancedRequest).join();
 
-        result = mappedTable.getItem(item);
+        result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(nullValue()));
     }
 
@@ -615,9 +636,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        mappedTable.putItem(item);
+        asyncMappedTable.putItem(item).join();
 
-        SimpleImmutable result = mappedTable.getItem(item);
+        SimpleImmutable result = asyncMappedTable.getItem(item).join();
         MatcherAssert.assertThat(result, is(item));
 
         Expression conditionExpression = Expression.builder()
@@ -628,14 +649,15 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
 
-        Key key = mappedTable.keyFrom(item);
+        Key key = asyncMappedTable.keyFrom(item);
         DeleteItemEnhancedRequest deleteItemEnhancedRequest = DeleteItemEnhancedRequest.builder()
                                                                                        .key(key)
                                                                                        .conditionExpression(conditionExpression)
                                                                                        .build();
 
-        assertThatThrownBy(() -> mappedTable.deleteItem(deleteItemEnhancedRequest))
-            .isInstanceOf(ConditionalCheckFailedException.class)
+        assertThatThrownBy(() -> asyncMappedTable.deleteItem(deleteItemEnhancedRequest).join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(ConditionalCheckFailedException.class)
             .hasMessageContaining("The conditional request failed");
     }
 
@@ -648,12 +670,12 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .build();
 
         PutItemEnhancedResponse<SimpleImmutable> putItemEnhancedResponse =
-            mappedTable.putItemWithResponse(r -> r.item(item));
+            asyncMappedTable.putItemWithResponse(r -> r.item(item)).join();
 
 
-        Key key = mappedTable.keyFrom(item);
+        Key key = asyncMappedTable.keyFrom(item);
         DeleteItemEnhancedResponse<SimpleImmutable> deleteItemEnhancedResponse =
-            mappedTable.deleteItemWithResponse(r -> r.key(key));
+            asyncMappedTable.deleteItemWithResponse(r -> r.key(key)).join();
 
         MatcherAssert.assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         MatcherAssert.assertThat(deleteItemEnhancedResponse.attributes(), is(item));
@@ -666,9 +688,9 @@ public class AnnotatedImmutableTableSchemaTest extends LocalDynamoDbSyncTestBase
                                               .sort("sort-value")
                                               .stringAttribute("stringAttribute-value")
                                               .build();
-        Key key = mappedTable.keyFrom(item);
+        Key key = asyncMappedTable.keyFrom(item);
         DeleteItemEnhancedResponse<SimpleImmutable> deleteItemEnhancedResponse =
-            mappedTable.deleteItemWithResponse(r -> r.key(key));
+            asyncMappedTable.deleteItemWithResponse(r -> r.key(key)).join();
 
         MatcherAssert.assertThat(deleteItemEnhancedResponse.attributes(), is(nullValue()));
     }
