@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Fix NullPointerException in `ConverterUtils.validateDouble` and `ConverterUtils.validateFloat` when input is null, and in `EnhancedType.hashCode()` when using wildcard types."
+}
