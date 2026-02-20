@@ -72,8 +72,11 @@ public class EnumAttributeConverterTest {
     public void transformToWithNames_returnsEnum() {
         EnumAttributeConverter<Person> personConverter = EnumAttributeConverter.createWithNameAsKeys(Person.class);
 
-        personConverter.transformTo(AttributeValue.fromS("JOHN"));
-    }
+        Person john = personConverter.transformTo(AttributeValue.fromS("JOHN"));
+
+        assertThat(Person.JOHN.toString()).isEqualTo("I am a cool person");
+        assertThat(john).isEqualTo(Person.JOHN);
+        }
 
     @Test
     public void transformTo_whenInputStringIsNull_throwsIllegalArgumentException() {

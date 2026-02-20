@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
@@ -47,14 +48,15 @@ public class DefaultMethodsUnsupportedOperationTest {
 
     @TestFactory
     Stream<DynamicTest> testDefaultMethodsThrowUnsupportedOperation() {
-        return scanPackageForClasses(BASE_PACKAGE)
+        List<DynamicTest> dynamicTestList = scanPackageForClasses(BASE_PACKAGE)
             .filter(Class::isInterface)
             .filter(this::hasDefaultMethods)
             .collect(toList())
             .stream()
             .flatMap(this::createTestsForInterface)
-            .collect(toList())
-            .stream();
+            .collect(toList());
+        assertEquals(100, dynamicTestList.size());
+        return dynamicTestList.stream();
     }
 
     private Stream<Class<?>> scanPackageForClasses(String packageName) {

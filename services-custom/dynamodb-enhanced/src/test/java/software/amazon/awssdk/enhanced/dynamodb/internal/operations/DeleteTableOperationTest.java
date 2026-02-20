@@ -48,7 +48,7 @@ public class DeleteTableOperationTest {
     @Test
     public void returnsCorrectOperationName() {
         DeleteTableOperation<FakeItemWithIndices> operation = DeleteTableOperation.create();
-        assertThat(operation.operationName().label(), is("DeleteItem"));
+        assertThat(operation.operationName().label(), is(OperationName.DELETE_ITEM.label()));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class DeleteTableOperationTest {
     @Test
     public void generateRequest_from_deleteTableOperation() {
         DeleteTableOperation<FakeItemWithSort> deleteTableOperation = DeleteTableOperation.create();
-        final DeleteTableRequest deleteTableRequest = deleteTableOperation
+        DeleteTableRequest deleteTableRequest = deleteTableOperation
                 .generateRequest(FakeItemWithSort.getTableSchema(),
                         PRIMARY_CONTEXT,
                         null);

@@ -45,7 +45,7 @@ public class SimpleImmutable {
         return sort;
     }
 
-    public String stringAttribute() {
+    public String getStringAttribute() {
         return stringAttribute;
     }
 
