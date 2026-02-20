@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "TrustedAdvisor Public API",
-    "contributor": "",
-    "description": "Adding a new enum attribute(statusReason) to TrustedAdvisorAPI response. This attribute explains reasoning behind check status for certain specific scenarios."
-}

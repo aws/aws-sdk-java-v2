@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Signer Data Plane",
-    "contributor": "",
-    "description": "This release introduces AWS Signer Data Plane SDK client supporting GetRevocationStatus API. The new client enables AWS PrivateLink connectivity with both private DNS and VPC endpoint URLs."
-}
