@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -82,6 +84,7 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
             .dimensions(builder.dimensions)
             .metricLevel(builder.metricLevel)
             .metricCategories(builder.metricCategories)
+            .propertiesSupplier(builder.propertiesSupplier)
             .build();
 
         this.metricConverter = new MetricEmfConverter(config);
@@ -123,6 +126,7 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
         private Collection<SdkMetric<String>> dimensions;
         private Collection<MetricCategory> metricCategories;
         private MetricLevel metricLevel;
+        private Supplier<Map<String, String>> propertiesSupplier;
 
         private Builder() {
         }
@@ -216,6 +220,27 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
             return this;
         }
 
+
+        /**
+         * Configure a supplier of custom properties to include in each EMF record.
+         * The supplier is invoked on each {@link #publish(MetricCollection)} call,
+         * and the returned map entries are written as top-level key-value pairs
+         * in the EMF JSON output. These appear as searchable fields in
+         * CloudWatch Logs Insights.
+         *
+         * <p>Keys that collide with reserved EMF fields ({@code _aws}), configured
+         * dimension names, or reported metric names are silently skipped.
+         *
+         * <p>If this is not specified, no custom properties are added.
+         *
+         * @param propertiesSupplier a supplier returning a map of property names to values,
+         *                           or {@code null} to disable custom properties
+         * @return this builder
+         */
+        public Builder propertiesSupplier(Supplier<Map<String, String>> propertiesSupplier) {
+            this.propertiesSupplier = propertiesSupplier;
+            return this;
+        }
 
         /**
          * Build a {@link EmfMetricLoggingPublisher} using the configuration currently configured on this publisher.
