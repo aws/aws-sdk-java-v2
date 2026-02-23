@@ -398,6 +398,17 @@ public class StaticTableMetadataTest {
     }
 
     @Test
+    public void indexPartitionKeys_shouldReturnUnmodifiableList() {
+        StaticTableMetadata metadata = StaticTableMetadata.builder()
+                                                          .addIndexPartitionKey(primaryIndexName(),
+                                                                           ATTRIBUTE_NAME,
+                                                                           AttributeValueType.S)
+                                                          .build();
+        List<String> result = metadata.indexPartitionKeys(primaryIndexName());
+        assertThatThrownBy(() -> result.add("foo")).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     public void getIndexKeys_partitionAndSort() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
                                                          .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
