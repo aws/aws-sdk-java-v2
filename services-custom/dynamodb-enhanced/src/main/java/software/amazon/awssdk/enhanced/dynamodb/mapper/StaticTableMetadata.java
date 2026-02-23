@@ -87,7 +87,13 @@ public final class StaticTableMetadata implements TableMetadata {
 
     @Override
     public List<String> indexPartitionKeys(String indexName) {
-        return partitionKeyCache.computeIfAbsent(indexName, this::computePartitionKeys);
+        List<String> cached = partitionKeyCache.get(indexName);
+        if (cached != null) {
+            return cached;
+        }
+        List<String> computedKeys = computePartitionKeys(indexName);
+        List<String> existingKeys = partitionKeyCache.putIfAbsent(indexName, computedKeys);
+        return existingKeys == null ? computedKeys : existingKeys;
     }
 
     private List<String> computePartitionKeys(String indexName) {
