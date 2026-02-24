@@ -25,6 +25,8 @@ import static org.mockito.Mockito.verify;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +73,9 @@ public class AsyncWriteThroughputMetricTest {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        client.streamingInputOperation(r -> r.build(), AsyncRequestBody.fromString("test body content")).join();
+        client.streamingInputOperation(r -> r.build(), AsyncRequestBody.fromByteBuffers(
+            ByteBuffer.wrap("test body content".getBytes(StandardCharsets.UTF_8)),
+            ByteBuffer.wrap("test".getBytes(StandardCharsets.UTF_8)))).join();
 
         ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
         verify(mockPublisher).publish(collectionCaptor.capture());
@@ -81,9 +85,9 @@ public class AsyncWriteThroughputMetricTest {
 
         assertThat(attemptMetrics).hasSize(1);
         List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
-        //TODO: fix the test to test the actual valid writeThroughput
-        //assertThat(writeThroughputValues).hasSize(1);
-        //assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
+        assertThat(writeThroughputValues).hasSize(1);
+        assertThat(writeThroughputValues.get(0)).isFinite();
+        assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
     }
 
     @Test
@@ -105,7 +109,7 @@ public class AsyncWriteThroughputMetricTest {
     }
 
     @Test
-    public void nonStreamingOperation_withRequestBody_writeThroughputReported() {
+    public void nonStreamingOperation_withRequestBody_writeThroughputNotReported() {
         stubFor(post(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
@@ -119,8 +123,6 @@ public class AsyncWriteThroughputMetricTest {
 
         assertThat(attemptMetrics).hasSize(1);
         List<Double> writeThroughputValues = attemptMetrics.get(0).metricValues(CoreMetric.WRITE_THROUGHPUT);
-        //TODO: fix the test to test the actual valid writeThroughput
-        //assertThat(writeThroughputValues).hasSize(1);
-        //assertThat(writeThroughputValues.get(0)).isGreaterThan(0);
+        assertThat(writeThroughputValues).isEmpty();
     }
 }
