@@ -241,6 +241,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *                delete from the database table.
      * @return The item that was persisted in the database before it was deleted.
      */
+    @Deprecated
     default T deleteItem(T keyItem) {
         throw new UnsupportedOperationException();
     }

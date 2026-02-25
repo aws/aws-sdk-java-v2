@@ -243,10 +243,18 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      *                delete from the database table.
      * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
+    @Deprecated
     default CompletableFuture<T> deleteItem(T keyItem) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Deletes an item from the table with optional optimistic locking.
+     *
+     * @param keyItem the item containing the key to delete
+     * @param useOptimisticLocking if true, applies optimistic locking if the item has version information
+     * @return a CompletableFuture containing the deleted item, or null if the item was not found
+     */
     default CompletableFuture<T> deleteItem(T keyItem, boolean useOptimisticLocking) {
         throw new UnsupportedOperationException();
     }
