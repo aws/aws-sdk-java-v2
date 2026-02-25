@@ -127,8 +127,13 @@ public final class OptimisticLockingHelper {
      * @param versionValue         the expected version value
      * @param versionAttributeName the version attribute name
      * @return version check condition expression
+     * @throws IllegalArgumentException if {@code versionAttributeName} is null or empty
      */
     public static Expression createVersionCondition(AttributeValue versionValue, String versionAttributeName) {
+        if (versionAttributeName == null || versionAttributeName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Version attribute name must not be null or empty.");
+        }
+
         String attributeKeyRef = keyRef(versionAttributeName);
 
         return Expression.builder()

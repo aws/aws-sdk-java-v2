@@ -227,7 +227,6 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param versionValue the expected version value that must match for the deletion to succeed
          * @param versionAttributeName the name of the version attribute in the DynamoDB table
          * @return a builder of this type with optimistic locking condition applied
-         * @throws IllegalArgumentException if any parameter is null
          */
         public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);

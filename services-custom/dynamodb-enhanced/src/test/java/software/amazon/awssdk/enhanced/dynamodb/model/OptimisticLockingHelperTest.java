@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -290,6 +291,24 @@ public class OptimisticLockingHelperTest {
     }
 
     @Test
+    public void createVersionCondition_nullAttributeName_throwsIllegalArgumentException_withMessage() {
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+
+        assertThatThrownBy(() -> OptimisticLockingHelper.createVersionCondition(versionValue, null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version attribute name must not be null or empty.");
+    }
+
+    @Test
+    public void createVersionCondition_emptyAttributeName_throwsIllegalArgumentException_withMessage() {
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+
+        assertThatThrownBy(() -> OptimisticLockingHelper.createVersionCondition(versionValue, ""))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version attribute name must not be null or empty.");
+    }
+
+    @Test
     public void getVersionAttributeName_forVersionedRecord_returnsTheCorrectVersionValueFromTheTableSchema() {
         // versioned record
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
@@ -407,3 +426,4 @@ public class OptimisticLockingHelperTest {
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 }
+
