@@ -1,0 +1,44 @@
+{
+  "smithy": "2.0",
+  "shapes": {
+    "com.example#MyService": {
+      "type": "service",
+      "version": "2024-01-01",
+      "operations": [
+        {
+          "target": "com.example#SayHello"
+        }
+      ],
+      "traits": {
+        "aws.api#service": {
+          "sdkId": "MyService",
+          "arnNamespace": "myservice"
+        },
+        "aws.auth#sigv4": {
+          "name": "myservice"
+        },
+        "aws.protocols#restJson1": {},
+        "smithy.api#cors": {},
+        "smithy.api#documentation": "Example Minimal Service",
+        "smithy.api#title": "My Service"
+      }
+    },
+    "com.example#SayHello": {
+      "type": "operation",
+      "input": { "target": "com.example#SayHelloInput" },
+      "output": { "target": "com.example#SayHelloOutput" }
+    },
+    "com.example#SayHelloInput": {
+      "type": "structure",
+      "members": {
+        "name": { "target": "smithy.api#String" }
+      }
+    },
+    "com.example#SayHelloOutput": {
+      "type": "structure",
+      "members": {
+        "message": { "target": "smithy.api#String" }
+      }
+    }
+  }
+}

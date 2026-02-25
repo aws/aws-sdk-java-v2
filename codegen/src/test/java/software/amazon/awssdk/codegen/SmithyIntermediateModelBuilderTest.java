@@ -122,6 +122,22 @@ public class SmithyIntermediateModelBuilderTest {
         }
     }
 
+    @Disabled("Expected to fail - run manually to see output")
+    @Test
+    public void printMinimalIntermediateModel() throws Exception {
+        File smithyModelFile = new File(IntermediateModelBuilderTest.class
+                                                  .getResource("poet/client/smithy/minimal/model.json").getFile());
+        SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations.builder()
+                                                                                 .smithyModel(smithyModelFile.toPath())
+                                                                                 .build();
+        ObjectMapper mapper = createOrderedMapper();
+        smithyIm = new SmithyIntermediateModelBuilder(smithyModel).build();
+        String smithyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(smithyIm);
+        System.out.println(smithyJson);
+
+
+    }
+
     private static ObjectMapper createOrderedMapper() {
         return new ObjectMapper()
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
