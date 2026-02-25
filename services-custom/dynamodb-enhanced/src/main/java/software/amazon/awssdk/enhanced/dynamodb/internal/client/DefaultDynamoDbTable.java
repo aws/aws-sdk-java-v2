@@ -160,7 +160,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     @Deprecated
     public T deleteItem(T keyItem) {
-        return deleteItem(keyItem, false);
+        return deleteItem(keyFrom(keyItem));
     }
 
     /**

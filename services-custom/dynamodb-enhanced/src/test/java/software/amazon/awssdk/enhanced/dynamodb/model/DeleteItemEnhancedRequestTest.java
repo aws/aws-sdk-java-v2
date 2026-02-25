@@ -273,7 +273,7 @@ public class DeleteItemEnhancedRequestTest {
     }
 
     @Test
-    public void withOptimisticLockingBuilder_addsVersinConditionExpression() {
+    public void withOptimisticLockingBuilder_addsVersionConditionExpression() {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
 
         DeleteItemEnhancedRequest request =
@@ -283,7 +283,7 @@ public class DeleteItemEnhancedRequestTest {
                                      .build();
 
         assertThat(request.conditionExpression(), notNullValue());
-        assertThat(request.conditionExpression().expression(), is("version = :version_value"));
+        assertThat(request.conditionExpression().expression(), is("#AMZN_MAPPED_version = :version_value"));
         assertThat(request.conditionExpression().expressionValues().get(":version_value"), equalTo(versionValue));
     }
 }
