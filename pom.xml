@@ -192,7 +192,7 @@
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
         <httpcomponents.client5.version>5.6</httpcomponents.client5.version>
-        <httpcomponents.core5.version>5.4</httpcomponents.core5.version>
+        <httpcomponents.core5.version>5.4.1</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
