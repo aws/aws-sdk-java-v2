@@ -13,15 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.model;
+package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 
 import java.util.Collections;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -30,7 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Optimistic locking prevents concurrent modifications by checking that an item's version hasn't changed since it was last read.
  * If the version has changed, the delete operation fails with a {@code ConditionalCheckFailedException}.
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class OptimisticLockingHelper {
 
     private OptimisticLockingHelper() {

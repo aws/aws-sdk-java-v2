@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
+import software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class OptimisticLockingHelperTest {

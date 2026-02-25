@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
-import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -26,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper;
 import software.amazon.awssdk.enhanced.dynamodb.internal.TableIndices;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
@@ -128,7 +129,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     /**
-     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     * Supports optimistic locking via {@link OptimisticLockingHelper}.
      */
     @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
@@ -137,7 +138,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     /**
-     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     * Supports optimistic locking via {@link OptimisticLockingHelper}.
      */
     @Override
     public T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {

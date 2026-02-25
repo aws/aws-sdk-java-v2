@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.createVersionCondition;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.createVersionCondition;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -295,16 +295,18 @@ public final class DeleteItemEnhancedRequest {
         /**
          * Adds optimistic locking to this delete request.
          * <p>
-         * This method applies a condition expression that ensures the delete operation only succeeds
-         * if the version attribute of the item matches the provided expected value.
+         * If a {@link #conditionExpression(Expression)} was already set, this will combine it with the optimistic locking
+         * condition using {@code AND}. If either expression has conflicting name/value tokens, {@link Expression#join} will throw
+         * {@link IllegalArgumentException}.
          *
-         * @param versionValue the expected version value that must match for the deletion to succeed
+         * @param versionValue         the expected version value that must match for the deletion to succeed
          * @param versionAttributeName the name of the version attribute in the DynamoDB table
-         * @return a builder of this type with optimistic locking condition applied
+         * @return a builder of this type with optimistic locking condition applied (and merged if needed)
          */
         public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
-            return conditionExpression(optimisticLockingCondition);
+            this.conditionExpression = Expression.join(this.conditionExpression, optimisticLockingCondition, " AND ");
+            return this;
         }
 
         public DeleteItemEnhancedRequest build() {
