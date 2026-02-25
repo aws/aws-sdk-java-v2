@@ -159,7 +159,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     @Deprecated
     public CompletableFuture<T> deleteItem(T keyItem) {
-        return deleteItem(keyItem, false);
+        return deleteItem(keyFrom(keyItem));
     }
 
     /**
