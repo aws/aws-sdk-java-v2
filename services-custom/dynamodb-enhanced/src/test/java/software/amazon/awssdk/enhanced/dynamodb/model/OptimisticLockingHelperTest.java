@@ -49,7 +49,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -70,7 +70,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -120,7 +120,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -172,7 +172,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -222,12 +222,12 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
     @Test
-    public void conditionallyApplyOptimistic_onTransactDelete_whenFlagTrueAndVersionedRecord_addsConditionExpression() {
+    public void conditionallyApplyOptimistic_onTransactDelete_whenFlagTrueAndVersionedRecordWithNullVersion_returnsOriginalRequest() {
         boolean optimisticLockingEnabled = true;
         Key key = Key.builder().partitionValue("id").build();
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
@@ -274,7 +274,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -285,7 +285,7 @@ public class OptimisticLockingHelperTest {
 
         Expression result = OptimisticLockingHelper.createVersionCondition(versionValue, versionAttributeName);
 
-        assertThat(result.expression()).isEqualTo("version = :version_value");
+        assertThat(result.expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -324,7 +324,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result.key()).isEqualTo(key);
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("version = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
@@ -343,7 +343,8 @@ public class OptimisticLockingHelperTest {
                                          .withOptimisticLocking(versionValue, attributeName)
                                          .build();
 
-            assertThat(result.conditionExpression().expression()).isEqualTo(attributeName + " = :version_value");
+            assertThat(result.conditionExpression().expression()).isEqualTo(
+                "#AMZN_MAPPED_" + attributeName + " = :version_value");
             assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
         }
     }
@@ -402,7 +403,7 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result.key()).isEqualTo(key);
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("recordVersion = :version_value");
+        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_recordVersion = :version_value");
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 }

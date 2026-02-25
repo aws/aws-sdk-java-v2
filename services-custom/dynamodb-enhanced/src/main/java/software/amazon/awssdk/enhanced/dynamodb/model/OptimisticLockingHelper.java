@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
+
+import java.util.Collections;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -126,9 +129,12 @@ public final class OptimisticLockingHelper {
      * @return version check condition expression
      */
     public static Expression createVersionCondition(AttributeValue versionValue, String versionAttributeName) {
+        String attributeKeyRef = keyRef(versionAttributeName);
+
         return Expression.builder()
-                         .expression(versionAttributeName + " = :version_value")
+                         .expression(String.format("%s = :version_value", attributeKeyRef))
                          .putExpressionValue(":version_value", versionValue)
+                         .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeName))
                          .build();
     }
 
