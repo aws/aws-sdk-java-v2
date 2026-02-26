@@ -21,17 +21,26 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
+
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AbstractBean;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AbstractImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.SimpleBean;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.SimpleImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
@@ -46,21 +55,83 @@ import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 
-public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
+@RunWith(Parameterized.class)
+public class AnnotatedTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     private static final String TABLE_NAME = "table-name";
 
-    private static final TableSchema<SimpleBean> TABLE_SCHEMA = TableSchema.fromClass(SimpleBean.class);
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> parameters() {
+        return Arrays.asList(new Object[][] {
+            {
+                "@DynamoDbBean",
+                SimpleBean.class,
+                TableSchema.fromClass(SimpleBean.class),
+                (Function<TestItemFactory, Object>) TestItemFactory::bean,
+                (Function<TestItemFactory, Object>) TestItemFactory::beanPartial,
+                (Function<TestItemFactory, Object>) TestItemFactory::beanItem1,
+                (Function<TestItemFactory, Object>) TestItemFactory::beanItem2,
+                (Function<TestItemFactory, Object>) TestItemFactory::beanUpdated,
+                (Function<TestItemFactory, Object>) TestItemFactory::beanUpdatedNullString,
+                AbstractBean.class
+            },
+            {
+                "@DynamoDbImmutable",
+                SimpleImmutable.class,
+                TableSchema.fromClass(SimpleImmutable.class),
+                (Function<TestItemFactory, Object>) TestItemFactory::immutable,
+                (Function<TestItemFactory, Object>) TestItemFactory::immutablePartial,
+                (Function<TestItemFactory, Object>) TestItemFactory::immutableItem1,
+                (Function<TestItemFactory, Object>) TestItemFactory::immutableItem2,
+                (Function<TestItemFactory, Object>) TestItemFactory::immutableUpdated,
+                (Function<TestItemFactory, Object>) TestItemFactory::immutableUpdatedNullString,
+                AbstractImmutable.class
+            }
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String schemaType;
+
+    @Parameterized.Parameter(1)
+    public Class<Object> itemClass;
+
+    @Parameterized.Parameter(2)
+    public TableSchema<Object> tableSchema;
+
+    @Parameterized.Parameter(3)
+    public Function<TestItemFactory, Object> fullItem;
+
+    @Parameterized.Parameter(4)
+    public Function<TestItemFactory, Object> partialItem;
+
+    @Parameterized.Parameter(5)
+    public Function<TestItemFactory, Object> firstItem;
+
+    @Parameterized.Parameter(6)
+    public Function<TestItemFactory, Object> secondItem;
+
+    @Parameterized.Parameter(7)
+    public Function<TestItemFactory, Object> updatedItem;
+
+    @Parameterized.Parameter(8)
+    public Function<TestItemFactory, Object> updatedItemWithNullString;
+
+    @Parameterized.Parameter(9)
+    public Class<?> abstractItemClass;
 
     private final DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                                 .dynamoDbClient(getDynamoDbClient())
                                                                                 .build();
 
-    private final DynamoDbTable<SimpleBean> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), TABLE_SCHEMA);
+    private DynamoDbTable<Object> mappedTable;
+    private TestItemFactory factory;
 
     @Before
     public void createTable() {
+        mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        factory = new TestItemFactory();
     }
 
     @After
@@ -78,17 +149,18 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
     public void describeTable_succeeds() {
         DescribeTableEnhancedResponse describeTableEnhancedResponse = mappedTable.describeTable();
         Assertions.assertThat(describeTableEnhancedResponse.table()).isNotNull();
-        Assertions.assertThat(describeTableEnhancedResponse.table().tableName()).isEqualTo(getConcreteTableName(TABLE_NAME));
+        Assertions.assertThat(describeTableEnhancedResponse.table().tableName())
+                  .isEqualTo(getConcreteTableName(TABLE_NAME));
     }
 
     @Test
     public void createTableWithDefaults_thenDeleteTable_succeeds() {
         String tableName = TABLE_NAME + "-1";
 
-        DynamoDbTable<SimpleBean> mappedTable = enhancedClient.table(getConcreteTableName(tableName), TABLE_SCHEMA);
-        mappedTable.createTable();
+        DynamoDbTable<Object> anotherMappedTable = enhancedClient.table(getConcreteTableName(tableName), tableSchema);
+        anotherMappedTable.createTable();
 
-        TableDescription tableDescription = mappedTable.describeTable().table();
+        TableDescription tableDescription = anotherMappedTable.describeTable().table();
 
         String actualTableName = tableDescription.tableName();
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
@@ -102,7 +174,7 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                           .tableName(getConcreteTableName(tableName))
                                                           .build());
 
-        assertThatThrownBy(mappedTable::describeTable)
+        assertThatThrownBy(anotherMappedTable::describeTable)
             .isInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("Cannot do operations on a non-existent table");
     }
@@ -111,10 +183,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
     public void createTableWithProvisionedThroughput_succeeds() {
         String tableName = TABLE_NAME + "-1";
 
-        DynamoDbTable<SimpleBean> mappedTable = enhancedClient.table(getConcreteTableName(tableName), TABLE_SCHEMA);
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        DynamoDbTable<Object> anotherMappedTable = enhancedClient.table(getConcreteTableName(tableName), tableSchema);
+        anotherMappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
 
-        TableDescription tableDescription = mappedTable.describeTable().table();
+        TableDescription tableDescription = anotherMappedTable.describeTable().table();
 
         String actualTableName = tableDescription.tableName();
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
@@ -128,17 +200,17 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                           .tableName(getConcreteTableName(tableName))
                                                           .build());
 
-        assertThatThrownBy(mappedTable::describeTable)
+        assertThatThrownBy(anotherMappedTable::describeTable)
             .isInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("Cannot do operations on a non-existent table");
     }
 
     @Test
     public void createTableWithDefaults_throwsIllegalArgumentException() {
-        TableSchema<AbstractBean> tableSchema = TableSchema.fromClass(AbstractBean.class);
-        DynamoDbTable<AbstractBean> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
+        TableSchema<?> badSchema = TableSchema.fromClass(abstractItemClass);
+        DynamoDbTable<?> other = enhancedClient.table(getConcreteTableName(TABLE_NAME), badSchema);
 
-        assertThatThrownBy(mappedTable::createTable)
+        assertThatThrownBy(other::createTable)
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Attempt to execute an operation that requires a primary index without defining any primary"
                         + " key attributes in the table metadata.");
@@ -146,10 +218,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void createTableWithProvisionedThroughput_throwsIllegalArgumentException() {
-        TableSchema<AbstractBean> tableSchema = TableSchema.fromClass(AbstractBean.class);
-        DynamoDbTable<AbstractBean> mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
+        TableSchema<?> badSchema = TableSchema.fromClass(abstractItemClass);
+        DynamoDbTable<?> other = enhancedClient.table(getConcreteTableName(TABLE_NAME), badSchema);
 
-        assertThatThrownBy(() -> mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())))
+        assertThatThrownBy(() -> other.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Attempt to execute an operation that requires a primary index without defining any primary"
                         + " key attributes in the table metadata.");
@@ -157,18 +229,15 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void getItem_itemNotFound_returnsNullValue() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        SimpleBean result = mappedTable.getItem(item);
+        Object result = mappedTable.getItem(item);
         assertThat(result, is(nullValue()));
     }
 
     @Test
     public void getItemWithResponse_itemNotFound_returnsNullValue() {
-        GetItemEnhancedResponse<SimpleBean> getItemEnhancedResponse =
+        GetItemEnhancedResponse<Object> getItemEnhancedResponse =
             mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
 
         assertThat(getItemEnhancedResponse.attributes(), is(nullValue()));
@@ -177,58 +246,44 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putItem_thenGetItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        SimpleBean result = mappedTable.getItem(item);
-        assertThat(result , is(item));
-    }
-
-    @Test
-    public void putItemPartial_thenGetItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        mappedTable.putItem(item);
-
-        SimpleBean result = mappedTable.getItem(item);
-        assertThat(result , is(item));
-    }
-
-    @Test
-    public void putItemTwice_thenGetItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value-item1");
-        mappedTable.putItem(item);
-
-        item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value-item2");
-        mappedTable.putItem(item);
-
-        long itemCount = mappedTable.scan().items().stream().count();
-        assertThat(itemCount, is(1L));
-
-        SimpleBean result = mappedTable.getItem(item);
+        Object result = mappedTable.getItem(item);
         assertThat(result, is(item));
     }
 
     @Test
-    public void putItemWithResponse_thenGetItemWithResponse_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+    public void putItemPartial_thenGetItem_succeeds() {
+        Object item = partialItem.apply(factory);
+        mappedTable.putItem(item);
 
-        PutItemEnhancedResponse<SimpleBean> putItemEnhancedResponse =
+        Object result = mappedTable.getItem(item);
+        assertThat(result, is(item));
+    }
+
+    @Test
+    public void putItemTwice_thenGetItem_succeeds() {
+        Object item1 = firstItem.apply(factory);
+        mappedTable.putItem(item1);
+
+        Object item2 = secondItem.apply(factory);
+        mappedTable.putItem(item2);
+
+        long itemCount = mappedTable.scan().items().stream().count();
+        assertThat(itemCount, is(1L));
+
+        Object result = mappedTable.getItem(item2);
+        assertThat(result, is(item2));
+    }
+
+    @Test
+    public void putItemWithResponse_thenGetItemWithResponse_succeeds() {
+        Object item = fullItem.apply(factory);
+
+        PutItemEnhancedResponse<Object> putItemEnhancedResponse =
             mappedTable.putItemWithResponse(r -> r.item(item));
-        GetItemEnhancedResponse<SimpleBean> getItemEnhancedResponse =
+        GetItemEnhancedResponse<Object> getItemEnhancedResponse =
             mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
 
         assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
@@ -237,13 +292,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putItem_withCondition_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        item.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -253,24 +305,21 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("stringAttribute-value"))
                                                    .build();
 
-        mappedTable.putItem(PutItemEnhancedRequest.builder(SimpleBean.class)
-                                                  .item(item)
+        mappedTable.putItem(PutItemEnhancedRequest.builder(itemClass)
+                                                  .item(updated)
                                                   .conditionExpression(conditionExpression)
                                                   .build());
 
-        SimpleBean result = mappedTable.getItem(item);
-        assertThat(result, is(item));
+        Object result = mappedTable.getItem(updated);
+        assertThat(result, is(updated));
     }
 
     @Test
     public void putItem_withCondition_throwsConditionalCheckFailedException() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        item.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -280,10 +329,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
 
-        PutItemEnhancedRequest<SimpleBean> putItemEnhancedRequest = PutItemEnhancedRequest.builder(SimpleBean.class)
-                                                                              .item(item)
-                                                                              .conditionExpression(conditionExpression)
-                                                                              .build();
+        PutItemEnhancedRequest<Object> putItemEnhancedRequest = PutItemEnhancedRequest.builder(itemClass)
+                                                                                      .item(updated)
+                                                                                      .conditionExpression(conditionExpression)
+                                                                                      .build();
 
         assertThatThrownBy(() -> mappedTable.putItem(putItemEnhancedRequest))
             .isInstanceOf(ConditionalCheckFailedException.class)
@@ -292,19 +341,13 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
-        SimpleBean result = mappedTable.updateItem(item);
-        assertThat(result, is(item));
+        Object result = mappedTable.updateItem(updated);
+        assertThat(result, is(updated));
 
         long itemCount = mappedTable.scan().stream().count();
         assertThat(itemCount, is(1L));
@@ -312,75 +355,59 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateItem_createsNewCompleteItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        SimpleBean result = mappedTable.updateItem(item);
+        Object result = mappedTable.updateItem(item);
         assertThat(result, is(item));
     }
 
     @Test
     public void updateItem_createsNewPartialItemThenUpdateItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
+        Object item = partialItem.apply(factory);
 
-        SimpleBean result = mappedTable.updateItem(item);
+        Object result = mappedTable.updateItem(item);
         assertThat(result, is(item));
 
-        item.setStringAttribute("stringAttribute-value");
+        Object full = fullItem.apply(factory);
 
-        result = mappedTable.updateItem(item);
-        assertThat(result, is(item));
+        result = mappedTable.updateItem(full);
+        assertThat(result, is(full));
     }
 
     @Test
     public void putItem_thenUpdateItemWithNulls_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.updateItem(item);
 
-        item.setStringAttribute(null);
+        Object updatedNullString = updatedItemWithNullString.apply(factory);
 
-        SimpleBean result = mappedTable.updateItem(item);
-        assertThat(result, is(item));
+        Object result = mappedTable.updateItem(updatedNullString);
+        assertThat(result, is(updatedNullString));
     }
 
     @Test
     public void putItem_thenUpdateItemWithIgnoreNulls_succeeds() {
-        SimpleBean item1 = new SimpleBean();
-        item1.setId("id-value");
-        item1.setSort("sort-value");
-        item1.setStringAttribute("stringAttribute-value");
-
+        Object item1 = fullItem.apply(factory);
         mappedTable.putItem(item1);
 
-        SimpleBean item2 = new SimpleBean();
-        item2.setId("id-value");
-        item2.setSort("sort-value");
+        Object item2 = partialItem.apply(factory);
 
-        UpdateItemEnhancedRequest<SimpleBean> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(SimpleBean.class)
-                                 .item(item2)
-                                 .ignoreNulls(true)
-                                 .build();
+        UpdateItemEnhancedRequest<Object> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(itemClass)
+                                                                                               .item(item2)
+                                                                                               .ignoreNulls(true)
+                                                                                               .build();
 
-        SimpleBean result = mappedTable.updateItem(updateItemEnhancedRequest);
+        Object result = mappedTable.updateItem(updateItemEnhancedRequest);
         assertThat(result, is(item1));
     }
 
     @Test
     public void putItem_thenUpdateItemWithCondition_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
         mappedTable.putItem(item);
-        item.setStringAttribute("stringAttribute-value-updated");
+
+        Object updated = updatedItem.apply(factory);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -390,27 +417,24 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("stringAttribute-value"))
                                                    .build();
 
-        UpdateItemEnhancedRequest<SimpleBean> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(SimpleBean.class)
-                                                                                       .item(item)
-                                                                                       .conditionExpression(conditionExpression)
-                                                                                       .build();
+        UpdateItemEnhancedRequest<Object> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(itemClass)
+                                                                                               .item(updated)
+                                                                                               .conditionExpression(conditionExpression)
+                                                                                               .build();
 
         mappedTable.updateItem(updateItemEnhancedRequest);
 
-        SimpleBean result = mappedTable.getItem(item);
-        assertThat(result, is(item));
+        Object result = mappedTable.getItem(updated);
+        assertThat(result, is(updated));
     }
 
     @Test
     public void putItem_thenUpdateItemWithCondition_throwsConditionalCheckFailedException() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
         mappedTable.putItem(item);
 
-        item.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -420,10 +444,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("wrong"))
                                                    .build();
 
-        UpdateItemEnhancedRequest<SimpleBean> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(SimpleBean.class)
-                                                                                       .item(item)
-                                                                                       .conditionExpression(conditionExpression)
-                                                                                       .build();
+        UpdateItemEnhancedRequest<Object> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(itemClass)
+                                                                                               .item(updated)
+                                                                                               .conditionExpression(conditionExpression)
+                                                                                               .build();
 
         assertThatThrownBy(() -> mappedTable.updateItem(updateItemEnhancedRequest))
             .isInstanceOf(ConditionalCheckFailedException.class)
@@ -432,38 +456,29 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putItemWithResponse_thenUpdateItemWithResponseAndDefaultReturnValue_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        PutItemEnhancedResponse<SimpleBean> putItemEnhancedResponse = mappedTable.putItemWithResponse(r -> r.item(item));
+        PutItemEnhancedResponse<Object> putItemEnhancedResponse = mappedTable.putItemWithResponse(r -> r.item(item));
 
-        item.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
-        UpdateItemEnhancedResponse<SimpleBean> updateItemEnhancedResponse = mappedTable.updateItemWithResponse(r -> r.item(item));
+        UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse = mappedTable.updateItemWithResponse(r -> r.item(updated));
 
         assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(updateItemEnhancedResponse.attributes(), is(item));
+        assertThat(updateItemEnhancedResponse.attributes(), is(updated));
     }
 
     @Test
     public void putItemWithResponse_thenUpdateItemWithResponseAndReturnValueAllOld_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        PutItemEnhancedResponse<SimpleBean> putItemEnhancedResponse =
+        PutItemEnhancedResponse<Object> putItemEnhancedResponse =
             mappedTable.putItemWithResponse(r -> r.item(item));
 
-        SimpleBean item2 = new SimpleBean();
-        item2.setId("id-value");
-        item2.setSort("sort-value");
-        item2.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
-        UpdateItemEnhancedResponse<SimpleBean> updateItemEnhancedResponse =
-            mappedTable.updateItemWithResponse(r -> r.item(item).returnValues(ReturnValue.ALL_OLD));
+        UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse =
+            mappedTable.updateItemWithResponse(r -> r.item(updated).returnValues(ReturnValue.ALL_OLD));
 
         assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         assertThat(updateItemEnhancedResponse.attributes(), is(item));
@@ -471,21 +486,15 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putItemWithResponse_thenUpdateItemWithResponseAndReturnValueNone_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        PutItemEnhancedResponse<SimpleBean> putItemEnhancedResponse =
+        PutItemEnhancedResponse<Object> putItemEnhancedResponse =
             mappedTable.putItemWithResponse(r -> r.item(item));
 
-        SimpleBean item2 = new SimpleBean();
-        item2.setId("id-value");
-        item2.setSort("sort-value");
-        item2.setStringAttribute("stringAttribute-value-updated");
+        Object updated = updatedItem.apply(factory);
 
-        UpdateItemEnhancedResponse<SimpleBean> updateItemEnhancedResponse =
-            mappedTable.updateItemWithResponse(r -> r.item(item2).returnValues(ReturnValue.NONE));
+        UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse =
+            mappedTable.updateItemWithResponse(r -> r.item(updated).returnValues(ReturnValue.NONE));
 
         assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
         assertThat(updateItemEnhancedResponse.attributes(), is(nullValue()));
@@ -493,25 +502,19 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void deleteItem_itemNotFound_returnsNullValue() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        SimpleBean result = mappedTable.deleteItem(item);
+        Object result = mappedTable.deleteItem(item);
         assertThat(result, is(nullValue()));
     }
 
     @Test
     public void deleteItem_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        SimpleBean beforeDeleteResult = mappedTable.deleteItem(item);
-        SimpleBean afterDeleteResult = mappedTable.getItem(item);
+        Object beforeDeleteResult = mappedTable.deleteItem(item);
+        Object afterDeleteResult = mappedTable.getItem(item);
 
         assertThat(beforeDeleteResult, is(item));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -519,13 +522,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void deleteItem_withCondition_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        SimpleBean result = mappedTable.getItem(item);
+        Object result = mappedTable.getItem(item);
         assertThat(result, is(item));
 
         Expression conditionExpression = Expression.builder()
@@ -550,13 +550,10 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void deleteItem_withCondition_throwsConditionalCheckFailedException() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         mappedTable.putItem(item);
 
-        SimpleBean result = mappedTable.getItem(item);
+        Object result = mappedTable.getItem(item);
         assertThat(result, is(item));
 
         Expression conditionExpression = Expression.builder()
@@ -581,19 +578,14 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void deleteItemWithResponse_succeeds() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
 
-        PutItemEnhancedResponse<SimpleBean> putItemEnhancedResponse =
+        PutItemEnhancedResponse<Object> putItemEnhancedResponse =
             mappedTable.putItemWithResponse(r -> r.item(item));
-
-
 
         Key key = mappedTable.keyFrom(item);
 
-        DeleteItemEnhancedResponse<SimpleBean> deleteItemEnhancedResponse =
+        DeleteItemEnhancedResponse<Object> deleteItemEnhancedResponse =
             mappedTable.deleteItemWithResponse(r -> r.key(key));
 
         assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
@@ -602,15 +594,122 @@ public class AnnotatedBeanTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void deleteItemWithResponse_itemNotFound_returnsNullValue() {
-        SimpleBean item = new SimpleBean();
-        item.setId("id-value");
-        item.setSort("sort-value");
-        item.setStringAttribute("stringAttribute-value");
+        Object item = fullItem.apply(factory);
         Key key = mappedTable.keyFrom(item);
 
-        DeleteItemEnhancedResponse<SimpleBean> deleteItemEnhancedResponse =
+        DeleteItemEnhancedResponse<Object> deleteItemEnhancedResponse =
             mappedTable.deleteItemWithResponse(r -> r.key(key));
 
         assertThat(deleteItemEnhancedResponse.attributes(), is(nullValue()));
     }
+
+    private static final class TestItemFactory {
+        private final String id = "id-value";
+        private final String sort = "sort-value";
+
+        Object bean() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            item.setStringAttribute("stringAttribute-value");
+            return item;
+        }
+
+        Object beanPartial() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            return item;
+        }
+
+        Object beanItem1() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            item.setStringAttribute("stringAttribute-value-item1");
+            return item;
+        }
+
+        Object beanItem2() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            item.setStringAttribute("stringAttribute-value-item2");
+            return item;
+        }
+
+        Object beanUpdated() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            item.setStringAttribute("stringAttribute-value-updated");
+            return item;
+        }
+
+        Object beanUpdatedNullString() {
+            SimpleBean item = new SimpleBean();
+            item.setId(id);
+            item.setSort(sort);
+            item.setStringAttribute(null);
+            return item;
+        }
+
+        Object immutable() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .stringAttribute("stringAttribute-value")
+                                 .build();
+        }
+
+        Object immutablePartial() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .build();
+        }
+
+        Object immutableItem1() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .stringAttribute("stringAttribute-value-item1")
+                                 .build();
+        }
+
+        Object immutableItem2() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .stringAttribute("stringAttribute-value-item2")
+                                 .build();
+        }
+
+        Object immutableUpdated() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .stringAttribute("stringAttribute-value-updated")
+                                 .build();
+        }
+
+        Object immutableUpdatedNullString() {
+            return SimpleImmutable.builder()
+                                 .id(id)
+                                 .sort(sort)
+                                 .stringAttribute(null)
+                                 .build();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return super.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, sort);
+        }
+    }
 }
+
