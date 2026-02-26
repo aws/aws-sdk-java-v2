@@ -46,7 +46,7 @@ public final class OptimisticLockingHelper {
      * @param versionAttributeName the version attribute name
      * @return delete request with optimistic locking condition
      */
-    public static DeleteItemEnhancedRequest withOptimisticLocking(
+    public static DeleteItemEnhancedRequest optimisticLocking(
         DeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
         Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
@@ -63,7 +63,7 @@ public final class OptimisticLockingHelper {
      * @param versionAttributeName the version attribute name
      * @return transactional delete request with optimistic locking condition
      */
-    public static TransactDeleteItemEnhancedRequest withOptimisticLocking(
+    public static TransactDeleteItemEnhancedRequest optimisticLocking(
         TransactDeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
         Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
@@ -92,7 +92,7 @@ public final class OptimisticLockingHelper {
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null ? withOptimisticLocking(request, version, versionAttributeName) : request;
+                return version != null ? optimisticLocking(request, version, versionAttributeName) : request;
             })
             .orElse(request);
     }
@@ -117,7 +117,7 @@ public final class OptimisticLockingHelper {
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null ? withOptimisticLocking(request, version, versionAttributeName) : request;
+                return version != null ? optimisticLocking(request, version, versionAttributeName) : request;
             })
             .orElse(request);
     }

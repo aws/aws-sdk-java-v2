@@ -273,13 +273,13 @@ public class DeleteItemEnhancedRequestTest {
     }
 
     @Test
-    public void withOptimisticLockingBuilder_addsVersionConditionExpression() {
+    public void optimisticLockingBuilder_addsVersionConditionExpression() {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
 
         DeleteItemEnhancedRequest request =
             DeleteItemEnhancedRequest.builder()
                                      .key(Key.builder().partitionValue("id").build())
-                                     .withOptimisticLocking(versionValue, "version")
+                                     .optimisticLocking(versionValue, "version")
                                      .build();
 
         assertThat(request.conditionExpression(), notNullValue());

@@ -229,7 +229,7 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param versionAttributeName the name of the version attribute in the DynamoDB table
          * @return a builder of this type with optimistic locking condition applied (and merged if needed)
          */
-        public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
+        public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
             this.conditionExpression = Expression.join(this.conditionExpression, optimisticLockingCondition, " AND ");
             return this;

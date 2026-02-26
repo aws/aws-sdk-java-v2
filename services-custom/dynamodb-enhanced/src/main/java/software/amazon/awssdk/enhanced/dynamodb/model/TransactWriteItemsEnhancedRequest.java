@@ -248,7 +248,7 @@ public final class TransactWriteItemsEnhancedRequest {
          * {@link TransactDeleteItemEnhancedRequest}.
          * <p>
          * For optimistic locking support, use
-         * {@link TransactDeleteItemEnhancedRequest.Builder#withOptimisticLocking(
+         * {@link TransactDeleteItemEnhancedRequest.Builder#optimisticLocking(
          * software.amazon.awssdk.services.dynamodb.model.AttributeValue, String)}
          * to create a request with version checking conditions before adding it to the transaction.
          *
