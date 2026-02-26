@@ -17,9 +17,8 @@ package software.amazon.awssdk.codegen.smithy;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
@@ -41,6 +40,9 @@ import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.smithy.customization.SmithyCustomizationConfigTranslator;
+import software.amazon.awssdk.codegen.smithy.customization.SmithyCustomizationProcessor;
+import software.amazon.awssdk.codegen.smithy.customization.processors.DefaultSmithyCustomizationProcessor;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
@@ -52,18 +54,19 @@ import software.amazon.smithy.rulesengine.traits.EndpointRuleSetTrait;
 import software.amazon.smithy.rulesengine.traits.EndpointTestsTrait;
 
 /**
- * Builds an intermediate model to be used by the templates from the service model and
+ * Builds an intermediate model to be used by the templates from the service
+ * model and
  * customizations.
  */
 public class SmithyIntermediateModelBuilder {
     private static final Logger log = LoggerFactory.getLogger(SmithyIntermediateModelBuilder.class);
 
-    private final Model smithyModel;
-    private final ServiceShape service;
+    private Model smithyModel;
+    private ServiceShape service;
     private final CustomizationConfig customizationConfig;
     private final NamingStrategy namingStrategy;
     private final TypeUtils typeUtils;
-    private final ServiceIndex serviceIndex;
+    private ServiceIndex serviceIndex;
 
     public SmithyIntermediateModelBuilder(SmithyModelWithCustomizations modelWithCustomizations) {
         this.smithyModel = modelWithCustomizations.getSmithyModel();
@@ -81,45 +84,69 @@ public class SmithyIntermediateModelBuilder {
         return model.getServiceShapes().iterator().next();
     }
 
-
     public IntermediateModel build() {
-        // TODO: create a DefaultSmithyCustomizationProcessor and preprocess the model here
+        // Create the processor chain and preprocess the Smithy model
+        SmithyCustomizationProcessor processor = DefaultSmithyCustomizationProcessor
+                .getProcessorFor(customizationConfig);
+        Model preprocessedModel = processor.preprocess(smithyModel, service);
+
+        // Reassign fields with the preprocessed model so downstream builders see the
+        // customized model
+        this.smithyModel = preprocessedModel;
+        this.service = getServiceShape(preprocessedModel);
+        this.serviceIndex = ServiceIndex.of(preprocessedModel);
+
+        // Translate old C2J config fields to Smithy-native equivalents on the
+        // CustomizationConfig.
+        // This must happen after preprocessing (when the model/service are available
+        // for ShapeId
+        // resolution) so that the translated fields are available for writing
+        // smithyCustomization.config.
+        SmithyCustomizationConfigTranslator.translate(customizationConfig, preprocessedModel, this.service);
 
         Paginators paginators = translatePaginators();
         Waiters waiters = translateWaiters();
 
-        Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this, paginators).constructOperations());
-        
+        Map<String, OperationModel> operations = new TreeMap<>(
+                new AddOperations(this, paginators).constructOperations());
+
         // Add shapes
         Map<String, ShapeModel> shapes = new AddSmithyShapes(this).constructShapes();
-        
+
         Metadata metadata = constructMetadata();
-        
+
         EndpointRuleSetModel endpointRuleSetModel = translateEndpointRuleSet();
         EndpointTestSuiteModel endpointTestSuiteModel = translateEndpointTestSuite();
 
         IntermediateModel model = new IntermediateModel(
-            metadata,
-            operations,
-            shapes,
-            customizationConfig,
-            null, // endpointOperation - will be computed later
-            paginators.getPagination(),
-            namingStrategy,
-            waiters.getWaiters(),
-            endpointRuleSetModel,
-            endpointTestSuiteModel,
-            null  // clientContextParams - will be added later
+                metadata,
+                operations,
+                shapes,
+                customizationConfig,
+                null, // endpointOperation - will be computed later
+                paginators.getPagination(),
+                namingStrategy,
+                waiters.getWaiters(),
+                endpointRuleSetModel,
+                endpointTestSuiteModel,
+                null // clientContextParams - will be added later
         );
 
-        // Link members to their target ShapeModels and operations to their input/output shapes.
+        // Link members to their target ShapeModels and operations to their input/output
+        // shapes.
         // This mirrors the post-processing done in the C2J IntermediateModelBuilder.
         linkMembersToShapes(model);
         linkOperationsToInputOutputShapes(model);
 
+        // Mark operations eligible for no-arg "simple method" overloads
+        setSimpleMethods(model);
+
+        // Postprocess the IntermediateModel (e.g., remove exception message members)
+        processor.postprocess(model);
+
         return model;
     }
-    
+
     private Metadata constructMetadata() {
         Metadata metadata = new Metadata();
 
@@ -154,12 +181,14 @@ public class SmithyIntermediateModelBuilder {
             metadata.withServiceId(sdkId)
                     .withEndpointPrefix(serviceTrait.getArnNamespace());
 
-            // Derive uid from sdkId and version: "Account" + "2021-02-01" -> "account-2021-02-01"
-            String uid = sdkId.toLowerCase().replace(' ', '-') + "-" + service.getVersion();
+            // Derive uid from sdkId and version: "Account" + "2021-02-01" ->
+            // "account-2021-02-01"
+            String uid = sdkId.toLowerCase(Locale.US).replace(' ', '-') + "-" + service.getVersion();
             metadata.withUid(uid);
         });
 
-        // Set service full name and abbreviation from @title trait (matches C2J serviceFullName)
+        // Set service full name and abbreviation from @title trait (matches C2J
+        // serviceFullName)
         service.getTrait(software.amazon.smithy.model.traits.TitleTrait.class).ifPresent(title -> {
             metadata.withServiceFullName(title.getValue());
             metadata.withServiceAbbreviation(title.getValue());
@@ -176,7 +205,8 @@ public class SmithyIntermediateModelBuilder {
         // Set authType and auth list from service auth traits
         Map<ShapeId, Trait> serviceAuthSchemes = serviceIndex.getEffectiveAuthSchemes(service);
         if (!serviceAuthSchemes.isEmpty()) {
-            // authType is derived from the first/primary auth scheme (typically sigv4 -> "v4")
+            // authType is derived from the first/primary auth scheme (typically sigv4 ->
+            // "v4")
             ShapeId primaryAuthScheme = serviceAuthSchemes.keySet().iterator().next();
             metadata.withAuthType(AuthType.fromValue(primaryAuthScheme.toString()));
 
@@ -196,13 +226,13 @@ public class SmithyIntermediateModelBuilder {
 
         return metadata;
     }
-    
+
     private void configurePackageName(Metadata metadata, String serviceName) {
         String rootPackage = customizationConfig.getRootPackageName();
         if (rootPackage == null) {
             rootPackage = "software.amazon.awssdk.services";
         }
-        
+
         metadata.withRootPackageName(rootPackage)
                 .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
                 .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
@@ -224,7 +254,7 @@ public class SmithyIntermediateModelBuilder {
             if (shape.getMembers() != null) {
                 for (MemberModel member : shape.getMembers()) {
                     member.setShape(
-                        Utils.findMemberShapeModelByC2jNameIfExists(model, member.getC2jShape()));
+                            Utils.findMemberShapeModelByC2jNameIfExists(model, member.getC2jShape()));
                 }
             }
         }
@@ -242,6 +272,26 @@ public class SmithyIntermediateModelBuilder {
             }
             if (operation.getReturnType() != null) {
                 operation.setOutputShape(model.getShapes().get(operation.getReturnType().getReturnType()));
+            }
+        }
+    }
+
+    /**
+     * Marks input shapes as eligible for no-arg "simple method" overloads.
+     * Mirrors the logic in {@code IntermediateModelBuilder.setSimpleMethods()}.
+     */
+    private static void setSimpleMethods(IntermediateModel model) {
+        CustomizationConfig config = model.getCustomizationConfig();
+        for (OperationModel operation : model.getOperations().values()) {
+            ShapeModel inputShape = operation.getInputShape();
+            if (inputShape == null) {
+                continue;
+            }
+            String methodName = operation.getMethodName();
+            if (config.getVerifiedSimpleMethods().contains(methodName)) {
+                inputShape.setSimpleMethod(true);
+            } else {
+                inputShape.setSimpleMethod(false);
             }
         }
     }
@@ -281,38 +331,42 @@ public class SmithyIntermediateModelBuilder {
     }
 
     /**
-     * Extracts the endpoint rule set from the service's {@code @smithy.rules#endpointRuleSet} trait.
-     * The trait's Node is serialized to JSON and deserialized into the codegen EndpointRuleSetModel.
+     * Extracts the endpoint rule set from the service's
+     * {@code @smithy.rules#endpointRuleSet} trait.
+     * The trait's Node is serialized to JSON and deserialized into the codegen
+     * EndpointRuleSetModel.
      * Returns null if the trait is not present.
      */
     private EndpointRuleSetModel translateEndpointRuleSet() {
         return service.getTrait(EndpointRuleSetTrait.class)
-                      .map(trait -> {
-                          try {
-                              String json = Node.printJson(trait.getRuleSet());
-                              return Jackson.load(EndpointRuleSetModel.class, json);
-                          } catch (IOException e) {
-                              throw new RuntimeException("Failed to deserialize endpoint rule set from Smithy model", e);
-                          }
-                      })
-                      .orElse(null);
+                .map(trait -> {
+                    try {
+                        String json = Node.printJson(trait.getRuleSet());
+                        return Jackson.load(EndpointRuleSetModel.class, json);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to deserialize endpoint rule set from Smithy model", e);
+                    }
+                })
+                .orElse(null);
     }
 
     /**
-     * Extracts the endpoint test suite from the service's {@code @smithy.rules#endpointTests} trait.
-     * The trait's Node is serialized to JSON and deserialized into the codegen EndpointTestSuiteModel.
+     * Extracts the endpoint test suite from the service's
+     * {@code @smithy.rules#endpointTests} trait.
+     * The trait's Node is serialized to JSON and deserialized into the codegen
+     * EndpointTestSuiteModel.
      * Returns null if the trait is not present.
      */
     private EndpointTestSuiteModel translateEndpointTestSuite() {
         return service.getTrait(EndpointTestsTrait.class)
-                      .map(trait -> {
-                          try {
-                              String json = Node.printJson(trait.toNode());
-                              return Jackson.load(EndpointTestSuiteModel.class, json);
-                          } catch (IOException e) {
-                              throw new RuntimeException("Failed to deserialize endpoint test suite from Smithy model", e);
-                          }
-                      })
-                      .orElse(null);
+                .map(trait -> {
+                    try {
+                        String json = Node.printJson(trait.toNode());
+                        return Jackson.load(EndpointTestSuiteModel.class, json);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to deserialize endpoint test suite from Smithy model", e);
+                    }
+                })
+                .orElse(null);
     }
 }

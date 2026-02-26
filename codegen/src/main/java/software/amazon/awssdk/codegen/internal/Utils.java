@@ -39,7 +39,6 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
-import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -77,10 +76,10 @@ public final class Utils {
     public static boolean isOrContainsEnumShape(Shape shape, Map<String, Shape> allShapes) {
         boolean isEnum = isEnumShape(shape);
         boolean isMapWithEnumMember = isMapShape(shape)
-             && (isOrContainsEnumShape(allShapes.get(shape.getMapKeyType().getShape()), allShapes)
-                 || isOrContainsEnumShape(allShapes.get(shape.getMapValueType().getShape()), allShapes));
+                && (isOrContainsEnumShape(allShapes.get(shape.getMapKeyType().getShape()), allShapes)
+                        || isOrContainsEnumShape(allShapes.get(shape.getMapValueType().getShape()), allShapes));
         boolean isListWithEnumMember = isListShape(shape)
-             && isOrContainsEnumShape(allShapes.get(shape.getListMember().getShape()), allShapes);
+                && isOrContainsEnumShape(allShapes.get(shape.getListMember().getShape()), allShapes);
 
         return isEnum || isMapWithEnumMember || isListWithEnumMember;
     }
@@ -95,7 +94,8 @@ public final class Utils {
     }
 
     public static boolean isMapWithEnumShape(MemberModel member) {
-        return member.isMap() && (isMapKeyWithEnumShape(member.getMapModel()) || isMapValueWithEnumShape(member.getMapModel()));
+        return member.isMap()
+                && (isMapKeyWithEnumShape(member.getMapModel()) || isMapValueWithEnumShape(member.getMapModel()));
     }
 
     public static boolean isMapKeyWithEnumShape(MapModel mapModel) {
@@ -128,8 +128,9 @@ public final class Utils {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
-        return name.length() < 2 ? StringUtils.upperCase(name) : StringUtils.upperCase(name.substring(0, 1))
-                + name.substring(1);
+        return name.length() < 2 ? StringUtils.upperCase(name)
+                : StringUtils.upperCase(name.substring(0, 1))
+                        + name.substring(1);
     }
 
     public static String removeLeading(String str, String toRemove) {
@@ -157,12 +158,13 @@ public final class Utils {
      * * @return Prefix to use when writing model files (service and intermediate).
      */
     public static String getFileNamePrefix(ServiceModel serviceModel) {
-        return String.format("%s-%s", serviceModel.getMetadata().getEndpointPrefix(), serviceModel.getMetadata().getApiVersion());
+        return String.format("%s-%s", serviceModel.getMetadata().getEndpointPrefix(),
+                serviceModel.getMetadata().getApiVersion());
     }
 
     public static String getFileNamePrefix(IntermediateModel intermediateModel) {
         return String.format("%s-%s", intermediateModel.getMetadata().getServiceId(),
-                             intermediateModel.getMetadata().getApiVersion());
+                intermediateModel.getMetadata().getApiVersion());
     }
 
     /**
@@ -250,7 +252,8 @@ public final class Utils {
     }
 
     /**
-     * Return an InputStream of the specified resource, failing if it can't be found.
+     * Return an InputStream of the specified resource, failing if it can't be
+     * found.
      *
      * @param location Location of resource
      */
@@ -274,7 +277,8 @@ public final class Utils {
      * Search for intermediate shape model by its c2j name.
      *
      * @return ShapeModel
-     * @throws IllegalArgumentException if the specified c2j name is not found in the intermediate model.
+     * @throws IllegalArgumentException if the specified c2j name is not found in
+     *                                  the intermediate model.
      */
     public static ShapeModel findShapeModelByC2jName(IntermediateModel intermediateModel, String shapeC2jName)
             throws IllegalArgumentException {
@@ -290,7 +294,8 @@ public final class Utils {
     /**
      * Search for intermediate shape model by its c2j name.
      *
-     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
+     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or
+     *         container type for example)
      */
     public static ShapeModel findShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
         for (ShapeModel shape : intermediateModel.getShapes().values()) {
@@ -302,20 +307,24 @@ public final class Utils {
     }
 
     /**
-     * Search for a shape model by its C2J name, excluding request and response shapes, which are not candidates to be members
+     * Search for a shape model by its C2J name, excluding request and response
+     * shapes, which are not candidates to be members
      * of another shape.
      *
-     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
+     * @return ShapeModel or null if the shape doesn't exist (if it's primitive or
+     *         container type for example)
      */
-    public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
+    public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel,
+            String shapeC2jName) {
         ShapeModel candidate = null;
         for (ShapeModel shape : intermediateModel.getShapes().values()) {
             if (shape.getShapeType() != ShapeType.Request
                     && shape.getShapeType() != ShapeType.Response
                     && shape.getC2jName().equals(shapeC2jName)) {
                 if (candidate != null) {
-                    throw new IllegalStateException("Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
-                                                    + candidate + " and " + shape);
+                    throw new IllegalStateException(
+                            "Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
+                                    + candidate + " and " + shape);
                 }
                 candidate = shape;
             }
@@ -324,7 +333,8 @@ public final class Utils {
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {
-        return intermediateModel.getShapes().values().stream().filter(s -> s.getC2jName().equals(shapeC2jName)).collect(toList());
+        return intermediateModel.getShapes().values().stream().filter(s -> s.getC2jName().equals(shapeC2jName))
+                .collect(toList());
     }
 
     /**
@@ -355,9 +365,8 @@ public final class Utils {
             }
         }
         if (Metadata.usesOperationIdentifier(protocol)) {
-            marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
-                                 operation.getName() :
-                                 service.getTargetPrefix() + "." + operation.getName());
+            marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ? operation.getName()
+                    : service.getTargetPrefix() + "." + operation.getName());
         }
         return marshaller;
 

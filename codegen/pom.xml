@@ -193,6 +193,16 @@
             <artifactId>smithy-aws-endpoints</artifactId>
             <version>${smithy.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-aws-smoke-test-model</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-waiters</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
 
         <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>

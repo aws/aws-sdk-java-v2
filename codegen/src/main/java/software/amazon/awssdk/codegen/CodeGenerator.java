@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.smithy.SmithyCustomizationConfigWriter;
 import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.validation.CustomizationConfigValidator;
@@ -65,6 +66,7 @@ public class CodeGenerator {
 
     private final List<ModelValidator> modelValidators;
     private final boolean emitValidationReport;
+    private final boolean emitSmithyCustomizationConfig;
 
     static {
         // Make sure ClassName is statically initialized before we do anything in parallel.
@@ -90,6 +92,7 @@ public class CodeGenerator {
         this.fileNamePrefix = builder.fileNamePrefix;
         this.modelValidators = builder.modelValidators == null ? DEFAULT_MODEL_VALIDATORS : builder.modelValidators;
         this.emitValidationReport = builder.emitValidationReport;
+        this.emitSmithyCustomizationConfig = builder.emitSmithyCustomizationConfig;
     }
 
     public static File getModelDirectory(String outputDirectory) {
@@ -136,6 +139,9 @@ public class CodeGenerator {
             if (fileNamePrefix != null) {
                 writeIntermediateModel(modelToGenerate);
             }
+            if (emitSmithyCustomizationConfig) {
+                writeSmithyCustomizationConfig(modelToGenerate);
+            }
             emitCode(modelToGenerate);
 
         } catch (Exception e) {
@@ -175,6 +181,15 @@ public class CodeGenerator {
 
     private void writeIntermediateModel(IntermediateModel model) throws IOException {
         writeModel(model, fileNamePrefix + "-intermediate.json");
+    }
+
+    private void writeSmithyCustomizationConfig(IntermediateModel model) {
+        try {
+            SmithyCustomizationConfigWriter.write(model.getCustomizationConfig(),
+                                                  getModelDirectory(sourcesDirectory));
+        } catch (IOException e) {
+            log.warn(() -> "Failed to write smithyCustomization.config", e);
+        }
     }
 
     private void writeModel(Object model, String name) throws IOException {
@@ -242,6 +257,7 @@ public class CodeGenerator {
         private String fileNamePrefix;
         private List<ModelValidator> modelValidators;
         private boolean emitValidationReport;
+        private boolean emitSmithyCustomizationConfig;
 
         private Builder() {
         }
@@ -293,6 +309,11 @@ public class CodeGenerator {
 
         public Builder emitValidationReport(boolean emitValidationReport) {
             this.emitValidationReport = emitValidationReport;
+            return this;
+        }
+
+        public Builder emitSmithyCustomizationConfig(boolean emitSmithyCustomizationConfig) {
+            this.emitSmithyCustomizationConfig = emitSmithyCustomizationConfig;
             return this;
         }
 

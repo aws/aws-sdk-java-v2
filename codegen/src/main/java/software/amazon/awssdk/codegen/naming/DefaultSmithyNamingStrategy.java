@@ -36,12 +36,11 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.codegen.utils.ProtocolUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.aws.traits.ServiceTrait;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.ServiceShape;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.StringUtils;
 
 public class DefaultSmithyNamingStrategy implements NamingStrategy {
     private static final Logger log = Logger.loggerFor(DefaultSmithyNamingStrategy.class);
@@ -54,32 +53,32 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     static {
         Set<String> reservedJavaKeywords = new HashSet<>();
         Collections.addAll(reservedJavaKeywords,
-                       "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
-                       "const", "continue", "default", "do", "double", "else", "enum", "extends", "false", "final",
-                       "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
-                       "interface", "long", "native", "new", "null", "package", "private", "protected", "public",
-                       "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw",
-                       "throws", "transient", "true", "try", "void", "volatile", "while");
+                "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+                "const", "continue", "default", "do", "double", "else", "enum", "extends", "false", "final",
+                "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
+                "interface", "long", "native", "new", "null", "package", "private", "protected", "public",
+                "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw",
+                "throws", "transient", "true", "try", "void", "volatile", "while");
         RESERVED_KEYWORDS = Collections.unmodifiableSet(reservedJavaKeywords);
 
         Set<String> reservedJavaMethodNames = new HashSet<>();
         Collections.addAll(reservedJavaMethodNames,
-                           "equals", "finalize", "getClass", "hashCode", "notify", "notifyAll", "toString", "wait");
+                "equals", "finalize", "getClass", "hashCode", "notify", "notifyAll", "toString", "wait");
 
         Set<String> reserveJavaPojoMethodNames = new HashSet<>(reservedJavaMethodNames);
         Collections.addAll(reserveJavaPojoMethodNames,
-                           "builder", "sdkFields", "toBuilder");
+                "builder", "sdkFields", "toBuilder");
 
         Set<String> reservedExceptionMethodNames = new HashSet<>(reserveJavaPojoMethodNames);
         Collections.addAll(reservedExceptionMethodNames,
-                           "awsErrorDetails", "cause", "fillInStackTrace", "getCause", "getLocalizedMessage",
-                           "getMessage", "getStackTrace", "getSuppressed", "isClockSkewException", "isThrottlingException",
-                           "printStackTrace", "requestId", "retryable", "serializableBuilderClass", "statusCode");
+                "awsErrorDetails", "cause", "fillInStackTrace", "getCause", "getLocalizedMessage",
+                "getMessage", "getStackTrace", "getSuppressed", "isClockSkewException", "isThrottlingException",
+                "printStackTrace", "requestId", "retryable", "serializableBuilderClass", "statusCode");
         RESERVED_EXCEPTION_METHOD_NAMES = Collections.unmodifiableSet(reservedExceptionMethodNames);
 
         Set<String> reservedStructureMethodNames = new HashSet<>(reserveJavaPojoMethodNames);
         Collections.addAll(reservedStructureMethodNames,
-                           "overrideConfiguration", "sdkHttpResponse");
+                "overrideConfiguration", "sdkHttpResponse");
         RESERVED_STRUCTURE_METHOD_NAMES = Collections.unmodifiableSet(reservedStructureMethodNames);
     }
 
@@ -87,7 +86,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     private final ServiceShape service;
     private final CustomizationConfig customizationConfig;
 
-    public DefaultSmithyNamingStrategy(Model smithyModel, ServiceShape service, CustomizationConfig customizationConfig) {
+    public DefaultSmithyNamingStrategy(Model smithyModel, ServiceShape service,
+            CustomizationConfig customizationConfig) {
         this.smithyModel = smithyModel;
         this.service = service;
         this.customizationConfig = customizationConfig;
@@ -179,7 +179,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
         String baseName;
         if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
             baseName = pascalCase(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length()))
-                       + EXCEPTION_CLASS_SUFFIX;
+                    + EXCEPTION_CLASS_SUFFIX;
         } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
             baseName = pascalCase(errorShapeName);
         } else {
@@ -212,8 +212,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     @Override
     public String getVariableName(String name) {
         if (isJavaKeyword(name)
-            || RESERVED_STRUCTURE_METHOD_NAMES.contains(name)
-            || RESERVED_EXCEPTION_METHOD_NAMES.contains(name)) {
+                || RESERVED_STRUCTURE_METHOD_NAMES.contains(name)
+                || RESERVED_EXCEPTION_METHOD_NAMES.contains(name)) {
             return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
         }
         return unCapitalize(name);
@@ -239,7 +239,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
         if (!result.matches("^[A-Z][A-Z0-9_]*$")) {
             String attempt = result;
-            log.warn(() -> "Invalid enum member generated for input '" + enumValue + "'. Best attempt: '" + attempt + "'");
+            log.warn(() -> "Invalid enum member generated for input '" + enumValue + "'. Best attempt: '" + attempt
+                    + "'");
         }
 
         return result;
@@ -266,10 +267,11 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     }
 
     /**
-     * Smithy-aware fluent getter that uses boolean flags instead of C2J Shape objects.
+     * Smithy-aware fluent getter that uses boolean flags instead of C2J Shape
+     * objects.
      */
     public String getFluentGetterMethodName(String memberName, boolean isException, boolean isUnion,
-                                            boolean isEnum, boolean isList, boolean isMap) {
+            boolean isEnum, boolean isList, boolean isMap) {
         String getterMethodName = unCapitalize(memberName);
         getterMethodName = rewriteInvalidMemberName(getterMethodName, isException, isUnion);
 
@@ -296,7 +298,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     /**
      * Smithy-aware fluent enum getter.
      */
-    public String getFluentEnumGetterMethodName(String memberName, boolean isException, boolean isUnion, boolean isEnum) {
+    public String getFluentEnumGetterMethodName(String memberName, boolean isException, boolean isUnion,
+            boolean isEnum) {
         if (!isEnum) {
             return null;
         }
@@ -319,7 +322,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     /**
      * Smithy-aware bean-style getter.
      */
-    public String getBeanStyleGetterMethodName(String memberName, boolean isException, boolean isUnion, boolean isEnum) {
+    public String getBeanStyleGetterMethodName(String memberName, boolean isException, boolean isUnion,
+            boolean isEnum) {
         String fluentGetterMethodName;
         if (isEnum) {
             fluentGetterMethodName = getFluentEnumGetterMethodName(memberName, isException, isUnion, isEnum);
@@ -338,7 +342,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     /**
      * Smithy-aware bean-style setter.
      */
-    public String getBeanStyleSetterMethodName(String memberName, boolean isException, boolean isUnion, boolean isEnum) {
+    public String getBeanStyleSetterMethodName(String memberName, boolean isException, boolean isUnion,
+            boolean isEnum) {
         String beanStyleGetter = getBeanStyleGetterMethodName(memberName, isException, isUnion, isEnum);
         return String.format("set%s", beanStyleGetter.substring("get".length()));
     }
@@ -349,7 +354,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
         setterMethodName = rewriteInvalidMemberName(setterMethodName, parentShape);
 
         if (shape != null && Utils.isOrContainsEnumShape(shape, Collections.emptyMap())
-            && (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
+                && (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
             setterMethodName += "WithStrings";
         }
 
@@ -360,7 +365,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
      * Smithy-aware fluent setter.
      */
     public String getFluentSetterMethodName(String memberName, boolean isException, boolean isUnion,
-                                            boolean isEnum, boolean isList, boolean isMap) {
+            boolean isEnum, boolean isList, boolean isMap) {
         String setterMethodName = unCapitalize(memberName);
         setterMethodName = rewriteInvalidMemberName(setterMethodName, isException, isUnion);
 
@@ -384,7 +389,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     /**
      * Smithy-aware fluent enum setter.
      */
-    public String getFluentEnumSetterMethodName(String memberName, boolean isException, boolean isUnion, boolean isEnum) {
+    public String getFluentEnumSetterMethodName(String memberName, boolean isException, boolean isUnion,
+            boolean isEnum) {
         if (!isEnum) {
             return null;
         }
@@ -422,10 +428,10 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     @Override
     public String getSigningName() {
         return service.getTrait(software.amazon.smithy.aws.traits.auth.SigV4Trait.class)
-                      .map(sigv4 -> sigv4.getName())
-                      .orElseGet(() -> service.getTrait(ServiceTrait.class)
-                                              .map(st -> st.getArnNamespace())
-                                              .orElse(""));
+                .map(sigv4 -> sigv4.getName())
+                .orElseGet(() -> service.getTrait(ServiceTrait.class)
+                        .map(st -> st.getArnNamespace())
+                        .orElse(""));
     }
 
     @Override
@@ -445,8 +451,8 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     private String serviceId() {
         return service.getTrait(ServiceTrait.class)
-                      .map(t -> t.getSdkId())
-                      .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the Smithy model."));
+                .map(t -> t.getSdkId())
+                .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the Smithy model."));
     }
 
     private static String removeRedundantPrefixesAndSuffixes(String baseName) {
@@ -462,7 +468,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     private static boolean isJavaKeyword(String word) {
         return RESERVED_KEYWORDS.contains(word)
-               || RESERVED_KEYWORDS.contains(StringUtils.lowerCase(word));
+                || RESERVED_KEYWORDS.contains(StringUtils.lowerCase(word));
     }
 
     private String screamCase(String word) {

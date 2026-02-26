@@ -79,6 +79,9 @@ public class GenerationMojo extends AbstractMojo {
     @Parameter(property = "writeValidationReport", defaultValue = "false")
     private boolean writeValidationReport;
 
+    @Parameter(property = "writeSmithyCustomizationConfig", defaultValue = "true")
+    private boolean writeSmithyCustomizationConfig;
+
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
@@ -206,6 +209,7 @@ public class GenerationMojo extends AbstractMojo {
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
                      .intermediateModelFileNamePrefix(params.intermediateModelFileNamePrefix)
                      .emitValidationReport(writeValidationReport)
+                     .emitSmithyCustomizationConfig(writeSmithyCustomizationConfig)
                      .build()
                      .execute();
     }

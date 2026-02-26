@@ -17,8 +17,10 @@ package software.amazon.awssdk.codegen.smithy;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
@@ -28,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -85,7 +88,6 @@ final class AddOperations {
 
             operationModel.setPaginated(isPaginated(operationShape));
 
-
             operationModel.setEndpointOperation(isEndpointDiscoveryOperation(operationShape));
             operationModel.setEndpointDiscovery(translateEndpointDiscoveryInfo(operationShape));
             operationModel.setEndpointTrait(translateEndpointInfo(operationShape));
@@ -109,35 +111,39 @@ final class AddOperations {
     }
 
     private void translateInput(OperationShape operationShape, OperationModel operationModel) {
+        String inputClassName = namingStrategy.getRequestClassName(operationShape.toShapeId().getName());
         if (operationShape.getInput().isPresent()) {
             ShapeId inputShapeId = operationShape.getInput().get();
             StructureShape inputShape = model.expectShape(inputShapeId, StructureShape.class);
-            String inputClassName = namingStrategy.getRequestClassName(operationShape.toShapeId().getName());
             String documentation = inputShape.getTrait(DocumentationTrait.class)
-                .map(t -> t.getValue())
-                .orElse(null);
+                    .map(t -> t.getValue())
+                    .orElse(null);
             operationModel.setInput(new VariableModel(unCapitalize(inputClassName), inputClassName)
-                                        .withDocumentation(documentation));
+                    .withDocumentation(documentation));
+        } else {
+            // Operation input targets smithy.api#Unit (no input members) — still create a
+            // request type
+            operationModel.setInput(new VariableModel(unCapitalize(inputClassName), inputClassName));
         }
     }
 
     private void translateOutput(OperationShape operationShape, OperationModel operationModel) {
         if (operationShape.getOutput().isPresent()) {
             ShapeId outputShapeId = operationShape.getOutput().get();
-            
+
             // Always create a response class name, even for Unit outputs
             String outputClassName = namingStrategy.getResponseClassName(operationShape.toShapeId().getName());
             ReturnTypeModel returnType = new ReturnTypeModel(outputClassName);
-            
+
             // Only set documentation if it's not a Unit shape
             if (!outputShapeId.toString().equals("smithy.api#Unit")) {
                 StructureShape outputShape = model.expectShape(outputShapeId, StructureShape.class);
                 String documentation = outputShape.getTrait(DocumentationTrait.class)
-                    .map(t -> t.getValue())
-                    .orElse(null);
+                        .map(t -> t.getValue())
+                        .orElse(null);
                 returnType.setDocumentation(documentation);
             }
-            
+
             operationModel.setReturnType(returnType);
         } else {
             // No output at all - still create a response type
@@ -151,15 +157,15 @@ final class AddOperations {
         for (ShapeId errorShapeId : operationShape.getErrors()) {
             StructureShape errorShape = model.expectShape(errorShapeId, StructureShape.class);
             String exceptionName = namingStrategy.getExceptionName(errorShapeId.getName());
-            
+
             ExceptionModel exceptionModel = new ExceptionModel(exceptionName);
-            
+
             errorShape.getTrait(DocumentationTrait.class)
-                .ifPresent(doc -> exceptionModel.setDocumentation(doc.getValue()));
-            
+                    .ifPresent(doc -> exceptionModel.setDocumentation(doc.getValue()));
+
             errorShape.getTrait(HttpErrorTrait.class)
-                .ifPresent(httpError -> exceptionModel.setHttpStatusCode(httpError.getCode()));
-            
+                    .ifPresent(httpError -> exceptionModel.setHttpStatusCode(httpError.getCode()));
+
             operationModel.addException(exceptionModel);
         }
     }
@@ -170,24 +176,24 @@ final class AddOperations {
 
     private RequestCompression translateRequestCompression(OperationShape operationShape) {
         return operationShape.getTrait(RequestCompressionTrait.class)
-            .map(t -> {
-                RequestCompression value = new RequestCompression();
-                value.setEncodings(t.getEncodings());
-                return value;
-            }).orElse(null);
+                .map(t -> {
+                    RequestCompression value = new RequestCompression();
+                    value.setEncodings(t.getEncodings());
+                    return value;
+                }).orElse(null);
     }
 
     private HttpChecksum translateHttpChecksum(OperationShape operationShape) {
         return operationShape.getTrait(HttpChecksumTrait.class)
-            .map(t -> {
-                // TODO: We may need to translate the "members"
-                HttpChecksum value = new HttpChecksum();
-                value.setRequestChecksumRequired(t.isRequestChecksumRequired());
-                t.getRequestAlgorithmMember().ifPresent(value::setRequestAlgorithmMember);
-                t.getRequestValidationModeMember().ifPresent(value::setRequestValidationModeMember);
-                value.setResponseAlgorithms(t.getResponseAlgorithms());
-                return value;
-            }).orElse(null);
+                .map(t -> {
+                    // TODO: We may need to translate the "members"
+                    HttpChecksum value = new HttpChecksum();
+                    value.setRequestChecksumRequired(t.isRequestChecksumRequired());
+                    t.getRequestAlgorithmMember().ifPresent(value::setRequestAlgorithmMember);
+                    t.getRequestValidationModeMember().ifPresent(value::setRequestValidationModeMember);
+                    value.setResponseAlgorithms(t.getResponseAlgorithms());
+                    return value;
+                }).orElse(null);
     }
 
     private static void translateDeprecated(OperationShape operationShape, OperationModel operationModel) {
@@ -202,20 +208,20 @@ final class AddOperations {
 
     private EndpointTrait translateEndpointInfo(OperationShape operationShape) {
         return operationShape.getTrait(software.amazon.smithy.model.traits.EndpointTrait.class)
-            .map(ep -> {
-                EndpointTrait e = new EndpointTrait();
-                e.setHostPrefix(ep.getHostPrefix().toString());
-                return e;
-            }).orElse(null);
+                .map(ep -> {
+                    EndpointTrait e = new EndpointTrait();
+                    e.setHostPrefix(ep.getHostPrefix().toString());
+                    return e;
+                }).orElse(null);
     }
 
     private EndpointDiscovery translateEndpointDiscoveryInfo(OperationShape operationShape) {
         return endpointDiscoveryIndex.getEndpointDiscoveryInfo(service, operationShape)
-            .map(info -> {
-                EndpointDiscovery d = new EndpointDiscovery();
-                d.setRequired(info.isRequired());
-                return d;
-            }).orElse(null);
+                .map(info -> {
+                    EndpointDiscovery d = new EndpointDiscovery();
+                    d.setRequired(info.isRequired());
+                    return d;
+                }).orElse(null);
     }
 
     private boolean isEndpointDiscoveryOperation(OperationShape operationShape) {
@@ -230,20 +236,33 @@ final class AddOperations {
     private String getOperationDocumentation(OperationShape operationShape) {
         // TODO: fall back to output documentation is operation's docs aren't present
         return operationShape.getTrait(DocumentationTrait.class)
-                      .map(StringTrait::getValue)
-            .orElse(null);
+                .map(StringTrait::getValue)
+                .orElse(null);
     }
 
     private void translateAuthentication(OperationShape operationShape, OperationModel operationModel) {
         // normally we would use: serviceIndex.getEffectiveAuthSchemes
-        // but for this translation we care ONLY about traits explicitly on the operation.
+        // but for this translation we care ONLY about traits explicitly on the
+        // operation.
         Map<ShapeId, Trait> operationAuth = getAuthTraitValues(service, operationShape);
         if (operationAuth == null) {
             operationModel.setIsAuthenticated(true);
             operationModel.setAuthType(null);
             operationModel.setAuth(Collections.emptyList());
         } else {
-            // TODO: We need to fully translate Auth types here
+            List<AuthType> authTypes = new ArrayList<>();
+            for (ShapeId authSchemeId : operationAuth.keySet()) {
+                authTypes.add(AuthType.fromValue(authSchemeId.toString()));
+            }
+            operationModel.setAuth(authTypes);
+
+            if (!authTypes.isEmpty()) {
+                operationModel.setAuthType(authTypes.get(0));
+                operationModel.setIsAuthenticated(authTypes.get(0) != AuthType.NONE);
+            } else {
+                operationModel.setIsAuthenticated(true);
+                operationModel.setAuthType(null);
+            }
         }
     }
 

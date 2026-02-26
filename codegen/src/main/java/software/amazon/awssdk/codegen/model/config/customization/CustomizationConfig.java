@@ -368,6 +368,48 @@ public class CustomizationConfig {
      */
     private List<String> allowedUnderscoreNames = new ArrayList<>();
 
+    /**
+     * Smithy-native equivalent of {@link #shapeModifiers}. Uses ShapeId-based references
+     * instead of C2J simple name strings. Only one of {@code shapeModifiers} or
+     * {@code smithyShapeModifiers} may be set at a time.
+     */
+    private Map<String, SmithyShapeModifier> smithyShapeModifiers;
+
+    /**
+     * Smithy-native equivalent of {@link #shapeSubstitutions}. Uses full ShapeId strings
+     * instead of simple names. Only one of {@code shapeSubstitutions} or
+     * {@code smithyShapeSubstitutions} may be set at a time.
+     */
+    private Map<String, SmithyShapeSubstitution> smithyShapeSubstitutions;
+
+    /**
+     * Smithy-native equivalent of {@link #customSdkShapes}. Uses Smithy JSON AST format
+     * instead of C2J Shape objects. Only one of {@code customSdkShapes} or
+     * {@code smithyCustomSdkShapes} may be set at a time.
+     */
+    private SmithyCustomSdkShapes smithyCustomSdkShapes;
+
+    /**
+     * Smithy-native equivalent of {@link #operationModifiers}. Uses full ShapeId strings
+     * for wrapped result shapes. Only one of {@code operationModifiers} or
+     * {@code smithyOperationModifiers} may be set at a time.
+     */
+    private Map<String, SmithyOperationModifier> smithyOperationModifiers;
+
+    /**
+     * Smithy-native equivalent of {@link #customServiceMetadata}. Uses Smithy protocol
+     * trait ShapeIds instead of C2J protocol strings. Only one of {@code customServiceMetadata}
+     * or {@code smithyCustomServiceMetadata} may be set at a time.
+     */
+    private SmithyMetadataConfig smithyCustomServiceMetadata;
+
+    /**
+     * Smithy-native equivalent of {@link #duplicateAndRenameSharedEvents}. Uses full ShapeId
+     * strings for event stream shape keys. Only one of {@code duplicateAndRenameSharedEvents}
+     * or {@code smithyDuplicateAndRenameSharedEvents} may be set at a time.
+     */
+    private Map<String, Map<String, String>> smithyDuplicateAndRenameSharedEvents;
+
     private CustomizationConfig() {
     }
 
@@ -963,5 +1005,54 @@ public class CustomizationConfig {
 
     public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
         this.allowedUnderscoreNames = allowedUnderscoreNames;
+    }
+
+    public Map<String, SmithyShapeModifier> getSmithyShapeModifiers() {
+        return smithyShapeModifiers;
+    }
+
+    public void setSmithyShapeModifiers(Map<String, SmithyShapeModifier> smithyShapeModifiers) {
+        this.smithyShapeModifiers = smithyShapeModifiers;
+    }
+
+    public Map<String, SmithyShapeSubstitution> getSmithyShapeSubstitutions() {
+        return smithyShapeSubstitutions;
+    }
+
+    public void setSmithyShapeSubstitutions(Map<String, SmithyShapeSubstitution> smithyShapeSubstitutions) {
+        this.smithyShapeSubstitutions = smithyShapeSubstitutions;
+    }
+
+    public SmithyCustomSdkShapes getSmithyCustomSdkShapes() {
+        return smithyCustomSdkShapes;
+    }
+
+    public void setSmithyCustomSdkShapes(SmithyCustomSdkShapes smithyCustomSdkShapes) {
+        this.smithyCustomSdkShapes = smithyCustomSdkShapes;
+    }
+
+    public Map<String, SmithyOperationModifier> getSmithyOperationModifiers() {
+        return smithyOperationModifiers;
+    }
+
+    public void setSmithyOperationModifiers(Map<String, SmithyOperationModifier> smithyOperationModifiers) {
+        this.smithyOperationModifiers = smithyOperationModifiers;
+    }
+
+    public SmithyMetadataConfig getSmithyCustomServiceMetadata() {
+        return smithyCustomServiceMetadata;
+    }
+
+    public void setSmithyCustomServiceMetadata(SmithyMetadataConfig smithyCustomServiceMetadata) {
+        this.smithyCustomServiceMetadata = smithyCustomServiceMetadata;
+    }
+
+    public Map<String, Map<String, String>> getSmithyDuplicateAndRenameSharedEvents() {
+        return smithyDuplicateAndRenameSharedEvents;
+    }
+
+    public void setSmithyDuplicateAndRenameSharedEvents(
+            Map<String, Map<String, String>> smithyDuplicateAndRenameSharedEvents) {
+        this.smithyDuplicateAndRenameSharedEvents = smithyDuplicateAndRenameSharedEvents;
     }
 }
