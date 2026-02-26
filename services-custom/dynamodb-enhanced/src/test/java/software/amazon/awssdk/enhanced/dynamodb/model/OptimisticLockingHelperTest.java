@@ -48,19 +48,21 @@ public class OptimisticLockingHelperTest {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
         String versionAttributeName = "version";
 
-        DeleteItemEnhancedRequest originalRequest =
+        DeleteItemEnhancedRequest.Builder originalRequestBuilder =
             DeleteItemEnhancedRequest.builder()
                                      .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName)
-                                     .build();
+                                     .optimisticLocking(versionValue, versionAttributeName);
 
-        DeleteItemEnhancedRequest result = optimisticLocking(originalRequest, versionValue, versionAttributeName);
+        DeleteItemEnhancedRequest result = optimisticLocking(originalRequestBuilder, versionValue, versionAttributeName);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -69,19 +71,21 @@ public class OptimisticLockingHelperTest {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
         String versionAttributeName = "version";
 
-        TransactDeleteItemEnhancedRequest originalRequest =
+        TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName)
-                                             .build();
+                                             .optimisticLocking(versionValue, versionAttributeName);
 
-        TransactDeleteItemEnhancedRequest result = optimisticLocking(originalRequest, versionValue, versionAttributeName);
+        TransactDeleteItemEnhancedRequest result = optimisticLocking(originalRequestBuilder, versionValue, versionAttributeName);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -95,17 +99,16 @@ public class OptimisticLockingHelperTest {
         RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
-        DeleteItemEnhancedRequest originalRequest =
+        DeleteItemEnhancedRequest.Builder requestBuilder =
             DeleteItemEnhancedRequest.builder()
                                      .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName)
-                                     .build();
+                                     .optimisticLocking(versionValue, versionAttributeName);
 
         DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            requestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
-        assertEquals(originalRequest, result);
+        assertEquals(requestBuilder.build(), result);
     }
 
     @Test
@@ -119,44 +122,22 @@ public class OptimisticLockingHelperTest {
         RecordForUpdateExpressions keyItem = new RecordForUpdateExpressions();
         TableSchema<RecordForUpdateExpressions> tableSchema = TableSchema.fromClass(RecordForUpdateExpressions.class);
 
-        DeleteItemEnhancedRequest originalRequest =
+        DeleteItemEnhancedRequest.Builder originalRequestBuilder =
             DeleteItemEnhancedRequest.builder()
                                      .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName)
-                                     .build();
+                                     .optimisticLocking(versionValue, versionAttributeName);
 
         DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
-    }
-
-    @Test
-    public void conditionallyApplyOptimistic_onDelete_whenFlagTrueAndVersionedRecordWithoutVersion_returnsOriginalRequest() {
-        boolean optimisticLockingEnabled = true;
-        Key key = Key.builder().partitionValue("id").build();
-        AttributeValue versionValue = null;
-        String versionAttributeName = "version";
-
-        // versioned record
-        RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
-        TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
-
-        DeleteItemEnhancedRequest originalRequest =
-            DeleteItemEnhancedRequest.builder()
-                                     .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName)
-                                     .build();
-
-        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
-
-        assertThat(result).isNotNull();
-        assertEquals(originalRequest, result);
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -172,20 +153,22 @@ public class OptimisticLockingHelperTest {
         keyItem.setVersion(version);
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
-        DeleteItemEnhancedRequest originalRequest =
+        DeleteItemEnhancedRequest.Builder originalRequestBuilder =
             DeleteItemEnhancedRequest.builder()
                                      .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName)
-                                     .build();
+                                     .optimisticLocking(versionValue, versionAttributeName);
 
         DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -199,17 +182,16 @@ public class OptimisticLockingHelperTest {
         RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
-        TransactDeleteItemEnhancedRequest originalRequest =
+        TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName)
-                                             .build();
+                                             .optimisticLocking(versionValue, versionAttributeName);
 
         TransactDeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
-        assertEquals(originalRequest, result);
+        assertEquals(originalRequestBuilder.build(), result);
     }
 
     @Test
@@ -223,20 +205,22 @@ public class OptimisticLockingHelperTest {
         RecordForUpdateExpressions keyItem = new RecordForUpdateExpressions();
         TableSchema<RecordForUpdateExpressions> tableSchema = TableSchema.fromClass(RecordForUpdateExpressions.class);
 
-        TransactDeleteItemEnhancedRequest originalRequest =
+        TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName)
-                                             .build();
+                                             .optimisticLocking(versionValue, versionAttributeName);
 
         TransactDeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -250,17 +234,16 @@ public class OptimisticLockingHelperTest {
         RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
-        TransactDeleteItemEnhancedRequest originalRequest =
+        TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName)
-                                             .build();
+                                             .optimisticLocking(versionValue, versionAttributeName);
 
         TransactDeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
-        assertEquals(originalRequest, result);
+        assertEquals(originalRequestBuilder.build(), result);
     }
 
     @Test
@@ -276,20 +259,22 @@ public class OptimisticLockingHelperTest {
         keyItem.setVersion(version);
         TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
-        TransactDeleteItemEnhancedRequest originalRequest =
+        TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName)
-                                             .build();
+                                             .optimisticLocking(versionValue, versionAttributeName);
 
         TransactDeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
-            originalRequest, keyItem, tableSchema, optimisticLockingEnabled);
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
 
         assertThat(result).isNotNull();
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -299,27 +284,62 @@ public class OptimisticLockingHelperTest {
 
         Expression result = createVersionCondition(versionValue, versionAttributeName);
 
-        assertThat(result.expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
-    public void createVersionCondition_nullAttributeName_throwsIllegalArgumentException_withMessage() {
+    public void createVersionCondition_nullVersionAttributeName_throwsIllegalArgumentException() {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
+        String versionAttributeName = null;
 
-        assertThatThrownBy(() -> createVersionCondition(versionValue, null))
+        assertThatThrownBy(() -> createVersionCondition(versionValue, versionAttributeName))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Version attribute name must not be null or empty.");
     }
 
     @Test
-    public void createVersionCondition_emptyAttributeName_throwsIllegalArgumentException_withMessage() {
+    public void createVersionCondition_emptyVersionAttributeName_throwsIllegalArgumentException() {
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
+        String versionAttributeName = "   ";
 
-        assertThatThrownBy(() -> createVersionCondition(versionValue, ""))
+        assertThatThrownBy(() -> createVersionCondition(versionValue, versionAttributeName))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Version attribute name must not be null or empty.");
+    }
+
+    @Test
+    public void createVersionCondition_nullVersionValue_throwsIllegalArgumentException() {
+        AttributeValue versionValue = null;
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> createVersionCondition(versionValue, versionAttributeName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
+    }
+
+    @Test
+    public void createVersionCondition_nullVersionAttributeValue_throwsIllegalArgumentException() {
+        AttributeValue versionValue = AttributeValue.fromN(null);
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> createVersionCondition(versionValue, versionAttributeName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
+    }
+
+    @Test
+    public void createVersionCondition_emptyVersionAttributeValue_throwsIllegalArgumentException() {
+        AttributeValue versionValue = AttributeValue.fromN("   ");
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> createVersionCondition(versionValue, versionAttributeName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Version value must not be null or empty.");
     }
 
     @Test
@@ -357,9 +377,12 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result.key()).isEqualTo(key);
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 
     @Test
@@ -394,7 +417,7 @@ public class OptimisticLockingHelperTest {
         assertThat(result.conditionExpression()).isNotNull();
 
         assertThat(result.conditionExpression().expression()).isEqualTo(
-            "(#key1 = :value1 OR #key2 = :value2) AND (#AMZN_MAPPED_version = :version_value)");
+            "(#key1 = :value1 OR #key2 = :value2) AND (#AMZN_MAPPED_version = :AMZN_MAPPED_version)");
 
         Map<String, String> expectedExpressionNames = new HashMap<>();
         expectedExpressionNames.put("#AMZN_MAPPED_version", "version");
@@ -403,7 +426,7 @@ public class OptimisticLockingHelperTest {
         assertThat(result.conditionExpression().expressionNames()).containsExactlyInAnyOrderEntriesOf(expectedExpressionNames);
 
         Map<String, AttributeValue> expectedExpressionValues = new HashMap<>();
-        expectedExpressionValues.put(":version_value", AttributeValue.builder().n("1").build());
+        expectedExpressionValues.put(":AMZN_MAPPED_version", AttributeValue.builder().n("1").build());
         expectedExpressionValues.put(":value1", AttributeValue.builder().n("10").build());
         expectedExpressionValues.put(":value2", AttributeValue.builder().n("20").build());
         assertThat(result.conditionExpression().expressionValues()).containsExactlyInAnyOrderEntriesOf(expectedExpressionValues);
@@ -425,11 +448,11 @@ public class OptimisticLockingHelperTest {
                                          .build();
 
             assertThat(result.conditionExpression().expression()).isEqualTo(
-                "#AMZN_MAPPED_" + attributeName + " = :version_value");
+                "#AMZN_MAPPED_" + attributeName + " = :AMZN_MAPPED_" + attributeName);
             assertThat(result.conditionExpression().expressionNames()).containsExactly(
                 entry("#AMZN_MAPPED_" + attributeName, attributeName));
             assertThat(result.conditionExpression().expressionValues()).containsExactly(
-                entry(":version_value", versionValue));
+                entry(":AMZN_MAPPED_" + attributeName, versionValue));
         }
     }
 
@@ -452,9 +475,13 @@ public class OptimisticLockingHelperTest {
                                          .optimisticLocking(versionValue, "version")
                                          .build();
 
-            assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :version_value");
-            assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_version", "version"));
-            assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+            assertThat(result.conditionExpression().expression()).isEqualTo(
+                "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+            assertThat(result.conditionExpression().expressionNames()).containsExactly(
+                entry("#AMZN_MAPPED_version", "version"));
+            assertThat(result.conditionExpression().expressionValues()).containsExactly(
+                entry(":AMZN_MAPPED_version",
+                      versionValue));
         }
     }
 
@@ -489,11 +516,12 @@ public class OptimisticLockingHelperTest {
 
         assertThat(result.key()).isEqualTo(key);
         assertThat(result.conditionExpression()).isNotNull();
-        assertThat(result.conditionExpression().expression()).isEqualTo("#AMZN_MAPPED_recordVersion = :version_value");
-        assertThat(result.conditionExpression().expressionNames()).containsExactly(entry("#AMZN_MAPPED_recordVersion",
-                                                                                         "recordVersion"
-        ));
-        assertThat(result.conditionExpression().expressionValues()).containsExactly(entry(":version_value", versionValue));
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_recordVersion = :AMZN_MAPPED_recordVersion");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_recordVersion", "recordVersion"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_recordVersion", versionValue));
     }
 }
 

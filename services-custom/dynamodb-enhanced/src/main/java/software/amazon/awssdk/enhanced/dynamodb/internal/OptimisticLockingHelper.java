@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -41,85 +42,91 @@ public final class OptimisticLockingHelper {
     /**
      * Adds optimistic locking to a delete request.
      *
-     * @param request              the original delete request
+     * @param requestBuilder       the original delete request builder
      * @param versionValue         the expected version value
      * @param versionAttributeName the version attribute name
      * @return delete request with optimistic locking condition
      */
     public static DeleteItemEnhancedRequest optimisticLocking(
-        DeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
-
-        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
-        return request.toBuilder()
-                      .conditionExpression(conditionExpression)
-                      .build();
+        DeleteItemEnhancedRequest.Builder requestBuilder, AttributeValue versionValue, String versionAttributeName) {
+        return requestBuilder
+            .conditionExpression(createVersionCondition(versionValue, versionAttributeName))
+            .build();
     }
 
     /**
      * Adds optimistic locking to a transactional delete request.
      *
-     * @param request              the original transactional delete request
+     * @param requestBuilder       the original delete request builder
      * @param versionValue         the expected version value
      * @param versionAttributeName the version attribute name
      * @return transactional delete request with optimistic locking condition
      */
     public static TransactDeleteItemEnhancedRequest optimisticLocking(
-        TransactDeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
+        TransactDeleteItemEnhancedRequest.Builder requestBuilder, AttributeValue versionValue, String versionAttributeName) {
 
         Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
-        return request.toBuilder()
-                      .conditionExpression(conditionExpression)
-                      .build();
+        return requestBuilder
+            .conditionExpression(conditionExpression)
+            .build();
     }
 
     /**
      * Conditionally applies optimistic locking if enabled and version information exists.
      *
      * @param <T>                  the type of the item
-     * @param request              the original delete request
+     * @param requestBuilder       the delete request builder
      * @param keyItem              the item containing version information
      * @param tableSchema          the table schema
      * @param useOptimisticLocking if true, applies optimistic locking
      * @return delete request with optimistic locking if enabled and version exists, otherwise original request
      */
     public static <T> DeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
-        DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
+        DeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
 
         if (!useOptimisticLocking) {
-            return request;
+            return requestBuilder.build();
         }
 
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
+
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null ? optimisticLocking(request, version, versionAttributeName) : request;
+                return version != null
+                       ? optimisticLocking(requestBuilder, version, versionAttributeName)
+                       : requestBuilder.build();
+
             })
-            .orElse(request);
+            .orElseGet(requestBuilder::build);
     }
 
     /**
      * Conditionally applies optimistic locking if enabled and version information exists.
      *
      * @param <T>                  the type of the item
-     * @param request              the original transactional delete request
+     * @param requestBuilder       the transactional delete request builder
      * @param keyItem              the item containing version information
      * @param tableSchema          the table schema
      * @param useOptimisticLocking if true, applies optimistic locking
      * @return delete request with optimistic locking if enabled and version exists, otherwise original request
      */
     public static <T> TransactDeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
-        TransactDeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
+        TransactDeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema,
+        boolean useOptimisticLocking) {
 
         if (!useOptimisticLocking) {
-            return request;
+            return requestBuilder.build();
         }
 
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null ? optimisticLocking(request, version, versionAttributeName) : request;
+                return version != null
+                       ? optimisticLocking(requestBuilder, version, versionAttributeName)
+                       : requestBuilder.build();
+
             })
-            .orElse(request);
+            .orElseGet(requestBuilder::build);
     }
 
 
@@ -129,24 +136,29 @@ public final class OptimisticLockingHelper {
      * @param versionValue         the expected version value
      * @param versionAttributeName the version attribute name
      * @return version check condition expression
-     * @throws IllegalArgumentException if {@code versionAttributeName} is null or empty
+     * @throws IllegalArgumentException if {@code versionAttributeName} or {@code versionValue} are null or empty
      */
     public static Expression createVersionCondition(AttributeValue versionValue, String versionAttributeName) {
         if (versionAttributeName == null || versionAttributeName.trim().isEmpty()) {
             throw new IllegalArgumentException("Version attribute name must not be null or empty.");
         }
 
+        if (versionValue == null || versionValue.n() == null || versionValue.n().trim().isEmpty()) {
+            throw new IllegalArgumentException("Version value must not be null or empty.");
+        }
+
         String attributeKeyRef = keyRef(versionAttributeName);
+        String attributeValueRef = valueRef(versionAttributeName);
 
         return Expression.builder()
-                         .expression(String.format("%s = :version_value", attributeKeyRef))
-                         .putExpressionValue(":version_value", versionValue)
+                         .expression(String.format("%s = %s", attributeKeyRef, attributeValueRef))
                          .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeName))
+                         .expressionValues(Collections.singletonMap(attributeValueRef, versionValue))
                          .build();
     }
 
     /**
-     * Gets the version attribute name from table schema.
+     * Gets the version attribute name from table schema. v
      *
      * @param <T>         the type of the item
      * @param tableSchema the table schema

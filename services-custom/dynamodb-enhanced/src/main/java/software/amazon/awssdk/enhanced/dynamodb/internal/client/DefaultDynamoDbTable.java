@@ -173,9 +173,9 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
      */
     @Override
     public T deleteItem(T keyItem, boolean useOptimisticLocking) {
-        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
-        request = conditionallyApplyOptimisticLocking(request, keyItem, tableSchema, useOptimisticLocking);
-        return deleteItem(request);
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem));
+        conditionallyApplyOptimisticLocking(builder, keyItem, tableSchema, useOptimisticLocking);
+        return deleteItem(builder.build());
     }
 
     @Override
