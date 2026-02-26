@@ -303,10 +303,16 @@ final class AddSmithyShapes {
         String variableName = namingStrategy.getVariableName(javaClassName);
         shapeModel.setVariable(new VariableModel(variableName, javaClassName));
 
+        // Smithy 2.0 enums (EnumShape) have a SyntheticEnumTrait where getName()
+        // returns the member name in PascalCase (e.g.,
+        // "ReceiveMessageWaitTimeSeconds").
+        // We always derive the Java enum constant name via getEnumValueName() to get
+        // SCREAMING_SNAKE_CASE (e.g., "RECEIVE_MESSAGE_WAIT_TIME_SECONDS"), matching
+        // the C2J codegen behavior.
         EnumTrait enumTrait = stringShape.expectTrait(EnumTrait.class);
         enumTrait.getValues().forEach(enumDef -> {
             String enumValue = enumDef.getValue();
-            String enumName = enumDef.getName().orElse(namingStrategy.getEnumValueName(enumValue));
+            String enumName = namingStrategy.getEnumValueName(enumValue);
             shapeModel.addEnum(new EnumModel(enumName, enumValue));
         });
 
@@ -591,6 +597,12 @@ final class AddSmithyShapes {
 
         // Create value member model with full naming
         MemberModel valueModel = createContainerElementMemberModel("value", valueMember, valueTarget, valueType);
+
+        // If key is an enum, set enum type (used by templates to generate enum-keyed
+        // getters/setters)
+        if (keyTarget.isStringShape() && keyTarget.hasTrait(EnumTrait.class)) {
+            keyModel.withEnumType(namingStrategy.getShapeClassName(keyMember.getTarget().getName()));
+        }
 
         // If value is an enum, set enum type
         if (valueTarget.isStringShape() && valueTarget.hasTrait(EnumTrait.class)) {

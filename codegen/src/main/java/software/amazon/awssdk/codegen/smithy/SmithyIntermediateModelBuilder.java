@@ -67,6 +67,8 @@ public class SmithyIntermediateModelBuilder {
     private final NamingStrategy namingStrategy;
     private final TypeUtils typeUtils;
     private ServiceIndex serviceIndex;
+    private final Paginators c2jPaginators;
+    private final Waiters c2jWaiters;
 
     public SmithyIntermediateModelBuilder(SmithyModelWithCustomizations modelWithCustomizations) {
         this.smithyModel = modelWithCustomizations.getSmithyModel();
@@ -75,6 +77,8 @@ public class SmithyIntermediateModelBuilder {
         this.namingStrategy = new DefaultSmithyNamingStrategy(smithyModel, service, customizationConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.serviceIndex = ServiceIndex.of(smithyModel);
+        this.c2jPaginators = modelWithCustomizations.getC2jPaginators();
+        this.c2jWaiters = modelWithCustomizations.getC2jWaiters();
     }
 
     private ServiceShape getServiceShape(Model model) {
@@ -104,11 +108,17 @@ public class SmithyIntermediateModelBuilder {
         // smithyCustomization.config.
         SmithyCustomizationConfigTranslator.translate(customizationConfig, preprocessedModel, this.service);
 
-        Paginators paginators = translatePaginators();
-        Waiters waiters = translateWaiters();
+        Paginators paginators = c2jPaginators;
+        Waiters waiters = c2jWaiters;
 
         Map<String, OperationModel> operations = new TreeMap<>(
                 new AddOperations(this, paginators).constructOperations());
+
+        // Remove deprecated operations and their paginators (matching C2J
+        // IntermediateModelBuilder)
+        operations.entrySet().removeIf(e -> customizationConfig.getDeprecatedOperations().contains(e.getKey()));
+        paginators.getPagination().entrySet()
+                .removeIf(e -> customizationConfig.getDeprecatedOperations().contains(e.getKey()));
 
         // Add shapes
         Map<String, ShapeModel> shapes = new AddSmithyShapes(this).constructShapes();
@@ -318,16 +328,6 @@ public class SmithyIntermediateModelBuilder {
 
     public TypeUtils getTypeUtils() {
         return typeUtils;
-    }
-
-    private static Waiters translateWaiters() {
-        // TODO - transform these!
-        return Waiters.none();
-    }
-
-    private static Paginators translatePaginators() {
-        // TODO - transform these!'
-        return Paginators.none();
     }
 
     /**

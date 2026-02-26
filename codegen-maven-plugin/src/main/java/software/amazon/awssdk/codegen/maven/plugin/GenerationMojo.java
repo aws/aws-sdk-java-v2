@@ -153,7 +153,11 @@ public class GenerationMojo extends AbstractMojo {
                 System.out.println("\n--------------------------------\nWARBLEGARBLE\nSMITHY\n");
 
                 SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations
-                    .builder().smithyModel(smithyModelFile).customizationConfig(r.customizationConfig).build();
+                    .builder().smithyModel(smithyModelFile)
+                    .customizationConfig(r.customizationConfig)
+                    .c2jPaginators(loadPaginatorModel(modelRootPath))
+                    .c2jWaiters(loadWaiterModel(modelRootPath))
+                    .build();
                 IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModel).build();
                 String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(intermediateModel);
                 return new GenerationParams().withIntermediateModel(intermediateModel)

@@ -21,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.Paginators;
+import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.smithy.model.Model;
@@ -28,11 +30,15 @@ import software.amazon.smithy.model.Model;
 public class SmithyModelWithCustomizations {
     private final Model smithyModel;
     private final CustomizationConfig customizationConfig;
+    private final Paginators c2jPaginators;
+    private final Waiters c2jWaiters;
 
     private SmithyModelWithCustomizations(Builder builder) {
         this.smithyModel = builder.smithyModel;
-        this.customizationConfig = builder.customizationConfig == null ?
-                                   CustomizationConfig.create() : builder.customizationConfig;
+        this.customizationConfig = builder.customizationConfig == null ? CustomizationConfig.create()
+                : builder.customizationConfig;
+        this.c2jPaginators = builder.c2jPaginators == null ? Paginators.none() : builder.c2jPaginators;
+        this.c2jWaiters = builder.c2jWaiters == null ? Waiters.none() : builder.c2jWaiters;
         Validate.notNull(this.smithyModel, "Smithy Model is required");
     }
 
@@ -48,10 +54,20 @@ public class SmithyModelWithCustomizations {
         return customizationConfig;
     }
 
+    public Paginators getC2jPaginators() {
+        return c2jPaginators;
+    }
+
+    public Waiters getC2jWaiters() {
+        return c2jWaiters;
+    }
+
     public static class Builder implements SdkBuilder<Builder, SmithyModelWithCustomizations> {
         private Model smithyModel;
         private Path modelLocation;
         private CustomizationConfig customizationConfig;
+        private Paginators c2jPaginators;
+        private Waiters c2jWaiters;
 
         public Builder smithyModel(Model smithyModel) {
             this.smithyModel = smithyModel;
@@ -68,6 +84,16 @@ public class SmithyModelWithCustomizations {
             return this;
         }
 
+        public Builder c2jPaginators(Paginators c2jPaginators) {
+            this.c2jPaginators = c2jPaginators;
+            return this;
+        }
+
+        public Builder c2jWaiters(Waiters c2jWaiters) {
+            this.c2jWaiters = c2jWaiters;
+            return this;
+        }
+
         @Override
         public SmithyModelWithCustomizations build() {
             if (modelLocation != null && smithyModel != null) {
@@ -78,10 +104,10 @@ public class SmithyModelWithCustomizations {
                 try {
                     String content = new String(Files.readAllBytes(modelLocation), StandardCharsets.UTF_8);
                     this.smithyModel = Model.assembler()
-                                   .addUnparsedModel(modelLocation.toString(), content)
-                                   .discoverModels(getClass().getClassLoader())
-                        .disableValidation()
-                        .assemble().unwrap();
+                            .addUnparsedModel(modelLocation.toString(), content)
+                            .discoverModels(getClass().getClassLoader())
+                            .disableValidation()
+                            .assemble().unwrap();
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to read model file", e);
                 }
