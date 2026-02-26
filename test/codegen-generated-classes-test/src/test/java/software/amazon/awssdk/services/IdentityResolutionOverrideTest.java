@@ -71,9 +71,8 @@ class IdentityResolutionOverrideTest {
         assertSelectedAuthSchemeBeforeTransmissionContains(OVERRIDE_CREDENTIALS);
     }
 
-    // Changing the credentials provider in modifyRequest does not work in SRA identity resolution
-    // Identity is resolved in beforeExecution (and happens before user applied interceptors) and cannot
-    // be affected by execution interceptors.
+    // After moving identity resolution to pipeline stage (after interceptors), credentials provider
+    // set in modifyRequest is now respected (identity resolved after interceptors complete)
     @Test
     void when_executionInterceptorModifyRequest_setsCredentialProviderInRequestOverride_clientCredentialsAreUsed() {
         ExecutionInterceptor overridingInterceptor =
@@ -83,7 +82,7 @@ class IdentityResolutionOverrideTest {
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("stop");
 
-        assertSelectedAuthSchemeBeforeTransmissionContains(CLIENT_CREDENTIALS);
+        assertSelectedAuthSchemeBeforeTransmissionContains(OVERRIDE_CREDENTIALS);
     }
 
     @Test

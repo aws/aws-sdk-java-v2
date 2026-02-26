@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -80,13 +82,15 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.S3AuthSchemeInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
@@ -240,7 +244,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new S3AuthSchemeInterceptor());
+        // S3AuthSchemeInterceptor removed - auth scheme resolution now done inline
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
         additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
         s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
@@ -404,6 +408,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         callAfterMarshallingHooks(execCtx);
         addRequestLevelHeadersAndQueryParameters(execCtx);
         callModifyHttpRequestHooksAndUpdateContext(execCtx);
+
+        // Resolve auth scheme after interceptors complete
+        resolveAndSelectAuthScheme(execCtx, requestToPresign, operationName);
 
         SdkHttpFullRequest httpRequest = getHttpFullRequest(execCtx);
 
@@ -592,6 +599,190 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                  })
                                  .contentStreamProvider(bodyFromInterceptor.map(RequestBody::contentStreamProvider).orElse(null))
                                  .build();
+    }
+
+    /**
+     * Resolve and select auth scheme for presigning.
+     */
+    private void resolveAndSelectAuthScheme(ExecutionContext execCtx, SdkRequest request, String operationName) {
+        ExecutionAttributes executionAttributes = execCtx.executionAttributes();
+        
+        // Get auth schemes and identity providers
+        Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        if (authSchemes == null) {
+            return; // No auth schemes configured
+        }
+
+        // Resolve auth options (same logic as generated client)
+        List<AuthSchemeOption> authOptions = resolveAuthSchemeOptions(request, operationName, executionAttributes);
+        if (authOptions == null || authOptions.isEmpty()) {
+            return;
+        }
+
+        // Get identity providers and apply credential overrides
+        IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+        identityProviders = applyCredentialOverrides(request, identityProviders);
+
+        // Select auth scheme
+        SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, authSchemes, identityProviders);
+
+        // Merge pre-existing properties
+        selectedAuthScheme = mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
+
+        executionAttributes.putAttribute(SELECTED_AUTH_SCHEME, selectedAuthScheme);
+    }
+
+    /**
+     * Merge properties from any pre-existing auth scheme into the selected one.
+     */
+    private <T extends Identity> SelectedAuthScheme<T> mergePreExistingAuthSchemeProperties(
+            SelectedAuthScheme<T> selectedAuthScheme,
+            ExecutionAttributes executionAttributes) {
+
+        SelectedAuthScheme<?> existingAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+
+        // Skip if no existing scheme
+        if (existingAuthScheme == null) {
+            return selectedAuthScheme;
+        }
+
+        AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+        existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
+        existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
+
+        return new SelectedAuthScheme<>(
+            selectedAuthScheme.identity(),
+            selectedAuthScheme.signer(),
+            mergedOption.build()
+        );
+    }
+
+    /**
+     * Resolve auth scheme options using full endpoint params.
+     */
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName, 
+                                                            ExecutionAttributes executionAttributes) {
+        S3AuthSchemeProvider authSchemeProvider = (S3AuthSchemeProvider) 
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+        
+        // Build full endpoint params using the generated interceptor's logic
+        S3EndpointParams endpointParams = 
+            S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        
+        // Copy all endpoint params to auth scheme params
+        S3AuthSchemeParams.Builder authParamsBuilder = 
+            S3AuthSchemeParams.builder()
+                .operation(operationName)
+                .region(endpointParams.region())
+                .bucket(endpointParams.bucket())
+                .prefix(endpointParams.prefix())
+                .copySource(endpointParams.copySource())
+                .key(endpointParams.key());
+        
+        // Set optional endpoint params if present
+        if (endpointParams.accelerate() != null) {
+            authParamsBuilder.accelerate(endpointParams.accelerate());
+        }
+        if (endpointParams.disableMultiRegionAccessPoints() != null) {
+            authParamsBuilder.disableMultiRegionAccessPoints(endpointParams.disableMultiRegionAccessPoints());
+        }
+        if (endpointParams.disableS3ExpressSessionAuth() != null) {
+            authParamsBuilder.disableS3ExpressSessionAuth(endpointParams.disableS3ExpressSessionAuth());
+        }
+        if (endpointParams.forcePathStyle() != null) {
+            authParamsBuilder.forcePathStyle(endpointParams.forcePathStyle());
+        }
+        if (endpointParams.useArnRegion() != null) {
+            authParamsBuilder.useArnRegion(endpointParams.useArnRegion());
+        }
+        if (endpointParams.useFips() != null) {
+            authParamsBuilder.useFips(endpointParams.useFips());
+        }
+        if (endpointParams.useDualStack() != null) {
+            authParamsBuilder.useDualStack(endpointParams.useDualStack());
+        }
+        
+        return authSchemeProvider.resolveAuthScheme(authParamsBuilder.build());
+    }
+
+    /**
+     * Apply credential overrides from request configuration.
+     */
+    private IdentityProviders applyCredentialOverrides(SdkRequest request, IdentityProviders base) {
+        if (base == null) {
+            return null;
+        }
+        return request.overrideConfiguration()
+            .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+            .map(c -> (AwsRequestOverrideConfiguration) c)
+            .map(c -> base.copy(b -> {
+                c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
+                c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
+            }))
+            .orElse(base);
+    }
+
+    /**
+     * Select auth scheme from options
+     */
+    private SelectedAuthScheme<? extends Identity> selectAuthScheme(List<AuthSchemeOption> authOptions,
+                                                                    Map<String, AuthScheme<?>> authSchemes,
+                                                                    IdentityProviders identityProviders) {
+        List<Supplier<String>> discardedReasons = new ArrayList<>();
+
+        for (AuthSchemeOption authOption : authOptions) {
+            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
+            SelectedAuthScheme<? extends Identity> selectedAuthScheme = 
+                trySelectAuthScheme(authOption, authScheme, identityProviders, discardedReasons);
+
+            if (selectedAuthScheme != null) {
+                if (!discardedReasons.isEmpty()) {
+                    log.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
+                        discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
+                }
+                return selectedAuthScheme;
+            }
+        }
+
+        throw new IllegalStateException("Failed to determine how to authenticate the user: " +
+            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", ")));
+    }
+
+    /**
+     * Try to select a specific auth scheme (copied from AuthSchemeResolutionStage).
+     */
+    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption,
+                                                                           AuthScheme<T> authScheme,
+                                                                           IdentityProviders identityProviders,
+                                                                           List<Supplier<String>> discardedReasons) {
+        if (authScheme == null) {
+            discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
+            return null;
+        }
+
+        IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
+        if (identityProvider == null) {
+            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.", 
+                authOption.schemeId()));
+            return null;
+        }
+
+        HttpSigner<T> signer;
+        try {
+            signer = authScheme.signer();
+        } catch (RuntimeException e) {
+            discardedReasons.add(() -> String.format("'%s' signer could not be retrieved: %s", 
+                authOption.schemeId(), e.getMessage()));
+            return null;
+        }
+
+        ResolveIdentityRequest.Builder identityRequestBuilder = 
+            ResolveIdentityRequest.builder();
+        authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+
+        CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
+
+        return new SelectedAuthScheme<>(identity, signer, authOption);
     }
 
     /**

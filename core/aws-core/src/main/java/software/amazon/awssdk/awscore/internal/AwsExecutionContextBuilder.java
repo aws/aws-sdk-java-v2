@@ -33,6 +33,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.internal.identity.AwsIdentityProviderUpdater;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -63,6 +64,7 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -143,6 +145,18 @@ public final class AwsExecutionContextBuilder {
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
+
+        // Set auth scheme options from ClientExecutionParams
+        if (executionParams.authSchemeOptions() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS,
+                                             executionParams.authSchemeOptions());
+
+            recordAuthSchemeBusinessMetrics(executionParams.authSchemeOptions(), executionAttributes, originalRequest);
+        }
+
+        // Set the identity provider updater for the pipeline stage to use
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER,
+                                         AwsIdentityProviderUpdater.INSTANCE);
 
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -355,7 +369,7 @@ public final class AwsExecutionContextBuilder {
     }
 
     private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection
-        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig, 
+        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig,
                                         ClientExecutionParams<InputT, OutputT> executionParams) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
@@ -372,5 +386,67 @@ public final class AwsExecutionContextBuilder {
     private static boolean isRpcV2CborProtocol(SdkProtocolMetadata protocolMetadata) {
         return protocolMetadata != null &&
                SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
+    }
+
+    /**
+     * Records business metrics for auth scheme selection (SigV4a, bearer token).
+     */
+    private static void recordAuthSchemeBusinessMetrics(List<AuthSchemeOption> authSchemeOptions,
+                                                        ExecutionAttributes executionAttributes,
+                                                        SdkRequest request) {
+        if (authSchemeOptions == null || authSchemeOptions.isEmpty()) {
+            return;
+        }
+
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics == null) {
+            return;
+        }
+
+        Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+        
+        if (authSchemes == null || identityProviders == null) {
+            return;
+        }
+
+        for (AuthSchemeOption authOption : authSchemeOptions) {
+            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
+            if (authScheme == null) {
+                continue; // Auth scheme not enabled, try next option
+            }
+            
+            if (authScheme.identityProvider(identityProviders) == null) {
+                continue; // Identity provider not configured, try next option
+            }
+
+            // Check for SigV4a
+            if ("aws.auth#sigv4a".equals(authOption.schemeId()) &&
+                !SignerOverrideUtils.isSignerOverridden(request, executionAttributes)) {
+                businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
+            }
+
+            // Check for bearer token from environment
+            if ("smithy.api#httpBearerAuth".equals(authOption.schemeId())) {
+                String tokenFromEnv = executionAttributes.getAttribute(SdkInternalExecutionAttribute.TOKEN_CONFIGURED_FROM_ENV);
+                if (tokenFromEnv != null && !hasTokenOverride(request)) {
+                    businessMetrics.addMetric(BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS.value());
+                }
+            }
+
+            return;
+        }
+    }
+
+    /**
+     * Check if the request has a token identity provider override.
+     */
+    private static boolean hasTokenOverride(SdkRequest request) {
+        return request.overrideConfiguration()
+                      .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                      .map(c -> (AwsRequestOverrideConfiguration) c)
+                      .flatMap(AwsRequestOverrideConfiguration::tokenIdentityProvider)
+                      .isPresent();
     }
 }
