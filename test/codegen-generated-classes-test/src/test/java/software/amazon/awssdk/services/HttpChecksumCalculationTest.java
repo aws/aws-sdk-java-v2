@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX;
 
 import io.reactivex.Flowable;
@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,12 +35,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -78,16 +76,6 @@ public class HttpChecksumCalculationTest {
                                           .credentialsProvider(AnonymousCredentialsProvider.create())
                                           .requestChecksumCalculation(calculation)
                                           .region(Region.US_WEST_2);
-    }
-
-    private static final class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
-        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-            SdkRequest request = context.request();
-
-            if (request instanceof PutOperationWithChecksumRequest) {
-                executionAttributes.putAttributeIfAbsent(ENABLE_CHUNKED_ENCODING, true);
-            }
-        }
     }
 
     @BeforeEach
@@ -258,5 +246,55 @@ public class HttpChecksumCalculationTest {
         ArgumentCaptor<AsyncExecuteRequest> captor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
         Mockito.verify(httpAsyncClient).execute(captor.capture());
         return captor.getValue().request();
+    }
+
+    @Test
+    public void syncMd5ChecksumCalculation_shouldThrowException() {
+        try (ProtocolRestJsonClient client = initializeSync(RequestChecksumCalculation.WHEN_SUPPORTED).build()) {
+            assertThatThrownBy(() -> client.putOperationWithChecksum(
+                PutOperationWithChecksumRequest.builder()
+                                               .checksumAlgorithm(ChecksumAlgorithm.MD5)
+                                               .build(),
+                RequestBody.fromString("Hello world")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("MD5 is not supported");
+        }
+    }
+
+    @Test
+    public void asyncMd5ChecksumCalculation_shouldThrowException() {
+        try (ProtocolRestJsonAsyncClient client = initializeAsync(RequestChecksumCalculation.WHEN_SUPPORTED).build()) {
+            assertThatThrownBy(() -> client.putOperationWithChecksum(
+                PutOperationWithChecksumRequest.builder()
+                                               .checksumAlgorithm(ChecksumAlgorithm.MD5)
+                                               .build(),
+                AsyncRequestBody.fromString("Hello world")).join())
+                .hasCauseInstanceOf(SdkException.class)
+                .hasMessageContaining("MD5 is not supported");
+        }
+    }
+
+    @Test
+    public void syncMd5ChecksumCalculation_userProvidedMd5Header_shouldSucceed() {
+        try (ProtocolRestJsonClient client = initializeSync(RequestChecksumCalculation.WHEN_SUPPORTED).build()) {
+            client.putOperationWithChecksum(r -> r.overrideConfiguration(o -> o.putHeader("x-amz-checksum-md5", "PiWWCnnbxptnTNTsZ6csYg==")),
+                                           RequestBody.fromString("Hello world"));
+            assertMd5HeaderPresent(getSyncRequest());
+        }
+    }
+
+    @Test
+    public void asyncMd5ChecksumCalculation_userProvidedMd5Header_shouldSucceed() {
+        try (ProtocolRestJsonAsyncClient client = initializeAsync(RequestChecksumCalculation.WHEN_SUPPORTED).build()) {
+            client.putOperationWithChecksum(r -> r.overrideConfiguration(o -> o.putHeader("x-amz-checksum-md5", "PiWWCnnbxptnTNTsZ6csYg==")),
+                                           AsyncRequestBody.fromString("Hello world")).join();
+            assertMd5HeaderPresent(getAsyncRequest());
+        }
+    }
+
+    private void assertMd5HeaderPresent(SdkHttpRequest request) {
+        assertThat(request.firstMatchingHeader("x-amz-checksum-md5"))
+            .isPresent()
+            .hasValue("PiWWCnnbxptnTNTsZ6csYg==");
     }
 }

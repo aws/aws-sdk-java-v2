@@ -22,8 +22,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.checksums.internal.DigestAlgorithm.CloseableMessageDigest;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -47,31 +51,27 @@ class DigestAlgorithmTest {
         assertThat(digest.messageDigest()).isNotNull();
     }
 
-    @Test
-    void digestAlgorithms_useCorrectImplementation() {
+    @ParameterizedTest
+    @MethodSource("digestAlgorithmTestCases")
+    void digestAlgorithms_useCorrectImplementation(DigestAlgorithm algorithm, String expectedBase64) {
         String input = "Hello, World!";
         byte[] data = input.getBytes(StandardCharsets.UTF_8);
 
-        // Test SHA1
-        CloseableMessageDigest sha1Digest = DigestAlgorithm.SHA1.getDigest();
-        sha1Digest.messageDigest().update(data);
-        byte[] sha1Hash = sha1Digest.digest();
-        assertThat(sha1Hash).isNotNull();
-        assertThat(BinaryUtils.toBase64(sha1Hash)).isEqualTo("CgqfKmdylCVXq1NV12r0Qvj2XgE=");
+        CloseableMessageDigest digest = algorithm.getDigest();
+        digest.messageDigest().update(data);
+        byte[] hash = digest.digest();
+        
+        assertThat(hash).isNotNull();
+        assertThat(BinaryUtils.toBase64(hash)).isEqualTo(expectedBase64);
+    }
 
-        // Test MD5
-        CloseableMessageDigest md5Digest = DigestAlgorithm.MD5.getDigest();
-        md5Digest.messageDigest().update(data);
-        byte[] md5Hash = md5Digest.digest();
-        assertThat(md5Hash).isNotNull();
-        assertThat(BinaryUtils.toBase64(md5Hash)).isEqualTo("ZajifYh5KDgxtmS9i38K1A==");
-
-        // Test SHA256
-        CloseableMessageDigest sha256Digest = DigestAlgorithm.SHA256.getDigest();
-        sha256Digest.messageDigest().update(data);
-        byte[] sha256Hash = sha256Digest.digest();
-        assertThat(sha256Hash).isNotNull();
-        assertThat(BinaryUtils.toBase64(sha256Hash)).isEqualTo("3/1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8=");
+    static Stream<Arguments> digestAlgorithmTestCases() {
+        return Stream.of(
+            Arguments.of(DigestAlgorithm.SHA1, "CgqfKmdylCVXq1NV12r0Qvj2XgE="),
+            Arguments.of(DigestAlgorithm.MD5, "ZajifYh5KDgxtmS9i38K1A=="),
+            Arguments.of(DigestAlgorithm.SHA256, "3/1gIbsr1bCvZ2KQgJ7DpTGR3YHH9wpLKGiKNiGCmG8="),
+            Arguments.of(DigestAlgorithm.SHA512, "N015SpXNz9izWZMYX++bo2jxYNja9DLQi6nx7R5avmzGkpHg+i/gAGpSVw7xjBne9OYXwzzlLvCm5fvjGMsDhw==")
+        );
     }
 
     @Test

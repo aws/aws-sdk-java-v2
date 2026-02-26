@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache 5 HTTP Client",
+    "contributor": "",
+    "description": "Update `httpcore5` to `5.4.1`."
+}

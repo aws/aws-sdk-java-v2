@@ -29,7 +29,8 @@ public enum DigestAlgorithm {
     SHA1("SHA-1"),
 
     MD5("MD5"),
-    SHA256("SHA-256")
+    SHA256("SHA-256"),
+    SHA512("SHA-512")
     ;
 
     private static final Supplier<MessageDigest> CLOSED_DIGEST = () -> {

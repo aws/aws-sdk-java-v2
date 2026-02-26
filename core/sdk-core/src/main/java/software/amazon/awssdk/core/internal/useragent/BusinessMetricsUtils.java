@@ -111,6 +111,27 @@ public final class BusinessMetricsUtils {
         if (algorithmId.equals(DefaultChecksumAlgorithm.SHA256.algorithmId())) {
             return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA256.value());
         }
+
+        if (algorithmId.equals(DefaultChecksumAlgorithm.SHA512.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA512.value());
+        }
+
+        if (algorithmId.equals(DefaultChecksumAlgorithm.XXHASH3.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH3.value());
+        }
+
+        if (algorithmId.equals(DefaultChecksumAlgorithm.XXHASH64.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH64.value());
+        }
+
+        if (algorithmId.equals(DefaultChecksumAlgorithm.XXHASH128.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH128.value());
+        }
+
+        if (algorithmId.equals(DefaultChecksumAlgorithm.MD5.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_MD5.value());
+        }
+
         return Optional.empty();
     }
 

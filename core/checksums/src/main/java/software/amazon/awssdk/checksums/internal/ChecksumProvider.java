@@ -17,10 +17,16 @@ package software.amazon.awssdk.checksums.internal;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.crt.checksums.CRC32C;
+import software.amazon.awssdk.crt.checksums.CRC64NVME;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
+import software.amazon.awssdk.utils.Lazy;
 
 /**
- * Utility class providing implementations of CRC checksums, specifically CRC32C and CRC64NVME.
+ * Utility class providing implementations of checksums.
  *
  * <p>Supports the following implementations for CRC32C:</p>
  * <ul>
@@ -29,23 +35,38 @@ import software.amazon.awssdk.checksums.SdkChecksum;
  *     <li>SDK-based CRC32C (fallback)</li>
  * </ul>
  *
- * <p>Only supports CRT-based implementation for CRC64NVME (using AWS CRT library).</p>
+ * <p>Supports CRT-based implementations for CRC64NVME and XXHASH algorithms (using AWS CRT library).</p>
  *
  * <p>For internal use only ({@link SdkInternalApi}).</p>
  */
 @SdkInternalApi
-public final class CrcChecksumProvider {
-
+public final class ChecksumProvider {
 
     // Class paths for different CRC32C implementations
     private static final String CRT_CRC32C_CLASS_PATH = "software.amazon.awssdk.crt.checksums.CRC32C";
     private static final String JAVA_CRC32C_CLASS_PATH = "java.util.zip.CRC32C";
     private static final ConstructorCache CONSTRUCTOR_CACHE = new ConstructorCache();
     private static final String CRT_CRC64NVME_PATH = "software.amazon.awssdk.crt.checksums.CRC64NVME";
+    private static final String CRT_XXHASH_PATH = "software.amazon.awssdk.crt.checksums.XXHash";
     private static final String CRT_MODULE = "software.amazon.awssdk.crt:aws-crt";
 
+    private static Lazy<Boolean> isXxHashAvailable = checkCrtAvailability(CRT_XXHASH_PATH);
+    private static Lazy<Boolean> isCrc64NvmeAvailable = checkCrtAvailability(CRT_CRC64NVME_PATH);
+    private static Lazy<Boolean> isCrc32CAvailable = checkCrtAvailability(CRT_CRC32C_CLASS_PATH);
+
     // Private constructor to prevent instantiation
-    private CrcChecksumProvider() {
+    private ChecksumProvider() {
+    }
+
+    private static Lazy<Boolean> checkCrtAvailability(String fqcn) {
+        return new Lazy<>(() -> {
+            try {
+                ClassLoaderHelper.loadClass(fqcn, false);
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+            return true;
+        });
     }
 
     /**
@@ -74,14 +95,12 @@ public final class CrcChecksumProvider {
     }
 
     static SdkChecksum createCrtCrc32C() {
-        return CONSTRUCTOR_CACHE.getConstructor(CRT_CRC32C_CLASS_PATH).map(constructor -> {
-            try {
-                Checksum checksumInstance = (Checksum) constructor.newInstance();
-                return new CrcCloneOnMarkChecksum(checksumInstance);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to instantiate " + CRT_CRC32C_CLASS_PATH, e);
-            }
-        }).orElse(null);
+        if (!isCrc32CAvailable.getValue()) {
+            return null;
+        }
+
+        Checksum checksumInstance = new CRC32C();
+        return new CrcCloneOnMarkChecksum(checksumInstance);
     }
 
     /**
@@ -96,16 +115,54 @@ public final class CrcChecksumProvider {
      * @throws RuntimeException if the `CRC64NVME` implementation is not available.
      */
     static SdkChecksum crc64NvmeCrtImplementation() {
-        return CONSTRUCTOR_CACHE.getConstructor(CRT_CRC64NVME_PATH).map(constructor -> {
-            try {
-                Checksum checksumInstance = (Checksum) constructor.newInstance();
-                return new CrcCloneOnMarkChecksum(checksumInstance);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to instantiate " + CRT_CRC32C_CLASS_PATH, e);
-            }
-        }).orElseThrow(() -> new RuntimeException(
-            "Could not load " + CRT_CRC64NVME_PATH + ". Add dependency on '" + CRT_MODULE
-            + "' module to enable CRC64NVME feature."));
+
+        if (!isCrc64NvmeAvailable.getValue()) {
+            throw new RuntimeException(
+                "Could not load " + CRT_CRC64NVME_PATH + ". Add dependency on '" + CRT_MODULE
+                + "' module to enable CRC64NVME feature.");
+        }
+
+        return new CrcCloneOnMarkChecksum(new CRC64NVME());
+    }
+
+    /**
+     * Creates an instance of the CRT-based XXHASH64 checksum using AWS's CRT library.
+     *
+     * @return An {@link SdkChecksum} instance for XXHASH64.
+     * @throws RuntimeException if the CRT implementation is not available.
+     */
+    public static SdkChecksum xxHash64CrtImplementation() {
+        return crtXxHash(DefaultChecksumAlgorithm.XXHASH64);
+    }
+
+    /**
+     * Creates an instance of the CRT-based XXHASH3 checksum using AWS's CRT library.
+     *
+     * @return An {@link SdkChecksum} instance for XXHASH3.
+     * @throws RuntimeException if the CRT implementation is not available.
+     */
+    public static SdkChecksum xxHash3CrtImplementation() {
+        return crtXxHash(DefaultChecksumAlgorithm.XXHASH3);
+    }
+
+    /**
+     * Creates an instance of the CRT-based XXHASH128 checksum using AWS's CRT library.
+     *
+     * @return An {@link SdkChecksum} instance for XXHASH128.
+     * @throws RuntimeException if the CRT implementation is not available.
+     */
+    public static SdkChecksum xxHash128CrtImplementation() {
+        return crtXxHash(DefaultChecksumAlgorithm.XXHASH128);
+    }
+
+    static SdkChecksum crtXxHash(ChecksumAlgorithm algorithm) {
+        if (!isXxHashAvailable.getValue()) {
+            throw new RuntimeException(
+                String.format("Could not load %s for algorithm: %s. Add dependency on '%s' module.", CRT_XXHASH_PATH,
+                              algorithm.algorithmId(), CRT_MODULE));
+        }
+
+        return new XxHashChecksum(algorithm);
     }
 
     static SdkChecksum createJavaCrc32C() {
@@ -117,5 +174,4 @@ public final class CrcChecksumProvider {
             }
         }).orElse(null);
     }
-
 }
