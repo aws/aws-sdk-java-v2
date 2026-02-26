@@ -15,38 +15,24 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.SdkMetric;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Pipeline stage that resolves the auth scheme and identity for signing.
@@ -54,166 +40,45 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class AuthSchemeResolutionStage implements RequestToRequestPipeline {
 
-    private static final Logger LOG = Logger.loggerFor(AuthSchemeResolutionStage.class);
-
     public AuthSchemeResolutionStage(HttpClientDependencies dependencies) {
     }
 
     @Override
-    public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context)
-            throws Exception {
+    public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         ExecutionAttributes executionAttributes = context.executionAttributes();
 
-        // Skip if no auth schemes configured (pre-SRA client or authType=None)
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {
             return request;
         }
 
-        // Get auth options (set by generated client code via ClientExecutionParams)
         List<AuthSchemeOption> authOptions =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS);
-
         if (authOptions == null || authOptions.isEmpty()) {
-            // No auth options means either pre-SRA or no auth required
             return request;
         }
 
-        // Get base identity providers
         IdentityProviders identityProviders =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
-        // Apply request-level overrides via callback (aws-core provides this)
         IdentityProviderUpdater updater =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
         if (updater != null) {
-            // Get the modified request (after interceptors)
             identityProviders = updater.update(
                 context.executionContext().interceptorContext().request(),
                 identityProviders);
         }
 
+        MetricCollector metricCollector =
+            executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
+
         SelectedAuthScheme<? extends Identity> selectedAuthScheme =
-            selectAuthScheme(authOptions, authSchemes, identityProviders, executionAttributes);
+            AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, metricCollector);
 
+        selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
-        selectedAuthScheme = mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
-
-        // Store the final selected auth scheme
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
 
         return request;
-    }
-
-
-    private SelectedAuthScheme<? extends Identity> selectAuthScheme(
-            List<AuthSchemeOption> authOptions,
-            Map<String, AuthScheme<?>> authSchemes,
-            IdentityProviders identityProviders,
-            ExecutionAttributes executionAttributes) {
-
-        MetricCollector metricCollector =
-            executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
-        List<Supplier<String>> discardedReasons = new ArrayList<>();
-
-        for (AuthSchemeOption authOption : authOptions) {
-            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
-            SelectedAuthScheme<? extends Identity> selectedAuthScheme = trySelectAuthScheme(
-                authOption, authScheme, identityProviders, discardedReasons, metricCollector);
-
-            if (selectedAuthScheme != null) {
-                if (!discardedReasons.isEmpty()) {
-                    LOG.debug(() -> String.format("%s auth will be used, discarded: '%s'",
-                        authOption.schemeId(),
-                        discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
-                }
-                return selectedAuthScheme;
-            }
-        }
-
-        throw SdkException.builder()
-            .message("Failed to determine how to authenticate the user: " +
-                     discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", ")))
-            .build();
-    }
-
-    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(
-            AuthSchemeOption authOption,
-            AuthScheme<T> authScheme,
-            IdentityProviders identityProviders,
-            List<Supplier<String>> discardedReasons,
-            MetricCollector metricCollector) {
-
-        if (authScheme == null) {
-            discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
-            return null;
-        }
-
-        IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
-        if (identityProvider == null) {
-            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.",
-                authOption.schemeId()));
-            return null;
-        }
-
-        HttpSigner<T> signer;
-        try {
-            signer = authScheme.signer();
-        } catch (RuntimeException e) {
-            discardedReasons.add(() -> String.format("'%s' signer could not be retrieved: %s",
-                authOption.schemeId(), e.getMessage()));
-            return null;
-        }
-
-        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
-        authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-
-        CompletableFuture<? extends T> identity;
-        SdkMetric<Duration> metric = getIdentityMetric(identityProvider);
-        if (metric == null) {
-            identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
-        } else {
-            identity = MetricUtils.reportDuration(
-                () -> identityProvider.resolveIdentity(identityRequestBuilder.build()),
-                metricCollector,
-                metric);
-        }
-
-        return new SelectedAuthScheme<>(identity, signer, authOption);
-    }
-
-    private SdkMetric<Duration> getIdentityMetric(IdentityProvider<?> identityProvider) {
-        Class<?> identityType = identityProvider.identityType();
-        if (identityType == AwsCredentialsIdentity.class) {
-            return CoreMetric.CREDENTIALS_FETCH_DURATION;
-        }
-        if (identityType == TokenIdentity.class) {
-            return CoreMetric.TOKEN_FETCH_DURATION;
-        }
-        return null;
-    }
-
-    private <T extends Identity> SelectedAuthScheme<T> mergePreExistingAuthSchemeProperties(
-            SelectedAuthScheme<T> selectedAuthScheme,
-            ExecutionAttributes executionAttributes) {
-
-        SelectedAuthScheme<?> existingAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-
-        // Skip if no existing scheme
-        if (existingAuthScheme == null) {
-            return selectedAuthScheme;
-        }
-
-        // Merge properties from existing scheme
-        AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
-        existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
-        existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
-
-        return new SelectedAuthScheme<>(
-            selectedAuthScheme.identity(),
-            selectedAuthScheme.signer(),
-            mergedOption.build()
-        );
     }
 }

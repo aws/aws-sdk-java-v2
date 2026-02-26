@@ -63,6 +63,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -82,7 +83,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -607,54 +607,25 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private void resolveAndSelectAuthScheme(ExecutionContext execCtx, SdkRequest request, String operationName) {
         ExecutionAttributes executionAttributes = execCtx.executionAttributes();
         
-        // Get auth schemes and identity providers
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {
-            return; // No auth schemes configured
+            return;
         }
 
-        // Resolve auth options (same logic as generated client)
         List<AuthSchemeOption> authOptions = resolveAuthSchemeOptions(request, operationName, executionAttributes);
         if (authOptions == null || authOptions.isEmpty()) {
             return;
         }
 
-        // Get identity providers and apply credential overrides
         IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
         identityProviders = applyCredentialOverrides(request, identityProviders);
 
-        // Select auth scheme
-        SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, authSchemes, identityProviders);
+        SelectedAuthScheme<? extends Identity> selectedAuthScheme = 
+            AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, null);
 
-        // Merge pre-existing properties
-        selectedAuthScheme = mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
+        selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SELECTED_AUTH_SCHEME, selectedAuthScheme);
-    }
-
-    /**
-     * Merge properties from any pre-existing auth scheme into the selected one.
-     */
-    private <T extends Identity> SelectedAuthScheme<T> mergePreExistingAuthSchemeProperties(
-            SelectedAuthScheme<T> selectedAuthScheme,
-            ExecutionAttributes executionAttributes) {
-
-        SelectedAuthScheme<?> existingAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
-
-        // Skip if no existing scheme
-        if (existingAuthScheme == null) {
-            return selectedAuthScheme;
-        }
-
-        AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
-        existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
-        existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
-
-        return new SelectedAuthScheme<>(
-            selectedAuthScheme.identity(),
-            selectedAuthScheme.signer(),
-            mergedOption.build()
-        );
     }
 
     /**
@@ -720,69 +691,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                 c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
             }))
             .orElse(base);
-    }
-
-    /**
-     * Select auth scheme from options
-     */
-    private SelectedAuthScheme<? extends Identity> selectAuthScheme(List<AuthSchemeOption> authOptions,
-                                                                    Map<String, AuthScheme<?>> authSchemes,
-                                                                    IdentityProviders identityProviders) {
-        List<Supplier<String>> discardedReasons = new ArrayList<>();
-
-        for (AuthSchemeOption authOption : authOptions) {
-            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
-            SelectedAuthScheme<? extends Identity> selectedAuthScheme = 
-                trySelectAuthScheme(authOption, authScheme, identityProviders, discardedReasons);
-
-            if (selectedAuthScheme != null) {
-                if (!discardedReasons.isEmpty()) {
-                    log.debug(() -> String.format("%s auth will be used, discarded: '%s'", authOption.schemeId(),
-                        discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))));
-                }
-                return selectedAuthScheme;
-            }
-        }
-
-        throw new IllegalStateException("Failed to determine how to authenticate the user: " +
-            discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", ")));
-    }
-
-    /**
-     * Try to select a specific auth scheme (copied from AuthSchemeResolutionStage).
-     */
-    private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption,
-                                                                           AuthScheme<T> authScheme,
-                                                                           IdentityProviders identityProviders,
-                                                                           List<Supplier<String>> discardedReasons) {
-        if (authScheme == null) {
-            discardedReasons.add(() -> String.format("'%s' is not enabled for this request.", authOption.schemeId()));
-            return null;
-        }
-
-        IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
-        if (identityProvider == null) {
-            discardedReasons.add(() -> String.format("'%s' does not have an identity provider configured.", 
-                authOption.schemeId()));
-            return null;
-        }
-
-        HttpSigner<T> signer;
-        try {
-            signer = authScheme.signer();
-        } catch (RuntimeException e) {
-            discardedReasons.add(() -> String.format("'%s' signer could not be retrieved: %s", 
-                authOption.schemeId(), e.getMessage()));
-            return null;
-        }
-
-        ResolveIdentityRequest.Builder identityRequestBuilder = 
-            ResolveIdentityRequest.builder();
-        authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
-
-        CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
-
-        return new SelectedAuthScheme<>(identity, signer, authOption);
     }
 
     /**
