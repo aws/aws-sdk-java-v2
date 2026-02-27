@@ -271,10 +271,12 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
-                                     .optimisticLocking(matchVersion, "version")
+                                     .optimisticLocking(matchVersion, versionAttributeName)
                                      .build();
 
         versionedRecordTable.deleteItem(requestWithLocking).join();
@@ -293,10 +295,12 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item).join();
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
-                                     .optimisticLocking(mismatchVersion, "version")
+                                     .optimisticLocking(mismatchVersion, versionAttributeName)
                                      .build();
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking).join())
@@ -329,11 +333,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                       .build();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
                                      .conditionExpression(conditionExpression)
-                                     .optimisticLocking(matchVersion, "version")
+                                     .optimisticLocking(matchVersion, versionAttributeName)
                                      .build();
 
         versionedRecordTable.deleteItem(requestWithLocking).join();
@@ -367,11 +373,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                       .build();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
                                      .conditionExpression(conditionExpression)
-                                     .optimisticLocking(matchVersion, "version")
+                                     .optimisticLocking(matchVersion, versionAttributeName)
                                      .build();
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking).join())
@@ -403,11 +411,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item).join();
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
                                      .conditionExpression(conditionExpression)
-                                     .optimisticLocking(mismatchVersion, "version")
+                                     .optimisticLocking(mismatchVersion, versionAttributeName)
                                      .build();
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking).join())
@@ -439,11 +449,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item).join();
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
         DeleteItemEnhancedRequest requestWithLocking =
             DeleteItemEnhancedRequest.builder()
                                      .key(recordKey)
                                      .conditionExpression(conditionExpression)
-                                     .optimisticLocking(mismatchVersion, "version")
+                                     .optimisticLocking(mismatchVersion, versionAttributeName)
                                      .build();
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking).join())
@@ -451,7 +463,195 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
             .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
     }
 
-    // 13. TransactWriteItems.deleteItem(T item) - deprecated - on Non-versioned record
+    // 13. deleteItem(Consumer<>) on VersionedRecord with Optimistic Locking true and versions match
+    // -> Optimistic Locking is applied -> deletes the record
+    @Test
+    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        AttributeValue matchVersion = AttributeValue.builder().n("1").build();
+        String versionAttributeName = "version";
+
+        versionedRecordTable.putItem(item);
+
+        versionedRecordTable.deleteItem(r -> r
+                                .key(recordKey)
+                                .optimisticLocking(matchVersion, versionAttributeName))
+                            .join();
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
+        assertThat(deletedItem).isNull();
+    }
+
+    // 14. deleteItem(Consumer<>) on VersionedRecord with Optimistic Locking true and versions DO NOT match
+    // -> Optimistic Locking is applied -> does NOT delete the record
+    @Test
+    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+
+        AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(r -> r
+                                                         .key(recordKey)
+                                                         .optimisticLocking(mismatchVersion, versionAttributeName))
+                                                     .join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(e.getCause()).isInstanceOf(ConditionalCheckFailedException.class))
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+
+    }
+
+    // 15. deleteItem(Consumer<>) with Optimistic Locking true, versions match + custom condition respected
+    // -> Optimistic Locking is applied -> deletes the record
+    @Test
+    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        String matchingDatabaseValue = "test";
+        expressionValues.put(":value", AttributeValue.fromS(matchingDatabaseValue));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
+        versionedRecordTable.deleteItem(r -> r
+                                .key(recordKey)
+                                .optimisticLocking(matchVersion, versionAttributeName)
+                                .conditionExpression(conditionExpression))
+                            .join();
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
+        assertThat(deletedItem).isNull();
+    }
+
+    // 16. deleteItem(Consumer<>) with Optimistic Locking true, versions match + custom condition not respected
+    // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
+    @Test
+    public void deleteItemWithBuilder_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        String nonMatchingDatabaseValue = "nonMatchingValue";
+        expressionValues.put(":value", AttributeValue.fromS(nonMatchingDatabaseValue));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(r -> r
+                                                         .key(recordKey)
+                                                         .conditionExpression(conditionExpression)
+                                                         .optimisticLocking(matchVersion, versionAttributeName))
+                                                     .join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(e.getCause()).isInstanceOf(ConditionalCheckFailedException.class))
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+    }
+
+    // 17. deleteItem(Consumer<>) with Optimistic Locking true, versions do not match + custom condition respected
+    // -> does not delete the record
+    @Test
+    public void deleteItemWithBuilder_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        String matchingDatabaseValue = "test";
+        expressionValues.put(":value", AttributeValue.fromS(matchingDatabaseValue));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        versionedRecordTable.putItem(item);
+
+        AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(r -> r
+            .key(recordKey)
+            .conditionExpression(conditionExpression)
+            .optimisticLocking(mismatchVersion, versionAttributeName)).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(e.getCause()).isInstanceOf(ConditionalCheckFailedException.class))
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+    }
+
+    // 18. deleteItem(Consumer<>) with Optimistic Locking true, versions do not match + custom condition fails
+    // -> does not delete the record
+    @Test
+    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        String nonMatchingDatabaseValue = "nonMatchingValue";
+        expressionValues.put(":value", AttributeValue.fromS(nonMatchingDatabaseValue));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        versionedRecordTable.putItem(item);
+
+        AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(r -> r
+                                                         .key(recordKey)
+                                                         .conditionExpression(conditionExpression)
+                                                         .optimisticLocking(mismatchVersion, versionAttributeName))
+                                                     .join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(e.getCause()).isInstanceOf(ConditionalCheckFailedException.class))
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+    }
+
+    // 19. TransactWriteItems.deleteItem(T item) - deprecated - on Non-versioned record
     // -> Optimistic Locking NOT applied -> deletes the record
     @Test
     public void transactDeleteItem_onNonVersionedRecord_deletesTheRecord() {
@@ -469,7 +669,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         assertThat(deletedItem).isNull();
     }
 
-    // 14. TransactWriteItems.deleteItem(T item) - deprecated - on Versioned record and versions match
+    // 20. TransactWriteItems.deleteItem(T item) - deprecated - on Versioned record and versions match
     // -> Optimistic Locking is NOT applied (old deprecated method -> does NOT support Optimistic Locking) -> deletes the record
     @Test
     public void transactDeleteItem_onVersionedRecord_whenVersionsMatch_skipsOptimisticLockingAndDeletesTheRecord() {
@@ -488,7 +688,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         assertThat(deletedItem).isNull();
     }
 
-    // 15. TransactWriteItems.deleteItem(T item) - deprecated - on Versioned record and versions do NOT match
+    // 21. TransactWriteItems.deleteItem(T item) - deprecated - on Versioned record and versions do NOT match
     // -> Optimistic Locking is NOT applied (old deprecated method -> does NOT support Optimistic Locking) -> deletes the record
     @Test
     public void transactDeleteItem_onVersionedRecord_whenVersionsMismatch_skipsOptimisticLockingAndDeletesTheRecord() {
@@ -509,7 +709,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         assertThat(deletedItem).isNull();
     }
 
-    // 16. TransactWriteItems with builder method on Versioned record and versions match
+    // 22. TransactWriteItems with builder method on Versioned record and versions match
     // -> Optimistic Locking is applied -> deletes the record
     @Test
     public void transactDeleteItemWithRequest_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
@@ -520,10 +720,12 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey)).join();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
+
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
-                                             .optimisticLocking(matchVersion, "version")
+                                             .optimisticLocking(matchVersion, versionAttributeName)
                                              .build();
 
         enhancedClient.transactWriteItems(
@@ -535,7 +737,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         assertThat(deletedItem).isNull();
     }
 
-    // 17. TransactWriteItems with builder method on Versioned record and versions do NOT match
+    // 23. TransactWriteItems with builder method on Versioned record and versions do NOT match
     // -> Optimistic Locking applied -> does NOT delete the record
     @Test
     public void transactDeleteItemWithRequest_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
@@ -545,10 +747,12 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item).join();
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
+
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
-                                             .optimisticLocking(mismatchVersion, "version")
+                                             .optimisticLocking(mismatchVersion, versionAttributeName)
                                              .build();
 
         assertThatThrownBy(() -> enhancedClient
@@ -590,12 +794,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                       .build();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
 
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
                                              .conditionExpression(conditionExpression)
-                                             .optimisticLocking(matchVersion, "version")
+                                             .optimisticLocking(matchVersion, versionAttributeName)
                                              .build();
 
         enhancedClient.transactWriteItems(
@@ -607,7 +812,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         assertThat(deletedItem).isNull();
     }
 
-    // 19. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition not respected
+    // 25. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition not respected
     // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
     @Test
     public void transactDeleteItemWithRequest_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
@@ -632,12 +837,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                       .build();
 
         AttributeValue matchVersion = AttributeValue.builder().n(savedItem.getVersion().toString()).build();
+        String versionAttributeName = "version";
 
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
                                              .conditionExpression(conditionExpression)
-                                             .optimisticLocking(matchVersion, "version")
+                                             .optimisticLocking(matchVersion, versionAttributeName)
                                              .build();
 
         assertThatThrownBy(() -> enhancedClient
@@ -654,8 +860,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                 .isTrue());
     }
 
-
-    // 20. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition respected
+    // 26. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition respected
     // -> does not delete the record
     @Test
     public void transactDeleteItemWithRequest_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
@@ -679,12 +884,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item);
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
 
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
                                              .conditionExpression(conditionExpression)
-                                             .optimisticLocking(mismatchVersion, "version")
+                                             .optimisticLocking(mismatchVersion, versionAttributeName)
                                              .build();
 
         assertThatThrownBy(() -> enhancedClient
@@ -701,7 +907,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                 .isTrue());
     }
 
-    // 21. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition fails
+    // 27. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition fails
     // -> does not delete the record
     @Test
     public void transactDeleteItemWithRequest_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
@@ -725,12 +931,13 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         versionedRecordTable.putItem(item).join();
 
         AttributeValue mismatchVersion = AttributeValue.builder().n("2").build();
+        String versionAttributeName = "version";
 
         TransactDeleteItemEnhancedRequest requestWithLocking =
             TransactDeleteItemEnhancedRequest.builder()
                                              .key(recordKey)
                                              .conditionExpression(conditionExpression)
-                                             .optimisticLocking(mismatchVersion, "version")
+                                             .optimisticLocking(mismatchVersion, versionAttributeName)
                                              .build();
 
         assertThatThrownBy(() -> enhancedClient
