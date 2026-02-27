@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -140,12 +141,17 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     private static final class TimeoutScheduler {
-        static final ScheduledExecutorService INSTANCE =
-            Executors.newScheduledThreadPool(1, r -> {
+        static final ScheduledExecutorService INSTANCE;
+        static {
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, r -> {
                 Thread t = new Thread(r, "response-input-stream-timeout-scheduler");
                 t.setDaemon(true);
                 return t;
             });
+            executor.setKeepAliveTime(DEFAULT_TIMEOUT.getSeconds(), TimeUnit.SECONDS);
+            executor.allowCoreThreadTimeOut(true);
+            INSTANCE = executor;
+        }
     }
 
     /**
