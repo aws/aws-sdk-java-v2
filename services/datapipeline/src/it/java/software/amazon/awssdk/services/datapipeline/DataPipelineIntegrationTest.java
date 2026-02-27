@@ -65,6 +65,7 @@ public class DataPipelineIntegrationTest extends IntegrationTestBase {
         }
     }
 
+    // TODO: replace with wiremock test
     @Test
     @org.junit.Ignore("DataPipeline is deprecated and not allowlisted in integ test account")
     public void testPipelineOperations() throws InterruptedException {
