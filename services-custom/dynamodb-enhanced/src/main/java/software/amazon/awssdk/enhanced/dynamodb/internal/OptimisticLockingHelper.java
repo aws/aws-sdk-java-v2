@@ -36,6 +36,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkInternalApi
 public final class OptimisticLockingHelper {
 
+    private static final String CUSTOM_VERSION_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
+
     private OptimisticLockingHelper() {
     }
 
@@ -47,8 +49,9 @@ public final class OptimisticLockingHelper {
      * @param versionAttributeName the version attribute name
      * @return delete request with optimistic locking condition
      */
-    public static DeleteItemEnhancedRequest optimisticLocking(
-        DeleteItemEnhancedRequest.Builder requestBuilder, AttributeValue versionValue, String versionAttributeName) {
+    public static DeleteItemEnhancedRequest optimisticLocking(DeleteItemEnhancedRequest.Builder requestBuilder,
+                                                              AttributeValue versionValue, String versionAttributeName) {
+
         return requestBuilder
             .conditionExpression(createVersionCondition(versionValue, versionAttributeName))
             .build();
@@ -62,8 +65,8 @@ public final class OptimisticLockingHelper {
      * @param versionAttributeName the version attribute name
      * @return transactional delete request with optimistic locking condition
      */
-    public static TransactDeleteItemEnhancedRequest optimisticLocking(
-        TransactDeleteItemEnhancedRequest.Builder requestBuilder, AttributeValue versionValue, String versionAttributeName) {
+    public static TransactDeleteItemEnhancedRequest optimisticLocking(TransactDeleteItemEnhancedRequest.Builder requestBuilder,
+                                                                      AttributeValue versionValue, String versionAttributeName) {
 
         Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
         return requestBuilder
@@ -90,14 +93,12 @@ public final class OptimisticLockingHelper {
 
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
-
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
                 return version != null
                        ? optimisticLocking(requestBuilder, version, versionAttributeName)
                        : requestBuilder.build();
 
-            })
-            .orElseGet(requestBuilder::build);
+            }).orElseGet(requestBuilder::build);
     }
 
     /**
@@ -125,8 +126,7 @@ public final class OptimisticLockingHelper {
                        ? optimisticLocking(requestBuilder, version, versionAttributeName)
                        : requestBuilder.build();
 
-            })
-            .orElseGet(requestBuilder::build);
+            }).orElseGet(requestBuilder::build);
     }
 
 
@@ -158,13 +158,13 @@ public final class OptimisticLockingHelper {
     }
 
     /**
-     * Gets the version attribute name from table schema. v
+     * Gets the version attribute name from table schema.
      *
      * @param <T>         the type of the item
      * @param tableSchema the table schema
      * @return version attribute name if present, empty otherwise
      */
     public static <T> Optional<String> getVersionAttributeName(TableSchema<T> tableSchema) {
-        return tableSchema.tableMetadata().customMetadataObject("VersionedRecordExtension:VersionAttribute", String.class);
+        return tableSchema.tableMetadata().customMetadataObject(CUSTOM_VERSION_METADATA_KEY, String.class);
     }
 }

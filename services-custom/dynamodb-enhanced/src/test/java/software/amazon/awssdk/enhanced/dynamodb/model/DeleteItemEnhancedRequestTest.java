@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static org.assertj.core.api.BDDAssertions.entry;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -125,20 +127,20 @@ public class DeleteItemEnhancedRequestTest {
     @Test
     public void equals_conditionExpressionNotEqual() {
         Expression conditionExpression1 = Expression.builder()
-                                                   .expression("#key = :value OR #key1 = :value1")
-                                                   .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
-                                                   .putExpressionValue(":value", stringValue("wrong"))
-                                                   .putExpressionValue(":value1", stringValue("three"))
-                                                   .build();
+                                                    .expression("#key = :value OR #key1 = :value1")
+                                                    .putExpressionName("#key", "attribute")
+                                                    .putExpressionName("#key1", "attribute3")
+                                                    .putExpressionValue(":value", stringValue("wrong"))
+                                                    .putExpressionValue(":value1", stringValue("three"))
+                                                    .build();
 
         Expression conditionExpression2 = Expression.builder()
-                                                   .expression("#key = :value AND #key1 = :value1")
-                                                   .putExpressionName("#key", "attribute")
-                                                   .putExpressionName("#key1", "attribute3")
-                                                   .putExpressionValue(":value", stringValue("wrong"))
-                                                   .putExpressionValue(":value1", stringValue("three"))
-                                                   .build();
+                                                    .expression("#key = :value AND #key1 = :value1")
+                                                    .putExpressionName("#key", "attribute")
+                                                    .putExpressionName("#key1", "attribute3")
+                                                    .putExpressionValue(":value", stringValue("wrong"))
+                                                    .putExpressionValue(":value1", stringValue("three"))
+                                                    .build();
 
         DeleteItemEnhancedRequest builtObject1 = DeleteItemEnhancedRequest.builder()
                                                                           .conditionExpression(conditionExpression1)
@@ -283,7 +285,11 @@ public class DeleteItemEnhancedRequestTest {
                                      .build();
 
         assertThat(request.conditionExpression(), notNullValue());
-        assertThat(request.conditionExpression().expression(), is("#AMZN_MAPPED_version = :version_value"));
-        assertThat(request.conditionExpression().expressionValues().get(":version_value"), equalTo(versionValue));
+        Assertions.assertThat(request.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        Assertions.assertThat(request.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        Assertions.assertThat(request.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", versionValue));
     }
 }

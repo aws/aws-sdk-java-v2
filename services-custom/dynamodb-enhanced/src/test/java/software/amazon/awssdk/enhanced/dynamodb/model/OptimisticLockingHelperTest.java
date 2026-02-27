@@ -141,6 +141,29 @@ public class OptimisticLockingHelperTest {
     }
 
     @Test
+    public void conditionallyApplyOptimistic_onDelete_whenFlagTrueAndVersionedRecordWithNullVersion_returnsOriginalRequest() {
+        boolean optimisticLockingEnabled = true;
+        Key key = Key.builder().partitionValue("id").build();
+        AttributeValue versionValue = AttributeValue.builder().n("1").build();
+        String versionAttributeName = "version";
+
+        // versioned record
+        RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
+        TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
+
+        DeleteItemEnhancedRequest.Builder originalRequestBuilder =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(key)
+                                     .optimisticLocking(versionValue, versionAttributeName);
+
+        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(
+            originalRequestBuilder, keyItem, tableSchema, optimisticLockingEnabled);
+
+        assertThat(result).isNotNull();
+        assertEquals(originalRequestBuilder.build(), result);
+    }
+
+    @Test
     public void conditionallyApplyOptimistic_onDelete_whenFlagTrueAndVersionedRecordWithVersion_addsConditionExpression() {
         boolean optimisticLockingEnabled = true;
         Key key = Key.builder().partitionValue("id").build();
