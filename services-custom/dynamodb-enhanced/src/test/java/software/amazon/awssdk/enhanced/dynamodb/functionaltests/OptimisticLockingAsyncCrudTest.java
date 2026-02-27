@@ -263,7 +263,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 7. deleteItem(DeleteItemEnhancedRequest) on VersionedRecord with Optimistic Locking true and versions match
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
+    public void deleteItemWithRequest_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -286,7 +286,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 8. deleteItem(DeleteItemEnhancedRequest) on VersionedRecord with Optimistic Locking true and versions DO NOT match
     // -> Optimistic Locking is applied -> does NOT delete the record
     @Test
-    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
+    public void deleteItemWithRequest_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -307,7 +307,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 9. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition respected
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
+    public void deleteItemWithRequest_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -345,7 +345,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 10. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition not respected
     // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
+    public void deleteItemWithRequest_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -382,7 +382,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 11. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition respected
     // -> does not delete the record
     @Test
-    public void deleteItemWithBuilder_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
+    public void deleteItemWithRequest_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -418,7 +418,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 12. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition fails
     // -> does not delete the record
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
+    public void deleteItemWithRequest_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -512,7 +512,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 16. TransactWriteItems with builder method on Versioned record and versions match
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void transactDeleteItemWithBuilder_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
+    public void transactDeleteItemWithRequest_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -538,7 +538,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 17. TransactWriteItems with builder method on Versioned record and versions do NOT match
     // -> Optimistic Locking applied -> does NOT delete the record
     @Test
-    public void transactDeleteItemWithBuilder_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
+    public void transactDeleteItemWithRequest_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -568,7 +568,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 18. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition respected
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void transactDeleteItemWithBuilder_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
+    public void transactDeleteItemWithRequest_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -610,7 +610,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 19. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions match + custom condition not respected
     // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
     @Test
-    public void transactDeleteItemWithBuilder_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
+    public void transactDeleteItemWithRequest_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -658,7 +658,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 20. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition respected
     // -> does not delete the record
     @Test
-    public void transactDeleteItemWithBuilder_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
+    public void transactDeleteItemWithRequest_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -704,7 +704,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 21. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true, versions do not match + custom condition fails
     // -> does not delete the record
     @Test
-    public void transactDeleteItemWithBuilder_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
+    public void transactDeleteItemWithRequest_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
