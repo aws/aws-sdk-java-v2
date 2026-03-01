@@ -466,7 +466,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 13. deleteItem(Consumer<>) on VersionedRecord with Optimistic Locking true and versions match
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
+    public void deleteItemWithConsumer_onVersionedRecord_whenVersionsMatch_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -487,7 +487,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 14. deleteItem(Consumer<>) on VersionedRecord with Optimistic Locking true and versions DO NOT match
     // -> Optimistic Locking is applied -> does NOT delete the record
     @Test
-    public void deleteItemWithBuilder_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
+    public void deleteItemWithConsumer_onVersionedRecord_whenVersionsMismatch_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -509,7 +509,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 15. deleteItem(Consumer<>) with Optimistic Locking true, versions match + custom condition respected
     // -> Optimistic Locking is applied -> deletes the record
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
+    public void deleteItemWithConsumer_whenOptimisticLockingAndCustomConditionAreRespected_deletesTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -546,7 +546,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 16. deleteItem(Consumer<>) with Optimistic Locking true, versions match + custom condition not respected
     // -> Optimistic Locking is applied -> does not delete the record because of the failing custom condition
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
+    public void deleteItemWithConsumer_whenOptimisticLockingConditionRespected_butCustomConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -583,7 +583,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 17. deleteItem(Consumer<>) with Optimistic Locking true, versions do not match + custom condition respected
     // -> does not delete the record
     @Test
-    public void deleteItemWithBuilder_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
+    public void deleteItemWithConsumer_whenCustomConditionRespected_butOptimisticConditionFails_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -618,7 +618,7 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     // 18. deleteItem(Consumer<>) with Optimistic Locking true, versions do not match + custom condition fails
     // -> does not delete the record
     @Test
-    public void deleteItemWithBuilder_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
+    public void deleteItemWithConsumer_whenOptimisticLockingAndCustomConditionNotRespected_doesNotDeleteTheRecord() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("test");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
