@@ -1,4 +1,103 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.4__ __2026-02-27__
+## __ARC - Region switch__
+  - ### Features
+    - Post-Recovery Workflows enable customers to maintain comprehensive disaster recovery automation. This allows customer SREs and leadership to have complete recovery orchestration from failover through post-recovery preparation, ensuring Regions remain ready for subsequent recovery events.
+
+## __AWS Batch__
+  - ### Features
+    - This feature allows customers to specify the minimum time (in minutes) that AWS Batch keeps instances running in a compute environment after all jobs on the instance complete
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Updates the regex for validating availabilityZone strings used in the describe events filters.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Resource owners can now specify ResourceShareConfiguration request parameter for CreateResourceShare API including RetainSharingOnAccountLeaveOrganization boolean parameter
+
+## __Amazon Bedrock__
+  - ### Features
+    - Added four new model lifecycle date fields, startOfLifeTime, endOfLifeTime, legacyTime, and publicExtendedAccessTime. Adds support for using the Converse API with Bedrock Batch inference jobs.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Cognito is introducing a two-secret rotation model for app clients, enabling seamless credential rotation without downtime. Dedicated APIs support passing in a custom secret. Custom secrets need to be at least 24 characters. This eliminates reconfiguration needs and reduces security risks.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces an optional SourcePriority parameter to the ProfileObjectType APIs, allowing you to control the precedence of object types when ingesting data from multiple sources. Additionally, WebAnalytics and Device have been added as new StandardIdentifier values.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Deprecate EvaluationReviewMetadata's CreatedBy and CreatedTime, add EvaluationReviewMetadata's RequestedBy and RequestedTime
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Added support for Change Data Capture (CDC) streams with Duration DataType.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS Transcribe Streaming now supports specifying a resumption window for the stream through the SessionResumeWindow parameter, allowing customers to reconnect to their streams for a longer duration beyond stream start time.
+
+## __odb__
+  - ### Features
+    - ODB Networking Route Management is a feature improvement which allows for implicit creation and deletion of EC2 Routes in the Peer Network Route Table designated by the customer via new optional input. This feature release is combined with Multiple App-VPC functionality for ODB Network Peering(s).
+
+# __2.42.3__ __2026-02-26__
+## __AWS Backup Gateway__
+  - ### Features
+    - This release updates GetGateway API to include deprecationDate and softwareVersion in the response, enabling customers to track gateway software versions and upcoming deprecation dates.
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Added License Arn as a new optional filter for GetEntitlements and LicenseArn field in each entitlement in the response.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub added EXTENDED PLAN integration type to DescribeProductsV2 and added metadata.product.vendor name GroupBy support to GetFindingStatisticsV2
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Added LicenseArn to ResolveCustomer response and BatchMeterUsage usage records. BatchMeterUsage now accepts LicenseArn in each UsageRecord to report usage at the license level. Added InvalidLicenseException error response for invalid license parameters.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding support for Capacity Reservations for ECS Managed Instances by introducing a new "capacityOptionType" value of "RESERVED" and new field "capacityReservations" for CreateCapacityProvider and UpdateCapacityProvider APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add c8id, m8id and hpc8a instance types.
+
+## __Apache 5 HTTP Client__
+  - ### Features
+    - Update `httpcore5` to `5.4.1`.
+
+# __2.42.2__ __2026-02-25__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch documentation update for service job capacity units.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports GetTopPathStatisticsByTraffic that provides aggregated statistics on the top URI paths accessed by bot traffic. Use this operation to see which paths receive the most bot traffic, identify the specific bots accessing them, and filter by category, organization, or bot name.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for EC2 Capacity Blocks in Local Zones.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Update repository name regex to comply with OCI Distribution Specification
+
+## __Amazon Neptune__
+  - ### Features
+    - Neptune global clusters now supports tags
+
 # __2.42.1__ __2026-02-24__
 ## __AWS Elemental Inference__
   - ### Features
