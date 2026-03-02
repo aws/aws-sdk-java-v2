@@ -146,12 +146,12 @@ public final class AwsExecutionContextBuilder {
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
-        // Set auth scheme options from ClientExecutionParams
-        if (executionParams.authSchemeOptions() != null) {
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS,
-                                             executionParams.authSchemeOptions());
+        if (executionParams.authSchemeOptionsResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+                                             executionParams.authSchemeOptionsResolver());
 
-            recordAuthSchemeBusinessMetrics(executionParams.authSchemeOptions(), executionAttributes, originalRequest);
+            List<AuthSchemeOption> authOptions = executionParams.authSchemeOptionsResolver().resolve(originalRequest);
+            recordAuthSchemeBusinessMetrics(authOptions, executionAttributes, originalRequest);
         }
 
         // Set the identity provider updater for the pipeline stage to use

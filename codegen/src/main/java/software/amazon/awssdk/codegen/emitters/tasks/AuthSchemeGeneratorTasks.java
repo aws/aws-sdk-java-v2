@@ -47,7 +47,6 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         tasks.add(generateDefaultParamsImpl());
         tasks.add(generateModelBasedProvider());
         tasks.add(generatePreferenceProvider());
-        // AuthSchemeInterceptor removed - auth scheme resolution now happens in client operation methods
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             tasks.add(generateEndpointBasedProvider());
             tasks.add(generateEndpointAwareAuthSchemeParams());

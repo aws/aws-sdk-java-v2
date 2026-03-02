@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -52,8 +54,8 @@ public final class AuthSchemeResolutionStage implements RequestToRequestPipeline
             return request;
         }
 
-        List<AuthSchemeOption> authOptions =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS);
+        SdkRequest sdkRequest = context.executionContext().interceptorContext().request();
+        List<AuthSchemeOption> authOptions = resolveAuthSchemeOptions(executionAttributes, sdkRequest);
         if (authOptions == null || authOptions.isEmpty()) {
             return request;
         }
@@ -64,9 +66,7 @@ public final class AuthSchemeResolutionStage implements RequestToRequestPipeline
         IdentityProviderUpdater updater =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
         if (updater != null) {
-            identityProviders = updater.update(
-                context.executionContext().interceptorContext().request(),
-                identityProviders);
+            identityProviders = updater.update(sdkRequest, identityProviders);
         }
 
         MetricCollector metricCollector =
@@ -80,5 +80,15 @@ public final class AuthSchemeResolutionStage implements RequestToRequestPipeline
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
 
         return request;
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(ExecutionAttributes executionAttributes, SdkRequest request) {
+        AuthSchemeOptionsResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
+
+        if (resolver == null) {
+            return null;
+        }
+        return resolver.resolve(request);
     }
 }

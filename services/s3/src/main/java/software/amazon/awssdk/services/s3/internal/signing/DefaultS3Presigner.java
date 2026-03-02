@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -45,6 +43,7 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.internal.identity.AwsIdentityProviderUpdater;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -244,7 +243,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        // S3AuthSchemeInterceptor removed - auth scheme resolution now done inline
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
         additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
         s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
@@ -618,7 +616,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         }
 
         IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-        identityProviders = applyCredentialOverrides(request, identityProviders);
+        identityProviders = AwsIdentityProviderUpdater.INSTANCE.update(request, identityProviders);
 
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = 
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, null);
@@ -674,23 +672,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         }
         
         return authSchemeProvider.resolveAuthScheme(authParamsBuilder.build());
-    }
-
-    /**
-     * Apply credential overrides from request configuration.
-     */
-    private IdentityProviders applyCredentialOverrides(SdkRequest request, IdentityProviders base) {
-        if (base == null) {
-            return null;
-        }
-        return request.overrideConfiguration()
-            .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-            .map(c -> (AwsRequestOverrideConfiguration) c)
-            .map(c -> base.copy(b -> {
-                c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
-                c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
-            }))
-            .orElse(base);
     }
 
     /**
