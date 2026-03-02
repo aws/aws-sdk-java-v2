@@ -61,6 +61,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
 
     private static final Logger log = Logger.loggerFor(ResponseInputStream.class);
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+    private static final long THREAD_IDLE_TIMEOUT_SECONDS = 60;
     private final ResponseT response;
     private final Abortable abortable;
     private ScheduledFuture<?> timeoutTask;
@@ -148,7 +149,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
                 t.setDaemon(true);
                 return t;
             });
-            executor.setKeepAliveTime(DEFAULT_TIMEOUT.getSeconds(), TimeUnit.SECONDS);
+            executor.setKeepAliveTime(THREAD_IDLE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             executor.allowCoreThreadTimeOut(true);
             INSTANCE = executor;
         }
