@@ -30,23 +30,32 @@ import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Smithy equivalent of {@link software.amazon.awssdk.codegen.customization.processors.OperationModifiersProcessor}.
+ * Smithy equivalent of
+ * {@link software.amazon.awssdk.codegen.customization.processors.OperationModifiersProcessor}.
  *
- * <p>This is a Category C processor (dual-config pattern). It excludes operations or wraps
- * operation results in the Smithy model. When {@code exclude} is true for an operation, the
- * operation shape is removed from the model. When {@code useWrappingResult} is true, a new
- * wrapper structure shape is created containing a member that targets the specified wrapped
+ * <p>
+ * This is a Category C processor (dual-config pattern). It excludes operations
+ * or wraps
+ * operation results in the Smithy model. When {@code exclude} is true for an
+ * operation, the
+ * operation shape is removed from the model. When {@code useWrappingResult} is
+ * true, a new
+ * wrapper structure shape is created containing a member that targets the
+ * specified wrapped
  * result shape, and the operation's output is updated to point to the wrapper.
  *
- * <p>Follows the dual-config pattern: accepts both old C2J {@link OperationModifier} map and new
+ * <p>
+ * Follows the dual-config pattern: accepts both old C2J
+ * {@link OperationModifier} map and new
  * Smithy-native {@link SmithyOperationModifier} map. Old C2J simple names for
- * {@code wrappedResultShape} are resolved to full ShapeId strings via {@link ShapeIdResolver}.
+ * {@code wrappedResultShape} are resolved to full ShapeId strings via
+ * {@link ShapeIdResolver}.
  */
 public class OperationModifiersProcessor
         extends AbstractDualConfigProcessor<Map<String, OperationModifier>, Map<String, SmithyOperationModifier>> {
 
     public OperationModifiersProcessor(Map<String, OperationModifier> oldConfig,
-                                              Map<String, SmithyOperationModifier> newConfig) {
+            Map<String, SmithyOperationModifier> newConfig) {
         super(oldConfig, newConfig, "operationModifiers", "smithyOperationModifiers");
     }
 
@@ -64,8 +73,8 @@ public class OperationModifiersProcessor
 
     @Override
     protected Map<String, SmithyOperationModifier> convertOldToNew(Map<String, OperationModifier> old,
-                                                                    Model model,
-                                                                    ServiceShape service) {
+            Model model,
+            ServiceShape service) {
         Map<String, SmithyOperationModifier> result = new LinkedHashMap<>();
         for (Map.Entry<String, OperationModifier> entry : old.entrySet()) {
             SmithyOperationModifier smithy = new SmithyOperationModifier();
@@ -78,7 +87,7 @@ public class OperationModifiersProcessor
                 ShapeId resolved = ShapeIdResolver.resolve(model, service, c2j.getWrappedResultShape());
                 smithy.setWrappedResultShape(resolved.toString());
             }
-            result.put(entry.getKey(), smithy);
+            result.put(ShapeIdResolver.resolve(model, service, entry.getKey()).toString(), smithy);
         }
         return result;
     }
@@ -89,7 +98,7 @@ public class OperationModifiersProcessor
 
     @Override
     protected Model applySmithyLogic(Model model, ServiceShape service,
-                                      Map<String, SmithyOperationModifier> config) {
+            Map<String, SmithyOperationModifier> config) {
         Model current = model;
         for (Map.Entry<String, SmithyOperationModifier> entry : config.entrySet()) {
             String operationName = entry.getKey();
@@ -107,17 +116,18 @@ public class OperationModifiersProcessor
     private Model excludeOperation(Model model, ServiceShape service, String operationName) {
         ShapeId opId = ShapeIdResolver.resolve(model, service, operationName);
         return ModelTransformer.create().removeShapes(model, Collections.singleton(
-            model.expectShape(opId)));
+                model.expectShape(opId)));
     }
 
     private Model wrapOperationResult(Model model, ServiceShape service,
-                                       String operationName, SmithyOperationModifier modifier) {
+            String operationName, SmithyOperationModifier modifier) {
         String namespace = ShapeIdResolver.namespace(service);
         ShapeId opId = ShapeIdResolver.resolve(model, service, operationName);
         OperationShape operation = model.expectShape(opId, OperationShape.class);
 
         // Create wrapper structure shape
-        String wrapperName = operationName + "Response";
+        String simpleOpName = ShapeIdResolver.toShapeName(operationName);
+        String wrapperName = simpleOpName + "Response";
         ShapeId wrapperId = ShapeId.from(namespace + "#" + wrapperName);
         String wrappedMemberName = modifier.getWrappedResultMember();
 
@@ -125,22 +135,22 @@ public class OperationModifiersProcessor
         ShapeId wrappedShapeId = ShapeId.from(modifier.getWrappedResultShape());
 
         MemberShape member = MemberShape.builder()
-            .id(wrapperId.withMember(wrappedMemberName))
-            .target(wrappedShapeId)
-            .build();
+                .id(wrapperId.withMember(wrappedMemberName))
+                .target(wrappedShapeId)
+                .build();
 
         StructureShape wrapperShape = StructureShape.builder()
-            .id(wrapperId)
-            .addMember(member)
-            .build();
+                .id(wrapperId)
+                .addMember(member)
+                .build();
 
         OperationShape updatedOp = operation.toBuilder()
-            .output(wrapperId)
-            .build();
+                .output(wrapperId)
+                .build();
 
         return model.toBuilder()
-            .addShape(wrapperShape)
-            .addShape(updatedOp)
-            .build();
+                .addShape(wrapperShape)
+                .addShape(updatedOp)
+                .build();
     }
 }

@@ -45,18 +45,29 @@ import software.amazon.smithy.model.traits.DeprecatedTrait;
 import software.amazon.smithy.model.transform.ModelTransformer;
 
 /**
- * Smithy equivalent of {@link software.amazon.awssdk.codegen.customization.processors.ShapeModifiersProcessor}.
+ * Smithy equivalent of
+ * {@link software.amazon.awssdk.codegen.customization.processors.ShapeModifiersProcessor}.
  *
- * <p>This is a Category C processor (dual-config pattern). It modifies shapes in the Smithy model:
- * exclude members, inject members, modify member properties, exclude entire shapes, and mark shapes
- * as unions. In postprocess, it handles operations that work on the IntermediateModel (emitEnumName,
- * emitEnumValue, excludeShape skip flags, emitPropertyName with existingNameDeprecated,
+ * <p>
+ * This is a Category C processor (dual-config pattern). It modifies shapes in
+ * the Smithy model:
+ * exclude members, inject members, modify member properties, exclude entire
+ * shapes, and mark shapes
+ * as unions. In postprocess, it handles operations that work on the
+ * IntermediateModel (emitEnumName,
+ * emitEnumValue, excludeShape skip flags, emitPropertyName with
+ * existingNameDeprecated,
  * alternateBeanPropertyName).
  *
- * <p>Follows the dual-config pattern: accepts both old C2J {@link ShapeModifier} map and new
- * Smithy-native {@link SmithyShapeModifier} map. Old C2J {@link Member} objects in inject are
- * converted to {@link SmithyMemberDefinition}, and {@link ModifyModelShapeModifier} objects in
- * modify are converted to {@link SmithyModifyShapeModifier} (dropping C2J-only fields).
+ * <p>
+ * Follows the dual-config pattern: accepts both old C2J {@link ShapeModifier}
+ * map and new
+ * Smithy-native {@link SmithyShapeModifier} map. Old C2J {@link Member} objects
+ * in inject are
+ * converted to {@link SmithyMemberDefinition}, and
+ * {@link ModifyModelShapeModifier} objects in
+ * modify are converted to {@link SmithyModifyShapeModifier} (dropping C2J-only
+ * fields).
  */
 public class ShapeModifiersProcessor
         extends AbstractDualConfigProcessor<Map<String, ShapeModifier>, Map<String, SmithyShapeModifier>> {
@@ -70,7 +81,7 @@ public class ShapeModifiersProcessor
     private Map<String, SmithyShapeModifier> resolvedConfig;
 
     public ShapeModifiersProcessor(Map<String, ShapeModifier> oldConfig,
-                                         Map<String, SmithyShapeModifier> newConfig) {
+            Map<String, SmithyShapeModifier> newConfig) {
         super(oldConfig, newConfig, "shapeModifiers", "smithyShapeModifiers");
     }
 
@@ -88,11 +99,16 @@ public class ShapeModifiersProcessor
 
     @Override
     protected Map<String, SmithyShapeModifier> convertOldToNew(Map<String, ShapeModifier> old,
-                                                                Model model,
-                                                                ServiceShape service) {
+            Model model,
+            ServiceShape service) {
         Map<String, SmithyShapeModifier> result = new LinkedHashMap<>();
         for (Map.Entry<String, ShapeModifier> entry : old.entrySet()) {
-            result.put(entry.getKey(), convertShapeModifier(entry.getValue()));
+            String key = entry.getKey();
+            // Resolve simple shape names to fully-qualified ShapeIds; leave wildcards as-is
+            if (!ALL.equals(key)) {
+                key = ShapeIdResolver.resolve(model, service, key).toString();
+            }
+            result.put(key, convertShapeModifier(entry.getValue()));
         }
         return result;
     }
@@ -144,7 +160,8 @@ public class ShapeModifiersProcessor
         smithy.setEmitEnumValue(old.getEmitEnumValue());
         smithy.setAlternateBeanPropertyName(old.getAlternateBeanPropertyName());
         smithy.setEmitAsType(old.getEmitAsType());
-        // marshallLocationName, unmarshallLocationName, ignoreDataTypeConversionFailures
+        // marshallLocationName, unmarshallLocationName,
+        // ignoreDataTypeConversionFailures
         // are dropped — they are C2J serialization concepts not applicable to Smithy
         return smithy;
     }
@@ -155,7 +172,7 @@ public class ShapeModifiersProcessor
 
     @Override
     protected Model applySmithyLogic(Model model, ServiceShape service,
-                                      Map<String, SmithyShapeModifier> config) {
+            Map<String, SmithyShapeModifier> config) {
         // Store resolved config for postprocess
         this.resolvedConfig = config;
 
@@ -167,11 +184,11 @@ public class ShapeModifiersProcessor
             if (ALL.equals(key)) {
                 // Apply to all structure shapes in the service closure
                 Set<Shape> serviceShapes = new Walker(current).walkShapes(
-                    current.expectShape(service.getId()));
+                        current.expectShape(service.getId()));
                 for (Shape shape : serviceShapes) {
                     if (shape.isStructureShape()) {
                         current = applyModifier(current, service,
-                            shape.asStructureShape().get(), modifier);
+                                shape.asStructureShape().get(), modifier);
                     }
                 }
             } else {
@@ -179,27 +196,28 @@ public class ShapeModifiersProcessor
                 Shape shape = current.expectShape(shapeId);
                 if (!shape.isStructureShape()) {
                     throw new IllegalStateException(
-                        "ShapeModifier target '" + key + "' is not a structure shape.");
+                            "ShapeModifier target '" + key + "' is not a structure shape.");
                 }
                 current = applyModifier(current, service,
-                    shape.asStructureShape().get(), modifier);
+                        shape.asStructureShape().get(), modifier);
             }
         }
         return current;
     }
 
     /**
-     * Applies a single shape modifier to a structure shape. Operations are applied in order:
+     * Applies a single shape modifier to a structure shape. Operations are applied
+     * in order:
      * excludeShape, exclude members, inject members, modify members, union.
      */
     private Model applyModifier(Model model, ServiceShape service,
-                                StructureShape shape, SmithyShapeModifier modifier) {
+            StructureShape shape, SmithyShapeModifier modifier) {
         Model current = model;
 
         // 1. excludeShape: remove the entire shape
         if (modifier.isExcludeShape()) {
             return ModelTransformer.create().removeShapes(current,
-                Collections.singleton(shape));
+                    Collections.singleton(shape));
         }
 
         // 2. exclude: remove listed members from the structure
@@ -237,35 +255,37 @@ public class ShapeModifiersProcessor
             builder.removeMember(memberName);
         }
         return model.toBuilder()
-                    .addShape(builder.build())
-                    .build();
+                .addShape(builder.build())
+                .build();
     }
 
     private Model injectMembers(Model model, ServiceShape service,
-                                StructureShape shape, List<SmithyMemberDefinition> members) {
+            StructureShape shape, List<SmithyMemberDefinition> members) {
         StructureShape.Builder builder = shape.toBuilder();
         String namespace = ShapeIdResolver.namespace(service);
 
         for (SmithyMemberDefinition def : members) {
             ShapeId targetId = resolveTargetShapeId(model, service, namespace, def.getTarget());
             MemberShape member = MemberShape.builder()
-                .id(shape.getId().withMember(def.getName()))
-                .target(targetId)
-                .build();
+                    .id(shape.getId().withMember(def.getName()))
+                    .target(targetId)
+                    .build();
             builder.addMember(member);
         }
 
         return model.toBuilder()
-                    .addShape(builder.build())
-                    .build();
+                .addShape(builder.build())
+                .build();
     }
 
     /**
-     * Resolves a target string to a ShapeId. If the target contains '#', it is treated as a
-     * fully-qualified ShapeId. Otherwise, it is resolved as a simple name in the service namespace.
+     * Resolves a target string to a ShapeId. If the target contains '#', it is
+     * treated as a
+     * fully-qualified ShapeId. Otherwise, it is resolved as a simple name in the
+     * service namespace.
      */
     private ShapeId resolveTargetShapeId(Model model, ServiceShape service,
-                                         String namespace, String target) {
+            String namespace, String target) {
         if (target.contains("#")) {
             return ShapeId.from(target);
         }
@@ -273,7 +293,7 @@ public class ShapeModifiersProcessor
     }
 
     private Model modifyMembers(Model model, ServiceShape service, StructureShape shape,
-                                List<Map<String, SmithyModifyShapeModifier>> modifyList) {
+            List<Map<String, SmithyModifyShapeModifier>> modifyList) {
         Model current = model;
         StructureShape currentShape = shape;
 
@@ -290,7 +310,7 @@ public class ShapeModifiersProcessor
     }
 
     private Model doModifyMember(Model model, ServiceShape service, StructureShape shape,
-                                 String memberName, SmithyModifyShapeModifier modifyModel) {
+            String memberName, SmithyModifyShapeModifier modifyModel) {
         Model current = model;
 
         // Apply @deprecated trait to the member
@@ -308,21 +328,21 @@ public class ShapeModifiersProcessor
         // Retarget the member to a different type (emitAsType)
         if (modifyModel.getEmitAsType() != null) {
             String actualMemberName = modifyModel.getEmitPropertyName() != null
-                                      ? modifyModel.getEmitPropertyName()
-                                      : memberName;
+                    ? modifyModel.getEmitPropertyName()
+                    : memberName;
             current = retargetMemberType(current, service, shape, actualMemberName,
-                modifyModel.getEmitAsType());
+                    modifyModel.getEmitAsType());
         }
 
         return current;
     }
 
     private Model applyDeprecatedTrait(Model model, StructureShape shape,
-                                       String memberName, String deprecatedMessage) {
+            String memberName, String deprecatedMessage) {
         MemberShape member = shape.getMember(memberName)
-            .orElseThrow(() -> new IllegalStateException(
-                "Cannot apply deprecated trait: member '" + memberName
-                + "' not found in shape " + shape.getId()));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Cannot apply deprecated trait: member '" + memberName
+                                + "' not found in shape " + shape.getId()));
 
         DeprecatedTrait.Builder traitBuilder = DeprecatedTrait.builder();
         if (deprecatedMessage != null) {
@@ -330,46 +350,46 @@ public class ShapeModifiersProcessor
         }
 
         MemberShape updatedMember = member.toBuilder()
-            .addTrait(traitBuilder.build())
-            .build();
+                .addTrait(traitBuilder.build())
+                .build();
 
         StructureShape updatedShape = shape.toBuilder()
-            .removeMember(memberName)
-            .addMember(updatedMember)
-            .build();
+                .removeMember(memberName)
+                .addMember(updatedMember)
+                .build();
 
         return model.toBuilder()
-                    .addShape(updatedShape)
-                    .build();
+                .addShape(updatedShape)
+                .build();
     }
 
     private Model renameMember(Model model, StructureShape shape,
-                               String oldName, String newName) {
+            String oldName, String newName) {
         MemberShape oldMember = shape.getMember(oldName)
-            .orElseThrow(() -> new IllegalStateException(
-                "Cannot rename member: '" + oldName + "' not found in shape " + shape.getId()));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Cannot rename member: '" + oldName + "' not found in shape " + shape.getId()));
 
         // Create new member with the new name but same target and traits
         MemberShape newMember = MemberShape.builder()
-            .id(shape.getId().withMember(newName))
-            .target(oldMember.getTarget())
-            .traits(oldMember.getAllTraits().values())
-            .build();
+                .id(shape.getId().withMember(newName))
+                .target(oldMember.getTarget())
+                .traits(oldMember.getAllTraits().values())
+                .build();
 
         StructureShape updatedShape = shape.toBuilder()
-            .removeMember(oldName)
-            .addMember(newMember)
-            .build();
+                .removeMember(oldName)
+                .addMember(newMember)
+                .build();
 
         return model.toBuilder()
-                    .removeShape(oldMember.getId())
-                    .addShape(updatedShape)
-                    .build();
+                .removeShape(oldMember.getId())
+                .addShape(updatedShape)
+                .build();
     }
 
     private Model retargetMemberType(Model model, ServiceShape service,
-                                     StructureShape shape, String memberName,
-                                     String emitAsType) {
+            StructureShape shape, String memberName,
+            String emitAsType) {
         String namespace = ShapeIdResolver.namespace(service);
         String syntheticShapeName = "SDK_" + emitAsType;
         ShapeId syntheticId = ShapeId.from(namespace + "#" + syntheticShapeName);
@@ -379,31 +399,32 @@ public class ShapeModifiersProcessor
         if (!current.getShape(syntheticId).isPresent()) {
             Shape syntheticShape = createSyntheticShape(syntheticId, emitAsType);
             current = current.toBuilder()
-                             .addShape(syntheticShape)
-                             .build();
+                    .addShape(syntheticShape)
+                    .build();
         }
 
         // Retarget the member to the synthetic shape
         MemberShape member = shape.getMember(memberName)
-            .orElseThrow(() -> new IllegalStateException(
-                "Cannot retarget member: '" + memberName + "' not found in shape " + shape.getId()));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Cannot retarget member: '" + memberName + "' not found in shape " + shape.getId()));
 
         MemberShape updatedMember = member.toBuilder()
-            .target(syntheticId)
-            .build();
+                .target(syntheticId)
+                .build();
 
         StructureShape updatedShape = shape.toBuilder()
-            .removeMember(memberName)
-            .addMember(updatedMember)
-            .build();
+                .removeMember(memberName)
+                .addMember(updatedMember)
+                .build();
 
         return current.toBuilder()
-                      .addShape(updatedShape)
-                      .build();
+                .addShape(updatedShape)
+                .build();
     }
 
     /**
-     * Creates a synthetic Smithy shape of the specified type. Uses Smithy's abstract shape
+     * Creates a synthetic Smithy shape of the specified type. Uses Smithy's
+     * abstract shape
      * builders to create the appropriate shape type.
      */
     private Shape createSyntheticShape(ShapeId id, String typeName) {
@@ -434,24 +455,24 @@ public class ShapeModifiersProcessor
                 return software.amazon.smithy.model.shapes.ShortShape.builder().id(id).build();
             default:
                 throw new IllegalStateException(
-                    "Unsupported emitAsType: '" + typeName + "'. Cannot create synthetic shape.");
+                        "Unsupported emitAsType: '" + typeName + "'. Cannot create synthetic shape.");
         }
     }
 
     private Model applyUnion(Model model, StructureShape shape) {
         // Convert the structure shape to a union shape by building a UnionShape
         // with the same members
-        software.amazon.smithy.model.shapes.UnionShape.Builder unionBuilder =
-            software.amazon.smithy.model.shapes.UnionShape.builder().id(shape.getId());
+        software.amazon.smithy.model.shapes.UnionShape.Builder unionBuilder = software.amazon.smithy.model.shapes.UnionShape
+                .builder().id(shape.getId());
 
         for (MemberShape member : shape.getAllMembers().values()) {
             unionBuilder.addMember(member);
         }
 
         return model.toBuilder()
-                    .removeShape(shape.getId())
-                    .addShape(unionBuilder.build())
-                    .build();
+                .removeShape(shape.getId())
+                .addShape(unionBuilder.build())
+                .build();
     }
 
     // -----------------------------------------------------------------------
@@ -472,15 +493,17 @@ public class ShapeModifiersProcessor
                 continue;
             }
 
-            List<ShapeModel> shapeModels = Utils.findShapesByC2jName(intermediateModel, key);
+            String shapeName = ShapeIdResolver.toShapeName(key);
+            List<ShapeModel> shapeModels = Utils.findShapesByC2jName(intermediateModel, shapeName);
             if (shapeModels.isEmpty()) {
                 // Shape may have been excluded during preprocess; skip silently
                 if (modifier.isExcludeShape()) {
                     continue;
                 }
                 throw new IllegalStateException(String.format(
-                    "Cannot find c2j shape [%s] in the intermediate model when processing "
-                    + "customization config shapeModifiers.%s", key, key));
+                        "Cannot find c2j shape [%s] in the intermediate model when processing "
+                                + "customization config shapeModifiers.%s",
+                        shapeName, shapeName));
             }
 
             for (ShapeModel shapeModel : shapeModels) {
@@ -504,13 +527,14 @@ public class ShapeModifiersProcessor
     }
 
     private void postprocessModifyMember(ShapeModel shapeModel, String memberName,
-                                         SmithyModifyShapeModifier modifyModel) {
+            SmithyModifyShapeModifier modifyModel) {
         if (modifyModel.getEmitEnumName() != null) {
             EnumModel enumModel = shapeModel.findEnumModelByValue(memberName);
             if (enumModel == null) {
                 throw new IllegalStateException(String.format(
-                    "Cannot find enum [%s] in the intermediate model when processing "
-                    + "customization config shapeModifiers.%s", memberName, memberName));
+                        "Cannot find enum [%s] in the intermediate model when processing "
+                                + "customization config shapeModifiers.%s",
+                        memberName, memberName));
             }
             enumModel.setName(modifyModel.getEmitEnumName());
         }
@@ -519,8 +543,9 @@ public class ShapeModifiersProcessor
             EnumModel enumModel = shapeModel.findEnumModelByValue(memberName);
             if (enumModel == null) {
                 throw new IllegalStateException(String.format(
-                    "Cannot find enum [%s] in the intermediate model when processing "
-                    + "customization config shapeModifiers.%s", memberName, memberName));
+                        "Cannot find enum [%s] in the intermediate model when processing "
+                                + "customization config shapeModifiers.%s",
+                        memberName, memberName));
             }
             enumModel.setValue(modifyModel.getEmitEnumValue());
         }
@@ -541,7 +566,8 @@ public class ShapeModifiersProcessor
             }
         }
 
-        // marshallLocationName, unmarshallLocationName, ignoreDataTypeConversionFailures,
+        // marshallLocationName, unmarshallLocationName,
+        // ignoreDataTypeConversionFailures,
         // staxTargetDepthOffset are DROPPED — not applicable to Smithy
     }
 }

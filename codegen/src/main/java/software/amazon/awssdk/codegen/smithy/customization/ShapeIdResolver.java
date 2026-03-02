@@ -23,7 +23,8 @@ import software.amazon.smithy.model.shapes.ShapeId;
 
 /**
  * Resolves simple shape names from customization config (e.g., {@code "Error"})
- * to fully-qualified Smithy {@link ShapeId}s (e.g., {@code com.amazonaws.s3#Error})
+ * to fully-qualified Smithy {@link ShapeId}s (e.g.,
+ * {@code com.amazonaws.s3#Error})
  * using the service's namespace.
  */
 public final class ShapeIdResolver {
@@ -32,25 +33,49 @@ public final class ShapeIdResolver {
     }
 
     /**
-     * Resolves a simple shape name to a {@link ShapeId} within the service namespace.
-     * Constructs the candidate {@code namespace#simpleName} and verifies it exists
+     * Extracts the simple shape name from a key that may be either a simple name
+     * or a fully-qualified ShapeId (e.g.,
+     * {@code "com.amazonaws.sqs#ListQueuesInput"}).
+     * If the key contains {@code #}, returns the portion after it. Otherwise
+     * returns
+     * the key as-is.
+     *
+     * @param key the shape key (simple name or fully-qualified ShapeId)
+     * @return the simple shape name
+     */
+    public static String toShapeName(String key) {
+        int idx = key.indexOf('#');
+        return idx >= 0 ? key.substring(idx + 1) : key;
+    }
+
+    /**
+     * Resolves a shape name to a {@link ShapeId} within the service namespace.
+     * If the name already contains {@code #} (i.e., it is already a fully-qualified
+     * ShapeId), it is parsed directly and validated against the model. Otherwise,
+     * constructs the candidate {@code namespace#simpleName} and verifies it exists
      * in the model.
      *
-     * @param model      the Smithy model to search
-     * @param service    the service shape whose namespace is used
-     * @param simpleName the simple (unqualified) shape name
+     * @param model   the Smithy model to search
+     * @param service the service shape whose namespace is used
+     * @param name    the shape name (simple or fully-qualified)
      * @return the resolved ShapeId
      * @throws IllegalStateException if the shape cannot be found in the model
      */
-    public static ShapeId resolve(Model model, ServiceShape service, String simpleName) {
-        String namespace = service.getId().getNamespace();
-        ShapeId candidate = ShapeId.from(namespace + "#" + simpleName);
+    public static ShapeId resolve(Model model, ServiceShape service, String name) {
+        ShapeId candidate;
+        if (name.contains("#")) {
+            candidate = ShapeId.from(name);
+        } else {
+            String namespace = service.getId().getNamespace();
+            candidate = ShapeId.from(namespace + "#" + name);
+        }
         if (model.getShape(candidate).isPresent()) {
             return candidate;
         }
         throw new IllegalStateException(
-            String.format("Cannot resolve shape '%s' in namespace '%s'. "
-                          + "Shape not found in the Smithy model.", simpleName, namespace));
+                String.format("Cannot resolve shape '%s' in namespace '%s'. "
+                        + "Shape not found in the Smithy model.", name,
+                        service.getId().getNamespace()));
     }
 
     /**
