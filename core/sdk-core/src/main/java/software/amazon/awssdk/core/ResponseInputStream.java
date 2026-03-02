@@ -18,7 +18,6 @@ package software.amazon.awssdk.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -142,6 +141,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
 
     private static final class TimeoutScheduler {
         static final ScheduledExecutorService INSTANCE;
+
         static {
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, r -> {
                 Thread t = new Thread(r, "response-input-stream-timeout-scheduler");
