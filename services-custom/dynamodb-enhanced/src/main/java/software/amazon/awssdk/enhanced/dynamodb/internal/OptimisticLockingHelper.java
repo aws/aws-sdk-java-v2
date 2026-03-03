@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public final class OptimisticLockingHelper {
 
     private static final String CUSTOM_VERSION_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
+    private static final String USE_VERSION_ON_DELETE_METADATA_KEY = "VersionedRecordExtension:UseVersionOnDelete";
 
     private OptimisticLockingHelper() {
     }
@@ -52,8 +53,9 @@ public final class OptimisticLockingHelper {
     public static DeleteItemEnhancedRequest optimisticLocking(DeleteItemEnhancedRequest.Builder requestBuilder,
                                                               AttributeValue versionValue, String versionAttributeName) {
 
+        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
         return requestBuilder
-            .conditionExpression(createVersionCondition(versionValue, versionAttributeName))
+            .conditionExpression(conditionExpression)
             .build();
     }
 
@@ -75,52 +77,27 @@ public final class OptimisticLockingHelper {
     }
 
     /**
-     * Conditionally applies optimistic locking if enabled and version information exists.
+     * Conditionally applies optimistic locking based on annotation setting.
      *
-     * @param <T>                  the type of the item
-     * @param requestBuilder       the delete request builder
-     * @param keyItem              the item containing version information
-     * @param tableSchema          the table schema
-     * @param useOptimisticLocking if true, applies optimistic locking
-     * @return delete request with optimistic locking if enabled and version exists, otherwise original request
+     * @param <T>            the type of the item
+     * @param requestBuilder the delete request builder
+     * @param keyItem        the item containing version information
+     * @param tableSchema    the table schema
+     * @return delete request with optimistic locking if annotation enables it and version exists, otherwise original request
      */
     public static <T> DeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
-        DeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
-
-        if (!useOptimisticLocking) {
-            return requestBuilder.build();
-        }
+        DeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema) {
 
         return getVersionAttributeName(tableSchema)
             .map(versionAttributeName -> {
-                AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null
-                       ? optimisticLocking(requestBuilder, version, versionAttributeName)
-                       : requestBuilder.build();
+                Boolean useVersionOnDelete = tableSchema.tableMetadata()
+                                                        .customMetadataObject(USE_VERSION_ON_DELETE_METADATA_KEY, Boolean.class)
+                                                        .orElse(false);
 
-            }).orElseGet(requestBuilder::build);
-    }
+                if (!useVersionOnDelete) {
+                    return requestBuilder.build();
+                }
 
-    /**
-     * Conditionally applies optimistic locking if enabled and version information exists.
-     *
-     * @param <T>                  the type of the item
-     * @param requestBuilder       the transactional delete request builder
-     * @param keyItem              the item containing version information
-     * @param tableSchema          the table schema
-     * @param useOptimisticLocking if true, applies optimistic locking
-     * @return delete request with optimistic locking if enabled and version exists, otherwise original request
-     */
-    public static <T> TransactDeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
-        TransactDeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema,
-        boolean useOptimisticLocking) {
-
-        if (!useOptimisticLocking) {
-            return requestBuilder.build();
-        }
-
-        return getVersionAttributeName(tableSchema)
-            .map(versionAttributeName -> {
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
                 return version != null
                        ? optimisticLocking(requestBuilder, version, versionAttributeName)

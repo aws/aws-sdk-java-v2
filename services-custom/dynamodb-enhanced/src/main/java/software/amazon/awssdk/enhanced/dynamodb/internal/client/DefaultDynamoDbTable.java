@@ -148,7 +148,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     /**
-     * Does not support optimistic locking. Use {@link #deleteItem(Object, boolean)} for optimistic locking support.
+     * Does not support optimistic locking.
      */
     @Override
     public T deleteItem(Key key) {
@@ -156,26 +156,13 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     /**
-     * @deprecated Use {@link #deleteItem(Object, boolean)} instead to explicitly control optimistic locking behavior.
+     * Supports optimistic locking based on annotation configuration via {@link OptimisticLockingHelper}.
      */
     @Override
-    @Deprecated
     public T deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
-    }
-
-    /**
-     * Deletes an item from the table with optional optimistic locking.
-     *
-     * @param keyItem the item containing the key to delete
-     * @param useOptimisticLocking if true, applies optimistic locking if the item has version information
-     * @return the deleted item, or null if the item was not found
-     */
-    @Override
-    public T deleteItem(T keyItem, boolean useOptimisticLocking) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem));
-        conditionallyApplyOptimisticLocking(builder, keyItem, tableSchema, useOptimisticLocking);
-        return deleteItem(builder.build());
+        DeleteItemEnhancedRequest request = conditionallyApplyOptimisticLocking(builder, keyItem, tableSchema);
+        return deleteItem(request);
     }
 
     @Override
