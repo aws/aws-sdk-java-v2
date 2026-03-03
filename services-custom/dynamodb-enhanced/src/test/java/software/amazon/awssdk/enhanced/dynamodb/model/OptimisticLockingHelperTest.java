@@ -21,10 +21,13 @@ import static org.assertj.core.api.BDDAssertions.entry;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.createVersionCondition;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.getVersionAttributeName;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.optimisticLocking;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,9 +39,25 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class OptimisticLockingHelperTest {
+
+    private static final TableSchema<OptimisticLockingTestItem> OPTIMISTIC_LOCKING_SCHEMA =
+        StaticTableSchema.builder(OptimisticLockingTestItem.class)
+                         .newItemSupplier(OptimisticLockingTestItem::new)
+                         .addAttribute(String.class,
+                                       a -> a.name("id")
+                                             .getter(OptimisticLockingTestItem::getId)
+                                             .setter(OptimisticLockingTestItem::setId)
+                                             .addTag(primaryPartitionKey()))
+                         .addAttribute(Long.class,
+                                       a -> a.name("version")
+                                             .getter(OptimisticLockingTestItem::getVersion)
+                                             .setter(OptimisticLockingTestItem::setVersion)
+                                             .addTag(versionAttribute(null, null, true)))
+                         .build();
 
     @Test
     public void optimisticLocking_onDelete_addsConditionExpression() {
@@ -332,5 +351,85 @@ public class OptimisticLockingHelperTest {
         assertThat(result.conditionExpression().expressionValues()).containsExactly(
             entry(":AMZN_MAPPED_recordVersion", versionValue));
     }
-}
 
+    @Test
+    public void conditionallyApplyOptimisticLocking_withoutVersionAttribute_returnsOriginalRequest() {
+        Key key = Key.builder().partitionValue("id").build();
+        RecordForUpdateExpressions keyItem = new RecordForUpdateExpressions();
+        TableSchema<RecordForUpdateExpressions> tableSchema = TableSchema.fromClass(RecordForUpdateExpressions.class);
+
+        DeleteItemEnhancedRequest.Builder requestBuilder = DeleteItemEnhancedRequest.builder().key(key);
+        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(requestBuilder, keyItem, tableSchema);
+
+        assertThat(result).isEqualTo(requestBuilder.build());
+        assertThat(result.conditionExpression()).isNull();
+    }
+
+    @Test
+    public void conditionallyApplyOptimisticLocking_useVersionOnDeleteFalse_returnsOriginalRequest() {
+        Key key = Key.builder().partitionValue("id").build();
+        RecordWithUpdateBehaviors keyItem = new RecordWithUpdateBehaviors();
+        keyItem.setVersion(1L);
+        TableSchema<RecordWithUpdateBehaviors> tableSchema = TableSchema.fromClass(RecordWithUpdateBehaviors.class);
+
+        DeleteItemEnhancedRequest.Builder requestBuilder = DeleteItemEnhancedRequest.builder().key(key);
+        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(requestBuilder, keyItem, tableSchema);
+
+        assertThat(result).isEqualTo(requestBuilder.build());
+        assertThat(result.conditionExpression()).isNull();
+    }
+
+    @Test
+    public void conditionallyApplyOptimisticLocking_useVersionOnDeleteTrueAndNullVersion_throwsException() {
+        Key key = Key.builder().partitionValue("id").build();
+        OptimisticLockingTestItem keyItem = new OptimisticLockingTestItem();
+        keyItem.setId("id");
+
+        DeleteItemEnhancedRequest.Builder requestBuilder = DeleteItemEnhancedRequest.builder().key(key);
+
+        assertThatThrownBy(() -> conditionallyApplyOptimisticLocking(requestBuilder, keyItem, OPTIMISTIC_LOCKING_SCHEMA))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Optimistic locking is enabled for delete, but version attribute is null: version");
+    }
+
+    @Test
+    public void conditionallyApplyOptimisticLocking_useVersionOnDeleteTrueAndVersionPresent_appliesCondition() {
+        Key key = Key.builder().partitionValue("id").build();
+        OptimisticLockingTestItem keyItem = new OptimisticLockingTestItem();
+        keyItem.setId("id");
+        keyItem.setVersion(1L);
+
+        DeleteItemEnhancedRequest.Builder requestBuilder = DeleteItemEnhancedRequest.builder().key(key);
+        DeleteItemEnhancedRequest result = conditionallyApplyOptimisticLocking(requestBuilder, keyItem,
+                                                                               OPTIMISTIC_LOCKING_SCHEMA);
+
+        assertThat(result.conditionExpression()).isNotNull();
+        assertThat(result.conditionExpression().expression()).isEqualTo(
+            "#AMZN_MAPPED_version = :AMZN_MAPPED_version");
+        assertThat(result.conditionExpression().expressionNames()).containsExactly(
+            entry("#AMZN_MAPPED_version", "version"));
+        assertThat(result.conditionExpression().expressionValues()).containsExactly(
+            entry(":AMZN_MAPPED_version", AttributeValue.builder().n("1").build()));
+    }
+
+    private static class OptimisticLockingTestItem {
+        private String id;
+        private Long version;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Long getVersion() {
+            return version;
+        }
+
+        public void setVersion(Long version) {
+            this.version = version;
+        }
+    }
+}

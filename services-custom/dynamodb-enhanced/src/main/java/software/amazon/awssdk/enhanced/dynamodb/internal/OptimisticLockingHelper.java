@@ -84,6 +84,7 @@ public final class OptimisticLockingHelper {
      * @param keyItem        the item containing version information
      * @param tableSchema    the table schema
      * @return delete request with optimistic locking if annotation enables it and version exists, otherwise original request
+     * @throws IllegalStateException if optimistic locking is enabled but the version attribute is null
      */
     public static <T> DeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
         DeleteItemEnhancedRequest.Builder requestBuilder, T keyItem, TableSchema<T> tableSchema) {
@@ -99,9 +100,11 @@ public final class OptimisticLockingHelper {
                 }
 
                 AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
-                return version != null
-                       ? optimisticLocking(requestBuilder, version, versionAttributeName)
-                       : requestBuilder.build();
+                if (version == null) {
+                    throw new IllegalStateException(
+                        "Optimistic locking is enabled for delete, but version attribute is null: " + versionAttributeName);
+                }
+                return optimisticLocking(requestBuilder, version, versionAttributeName);
 
             }).orElseGet(requestBuilder::build);
     }
