@@ -64,7 +64,6 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -149,9 +148,6 @@ public final class AwsExecutionContextBuilder {
         if (executionParams.authSchemeOptionsResolver() != null) {
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
                                              executionParams.authSchemeOptionsResolver());
-
-            List<AuthSchemeOption> authOptions = executionParams.authSchemeOptionsResolver().resolve(originalRequest);
-            recordAuthSchemeBusinessMetrics(authOptions, executionAttributes, originalRequest);
         }
 
         // Set the identity provider updater for the pipeline stage to use
@@ -388,65 +384,4 @@ public final class AwsExecutionContextBuilder {
                SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
     }
 
-    /**
-     * Records business metrics for auth scheme selection (SigV4a, bearer token).
-     */
-    private static void recordAuthSchemeBusinessMetrics(List<AuthSchemeOption> authSchemeOptions,
-                                                        ExecutionAttributes executionAttributes,
-                                                        SdkRequest request) {
-        if (authSchemeOptions == null || authSchemeOptions.isEmpty()) {
-            return;
-        }
-
-        BusinessMetricCollection businessMetrics =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
-        if (businessMetrics == null) {
-            return;
-        }
-
-        Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-        IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-        
-        if (authSchemes == null || identityProviders == null) {
-            return;
-        }
-
-        for (AuthSchemeOption authOption : authSchemeOptions) {
-            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
-            if (authScheme == null) {
-                continue; // Auth scheme not enabled, try next option
-            }
-            
-            if (authScheme.identityProvider(identityProviders) == null) {
-                continue; // Identity provider not configured, try next option
-            }
-
-            // Check for SigV4a
-            if ("aws.auth#sigv4a".equals(authOption.schemeId()) &&
-                !SignerOverrideUtils.isSignerOverridden(request, executionAttributes)) {
-                businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
-            }
-
-            // Check for bearer token from environment
-            if ("smithy.api#httpBearerAuth".equals(authOption.schemeId())) {
-                String tokenFromEnv = executionAttributes.getAttribute(SdkInternalExecutionAttribute.TOKEN_CONFIGURED_FROM_ENV);
-                if (tokenFromEnv != null && !hasTokenOverride(request)) {
-                    businessMetrics.addMetric(BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS.value());
-                }
-            }
-
-            return;
-        }
-    }
-
-    /**
-     * Check if the request has a token identity provider override.
-     */
-    private static boolean hasTokenOverride(SdkRequest request) {
-        return request.overrideConfiguration()
-                      .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                      .map(c -> (AwsRequestOverrideConfiguration) c)
-                      .flatMap(AwsRequestOverrideConfiguration::tokenIdentityProvider)
-                      .isPresent();
-    }
 }

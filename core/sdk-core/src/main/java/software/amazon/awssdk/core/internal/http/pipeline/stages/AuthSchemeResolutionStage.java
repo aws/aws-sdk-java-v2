@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -26,27 +27,33 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
-import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
  * Pipeline stage that resolves the auth scheme and identity for signing.
  */
 @SdkInternalApi
-public final class AuthSchemeResolutionStage implements RequestToRequestPipeline {
+public final class AuthSchemeResolutionStage implements MutableRequestToRequestPipeline {
 
     public AuthSchemeResolutionStage(HttpClientDependencies dependencies) {
     }
 
     @Override
-    public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
+            throws Exception {
         ExecutionAttributes executionAttributes = context.executionAttributes();
 
         Map<String, AuthScheme<?>> authSchemes = executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
@@ -79,6 +86,8 @@ public final class AuthSchemeResolutionStage implements RequestToRequestPipeline
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
 
+        recordBusinessMetrics(selectedAuthScheme, sdkRequest, executionAttributes);
+
         return request;
     }
 
@@ -90,5 +99,44 @@ public final class AuthSchemeResolutionStage implements RequestToRequestPipeline
             return null;
         }
         return resolver.resolve(request);
+    }
+
+    private void recordBusinessMetrics(SelectedAuthScheme<? extends Identity> selectedAuthScheme,
+                                       SdkRequest request,
+                                       ExecutionAttributes executionAttributes) {
+        if (selectedAuthScheme == null) {
+            return;
+        }
+
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics == null) {
+            return;
+        }
+
+        String schemeId = selectedAuthScheme.authSchemeOption().schemeId();
+
+        if (AwsV4aAuthScheme.SCHEME_ID.equals(schemeId) && !isSignerOverridden(request, executionAttributes)) {
+            businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
+        }
+
+        if (BearerAuthScheme.SCHEME_ID.equals(schemeId) && selectedAuthScheme.identity().isDone()) {
+            Identity identity = selectedAuthScheme.identity().getNow(null);
+            if (identity instanceof TokenIdentity) {
+                String tokenFromEnv = executionAttributes.getAttribute(SdkInternalExecutionAttribute.TOKEN_CONFIGURED_FROM_ENV);
+                if (tokenFromEnv != null && tokenFromEnv.equals(((TokenIdentity) identity).token())) {
+                    businessMetrics.addMetric(BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS.value());
+                }
+            }
+        }
+    }
+
+    private boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
+        boolean isClientSignerOverridden =
+            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
+        boolean isRequestSignerOverridden = request.overrideConfiguration()
+                                                   .flatMap(RequestOverrideConfiguration::signer)
+                                                   .isPresent();
+        return isClientSignerOverridden || isRequestSignerOverridden;
     }
 }

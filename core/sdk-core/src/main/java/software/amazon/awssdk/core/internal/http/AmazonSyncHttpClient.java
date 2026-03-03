@@ -187,10 +187,10 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(QueryParametersToBodyStage::new)
                                .then(() -> new CompressRequestStage(httpClientDependencies))
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
+                               .then(AuthSchemeResolutionStage::new)
                                .then(ApplyUserAgentStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
-                               .then(AuthSchemeResolutionStage::new)
                                .then(RequestPipelineBuilder
                                          .first(SigningStage::new)
                                          .then(BeforeTransmissionExecutionInterceptorsStage::new)

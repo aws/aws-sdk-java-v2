@@ -66,6 +66,7 @@ import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -88,6 +89,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
+import software.amazon.awssdk.services.s3.auth.scheme.internal.S3EndpointResolverAware;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
@@ -634,44 +636,19 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         S3AuthSchemeProvider authSchemeProvider = (S3AuthSchemeProvider) 
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
         
-        // Build full endpoint params using the generated interceptor's logic
-        S3EndpointParams endpointParams = 
-            S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
-        
-        // Copy all endpoint params to auth scheme params
-        S3AuthSchemeParams.Builder authParamsBuilder = 
-            S3AuthSchemeParams.builder()
-                .operation(operationName)
-                .region(endpointParams.region())
-                .bucket(endpointParams.bucket())
-                .prefix(endpointParams.prefix())
-                .copySource(endpointParams.copySource())
-                .key(endpointParams.key());
-        
-        // Set optional endpoint params if present
-        if (endpointParams.accelerate() != null) {
-            authParamsBuilder.accelerate(endpointParams.accelerate());
-        }
-        if (endpointParams.disableMultiRegionAccessPoints() != null) {
-            authParamsBuilder.disableMultiRegionAccessPoints(endpointParams.disableMultiRegionAccessPoints());
-        }
-        if (endpointParams.disableS3ExpressSessionAuth() != null) {
-            authParamsBuilder.disableS3ExpressSessionAuth(endpointParams.disableS3ExpressSessionAuth());
-        }
-        if (endpointParams.forcePathStyle() != null) {
-            authParamsBuilder.forcePathStyle(endpointParams.forcePathStyle());
-        }
-        if (endpointParams.useArnRegion() != null) {
-            authParamsBuilder.useArnRegion(endpointParams.useArnRegion());
-        }
-        if (endpointParams.useFips() != null) {
-            authParamsBuilder.useFips(endpointParams.useFips());
-        }
-        if (endpointParams.useDualStack() != null) {
-            authParamsBuilder.useDualStack(endpointParams.useDualStack());
+        S3EndpointParams endpointParams = S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        S3AuthSchemeParams.Builder paramsBuilder = S3AuthSchemeParams.fromEndpointParams(endpointParams)
+            .operation(operationName);
+
+        if (paramsBuilder instanceof S3EndpointResolverAware.Builder) {
+            EndpointProvider endpointProvider = 
+                executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            if (endpointProvider instanceof S3EndpointProvider) {
+                ((S3EndpointResolverAware.Builder) paramsBuilder).endpointProvider((S3EndpointProvider) endpointProvider);
+            }
         }
         
-        return authSchemeProvider.resolveAuthScheme(authParamsBuilder.build());
+        return authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
     }
 
     /**

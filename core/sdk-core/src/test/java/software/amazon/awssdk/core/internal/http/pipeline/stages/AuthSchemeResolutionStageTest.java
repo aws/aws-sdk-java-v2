@@ -51,7 +51,7 @@ class AuthSchemeResolutionStageTest {
     private static final String SCHEME_ID = "test.scheme";
 
     private AuthSchemeResolutionStage stage;
-    private SdkHttpFullRequest httpRequest;
+    private SdkHttpFullRequest.Builder httpRequestBuilder;
     private RequestExecutionContext context;
     private ExecutionAttributes executionAttributes;
     private SdkRequest sdkRequest;
@@ -59,7 +59,7 @@ class AuthSchemeResolutionStageTest {
     @BeforeEach
     void setup() {
         stage = new AuthSchemeResolutionStage(null);
-        httpRequest = mock(SdkHttpFullRequest.class);
+        httpRequestBuilder = mock(SdkHttpFullRequest.Builder.class);
         sdkRequest = mock(SdkRequest.class);
         executionAttributes = new ExecutionAttributes();
 
@@ -79,9 +79,9 @@ class AuthSchemeResolutionStageTest {
     @Test
     void execute_noAuthSchemes_returnsRequestUnchanged() throws Exception {
         // AUTH_SCHEMES is null
-        SdkHttpFullRequest result = stage.execute(httpRequest, context);
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
-        assertThat(result).isSameAs(httpRequest);
+        assertThat(result).isSameAs(httpRequestBuilder);
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)).isNull();
     }
 
@@ -90,9 +90,9 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         // AUTH_SCHEME_OPTIONS_RESOLVER is null
 
-        SdkHttpFullRequest result = stage.execute(httpRequest, context);
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
-        assertThat(result).isSameAs(httpRequest);
+        assertThat(result).isSameAs(httpRequestBuilder);
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)).isNull();
     }
 
@@ -102,9 +102,9 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
             (AuthSchemeOptionsResolver) req -> Collections.emptyList());
 
-        SdkHttpFullRequest result = stage.execute(httpRequest, context);
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
-        assertThat(result).isSameAs(httpRequest);
+        assertThat(result).isSameAs(httpRequestBuilder);
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)).isNull();
     }
 
@@ -132,7 +132,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER, resolver);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
-        stage.execute(httpRequest, context);
+        stage.execute(httpRequestBuilder, context);
 
         // Verify resolver was called with the MODIFIED request, not originalRequest
         verify(resolver).resolve(modifiedRequest);
@@ -160,7 +160,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, baseProviders);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER, updater);
 
-        stage.execute(httpRequest, context);
+        stage.execute(httpRequestBuilder, context);
 
         verify(updater).update(sdkRequest, baseProviders);
     }
@@ -173,9 +173,9 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
         // No IDENTITY_PROVIDER_UPDATER set
 
-        SdkHttpFullRequest result = stage.execute(httpRequest, context);
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
-        assertThat(result).isSameAs(httpRequest);
+        assertThat(result).isSameAs(httpRequestBuilder);
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)).isNotNull();
     }
 
@@ -186,9 +186,9 @@ class AuthSchemeResolutionStageTest {
             (AuthSchemeOptionsResolver) req -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
-        SdkHttpFullRequest result = stage.execute(httpRequest, context);
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
-        assertThat(result).isSameAs(httpRequest);
+        assertThat(result).isSameAs(httpRequestBuilder);
         SelectedAuthScheme<?> selectedAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         assertThat(selectedAuthScheme).isNotNull();

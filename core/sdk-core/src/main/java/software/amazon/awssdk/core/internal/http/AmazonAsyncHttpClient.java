@@ -199,9 +199,9 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(QueryParametersToBodyStage::new)
                                 .then(() -> new CompressRequestStage(httpClientDependencies))
                                 .then(() -> new HttpChecksumStage(ClientType.ASYNC))
+                                .then(AuthSchemeResolutionStage::new)
                                 .then(ApplyUserAgentStage::new)
                                 .then(MakeRequestImmutableStage::new)
-                                .then(AuthSchemeResolutionStage::new)
                                 .then(RequestPipelineBuilder
                                         .first(AsyncSigningStage::new)
                                         .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
