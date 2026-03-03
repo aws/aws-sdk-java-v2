@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Partner Central Channel API",
-    "contributor": "",
-    "description": "Adds the Resold Unified Operations support plan and removes the Resold Business support plan in the CreateRelationship and UpdateRelationship APIs"
-}
