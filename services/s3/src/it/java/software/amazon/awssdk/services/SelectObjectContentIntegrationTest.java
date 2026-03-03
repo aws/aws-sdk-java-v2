@@ -82,7 +82,6 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         }
     }
 
-    // TODO: replace with wiremock test
     @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
@@ -93,7 +92,6 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(handler.response).isNotNull();
     }
 
-    // TODO: replace with wiremock test
     @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
@@ -109,7 +107,6 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
-    // TODO: replace with wiremock test
     @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
