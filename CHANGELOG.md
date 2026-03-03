@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.5__ __2026-03-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Support for AgentCore Policy GA
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs updates- Added support for the PutBearerTokenAuthentication API to enable or disable bearer token authentication on a log group. For more information, see CloudWatch Logs API documentation.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adding QueryGraph operation to DataZone SDK
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds b300 and g7e instance types for SageMaker inference endpoints.
+
+## __Partner Central Channel API__
+  - ### Features
+    - Adds the Resold Unified Operations support plan and removes the Resold Business support plan in the CreateRelationship and UpdateRelationship APIs
+
 # __2.42.4__ __2026-02-27__
 ## __ARC - Region switch__
   - ### Features
