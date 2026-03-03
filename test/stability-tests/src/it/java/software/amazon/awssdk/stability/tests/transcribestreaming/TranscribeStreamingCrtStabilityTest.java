@@ -17,13 +17,10 @@ package software.amazon.awssdk.stability.tests.transcribestreaming;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.transcribestreaming.TranscribeStreamingAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.testutils.retry.RetryableTest;
-import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Stability tests for Transcribe Streaming using CRT HTTP client with HTTP/2.

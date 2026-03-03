@@ -41,7 +41,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockH2Server;
-import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -63,11 +62,6 @@ public class AwsCrtH2ClientBenchmark implements SdkHttpClientBenchmark {
     private MockH2Server mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
     private ProtocolRestJsonAsyncClient client;
-
-    static {
-        //System.setProperty("aws.crt.debugnative", "true");
-        Log.initLoggingToStdout(Log.LogLevel.Error);
-    }
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
