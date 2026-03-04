@@ -67,14 +67,7 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
             return request;
         }
 
-        IdentityProviders identityProviders =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-
-        IdentityProviderUpdater updater =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
-        if (updater != null) {
-            identityProviders = updater.update(sdkRequest, identityProviders);
-        }
+        IdentityProviders identityProviders = updateIdentityProvidersIfNeeded(executionAttributes, sdkRequest);
 
         MetricCollector metricCollector =
             executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
@@ -101,6 +94,24 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         return resolver.resolve(request);
     }
 
+    /**
+     * Returns identity providers after applying any request-level overrides. This allows aws-core to inject
+     * credential overrides from {@code AwsRequestOverrideConfiguration} (e.g., per-request credentials provider)
+     * without sdk-core depending on aws-core. The updater is set by {@code AwsExecutionContextBuilder} and runs
+     * after interceptors have modified the request, ensuring user-injected credentials are respected.
+     */
+    private IdentityProviders updateIdentityProvidersIfNeeded(ExecutionAttributes executionAttributes, SdkRequest request) {
+        IdentityProviders identityProviders =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        IdentityProviderUpdater updater =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
+        if (updater != null) {
+            identityProviders = updater.update(request, identityProviders);
+        }
+        return identityProviders;
+    }
+
     private void recordBusinessMetrics(SelectedAuthScheme<? extends Identity> selectedAuthScheme,
                                        SdkRequest request,
                                        ExecutionAttributes executionAttributes) {
@@ -116,7 +127,11 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
 
         String schemeId = selectedAuthScheme.authSchemeOption().schemeId();
 
-        if (AwsV4aAuthScheme.SCHEME_ID.equals(schemeId) && !isSignerOverridden(request, executionAttributes)) {
+        if (isSignerOverridden(request, executionAttributes)) {
+            return;
+        }
+
+        if (AwsV4aAuthScheme.SCHEME_ID.equals(schemeId)) {
             businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
         }
 

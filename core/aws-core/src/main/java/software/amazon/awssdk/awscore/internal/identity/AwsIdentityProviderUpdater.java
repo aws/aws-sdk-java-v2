@@ -28,9 +28,13 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 @SdkInternalApi
 public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater {
 
-    public static final AwsIdentityProviderUpdater INSTANCE = new AwsIdentityProviderUpdater();
+    private static final AwsIdentityProviderUpdater INSTANCE = new AwsIdentityProviderUpdater();
 
     private AwsIdentityProviderUpdater() {
+    }
+
+    public static AwsIdentityProviderUpdater create() {
+        return INSTANCE;
     }
 
     @Override

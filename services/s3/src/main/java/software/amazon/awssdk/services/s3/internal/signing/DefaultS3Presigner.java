@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -43,18 +44,19 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
-import software.amazon.awssdk.awscore.internal.identity.AwsIdentityProviderUpdater;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.identity.SdkIdentityProperty;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -74,6 +76,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -136,6 +139,7 @@ import software.amazon.awssdk.services.s3.transform.HeadObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -618,7 +622,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         }
 
         IdentityProviders identityProviders = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-        identityProviders = AwsIdentityProviderUpdater.INSTANCE.update(request, identityProviders);
 
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = 
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, null);
@@ -633,12 +636,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName, 
                                                             ExecutionAttributes executionAttributes) {
-        S3AuthSchemeProvider authSchemeProvider = (S3AuthSchemeProvider) 
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+        S3AuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(S3AuthSchemeProvider.class,
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+            "Expected an instance of S3AuthSchemeProvider");
         
         S3EndpointParams endpointParams = S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
         S3AuthSchemeParams.Builder paramsBuilder = S3AuthSchemeParams.fromEndpointParams(endpointParams)
             .operation(operationName);
+
+        executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+            .filter(regionSet -> !CollectionUtils.isNullOrEmpty(regionSet))
+            .ifPresent(nonEmptyRegionSet -> paramsBuilder.regionSet(RegionSet.create(nonEmptyRegionSet)));
 
         if (paramsBuilder instanceof S3EndpointResolverAware.Builder) {
             EndpointProvider endpointProvider = 
@@ -648,7 +656,14 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             }
         }
         
-        return authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        SdkClient sdkClient = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_CLIENT);
+        if (sdkClient != null) {
+            options = options.stream()
+                .map(o -> o.toBuilder().putIdentityProperty(SdkIdentityProperty.SDK_CLIENT, sdkClient).build())
+                .collect(Collectors.toList());
+        }
+        return options;
     }
 
     /**

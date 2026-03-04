@@ -52,6 +52,7 @@ import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
@@ -361,13 +362,27 @@ public final class ClientClassUtils {
 
         ClassName providerInterface = authSchemeSpecUtils.providerInterfaceName();
 
-        builder.addStatement("$T authSchemeProvider = ($T) clientConfiguration.option($T.AUTH_SCHEME_PROVIDER)",
-                             providerInterface, providerInterface, SdkClientOption.class);
+        builder.addStatement("$T authSchemeProvider = $T.isInstanceOf($T.class, "
+                             + "clientConfiguration.option($T.AUTH_SCHEME_PROVIDER), $S)",
+                             providerInterface, Validate.class, providerInterface, SdkClientOption.class,
+                             "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
 
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             addEndpointBasedAuthSchemeResolution(builder, authSchemeSpecUtils, endpointRulesSpecUtils);
         } else {
             addSimpleAuthSchemeResolution(builder, authSchemeSpecUtils);
+        }
+
+        if (endpointRulesSpecUtils.isS3()) {
+            ClassName sdkIdentityProperty = ClassName.get("software.amazon.awssdk.core.identity", "SdkIdentityProperty");
+            builder.addStatement("$T sdkClient = clientConfiguration.option($T.SDK_CLIENT)",
+                                 SdkClient.class, SdkClientOption.class);
+            builder.addStatement("return options.stream().map(o -> o.toBuilder()"
+                                 + ".putIdentityProperty($T.SDK_CLIENT, sdkClient).build())"
+                                 + ".collect($T.toList())",
+                                 sdkIdentityProperty, Collectors.class);
+        } else {
+            builder.addStatement("return options");
         }
 
         return builder.build();
@@ -397,7 +412,8 @@ public final class ClientClassUtils {
             builder.endControlFlow();
         }
 
-        builder.addStatement("return authSchemeProvider.resolveAuthScheme(paramsBuilder.build())");
+        builder.addStatement("$T<$T> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build())",
+                             List.class, AuthSchemeOption.class);
     }
 
     private static void addEndpointBasedAuthSchemeResolution(MethodSpec.Builder builder,
@@ -463,6 +479,7 @@ public final class ClientClassUtils {
         builder.endControlFlow();
         builder.endControlFlow();
 
-        builder.addStatement("return authSchemeProvider.resolveAuthScheme(paramsBuilder.build())");
+        builder.addStatement("$T<$T> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build())",
+                             List.class, AuthSchemeOption.class);
     }
 }

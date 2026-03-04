@@ -152,7 +152,7 @@ public final class AwsExecutionContextBuilder {
 
         // Set the identity provider updater for the pipeline stage to use
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER,
-                                         AwsIdentityProviderUpdater.INSTANCE);
+                                         AwsIdentityProviderUpdater.create());
 
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
