@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon OpenSearch Service",
-    "contributor": "",
-    "description": "Adding support for DeploymentStrategyOptions"
-}
