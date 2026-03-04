@@ -47,7 +47,7 @@ public class MavenTestBase {
         FileUtils.deleteDirectory(mavenExpected.toFile());
     }
 
-    protected static void verifyTransformation() throws IOException {
+    protected static void runTransformation() throws IOException {
         String recipeCmd = "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2";
         List<String> rewriteArgs = new ArrayList<>();
         // pin version since updates have broken tests
@@ -57,6 +57,10 @@ public class MavenTestBase {
 
         run(mavenActual, rewriteArgs.toArray(new String[0]));
         FileUtils.deleteDirectory(mavenActual.resolve("target").toFile());
+    }
+
+    protected static void verifyTransformation() throws IOException {
+        runTransformation();
         assertTwoDirectoriesHaveSameStructure(mavenActual, mavenExpected);
     }
 

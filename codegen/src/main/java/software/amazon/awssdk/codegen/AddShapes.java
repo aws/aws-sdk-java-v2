@@ -158,7 +158,7 @@ abstract class AddShapes {
                                             Map<String, Shape> allC2jShapes) {
         String c2jShapeName = c2jMemberDefinition.getShape();
         Shape shape = allC2jShapes.get(c2jShapeName);
-        String variableName = getNamingStrategy().getVariableName(c2jMemberName);
+        String variableName = getNamingStrategy().getVariableName(c2jMemberName, parentShape);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
         String variableDeclarationType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
 

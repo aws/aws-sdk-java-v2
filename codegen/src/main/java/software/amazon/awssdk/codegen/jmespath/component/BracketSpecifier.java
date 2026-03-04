@@ -50,6 +50,10 @@ public class BracketSpecifier {
         return withContents(BracketSpecifierWithContents.wildcardExpression(wildcardExpression));
     }
 
+    public static BracketSpecifier withMultiSelectListContents(MultiSelectList multiSelectList) {
+        return withContents(BracketSpecifierWithContents.multiSelectList(multiSelectList));
+    }
+
     public static BracketSpecifier withoutContents() {
         BracketSpecifier result = new BracketSpecifier();
         result.bracketSpecifierWithoutContents = new BracketSpecifierWithoutContents();

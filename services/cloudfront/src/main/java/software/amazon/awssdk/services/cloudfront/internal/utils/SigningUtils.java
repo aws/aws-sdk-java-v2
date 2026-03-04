@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -57,11 +58,29 @@ public final class SigningUtils {
      * >Setting signed cookies using a canned policy</a>.
      */
     public static String buildCannedPolicy(String resourceUrl, Instant expirationDate) {
-        return "{\"Statement\":[{\"Resource\":\""
-               + resourceUrl
-               + "\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":"
-               + expirationDate.getEpochSecond()
-               + "}}}]}";
+        Validate.notNull(resourceUrl, "resourceUrl must not be null");
+        Validate.notNull(expirationDate, "expirationDate must not be null");
+        validateInput(resourceUrl, "resourceUrl");
+
+        JsonWriter writer = JsonWriter.create();
+        writer.writeStartObject()
+              .writeFieldName("Statement")
+              .writeStartArray()
+              .writeStartObject()
+              .writeFieldName("Resource")
+              .writeValue(resourceUrl)
+              .writeFieldName("Condition")
+              .writeStartObject()
+              .writeFieldName("DateLessThan")
+              .writeStartObject()
+              .writeFieldName("AWS:EpochTime")
+              .writeValue(expirationDate.getEpochSecond())
+              .writeEndObject()
+              .writeEndObject()
+              .writeEndObject()
+              .writeEndArray()
+              .writeEndObject();
+        return new String(writer.getBytes(), UTF_8);
     }
 
     /**
@@ -75,24 +94,72 @@ public final class SigningUtils {
      * >Setting signed cookies using a custom policy</a>.
      */
     public static String buildCustomPolicy(String resourceUrl, Instant activeDate, Instant expirationDate,
-                                            String ipAddress) {
-        return "{\"Statement\": [{"
-               + "\"Resource\":\""
-               + resourceUrl
-               + "\""
-               + ",\"Condition\":{"
-               + "\"DateLessThan\":{\"AWS:EpochTime\":"
-               + expirationDate.getEpochSecond()
-               + "}"
-               + (ipAddress == null
-                  ? ""
-                  : ",\"IpAddress\":{\"AWS:SourceIp\":\"" + ipAddress + "\"}"
-               )
-               + (activeDate == null
-                  ? ""
-                  : ",\"DateGreaterThan\":{\"AWS:EpochTime\":" + activeDate.getEpochSecond() + "}"
-               )
-               + "}}]}";
+                                           String ipAddress) {
+        Validate.notNull(resourceUrl, "resourceUrl must not be null");
+        Validate.notNull(expirationDate, "expirationDate must not be null");
+        validateInput(resourceUrl, "resourceUrl");
+        if (ipAddress != null) {
+            validateInput(ipAddress, "ipAddress");
+        }
+
+        JsonWriter writer = JsonWriter.create();
+        writer.writeStartObject()
+              .writeFieldName("Statement")
+              .writeStartArray()
+              .writeStartObject()
+              .writeFieldName("Resource")
+              .writeValue(resourceUrl)
+              .writeFieldName("Condition")
+              .writeStartObject()
+              .writeFieldName("DateLessThan")
+              .writeStartObject()
+              .writeFieldName("AWS:EpochTime")
+              .writeValue(expirationDate.getEpochSecond())
+              .writeEndObject();
+
+        if (ipAddress != null) {
+            writer.writeFieldName("IpAddress")
+                  .writeStartObject()
+                  .writeFieldName("AWS:SourceIp")
+                  .writeValue(ipAddress)
+                  .writeEndObject();
+        }
+
+        if (activeDate != null) {
+            writer.writeFieldName("DateGreaterThan")
+                  .writeStartObject()
+                  .writeFieldName("AWS:EpochTime")
+                  .writeValue(activeDate.getEpochSecond())
+                  .writeEndObject();
+        }
+
+        writer.writeEndObject()
+              .writeEndObject()
+              .writeEndArray()
+              .writeEndObject();
+
+        return new String(writer.getBytes(), UTF_8);
+    }
+
+    /**
+     * Validates that the input does not contain characters that could be used for JSON injection attacks.
+     * Double quotes, backslashes, and control characters should never appear in valid CloudFront resource URLs
+     * or IP addresses.
+     *
+     * @param input the input string to validate
+     * @param paramName the parameter name for error messages
+     * @throws IllegalArgumentException if the input contains invalid characters
+     */
+    private static void validateInput(String input, String paramName) {
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '"' || c == '\\' || Character.isISOControl(c)) {
+                throw new IllegalArgumentException(
+                    paramName + " contains invalid characters. The character '" + c + "' at position " + i +
+                    " is not allowed. URLs and IP addresses should be properly encoded and must not contain " +
+                    "double quotes, backslashes, or control characters.");
+            }
+        }
     }
 
     /**
