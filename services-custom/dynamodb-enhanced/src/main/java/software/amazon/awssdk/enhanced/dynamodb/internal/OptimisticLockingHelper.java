@@ -44,6 +44,9 @@ public final class OptimisticLockingHelper {
 
     /**
      * Adds optimistic locking to a delete request.
+     * <p>
+     * If a condition expression is already set on the request builder, this method merges it with the optimistic locking
+     * condition using {@code AND}.
      *
      * @param requestBuilder       the original delete request builder
      * @param versionValue         the expected version value
@@ -53,14 +56,20 @@ public final class OptimisticLockingHelper {
     public static DeleteItemEnhancedRequest optimisticLocking(DeleteItemEnhancedRequest.Builder requestBuilder,
                                                               AttributeValue versionValue, String versionAttributeName) {
 
-        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
+        Expression mergedCondition = mergeConditions(
+            requestBuilder.build().conditionExpression(),
+            createVersionCondition(versionValue, versionAttributeName));
+
         return requestBuilder
-            .conditionExpression(conditionExpression)
+            .conditionExpression(mergedCondition)
             .build();
     }
 
     /**
      * Adds optimistic locking to a transactional delete request.
+     * <p>
+     * If a condition expression is already set on the request builder, this method merges it with the optimistic locking
+     * condition using {@code AND}.
      *
      * @param requestBuilder       the original delete request builder
      * @param versionValue         the expected version value
@@ -70,9 +79,12 @@ public final class OptimisticLockingHelper {
     public static TransactDeleteItemEnhancedRequest optimisticLocking(TransactDeleteItemEnhancedRequest.Builder requestBuilder,
                                                                       AttributeValue versionValue, String versionAttributeName) {
 
-        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
+        Expression mergedCondition = mergeConditions(
+            requestBuilder.build().conditionExpression(),
+            createVersionCondition(versionValue, versionAttributeName));
+
         return requestBuilder
-            .conditionExpression(conditionExpression)
+            .conditionExpression(mergedCondition)
             .build();
     }
 
@@ -109,7 +121,6 @@ public final class OptimisticLockingHelper {
             }).orElseGet(requestBuilder::build);
     }
 
-
     /**
      * Creates a version condition expression.
      *
@@ -135,6 +146,10 @@ public final class OptimisticLockingHelper {
                          .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeName))
                          .expressionValues(Collections.singletonMap(attributeValueRef, versionValue))
                          .build();
+    }
+
+    public static Expression mergeConditions(Expression initialCondition, Expression optimisticLockingCondition) {
+        return Expression.join(initialCondition, optimisticLockingCondition, " AND ");
     }
 
     /**

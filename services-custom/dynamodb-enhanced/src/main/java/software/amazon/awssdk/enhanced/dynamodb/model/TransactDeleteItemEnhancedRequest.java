@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.createVersionCondition;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.mergeConditions;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -231,7 +232,7 @@ public final class TransactDeleteItemEnhancedRequest {
          */
         public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
             Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
-            this.conditionExpression = Expression.join(this.conditionExpression, optimisticLockingCondition, " AND ");
+            this.conditionExpression = mergeConditions(this.conditionExpression, optimisticLockingCondition);
             return this;
         }
 

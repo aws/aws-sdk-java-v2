@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.optimisticLocking;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
@@ -733,10 +734,9 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         String versionAttributeName = "version";
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(r -> r
-                                                         .key(recordKey)
-                                                         .conditionExpression(conditionExpression)
-                                                         .optimisticLocking(mismatchVersion, versionAttributeName))
-                                                     .join())
+            .key(recordKey)
+            .conditionExpression(conditionExpression)
+            .optimisticLocking(mismatchVersion, versionAttributeName)).join())
             .isInstanceOf(CompletionException.class)
             .satisfies(e -> assertThat(e.getCause()).isInstanceOf(ConditionalCheckFailedException.class))
             .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
@@ -1043,5 +1043,87 @@ public class OptimisticLockingAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                            .stream()
                                            .anyMatch(reason -> "ConditionalCheckFailed".equals(reason.code())))
                 .isTrue());
+    }
+
+    // 30. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true + custom condition respected
+    // -> deletes the record
+    @Test
+    public void deleteItemWithRequest_whenOptimisticLockingHelperMergesConditionAndCustomConditionRespected_deletesTheRecord() {
+        VersionedRecordWithDeleteOptimisticLocking item =
+            new VersionedRecordWithDeleteOptimisticLocking().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordWithDeleteLockingTable.putItem(item).join();
+        VersionedRecordWithDeleteOptimisticLocking savedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey)).join();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":value", AttributeValue.fromS("test"));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        DeleteItemEnhancedRequest.Builder requestBuilder =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(recordKey)
+                                     .conditionExpression(conditionExpression);
+
+        DeleteItemEnhancedRequest requestWithMergedConditions =
+            optimisticLocking(requestBuilder,
+                              AttributeValue.builder().n(savedItem.getVersion().toString()).build(),
+                              "version");
+
+        versionedRecordWithDeleteLockingTable.deleteItem(requestWithMergedConditions).join();
+
+        VersionedRecordWithDeleteOptimisticLocking deletedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey)).join();
+        assertThat(deletedItem).isNull();
+    }
+
+    // 31. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true + custom condition fails
+    // -> does NOT delete the record
+    @Test
+    public void deleteItemWithRequest_whenOptimisticLockingHelperMergesConditionAndCustomConditionFails_doesNotDeleteTheRecord() {
+        VersionedRecordWithDeleteOptimisticLocking item =
+            new VersionedRecordWithDeleteOptimisticLocking().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordWithDeleteLockingTable.putItem(item).join();
+        VersionedRecordWithDeleteOptimisticLocking savedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey)).join();
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":value", AttributeValue.fromS("nonMatchingValue"));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        DeleteItemEnhancedRequest.Builder requestBuilder =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(recordKey)
+                                     .conditionExpression(conditionExpression);
+
+        DeleteItemEnhancedRequest requestWithMergedConditions =
+            optimisticLocking(requestBuilder,
+                              AttributeValue.builder().n(savedItem.getVersion().toString()).build(),
+                              "version");
+
+        assertThatThrownBy(() -> versionedRecordWithDeleteLockingTable.deleteItem(requestWithMergedConditions).join())
+            .isInstanceOf(CompletionException.class)
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
     }
 }

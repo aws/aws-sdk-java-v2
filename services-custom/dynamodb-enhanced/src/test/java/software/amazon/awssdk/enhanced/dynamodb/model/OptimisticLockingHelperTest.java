@@ -67,8 +67,7 @@ public class OptimisticLockingHelperTest {
 
         DeleteItemEnhancedRequest.Builder originalRequestBuilder =
             DeleteItemEnhancedRequest.builder()
-                                     .key(key)
-                                     .optimisticLocking(versionValue, versionAttributeName);
+                                     .key(key);
 
         DeleteItemEnhancedRequest result = optimisticLocking(originalRequestBuilder, versionValue, versionAttributeName);
 
@@ -90,8 +89,7 @@ public class OptimisticLockingHelperTest {
 
         TransactDeleteItemEnhancedRequest.Builder originalRequestBuilder =
             TransactDeleteItemEnhancedRequest.builder()
-                                             .key(key)
-                                             .optimisticLocking(versionValue, versionAttributeName);
+                                             .key(key);
 
         TransactDeleteItemEnhancedRequest result = optimisticLocking(originalRequestBuilder, versionValue, versionAttributeName);
 

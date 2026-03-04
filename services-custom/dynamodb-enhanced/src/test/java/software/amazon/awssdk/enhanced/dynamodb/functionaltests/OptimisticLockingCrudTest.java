@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.optimisticLocking;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
@@ -1031,5 +1032,87 @@ public class OptimisticLockingCrudTest extends LocalDynamoDbSyncTestBase {
         assertEquals(1, ex.cancellationReasons().size());
         assertEquals("ConditionalCheckFailed", ex.cancellationReasons().get(0).code());
         assertEquals("The conditional request failed", ex.cancellationReasons().get(0).message());
+    }
+
+    // 30. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true + custom condition respected
+    // -> deletes the record
+    @Test
+    public void deleteItemWithRequest_whenOptimisticLockingHelperMergesConditionAndCustomConditionRespected_deletesTheRecord() {
+        VersionedRecordWithDeleteOptimisticLocking item =
+            new VersionedRecordWithDeleteOptimisticLocking().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordWithDeleteLockingTable.putItem(item);
+        VersionedRecordWithDeleteOptimisticLocking savedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey));
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":value", AttributeValue.fromS("test"));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        DeleteItemEnhancedRequest.Builder requestBuilder =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(recordKey)
+                                     .conditionExpression(conditionExpression);
+
+        DeleteItemEnhancedRequest requestWithMergedConditions =
+            optimisticLocking(requestBuilder,
+                              AttributeValue.builder().n(savedItem.getVersion().toString()).build(),
+                              "version");
+
+        versionedRecordWithDeleteLockingTable.deleteItem(requestWithMergedConditions);
+
+        VersionedRecordWithDeleteOptimisticLocking deletedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 31. deleteItem(DeleteItemEnhancedRequest) with Optimistic Locking true + custom condition fails
+    // -> does NOT delete the record
+    @Test
+    public void deleteItemWithRequest_whenOptimisticLockingHelperMergesConditionAndCustomConditionFails_doesNotDeleteTheRecord() {
+        VersionedRecordWithDeleteOptimisticLocking item =
+            new VersionedRecordWithDeleteOptimisticLocking().setId("123").setSort(10).setStringAttribute("test");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordWithDeleteLockingTable.putItem(item);
+        VersionedRecordWithDeleteOptimisticLocking savedItem =
+            versionedRecordWithDeleteLockingTable.getItem(r -> r.key(recordKey));
+
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#stringAttribute", "stringAttribute");
+
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":value", AttributeValue.fromS("nonMatchingValue"));
+
+        Expression conditionExpression =
+            Expression.builder()
+                      .expression("#stringAttribute = :value")
+                      .expressionNames(Collections.unmodifiableMap(expressionNames))
+                      .expressionValues(Collections.unmodifiableMap(expressionValues))
+                      .build();
+
+        DeleteItemEnhancedRequest.Builder requestBuilder =
+            DeleteItemEnhancedRequest.builder()
+                                     .key(recordKey)
+                                     .conditionExpression(conditionExpression);
+
+        DeleteItemEnhancedRequest requestWithMergedConditions =
+            optimisticLocking(requestBuilder,
+                              AttributeValue.builder().n(savedItem.getVersion().toString()).build(),
+                              "version");
+
+        assertThatThrownBy(() -> versionedRecordWithDeleteLockingTable.deleteItem(requestWithMergedConditions))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
     }
 }
