@@ -131,7 +131,10 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
     private void testAccessPointPresigning(String accessPointArn, String key) throws IOException {
         String data = "Hello";
 
-        S3Presigner presigner = S3Presigner.builder().region(Region.US_WEST_2).build();
+        S3Presigner presigner = S3Presigner.builder()
+                                           .region(Region.US_WEST_2)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                           .build();
 
         SdkHttpRequest presignedPut = presigner.presignPutObject(r -> r.signatureDuration(Duration.ofDays(7))
                                                                        .putObjectRequest(por -> por.bucket(accessPointArn)
