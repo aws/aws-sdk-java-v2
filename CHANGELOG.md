@@ -1,4 +1,86 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.7__ __2026-03-05__
+## __AWS Multi-party Approval__
+  - ### Features
+    - Updates to multi-party approval (MPA) service to add support for approval team baseline operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed a thread leak in ResponseInputStream and ResponsePublisher where the internal timeout scheduler thread persisted for the lifetime of the JVM, even when no streams were active. The thread now terminates after being idle for 60 seconds.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Added support for OpenSearch and Neptune Analytics to Database Savings Plans.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added metadata field to CapacityAllocation.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added MALICIOUS FILE to IndicatorType enum in MDC Sequence
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for S3 Bucket Ownership validation for SageMaker Managed MLflow.
+
+## __Connect Health__
+  - ### Features
+    - Connect-Health SDK is AWS's unified SDK for the Amazon Connect Health offering. It allows healthcare developers to integrate purpose-built agents - such as patient insights, ambient documentation, and medical coding - into their existing applications, including EHRs, telehealth, and revenue cycle.
+
+# __2.42.6__ __2026-03-04__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - As part of this release, Beanstalk introduce a new info type - analyze for request environment info and retrieve environment info operations. When customers request an Al analysis, Elastic Beanstalk runs a script on an instance in their environment and returns an analysis of events, health and logs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for configuring additional email addresses on queues in Amazon Connect. Agents can now select an outbound email address and associate additional email addresses for replying to or initiating emails.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds support for DeploymentStrategyOptions.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers now offers DDoS protection for Linux-based EC2 and Container Fleets on SDKv5. The player gateway proxy relay network provides traffic validation, per-player rate limiting, and game server IP address obfuscation all with negligible added latency and no additional cost.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adding support for DeploymentStrategyOptions
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added several new values for Capabilities, increased visual limit per sheet from previous limit to 75, renamed Quick Suite to Quick in several places.
+
+# __2.42.5__ __2026-03-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Support for AgentCore Policy GA
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs updates- Added support for the PutBearerTokenAuthentication API to enable or disable bearer token authentication on a log group. For more information, see CloudWatch Logs API documentation.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adding QueryGraph operation to DataZone SDK
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds b300 and g7e instance types for SageMaker inference endpoints.
+
+## __Partner Central Channel API__
+  - ### Features
+    - Adds the Resold Unified Operations support plan and removes the Resold Business support plan in the CreateRelationship and UpdateRelationship APIs
+
 # __2.42.4__ __2026-02-27__
 ## __ARC - Region switch__
   - ### Features
