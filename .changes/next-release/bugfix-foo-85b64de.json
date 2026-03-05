@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Improved performance by caching partition and sort key name lookups in StaticTableMetadata."
+}
