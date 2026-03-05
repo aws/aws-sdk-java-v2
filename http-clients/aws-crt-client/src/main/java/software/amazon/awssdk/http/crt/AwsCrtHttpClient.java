@@ -95,9 +95,9 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        HttpStreamManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()));
+        HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(request.httpRequest()));
         CrtRequestContext context = CrtRequestContext.builder()
-                                                     .crtConnPool(crtConnPool)
+                                                     .streamManager(streamManager)
                                                      .readBufferSize(this.readBufferSize)
                                                      .request(request)
                                                      .build();

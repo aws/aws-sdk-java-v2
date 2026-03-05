@@ -38,7 +38,11 @@ import software.amazon.awssdk.metrics.MetricCollector;
 @SdkInternalApi
 public final class CrtUtils {
     public static final int CRT_TLS_NEGOTIATION_ERROR_CODE = 1029;
+    /**
+     * Corresponds to CRT error: AWS_IO_SOCKET_TIMEOUT
+     */
     public static final int CRT_SOCKET_TIMEOUT = 1048;
+
 
     private CrtUtils() {
     }
@@ -46,6 +50,7 @@ public final class CrtUtils {
     public static Throwable wrapWithIoExceptionIfRetryable(HttpException httpException) {
         Throwable toThrow = httpException;
 
+        // TODO: switch to Crt.awsIsTransientError once https://github.com/awslabs/aws-crt-java/pull/972 is merged
         if (HttpClientConnection.isErrorRetryable(httpException)) {
             // IOExceptions get retried, and if the CRT says this error is retryable,
             // it's semantically an IOException anyway.

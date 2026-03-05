@@ -83,7 +83,7 @@ public class CrtRequestExecutorTest {
     @Test
     public void execute_requestConversionFails_failsFuture() {
         CrtRequestContext context = CrtRequestContext.builder()
-                                                     .crtConnPool(streamManager)
+                                                     .streamManager(streamManager)
                                                      .request(HttpExecuteRequest.builder().build())
                                                      .build();
 
@@ -154,7 +154,7 @@ public class CrtRequestExecutorTest {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
         return CrtRequestContext.builder()
                                 .readBufferSize(2000)
-                                .crtConnPool(streamManager)
+                                .streamManager(streamManager)
                                 .request(HttpExecuteRequest.builder()
                                                            .request(request)
                                                            .contentStreamProvider(SdkBytes.fromUtf8String("test").asContentStreamProvider())

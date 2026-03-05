@@ -83,7 +83,7 @@ public class CrtAsyncRequestExecutorTest {
     @Test
     public void execute_requestConversionFails_invokesOnError() {
         CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                               .crtConnPool(streamManager)
+                                                               .streamManager(streamManager)
                                                                .request(AsyncExecuteRequest.builder()
                                                                                            .responseHandler(responseHandler)
                                                                                            .build())
@@ -210,7 +210,7 @@ public class CrtAsyncRequestExecutorTest {
         SdkHttpFullRequest request = createRequest(URI.create("http://localhost"));
         return CrtAsyncRequestContext.builder()
                                      .readBufferSize(2000)
-                                     .crtConnPool(streamManager)
+                                     .streamManager(streamManager)
                                      .request(AsyncExecuteRequest.builder()
                                                             .request(request)
                                                             .requestContentPublisher(createProvider(""))

@@ -49,6 +49,7 @@ import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.AfterEach;
@@ -93,6 +94,20 @@ public class H2ErrorTest {
         } finally {
             server.shutdown();
         }
+    }
+
+    @Test
+    public void tcpConnectFailure_shouldThrowIOException() throws Exception {
+        int unusedPort;
+        try (ServerSocket ss = new ServerSocket(0)) {
+            unusedPort = ss.getLocalPort();
+        }
+
+        CompletableFuture<?> request = sendGetRequest(unusedPort, client);
+        assertThatThrownBy(request::join)
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("An exception occurred");
     }
 
     @Test

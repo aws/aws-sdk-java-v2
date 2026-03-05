@@ -24,13 +24,13 @@ import software.amazon.awssdk.metrics.MetricCollector;
 public final class CrtRequestContext {
     private final HttpExecuteRequest request;
     private final long readBufferSize;
-    private final HttpStreamManager crtConnPool;
+    private final HttpStreamManager streamManager;
     private final MetricCollector metricCollector;
 
     private CrtRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
-        this.crtConnPool = builder.crtConnPool;
+        this.streamManager = builder.streamManager;
         this.metricCollector = request.metricCollector().orElse(null);
     }
 
@@ -46,8 +46,8 @@ public final class CrtRequestContext {
         return readBufferSize;
     }
 
-    public HttpStreamManager crtConnPool() {
-        return crtConnPool;
+    public HttpStreamManager streamManager() {
+        return streamManager;
     }
 
     public MetricCollector metricCollector() {
@@ -57,7 +57,7 @@ public final class CrtRequestContext {
     public static final class Builder {
         private HttpExecuteRequest request;
         private long readBufferSize;
-        private HttpStreamManager crtConnPool;
+        private HttpStreamManager streamManager;
 
         private Builder() {
         }
@@ -72,8 +72,8 @@ public final class CrtRequestContext {
             return this;
         }
 
-        public Builder crtConnPool(HttpStreamManager crtConnPool) {
-            this.crtConnPool = crtConnPool;
+        public Builder streamManager(HttpStreamManager streamManager) {
+            this.streamManager = streamManager;
             return this;
         }
 
