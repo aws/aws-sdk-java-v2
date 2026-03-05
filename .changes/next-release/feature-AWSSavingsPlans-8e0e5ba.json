@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Savings Plans",
-    "contributor": "",
-    "description": "Added support for OpenSearch and Neptune Analytics to Database Savings Plans."
-}
