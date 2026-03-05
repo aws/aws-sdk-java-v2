@@ -74,7 +74,6 @@ public class V2JsonProtocolBenchmark {
                         AwsBasicCredentials.create("test", "test")))
                 .build();
 
-        // Create PutItem request with all AttributeValue types
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("pk", AttributeValue.builder().s("benchmark-key").build());
         item.put("sk", AttributeValue.builder().n("100").build());
@@ -87,7 +86,6 @@ public class V2JsonProtocolBenchmark {
                 SdkBytes.fromUtf8String("bin1"),
                 SdkBytes.fromUtf8String("bin2")).build());
         
-        // Map with nested structure
         Map<String, AttributeValue> nestedMap = new HashMap<>();
         nestedMap.put("nested", AttributeValue.builder().s("nested-value").build());
         Map<String, AttributeValue> deepMap = new HashMap<>();
@@ -95,7 +93,6 @@ public class V2JsonProtocolBenchmark {
         nestedMap.put("deepNested", AttributeValue.builder().m(deepMap).build());
         item.put("mapField", AttributeValue.builder().m(nestedMap).build());
         
-        // List with mixed types
         item.put("listField", AttributeValue.builder().l(
                 AttributeValue.builder().s("item1").build(),
                 AttributeValue.builder().n("42").build(),

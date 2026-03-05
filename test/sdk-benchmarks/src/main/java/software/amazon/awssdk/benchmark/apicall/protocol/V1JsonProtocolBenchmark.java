@@ -75,7 +75,6 @@ public class V1JsonProtocolBenchmark {
                         new BasicAWSCredentials("test", "test")))
                 .build();
 
-        // Create PutItem request with all AttributeValue types
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("pk", new AttributeValue().withS("benchmark-key"));
         item.put("sk", new AttributeValue().withN("100"));
@@ -88,7 +87,6 @@ public class V1JsonProtocolBenchmark {
                 ByteBuffer.wrap("bin1".getBytes()),
                 ByteBuffer.wrap("bin2".getBytes())));
         
-        // Map with nested structure
         Map<String, AttributeValue> nestedMap = new HashMap<>();
         nestedMap.put("nested", new AttributeValue().withS("nested-value"));
         Map<String, AttributeValue> deepMap = new HashMap<>();
@@ -96,7 +94,6 @@ public class V1JsonProtocolBenchmark {
         nestedMap.put("deepNested", new AttributeValue().withM(deepMap));
         item.put("mapField", new AttributeValue().withM(nestedMap));
         
-        // List with mixed types
         List<AttributeValue> list = new ArrayList<>();
         list.add(new AttributeValue().withS("item1"));
         list.add(new AttributeValue().withN("42"));

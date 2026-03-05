@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PutObjectOutput>
+    <ETag>"24346e1b50066607059af36e3b684b24"</ETag>
+    <VersionId>version123</VersionId>
+    <ServerSideEncryption>AES256</ServerSideEncryption>
+    <ChecksumCRC32>AAAAAA==</ChecksumCRC32>
+    <ChecksumSHA256>47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=</ChecksumSHA256>
+</PutObjectOutput>
