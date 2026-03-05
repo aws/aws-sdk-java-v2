@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This update replaces the default `apache-client` runtime dependency of service clients with the new `apache5-client`. This means that service clients will now use the `Apache5HttClient` by default if no HTTP client is explicitly configured on the service client builder. The SDK version is also updates to `2.42.0` to reflect this change in default client."
+}
