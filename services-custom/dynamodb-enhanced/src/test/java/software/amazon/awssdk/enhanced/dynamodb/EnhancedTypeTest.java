@@ -264,6 +264,20 @@ public class EnhancedTypeTest {
         assertThat(wildcard1.hashCode()).isEqualTo(wildcard2.hashCode());
     }
 
+    @Test
+    public void wildcardType_toString_doesNotRaiseNPE() {
+        // Wildcard types should be convertible to string without NPE
+        EnhancedType<List<?>> listWithWildcard = new EnhancedType<List<?>>(){};
+        EnhancedType<?> wildcardParam = listWithWildcard.rawClassParameters().get(0);
+
+        // This should not throw NPE and should return "?" for wildcard
+        assertThatCode(() -> wildcardParam.toString()).doesNotThrowAnyException();
+        assertThat(wildcardParam.toString()).isEqualTo("EnhancedType(?)");
+
+        // Also verify that the parent type renders correctly with wildcard
+        assertThat(listWithWildcard.toString()).isEqualTo("EnhancedType(java.util.List<?>)");
+    }
+
     public class InnerType {
     }
 

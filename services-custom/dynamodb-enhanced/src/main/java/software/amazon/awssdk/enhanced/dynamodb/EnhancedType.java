@@ -541,14 +541,17 @@ public class EnhancedType<T> {
 
     private StringBuilder innerToString() {
         StringBuilder result = new StringBuilder();
-        result.append(rawClass.getTypeName());
+        if (isWildcard) {
+            result.append("?");
+        } else {
+            result.append(rawClass.getTypeName());
 
-        if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
-            result.append("<");
-            result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
-            result.append(">");
+            if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
+                result.append("<");
+                result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
+                result.append(">");
+            }
         }
-
         return result;
     }
 
