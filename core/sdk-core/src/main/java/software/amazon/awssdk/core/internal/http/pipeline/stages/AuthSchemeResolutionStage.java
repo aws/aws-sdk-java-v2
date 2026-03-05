@@ -33,8 +33,6 @@ import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
-import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -47,6 +45,9 @@ import software.amazon.awssdk.metrics.MetricCollector;
  */
 @SdkInternalApi
 public final class AuthSchemeResolutionStage implements MutableRequestToRequestPipeline {
+
+    private static final String SIGV4A_SCHEME_ID = "aws.auth#sigv4a";
+    private static final String BEARER_SCHEME_ID = "smithy.api#httpBearerAuth";
 
     public AuthSchemeResolutionStage(HttpClientDependencies dependencies) {
     }
@@ -131,11 +132,11 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
             return;
         }
 
-        if (AwsV4aAuthScheme.SCHEME_ID.equals(schemeId)) {
+        if (SIGV4A_SCHEME_ID.equals(schemeId)) {
             businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
         }
 
-        if (BearerAuthScheme.SCHEME_ID.equals(schemeId) && selectedAuthScheme.identity().isDone()) {
+        if (BEARER_SCHEME_ID.equals(schemeId) && selectedAuthScheme.identity().isDone()) {
             Identity identity = selectedAuthScheme.identity().getNow(null);
             if (identity instanceof TokenIdentity) {
                 String tokenFromEnv = executionAttributes.getAttribute(SdkInternalExecutionAttribute.TOKEN_CONFIGURED_FROM_ENV);

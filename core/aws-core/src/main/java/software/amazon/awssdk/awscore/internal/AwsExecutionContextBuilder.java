@@ -29,7 +29,6 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
@@ -283,37 +282,12 @@ public final class AwsExecutionContextBuilder {
         //  request preferred over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
-        IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
+        IdentityProviders identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
-    }
-
-    private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
-                                                              SdkClientConfiguration clientConfig) {
-        IdentityProviders identityProviders =
-            clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
-
-        // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
-        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
-        // client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also needed for SRA logic.
-        if (identityProviders == null) {
-            return null;
-        }
-
-        return originalRequest
-            .overrideConfiguration()
-            .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-            .map(c -> (AwsRequestOverrideConfiguration) c)
-            .map(c -> {
-                return identityProviders.copy(b -> {
-                    c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
-                    c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
-                });
-            })
-            .orElse(identityProviders);
     }
 
     /**
