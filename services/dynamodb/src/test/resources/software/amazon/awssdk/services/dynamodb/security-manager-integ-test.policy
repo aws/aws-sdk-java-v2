@@ -5,6 +5,7 @@ grant {
     permission "java.lang.RuntimePermission" "accessDeclaredMembers";
     permission "javax.net.ssl.SSLPermission" "setDefaultSSLContext";
     permission "java.net.SocketPermission" "*", "connect,resolve";
+    permission "jdk.net.NetworkPermission" "*", "setOption.";
 
     // Needed for test to remove the security manager
     permission java.lang.RuntimePermission "setSecurityManager";
