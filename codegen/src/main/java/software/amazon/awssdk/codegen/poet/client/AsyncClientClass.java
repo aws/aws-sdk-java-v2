@@ -69,10 +69,12 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
@@ -100,6 +102,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private boolean hasScheduledExecutor;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
@@ -110,6 +114,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -165,7 +171,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(nameMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
-            .addMethod(resolveMetricPublishersMethod());
+            .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),

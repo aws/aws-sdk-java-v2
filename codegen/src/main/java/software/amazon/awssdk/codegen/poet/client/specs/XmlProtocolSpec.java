@@ -134,7 +134,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                     discoveredEndpoint(opModel))
                                                .add(credentialType(opModel, model))
                                                .add(".withRequestConfiguration(clientConfiguration)")
-                                               .add(".withInput($L)", opModel.getInput().getVariableName())
+                     .add(".withInput($L)", opModel.getInput().getVariableName())
+                     .add(".withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, $S, clientConfiguration))\n",
+                          opModel.getOperationName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                                                .add(HttpChecksumTrait.create(opModel));
 
@@ -212,7 +214,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
         builder.add(hostPrefixExpression(opModel))
                .add(credentialType(opModel, model))
-               .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, $S, clientConfiguration))\n",
+                          opModel.getOperationName())
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel));

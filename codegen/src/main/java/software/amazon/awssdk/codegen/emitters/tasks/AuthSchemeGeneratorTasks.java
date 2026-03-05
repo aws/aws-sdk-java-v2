@@ -47,7 +47,6 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         tasks.add(generateDefaultParamsImpl());
         tasks.add(generateModelBasedProvider());
         tasks.add(generatePreferenceProvider());
-        tasks.add(generateAuthSchemeInterceptor());
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             tasks.add(generateEndpointBasedProvider());
             tasks.add(generateEndpointAwareAuthSchemeParams());
