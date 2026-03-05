@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.7__ __2026-03-05__
+## __AWS Multi-party Approval__
+  - ### Features
+    - Updates to multi-party approval (MPA) service to add support for approval team baseline operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed a thread leak in ResponseInputStream and ResponsePublisher where the internal timeout scheduler thread persisted for the lifetime of the JVM, even when no streams were active. The thread now terminates after being idle for 60 seconds.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Added support for OpenSearch and Neptune Analytics to Database Savings Plans.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added metadata field to CapacityAllocation.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added MALICIOUS FILE to IndicatorType enum in MDC Sequence
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for S3 Bucket Ownership validation for SageMaker Managed MLflow.
+
+## __Connect Health__
+  - ### Features
+    - Connect-Health SDK is AWS's unified SDK for the Amazon Connect Health offering. It allows healthcare developers to integrate purpose-built agents - such as patient insights, ambient documentation, and medical coding - into their existing applications, including EHRs, telehealth, and revenue cycle.
+
 # __2.42.6__ __2026-03-04__
 ## __AWS Elastic Beanstalk__
   - ### Features
