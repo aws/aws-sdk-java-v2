@@ -94,6 +94,19 @@ public class DeleteItemOperationTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
+    public void returnsCorrectOperationName() {
+        FakeItem keyItem = createUniqueFakeItem();
+        ReturnConsumedCapacity returnConsumedCapacity = ReturnConsumedCapacity.TOTAL;
+        DeleteItemOperation<FakeItem> operation =
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                .key(k -> k.partitionValue(keyItem.getId()))
+                                                                .returnConsumedCapacity(returnConsumedCapacity)
+                                                                .build());
+
+        assertThat(operation.operationName().label(), is("DeleteItem"));
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItemOperation<FakeItem> deleteItemOperation =

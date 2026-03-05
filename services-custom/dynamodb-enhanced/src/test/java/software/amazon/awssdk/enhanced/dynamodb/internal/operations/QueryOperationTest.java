@@ -95,6 +95,11 @@ public class QueryOperationTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
+    public void returnsCorrectOperationName() {
+        assertThat(queryOperation.operationName().label(), is("Query"));
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         QueryRequest queryRequest = QueryRequest.builder().build();
         QueryIterable mockQueryIterable = mock(QueryIterable.class);

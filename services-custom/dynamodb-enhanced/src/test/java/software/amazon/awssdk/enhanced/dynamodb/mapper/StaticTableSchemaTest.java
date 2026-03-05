@@ -815,6 +815,53 @@ public class StaticTableSchemaTest {
     }
 
     @Test
+    public void attributes_varargs_setsAttributesCorrectly() {
+        StaticAttribute<FakeMappedItem, String> attr1 = StaticAttribute.builder(FakeMappedItem.class, String.class)
+                                                                       .name("attr1")
+                                                                       .getter(FakeMappedItem::getAString)
+                                                                       .setter(FakeMappedItem::setAString)
+                                                                       .build();
+
+        StaticAttribute<FakeMappedItem, Boolean> attr2 = StaticAttribute.builder(FakeMappedItem.class, Boolean.class)
+                                                                        .name("attr2")
+                                                                        .getter(FakeMappedItem::getABoolean)
+                                                                        .setter(FakeMappedItem::setABoolean)
+                                                                        .build();
+
+        StaticTableSchema<FakeMappedItem> schema = StaticTableSchema.builder(FakeMappedItem.class)
+                                                                    .newItemSupplier(FakeMappedItem::new)
+                                                                    .attributes(attr1, attr2)
+                                                                    .build();
+
+        FakeMappedItem item = FakeMappedItem.builder().aString("test").aBoolean(true).build();
+        Map<String, AttributeValue> result = schema.itemToMap(item, false);
+
+        assertThat(result.size(), is(2));
+        assertThat(result, hasEntry("attr1", AttributeValue.builder().s("test").build()));
+        assertThat(result, hasEntry("attr2", AttributeValue.builder().bool(true).build()));
+    }
+
+    @Test
+    public void attribute_setsAttributeCorrectly() {
+        StaticAttribute<FakeMappedItem, String> attr = StaticAttribute.builder(FakeMappedItem.class, String.class)
+                                                                       .name("attr")
+                                                                       .getter(FakeMappedItem::getAString)
+                                                                       .setter(FakeMappedItem::setAString)
+                                                                       .build();
+
+        StaticTableSchema<FakeMappedItem> schema = StaticTableSchema.builder(FakeMappedItem.class)
+                                                                    .newItemSupplier(FakeMappedItem::new)
+                                                                    .addAttribute(attr)
+                                                                    .build();
+
+        FakeMappedItem item = FakeMappedItem.builder().aString("test").aBoolean(true).build();
+        Map<String, AttributeValue> result = schema.itemToMap(item, false);
+
+        assertThat(result.size(), is(1));
+        assertThat(result, hasEntry("attr", AttributeValue.builder().s("test").build()));
+    }
+
+    @Test
     public void getTableMetadata_hasCorrectFields() {
         TableMetadata tableMetadata = FakeItemWithSort.getTableSchema().tableMetadata();
 
@@ -1360,7 +1407,7 @@ public class StaticTableSchemaTest {
     }
 
     @Test
-    public void buildAbstractTagWith() {
+    public void buildAbstractTagsWith() {
 
         StaticTableSchema<FakeDocument> abstractTableSchema =
             StaticTableSchema
@@ -1373,13 +1420,65 @@ public class StaticTableSchemaTest {
     }
 
     @Test
-    public void buildConcreteTagWith() {
+    public void buildConcreteTagsWith() {
 
         StaticTableSchema<FakeDocument> concreteTableSchema =
             StaticTableSchema
                 .builder(FakeDocument.class)
                 .newItemSupplier(FakeDocument::new)
                 .tags(new TestStaticTableTag())
+                .build();
+
+        assertThat(concreteTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
+                   is(Optional.of(TABLE_TAG_VALUE)));
+    }
+
+    @Test
+    public void buildAbstractTagsCollection() {
+
+        StaticTableSchema<FakeDocument> abstractTableSchema =
+            StaticTableSchema
+                .builder(FakeDocument.class)
+                .tags(singletonList(new TestStaticTableTag()))
+                .build();
+
+        assertThat(abstractTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
+                   is(Optional.of(TABLE_TAG_VALUE)));
+    }
+
+    @Test
+    public void buildConcreteTagsCollection() {
+
+        StaticTableSchema<FakeDocument> concreteTableSchema =
+            StaticTableSchema
+                .builder(FakeDocument.class)
+                .newItemSupplier(FakeDocument::new)
+                .tags(singletonList(new TestStaticTableTag()))
+                .build();
+
+        assertThat(concreteTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
+                   is(Optional.of(TABLE_TAG_VALUE)));
+    }
+
+    @Test
+    public void buildAbstractAddTag() {
+        StaticTableSchema<FakeDocument> abstractTableSchema =
+            StaticTableSchema
+                .builder(FakeDocument.class)
+                .addTag(new TestStaticTableTag())
+                .build();
+
+        assertThat(abstractTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
+                   is(Optional.of(TABLE_TAG_VALUE)));
+    }
+
+    @Test
+    public void buildConcreteAddTag() {
+        StaticTableSchema<FakeDocument> concreteTableSchema =
+            StaticTableSchema
+                .builder(FakeDocument.class)
+                .newItemSupplier(FakeDocument::new)
+                .addTag(new TestStaticTableTag())
                 .build();
 
         assertThat(concreteTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
