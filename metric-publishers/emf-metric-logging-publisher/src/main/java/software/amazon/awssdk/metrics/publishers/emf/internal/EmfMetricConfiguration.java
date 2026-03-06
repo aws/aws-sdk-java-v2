@@ -18,7 +18,9 @@ package software.amazon.awssdk.metrics.publishers.emf.internal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -43,6 +45,7 @@ public final class EmfMetricConfiguration {
     private final Set<SdkMetric<String>> dimensions;
     private final Collection<MetricCategory> metricCategories;
     private final MetricLevel metricLevel;
+    private final Supplier<Map<String, String>> propertiesSupplier;
 
     private EmfMetricConfiguration(Builder builder) {
         this.namespace = builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
@@ -50,6 +53,9 @@ public final class EmfMetricConfiguration {
         this.dimensions = builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
         this.metricCategories = builder.metricCategories == null ? DEFAULT_CATEGORIES : new HashSet<>(builder.metricCategories);
         this.metricLevel = builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
+        this.propertiesSupplier = builder.propertiesSupplier == null
+            ? Collections::emptyMap
+            : builder.propertiesSupplier;
     }
 
 
@@ -59,6 +65,7 @@ public final class EmfMetricConfiguration {
         private Collection<SdkMetric<String>> dimensions;
         private Collection<MetricCategory> metricCategories;
         private MetricLevel metricLevel;
+        private Supplier<Map<String, String>> propertiesSupplier;
 
         public Builder namespace(String namespace) {
             this.namespace = namespace;
@@ -85,6 +92,11 @@ public final class EmfMetricConfiguration {
             return this;
         }
 
+        public Builder propertiesSupplier(Supplier<Map<String, String>> propertiesSupplier) {
+            this.propertiesSupplier = propertiesSupplier;
+            return this;
+        }
+
         public EmfMetricConfiguration build() {
             return new EmfMetricConfiguration(this);
         }
@@ -108,6 +120,10 @@ public final class EmfMetricConfiguration {
 
     public MetricLevel metricLevel() {
         return metricLevel;
+    }
+
+    public Supplier<Map<String, String>> propertiesSupplier() {
+        return propertiesSupplier;
     }
 
     private String resolveLogGroupName(Builder builder) {

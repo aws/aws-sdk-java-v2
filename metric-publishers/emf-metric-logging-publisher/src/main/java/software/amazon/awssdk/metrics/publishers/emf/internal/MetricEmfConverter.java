@@ -19,12 +19,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
@@ -66,12 +68,14 @@ public class MetricEmfConverter {
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
     private final Clock clock;
+    private final Supplier<Map<String, String>> propertiesSupplier;
 
     @SdkTestInternalApi
     public MetricEmfConverter(EmfMetricConfiguration config, Clock clock) {
         this.config = config;
         this.clock = clock;
         this.metricCategoriesContainsAll = config.metricCategories().contains(MetricCategory.ALL);
+        this.propertiesSupplier = config.propertiesSupplier();
     }
 
     public MetricEmfConverter(EmfMetricConfiguration config) {
@@ -136,7 +140,18 @@ public class MetricEmfConverter {
             }
         }
 
-        return createEmfStrings(aggregatedMetrics);
+        Map<String, String> properties = resolveProperties();
+        return createEmfStrings(aggregatedMetrics, properties);
+    }
+
+    private Map<String, String> resolveProperties() {
+        try {
+            Map<String, String> result = propertiesSupplier.get();
+            return result == null ? Collections.emptyMap() : result;
+        } catch (Exception e) {
+            logger.warn(() -> "Properties supplier threw an exception, publishing without custom properties", e);
+            return Collections.emptyMap();
+        }
     }
 
     /**
@@ -188,7 +203,8 @@ public class MetricEmfConverter {
         }
     }
 
-    private List<String> createEmfStrings(Map<SdkMetric<?>, List<MetricRecord<?>>> aggregatedMetrics) {
+    private List<String> createEmfStrings(Map<SdkMetric<?>, List<MetricRecord<?>>> aggregatedMetrics,
+                                          Map<String, String> properties) {
         List<String> emfStrings = new ArrayList<>();
         Map<SdkMetric<?>, List<MetricRecord<?>>> currentMetricBatch = new HashMap<>();
 
@@ -204,24 +220,26 @@ public class MetricEmfConverter {
             }
 
             if (currentMetricBatch.size() == MAX_METRIC_NUM) {
-                emfStrings.add(createEmfString(currentMetricBatch));
+                emfStrings.add(createEmfString(currentMetricBatch, properties));
                 currentMetricBatch = new HashMap<>();
             }
 
             currentMetricBatch.put(metric, records);
         }
 
-        emfStrings.add(createEmfString(currentMetricBatch));
+        emfStrings.add(createEmfString(currentMetricBatch, properties));
 
         return emfStrings;
     }
 
 
-    private String createEmfString(Map<SdkMetric<?>, List<MetricRecord<?>>> metrics) {
+    private String createEmfString(Map<SdkMetric<?>, List<MetricRecord<?>>> metrics,
+                                    Map<String, String> properties) {
 
         JsonWriter jsonWriter = JsonWriter.create();
         jsonWriter.writeStartObject();
 
+        writeCustomProperties(jsonWriter, properties);
         writeAwsObject(jsonWriter, metrics.keySet());
         writeMetricValues(jsonWriter, metrics);
 
@@ -230,6 +248,16 @@ public class MetricEmfConverter {
         return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
 
     }
+
+    private void writeCustomProperties(JsonWriter jsonWriter, Map<String, String> properties) {
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+            jsonWriter.writeFieldName(entry.getKey());
+            jsonWriter.writeValue(entry.getValue());
+        }
+    }
+
+
+
 
     private void writeAwsObject(JsonWriter jsonWriter, Set<SdkMetric<?>> metricNames) {
         jsonWriter.writeFieldName("_aws");
