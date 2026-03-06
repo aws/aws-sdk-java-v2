@@ -92,9 +92,9 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        HttpStreamManager crtConnPool = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
+        HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
         CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                               .crtConnPool(crtConnPool)
+                                                               .streamManager(streamManager)
                                                                .readBufferSize(this.readBufferSize)
                                                                .request(asyncRequest)
                                                                .protocol(this.protocol)

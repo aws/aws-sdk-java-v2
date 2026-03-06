@@ -71,13 +71,13 @@ public final class CrtAsyncRequestExecutor {
             CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
 
         CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.crtConnPool().acquireStream(crtRequest, crtResponseHandler);
+            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
         long finalAcquireStartTime = acquireStartTime;
 
         streamFuture.whenComplete((stream, throwable) -> {
             if (shouldPublishMetrics) {
-                reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
+                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
             }
 
             if (throwable != null) {

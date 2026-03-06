@@ -62,13 +62,13 @@ public final class CrtRequestExecutor {
         HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
 
         CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.crtConnPool().acquireStream(crtRequest, crtResponseHandler);
+            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
         long finalAcquireStartTime = acquireStartTime;
 
         streamFuture.whenComplete((streamBase, throwable) -> {
             if (shouldPublishMetrics) {
-                reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
+                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
             }
 
             if (throwable != null) {
