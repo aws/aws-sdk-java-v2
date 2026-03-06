@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.8__ __2026-03-06__
+## __AWS Billing and Cost Management Data Exports__
+  - ### Features
+    - Fixed wrong endpoint resolutions in few regions. Added AWS CFN resource schema for BCM Data Exports. Added max value validation for pagination parameter. Fixed ARN format validation for BCM Data Exports resources. Updated size constraints for table properties. Added AccessDeniedException error.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports cost scale factors for farms, enabling studios to adjust reported costs to reflect their actual rendering economics. Adjusted costs are reflected in Deadline Cloud's Usage Explorer and Budgets.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds support for webhooks, allowing customers to create an Event Integration with a webhook source.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Guardrails account-level enforcement APIs now support lists for model inclusion and exclusion from guardrail enforcement.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for streaming memory records in AgentCore Memory
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now supports the ability to programmatically configure and run automated tests for contact center experiences for Chat. Integrate testing into CICD pipelines, run multiple tests at scale, and retrieve results via API to automate validation of chat interactions and workflows.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new Gen6 stream classes based on the EC2 G6f instance family. These stream classes provide cost-optimized options for streaming well-optimized or lower-fidelity games on Windows environments.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for longer email message header values, increasing the maximum length from 870 to 995 characters for RFC 5322 compliance.
+
 # __2.42.7__ __2026-03-05__
 ## __AWS Multi-party Approval__
   - ### Features
