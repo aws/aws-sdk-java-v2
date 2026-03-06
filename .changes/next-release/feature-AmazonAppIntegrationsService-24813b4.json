@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppIntegrations Service",
-    "contributor": "",
-    "description": "This release adds support for webhooks, allowing customers to create an Event Integration with a webhook source."
-}
