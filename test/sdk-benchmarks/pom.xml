@@ -58,28 +58,24 @@
             <version>${jmh.version}</version>
         </dependency>
 
-        <!-- V1 SDK - SQS -->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-sqs</artifactId>
             <version>${sdk-v1.version}</version>
         </dependency>
 
-        <!-- V1 SDK - Lambda -->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-lambda</artifactId>
             <version>${sdk-v1.version}</version>
         </dependency>
 
-        <!-- V2 SDK - SQS -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
 
-        <!-- V2 SDK - Lambda -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>lambda</artifactId>
@@ -118,8 +114,20 @@
         </dependency>
 
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-cloudfront</artifactId>
+            <version>${sdk-v1.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudfront</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
 
@@ -421,7 +429,6 @@
                             </includes>
                             </artifactSet>
                             <relocations>
-                                <!-- Relocate V1 SDK's old Jackson to avoid conflict with V2's Jackson 2.20.2 -->
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>v1shaded.com.fasterxml.jackson</shadedPattern>
