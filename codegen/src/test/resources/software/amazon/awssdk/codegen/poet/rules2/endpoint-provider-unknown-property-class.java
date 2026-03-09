@@ -1,11 +1,11 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -43,7 +43,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private static RuleResult endpointRule1(QueryEndpointParams params) {
         if (params.endpoint() != null) {
-            return RuleResult.endpoint(Endpoint.builder().url(URI.create(params.endpoint())).build());
+            return RuleResult.endpoint(Endpoint.builder().endpointUrl(EndpointUrl.parse(params.endpoint())).build());
         }
         return RuleResult.carryOn();
     }

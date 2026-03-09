@@ -12,6 +12,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.HostnameValidator;
@@ -89,12 +90,21 @@ public final class AwsEndpointProviderUtils {
 
         validatePrefixIsHostNameCompliant(prefix);
 
-        URI originalUrl = endpoint.url();
-        String newHost = prefix + endpoint.url().getHost();
-        URI newUrl = invokeSafely(() -> new URI(originalUrl.getScheme(), null, newHost, originalUrl.getPort(),
-                originalUrl.getPath(), originalUrl.getQuery(), originalUrl.getFragment()));
+        EndpointUrl originalUrl = endpoint.endpointUrl();
+        String newHost = prefix + originalUrl.host();
 
-        return endpoint.toBuilder().url(newUrl).build();
+        // Check if the original URI has query or fragment components that EndpointUrl doesn't track.
+        // This can happen when the endpoint was built via the url(URI) backward-compat path.
+        URI originalUri = endpoint.url();
+        if (originalUri.getQuery() != null || originalUri.getFragment() != null) {
+            URI newUri = invokeSafely(() -> new URI(originalUri.getScheme(), null, newHost, originalUri.getPort(),
+                                                    originalUri.getPath(), originalUri.getQuery(),
+                                                    originalUri.getFragment()));
+            return endpoint.toBuilder().url(newUri).build();
+        }
+
+        EndpointUrl newUrl = EndpointUrl.of(originalUrl.scheme(), newHost, originalUrl.port(), originalUrl.encodedPath());
+        return endpoint.toBuilder().endpointUrl(newUrl).build();
     }
 
     /**
@@ -135,6 +145,47 @@ public final class AwsEndpointProviderUtils {
         }
 
         return request.toBuilder().protocol(resolvedUri.getScheme()).host(resolvedUri.getHost()).port(resolvedUri.getPort())
+                .encodedPath(finalPath).build();
+    }
+
+    /**
+     * This sets the request URI to the resolved URI returned by the endpoint provider, using an {@link EndpointUrl}
+     * instead of a {@link URI} to avoid the overhead of URI construction on the hot path.
+     * <p>
+     * If the client endpoint is an endpoint override, it may contain a path. In addition, the request marshaller itself
+     * may add components to the path if it's modeled for the operation. Unfortunately,
+     * {@link SdkHttpRequest#encodedPath()} returns the combined path from both the endpoint and the request. There is
+     * no way to know, just from the HTTP request object, where the override path ends (if it's even there) and where
+     * the request path starts. Additionally, the rule itself may also append other parts to the endpoint override path.
+     * <p>
+     * To solve this issue, we pass in the endpoint set on the path, which allows us to the strip the path from the
+     * endpoint override from the request path, and then correctly combine the paths.
+     * <p>
+     * For example, let's suppose the endpoint override on the client is {@code https://example.com/a}. Then we call an
+     * operation {@code Foo()}, that marshalls {@code /c} to the path. The resulting request path is {@code /a/c}.
+     * However, we also pass the endpoint to provider as a parameter, and the resolver returns
+     * {@code https://example.com/a/b}. This method takes care of combining the paths correctly so that the resulting
+     * path is {@code https://example.com/a/b/c}.
+     */
+    public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, EndpointUrl resolvedUrl) {
+        // [client endpoint path]
+        String clientEndpointPath = clientEndpoint.getRawPath();
+
+        // [client endpoint path]/[request path]
+        String requestPath = request.encodedPath();
+
+        // [client endpoint path]/[additional path added by resolver]
+        String resolvedUriPath = resolvedUrl.encodedPath();
+
+        String finalPath = requestPath;
+
+        // If there is an additional path added by resolver, i.e., [additional path added by resolver] not null,
+        // we need to combine the path
+        if (!resolvedUriPath.equals(clientEndpointPath)) {
+            finalPath = combinePath(clientEndpointPath, requestPath, resolvedUriPath);
+        }
+
+        return request.toBuilder().protocol(resolvedUrl.scheme()).host(resolvedUrl.host()).port(resolvedUrl.port())
                 .encodedPath(finalPath).build();
     }
 

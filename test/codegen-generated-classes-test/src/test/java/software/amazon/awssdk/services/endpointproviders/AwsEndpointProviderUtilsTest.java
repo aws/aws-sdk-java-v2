@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -215,6 +216,148 @@ public class AwsEndpointProviderUtilsTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("component must match the pattern");
     }
+
+    // --- Property 8: setUri equivalence (EndpointUrl overload vs URI overload) ---
+    // Validates: Requirements 5.1, 5.2, 5.3
+
+    @Test
+    public void setUri_endpointUrlOverload_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        URI resolvedUri = URI.create("https://override.example.com/a/b");
+
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com/a/c"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest uriResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri);
+        SdkHttpRequest endpointUrlResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint,
+                                                                           EndpointUrl.parse(resolvedUri.toString()));
+
+        assertThat(endpointUrlResult.getUri()).isEqualTo(uriResult.getUri());
+        assertThat(endpointUrlResult.protocol()).isEqualTo(uriResult.protocol());
+        assertThat(endpointUrlResult.host()).isEqualTo(uriResult.host());
+        assertThat(endpointUrlResult.port()).isEqualTo(uriResult.port());
+        assertThat(endpointUrlResult.encodedPath()).isEqualTo(uriResult.encodedPath());
+    }
+
+    @Test
+    public void setUri_endpointUrlOverload_doubleSlash_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        URI resolvedUri = URI.create("https://override.example.com/a/b");
+
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com/a//c"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest uriResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri);
+        SdkHttpRequest endpointUrlResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint,
+                                                                           EndpointUrl.parse(resolvedUri.toString()));
+
+        assertThat(endpointUrlResult.getUri()).isEqualTo(uriResult.getUri());
+        assertThat(endpointUrlResult.protocol()).isEqualTo(uriResult.protocol());
+        assertThat(endpointUrlResult.host()).isEqualTo(uriResult.host());
+        assertThat(endpointUrlResult.port()).isEqualTo(uriResult.port());
+        assertThat(endpointUrlResult.encodedPath()).isEqualTo(uriResult.encodedPath());
+    }
+
+    @Test
+    public void setUri_endpointUrlOverload_withTrailingSlashNoPath_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/");
+        URI resolvedUri = URI.create("https://override.example.com/");
+
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com//a"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest uriResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri);
+        SdkHttpRequest endpointUrlResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint,
+                                                                           EndpointUrl.parse(resolvedUri.toString()));
+
+        assertThat(endpointUrlResult.getUri()).isEqualTo(uriResult.getUri());
+        assertThat(endpointUrlResult.protocol()).isEqualTo(uriResult.protocol());
+        assertThat(endpointUrlResult.host()).isEqualTo(uriResult.host());
+        assertThat(endpointUrlResult.port()).isEqualTo(uriResult.port());
+        assertThat(endpointUrlResult.encodedPath()).isEqualTo(uriResult.encodedPath());
+    }
+
+    // --- Property 9: addHostPrefix equivalence ---
+    // Validates: Requirements 6.1, 6.2, 6.3
+
+    @Test
+    public void addHostPrefix_endpointUrl_prefixPresent_returnsPrefixPrepended() {
+        Endpoint e = Endpoint.builder()
+                             .endpointUrl(EndpointUrl.parse("https://foo.aws"))
+                             .build();
+
+        Endpoint result = AwsEndpointProviderUtils.addHostPrefix(e, "api.");
+
+        assertThat(result.url()).isEqualTo(URI.create("https://api.foo.aws"));
+        assertThat(result.endpointUrl().host()).isEqualTo("api.foo.aws");
+        assertThat(result.endpointUrl().scheme()).isEqualTo("https");
+    }
+
+    @Test
+    public void addHostPrefix_endpointUrl_preservesPortAndPath() {
+        Endpoint e = Endpoint.builder()
+                             .endpointUrl(EndpointUrl.parse("https://foo.aws:1234/a/b/c"))
+                             .build();
+
+        Endpoint result = AwsEndpointProviderUtils.addHostPrefix(e, "api.");
+
+        assertThat(result.url()).isEqualTo(URI.create("https://api.foo.aws:1234/a/b/c"));
+        assertThat(result.endpointUrl().host()).isEqualTo("api.foo.aws");
+        assertThat(result.endpointUrl().port()).isEqualTo(1234);
+        assertThat(result.endpointUrl().encodedPath()).isEqualTo("/a/b/c");
+    }
+
+    @Test
+    public void addHostPrefix_endpointUrl_prefixIsNull_returnsUnModified() {
+        EndpointUrl endpointUrl = EndpointUrl.parse("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+                             .endpointUrl(endpointUrl)
+                             .build();
+
+        Endpoint result = AwsEndpointProviderUtils.addHostPrefix(e, null);
+
+        assertThat(result.endpointUrl()).isEqualTo(endpointUrl);
+        assertThat(result.url()).isEqualTo(URI.create("https://foo.aws"));
+    }
+
+    @Test
+    public void addHostPrefix_endpointUrl_prefixIsEmpty_returnsUnModified() {
+        EndpointUrl endpointUrl = EndpointUrl.parse("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+                             .endpointUrl(endpointUrl)
+                             .build();
+
+        Endpoint result = AwsEndpointProviderUtils.addHostPrefix(e, "");
+
+        assertThat(result.endpointUrl()).isEqualTo(endpointUrl);
+        assertThat(result.url()).isEqualTo(URI.create("https://foo.aws"));
+    }
+
+    @Test
+    public void addHostPrefix_endpointUrl_equivalentToUriPath() {
+        // Verify that building an Endpoint via EndpointUrl.parse and then calling addHostPrefix
+        // produces the same URL as building via URI and calling addHostPrefix
+        String urlString = "https://foo.aws:8080/some/path";
+
+        Endpoint fromUri = Endpoint.builder()
+                                   .url(URI.create(urlString))
+                                   .build();
+        Endpoint fromEndpointUrl = Endpoint.builder()
+                                           .endpointUrl(EndpointUrl.parse(urlString))
+                                           .build();
+
+        Endpoint resultFromUri = AwsEndpointProviderUtils.addHostPrefix(fromUri, "api.");
+        Endpoint resultFromEndpointUrl = AwsEndpointProviderUtils.addHostPrefix(fromEndpointUrl, "api.");
+
+        assertThat(resultFromEndpointUrl.url()).isEqualTo(resultFromUri.url());
+    }
+
 
     private static ClientEndpointProvider endpointProvider(boolean isEndpointOverridden) {
         return ClientEndpointProvider.create(URI.create("https://foo.aws"), isEndpointOverridden);

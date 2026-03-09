@@ -20,6 +20,6 @@ public final class QueryRequestSetEndpointInterceptor implements ExecutionInterc
         Endpoint endpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
         return AwsEndpointProviderUtils.setUri(context.httpRequest(),
                                                executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER).clientEndpoint(),
-                                               endpoint.url());
+                                               endpoint.endpointUrl());
     }
 }

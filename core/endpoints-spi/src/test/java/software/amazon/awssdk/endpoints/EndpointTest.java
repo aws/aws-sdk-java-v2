@@ -24,10 +24,26 @@ import java.util.List;
 import java.util.Map;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class EndpointTest {
     private static final EndpointAttributeKey<String> TEST_STRING_ATTR =
         new EndpointAttributeKey<>("StringAttr", String.class);
+
+    /**
+     * Representative AWS URLs used across parameterized tests.
+     * Consistent with the set used in {@link EndpointUrlTest}.
+     */
+    static List<String> representativeUrls() {
+        return Arrays.asList(
+            "https://s3.us-east-1.amazonaws.com",
+            "https://s3.us-east-1.amazonaws.com/bucket/key",
+            "https://localhost:8080/path",
+            "https://s3.amazonaws.com/",
+            "https://dynamodb.us-west-2.amazonaws.com"
+        );
+    }
 
     @Test
     public void testEqualsHashCode() {
@@ -88,4 +104,85 @@ public class EndpointTest {
 
         assertThat(original.attribute(TEST_STRING_ATTR)).isEqualTo("foo");
     }
+
+    // -----------------------------------------------------------------------
+    // Property 6: Endpoint url(URI) round-trip
+    // Validates: Requirements 4.3, 4.4
+    // -----------------------------------------------------------------------
+
+    @ParameterizedTest
+    @MethodSource("representativeUrls")
+    void urlRoundTrip(String url) {
+        URI uri = URI.create(url);
+        Endpoint endpoint = Endpoint.builder().url(uri).build();
+        assertThat(endpoint.url()).isEqualTo(uri);
+    }
+
+    // -----------------------------------------------------------------------
+    // Property 7: Endpoint equality across construction paths
+    // Validates: Requirement 4.7
+    // -----------------------------------------------------------------------
+
+    @ParameterizedTest
+    @MethodSource("representativeUrls")
+    void equalityAcrossConstructionPaths(String url) {
+        Endpoint viaUri = Endpoint.builder()
+                                  .url(URI.create(url))
+                                  .build();
+        Endpoint viaEndpointUrl = Endpoint.builder()
+                                          .endpointUrl(EndpointUrl.parse(url))
+                                          .build();
+        assertThat(viaUri).isEqualTo(viaEndpointUrl);
+        assertThat(viaEndpointUrl).isEqualTo(viaUri);
+        assertThat(viaUri.hashCode()).isEqualTo(viaEndpointUrl.hashCode());
+    }
+
+    // -----------------------------------------------------------------------
+    // endpointUrl() accessor
+    // Validates: Requirements 4.5, 4.6
+    // -----------------------------------------------------------------------
+
+    @Test
+    void endpointUrl_viaUrlBuilder_returnsCorrectEndpointUrl() {
+        URI uri = URI.create("https://s3.us-east-1.amazonaws.com/bucket/key");
+        Endpoint endpoint = Endpoint.builder().url(uri).build();
+
+        EndpointUrl endpointUrl = endpoint.endpointUrl();
+        assertThat(endpointUrl).isNotNull();
+        assertThat(endpointUrl.scheme()).isEqualTo("https");
+        assertThat(endpointUrl.host()).isEqualTo("s3.us-east-1.amazonaws.com");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/bucket/key");
+    }
+
+    @Test
+    void endpointUrl_viaEndpointUrlBuilder_returnsCorrectEndpointUrl() {
+        EndpointUrl expected = EndpointUrl.parse("https://localhost:8080/path");
+        Endpoint endpoint = Endpoint.builder().endpointUrl(expected).build();
+
+        assertThat(endpoint.endpointUrl()).isSameAs(expected);
+    }
+
+    // -----------------------------------------------------------------------
+    // toBuilder() preserves EndpointUrl
+    // Validates: Requirements 4.5, 4.6
+    // -----------------------------------------------------------------------
+
+    @Test
+    void toBuilder_preservesEndpointUrl() {
+        EndpointUrl endpointUrl = EndpointUrl.parse("https://s3.us-east-1.amazonaws.com/bucket/key");
+        Endpoint original = Endpoint.builder()
+                                    .endpointUrl(endpointUrl)
+                                    .putHeader("x-amz-test", "value")
+                                    .putAttribute(TEST_STRING_ATTR, "attr")
+                                    .build();
+
+        Endpoint rebuilt = original.toBuilder().build();
+
+        assertThat(rebuilt.endpointUrl()).isSameAs(endpointUrl);
+        assertThat(rebuilt.url()).isEqualTo(original.url());
+        assertThat(rebuilt.headers()).isEqualTo(original.headers());
+        assertThat(rebuilt.attribute(TEST_STRING_ATTR)).isEqualTo("attr");
+    }
 }
+

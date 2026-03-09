@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +11,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -105,7 +105,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (value instanceof Value.Endpoint) {
             Value.Endpoint endpoint = value.expectEndpoint();
             Endpoint.Builder builder = Endpoint.builder();
-            builder.url(URI.create(endpoint.getUrl()));
+            builder.endpointUrl(EndpointUrl.parse(endpoint.getUrl()));
             Map<String, List<String>> headers = endpoint.getHeaders();
             if (headers != null) {
                 headers.forEach((name, values) -> values.forEach(v -> builder.putHeader(name, v)));

@@ -75,7 +75,7 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
                        SdkInternalExecutionAttribute.class);
         b.addStatement("return $T.setUri(context.httpRequest(),"
                        + "executionAttributes.getAttribute($T.CLIENT_ENDPOINT_PROVIDER).clientEndpoint(),"
-                       + "endpoint.url())",
+                       + "endpoint.endpointUrl())",
                        endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"),
                        SdkInternalExecutionAttribute.class);
         return b.build();
