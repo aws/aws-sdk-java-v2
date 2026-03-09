@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Global Resolver",
-    "contributor": "",
-    "description": "Adds support for dual stack Global Resolvers and Dictionary-based Domain Generation Firewall Advanced Protection."
-}

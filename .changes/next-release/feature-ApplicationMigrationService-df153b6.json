@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Application Migration Service",
-    "contributor": "",
-    "description": "Adds support for new storeSnapshotOnLocalZone field in ReplicationConfiguration and updateReplicationConfiguration"
-}
