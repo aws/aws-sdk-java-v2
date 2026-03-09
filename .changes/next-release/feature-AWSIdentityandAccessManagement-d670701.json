@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "Added support for CloudWatch Logs long-term API keys, currently available in Preview"
+}
