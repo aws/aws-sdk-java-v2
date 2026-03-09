@@ -19,6 +19,7 @@ import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDow
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.REPORT_PROGRESS_IN_SINGLE_CHUNK;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -138,14 +139,16 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
+        boolean multipartEnabled = isS3ClientMultipartEnabled();
+        requestBody = progressUpdater.wrapRequestBody(requestBody, multipartEnabled);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
-        if (isS3ClientMultipartEnabled()) {
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
-                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
-            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        if (multipartEnabled) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressAttributes =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
+                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, Boolean.TRUE);
+            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressAttributes);
         }
 
         doUpload(putObjectRequest, requestBody, returnFuture);
@@ -192,16 +195,18 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
+        boolean multipartEnabled = isS3ClientMultipartEnabled();
+        requestBody = progressUpdater.wrapRequestBody(requestBody, multipartEnabled);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
         PauseObservable pauseObservable;
-        if (isS3ClientMultipartEnabled()) {
+        if (multipartEnabled) {
             pauseObservable = new PauseObservable();
             Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
                 b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
-                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
+                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, Boolean.TRUE);
             putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
         } else {
             pauseObservable = null;

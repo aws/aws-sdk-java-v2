@@ -43,6 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -111,7 +112,7 @@ class TransferProgressUpdaterTest {
         sourceFile = new RandomTempFile(OBJ_SIZE);
         AsyncRequestBody requestBody = AsyncRequestBody.fromFile(sourceFile);
         TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(transferRequest, givenContentLength);
-        AsyncRequestBody asyncRequestBody = transferProgressUpdater.wrapRequestBody(requestBody);
+        AsyncRequestBody asyncRequestBody = transferProgressUpdater.wrapRequestBody(requestBody, false);
 
         CompletableFuture<CompletedObjectTransfer> completionFuture = completedObjectResponse(10);
         transferProgressUpdater.registerCompletion(completionFuture);
@@ -144,7 +145,7 @@ class TransferProgressUpdaterTest {
             Executors.newSingleThreadExecutor());
 
         TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(transferRequest, contentLength);
-        AsyncRequestBody asyncRequestBody = transferProgressUpdater.wrapRequestBody(requestFileBody);
+        AsyncRequestBody asyncRequestBody = transferProgressUpdater.wrapRequestBody(requestFileBody, false);
 
         CompletableFuture<CompletedObjectTransfer> future = completedObjectResponse(10);
         transferProgressUpdater.registerCompletion(future);
@@ -253,6 +254,103 @@ class TransferProgressUpdaterTest {
 
     }
 
+
+    @Test
+    void wrapRequestBody_suppressProgress_doesNotReportProgress() {
+        byte[] data = new byte[1024];
+        Arrays.fill(data, (byte) 'a');
+        long contentLength = data.length;
+
+        TransferObjectRequest transferRequest = Mockito.mock(TransferObjectRequest.class);
+        when(transferRequest.transferListeners()).thenReturn(Arrays.asList(captureTransferListener));
+
+        TransferProgressUpdater updater = new TransferProgressUpdater(transferRequest, contentLength);
+        AsyncRequestBody inMemoryBody = AsyncRequestBody.fromBytes(data);
+        AsyncRequestBody wrappedBody = updater.wrapRequestBody(inMemoryBody, true);
+
+        // Use a custom subscriber that captures progress snapshots at each stage
+        AtomicReference<Long> bytesAfterOnNext = new AtomicReference<>();
+        AtomicReference<Long> bytesAfterOnComplete = new AtomicReference<>();
+
+        wrappedBody.subscribe(new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+                bytesAfterOnNext.set(updater.progress().snapshot().transferredBytes());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onComplete() {
+                bytesAfterOnComplete.set(updater.progress().snapshot().transferredBytes());
+            }
+        });
+
+        // When suppressProgress is true, the wrapper should NOT report any progress.
+        // Progress is instead reported by the JAVA_PROGRESS_LISTENER after the server responds.
+        assertThat(bytesAfterOnNext.get()).isNotNull();
+        assertThat(bytesAfterOnNext.get()).isEqualTo(0L);
+        assertThat(bytesAfterOnComplete.get()).isEqualTo(0L);
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(0L);
+    }
+
+    @Test
+    void wrapRequestBody_noSuppression_reportsProgressPerByte() throws Exception {
+        long fileSize = 1024;
+        sourceFile = new RandomTempFile(fileSize);
+
+        TransferObjectRequest transferRequest = Mockito.mock(TransferObjectRequest.class);
+        when(transferRequest.transferListeners()).thenReturn(Arrays.asList(captureTransferListener));
+
+        TransferProgressUpdater updater = new TransferProgressUpdater(transferRequest, fileSize);
+        AsyncRequestBody fileBody = AsyncRequestBody.fromFile(sourceFile);
+        AsyncRequestBody wrappedBody = updater.wrapRequestBody(fileBody, false);
+
+        CompletableFuture<CompletedObjectTransfer> completionFuture = completedObjectResponse(10);
+        updater.registerCompletion(completionFuture);
+
+        // For file-based bodies, progress should be reported incrementally during onNext
+        AtomicBoolean progressReportedDuringOnNext = new AtomicBoolean(false);
+        CompletableFuture<Void> subscriberDone = new CompletableFuture<>();
+
+        wrappedBody.subscribe(new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+                long transferred = updater.progress().snapshot().transferredBytes();
+                if (transferred > 0) {
+                    progressReportedDuringOnNext.set(true);
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                subscriberDone.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+                subscriberDone.complete(null);
+            }
+        });
+
+        subscriberDone.get(5, TimeUnit.SECONDS);
+
+        // File body should have reported progress during onNext, not deferred
+        assertThat(progressReportedDuringOnNext.get()).isTrue();
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(fileSize);
+    }
 
     private static class ExceptionThrowingByteArrayInputStream extends ByteArrayInputStream {
         private final int exceptionPosition;

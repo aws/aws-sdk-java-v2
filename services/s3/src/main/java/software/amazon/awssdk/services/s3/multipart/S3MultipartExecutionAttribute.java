@@ -29,4 +29,11 @@ public final class S3MultipartExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("JavaProgressListener");
     public static final ExecutionAttribute<MultipartDownloadResumeContext> MULTIPART_DOWNLOAD_RESUME_CONTEXT =
         new ExecutionAttribute<>("MultipartDownloadResumeContext");
+
+    /**
+     * When true, indicates that the request body wrapper does not report progress (e.g., for in-memory bodies),
+     * so {@code uploadInOneChunk} should report progress after the server responds.
+     */
+    public static final ExecutionAttribute<Boolean> REPORT_PROGRESS_IN_SINGLE_CHUNK =
+        new ExecutionAttribute<>("ReportProgressInSingleChunk");
 }
