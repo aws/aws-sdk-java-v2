@@ -57,9 +57,12 @@ class XxHashChecksumTest {
 
     @ParameterizedTest
     @MethodSource("xxHashAlgorithms")
-    void reset_throwsUnsupportedOperationException(ChecksumAlgorithm algorithm, String expectedBase64) {
+    void reset_allowsReuseOfChecksum(ChecksumAlgorithm algorithm, String expectedBase64) {
         SdkChecksum checksum = ChecksumProvider.crtXxHash(algorithm);
-        assertThrows(UnsupportedOperationException.class, () -> checksum.reset());
+        checksum.update("some other data".getBytes(StandardCharsets.UTF_8));
+        checksum.reset();
+        checksum.update("Hello world".getBytes(StandardCharsets.UTF_8));
+        assertEquals(expectedBase64, BinaryUtils.toBase64(checksum.getChecksumBytes()));
     }
 
     @ParameterizedTest
