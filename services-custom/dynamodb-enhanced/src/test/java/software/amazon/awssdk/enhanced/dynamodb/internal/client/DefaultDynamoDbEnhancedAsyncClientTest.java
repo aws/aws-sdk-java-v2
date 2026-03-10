@@ -26,6 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
@@ -116,5 +118,22 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
         DefaultDynamoDbEnhancedAsyncClient copiedObject = dynamoDbEnhancedAsyncClient.toBuilder().build();
 
         assertThat(copiedObject, is(dynamoDbEnhancedAsyncClient));
+    }
+
+    @Test
+    public void dynamoDbAsyncClient_viaInterface_returnsSameInstance() {
+        DynamoDbEnhancedAsyncClient client = dynamoDbEnhancedAsyncClient;
+        assertThat(client.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void dynamoDbAsyncClient_defaultMethod_throwsUnsupportedOperationException() {
+        DynamoDbEnhancedAsyncClient bareClient = new DynamoDbEnhancedAsyncClient() {
+            @Override
+            public <T> DynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema) {
+                return null;
+            }
+        };
+        bareClient.dynamoDbAsyncClient();
     }
 }
