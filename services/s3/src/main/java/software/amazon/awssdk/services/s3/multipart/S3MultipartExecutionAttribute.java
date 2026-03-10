@@ -32,7 +32,8 @@ public final class S3MultipartExecutionAttribute extends SdkExecutionAttribute {
 
     /**
      * When true, indicates that the request body wrapper does not report progress (e.g., for in-memory bodies),
-     * so {@code uploadInOneChunk} should report progress after the server responds.
+     * so {@code uploadInOneChunk} should report progress after the server responds. When false or absent,
+     * the wrapper handles progress reporting and {@code uploadInOneChunk} should not report to avoid double-counting.
      */
     public static final ExecutionAttribute<Boolean> REPORT_PROGRESS_IN_SINGLE_CHUNK =
         new ExecutionAttribute<>("ReportProgressInSingleChunk");

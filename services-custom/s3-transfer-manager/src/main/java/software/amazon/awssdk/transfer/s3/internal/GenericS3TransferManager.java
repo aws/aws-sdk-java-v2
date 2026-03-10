@@ -140,14 +140,20 @@ class GenericS3TransferManager implements S3TransferManager {
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
         boolean multipartEnabled = isS3ClientMultipartEnabled();
-        requestBody = progressUpdater.wrapRequestBody(requestBody, multipartEnabled);
+        boolean isInMemoryBody = AsyncRequestBody.BodyType.BYTES.getName().equals(requestBody.body());
+        // Suppress wrapper progress for in-memory bodies when multipart is enabled. For these bodies,
+        // all bytes are delivered to the publisher instantly, so wrapper-based progress is misleading.
+        // Instead, uploadInOneChunk will report progress after the server responds.
+        // For file/stream bodies, the wrapper provides meaningful incremental progress as bytes are read.
+        boolean suppressWrapperProgress = multipartEnabled && isInMemoryBody;
+        requestBody = progressUpdater.wrapRequestBody(requestBody, suppressWrapperProgress);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
         if (multipartEnabled) {
             Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressAttributes =
                 b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
-                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, Boolean.TRUE);
+                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, isInMemoryBody);
             putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressAttributes);
         }
 
@@ -196,7 +202,9 @@ class GenericS3TransferManager implements S3TransferManager {
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
         boolean multipartEnabled = isS3ClientMultipartEnabled();
-        requestBody = progressUpdater.wrapRequestBody(requestBody, multipartEnabled);
+        boolean isInMemoryBody = AsyncRequestBody.BodyType.BYTES.getName().equals(requestBody.body());
+        boolean suppressWrapperProgress = multipartEnabled && isInMemoryBody;
+        requestBody = progressUpdater.wrapRequestBody(requestBody, suppressWrapperProgress);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
@@ -206,7 +214,7 @@ class GenericS3TransferManager implements S3TransferManager {
             Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
                 b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
                       .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
-                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, Boolean.TRUE);
+                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, isInMemoryBody);
             putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
         } else {
             pauseObservable = null;

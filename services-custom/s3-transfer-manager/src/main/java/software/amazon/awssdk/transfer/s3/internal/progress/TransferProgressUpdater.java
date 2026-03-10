@@ -80,12 +80,13 @@ public class TransferProgressUpdater {
      * Wraps the request body to track upload progress.
      *
      * @param requestBody the original request body
-     * @param suppressProgress when {@code true}, the wrapper will not report byte-level progress. This is used when
-     *     the multipart client is enabled, because progress is reported after the server responds instead:
-     *     by the JAVA_PROGRESS_LISTENER in {@code uploadInOneChunk} (single-chunk path) or
-     *     {@code sendIndividualUploadPartRequest} (multipart path). This avoids reporting progress based on bytes
-     *     read from the publisher, which can be significantly ahead of bytes actually sent over the wire.
-     *     When {@code false}, the wrapper reports progress as bytes flow through the publisher.
+     * @param suppressProgress when {@code true}, the wrapper will not report byte-level progress. This is used
+     *     for in-memory bodies when the multipart client is enabled, because all bytes are delivered to the
+     *     publisher instantly and progress would jump to 100% before any data is sent over the wire. Instead,
+     *     progress is reported by the JAVA_PROGRESS_LISTENER in {@code uploadInOneChunk} (single-chunk path)
+     *     or {@code sendIndividualUploadPartRequest} (multipart path) after the server responds.
+     *     When {@code false}, the wrapper reports progress as bytes flow through the publisher, which provides
+     *     meaningful incremental progress for file and stream bodies.
      */
     public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, boolean suppressProgress) {
         return AsyncRequestBodyListener.wrap(
