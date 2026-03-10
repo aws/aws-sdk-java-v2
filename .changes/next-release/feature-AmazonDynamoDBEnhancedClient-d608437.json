@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Amazon DynamoDB Enhanced Client",
     "contributor": "",
-    "description": "Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client."
+    "description": "Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client. Fixes [#6654](https://github.com/aws/aws-sdk-java-v2/issues/6654)"
 }
