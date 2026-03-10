@@ -256,7 +256,7 @@ class TransferProgressUpdaterTest {
 
 
     @Test
-    void wrapRequestBody_suppressProgress_doesNotReportProgress() {
+    void wrapRequestBody_disableIncrementalProgress_doesNotReportProgress() {
         byte[] data = new byte[1024];
         Arrays.fill(data, (byte) 'a');
         long contentLength = data.length;
@@ -293,7 +293,7 @@ class TransferProgressUpdaterTest {
             }
         });
 
-        // When suppressProgress is true, the wrapper should NOT report any progress.
+        // When disableIncrementalProgress is true, the wrapper should NOT report any progress.
         // Progress is instead reported by the JAVA_PROGRESS_LISTENER after the server responds.
         assertThat(bytesAfterOnNext.get()).isNotNull();
         assertThat(bytesAfterOnNext.get()).isEqualTo(0L);

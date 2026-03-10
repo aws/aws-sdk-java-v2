@@ -215,14 +215,13 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        boolean multipartEnabled = isS3ClientMultipartEnabled();
         requestBody = progressUpdater.wrapRequestBody(requestBody, false);
 
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
         PauseObservable pauseObservable;
-        if (multipartEnabled) {
+        if (isS3ClientMultipartEnabled()) {
             pauseObservable = new PauseObservable();
             Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
                 b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
