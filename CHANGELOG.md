@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.10__ __2026-03-10__
+## __AWS Database Migration Service__
+  - ### Features
+    - Not need to include to any release notes. The only change is to correct LoadTimeout unit from milliseconds to seconds in RedshiftSettings
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Code Generator__
+  - ### Features
+    - Improve model validation error message for operations missing request URI.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adding first class support for AG-UI protocol in AgentCore Runtime.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Added functionality for the Required and Hidden case rule types to be conditionally evaluated on up to 5 conditions.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces a new generative AI feature called Lex Bot Analyzer. This feature leverage AI to analyze the bot configuration against AWS Lex best practices to identify configuration issues and provides recommendations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Add dual stack endpoint to SDK
+
 # __2.42.9__ __2026-03-09__
 ## __AWS Identity and Access Management__
   - ### Features

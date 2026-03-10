@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2 Code Generator",
-    "contributor": "",
-    "description": "Improve model validation error message for operations missing request URI."
-}

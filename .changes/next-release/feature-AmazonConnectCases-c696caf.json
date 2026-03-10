@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Cases",
-    "contributor": "",
-    "description": "Added functionality for the Required and Hidden case rule types to be conditionally evaluated on up to 5 conditions."
-}

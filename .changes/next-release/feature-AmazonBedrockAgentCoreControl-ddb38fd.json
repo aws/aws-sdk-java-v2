@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Control",
-    "contributor": "",
-    "description": "Adding first class support for AG-UI protocol in AgentCore Runtime."
-}
