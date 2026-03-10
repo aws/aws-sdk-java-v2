@@ -46,6 +46,7 @@ public class S3ConfigurationTest {
         assertThat(config.multiRegionEnabled()).isEqualTo(true);
         assertThat(config.pathStyleAccessEnabled()).isEqualTo(false);
         assertThat(config.useArnRegionEnabled()).isEqualTo(false);
+        assertThat(config.disableExpect100ContinueForPuts()).isEqualTo(false);
     }
 
     @Test

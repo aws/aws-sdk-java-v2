@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -70,11 +71,17 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     private static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
 
+    /**
+     * By default, Expect: 100-continue is sent for {@link PutObjectRequest} and {@link UploadPartRequest}.
+     */
+    private static final boolean DEFAULT_DISABLE_EXPECT_100_CONTINUE_FOR_PUTS = false;
+
     private final FieldWithDefault<Boolean> pathStyleAccessEnabled;
     private final FieldWithDefault<Boolean> accelerateModeEnabled;
     private final FieldWithDefault<Boolean> dualstackEnabled;
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
+    private final FieldWithDefault<Boolean> disableExpect100ContinueForPuts;
     private final Boolean useArnRegionEnabled;
     private final Boolean multiRegionEnabled;
     private final FieldWithDefault<Supplier<ProfileFile>> profileFile;
@@ -87,6 +94,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         this.checksumValidationEnabled = FieldWithDefault.create(builder.checksumValidationEnabled,
                                                                  DEFAULT_CHECKSUM_VALIDATION_ENABLED);
         this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
+        this.disableExpect100ContinueForPuts =
+            FieldWithDefault.create(builder.disableExpect100ContinueForPuts, DEFAULT_DISABLE_EXPECT_100_CONTINUE_FOR_PUTS);
         this.profileFile = FieldWithDefault.create(builder.profileFile, ProfileFile::defaultProfileFile);
         this.profileName = FieldWithDefault.create(builder.profileName,
                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
@@ -217,6 +226,26 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     }
 
     /**
+     * Returns whether the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header is disabled for
+     * {@link PutObjectRequest} and {@link UploadPartRequest}. This controls whether the SDK adds the header during
+     * request interceptor processing.
+     * <p>
+     * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
+     * reject the request before the client sends the full payload. Setting this to {@code true} disables this behavior.
+     * <p>
+     * <b>Note:</b> When using the Apache HTTP client, the Apache client also independently adds the
+     * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully
+     * suppress the header on the wire, you must also disable it on the Apache HTTP client builder using
+     * {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
+     *
+     * @return True if the Expect: 100-continue header is disabled for put operations.
+     * @see S3Configuration.Builder#disableExpect100ContinueForPuts(Boolean)
+     */
+    public boolean disableExpect100ContinueForPuts() {
+        return disableExpect100ContinueForPuts.value();
+    }
+
+    /**
      * Returns whether the client is allowed to make cross-region calls when an S3 Access Point ARN has a different
      * region to the one configured on the client.
      * <p>
@@ -246,6 +275,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
                 .pathStyleAccessEnabled(pathStyleAccessEnabled.valueOrNullIfDefault())
                 .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())
                 .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
+                .disableExpect100ContinueForPuts(disableExpect100ContinueForPuts.valueOrNullIfDefault())
                 .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile.valueOrNullIfDefault())
                 .profileName(profileName.valueOrNullIfDefault());
@@ -355,6 +385,27 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
 
+        Boolean disableExpect100ContinueForPuts();
+
+        /**
+         * Option to disable the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header for
+         * {@link PutObjectRequest} and {@link UploadPartRequest}. This controls whether the SDK adds the header
+         * during request interceptor processing.
+         * <p>
+         * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
+         * reject the request before the client sends the full payload. Setting this to {@code true} disables this behavior.
+         * <p>
+         * <b>Note:</b> When using the Apache HTTP client, the Apache client also independently adds the
+         * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully
+         * suppress the header on the wire, you must also disable it on the Apache HTTP client builder using
+         * {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
+         * <p>
+         * Disabled by default (i.e., the header is sent).
+         *
+         * @see S3Configuration#disableExpect100ContinueForPuts()
+         */
+        Builder disableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts);
+
         Boolean useArnRegionEnabled();
 
         /**
@@ -423,6 +474,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean pathStyleAccessEnabled;
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
+        private Boolean disableExpect100ContinueForPuts;
         private Boolean useArnRegionEnabled;
         private Boolean multiRegionEnabled;
         private Supplier<ProfileFile> profileFile;
@@ -500,12 +552,27 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         }
 
         @Override
-        public Boolean useArnRegionEnabled() {
-            return useArnRegionEnabled;
+        public Boolean disableExpect100ContinueForPuts() {
+            return disableExpect100ContinueForPuts;
         }
 
         public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
             chunkedEncodingEnabled(chunkedEncodingEnabled);
+        }
+
+        @Override
+        public Builder disableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts) {
+            this.disableExpect100ContinueForPuts = disableExpect100ContinueForPuts;
+            return this;
+        }
+
+        public void setDisableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts) {
+            disableExpect100ContinueForPuts(disableExpect100ContinueForPuts);
+        }
+
+        @Override
+        public Boolean useArnRegionEnabled() {
+            return useArnRegionEnabled;
         }
 
         @Override

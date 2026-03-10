@@ -52,10 +52,14 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -66,6 +70,9 @@ import software.amazon.awssdk.utils.AttributeMap;
  * Per RFC 9110 Section 10.1.1, clients MUST NOT send 100-continue for requests without content.
  * These tests verify the header is correctly omitted for zero-length bodies and included for
  * non-empty bodies in both sync and async S3 operations.
+ * <p>
+ * Also verifies that {@link S3Configuration#disableExpect100ContinueForPuts()} suppresses the header
+ * for all put operations regardless of body content, across all HTTP client types.
  */
 @WireMockTest(httpsEnabled = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -81,37 +88,25 @@ class Expect100ContinueHeaderTest {
     @BeforeEach
     void setup(WireMockRuntimeInfo wmRuntimeInfo) {
         URI endpointOverride = URI.create(wmRuntimeInfo.getHttpsBaseUrl());
-        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
-            AwsBasicCredentials.create("akid", "skid"));
-
-        SdkHttpClient apacheHttpClient = ApacheHttpClient.builder()
-                                                         .buildWithDefaults(AttributeMap.builder()
-                                                                                        .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, Boolean.TRUE)
-                                                                                        .build());
 
         syncClient = S3Client.builder()
-                             .httpClient(apacheHttpClient)
+                             .httpClient(ApacheHttpClient.builder().buildWithDefaults(trustAllCerts()))
                              .region(Region.US_EAST_1)
                              .endpointOverride(endpointOverride)
                              .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                              .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                              .forcePathStyle(true)
-                             .credentialsProvider(credentialsProvider)
+                             .credentialsProvider(staticCredentials())
                              .build();
 
-        SdkAsyncHttpClient nettyHttpClient = NettyNioAsyncHttpClient.builder()
-                                                                    .buildWithDefaults(AttributeMap.builder()
-                                                                                                   .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, Boolean.TRUE)
-                                                                                                   .build());
-
         asyncClient = S3AsyncClient.builder()
-                                   .httpClient(nettyHttpClient)
+                                   .httpClient(NettyNioAsyncHttpClient.builder().buildWithDefaults(trustAllCerts()))
                                    .region(Region.US_EAST_1)
                                    .endpointOverride(endpointOverride)
                                    .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                                    .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                                    .forcePathStyle(true)
-                                   .credentialsProvider(credentialsProvider)
+                                   .credentialsProvider(staticCredentials())
                                    .build();
     }
 
@@ -125,10 +120,14 @@ class Expect100ContinueHeaderTest {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // RFC 9110 compliance: empty body vs non-empty body (uses default clients)
+    // -----------------------------------------------------------------------
+
     @ParameterizedTest(name = "{0}_withEmptyBody_doesNotSendExpectHeader")
     @MethodSource("syncRequestProvider")
-    void syncOperation_withEmptyBody_doesNotSendExpectHeader(String operationType,
-                                                             Function<RequestBody, Void> executeRequest) {
+    void syncOperation_whenEmptyBody_shouldNotSendExpectHeader(
+            String operationType, Function<RequestBody, Void> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(RequestBody.empty());
         assertExpectHeaderNotPresent();
@@ -136,8 +135,8 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withEmptyStringBody_doesNotSendExpectHeader")
     @MethodSource("syncRequestProvider")
-    void syncOperation_withEmptyStringBody_doesNotSendExpectHeader(String operationType,
-                                                                   Function<RequestBody, Void> executeRequest) {
+    void syncOperation_whenEmptyStringBody_shouldNotSendExpectHeader(
+            String operationType, Function<RequestBody, Void> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(RequestBody.fromString(""));
         assertExpectHeaderNotPresent();
@@ -145,8 +144,8 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withNonEmptyBody_sendsExpectHeader")
     @MethodSource("syncRequestProvider")
-    void syncOperation_withNonEmptyBody_sendsExpectHeader(String operationType,
-                                                          Function<RequestBody, Void> executeRequest) {
+    void syncOperation_whenNonEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<RequestBody, Void> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(RequestBody.fromString("test content"));
         assertExpectHeaderPresent();
@@ -154,31 +153,29 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withContentProviderEmptyBody_sendsExpectHeader")
     @MethodSource("syncRequestProvider")
-    void syncOperation_withContentProviderEmptyBody_sendsExpectHeader(String operationType,
-                                                                      Function<RequestBody, Void> executeRequest) {
+    void syncOperation_whenContentProviderEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<RequestBody, Void> executeRequest) {
         stubAnyPutRequest();
         ContentStreamProvider emptyProvider = () -> new ByteArrayInputStream(new byte[0]);
-        RequestBody emptyBody = RequestBody.fromContentProvider(emptyProvider, "application/octet-stream");
-        executeRequest.apply(emptyBody);
+        executeRequest.apply(RequestBody.fromContentProvider(emptyProvider, "application/octet-stream"));
         assertExpectHeaderPresent();
     }
 
     @ParameterizedTest(name = "{0}_withContentProviderNonEmptyBody_sendsExpectHeader")
     @MethodSource("syncRequestProvider")
-    void syncOperation_withContentProviderNonEmptyBody_sendsExpectHeader(String operationType,
-                                                                         Function<RequestBody, Void> executeRequest) {
+    void syncOperation_whenContentProviderNonEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<RequestBody, Void> executeRequest) {
         stubAnyPutRequest();
         byte[] content = "test content".getBytes(StandardCharsets.UTF_8);
         ContentStreamProvider contentProvider = () -> new ByteArrayInputStream(content);
-        RequestBody providerBody = RequestBody.fromContentProvider(contentProvider, "application/octet-stream");
-        executeRequest.apply(providerBody);
+        executeRequest.apply(RequestBody.fromContentProvider(contentProvider, "application/octet-stream"));
         assertExpectHeaderPresent();
     }
 
     @ParameterizedTest(name = "{0}_withEmptyBody_doesNotSendExpectHeader")
     @MethodSource("asyncRequestProvider")
-    void asyncOperation_withEmptyBody_doesNotSendExpectHeader(String operationType,
-                                                              Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
+    void asyncOperation_whenEmptyBody_shouldNotSendExpectHeader(
+            String operationType, Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(AsyncRequestBody.empty()).join();
         assertExpectHeaderNotPresent();
@@ -186,8 +183,8 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withEmptyStringBody_doesNotSendExpectHeader")
     @MethodSource("asyncRequestProvider")
-    void asyncOperation_withEmptyStringBody_doesNotSendExpectHeader(String operationType,
-                                                                    Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
+    void asyncOperation_whenEmptyStringBody_shouldNotSendExpectHeader(
+            String operationType, Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(AsyncRequestBody.fromString("")).join();
         assertExpectHeaderNotPresent();
@@ -195,8 +192,8 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withNonEmptyBody_sendsExpectHeader")
     @MethodSource("asyncRequestProvider")
-    void asyncOperation_withNonEmptyBody_sendsExpectHeader(String operationType,
-                                                           Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
+    void asyncOperation_whenNonEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
         stubAnyPutRequest();
         executeRequest.apply(AsyncRequestBody.fromString("test content")).join();
         assertExpectHeaderPresent();
@@ -204,57 +201,125 @@ class Expect100ContinueHeaderTest {
 
     @ParameterizedTest(name = "{0}_withPublisherEmptyBody_sendsExpectHeader")
     @MethodSource("asyncRequestProvider")
-    void asyncOperation_withPublisherEmptyBody_sendsExpectHeader(String operationType,
-                                                                 Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
+    void asyncOperation_whenPublisherEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
         stubAnyPutRequest();
-        Publisher<ByteBuffer> emptyPublisher = subscriber -> {
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long n) {
-                    subscriber.onComplete();
-                }
-
-                @Override
-                public void cancel() {
-                    // No action.
-                }
-            });
-        };
-
-        AsyncRequestBody emptyBody = AsyncRequestBody.fromPublisher(emptyPublisher);
-        executeRequest.apply(emptyBody).join();
+        executeRequest.apply(AsyncRequestBody.fromPublisher(emptyPublisher())).join();
         assertExpectHeaderPresent();
     }
 
     @ParameterizedTest(name = "{0}_withPublisherNonEmptyBody_sendsExpectHeader")
     @MethodSource("asyncRequestProvider")
-    void asyncOperation_withPublisherNonEmptyBody_sendsExpectHeader(String operationType,
-                                                                    Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
+    void asyncOperation_whenPublisherNonEmptyBody_shouldSendExpectHeader(
+            String operationType, Function<AsyncRequestBody, CompletableFuture<?>> executeRequest) {
         stubAnyPutRequest();
-        byte[] content = "test content".getBytes(StandardCharsets.UTF_8);
-        Publisher<ByteBuffer> contentPublisher = subscriber -> {
-            subscriber.onSubscribe(new Subscription() {
-                private boolean sent = false;
+        executeRequest.apply(AsyncRequestBody.fromPublisher(contentPublisher("test content"))).join();
+        assertExpectHeaderPresent();
+    }
 
-                @Override
-                public void request(long n) {
-                    if (!sent && n > 0) {
-                        sent = true;
-                        subscriber.onNext(ByteBuffer.wrap(content));
-                        subscriber.onComplete();
+    // -----------------------------------------------------------------------
+    // disableExpect100ContinueForPuts: parameterized across HTTP client types
+    // -----------------------------------------------------------------------
+
+    @ParameterizedTest(name = "PutObject: {0}")
+    @MethodSource("expectContinueDisableConfigProvider")
+    void putObject_whenDisableExpect100ContinueConfigured_shouldMatchExpectedBehavior(
+            String testName, String clientType, S3Configuration config,
+            boolean expectHeaderPresent, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        stubAnyPutRequest();
+        executeS3Operation(clientType, wmRuntimeInfo, config, true);
+        assertExpectHeader(expectHeaderPresent);
+    }
+
+    @ParameterizedTest(name = "UploadPart: {0}")
+    @MethodSource("expectContinueDisableConfigProvider")
+    void uploadPart_whenDisableExpect100ContinueConfigured_shouldMatchExpectedBehavior(
+            String testName, String clientType, S3Configuration config,
+            boolean expectHeaderPresent, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        stubAnyPutRequest();
+        executeS3Operation(clientType, wmRuntimeInfo, config, false);
+        assertExpectHeader(expectHeaderPresent);
+    }
+
+    // -----------------------------------------------------------------------
+    // S3 operation execution helper
+    // -----------------------------------------------------------------------
+
+    private void executeS3Operation(String clientType, WireMockRuntimeInfo wmInfo,
+                                    S3Configuration config, boolean isPutObject) throws Exception {
+        switch (clientType) {
+            case "APACHE":
+            case "APACHE_EC_DISABLED":
+            case "APACHE_EC_ENABLED":
+            case "URL_CONNECTION":
+            case "CRT_SYNC": {
+                try (S3Client client = buildSyncClient(clientType, wmInfo, config)) {
+                    if (isPutObject) {
+                        client.putObject(basePutObjectRequest().build(), RequestBody.fromString("test content"));
+                    } else {
+                        client.uploadPart(baseUploadPartRequest().build(), RequestBody.fromString("test content"));
                     }
                 }
-
-                @Override
-                public void cancel() {
-                    // No action.
+                break;
+            }
+            case "NETTY":
+            case "CRT_ASYNC": {
+                try (S3AsyncClient client = buildAsyncClient(clientType, wmInfo, config)) {
+                    if (isPutObject) {
+                        client.putObject(basePutObjectRequest().build(),
+                                         AsyncRequestBody.fromString("test content")).join();
+                    } else {
+                        client.uploadPart(baseUploadPartRequest().build(),
+                                          AsyncRequestBody.fromString("test content")).join();
+                    }
                 }
-            });
-        };
+                break;
+            }
+            default:
+                throw new IllegalArgumentException("Unknown client type: " + clientType);
+        }
+    }
 
-        AsyncRequestBody publisherBody = AsyncRequestBody.fromPublisher(contentPublisher);
-        executeRequest.apply(publisherBody).join();
-        assertExpectHeaderPresent();
+    // -----------------------------------------------------------------------
+    // Test data providers
+    // -----------------------------------------------------------------------
+
+    private static Stream<Arguments> expectContinueDisableConfigProvider() {
+        S3Configuration disabledConfig = S3Configuration.builder()
+                                                        .disableExpect100ContinueForPuts(true)
+                                                        .build();
+        S3Configuration enabledConfig = S3Configuration.builder()
+                                                       .disableExpect100ContinueForPuts(false)
+                                                       .build();
+
+        return Stream.of(
+            // Apache: default expectContinueEnabled=true — both interceptor and Apache add the header
+            Arguments.of("Apache - default config", "APACHE", null, true),
+            Arguments.of("Apache - S3Config disabled=false", "APACHE", enabledConfig, true),
+            // Apache: S3Config disabled stops the interceptor, but Apache still adds the header independently
+            Arguments.of("Apache - S3Config disabled=true (Apache still adds)", "APACHE", disabledConfig, true),
+            // Apache with expectContinueEnabled=false + S3Config disabled: fully suppressed
+            Arguments.of("Apache(ec=false) + S3Config disabled=true", "APACHE_EC_DISABLED", disabledConfig, false),
+            // Apache with expectContinueEnabled=true + S3Config disabled: Apache still adds the header independently
+            Arguments.of("Apache(ec=true) + S3Config disabled=true", "APACHE_EC_ENABLED", disabledConfig, true),
+
+            // URL Connection: only the interceptor adds the header
+            Arguments.of("UrlConnection - default config", "URL_CONNECTION", null, true),
+            Arguments.of("UrlConnection - S3Config disabled=true", "URL_CONNECTION", disabledConfig, false),
+
+            // CRT sync (generic HTTP client): only the interceptor adds the header
+            Arguments.of("CrtSync - default config", "CRT_SYNC", null, true),
+            Arguments.of("CrtSync - S3Config disabled=true", "CRT_SYNC", disabledConfig, false),
+
+            // Netty: only the interceptor adds the header
+            Arguments.of("Netty - default config", "NETTY", null, true),
+            Arguments.of("Netty - S3Config disabled=false", "NETTY", enabledConfig, true),
+            Arguments.of("Netty - S3Config disabled=true", "NETTY", disabledConfig, false),
+
+            // CRT async (generic HTTP client): only the interceptor adds the header
+            Arguments.of("CrtAsync - default config", "CRT_ASYNC", null, true),
+            Arguments.of("CrtAsync - S3Config disabled=true", "CRT_ASYNC", disabledConfig, false)
+        );
     }
 
     private Stream<Arguments> syncRequestProvider() {
@@ -279,19 +344,125 @@ class Expect100ContinueHeaderTest {
         );
     }
 
-    private PutObjectRequest.Builder basePutObjectRequest() {
-        return PutObjectRequest.builder()
-                               .bucket(BUCKET)
-                               .key(KEY);
+    // -----------------------------------------------------------------------
+    // Client builders
+    // -----------------------------------------------------------------------
+
+    private S3Client buildSyncClient(String clientType, WireMockRuntimeInfo wmInfo, S3Configuration config) {
+        SdkHttpClient httpClient;
+        switch (clientType) {
+            case "APACHE":
+                httpClient = ApacheHttpClient.builder().buildWithDefaults(trustAllCerts());
+                break;
+            case "APACHE_EC_ENABLED":
+                httpClient = ApacheHttpClient.builder()
+                                             .expectContinueEnabled(true)
+                                             .buildWithDefaults(trustAllCerts());
+                break;
+            case "APACHE_EC_DISABLED":
+                httpClient = ApacheHttpClient.builder()
+                                             .expectContinueEnabled(false)
+                                             .buildWithDefaults(trustAllCerts());
+                break;
+            case "URL_CONNECTION":
+                httpClient = UrlConnectionHttpClient.builder().buildWithDefaults(trustAllCerts());
+                break;
+            case "CRT_SYNC":
+                httpClient = AwsCrtHttpClient.builder().buildWithDefaults(trustAllCerts());
+                break;
+            default:
+                throw new IllegalArgumentException("Not a sync client type: " + clientType);
+        }
+
+        return S3Client.builder()
+                       .httpClient(httpClient)
+                       .region(Region.US_EAST_1)
+                       .endpointOverride(URI.create(wmInfo.getHttpsBaseUrl()))
+                       .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+                       .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
+                       .forcePathStyle(true)
+                       .serviceConfiguration(config != null ? config : S3Configuration.builder().build())
+                       .credentialsProvider(staticCredentials())
+                       .build();
     }
 
-    private UploadPartRequest.Builder baseUploadPartRequest() {
-        return UploadPartRequest.builder()
-                                .bucket(BUCKET)
-                                .key(KEY)
-                                .uploadId(UPLOAD_ID)
-                                .partNumber(1);
+    private S3AsyncClient buildAsyncClient(String clientType, WireMockRuntimeInfo wmInfo, S3Configuration config) {
+        SdkAsyncHttpClient httpClient;
+        switch (clientType) {
+            case "NETTY":
+                httpClient = NettyNioAsyncHttpClient.builder().buildWithDefaults(trustAllCerts());
+                break;
+            case "CRT_ASYNC":
+                httpClient = AwsCrtAsyncHttpClient.builder().buildWithDefaults(trustAllCerts());
+                break;
+            default:
+                throw new IllegalArgumentException("Not an async client type: " + clientType);
+        }
+
+        return S3AsyncClient.builder()
+                            .httpClient(httpClient)
+                            .region(Region.US_EAST_1)
+                            .endpointOverride(URI.create(wmInfo.getHttpsBaseUrl()))
+                            .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+                            .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
+                            .forcePathStyle(true)
+                            .serviceConfiguration(config != null ? config : S3Configuration.builder().build())
+                            .credentialsProvider(staticCredentials())
+                            .build();
     }
+
+    // -----------------------------------------------------------------------
+    // Request builders
+    // -----------------------------------------------------------------------
+
+    private static PutObjectRequest.Builder basePutObjectRequest() {
+        return PutObjectRequest.builder().bucket(BUCKET).key(KEY);
+    }
+
+    private static UploadPartRequest.Builder baseUploadPartRequest() {
+        return UploadPartRequest.builder().bucket(BUCKET).key(KEY).uploadId(UPLOAD_ID).partNumber(1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Publisher helpers
+    // -----------------------------------------------------------------------
+
+    private static Publisher<ByteBuffer> emptyPublisher() {
+        return subscriber -> subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+                subscriber.onComplete();
+            }
+
+            @Override
+            public void cancel() {
+            }
+        });
+    }
+
+    private static Publisher<ByteBuffer> contentPublisher(String content) {
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        return subscriber -> subscriber.onSubscribe(new Subscription() {
+            private boolean sent = false;
+
+            @Override
+            public void request(long n) {
+                if (!sent && n > 0) {
+                    sent = true;
+                    subscriber.onNext(ByteBuffer.wrap(bytes));
+                    subscriber.onComplete();
+                }
+            }
+
+            @Override
+            public void cancel() {
+            }
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // Stubs and assertions
+    // -----------------------------------------------------------------------
 
     private void stubAnyPutRequest() {
         stubFor(put(anyUrl())
@@ -300,30 +471,48 @@ class Expect100ContinueHeaderTest {
                                     .withHeader("ETag", "\"test-etag\"")));
     }
 
+    private void assertExpectHeader(boolean expectPresent) {
+        if (expectPresent) {
+            assertExpectHeaderPresent();
+        } else {
+            assertExpectHeaderNotPresent();
+        }
+    }
+
     private void assertExpectHeaderNotPresent() {
         LoggedRequest request = getSingleCapturedRequest();
-
         assertThat(request.header("Expect") == null || !request.header("Expect").isPresent())
-            .as("Expect header should not be present for empty body per RFC 9110 Section 10.1.1")
+            .as("Expect header should not be present")
             .isTrue();
     }
 
     private void assertExpectHeaderPresent() {
         LoggedRequest request = getSingleCapturedRequest();
-
         assertThat(request.header("Expect"))
-            .as("Expect: 100-continue header should be present for non-empty body")
+            .as("Expect: 100-continue header should be present")
             .isNotNull()
             .satisfies(header -> assertThat(header.firstValue()).isEqualTo("100-continue"));
     }
 
     private LoggedRequest getSingleCapturedRequest() {
         List<LoggedRequest> requests = findAll(putRequestedFor(anyUrl()));
-
         assertThat(requests)
             .as("Expected exactly one HTTP request to be captured")
             .hasSize(1);
-
         return requests.get(0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Common helpers
+    // -----------------------------------------------------------------------
+
+    private static StaticCredentialsProvider staticCredentials() {
+        return StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    }
+
+    private static AttributeMap trustAllCerts() {
+        return AttributeMap.builder()
+                           .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                           .build();
     }
 }
