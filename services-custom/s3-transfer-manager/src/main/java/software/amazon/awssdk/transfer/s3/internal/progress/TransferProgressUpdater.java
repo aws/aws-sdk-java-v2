@@ -80,15 +80,11 @@ public class TransferProgressUpdater {
      * Wraps the request body to track upload progress.
      *
      * @param requestBody the original request body
-     * @param suppressProgress when {@code true}, the wrapper will not report byte-level progress. This is used
-     *     for in-memory bodies when the multipart client is enabled, because all bytes are delivered to the
-     *     publisher instantly and progress would jump to 100% before any data is sent over the wire. Instead,
-     *     progress is reported by the JAVA_PROGRESS_LISTENER in {@code uploadInOneChunk} (single-chunk path)
-     *     or {@code sendIndividualUploadPartRequest} (multipart path) after the server responds.
-     *     When {@code false}, the wrapper reports progress as bytes flow through the publisher, which provides
-     *     meaningful incremental progress for file and stream bodies.
+     * @param disableIncrementalProgress when {@code true}, the wrapper will not report byte-level progress. This is used
+     *     for in-memory byte bodies because all bytes are delivered to the publisher instantly and progress would jump to 100%
+     *     before any data is sent over the wire.
      */
-    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, boolean suppressProgress) {
+    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, boolean disableIncrementalProgress) {
         return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
@@ -101,7 +97,7 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    if (!suppressProgress) {
+                    if (!disableIncrementalProgress) {
                         incrementBytesTransferred(byteBuffer.limit());
                         progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
                             if (Double.compare(ratioTransferred, 1.0) == 0) {
@@ -290,7 +286,7 @@ public class TransferProgressUpdater {
         progress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
-    private void incrementBytesTransferred(long numBytes) {
+    public void incrementBytesTransferred(long numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
         });
