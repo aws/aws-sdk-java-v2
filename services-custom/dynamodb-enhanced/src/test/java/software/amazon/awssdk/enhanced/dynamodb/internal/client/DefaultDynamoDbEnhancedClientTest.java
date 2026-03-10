@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -122,10 +124,10 @@ public class DefaultDynamoDbEnhancedClientTest {
     @Test
     public void dynamoDbClient_viaInterface_returnsSameInstance() {
         DynamoDbEnhancedClient client = dynamoDbEnhancedClient;
-        assertThat(client.dynamoDbClient(), is(mockDynamoDbClient));
+        assertThat(client.dynamoDbClient()).isSameAs(mockDynamoDbClient);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void dynamoDbClient_defaultMethod_throwsUnsupportedOperationException() {
         DynamoDbEnhancedClient bareClient = new DynamoDbEnhancedClient() {
             @Override
@@ -133,6 +135,7 @@ public class DefaultDynamoDbEnhancedClientTest {
                 return null;
             }
         };
-        bareClient.dynamoDbClient();
+        assertThatThrownBy(() -> bareClient.dynamoDbClient())
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 }
