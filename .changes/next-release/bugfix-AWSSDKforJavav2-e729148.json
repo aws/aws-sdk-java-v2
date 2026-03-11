@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "akhilyendluri",
-    "description": "Updating lakeformation maven version which handles jdk 8 correctly"
+    "description": "Updating Lakefromation Access Grants Plugin version to 1.4.1"
 }
