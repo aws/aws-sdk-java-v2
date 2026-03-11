@@ -221,6 +221,18 @@
         "AllTypesUnionStructure":{"shape":"AllTypesUnionStructure"}
       }
     },
+    "UnionWithTypeMember": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "Type": {
+          "shape": "String"
+        }
+      }
+    },
     "BaseType":{
       "type":"structure",
       "members":{
@@ -278,7 +290,8 @@
       "members": {
         "ReservedKeywordMember": {
           "shape": "ContainsReservedKeyword"
-        }
+        },
+        "UnionWithTypeMember": {"shape": "UnionWithTypeMember"}
       }
     },
     "Double":{"type":"double"},

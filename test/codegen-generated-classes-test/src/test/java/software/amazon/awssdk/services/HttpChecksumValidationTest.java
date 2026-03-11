@@ -75,7 +75,11 @@ public class HttpChecksumValidationTest {
         .put("crc32c", "crUfeA==")
         .put("sha1", "e1AsOh9IyGCa4hLN+2Od7jlnP14=")
         .put("sha256", "ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=")
+        .put("sha512", "t/eDuu2Cl/DbkXRiGE/08I5pwtXl95qUJgD5cl9Yzh8pwYE5v4CwbA//K900c4RS7PQMSIwip+PYDN9vnBwNRw==")
         .put("crc64nvme", "OOJZ0D8xKts=")
+        .put("xxhash64", "xQCwyRKzdtg=")
+        .put("xxhash3", "tqy52Eo4/3Q=")
+        .put("xxhash128", "c1H4mBL5c4K5HQWzHgTdfw==")
         .build();
 
     private ProtocolRestJsonClient client;
@@ -126,7 +130,7 @@ public class HttpChecksumValidationTest {
             client.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), ResponseTransformer.toBytes());
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.XXHASH3);
     }
 
     @Test
@@ -216,6 +220,30 @@ public class HttpChecksumValidationTest {
     }
 
     @Test
+    public void syncClientValidateStreamingResponse_md5NotSupported_shouldSkipValidation() {
+        stubMd5Checksum();
+        ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
+            client.getOperationWithChecksum(
+                r -> r.checksumMode(ChecksumMode.ENABLED),
+                ResponseTransformer.toBytes());
+        assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
+        assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.CHECKSUM_ALGORITHM_NOT_FOUND);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
+    }
+
+    @Test
+    public void asyncClientValidateStreamingResponse_md5NotSupported_shouldSkipValidation() {
+        stubMd5Checksum();
+        ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
+            asyncClient.getOperationWithChecksum(
+                r -> r.checksumMode(ChecksumMode.ENABLED),
+                AsyncResponseTransformer.toBytes()).join();
+        assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
+        assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.CHECKSUM_ALGORITHM_NOT_FOUND);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
+    }
+
+    @Test
     public void syncClientValidateStreamingResponseWithValidationFailed() {
         String expectedChecksum = "i9aeUg=";
         stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
@@ -258,7 +286,7 @@ public class HttpChecksumValidationTest {
             asyncClient.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), AsyncResponseTransformer.toBytes()).join();
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.XXHASH3);
     }
 
     @Test
@@ -386,6 +414,11 @@ public class HttpChecksumValidationTest {
         stubFor(get(anyUrl()).willReturn(responseBuilder));
         stubFor(put(anyUrl()).willReturn(responseBuilder));
         stubFor(post(anyUrl()).willReturn(responseBuilder));
+    }
+
+    private void stubMd5Checksum() {
+        String md5Checksum = "PiWWCnnbxptnTNTsZ6csYg==";
+        stubWithSingleChecksum("Hello world", md5Checksum, "md5");
     }
 
     private void stubWithNoChecksum() {

@@ -22,7 +22,7 @@ public class DefaultCRC32CChecksumTest extends Crc32CChecksumTest {
 
     @BeforeEach
     public void setUp() {
-        sdkChecksum = CrcChecksumProvider.crc32cImplementation();
+        sdkChecksum = ChecksumProvider.crc32cImplementation();
     }
 
 

@@ -85,6 +85,10 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         long firstByteTime = metrics.firstByteWrittenNanoTime().get();
         if (bytesWritten > 0 && firstByteTime > 0) {
             long lastByteTime = metrics.lastByteWrittenNanoTime().get();
+            // Skip reporting if duration is zero
+            if (firstByteTime == lastByteTime) {
+                return;
+            }
             double writeThroughput = MetricUtils.bytesPerSec(bytesWritten, firstByteTime, lastByteTime);
             attemptMetricCollector.reportMetric(CoreMetric.WRITE_THROUGHPUT, writeThroughput);
         }
