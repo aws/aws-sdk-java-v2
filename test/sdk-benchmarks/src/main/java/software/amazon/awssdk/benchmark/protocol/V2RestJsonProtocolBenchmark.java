@@ -51,12 +51,8 @@ import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.services.lambda.model.TracingConfig;
 import software.amazon.awssdk.services.lambda.model.TracingMode;
 
-/**
- * Isolated ser/de benchmark for V2 Lambda (REST-JSON protocol).
- * Measures only JSON parsing + object construction -- no HTTP, signing, or retries.
- */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
