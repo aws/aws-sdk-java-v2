@@ -92,7 +92,7 @@ public class V2RestJsonProtocolBenchmark {
     }
 
     @Benchmark
-    public void createFunctionDeser(Blackhole bh) throws IOException {
+    public void createFunctionDeser(Blackhole bh) throws Exception {
         SdkHttpFullResponse response = SdkHttpFullResponse.builder()
             .statusCode(200)
             .putHeader("Content-Type", CONTENT_TYPE)
