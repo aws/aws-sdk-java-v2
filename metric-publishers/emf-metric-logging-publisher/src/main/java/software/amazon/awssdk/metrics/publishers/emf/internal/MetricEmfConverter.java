@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,8 @@ public class MetricEmfConverter {
      * EMF allows up to 100 MetricDefinition objects in one emf string
      */
     private static final int MAX_METRIC_NUM = 100;
+
+    private static final String AWS_METADATA_KEY = "_aws";
 
     private static final Logger logger = Logger.loggerFor(MetricEmfConverter.class);
     private final List<String> dimensions = new ArrayList<>();
@@ -239,9 +242,9 @@ public class MetricEmfConverter {
         JsonWriter jsonWriter = JsonWriter.create();
         jsonWriter.writeStartObject();
 
-        writeCustomProperties(jsonWriter, properties);
         writeAwsObject(jsonWriter, metrics.keySet());
         writeMetricValues(jsonWriter, metrics);
+        writeCustomProperties(jsonWriter, properties, metrics.keySet());
 
         jsonWriter.writeEndObject();
 
@@ -249,10 +252,21 @@ public class MetricEmfConverter {
 
     }
 
-    private void writeCustomProperties(JsonWriter jsonWriter, Map<String, String> properties) {
+    private void writeCustomProperties(JsonWriter jsonWriter, Map<String, String> properties,
+                                        Set<SdkMetric<?>> metrics) {
+        if (properties.isEmpty()) {
+            return;
+        }
+        Set<String> reservedKeys = new HashSet<>();
+        reservedKeys.add(AWS_METADATA_KEY);
+        for (SdkMetric<?> metric : metrics) {
+            reservedKeys.add(metric.name());
+        }
         for (Map.Entry<String, String> entry : properties.entrySet()) {
-            jsonWriter.writeFieldName(entry.getKey());
-            jsonWriter.writeValue(entry.getValue());
+            if (!reservedKeys.contains(entry.getKey())) {
+                jsonWriter.writeFieldName(entry.getKey());
+                jsonWriter.writeValue(entry.getValue());
+            }
         }
     }
 
@@ -260,7 +274,7 @@ public class MetricEmfConverter {
 
 
     private void writeAwsObject(JsonWriter jsonWriter, Set<SdkMetric<?>> metricNames) {
-        jsonWriter.writeFieldName("_aws");
+        jsonWriter.writeFieldName(AWS_METADATA_KEY);
         jsonWriter.writeStartObject();
 
         jsonWriter.writeFieldName("Timestamp");

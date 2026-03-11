@@ -313,6 +313,7 @@ public class MetricEmfConverterTest {
 
         assertThat(emfLogs).hasSize(1);
         String emfLog = emfLogs.get(0);
+        assertThat(emfLog).doesNotContain("should-be-overwritten");
         assertThat(emfLog).contains("\"_aws\":{\"Timestamp\":");
         assertThat(emfLog).contains("\"CloudWatchMetrics\":");
     }
@@ -331,11 +332,8 @@ public class MetricEmfConverterTest {
 
         assertThat(emfLogs).hasSize(1);
         String emfLog = emfLogs.get(0);
+        assertThat(emfLog).doesNotContain("should-be-overwritten");
         assertThat(emfLog).contains("\"OperationName\":\"GetObject\"");
-        int customIndex = emfLog.indexOf("\"OperationName\":\"should-be-overwritten\"");
-        int realIndex = emfLog.indexOf("\"OperationName\":\"GetObject\"");
-        assertThat(customIndex).isGreaterThanOrEqualTo(0);
-        assertThat(realIndex).isGreaterThan(customIndex);
     }
 
     @Test
@@ -351,11 +349,8 @@ public class MetricEmfConverterTest {
 
         assertThat(emfLogs).hasSize(1);
         String emfLog = emfLogs.get(0);
+        assertThat(emfLog).doesNotContain("should-be-overwritten");
         assertThat(emfLog).contains("\"AvailableConcurrency\":5");
-        int customIndex = emfLog.indexOf("\"AvailableConcurrency\":\"should-be-overwritten\"");
-        int realIndex = emfLog.indexOf("\"AvailableConcurrency\":5");
-        assertThat(customIndex).isGreaterThanOrEqualTo(0);
-        assertThat(realIndex).isGreaterThan(customIndex);
     }
 
     @Test
