@@ -52,7 +52,7 @@
 
     <!-- Allow javax.xml.stream in benchmark protocol files (needed for V1 StAX unmarshalling) -->
     <suppress checks="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck"
-              files=".*benchmark[\\/]protocol[\\/].*\.java$"/>
+              files=".*benchmark[\\/]protocol[\\/]V1.*\.java$"/>
 
     <!-- Allow private field declaration before public, to have correct initialization order -->
     <suppress checks="DeclarationOrder"
