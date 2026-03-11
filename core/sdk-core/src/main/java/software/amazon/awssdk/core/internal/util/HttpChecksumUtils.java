@@ -18,8 +18,12 @@ package software.amazon.awssdk.core.internal.util;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.XXHASH128;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.XXHASH3;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.XXHASH64;
 import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
@@ -56,9 +60,14 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class HttpChecksumUtils {
     private static final Logger log = Logger.loggerFor(HttpChecksumUtils.class);
+    private static final String CRT_CRC64NVME_PATH = "software.amazon.awssdk.crt.checksums.CRC64NVME";
+    private static final String CRT_XXHASH_PATH = "software.amazon.awssdk.crt.checksums.XXHash";
 
     private static final int CHECKSUM_BUFFER_SIZE = 16 * 1024;
 
+    /**
+     * Implementor notes: this exists for backwards compatibility reasons; don't add new checksum algos
+     */
     private static final ImmutableMap<ChecksumAlgorithm, Algorithm> NEW_CHECKSUM_TO_LEGACY = ImmutableMap.of(
         SHA256, Algorithm.SHA256,
         SHA1, Algorithm.SHA1,
@@ -67,6 +76,9 @@ public final class HttpChecksumUtils {
         CRC64NVME, Algorithm.CRC64NVME
     );
 
+    /**
+     * Implementor notes: this exists for backwards compatibility reasons; don't add new checksum algos
+     */
     private static final ImmutableMap<Algorithm, ChecksumAlgorithm> LEGACY_CHECKSUM_TO_NEW = ImmutableMap.of(
         Algorithm.SHA256, SHA256,
         Algorithm.SHA1, SHA1,
@@ -75,16 +87,22 @@ public final class HttpChecksumUtils {
         Algorithm.CRC64NVME, CRC64NVME
     );
 
-    private static Lazy<Boolean> isCrc64NvmeAvailable = new Lazy<>(() -> {
-        try {
-            ClassLoaderHelper.loadClass("software.amazon.awssdk.crt.checksums.CRC64NVME", false);
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-        return true;
-    });
+    private static Lazy<Boolean> isCrc64NvmeAvailable = checkCrtAvailability(CRT_CRC64NVME_PATH);
+
+    private static Lazy<Boolean> isXxHashAvailable = checkCrtAvailability(CRT_XXHASH_PATH);
 
     private HttpChecksumUtils() {
+    }
+
+    private static Lazy<Boolean> checkCrtAvailability(String fqcn) {
+        return new Lazy<>(() -> {
+            try {
+                ClassLoaderHelper.loadClass(fqcn, false);
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+            return true;
+        });
     }
 
     public static Algorithm toLegacyChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
@@ -243,6 +261,13 @@ public final class HttpChecksumUtils {
             hasFlexibleChecksumTrait && checksumSpecs.algorithmV2() != null;
 
         if (checksumAlgorithmSpecified) {
+            ChecksumAlgorithm checksumAlgorithm = checksumSpecs.algorithmV2();
+
+            // MD5 is not supported for flexible checksums (httpChecksum trait)
+            if (checksumAlgorithm.equals(MD5)) {
+                throw new IllegalArgumentException("MD5 is not supported. Please use a different checksum algorithm or provide a "
+                                                   + "pre-calculated MD5 value.");
+            }
             return true;
         }
 
@@ -325,16 +350,28 @@ public final class HttpChecksumUtils {
             Optional<String> firstMatchingHeader =
                 sdkHttpResponse.firstMatchingHeader(httpChecksumHeader(checksumAlgorithm.algorithmId()));
 
-            if (firstMatchingHeader.isPresent()) {
-                if (checksumAlgorithm.equals(CRC64NVME) && !isCrc64NvmeAvailable.getValue()) {
-                    log.debug(() -> "Skip CRC64NVME checksum validation because CRT is not on the classpath and CRC64NVME is "
-                                    + "not available");
-                    continue;
-                }
+            if (firstMatchingHeader.isPresent() && !shouldSkipAlgorithm(checksumAlgorithm)) {
                 return Pair.of(checksumAlgorithm, firstMatchingHeader.get());
             }
         }
         return null;
+    }
+
+    private static boolean shouldSkipAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
+        if (checksumAlgorithm.equals(CRC64NVME) && !isCrc64NvmeAvailable.getValue()) {
+            log.debug(() -> "Skip CRC64NVME checksum validation because CRT is not available");
+            return true;
+        }
+        if ((checksumAlgorithm.equals(XXHASH64) || checksumAlgorithm.equals(XXHASH3) || 
+             checksumAlgorithm.equals(XXHASH128)) && !isXxHashAvailable.getValue()) {
+            log.debug(() -> "Skip XXHASH checksum validation because CRT is not available");
+            return true;
+        }
+        if (checksumAlgorithm.equals(MD5)) {
+            log.debug(() -> "Skip MD5 checksum validation because MD5 is not supported for flexible checksums");
+            return true;
+        }
+        return false;
     }
 
     /**

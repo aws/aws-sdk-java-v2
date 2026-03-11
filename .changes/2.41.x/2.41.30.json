@@ -1,0 +1,60 @@
+{
+    "version": "2.41.30",
+    "date": "2026-02-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "ARC - Region switch",
+            "contributor": "",
+            "description": "Clarify documentation on ARC Region Switch start-plan-execution operation"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Added support for Decrypt and ReEncrypt API's to use dry run feature without ciphertext for authorization validation"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Migrate PartitionMetadata code generation from endpoints.json to partitions.json"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Migrate PartitionMetadataProvider code generation from endpoints.json to partitions.json"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for EC2 Secondary Networks"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Adds support for enabling blob mounting, and removes support for Clair based image scanning"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Update MessageType enum to include missing types."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Amazon MSK now supports dual-stack connectivity (IPv4 and IPv6) for existing MSK clusters. You can enable dual-stack on existing clusters by specifying the NetworkType parameter in updateConnectivity API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.internal.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -147,5 +149,36 @@ public class HttpChecksumUtilsTest {
 
     private SdkHttpFullRequest.Builder createHttpRequestBuilder() {
         return SdkHttpFullRequest.builder().contentStreamProvider(RequestBody.fromString("test").contentStreamProvider());
+    }
+
+    @Test
+    void isHttpChecksumCalculationNeeded_md5Algorithm_shouldThrowException() {
+        ExecutionAttributes executionAttributes =
+            ExecutionAttributes.builder()
+                               .put(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                    ChecksumSpecs.builder().algorithmV2(DefaultChecksumAlgorithm.MD5).build())
+                               .put(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION,
+                                    RequestChecksumCalculation.WHEN_SUPPORTED)
+                               .build();
+
+        assertThatThrownBy(() -> HttpChecksumUtils.isHttpChecksumCalculationNeeded(createHttpRequestBuilder(), executionAttributes))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("MD5 is not supported");
+    }
+
+    @Test
+    void isHttpChecksumCalculationNeeded_md5AlgorithmWithExistingMd5Header_shouldReturnFalse() {
+        SdkHttpFullRequest.Builder request = createHttpRequestBuilder()
+            .putHeader("x-amz-checksum-md5", "PiWWCnnbxptnTNTsZ6csYg==");
+
+        ExecutionAttributes executionAttributes =
+            ExecutionAttributes.builder()
+                               .put(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS,
+                                    ChecksumSpecs.builder().algorithmV2(DefaultChecksumAlgorithm.MD5).build())
+                               .put(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION,
+                                    RequestChecksumCalculation.WHEN_SUPPORTED)
+                               .build();
+
+        assertThat(HttpChecksumUtils.isHttpChecksumCalculationNeeded(request, executionAttributes)).isFalse();
     }
 }

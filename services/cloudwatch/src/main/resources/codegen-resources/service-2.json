@@ -21,6 +21,15 @@
     "auth":["aws.auth#sigv4"]
   },
   "operations":{
+    "DeleteAlarmMuteRule":{
+      "name":"DeleteAlarmMuteRule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteAlarmMuteRuleInput"},
+      "documentation":"<p>Deletes a specific alarm mute rule.</p> <p>When you delete a mute rule, any alarms that are currently being muted by that rule are immediately unmuted. If those alarms are in an ALARM state, their configured actions will trigger.</p> <p>This operation is idempotent. If you delete a mute rule that does not exist, the operation succeeds without returning an error.</p> <p> <b>Permissions</b> </p> <p>To delete a mute rule, you need the <code>cloudwatch:DeleteAlarmMuteRule</code> permission on the alarm mute rule resource.</p>"
+    },
     "DeleteAlarms":{
       "name":"DeleteAlarms",
       "http":{
@@ -40,7 +49,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteAnomalyDetectorInput"},
-      "output":{"shape":"DeleteAnomalyDetectorOutput"},
+      "output":{
+        "shape":"DeleteAnomalyDetectorOutput",
+        "resultWrapper":"DeleteAnomalyDetectorResult"
+      },
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServiceFault"},
@@ -57,7 +69,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteDashboardsInput"},
-      "output":{"shape":"DeleteDashboardsOutput"},
+      "output":{
+        "shape":"DeleteDashboardsOutput",
+        "resultWrapper":"DeleteDashboardsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"DashboardNotFoundError"},
@@ -73,7 +88,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteInsightRulesInput"},
-      "output":{"shape":"DeleteInsightRulesOutput"},
+      "output":{
+        "shape":"DeleteInsightRulesOutput",
+        "resultWrapper":"DeleteInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -87,7 +105,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeleteMetricStreamInput"},
-      "output":{"shape":"DeleteMetricStreamOutput"},
+      "output":{
+        "shape":"DeleteMetricStreamOutput",
+        "resultWrapper":"DeleteMetricStreamResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -119,7 +140,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmHistoryInput"},
-      "output":{"shape":"DescribeAlarmHistoryOutput"},
+      "output":{
+        "shape":"DescribeAlarmHistoryOutput",
+        "resultWrapper":"DescribeAlarmHistoryResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -132,7 +156,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmsInput"},
-      "output":{"shape":"DescribeAlarmsOutput"},
+      "output":{
+        "shape":"DescribeAlarmsOutput",
+        "resultWrapper":"DescribeAlarmsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -145,7 +172,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAlarmsForMetricInput"},
-      "output":{"shape":"DescribeAlarmsForMetricOutput"},
+      "output":{
+        "shape":"DescribeAlarmsForMetricOutput",
+        "resultWrapper":"DescribeAlarmsForMetricResult"
+      },
       "documentation":"<p>Retrieves the alarms for the specified metric. To filter the results, specify a statistic, period, or unit.</p> <p>This operation retrieves only standard alarms that are based on the specified metric. It does not return alarms based on math expressions that use the specified metric, or composite alarms that use the specified metric.</p>"
     },
     "DescribeAnomalyDetectors":{
@@ -155,7 +185,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeAnomalyDetectorsInput"},
-      "output":{"shape":"DescribeAnomalyDetectorsOutput"},
+      "output":{
+        "shape":"DescribeAnomalyDetectorsOutput",
+        "resultWrapper":"DescribeAnomalyDetectorsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"},
         {"shape":"InternalServiceFault"},
@@ -171,7 +204,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DescribeInsightRulesInput"},
-      "output":{"shape":"DescribeInsightRulesOutput"},
+      "output":{
+        "shape":"DescribeInsightRulesOutput",
+        "resultWrapper":"DescribeInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -193,7 +229,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"DisableInsightRulesInput"},
-      "output":{"shape":"DisableInsightRulesOutput"},
+      "output":{
+        "shape":"DisableInsightRulesOutput",
+        "resultWrapper":"DisableInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -216,13 +255,32 @@
         "requestUri":"/"
       },
       "input":{"shape":"EnableInsightRulesInput"},
-      "output":{"shape":"EnableInsightRulesOutput"},
+      "output":{
+        "shape":"EnableInsightRulesOutput",
+        "resultWrapper":"EnableInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
         {"shape":"LimitExceededException"}
       ],
       "documentation":"<p>Enables the specified Contributor Insights rules. When rules are enabled, they immediately begin analyzing log data.</p>"
+    },
+    "GetAlarmMuteRule":{
+      "name":"GetAlarmMuteRule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetAlarmMuteRuleInput"},
+      "output":{
+        "shape":"GetAlarmMuteRuleOutput",
+        "resultWrapper":"GetAlarmMuteRuleResult"
+      },
+      "errors":[
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves details for a specific alarm mute rule.</p> <p>This operation returns complete information about the mute rule, including its configuration, status, targeted alarms, and metadata.</p> <p>The returned status indicates the current state of the mute rule:</p> <ul> <li> <p> <b>SCHEDULED</b>: The mute rule is configured and will become active in the future</p> </li> <li> <p> <b>ACTIVE</b>: The mute rule is currently muting alarm actions</p> </li> <li> <p> <b>EXPIRED</b>: The mute rule has passed its expiration date and will no longer become active</p> </li> </ul> <p> <b>Permissions</b> </p> <p>To retrieve details for a mute rule, you need the <code>cloudwatch:GetAlarmMuteRule</code> permission on the alarm mute rule resource.</p>"
     },
     "GetDashboard":{
       "name":"GetDashboard",
@@ -231,7 +289,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetDashboardInput"},
-      "output":{"shape":"GetDashboardOutput"},
+      "output":{
+        "shape":"GetDashboardOutput",
+        "resultWrapper":"GetDashboardResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"DashboardNotFoundError"},
@@ -246,7 +307,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetInsightRuleReportInput"},
-      "output":{"shape":"GetInsightRuleReportOutput"},
+      "output":{
+        "shape":"GetInsightRuleReportOutput",
+        "resultWrapper":"GetInsightRuleReportResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -261,7 +325,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricDataInput"},
-      "output":{"shape":"GetMetricDataOutput"},
+      "output":{
+        "shape":"GetMetricDataOutput",
+        "resultWrapper":"GetMetricDataResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"}
       ],
@@ -274,7 +341,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricStatisticsInput"},
-      "output":{"shape":"GetMetricStatisticsOutput"},
+      "output":{
+        "shape":"GetMetricStatisticsOutput",
+        "resultWrapper":"GetMetricStatisticsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -290,7 +360,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricStreamInput"},
-      "output":{"shape":"GetMetricStreamOutput"},
+      "output":{
+        "shape":"GetMetricStreamOutput",
+        "resultWrapper":"GetMetricStreamResult"
+      },
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServiceFault"},
@@ -307,8 +380,28 @@
         "requestUri":"/"
       },
       "input":{"shape":"GetMetricWidgetImageInput"},
-      "output":{"shape":"GetMetricWidgetImageOutput"},
+      "output":{
+        "shape":"GetMetricWidgetImageOutput",
+        "resultWrapper":"GetMetricWidgetImageResult"
+      },
       "documentation":"<p>You can use the <code>GetMetricWidgetImage</code> API to retrieve a snapshot graph of one or more Amazon CloudWatch metrics as a bitmap image. You can then embed this image into your services and products, such as wiki pages, reports, and documents. You could also retrieve images regularly, such as every minute, and create your own custom live dashboard.</p> <p>The graph you retrieve can include all CloudWatch metric graph features, including metric math and horizontal and vertical annotations.</p> <p>There is a limit of 20 transactions per second for this API. Each <code>GetMetricWidgetImage</code> action has the following limits:</p> <ul> <li> <p>As many as 100 metrics in the graph.</p> </li> <li> <p>Up to 100 KB uncompressed payload.</p> </li> </ul>"
+    },
+    "ListAlarmMuteRules":{
+      "name":"ListAlarmMuteRules",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListAlarmMuteRulesInput"},
+      "output":{
+        "shape":"ListAlarmMuteRulesOutput",
+        "resultWrapper":"ListAlarmMuteRulesResult"
+      },
+      "errors":[
+        {"shape":"InvalidNextToken"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Lists alarm mute rules in your Amazon Web Services account and region.</p> <p>You can filter the results by alarm name to find all mute rules targeting a specific alarm, or by status to find rules that are scheduled, active, or expired.</p> <p>This operation supports pagination for accounts with many mute rules. Use the <code>MaxRecords</code> and <code>NextToken</code> parameters to retrieve results in multiple calls.</p> <p> <b>Permissions</b> </p> <p>To list mute rules, you need the <code>cloudwatch:ListAlarmMuteRules</code> permission.</p>"
     },
     "ListDashboards":{
       "name":"ListDashboards",
@@ -317,7 +410,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListDashboardsInput"},
-      "output":{"shape":"ListDashboardsOutput"},
+      "output":{
+        "shape":"ListDashboardsOutput",
+        "resultWrapper":"ListDashboardsResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"InternalServiceFault"}
@@ -331,7 +427,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListManagedInsightRulesInput"},
-      "output":{"shape":"ListManagedInsightRulesOutput"},
+      "output":{
+        "shape":"ListManagedInsightRulesOutput",
+        "resultWrapper":"ListManagedInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -346,7 +445,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListMetricStreamsInput"},
-      "output":{"shape":"ListMetricStreamsOutput"},
+      "output":{
+        "shape":"ListMetricStreamsOutput",
+        "resultWrapper":"ListMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InvalidNextToken"},
         {"shape":"InternalServiceFault"},
@@ -362,7 +464,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListMetricsInput"},
-      "output":{"shape":"ListMetricsOutput"},
+      "output":{
+        "shape":"ListMetricsOutput",
+        "resultWrapper":"ListMetricsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"}
@@ -376,13 +481,28 @@
         "requestUri":"/"
       },
       "input":{"shape":"ListTagsForResourceInput"},
-      "output":{"shape":"ListTagsForResourceOutput"},
+      "output":{
+        "shape":"ListTagsForResourceOutput",
+        "resultWrapper":"ListTagsForResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServiceFault"}
       ],
       "documentation":"<p>Displays the tags associated with a CloudWatch resource. Currently, alarms and Contributor Insights rules support tagging.</p>"
+    },
+    "PutAlarmMuteRule":{
+      "name":"PutAlarmMuteRule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutAlarmMuteRuleInput"},
+      "errors":[
+        {"shape":"LimitExceededFault"}
+      ],
+      "documentation":"<p>Creates or updates an alarm mute rule.</p> <p>Alarm mute rules automatically mute alarm actions during predefined time windows. When a mute rule is active, targeted alarms continue to evaluate metrics and transition between states, but their configured actions (such as Amazon SNS notifications or Auto Scaling actions) are muted.</p> <p>You can create mute rules with recurring schedules using <code>cron</code> expressions or one-time mute windows using <code>at</code> expressions. Each mute rule can target up to 100 specific alarms by name.</p> <p>If you specify a rule name that already exists, this operation updates the existing rule with the new configuration.</p> <p> <b>Permissions</b> </p> <p>To create or update a mute rule, you must have the <code>cloudwatch:PutAlarmMuteRule</code> permission on two types of resources: the alarm mute rule resource itself, and each alarm that the rule targets.</p> <p>For example, If you want to allow a user to create mute rules that target only specific alarms named \"WebServerCPUAlarm\" and \"DatabaseConnectionAlarm\", you would create an IAM policy with one statement granting <code>cloudwatch:PutAlarmMuteRule</code> on the alarm mute rule resource (<code>arn:aws:cloudwatch:[REGION]:123456789012:alarm-mute:*</code>), and another statement granting <code>cloudwatch:PutAlarmMuteRule</code> on the targeted alarm resources (<code>arn:aws:cloudwatch:[REGION]:123456789012:alarm:WebServerCPUAlarm</code> and <code>arn:aws:cloudwatch:[REGION]:123456789012:alarm:DatabaseConnectionAlarm</code>).</p> <p>You can also use IAM policy conditions to allow targeting alarms based on resource tags. For example, you can restrict users to create/update mute rules to only target alarms that have a specific tag key-value pair, such as <code>Team=TeamA</code>.</p>"
     },
     "PutAnomalyDetector":{
       "name":"PutAnomalyDetector",
@@ -391,7 +511,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutAnomalyDetectorInput"},
-      "output":{"shape":"PutAnomalyDetectorOutput"},
+      "output":{
+        "shape":"PutAnomalyDetectorOutput",
+        "resultWrapper":"PutAnomalyDetectorResult"
+      },
       "errors":[
         {"shape":"LimitExceededException"},
         {"shape":"InternalServiceFault"},
@@ -420,7 +543,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutDashboardInput"},
-      "output":{"shape":"PutDashboardOutput"},
+      "output":{
+        "shape":"PutDashboardOutput",
+        "resultWrapper":"PutDashboardResult"
+      },
       "errors":[
         {"shape":"DashboardInvalidInputError"},
         {"shape":"InternalServiceFault"},
@@ -435,7 +561,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutInsightRuleInput"},
-      "output":{"shape":"PutInsightRuleOutput"},
+      "output":{
+        "shape":"PutInsightRuleOutput",
+        "resultWrapper":"PutInsightRuleResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"},
@@ -450,7 +579,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutManagedInsightRulesInput"},
-      "output":{"shape":"PutManagedInsightRulesOutput"},
+      "output":{
+        "shape":"PutManagedInsightRulesOutput",
+        "resultWrapper":"PutManagedInsightRulesResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"MissingRequiredParameterException"}
@@ -492,7 +624,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"PutMetricStreamInput"},
-      "output":{"shape":"PutMetricStreamOutput"},
+      "output":{
+        "shape":"PutMetricStreamOutput",
+        "resultWrapper":"PutMetricStreamResult"
+      },
       "errors":[
         {"shape":"ConcurrentModificationException"},
         {"shape":"InternalServiceFault"},
@@ -522,7 +657,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"StartMetricStreamsInput"},
-      "output":{"shape":"StartMetricStreamsOutput"},
+      "output":{
+        "shape":"StartMetricStreamsOutput",
+        "resultWrapper":"StartMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -537,7 +675,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"StopMetricStreamsInput"},
-      "output":{"shape":"StopMetricStreamsOutput"},
+      "output":{
+        "shape":"StopMetricStreamsOutput",
+        "resultWrapper":"StopMetricStreamsResult"
+      },
       "errors":[
         {"shape":"InternalServiceFault"},
         {"shape":"InvalidParameterValueException"},
@@ -552,7 +693,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"TagResourceInput"},
-      "output":{"shape":"TagResourceOutput"},
+      "output":{
+        "shape":"TagResourceOutput",
+        "resultWrapper":"TagResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
@@ -569,7 +713,10 @@
         "requestUri":"/"
       },
       "input":{"shape":"UntagResourceInput"},
-      "output":{"shape":"UntagResourceOutput"},
+      "output":{
+        "shape":"UntagResourceOutput",
+        "resultWrapper":"UntagResourceResult"
+      },
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceNotFoundException"},
@@ -693,6 +840,48 @@
     "AlarmHistoryItems":{
       "type":"list",
       "member":{"shape":"AlarmHistoryItem"}
+    },
+    "AlarmMuteRuleStatus":{
+      "type":"string",
+      "enum":[
+        "SCHEDULED",
+        "ACTIVE",
+        "EXPIRED"
+      ]
+    },
+    "AlarmMuteRuleStatuses":{
+      "type":"list",
+      "member":{"shape":"AlarmMuteRuleStatus"}
+    },
+    "AlarmMuteRuleSummaries":{
+      "type":"list",
+      "member":{"shape":"AlarmMuteRuleSummary"}
+    },
+    "AlarmMuteRuleSummary":{
+      "type":"structure",
+      "members":{
+        "AlarmMuteRuleArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the alarm mute rule.</p>"
+        },
+        "ExpireDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule expires and is no longer evaluated. This field is only present if an expiration date was configured.</p>"
+        },
+        "Status":{
+          "shape":"AlarmMuteRuleStatus",
+          "documentation":"<p>The current status of the alarm mute rule. Valid values are <code>SCHEDULED</code>, <code>ACTIVE</code>, or <code>EXPIRED</code>.</p>"
+        },
+        "MuteType":{
+          "shape":"MuteType",
+          "documentation":"<p>Indicates whether the mute rule is one-time or recurring. Valid values are <code>ONE_TIME</code> or <code>RECURRING</code>.</p>"
+        },
+        "LastUpdatedTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Summary information about an alarm mute rule, including its name, status, and configuration details.</p>"
     },
     "AlarmName":{
       "type":"string",
@@ -832,6 +1021,11 @@
       "type":"list",
       "member":{"shape":"AnomalyDetector"}
     },
+    "Arn":{
+      "type":"string",
+      "max":1600,
+      "min":1
+    },
     "AttributeName":{
       "type":"string",
       "max":255,
@@ -970,6 +1164,11 @@
       "type":"structure",
       "members":{},
       "documentation":"<p>More than one process tried to modify a resource at the same time.</p>",
+      "error":{
+        "code":"ConcurrentModificationException",
+        "httpStatusCode":429,
+        "senderFault":true
+      },
       "exception":true
     },
     "ConflictException":{
@@ -989,7 +1188,7 @@
     },
     "ContributorId":{
       "type":"string",
-      "max":1024,
+      "max":16,
       "min":1
     },
     "Counts":{
@@ -1032,6 +1231,11 @@
         "dashboardValidationMessages":{"shape":"DashboardValidationMessages"}
       },
       "documentation":"<p>Some part of the dashboard data is invalid.</p>",
+      "error":{
+        "code":"InvalidParameterInput",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "DashboardName":{"type":"string"},
@@ -1046,6 +1250,11 @@
         "message":{"shape":"DashboardErrorMessage"}
       },
       "documentation":"<p>The specified dashboard does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "DashboardValidationMessage":{
@@ -1132,6 +1341,16 @@
     "DatapointsToAlarm":{
       "type":"integer",
       "min":1
+    },
+    "DeleteAlarmMuteRuleInput":{
+      "type":"structure",
+      "required":["AlarmMuteRuleName"],
+      "members":{
+        "AlarmMuteRuleName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the alarm mute rule to delete.</p>"
+        }
+      }
     },
     "DeleteAlarmsInput":{
       "type":"structure",
@@ -1571,6 +1790,11 @@
         }
       }
     },
+    "Duration":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
     "EnableAlarmActionsInput":{
       "type":"structure",
       "required":["AlarmNames"],
@@ -1682,9 +1906,18 @@
     },
     "EvaluationState":{
       "type":"string",
-      "enum":["PARTIAL_DATA"]
+      "enum":[
+        "PARTIAL_DATA",
+        "EVALUATION_FAILURE",
+        "EVALUATION_ERROR"
+      ]
     },
     "ExceptionType":{"type":"string"},
+    "Expression":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
     "ExtendedStatistic":{"type":"string"},
     "ExtendedStatistics":{
       "type":"list",
@@ -1696,6 +1929,61 @@
     "FailureDescription":{"type":"string"},
     "FailureResource":{"type":"string"},
     "FaultDescription":{"type":"string"},
+    "GetAlarmMuteRuleInput":{
+      "type":"structure",
+      "required":["AlarmMuteRuleName"],
+      "members":{
+        "AlarmMuteRuleName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the alarm mute rule to retrieve.</p>"
+        }
+      }
+    },
+    "GetAlarmMuteRuleOutput":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the alarm mute rule.</p>"
+        },
+        "AlarmMuteRuleArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the alarm mute rule.</p>"
+        },
+        "Description":{
+          "shape":"AlarmDescription",
+          "documentation":"<p>The description of the alarm mute rule.</p>"
+        },
+        "Rule":{
+          "shape":"Rule",
+          "documentation":"<p>The configuration that defines when and how long alarms are muted.</p>"
+        },
+        "MuteTargets":{
+          "shape":"MuteTargets",
+          "documentation":"<p>Specifies which alarms this rule applies to.</p>"
+        },
+        "StartDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule becomes active. If not set, the rule is active immediately.</p>"
+        },
+        "ExpireDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule expires and is no longer evaluated.</p>"
+        },
+        "Status":{
+          "shape":"AlarmMuteRuleStatus",
+          "documentation":"<p>The current status of the alarm mute rule. Valid values are <code>SCHEDULED</code>, <code>ACTIVE</code>, or <code>EXPIRED</code>.</p>"
+        },
+        "LastUpdatedTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule was last updated.</p>"
+        },
+        "MuteType":{
+          "shape":"MuteType",
+          "documentation":"<p>Indicates whether the mute rule is one-time or recurring. Valid values are <code>ONE_TIME</code> or <code>RECURRING</code>.</p>"
+        }
+      }
+    },
     "GetDashboardInput":{
       "type":"structure",
       "required":["DashboardName"],
@@ -2218,6 +2506,10 @@
         }
       },
       "documentation":"<p>Request processing has failed due to some unknown error, exception, or failure.</p>",
+      "error":{
+        "code":"InternalServiceError",
+        "httpStatusCode":500
+      },
       "exception":true,
       "xmlOrder":["Message"]
     },
@@ -2230,6 +2522,11 @@
         }
       },
       "documentation":"<p>Data was not syntactically valid JSON.</p>",
+      "error":{
+        "code":"InvalidFormat",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "InvalidNextToken":{
@@ -2241,6 +2538,11 @@
         }
       },
       "documentation":"<p>The next token specified is invalid.</p>",
+      "error":{
+        "code":"InvalidNextToken",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "InvalidParameterCombinationException":{
@@ -2252,6 +2554,11 @@
         }
       },
       "documentation":"<p>Parameters were used together that cannot be used together.</p>",
+      "error":{
+        "code":"InvalidParameterCombination",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
     },
@@ -2264,6 +2571,11 @@
         }
       },
       "documentation":"<p>The value of an input parameter is bad or out-of-range.</p>",
+      "error":{
+        "code":"InvalidParameterValue",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
     },
@@ -2282,6 +2594,11 @@
       "type":"structure",
       "members":{},
       "documentation":"<p>The operation exceeded one or more limits.</p>",
+      "error":{
+        "code":"LimitExceededException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
     },
     "LimitExceededFault":{
@@ -2293,7 +2610,46 @@
         }
       },
       "documentation":"<p>The quota for alarms for this customer has already been reached.</p>",
+      "error":{
+        "code":"LimitExceeded",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true
+    },
+    "ListAlarmMuteRulesInput":{
+      "type":"structure",
+      "members":{
+        "AlarmName":{
+          "shape":"Name",
+          "documentation":"<p>Filter results to show only mute rules that target the specified alarm name.</p>"
+        },
+        "Statuses":{
+          "shape":"AlarmMuteRuleStatuses",
+          "documentation":"<p>Filter results to show only mute rules with the specified statuses. Valid values are <code>SCHEDULED</code>, <code>ACTIVE</code>, or <code>EXPIRED</code>.</p>"
+        },
+        "MaxRecords":{
+          "shape":"MaxRecords",
+          "documentation":"<p>The maximum number of mute rules to return in one call. The default is 50.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token returned from a previous call to indicate where to continue retrieving results.</p>"
+        }
+      }
+    },
+    "ListAlarmMuteRulesOutput":{
+      "type":"structure",
+      "members":{
+        "AlarmMuteRuleSummaries":{
+          "shape":"AlarmMuteRuleSummaries",
+          "documentation":"<p>A list of alarm mute rule summaries.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use when requesting the next set of results. If this field is absent, there are no more results to retrieve.</p>"
+        }
+      }
     },
     "ListDashboardsInput":{
       "type":"structure",
@@ -2685,7 +3041,7 @@
         },
         "EvaluationState":{
           "shape":"EvaluationState",
-          "documentation":"<p>If the value of this field is <code>PARTIAL_DATA</code>, the alarm is being evaluated based on only partial data. This happens if the query used for the alarm returns more than 10,000 metrics. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Metrics_Insights_Alarm.html\">Create alarms on Metrics Insights queries</a>.</p>"
+          "documentation":"<p>If the value of this field is <code>PARTIAL_DATA</code>, it indicates that not all the available data was able to be retrieved due to quota limitations. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Metrics_Insights_Alarm.html\">Create alarms on Metrics Insights queries</a>.</p> <p>If the value of this field is <code>EVALUATION_ERROR</code>, it indicates configuration errors in alarm setup that require review and correction. Refer to StateReason field of the alarm for more details.</p> <p>If the value of this field is <code>EVALUATION_FAILURE</code>, it indicates temporary CloudWatch issues. We recommend manual monitoring until the issue is resolved </p>"
         },
         "StateTransitionedTimestamp":{
           "shape":"Timestamp",
@@ -3060,8 +3416,35 @@
         }
       },
       "documentation":"<p>An input parameter that is required is missing.</p>",
+      "error":{
+        "code":"MissingParameter",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
       "exception":true,
       "synthetic":true
+    },
+    "MuteTargetAlarmNameList":{
+      "type":"list",
+      "member":{"shape":"Name"},
+      "max":100
+    },
+    "MuteTargets":{
+      "type":"structure",
+      "required":["AlarmNames"],
+      "members":{
+        "AlarmNames":{
+          "shape":"MuteTargetAlarmNameList",
+          "documentation":"<p>The list of alarm names that this mute rule targets. You can specify up to 100 alarm names.</p> <p>Each alarm name must be between 1 and 255 characters in length. The alarm names must match existing alarms in your Amazon Web Services account and region.</p>"
+        }
+      },
+      "documentation":"<p>Specifies which alarms an alarm mute rule applies to.</p> <p>You can target up to 100 specific alarms by name. When a mute rule is active, the targeted alarms continue to evaluate metrics and transition between states, but their configured actions are muted.</p>"
+    },
+    "MuteType":{"type":"string"},
+    "Name":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "Namespace":{
       "type":"string",
@@ -3102,6 +3485,43 @@
       "min":1
     },
     "PeriodicSpikes":{"type":"boolean"},
+    "PutAlarmMuteRuleInput":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Rule"
+      ],
+      "members":{
+        "Name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the alarm mute rule. This name must be unique within your Amazon Web Services account and region.</p>"
+        },
+        "Description":{
+          "shape":"AlarmDescription",
+          "documentation":"<p>A description of the alarm mute rule that helps you identify its purpose.</p>"
+        },
+        "Rule":{
+          "shape":"Rule",
+          "documentation":"<p>The configuration that defines when and how long alarms should be muted.</p>"
+        },
+        "MuteTargets":{
+          "shape":"MuteTargets",
+          "documentation":"<p>Specifies which alarms this rule applies to.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>A list of key-value pairs to associate with the alarm mute rule. You can use tags to categorize and manage your mute rules.</p>"
+        },
+        "StartDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time after which the mute rule takes effect. If not specified, the mute rule takes effect immediately upon creation and the mutes are applied as per the schedule expression. This date and time is interpreted according to the schedule timezone, or UTC if no timezone is specified.</p>"
+        },
+        "ExpireDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the mute rule expires and is no longer evaluated. After this time, the rule status becomes EXPIRED and will no longer mute the targeted alarms. This date and time is interpreted according to the schedule timezone, or UTC if no timezone is specified.</p>"
+        }
+      }
+    },
     "PutAnomalyDetectorInput":{
       "type":"structure",
       "members":{
@@ -3505,6 +3925,11 @@
         }
       },
       "documentation":"<p>The named resource does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "ResourceNotFoundException":{
@@ -3514,16 +3939,54 @@
         "ResourceId":{"shape":"ResourceId"}
       },
       "documentation":"<p>The named resource does not exist.</p>",
+      "error":{
+        "code":"ResourceNotFoundException",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
       "exception":true
     },
     "ResourceType":{"type":"string"},
     "ReturnData":{"type":"boolean"},
+    "Rule":{
+      "type":"structure",
+      "required":["Schedule"],
+      "members":{
+        "Schedule":{
+          "shape":"Schedule",
+          "documentation":"<p>The schedule configuration that defines when the mute rule activates and how long it remains active.</p>"
+        }
+      },
+      "documentation":"<p>Defines the schedule configuration for an alarm mute rule.</p> <p>The rule contains a schedule that specifies when and how long alarms should be muted. The schedule can be a recurring pattern using cron expressions or a one-time mute window using at expressions.</p>"
+    },
     "ScanBy":{
       "type":"string",
       "enum":[
         "TimestampDescending",
         "TimestampAscending"
       ]
+    },
+    "Schedule":{
+      "type":"structure",
+      "required":[
+        "Expression",
+        "Duration"
+      ],
+      "members":{
+        "Expression":{
+          "shape":"Expression",
+          "documentation":"<p>The schedule expression that defines when the mute rule activates. The expression must be between 1 and 256 characters in length.</p> <p>You can use one of two expression formats:</p> <ul> <li> <p> <b>Cron expressions</b> - For recurring mute windows. Format: <code>cron(Minutes Hours Day-of-month Month Day-of-week)</code> </p> <p>Examples:</p> <ul> <li> <p> <code>cron(0 2 * * *)</code> - Activates daily at 2:00 AM</p> </li> <li> <p> <code>cron(0 2 * * SUN)</code> - Activates every Sunday at 2:00 AM for weekly system maintenance</p> </li> <li> <p> <code>cron(0 1 1 * *)</code> - Activates on the first day of each month at 1:00 AM for monthly database maintenance</p> </li> <li> <p> <code>cron(0 18 * * FRI)</code> - Activates every Friday at 6:00 PM</p> </li> <li> <p> <code>cron(0 23 * * *)</code> - Activates every day at 11:00 PM during nightly backup operations</p> </li> </ul> <p>The characters <code>*</code>, <code>-</code>, and <code>,</code> are supported in all fields. English names can be used for the month (JAN-DEC) and day of week (SUN-SAT) fields.</p> </li> <li> <p> <b>At expressions</b> - For one-time mute windows. Format: <code>at(yyyy-MM-ddThh:mm)</code> </p> <p>Examples:</p> <ul> <li> <p> <code>at(2024-05-10T14:00)</code> - Activates once on May 10, 2024 at 2:00 PM during an active incident response session</p> </li> <li> <p> <code>at(2024-12-23T00:00)</code> - Activates once on December 23, 2024 at midnight during annual company shutdown</p> </li> </ul> </li> </ul>"
+        },
+        "Duration":{
+          "shape":"Duration",
+          "documentation":"<p>The length of time that alarms remain muted when the schedule activates. The duration must be between 1 and 50 characters in length.</p> <p>Specify the duration using ISO 8601 duration format with a minimum of 1 minute (<code>PT1M</code>) and maximum of 15 days (<code>P15D</code>).</p> <p>Examples:</p> <ul> <li> <p> <code>PT4H</code> - 4 hours for weekly system maintenance</p> </li> <li> <p> <code>P2DT12H</code> - 2 days and 12 hours for weekend muting from Friday 6:00 PM to Monday 6:00 AM</p> </li> <li> <p> <code>PT6H</code> - 6 hours for monthly database maintenance</p> </li> <li> <p> <code>PT2H</code> - 2 hours for nightly backup operations</p> </li> <li> <p> <code>P7D</code> - 7 days for annual company shutdown</p> </li> </ul> <p>The duration begins when the schedule expression time is reached. For recurring schedules, the duration applies to each occurrence.</p>"
+        },
+        "Timezone":{
+          "shape":"Timezone",
+          "documentation":"<p>The time zone to use when evaluating the schedule expression. The time zone must be between 1 and 50 characters in length.</p> <p>Specify the time zone using standard timezone identifiers (for example, <code>America/New_York</code>, <code>Europe/London</code>, or <code>Asia/Tokyo</code>).</p> <p>If you don't specify a time zone, UTC is used by default. The time zone affects how cron and at expressions are interpreted, as well as start and expire dates you specify</p> <p>Examples:</p> <ul> <li> <p> <code>America/New_York</code> - Eastern Time (US)</p> </li> <li> <p> <code>America/Los_Angeles</code> - Pacific Time (US)</p> </li> <li> <p> <code>Europe/London</code> - British Time</p> </li> <li> <p> <code>Asia/Tokyo</code> - Japan Standard Time</p> </li> <li> <p> <code>UTC</code> - Coordinated Universal Time</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Specifies when and how long an alarm mute rule is active.</p> <p>The schedule uses either a cron expression for recurring mute windows or an at expression for one-time mute windows. When the schedule activates, the mute rule mutes alarm actions for the specified duration.</p>"
     },
     "SetAlarmStateInput":{
       "type":"structure",
@@ -3784,6 +4247,11 @@
     "Timestamps":{
       "type":"list",
       "member":{"shape":"Timestamp"}
+    },
+    "Timezone":{
+      "type":"string",
+      "max":50,
+      "min":1
     },
     "TreatMissingData":{
       "type":"string",

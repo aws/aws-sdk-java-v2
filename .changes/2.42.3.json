@@ -1,0 +1,48 @@
+{
+    "version": "2.42.3",
+    "date": "2026-02-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup Gateway",
+            "contributor": "",
+            "description": "This release updates GetGateway API to include deprecationDate and softwareVersion in the response, enabling customers to track gateway software versions and upcoming deprecation dates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "Added License Arn as a new optional filter for GetEntitlements and LicenseArn field in each entitlement in the response."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "Added LicenseArn to ResolveCustomer response and BatchMeterUsage usage records. BatchMeterUsage now accepts LicenseArn in each UsageRecord to report usage at the license level. Added InvalidLicenseException error response for invalid license parameters."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Security Hub added EXTENDED PLAN integration type to DescribeProductsV2 and added metadata.product.vendor name GroupBy support to GetFindingStatisticsV2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Adding support for Capacity Reservations for ECS Managed Instances by introducing a new \"capacityOptionType\" value of \"RESERVED\" and new field \"capacityReservations\" for CreateCapacityProvider and UpdateCapacityProvider APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add c8id, m8id and hpc8a instance types."
+        },
+        {
+            "type": "feature",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "",
+            "description": "Update `httpcore5` to `5.4.1`."
+        }
+    ]
+}
