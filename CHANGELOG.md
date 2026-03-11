@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.11__ __2026-03-11__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Only log `SSL Certificate verification is disabled` warning if trustAllCertificatesEnabled is set to true.
+        - Contributed by: [@bsmelo](https://github.com/bsmelo)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.4
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Strip quotes in getETag response
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Today, Amazon Connect is announcing the ability to filter (include or exclude) recommendations based on properties of items and interactions.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improved performance by adding a fast path avoiding wrapping of String and Byte types
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for a new tier in controlPlaneScalingConfig on EKS Clusters.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voices - Ambre (fr-FR), Beatrice (it-IT), Florian (fr-FR), Lennart (de-DE), Lorenzo (it-IT) and Tiffany (en-US). They are available as a Generative voices only.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed misleading checksum mismatch error message for S3 GetObject that incorrectly referenced uploading. See [#6324](https://github.com/aws/aws-sdk-java-v2/issues/6324).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker training plans allow you to extend your existing training plans to avoid workload interruptions without workload reconfiguration. When a training plan is approaching expiration, you can extend it directly through the SageMaker AI console or programmatically using the API or AWS CLI.
+
+## __Amazon SimpleDB v2__
+  - ### Features
+    - Introduced Amazon SimpleDB export functionality enabling domain data export to S3 in JSON format. Added three new APIs StartDomainExport, GetExport, and ListExports via SimpleDBv2 service. Supports cross-region exports and KMS encryption.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added WINDOWS SERVER 2025 OperatingSystemName.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bsmelo](https://github.com/bsmelo)
 # __2.42.10__ __2026-03-10__
 ## __AWS Database Migration Service__
   - ### Features

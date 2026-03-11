@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT-based S3 Client",
-    "contributor": "bsmelo",
-    "description": "Only log `SSL Certificate verification is disabled` warning if trustAllCertificatesEnabled is set to true."
-}
