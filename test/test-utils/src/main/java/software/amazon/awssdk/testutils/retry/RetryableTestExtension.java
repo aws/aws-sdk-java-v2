@@ -75,10 +75,7 @@ public class RetryableTestExtension implements TestTemplateInvocationContextProv
     }
 
     private boolean isRetryableException(ExtensionContext context, Throwable throwable) {
-        if (throwable instanceof TestAbortedException) {
-            return false;
-        }
-        return retryableException(context).isAssignableFrom(throwable.getClass());
+        return retryableException(context).isAssignableFrom(throwable.getClass()) || throwable instanceof TestAbortedException;
     }
 
     private int maxRetries(ExtensionContext context) {
