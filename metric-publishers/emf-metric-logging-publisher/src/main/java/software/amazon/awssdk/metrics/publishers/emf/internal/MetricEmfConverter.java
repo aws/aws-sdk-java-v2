@@ -270,9 +270,6 @@ public class MetricEmfConverter {
         }
     }
 
-
-
-
     private void writeAwsObject(JsonWriter jsonWriter, Set<SdkMetric<?>> metricNames) {
         jsonWriter.writeFieldName(AWS_METADATA_KEY);
         jsonWriter.writeStartObject();
