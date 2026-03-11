@@ -151,6 +151,8 @@ public class NumberAttributeConvertersTest {
         assertFails(() -> transformFrom(converter, Float.POSITIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Float.NaN));
 
+        assertThat(transformFrom(converter, null).nul()).isTrue();
+
         assertThat(transformFrom(converter, -Float.MAX_VALUE).n()).isEqualTo("-3.4028235E38");
         assertThat(Float.parseFloat(transformFrom(converter, -42.42f).n())).isCloseTo(-42.42f, offset(1E-10f));
         assertThat(transformFrom(converter, -Float.MIN_VALUE).n()).isEqualTo("-1.4E-45");
@@ -179,6 +181,8 @@ public class NumberAttributeConvertersTest {
         assertFails(() -> transformFrom(converter, Double.NEGATIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Double.POSITIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Double.NaN));
+
+        assertThat(transformFrom(converter, null).nul()).isTrue();
 
         assertThat(transformFrom(converter, -Double.MAX_VALUE).n()).isEqualTo("-1.7976931348623157E308");
         assertThat(Double.parseDouble(transformFrom(converter, -42.42d).n())).isCloseTo(-42.42d, offset(1E-10));

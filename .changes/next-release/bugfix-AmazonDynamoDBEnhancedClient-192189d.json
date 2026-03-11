@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Fix NullPointerException in `DoubleAttributeConverter` and `FloatAttributeConverter` when input is null."
+}
