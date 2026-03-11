@@ -53,12 +53,8 @@ import software.amazon.awssdk.services.cloudfront.model.Origins;
 import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 import software.amazon.awssdk.services.cloudfront.model.ViewerProtocolPolicy;
 
-/**
- * Isolated ser/de benchmark for V2 CloudFront (REST-XML protocol).
- * Measures only XML parsing + object construction -- no HTTP, signing, or retries.
- */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)

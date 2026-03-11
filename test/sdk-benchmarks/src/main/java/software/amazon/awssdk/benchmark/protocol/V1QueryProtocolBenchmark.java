@@ -38,12 +38,8 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
-/**
- * Isolated ser/de benchmark for V1 STS (Query protocol).
- * Measures only XML parsing + form encoding -- no HTTP, signing, or retries.
- */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)

@@ -42,12 +42,8 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
-/**
- * Isolated ser/de benchmark for V1 CloudWatch (smithy-rpc-v2-cbor protocol).
- * Measures only CBOR parsing + object construction -- no HTTP, signing, or retries.
- */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)

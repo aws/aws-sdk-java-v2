@@ -49,12 +49,8 @@ import software.amazon.awssdk.services.cloudwatch.model.Metric;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDataQuery;
 import software.amazon.awssdk.services.cloudwatch.model.MetricStat;
 
-/**
- * Isolated ser/de benchmark for V2 CloudWatch (smithy-rpc-v2-cbor protocol).
- * Measures only CBOR parsing + object construction -- no HTTP, signing, or retries.
- */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
