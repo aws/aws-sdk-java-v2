@@ -27,6 +27,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSche
  * Denotes this attribute as recording the auto generated last updated timestamp for the record.
  * Every time a record with this attribute is written to the database it will update the attribute with current timestamp when
  * its updated.
+ * <p>
+ * Note: This annotation must not be applied to fields whose names contain the reserved marker "_NESTED_ATTR_UPDATE_".
+ * This marker is used internally by the Enhanced Client to represent flattened paths for nested attribute updates.
+ * If a field name contains this marker, an IllegalArgumentException will be thrown during schema registration.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
