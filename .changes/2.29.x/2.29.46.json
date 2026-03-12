@@ -1,0 +1,30 @@
+{
+    "version": "2.29.46",
+    "date": "2025-01-06",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Event Notifications",
+            "contributor": "",
+            "description": "Fixed a bug where null values are not handled properly when `S3EventNotification#fromJson` is invoked, throwing `IllegalArgumentException`. See [#5730](https://github.com/aws/aws-sdk-java-v2/issues/5730)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Secure Tunneling",
+            "contributor": "",
+            "description": "Adds dualstack endpoint support for IoT Secure Tunneling"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "Allow vanity DNS domain when creating a new ASC instance"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -109,6 +109,18 @@ public class CompletableFutureUtilsTest {
     }
 
     @Test(timeout = 1000)
+    public void forwardTransformedResultTo_functionThrowsException_shouldCompleteExceptionally() {
+        CompletableFuture<Integer> src = new CompletableFuture<>();
+        CompletableFuture<String> dst = new CompletableFuture<>();
+
+        CompletableFutureUtils.forwardTransformedResultTo(src, dst, x -> { throw new RuntimeException("foobar"); });
+        src.complete(0);
+        assertThatThrownBy(dst::join)
+            .hasMessageContaining("foobar")
+            .hasCauseInstanceOf(RuntimeException.class);
+    }
+
+    @Test(timeout = 1000)
     public void anyFail_shouldCompleteWhenAnyFutureFails() {
         RuntimeException exception = new RuntimeException("blah");
         CompletableFuture[] completableFutures = new CompletableFuture[2];
@@ -206,4 +218,6 @@ public class CompletableFutureUtilsTest {
             .hasNoSuppressedExceptions()
             .hasNoCause()
             .isInstanceOf(CancellationException.class);
-    }}
+    }
+
+}

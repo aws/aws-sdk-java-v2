@@ -1,0 +1,54 @@
+{
+    "version": "2.31.27",
+    "date": "2025-04-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Account",
+            "contributor": "",
+            "description": "AWS Account Management now supports account name update via IAM principals."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "To expand support for matching records using digital identifiers with TransUnion"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Fix endpoint resolution test cases"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "This release adds refresh token rotation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added support for ClientRouteEnforcementOptions flag in CreateClientVpnEndpoint and ModifyClientVpnEndpoint requests and DescribeClientVpnEndpoints responses"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "contributor": "",
+            "description": "You can now delete Amazon MQ broker configurations using the DeleteConfiguration API. For more information, see Configurations in the Amazon MQ API Reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Transfer Manager",
+            "contributor": "",
+            "description": "Add support for etag validation in resumableFileDownload: restart paused downloads when etag does not match"
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Provides new and updated API members to support the Redshift Serverless reservations feature."
+        }
+    ]
+}

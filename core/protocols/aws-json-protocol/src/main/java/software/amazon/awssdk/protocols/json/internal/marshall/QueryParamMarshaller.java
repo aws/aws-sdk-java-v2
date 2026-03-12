@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.RequiredTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi
@@ -37,6 +38,8 @@ public final class QueryParamMarshaller {
     public static final JsonMarshaller<Long> LONG = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_LONG);
 
     public static final JsonMarshaller<Short> SHORT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
+    public static final JsonMarshaller<Byte> BYTE = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_BYTE);
 
     public static final JsonMarshaller<Double> DOUBLE = new SimpleQueryParamMarshaller<>(
         ValueToStringConverter.FROM_DOUBLE);
@@ -63,7 +66,7 @@ public final class QueryParamMarshaller {
     };
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };

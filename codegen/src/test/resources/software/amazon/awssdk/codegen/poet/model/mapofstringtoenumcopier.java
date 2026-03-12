@@ -16,7 +16,7 @@ final class MapOfStringToEnumCopier {
         if (mapOfStringToEnumParam == null || mapOfStringToEnumParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, String> modifiableMap = new LinkedHashMap<>();
+            Map<String, String> modifiableMap = new LinkedHashMap<>(mapOfStringToEnumParam.size());
             mapOfStringToEnumParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });
@@ -30,9 +30,9 @@ final class MapOfStringToEnumCopier {
         if (mapOfStringToEnumParam == null || mapOfStringToEnumParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, String> modifiableMap = new LinkedHashMap<>();
+            Map<String, String> modifiableMap = new LinkedHashMap<>(mapOfStringToEnumParam.size());
             mapOfStringToEnumParam.forEach((key, value) -> {
-                String result = value.toString();
+                String result = value == null ? null : value.toString();
                 modifiableMap.put(key, result);
             });
             map = Collections.unmodifiableMap(modifiableMap);
@@ -45,7 +45,7 @@ final class MapOfStringToEnumCopier {
         if (mapOfStringToEnumParam == null || mapOfStringToEnumParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, EnumType> modifiableMap = new LinkedHashMap<>();
+            Map<String, EnumType> modifiableMap = new LinkedHashMap<>(mapOfStringToEnumParam.size());
             mapOfStringToEnumParam.forEach((key, value) -> {
                 EnumType result = EnumType.fromValue(value);
                 modifiableMap.put(key, result);

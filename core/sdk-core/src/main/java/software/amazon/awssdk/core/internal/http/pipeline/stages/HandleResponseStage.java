@@ -21,9 +21,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -64,11 +66,32 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         long ttlb = now - attemptStartTime;
         attemptMetricCollector.reportMetric(CoreMetric.TIME_TO_LAST_BYTE, Duration.ofNanos(ttlb));
 
-        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
         long responseReadStart = MetricUtils.responseHeadersReadEndNanoTime(context).getAsLong();
-        double throughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
 
-        attemptMetricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, throughput);
+        long responseBytesRead = MetricUtils.apiCallAttemptResponseBytesRead(context).getAsLong();
+        double readThroughput = MetricUtils.bytesPerSec(responseBytesRead, responseReadStart, now);
+        attemptMetricCollector.reportMetric(CoreMetric.READ_THROUGHPUT, readThroughput);
+
+        reportWriteThroughput(context, attemptMetricCollector);
+    }
+
+    private void reportWriteThroughput(RequestExecutionContext context, MetricCollector attemptMetricCollector) {
+        RequestBodyMetrics metrics = context.executionAttributes()
+            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+        if (metrics == null) {
+            return;
+        }
+        long bytesWritten = metrics.bytesWritten().get();
+        long firstByteTime = metrics.firstByteWrittenNanoTime().get();
+        if (bytesWritten > 0 && firstByteTime > 0) {
+            long lastByteTime = metrics.lastByteWrittenNanoTime().get();
+            // Skip reporting if duration is zero
+            if (firstByteTime == lastByteTime) {
+                return;
+            }
+            double writeThroughput = MetricUtils.bytesPerSec(bytesWritten, firstByteTime, lastByteTime);
+            attemptMetricCollector.reportMetric(CoreMetric.WRITE_THROUGHPUT, writeThroughput);
+        }
     }
 
     private SdkHttpFullResponse trackBytesRead(SdkHttpFullResponse httpFullResponse, RequestExecutionContext context) {

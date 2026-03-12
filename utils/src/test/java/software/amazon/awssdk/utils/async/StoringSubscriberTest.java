@@ -159,8 +159,6 @@ public class StoringSubscriberTest {
                 }
             };
 
-            subscriber.onSubscribe(subscription);
-
             Future<Object> consumerFuture = consumer.submit(() -> {
                 int expectedMessageNumber = 0;
                 while (testRunning.get()) {
@@ -182,6 +180,8 @@ public class StoringSubscriberTest {
                 }
                 return null;
             });
+
+            subscriber.onSubscribe(subscription);
 
             Thread.sleep(5_000);
             testRunning.set(false);

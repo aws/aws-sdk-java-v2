@@ -1,0 +1,24 @@
+{
+    "version": "2.31.13",
+    "date": "2025-04-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release adds support for updating the analytics engine of a collaboration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added tagging support for SageMaker notebook instance lifecycle configurations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

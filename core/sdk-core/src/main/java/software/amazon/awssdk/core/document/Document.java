@@ -46,7 +46,17 @@ import software.amazon.awssdk.core.document.internal.StringDocument;
 @SdkPublicApi
 @Immutable
 public interface Document extends Serializable {
-
+    /**
+     * Null document constant. Null values are invariant, no need to create a new one
+     * everytime we find a null value, instead we use this static constant.
+     */
+    NullDocument NULL_DOCUMENT = new NullDocument();
+    /**
+     * Boolean document constants. Boolean values are invariant, no need to create a new
+     * one everytime we find a boolean value, instead we use either constant.
+     */
+    BooleanDocument TRUE_DOCUMENT = new BooleanDocument(true);
+    BooleanDocument FALSE_DOCUMENT = new BooleanDocument(false);
 
     /**
      * Create {@link Document} from a string, using the provided String.
@@ -63,7 +73,10 @@ public interface Document extends Serializable {
      * @return Implementation of Document that stores a Boolean.
      */
     static Document fromBoolean(boolean booleanValue) {
-        return new BooleanDocument(booleanValue);
+        if (booleanValue) {
+            return TRUE_DOCUMENT;
+        }
+        return FALSE_DOCUMENT;
     }
 
     /**
@@ -183,7 +196,7 @@ public interface Document extends Serializable {
      * @return Implementation of a Null Document.
      */
     static Document fromNull() {
-        return new NullDocument();
+        return NULL_DOCUMENT;
     }
 
     /**

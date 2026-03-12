@@ -111,10 +111,10 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
                            .effect(getString(statementObject, "Effect"))
                            .principals(readPrincipals(statementObject, "Principal"))
                            .notPrincipals(readPrincipals(statementObject, "NotPrincipal"))
-                           .actionIds(readStringOrArrayAsList(statementObject, "Action"))
-                           .notActionIds(readStringOrArrayAsList(statementObject, "NotAction"))
-                           .resourceIds(readStringOrArrayAsList(statementObject, "Resource"))
-                           .notResourceIds(readStringOrArrayAsList(statementObject, "NotResource"))
+                           .actionIds(readStringOrArrayAsList(statementObject, "Action", false))
+                           .notActionIds(readStringOrArrayAsList(statementObject, "NotAction", false))
+                           .resourceIds(readStringOrArrayAsList(statementObject, "Resource", false))
+                           .notResourceIds(readStringOrArrayAsList(statementObject, "NotResource", false))
                            .conditions(readConditions(statementObject.get("Condition")))
                            .build();
     }
@@ -134,7 +134,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
             List<IamPrincipal> result = new ArrayList<>();
             Map<String, JsonNode> principalsNodeObject = principalsNode.asObject();
             principalsNodeObject.keySet().forEach(
-                k -> result.addAll(IamPrincipal.createAll(k, readStringOrArrayAsList(principalsNodeObject, k)))
+                k -> result.addAll(IamPrincipal.createAll(k, readStringOrArrayAsList(principalsNodeObject, k, true)))
             );
             return result;
         }
@@ -154,15 +154,15 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
         conditionObject.forEach((operator, keyValueNode) -> {
             Map<String, JsonNode> keyValueObject = expectObject(keyValueNode, "Condition key");
             keyValueObject.forEach((key, value) -> {
-                if (value.isString()) {
-                    result.add(IamCondition.create(operator, key, value.asString()));
-                } else if (value.isArray()) {
+                if (value.isArray()) {
                     List<String> values =
                         value.asArray()
                              .stream()
-                             .map(valueNode -> expectString(valueNode, "Condition values entry"))
+                             .map(valueNode -> expectConditionValue(valueNode, "Condition values entry"))
                              .collect(toList());
                     result.addAll(IamCondition.createAll(operator, key, values));
+                } else {
+                    result.add(IamCondition.create(operator, key, expectConditionValue(value, "Condition value entry")));
                 }
             });
 
@@ -171,7 +171,7 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
         return result;
     }
 
-    private List<String> readStringOrArrayAsList(Map<String, JsonNode> statementObject, String nodeKey) {
+    private List<String> readStringOrArrayAsList(Map<String, JsonNode> statementObject, String nodeKey, boolean allowAccountIds) {
         JsonNode node = statementObject.get(nodeKey);
 
         if (node == null) {
@@ -185,7 +185,12 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
         if (node.isArray()) {
             return node.asArray()
                        .stream()
-                       .map(n -> expectString(n, nodeKey + " entry"))
+                       .map(n -> {
+                           if (allowAccountIds) {
+                               return expectStringOrAccountId(n, nodeKey + " entry");
+                           }
+                           return expectString(n, nodeKey + " entry");
+                       })
                        .collect(toList());
         }
 
@@ -202,6 +207,26 @@ public final class DefaultIamPolicyReader implements IamPolicyReader {
     }
 
     private String expectString(JsonNode node, String name) {
+        Validate.isTrue(node.isString(), "%s was not a string", name);
+        return node.asString();
+    }
+
+    private String expectStringOrAccountId(JsonNode node, String name) {
+        if (node.isNumber()) {
+            return node.asNumber();
+        }
+        Validate.isTrue(node.isString(), "%s was not a string", name);
+        return node.asString();
+    }
+
+    // condition values are generally String, however in some cases they may be an AWS accountID or a boolean.
+    private String expectConditionValue(JsonNode node, String name) {
+        if (node.isNumber()) {
+            return node.asNumber();
+        }
+        if (node.isBoolean()) {
+            return Boolean.toString(node.asBoolean());
+        }
         Validate.isTrue(node.isString(), "%s was not a string", name);
         return node.asString();
     }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +24,12 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchemaParams;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchemaParams;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.TableSchemaFactory;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
@@ -115,6 +119,26 @@ public interface TableSchema<T> {
     }
 
     /**
+     * Scans a bean class that has been annotated with DynamoDb bean annotations and then returns a
+     * {@link BeanTableSchema} implementation of this interface that can map records to and from items of that bean
+     * class.
+     * <p>
+     * It's recommended to only create a {@link BeanTableSchema} once for a single bean class, usually at application start up,
+     * because it's a moderately expensive operation.
+     * <p>
+     * Generally, this method should be preferred over {@link #fromBean(Class)} because it allows you to use a custom
+     * {@link MethodHandles.Lookup} instance, which is necessary when your application runs in an environment where your
+     * application code and dependencies like the AWS SDK for Java are loaded by different classloaders.
+     *
+     * @param params The parameters used to create the {@link BeanTableSchema}.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return An initialized {@link BeanTableSchema}.
+     */
+    static <T> BeanTableSchema<T> fromBean(BeanTableSchemaParams<T> params) {
+        return BeanTableSchema.create(params);
+    }
+
+    /**
      * Provides interfaces to interact with DynamoDB tables as {@link EnhancedDocument} where the complete Schema of the table is
      * not required.
      *
@@ -142,6 +166,23 @@ public interface TableSchema<T> {
     }
 
     /**
+     * Scans an immutable class that has been annotated with DynamoDb immutable annotations and then returns a
+     * {@link ImmutableTableSchema} implementation of this interface that can map records to and from items of that
+     * immutable class.
+     *
+     * <p>
+     * It's recommended to only create an {@link ImmutableTableSchema} once for a single immutable class, usually at application
+     * start up, because it's a moderately expensive operation.
+     *
+     * @param params The parameters used to create the {@link ImmutableTableSchema}.
+     * @param <T> The type of the item this {@link TableSchema} will map records to.
+     * @return An initialized {@link ImmutableTableSchema}.
+     */
+    static <T> ImmutableTableSchema<T> fromImmutableClass(ImmutableTableSchemaParams<T> params) {
+        return ImmutableTableSchema.create(params);
+    }
+
+    /**
      * Scans a class that has been annotated with DynamoDb enhanced client annotations and then returns an appropriate
      * {@link TableSchema} implementation that can map records to and from items of that class. Currently supported
      * top level annotations (see documentation on those classes for more information on how to use them):
@@ -160,16 +201,7 @@ public interface TableSchema<T> {
      * @return An initialized {@link TableSchema}
      */
     static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
-        if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
-            return fromImmutableClass(annotatedClass);
-        }
-
-        if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
-            return fromBean(annotatedClass);
-        }
-
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                               "\"" + annotatedClass + "\"]");
+        return TableSchemaFactory.fromClass(annotatedClass, ExecutionContext.ROOT);
     }
 
     /**

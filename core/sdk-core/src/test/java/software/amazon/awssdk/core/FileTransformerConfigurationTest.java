@@ -16,13 +16,32 @@
 package software.amazon.awssdk.core;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.DELETE;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_NEW;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class FileTransformerConfigurationTest {
+
+    @ParameterizedTest
+    @EnumSource(
+        value = FileTransformerConfiguration.FileWriteOption.class,
+        names = {"CREATE_NEW", "CREATE_OR_REPLACE_EXISTING", "CREATE_OR_APPEND_TO_EXISTING"})
+    void position_whenUsedWithNotWriteToPosition_shouldThrowIllegalArgumentException(
+        FileTransformerConfiguration.FileWriteOption fileWriteOption) {
+        FileTransformerConfiguration.Builder builder = FileTransformerConfiguration.builder()
+            .position(123L)
+            .failureBehavior(DELETE)
+            .fileWriteOption(fileWriteOption);
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining(fileWriteOption.name());
+    }
 
     @Test
     void equalsHashcode() {

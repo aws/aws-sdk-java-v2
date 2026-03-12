@@ -1,0 +1,48 @@
+{
+    "version": "2.30.2",
+    "date": "2025-01-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS User Notifications",
+            "contributor": "",
+            "description": "Added support for Managed Notifications, integration with AWS Organization and added aggregation summaries for Aggregate Notifications"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Allow hyphens in tool name for Converse and ConverseStream APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Doc only update for Detective documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Release u7i-6tb.112xlarge, u7i-8tb.112xlarge, u7inh-32tb.480xlarge, p5e.48xlarge, p5en.48xlarge, f2.12xlarge, f2.48xlarge, trn2.48xlarge instance types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Correction of docs for \"Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering\""
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Fixed contentLength mismatch issue thrown from putObject when multipartEnabled is true and a contentLength is provided in PutObjectRequest. See [#5807](https://github.com/aws/aws-sdk-java-v2/issues/5807)"
+        }
+    ]
+}

@@ -17,8 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,7 +191,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValue == null) {
             return null;
         }
-        return stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue));
+        return DocumentJsonSerializer.serializeSingleAttributeValue(attributeValue);
     }
 
     @Override
@@ -230,12 +228,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (nonAttributeValueMap.isEmpty()) {
             return "{}";
         }
-        return attributeValueMap.getValue().entrySet().stream()
-                                .map(entry -> "\""
-                                              + addEscapeCharacters(entry.getKey())
-                                              + "\":"
-                                              + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
-                                .collect(Collectors.joining(",", "{", "}"));
+        return DocumentJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
     }
 
     @Override

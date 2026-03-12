@@ -34,12 +34,15 @@ public final class DefaultCustomizationProcessor {
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
                 new CustomSdkShapesProcessor(config.getCustomSdkShapes()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
+                new SmithyRpcV2CborProtocolProcessor(),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
                 new NewAndLegacyEventStreamProcessor(),
+                new EventStreamSharedEventProcessor(config.getDuplicateAndRenameSharedEvents()),
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),
-                new ExplicitStringPayloadQueryProtocolProcessor()
+                new ExplicitStringPayloadQueryProtocolProcessor(),
+                new LowercaseShapeValidatorProcessor()
                 );
     }
 }

@@ -1,0 +1,48 @@
+{
+    "version": "2.28.22",
+    "date": "2024-10-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "AWS CodePipeline V2 type pipelines now support automatically retrying failed stages and skipping stage for failed entry conditions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds an option to set 'appId' metadata to the client builder or to system settings and config files. This metadata string value will be added to the user agent string as `app/somevalue`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "This release adds AWS Supply Chain instance management functionality. Specifically adding CreateInstance, DeleteInstance, GetInstance, ListInstances, and UpdateInstance APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release enables customers using SFTP connectors to query the transfer status of their files to meet their monitoring needs as well as orchestrate post transfer actions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "This release updates request validation regex for resource ARNs."
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Mail Manager support for viewing and exporting metadata of archived messages."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

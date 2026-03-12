@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -44,9 +45,24 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Generates an auth scheme provider that resolves authentication schemes from endpoint rules.
+ * <p>
+ * This class creates a provider that determines authentication schemes dynamically based on the resolved endpoint's auth scheme
+ * attributes. It first resolves the endpoint using endpoint rules, then extracts auth scheme information from the endpoint's
+ * attributes. If the endpoint doesn't specify auth schemes (for example, a custom endpoint provider is used), it delegates to the
+ * fallback provider, which returns the default auth schemes defined in {@link AuthTypeToSigV4Default}
+ * <p>
+ * The generated provider handles AWS signature versions (SigV4, SigV4a) and service-specific schemes (like S3 Express),
+ * translating endpoint auth scheme metadata into {@link AuthSchemeOption} instances with appropriate signer properties.
+ * <p>
+ * This provider is only generated for services with endpoint-based auth enabled
+ * ({@code isEnableEndpointAuthSchemeParams() = true}).
+ */
 public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -122,9 +138,9 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
     }
 
     private FieldSpec modeledResolverInstance() {
-        return FieldSpec.builder(authSchemeSpecUtils.providerInterfaceName(), "MODELED_RESOLVER")
+        return FieldSpec.builder(authSchemeSpecUtils.providerInterfaceName(), "FALLBACK_RESOLVER")
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("$T.create()", authSchemeSpecUtils.modeledAuthSchemeProviderName())
+                        .initializer("$T.create()", authSchemeSpecUtils.fallbackAuthSchemeProviderName())
                         .build();
     }
 
@@ -157,7 +173,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addStatement("$T authSchemes = endpoint.attribute($T.AUTH_SCHEMES)",
                           ParameterizedTypeName.get(List.class, EndpointAuthScheme.class), AwsEndpointAttribute.class);
         spec.beginControlFlow("if (authSchemes == null)");
-        spec.addStatement("return MODELED_RESOLVER.resolveAuthScheme(params)");
+        spec.addStatement("return FALLBACK_RESOLVER.resolveAuthScheme(params)");
         spec.endControlFlow();
 
 
@@ -217,7 +233,10 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           SigV4aAuthScheme.class, Validate.class, SigV4aAuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addStatement("$1T regionSet = $1T.create(sigv4aAuthScheme.signingRegionSet())", RegionSet.class);
+        spec.addStatement("$1T regionSet = $2T.ofNullable(params.regionSet())"
+                          + ".orElseGet(() -> $2T.ofNullable(sigv4aAuthScheme.signingRegionSet())" +
+                          ".filter(set -> !$3T.isNullOrEmpty(set)).map($1T::create).orElse(null))",
+                          RegionSet.class, Optional.class, CollectionUtils.class);
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class,

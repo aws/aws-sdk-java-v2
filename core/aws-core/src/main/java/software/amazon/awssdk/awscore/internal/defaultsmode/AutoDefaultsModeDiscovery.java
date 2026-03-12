@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.internal.defaultsmode;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.regions.Region;
@@ -29,8 +29,12 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 /**
  * This class attempts to discover the appropriate {@link DefaultsMode} by inspecting the environment. It falls
  * back to the {@link DefaultsMode#STANDARD} mode if the target mode cannot be determined.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class AutoDefaultsModeDiscovery {
     private static final String EC2_METADATA_REGION_PATH = "/latest/meta-data/placement/region";
     private static final DefaultsMode FALLBACK_DEFAULTS_MODE = DefaultsMode.STANDARD;

@@ -1,0 +1,6 @@
+{
+  "testCases": [
+      "cases/smithy-rpcv2-input.json",
+      "cases/smithy-rpcv2-output.json"
+  ]
+}

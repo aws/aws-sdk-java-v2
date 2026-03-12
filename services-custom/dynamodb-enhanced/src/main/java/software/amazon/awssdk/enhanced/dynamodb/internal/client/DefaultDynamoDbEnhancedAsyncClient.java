@@ -36,6 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequ
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
@@ -104,7 +105,7 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     @Override
     public CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
-        return operation.executeAsync(dynamoDbClient, extension);
+        return operation.executeAsync(dynamoDbClient, extension).thenApply(r -> null);
     }
 
     @Override
@@ -116,6 +117,22 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
         return transactWriteItems(builder.build());
     }
 
+    @Override
+    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
+        TransactWriteItemsEnhancedRequest request) {
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        return operation.executeAsync(dynamoDbClient, extension);
+    }
+
+    @Override
+    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
+        Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+        TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return transactWriteItemsWithResponse(builder.build());
+    }
+
+    @Override
     public DynamoDbAsyncClient dynamoDbAsyncClient() {
         return dynamoDbClient;
     }
@@ -139,8 +156,8 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
 
         DefaultDynamoDbEnhancedAsyncClient that = (DefaultDynamoDbEnhancedAsyncClient) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
-            : that.dynamoDbClient != null) {
+        if (dynamoDbClient != null ? !dynamoDbClient.equals(that.dynamoDbClient)
+                                   : that.dynamoDbClient != null) {
 
             return false;
         }

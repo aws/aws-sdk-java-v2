@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.checksums;
 
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -58,6 +60,18 @@ public class S3ChecksumValidatingInputStream extends InputStream implements Abor
      */
     @Override
     public int read() throws IOException {
+        if (strippedLength == 0 && lengthRead == 0) {
+            for (int i = 0; i < CHECKSUM_SIZE; i++) {
+                int b = inputStream.read();
+                if (b != -1) {
+                    streamChecksum[i] = (byte) b;
+                }
+            }
+            lengthRead = CHECKSUM_SIZE;
+            validateAndThrow();
+            return -1;
+        }
+
         int read = inputStream.read();
 
         if (read != -1 && lengthRead < strippedLength) {
@@ -170,9 +184,8 @@ public class S3ChecksumValidatingInputStream extends InputStream implements Abor
 
         if (!Arrays.equals(computedChecksum, streamChecksum)) {
             throw RetryableException.create(
-                String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
-                              "This commonly means that the data was corrupted between the client and " +
-                              "service.", BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum)));
+                String.format(CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE, BinaryUtils.toHex(computedChecksum),
+                              BinaryUtils.toHex(streamChecksum)));
         }
     }
 

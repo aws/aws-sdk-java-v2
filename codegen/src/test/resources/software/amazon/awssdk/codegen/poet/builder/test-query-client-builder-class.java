@@ -2,32 +2,43 @@ package software.amazon.awssdk.services.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidationResolver;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
@@ -42,6 +53,8 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
+    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "query-service";
@@ -54,24 +67,26 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c
-                .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .lazyOption(AwsClientOption.TOKEN_PROVIDER,
-                        p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider());
+        });
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new QueryAuthSchemeInterceptor());
         endpointInterceptors.add(new QueryResolveEndpointInterceptor());
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -92,11 +107,26 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
         builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
+        builder.lazyOptionIfAbsent(
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                .serviceProfileProperty("query_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+        SdkClientConfiguration clientConfig = config;
+        builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
+        builder.lazyOption(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, c -> resolveResponseChecksumValidation(clientConfig));
         return builder.build();
-    }
-
-    private Signer defaultSigner() {
-        return Aws4Signer.create();
     }
 
     @Override
@@ -106,6 +136,50 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private QueryEndpointProvider defaultEndpointProvider() {
         return QueryEndpointProvider.defaultProvider();
+    }
+
+    public B authSchemeProvider(QueryAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
+    }
+
+    private QueryAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
+                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (!preferences.isEmpty()) {
+            return QueryAuthSchemeProvider.defaultProvider(preferences);
+        }
+        return QueryAuthSchemeProvider.defaultProvider();
+    }
+
+    @Override
+    public B putAuthScheme(AuthScheme<?> authScheme) {
+        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
+        return thisBuilder();
+    }
+
+    private Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3 + this.additionalAuthSchemes.size());
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
+        schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
+        schemes.putAll(this.additionalAuthSchemes);
+        return schemes;
+    }
+
+    public B requestChecksumCalculation(RequestChecksumCalculation requestChecksumCalculation) {
+        clientConfiguration.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, requestChecksumCalculation);
+        return thisBuilder();
+    }
+
+    public B responseChecksumValidation(ResponseChecksumValidation responseChecksumValidation) {
+        clientConfiguration.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, responseChecksumValidation);
+        return thisBuilder();
     }
 
     public B booleanContextParam(Boolean booleanContextParam) {
@@ -125,10 +199,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
         return DefaultAwsTokenProvider.create();
-    }
-
-    private Signer defaultTokenSigner() {
-        return BearerTokenSigner.create();
     }
 
     @Override
@@ -179,19 +249,37 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         AccountIdEndpointMode configuredMode = config.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE);
         if (configuredMode == null) {
             configuredMode = AccountIdEndpointModeResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
-                    .resolve();
+                                                          .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                          .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
+                                                          .resolve();
         }
         return configuredMode;
     }
 
+    private RequestChecksumCalculation resolveRequestChecksumCalculation(SdkClientConfiguration config) {
+        RequestChecksumCalculation configuredChecksumCalculation = config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION);
+        if (configuredChecksumCalculation == null) {
+            configuredChecksumCalculation = RequestChecksumCalculationResolver.create()
+                                                                              .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                              .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                              .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
+        }
+        return configuredChecksumCalculation;
+    }
+
+    private ResponseChecksumValidation resolveResponseChecksumValidation(SdkClientConfiguration config) {
+        ResponseChecksumValidation configuredChecksumValidation = config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION);
+        if (configuredChecksumValidation == null) {
+            configuredChecksumValidation = ResponseChecksumValidationResolver.create()
+                                                                             .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                             .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                             .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
+        }
+        return configuredChecksumValidation;
+    }
+
     protected static void validateClientOptions(SdkClientConfiguration c) {
-        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
-        Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                "The 'tokenProvider' must be configured in the client builder.");
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }

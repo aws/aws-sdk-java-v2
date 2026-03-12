@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +50,9 @@ public final class StaticTableMetadata implements TableMetadata {
 
     private StaticTableMetadata(Builder builder) {
         this.customMetadata = Collections.unmodifiableMap(builder.customMetadata);
-        this.indexByNameMap = Collections.unmodifiableMap(builder.indexByNameMap);
+        Map<String, IndexMetadata> indices = new LinkedHashMap<>();
+        builder.indexBuilders.forEach((key, value) -> indices.put(key, value.name(key).build()));
+        this.indexByNameMap = Collections.unmodifiableMap(indices);
         this.keyAttributes = Collections.unmodifiableMap(builder.keyAttributes);
     }
 
@@ -79,43 +83,68 @@ public final class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public String indexPartitionKey(String indexName) {
+    public List<String> indexPartitionKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
-
-        if (!index.partitionKey().isPresent()) {
-            if (!TableMetadata.primaryIndexName().equals(indexName) && index.sortKey().isPresent()) {
-                // Local secondary index, use primary partition key
-                return primaryPartitionKey();
+        
+        List<KeyAttributeMetadata> partitionKeys = index.partitionKeys();
+        if (partitionKeys.isEmpty()) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && !index.sortKeys().isEmpty()) {
+                // Local secondary index, use primary partition keys
+                return indexPartitionKeys(TableMetadata.primaryIndexName());
             }
 
-            throw new IllegalArgumentException("Attempt to execute an operation against an index that requires a "
-                                               + "partition key without assigning a partition key to that index. "
+            throw new IllegalArgumentException("Attempt to execute an operation against an index that requires "
+                                               + "partition keys without assigning partition keys to that index. "
                                                + "Index name: " + indexName);
         }
 
-        return index.partitionKey().get().name();
+        return partitionKeys.stream()
+                           .filter(Objects::nonNull)
+                           .map(KeyAttributeMetadata::name)
+                           .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<String> indexSortKey(String indexName) {
+    public List<String> indexSortKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
-
-        return index.sortKey().map(KeyAttributeMetadata::name);
+        
+        List<KeyAttributeMetadata> sortKeys = index.sortKeys();
+        return sortKeys.stream()
+                      .filter(Objects::nonNull)
+                      .map(KeyAttributeMetadata::name)
+                      .collect(Collectors.toList());
     }
 
     @Override
     public Collection<String> indexKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
-
-        if (index.sortKey().isPresent()) {
-            if (!TableMetadata.primaryIndexName().equals(indexName) && !index.partitionKey().isPresent()) {
-                // Local secondary index, use primary index for partition key
-                return Collections.unmodifiableList(Arrays.asList(primaryPartitionKey(), index.sortKey().get().name()));
+        List<String> allKeys = new ArrayList<>();
+        
+        List<KeyAttributeMetadata> partitionKeys = index.partitionKeys();
+        List<KeyAttributeMetadata> sortKeys = index.sortKeys();
+        
+        if (!sortKeys.isEmpty()) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && partitionKeys.isEmpty()) {
+                // Local secondary index, use primary index for partition keys
+                allKeys.addAll(indexPartitionKeys(TableMetadata.primaryIndexName()));
+            } else {
+                allKeys.addAll(partitionKeys.stream()
+                                           .filter(Objects::nonNull)
+                                           .map(KeyAttributeMetadata::name)
+                                           .collect(Collectors.toList()));
             }
-            return Collections.unmodifiableList(Arrays.asList(index.partitionKey().get().name(), index.sortKey().get().name()));
+            allKeys.addAll(sortKeys.stream()
+                                  .filter(Objects::nonNull)
+                                  .map(KeyAttributeMetadata::name)
+                                  .collect(Collectors.toList()));
         } else {
-            return Collections.singletonList(index.partitionKey().get().name());
+            allKeys.addAll(partitionKeys.stream()
+                                       .filter(Objects::nonNull)
+                                       .map(KeyAttributeMetadata::name)
+                                       .collect(Collectors.toList()));
         }
+        
+        return Collections.unmodifiableList(allKeys);
     }
 
     @Override
@@ -146,11 +175,18 @@ public final class StaticTableMetadata implements TableMetadata {
                 throw new IllegalArgumentException("Attempt to execute an operation that requires a primary index "
                                                    + "without defining any primary key attributes in the table "
                                                    + "metadata.");
-            } else {
-                throw new IllegalArgumentException("Attempt to execute an operation that requires a secondary index "
-                                                   + "without defining the index attributes in the table metadata. "
-                                                   + "Index name: " + indexName);
             }
+            throw new IllegalArgumentException("Attempt to execute an operation that requires a secondary index "
+                                               + "without defining the index attributes in the table metadata. "
+                                               + "Index name: " + indexName);
+        }
+
+        // Check if primary index is empty (no keys defined)
+        if (TableMetadata.primaryIndexName().equals(indexName) && 
+            index.partitionKeys().isEmpty() && index.sortKeys().isEmpty()) {
+            throw new IllegalArgumentException("Attempt to execute an operation that requires a primary index "
+                                               + "without defining any primary key attributes in the table "
+                                               + "metadata.");
         }
 
         return index;
@@ -201,10 +237,11 @@ public final class StaticTableMetadata implements TableMetadata {
     @NotThreadSafe
     public static class Builder {
         private final Map<String, Object> customMetadata = new LinkedHashMap<>();
-        private final Map<String, IndexMetadata> indexByNameMap = new LinkedHashMap<>();
+        private final Map<String, StaticIndexMetadata.Builder> indexBuilders = new LinkedHashMap<>();
         private final Map<String, KeyAttributeMetadata> keyAttributes = new LinkedHashMap<>();
 
         private Builder() {
+            indexBuilders.put(TableMetadata.primaryIndexName(), StaticIndexMetadata.builder());
         }
 
         /**
@@ -271,22 +308,28 @@ public final class StaticTableMetadata implements TableMetadata {
          * @param indexName the name of the index to associate the partition key with
          * @param attributeName the name of the attribute that represents the partition key
          * @param attributeValueType the {@link AttributeValueType} of the partition key
-         * @throws IllegalArgumentException if a partition key has already been defined for this index
+         * @param order the order of this key in composite keys (-1 for implicit, 0-3 for explicit)
          */
-        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
-            IndexMetadata index = indexByNameMap.get(indexName);
+        public Builder addIndexPartitionKey(String indexName, String attributeName, 
+                                           AttributeValueType attributeValueType, Order order) {
+            IndexValidator.validateKeyOrder(order);
+            StaticIndexMetadata.Builder indexBuilder = getOrCreateIndexBuilder(indexName);
+            IndexValidator.validateNoDuplicateKeys(indexBuilder.getPartitionKeys(), indexName, attributeName);
 
-            if (index != null && index.partitionKey().isPresent()) {
-                throw new IllegalArgumentException("Attempt to set an index partition key that conflicts with an "
-                                                   + "existing index partition key of the same name and index. Index "
-                                                   + "name: " + indexName + "; attribute name: " + attributeName);
-            }
-
-            KeyAttributeMetadata partitionKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType);
-            indexByNameMap.put(indexName,
-                               StaticIndexMetadata.builderFrom(index).name(indexName).partitionKey(partitionKey).build());
+            KeyAttributeMetadata partitionKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType, order);
+            indexBuilder.addPartitionKey(partitionKey);
             markAttributeAsKey(attributeName, attributeValueType);
             return this;
+        }
+        
+        /**
+         * Adds information about a partition key associated with a specific index (backward compatibility).
+         * @param indexName the name of the index to associate the partition key with
+         * @param attributeName the name of the attribute that represents the partition key
+         * @param attributeValueType the {@link AttributeValueType} of the partition key
+         */
+        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            return addIndexPartitionKey(indexName, attributeName, attributeValueType, Order.UNSPECIFIED);
         }
 
         /**
@@ -294,23 +337,35 @@ public final class StaticTableMetadata implements TableMetadata {
          * @param indexName the name of the index to associate the sort key with
          * @param attributeName the name of the attribute that represents the sort key
          * @param attributeValueType the {@link AttributeValueType} of the sort key
-         * @throws IllegalArgumentException if a sort key has already been defined for this index
+         * @param order the order of this key in composite keys (-1 for implicit, 0-3 for explicit)
          */
-        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
-            IndexMetadata index = indexByNameMap.get(indexName);
+        public Builder addIndexSortKey(String indexName, String attributeName, 
+                                      AttributeValueType attributeValueType, Order order) {
+            IndexValidator.validateKeyOrder(order);
+            StaticIndexMetadata.Builder indexBuilder = getOrCreateIndexBuilder(indexName);
+            IndexValidator.validateNoDuplicateKeys(indexBuilder.getSortKeys(), indexName, attributeName);
 
-            if (index != null && index.sortKey().isPresent()) {
-                throw new IllegalArgumentException("Attempt to set an index sort key that conflicts with an existing"
-                                                   + " index sort key of the same name and index. Index name: "
-                                                   + indexName + "; attribute name: " + attributeName);
-            }
-
-            KeyAttributeMetadata sortKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType);
-            indexByNameMap.put(indexName,
-                               StaticIndexMetadata.builderFrom(index).name(indexName).sortKey(sortKey).build());
+            KeyAttributeMetadata sortKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType, order);
+            indexBuilder.addSortKey(sortKey);
             markAttributeAsKey(attributeName, attributeValueType);
             return this;
         }
+        
+        /**
+         * Adds information about a non-composite sort key associated with a specific index.
+         * @param indexName the name of the index to associate the sort key with
+         * @param attributeName the name of the attribute that represents the sort key
+         * @param attributeValueType the {@link AttributeValueType} of the sort key
+         */
+        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            return addIndexSortKey(indexName, attributeName, attributeValueType, Order.UNSPECIFIED);
+        }
+        
+        private StaticIndexMetadata.Builder getOrCreateIndexBuilder(String indexName) {
+            return indexBuilders.computeIfAbsent(indexName, k -> StaticIndexMetadata.builder());
+        }
+        
+
 
         /**
          * Declares a 'key-like' attribute that is not an actual DynamoDB key. These pseudo-keys can then be recognized
@@ -341,14 +396,18 @@ public final class StaticTableMetadata implements TableMetadata {
         Builder mergeWith(TableMetadata other) {
             other.indices().forEach(
                 index -> {
-                    index.partitionKey().ifPresent(
-                        partitionKey -> addIndexPartitionKey(index.name(),
-                                                             partitionKey.name(),
-                                                             partitionKey.attributeValueType()));
-
-                    index.sortKey().ifPresent(
-                        sortKey -> addIndexSortKey(index.name(), sortKey.name(), sortKey.attributeValueType())
-                    );
+                    for (KeyAttributeMetadata partitionKey : index.partitionKeys()) {
+                        addIndexPartitionKey(index.name(),
+                                             partitionKey.name(),
+                                             partitionKey.attributeValueType(),
+                                             partitionKey.order());
+                    }
+                    for (KeyAttributeMetadata sortKey : index.sortKeys()) {
+                        addIndexSortKey(index.name(),
+                                        sortKey.name(),
+                                        sortKey.attributeValueType(),
+                                        sortKey.order());
+                    }
                 });
 
             other.customMetadata().forEach(this::mergeCustomMetaDataObject);

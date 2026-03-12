@@ -40,8 +40,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
- * @see ProfileCredentialsProvider
  * @see WebIdentityTokenFileCredentialsProvider
+ * @see ProfileCredentialsProvider
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
@@ -74,10 +74,15 @@ public final class DefaultCredentialsProvider
     }
 
     /**
-     * Returns the singleton instance of the {@link DefaultCredentialsProvider} using the default configuration. 
-     * Configuration can be specified by creating an instance using the {@link #builder()}. If you want to 
+     * Returns the singleton instance of the {@link DefaultCredentialsProvider} using the default configuration.
+     * Configuration can be specified by creating an instance using the {@link #builder()}. If you want to
      * create a new instance, use {@link #builder()} instead.
+     *
+     * @deprecated The create() method that returns a singleton instance which can cause issues if one client closes the provider
+     * while others are still using it. Use {@code builder().build()} to create independent instances, which is the
+     * safer approach and recommended for most use cases.
      */
+    @Deprecated
     public static DefaultCredentialsProvider create() {
         return DEFAULT_CREDENTIALS_PROVIDER;
     }

@@ -21,7 +21,11 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Encapsulates the Checksum information like Algorithm and header name for the checksum in header/trailer locations.
+ * @deprecated this class is deprecated and will not be updated. Use
+ * {@link software.amazon.awssdk.http.auth.spi.signer.SignerProperty} and
+ * {@link software.amazon.awssdk.http.auth.spi.signer.HttpSigner} in 'http-auth-spi' instead.
  */
+@Deprecated
 @SdkPublicApi
 public class SignerChecksumParams {
 

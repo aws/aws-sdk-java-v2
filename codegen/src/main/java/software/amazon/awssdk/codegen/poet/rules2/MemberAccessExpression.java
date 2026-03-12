@@ -25,11 +25,13 @@ public final class MemberAccessExpression implements RuleExpression {
     private final RuleType type;
     private final RuleExpression source;
     private final String name;
+    private final boolean directIndex;
 
     MemberAccessExpression(Builder builder) {
         this.type = builder.type;
         this.source = Validate.paramNotNull(builder.source, "source");
-        this.name = Validate.paramNotNull(builder.name, "name");
+        this.directIndex = builder.directIndex != null ? builder.directIndex : false;
+        this.name = this.directIndex ? builder.name : Validate.paramNotNull(builder.name, "name");
     }
 
     public static Builder builder() {
@@ -68,6 +70,10 @@ public final class MemberAccessExpression implements RuleExpression {
         return name;
     }
 
+    public boolean directIndex() {
+        return directIndex;
+    }
+
     public Builder toBuilder() {
         return new Builder(this);
     }
@@ -88,6 +94,9 @@ public final class MemberAccessExpression implements RuleExpression {
 
         MemberAccessExpression that = (MemberAccessExpression) o;
 
+        if (directIndex != that.directIndex) {
+            return false;
+        }
         if (!Objects.equals(type, that.type)) {
             return false;
         }
@@ -102,6 +111,7 @@ public final class MemberAccessExpression implements RuleExpression {
         int result = type != null ? type.hashCode() : 0;
         result = 31 * result + source.hashCode();
         result = 31 * result + name.hashCode();
+        result = 31 * result + Boolean.hashCode(directIndex);
         return result;
     }
 
@@ -109,6 +119,7 @@ public final class MemberAccessExpression implements RuleExpression {
         private RuleType type;
         private RuleExpression source;
         private String name;
+        private Boolean directIndex;
 
         private Builder() {
         }
@@ -117,6 +128,7 @@ public final class MemberAccessExpression implements RuleExpression {
             this.type = expr.type;
             this.source = expr.source;
             this.name = expr.name;
+            this.directIndex = expr.directIndex;
         }
 
         public Builder source(RuleExpression source) {
@@ -131,6 +143,11 @@ public final class MemberAccessExpression implements RuleExpression {
 
         public Builder type(RuleType type) {
             this.type = type;
+            return this;
+        }
+
+        public Builder directIndex(Boolean directIndex) {
+            this.directIndex = directIndex;
             return this;
         }
 

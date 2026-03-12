@@ -83,12 +83,13 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        PutObjectRequest request, String uploadId, CompletedPart[] parts) {
+        PutObjectRequest request, String uploadId, CompletedPart[] parts, long contentLength) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                       uploadId));
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest = toCompleteMultipartUploadRequest(request, uploadId,
-                                                                                                         parts);
+                                                                                                         parts, contentLength);
+
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 

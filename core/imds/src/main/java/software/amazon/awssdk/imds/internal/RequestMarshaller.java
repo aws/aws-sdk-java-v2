@@ -18,7 +18,7 @@ package software.amazon.awssdk.imds.internal;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -69,7 +69,7 @@ public class RequestMarshaller {
 
     private SdkHttpFullRequest.Builder defaulttHttpBuilder() {
         return SdkHttpFullRequest.builder()
-                             .putHeader(USER_AGENT, SdkUserAgent.create().userAgent())
+                             .putHeader(USER_AGENT, SystemUserAgent.getOrCreate().userAgentString())
                              .putHeader(ACCEPT, "*/*")
                              .putHeader(CONNECTION, "keep-alive");
     }

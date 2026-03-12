@@ -18,7 +18,7 @@
             "type": "feature",
             "category": "AWS SDK for Java V2",
             "contributor": "",
-            "description": "Source account Id from credentials to use in endpoint construction"
+            "description": "Support AWS-account-based endpoints for AWS services that choose to generate them. Note that endpoint URLs and host names can change when this feature is activated. See the documentation for details: https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html"
         },
         {
             "type": "feature",

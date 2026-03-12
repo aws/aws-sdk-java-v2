@@ -16,7 +16,13 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -26,11 +32,12 @@ import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.LocationInfo;
+import software.amazon.awssdk.services.s3.model.Tag;
 
 public class CreateBucketInterceptorTest {
 
     @Test
-    public void modifyRequest_DoesNotOverrideExistingLocationConstraint() {
+    void modifyRequest_DoesNotOverrideExistingLocationConstraint() {
         CreateBucketRequest request = CreateBucketRequest.builder()
                                                          .bucket("test-bucket")
                                                          .createBucketConfiguration(CreateBucketConfiguration.builder()
@@ -51,7 +58,7 @@ public class CreateBucketInterceptorTest {
     }
 
     @Test
-    public void modifyRequest_UpdatesLocationConstraint_When_NullCreateBucketConfiguration() {
+    void modifyRequest_UpdatesLocationConstraint_When_NullCreateBucketConfiguration() {
         CreateBucketRequest request = CreateBucketRequest.builder()
                                                          .bucket("test-bucket")
                                                          .build();
@@ -68,7 +75,7 @@ public class CreateBucketInterceptorTest {
     }
 
     @Test
-    public void modifyRequest_UpdatesLocationConstraint_When_NullLocationConstraint() {
+    void modifyRequest_UpdatesLocationConstraint_When_NullLocationConstraint() {
         CreateBucketRequest request = CreateBucketRequest.builder()
                                                          .bucket("test-bucket")
                                                          .createBucketConfiguration(CreateBucketConfiguration.builder()
@@ -87,7 +94,7 @@ public class CreateBucketInterceptorTest {
     }
 
     @Test
-    public void modifyRequest_DoesNotSetLocationConstraint_When_LocationPresent() {
+    void modifyRequest_DoesNotSetLocationConstraint_When_LocationPresent() {
         LocationInfo location = LocationInfo.builder().name("name").type("type").build();
         CreateBucketConfiguration configuration = CreateBucketConfiguration.builder().location(location).build();
 
@@ -112,7 +119,7 @@ public class CreateBucketInterceptorTest {
      * For us-east-1 there must not be a location constraint (or containing CreateBucketConfiguration) sent.
      */
     @Test
-    public void modifyRequest_UsEast1_UsesNullBucketConfiguration() {
+    void modifyRequest_UsEast1_UsesNullBucketConfiguration() {
         CreateBucketRequest request = CreateBucketRequest.builder()
                                                          .bucket("test-bucket")
                                                          .createBucketConfiguration(CreateBucketConfiguration.builder()
@@ -122,14 +129,14 @@ public class CreateBucketInterceptorTest {
         Context.ModifyRequest context = () -> request;
 
         ExecutionAttributes attributes = new ExecutionAttributes()
-                .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
+            .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
         assertThat(((CreateBucketRequest) modifiedRequest).createBucketConfiguration()).isNull();
     }
 
     @Test
-    public void modifyRequest__When_NullLocationConstraint() {
+    void modifyRequest__When_NullLocationConstraint() {
         CreateBucketRequest request = CreateBucketRequest.builder()
                                                          .bucket("test-bucket")
                                                          .createBucketConfiguration(CreateBucketConfiguration.builder()
@@ -142,8 +149,74 @@ public class CreateBucketInterceptorTest {
             .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_WEST_2);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
+        String locationConstraint =
+            ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
+
+    /*
+    Tags on create test cases:
+        Region     has tags      locationConstraint  Expected CreateBucketConfiguration body
+        ----------------------------------------------------------------
+        us-east-1 -    tags - no locationConstraint: Body with tags only
+        us-east-1 -    tags -    locationConstraint: Body with both (locationConstraint=EU)
+        us-east-1 - no tags - no locationConstraint: Empty body (null)
+        us-east-1 - no tags -    locationConstraint: Body with locationConstraint=EU
+
+        us-west-2 -    tags - no locationConstraint: Body with tags and locationConstraint=us-west-2
+        us-west-2 -    tags -    locationConstraint: Body with both (locationConstraint=EU)
+        us-west-2 - no tags - no locationConstraint: Body with locationConstraint=us-west-2
+        us-west-2 - no tags -    locationConstraint: Body with locationConstraint=EU
+     */
+    public static Stream<Arguments> createWithTagsTestParam() {
+        List<Tag> tags = Arrays.asList(
+            Tag.builder().key("foo-key").value("foo-value").build(),
+            Tag.builder().key("bar-key").value("bar-value").build()
+        );
+        return Stream.of(
+            Arguments.of(Region.US_EAST_1, tags, null,
+                         CreateBucketConfiguration.builder().tags(tags).build()),
+            Arguments.of(Region.US_EAST_1, tags, BucketLocationConstraint.EU,
+                         CreateBucketConfiguration.builder().tags(tags).locationConstraint(BucketLocationConstraint.EU).build()),
+            Arguments.of(Region.US_EAST_1, null, null, null),
+            Arguments.of(Region.US_EAST_1, null, BucketLocationConstraint.EU,
+                         CreateBucketConfiguration.builder().locationConstraint(BucketLocationConstraint.EU).build()),
+
+            Arguments.of(Region.US_WEST_2, tags, null,
+                         CreateBucketConfiguration.builder().tags(tags).locationConstraint(BucketLocationConstraint.US_WEST_2).build()),
+            Arguments.of(Region.US_WEST_2, tags, BucketLocationConstraint.EU,
+                         CreateBucketConfiguration.builder().tags(tags).locationConstraint(BucketLocationConstraint.EU).build()),
+            Arguments.of(Region.US_WEST_2, null, null,
+                         CreateBucketConfiguration.builder().locationConstraint(BucketLocationConstraint.US_WEST_2).build()),
+            Arguments.of(Region.US_WEST_2, null, BucketLocationConstraint.EU,
+                         CreateBucketConfiguration.builder().locationConstraint(BucketLocationConstraint.EU).build())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("createWithTagsTestParam")
+    void modifyRequest__CreateWithTags(Region region,
+                                       List<Tag> tags,
+                                       BucketLocationConstraint locationConstraint,
+                                       CreateBucketConfiguration expected) {
+        CreateBucketRequest request = CreateBucketRequest.builder()
+                                                         .bucket("test-bucket")
+                                                         .createBucketConfiguration(
+                                                             CreateBucketConfiguration.builder()
+                                                                                      .tags(tags)
+                                                                                      .locationConstraint(locationConstraint)
+                                                                                      .build())
+                                                         .build();
+
+        Context.ModifyRequest context = () -> request;
+        ExecutionAttributes attributes = new ExecutionAttributes().putAttribute(AwsExecutionAttribute.AWS_REGION, region);
+
+        CreateBucketRequest modifiedRequest =
+            (CreateBucketRequest) new CreateBucketInterceptor().modifyRequest(context, attributes);
+
+        assertThat(modifiedRequest.createBucketConfiguration()).isEqualTo(expected);
+
+    }
+
 }

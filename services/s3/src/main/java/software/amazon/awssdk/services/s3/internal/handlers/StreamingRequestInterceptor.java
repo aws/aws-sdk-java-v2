@@ -15,26 +15,75 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
- * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object request.
+ * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object or Upload Part
+ * request. This behavior can be disabled via {@link S3Configuration#expectContinueEnabled()}.
  */
 @SdkInternalApi
 //TODO: This should be generalized for all streaming requests
 public final class StreamingRequestInterceptor implements ExecutionInterceptor {
+
+    private static final String DECODED_CONTENT_LENGTH_HEADER = "x-amz-decoded-content-length";
+    private static final String CONTENT_LENGTH_HEADER = "Content-Length";
+
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        if (context.request() instanceof PutObjectRequest || context.request() instanceof UploadPartRequest) {
+        if (shouldAddExpectContinueHeader(context, executionAttributes)) {
             return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }
         return context.httpRequest();
+    }
+
+    private boolean shouldAddExpectContinueHeader(Context.ModifyHttpRequest context,
+                                                  ExecutionAttributes executionAttributes) {
+        // Only applies to streaming operations
+        if (!(context.request() instanceof PutObjectRequest
+              || context.request() instanceof UploadPartRequest)) {
+            return false;
+        }
+
+        if (isExpect100ContinueDisabled(executionAttributes)) {
+            return false;
+        }
+
+        return getContentLengthHeader(context.httpRequest())
+            .map(Long::parseLong)
+            .map(length -> length != 0L)
+            .orElse(true);
+    }
+
+    private boolean isExpect100ContinueDisabled(ExecutionAttributes executionAttributes) {
+        ServiceConfiguration serviceConfig = executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
+        if (serviceConfig instanceof S3Configuration) {
+            return !((S3Configuration) serviceConfig).expectContinueEnabled();
+        }
+        return false;
+    }
+
+    /**
+     * Retrieves content length header value.
+     * Checks x-amz-decoded-content-length first, then falls back to Content-Length.
+     *
+     * @param httpRequest the HTTP request
+     * @return Optional containing the content length header value, or empty if not present
+     */
+    private Optional<String> getContentLengthHeader(SdkHttpRequest httpRequest) {
+        Optional<String> decodedLength = httpRequest.firstMatchingHeader(DECODED_CONTENT_LENGTH_HEADER);
+        return decodedLength.isPresent()
+               ? decodedLength
+               : httpRequest.firstMatchingHeader(CONTENT_LENGTH_HEADER);
     }
 }

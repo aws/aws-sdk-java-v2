@@ -19,8 +19,6 @@ import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
 
 import java.io.IOException;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.exception.RetryableException;
@@ -30,6 +28,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception based
@@ -40,7 +39,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkInternalApi
 public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Response<OutputT>> {
-    private static final Logger log = LoggerFactory.getLogger(CombinedResponseHandler.class);
+    private static final Logger log = Logger.loggerFor(CombinedResponseHandler.class);
 
     private final HttpResponseHandler<OutputT> successResponseHandler;
     private final HttpResponseHandler<? extends SdkException> errorResponseHandler;
@@ -143,7 +142,7 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
         if (didRequestFail || !successResponseHandler.needsConnectionLeftOpen()) {
             Optional.ofNullable(httpResponse)
                     .flatMap(SdkHttpFullResponse::content) // If no content, no need to close
-                    .ifPresent(s -> IoUtils.closeQuietly(s, log));
+                    .ifPresent(s -> IoUtils.closeQuietlyV2(s, log));
         }
     }
 }

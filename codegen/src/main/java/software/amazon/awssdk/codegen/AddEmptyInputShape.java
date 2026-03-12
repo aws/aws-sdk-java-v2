@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.Utils.createInputShapeMarshaller;
+import static software.amazon.awssdk.codegen.internal.Utils.createSyntheticInputShapeMarshaller;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.HashMap;
@@ -75,7 +75,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
                 shape.setVariable(inputVariable);
 
                 shape.setMarshaller(
-                        createInputShapeMarshaller(serviceModel.getMetadata(), operation));
+                        createSyntheticInputShapeMarshaller(serviceModel.getMetadata(), operation));
 
                 emptyInputShapes.put(inputShape, shape);
 

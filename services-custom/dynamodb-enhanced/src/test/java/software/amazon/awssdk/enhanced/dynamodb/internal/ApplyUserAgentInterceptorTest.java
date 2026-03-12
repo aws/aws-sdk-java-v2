@@ -19,11 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 
 public class ApplyUserAgentInterceptorTest {
@@ -36,12 +39,9 @@ public class ApplyUserAgentInterceptorTest {
         SdkRequest sdkRequest = interceptor.modifyRequest(() -> getItemRequest, new ExecutionAttributes());
 
         RequestOverrideConfiguration requestOverrideConfiguration = sdkRequest.overrideConfiguration().get();
-        assertThat(requestOverrideConfiguration.apiNames()
-                                               .stream()
-                                               .filter(a -> a.name()
-                                                             .equals("hll") &&
-                                                            a.version().equals("ddb-enh")).findAny())
-            .isPresent();
+        Predicate<ApiName> apiNamePredicate = a -> a.name().equals("sdk-metrics") &&
+                                                   a.version().equals(BusinessMetricFeatureId.DDB_MAPPER.value());
+        assertThat(requestOverrideConfiguration.apiNames().stream().anyMatch(apiNamePredicate)).isTrue();
     }
 
     @Test

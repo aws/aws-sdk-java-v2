@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 import software.amazon.awssdk.codegen.model.service.Location;
 
 public class AuthorizerModel extends DocumentationModel {
@@ -62,5 +63,31 @@ public class AuthorizerModel extends DocumentationModel {
                 throw new IllegalArgumentException(String.format("Unhandled Location type for Auth Token Location '%s'",
                                                                  authTokenLocation));
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AuthorizerModel that = (AuthorizerModel) o;
+        return Objects.equals(name, that.name)
+               && Objects.equals(interfaceName, that.interfaceName)
+               && authTokenLocation == that.authTokenLocation
+               && Objects.equals(tokenName, that.tokenName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(interfaceName);
+        result = 31 * result + Objects.hashCode(authTokenLocation);
+        result = 31 * result + Objects.hashCode(tokenName);
+        return result;
     }
 }

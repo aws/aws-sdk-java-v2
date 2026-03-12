@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
@@ -30,14 +32,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
@@ -131,8 +133,11 @@ public class EnableTrailingChecksumInterceptorTest {
     private ExecutionAttributes createExecutionAttributes(boolean disableChecksumValidation, boolean useS3Express) {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         if (disableChecksumValidation) {
-            executionAttributes.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
-                                             S3Configuration.builder().checksumValidationEnabled(false).build());
+            executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_REQUIRED);
+            executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_REQUIRED);
+        } else {
+            executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_SUPPORTED);
+            executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_SUPPORTED);
         }
         if (useS3Express) {
             Endpoint s3ExpressEndpoint = Endpoint.builder().putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express").build();

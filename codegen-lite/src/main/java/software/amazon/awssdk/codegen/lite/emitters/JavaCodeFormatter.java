@@ -32,6 +32,7 @@ import org.eclipse.text.edits.TextEdit;
 public class JavaCodeFormatter implements CodeTransformer {
 
     private static final Map<String, Object> DEFAULT_FORMATTER_OPTIONS;
+    private static final Object lock = new Object();
 
     static {
         DEFAULT_FORMATTER_OPTIONS = DefaultCodeFormatterConstants.getEclipseDefaultSettings();
@@ -89,10 +90,16 @@ public class JavaCodeFormatter implements CodeTransformer {
 
     @Override
     public String apply(String contents) {
-        TextEdit edit = codeFormatter.format(
+        TextEdit edit;
+        // There is a race condition in the org.eclipse.jdt.internal.formatter.DefaultCodeFormatter in version 3.10.0.
+        // The static PROBING_SCANNER can have its state changed by multiple threads.
+        // Synchronize our usage of that class to ensure we don't hit this.
+        synchronized (lock) {
+            edit = codeFormatter.format(
                 CodeFormatter.K_COMPILATION_UNIT
                 | CodeFormatter.F_INCLUDE_COMMENTS, contents, 0,
                 contents.length(), 0, System.lineSeparator());
+        }
 
         if (edit == null) {
             // TODO log a fatal or warning here. Throwing an exception is causing the actual freemarker error to be lost

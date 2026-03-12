@@ -17,9 +17,11 @@ package software.amazon.awssdk.transfer.s3.internal.model;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
@@ -64,15 +66,18 @@ public final class DefaultFileDownload implements FileDownload {
         completionFuture.cancel(true);
 
         Instant s3objectLastModified = null;
+        String s3objectEtag = null;
         Long totalSizeInBytes = null;
         TransferProgressSnapshot snapshot = progress.snapshot();
 
         if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
             GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
             s3objectLastModified = getObjectResponse.lastModified();
+            s3objectEtag = getObjectResponse.eTag();
             totalSizeInBytes = getObjectResponse.contentLength();
         } else if (resumedDownload != null) {
             s3objectLastModified = resumedDownload.s3ObjectLastModified().orElse(null);
+            s3objectEtag = resumedDownload.s3ObjectEtag().orElse(null);
             totalSizeInBytes = resumedDownload.totalSizeInBytes().isPresent() ? resumedDownload.totalSizeInBytes().getAsLong()
                                                                               : null;
         }
@@ -81,12 +86,15 @@ public final class DefaultFileDownload implements FileDownload {
         File destination = request.destination().toFile();
         long length = destination.length();
         Instant fileLastModified = Instant.ofEpochMilli(destination.lastModified());
+        List<Integer> completedParts = MultipartDownloadUtils.completedParts(request.getObjectRequest());
         return ResumableFileDownload.builder()
                                     .downloadFileRequest(request)
                                     .s3ObjectLastModified(s3objectLastModified)
+                                    .s3ObjectEtag(s3objectEtag)
                                     .fileLastModified(fileLastModified)
                                     .bytesTransferred(length)
                                     .totalSizeInBytes(totalSizeInBytes)
+                                    .completedParts(completedParts)
                                     .build();
     }
 

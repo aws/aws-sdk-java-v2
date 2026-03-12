@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.model.service;
 
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 public class ServiceMetadata {
 
@@ -35,6 +36,8 @@ public class ServiceMetadata {
     private String xmlNamespace;
 
     private String protocol;
+
+    private List<String> protocols;
 
     private String jsonVersion;
 
@@ -103,12 +106,28 @@ public class ServiceMetadata {
         this.xmlNamespace = xmlNamespace;
     }
 
+    /**
+     * {@code protocol} superseded by {@code protocols} field, resolved in {@link ProtocolUtils#resolveProtocol(ServiceMetadata)}
+     */
+    @Deprecated
     public String getProtocol() {
         return protocol;
     }
 
+    /**
+     * {@code protocol} superseded by {@code protocols} field, resolved in {@link ProtocolUtils#resolveProtocol(ServiceMetadata)}
+     */
+    @Deprecated
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    public List<String> getProtocols() {
+        return protocols;
+    }
+
+    public void setProtocols(List<String> protocols) {
+        this.protocols = protocols;
     }
 
     public String getJsonVersion() {

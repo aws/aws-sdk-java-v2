@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,6 +12,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -90,6 +93,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BUILD_FIELD, SUPER_FIELD,
                                                                                                    TO_STRING_FIELD, EQUALS_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final List<String> build;
 
@@ -295,6 +300,20 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("Build", BUILD_FIELD);
+        map.put("super", SUPER_FIELD);
+        map.put("toString", TO_STRING_FIELD);
+        map.put("equals", EQUALS_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<ExistenceCheckNamingRequest, T> g) {
         return obj -> g.apply((ExistenceCheckNamingRequest) obj);
     }
@@ -303,6 +322,8 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
                                      CopyableBuilder<Builder, ExistenceCheckNamingRequest> {
         /**
@@ -488,6 +509,11 @@ public final class ExistenceCheckNamingRequest extends JsonProtocolTestsRequest 
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

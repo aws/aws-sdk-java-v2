@@ -17,7 +17,7 @@ final class BlobMapTypeCopier {
         if (blobMapTypeParam == null || blobMapTypeParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SdkBytes> modifiableMap = new LinkedHashMap<>();
+            Map<String, SdkBytes> modifiableMap = new LinkedHashMap<>(blobMapTypeParam.size());
             blobMapTypeParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });

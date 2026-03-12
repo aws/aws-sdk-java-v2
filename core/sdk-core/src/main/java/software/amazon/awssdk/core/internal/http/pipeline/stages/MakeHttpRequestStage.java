@@ -15,16 +15,24 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.metrics.BytesWrittenTrackingInputStream;
+import software.amazon.awssdk.core.internal.metrics.RequestBodyMetrics;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -32,7 +40,9 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -40,6 +50,7 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public class MakeHttpRequestStage
     implements RequestPipeline<SdkHttpFullRequest, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
+    private static final Logger LOG = Logger.loggerFor(MakeHttpRequestStage.class);
 
     private final SdkHttpClient sdkHttpClient;
 
@@ -65,6 +76,8 @@ public class MakeHttpRequestStage
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
 
+        request = wrapRequestContentStream(request, context);
+
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
                                               .request(request)
@@ -88,10 +101,50 @@ public class MakeHttpRequestStage
         return measuredExecute.left();
     }
 
+    private SdkHttpFullRequest wrapRequestContentStream(SdkHttpFullRequest request, RequestExecutionContext context) {
+        Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
+        if (!contentStreamProvider.isPresent()) {
+            return request;
+        }
+
+        RequestBodyMetrics metrics = context.executionAttributes()
+                                            .getAttribute(InternalCoreExecutionAttribute.REQUEST_BODY_METRICS);
+
+        ContentStreamProvider wrapped = () -> {
+            InputStream stream = contentStreamProvider.get().newStream();
+            stream = new BytesWrittenTrackingInputStream(stream, metrics);
+
+            Optional<Long> contentLength = contentLength(request);
+            if (!contentLength.isPresent()) {
+                LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
+                                              + "the amount of data sent to the service: %s", request));
+                return stream;
+            }
+
+            stream = new LengthAwareInputStream(stream, contentLength.get());
+            return stream;
+        };
+
+        return request.toBuilder().contentStreamProvider(wrapped).build();
+    }
+
     private static long updateMetricCollectionAttributes(RequestExecutionContext context) {
         long now = System.nanoTime();
         context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME,
                                                    now);
         return now;
+    }
+
+    private static Optional<Long> contentLength(SdkHttpFullRequest request) {
+        Optional<String> contentLengthHeader = request.firstMatchingHeader(CONTENT_LENGTH);
+
+        if (contentLengthHeader.isPresent()) {
+            try {
+                return Optional.of(Long.parseLong(contentLengthHeader.get()));
+            } catch (NumberFormatException e) {
+                LOG.warn(() -> "Unable to parse 'Content-Length' header. Treating it as non existent.");
+            }
+        }
+        return Optional.empty();
     }
 }

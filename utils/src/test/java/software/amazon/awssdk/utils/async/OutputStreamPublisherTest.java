@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
@@ -34,6 +39,7 @@ public class OutputStreamPublisherTest {
     private StoringSubscriber<ByteBuffer> storingSubscriber;
     private ByteBufferStoringSubscriber byteStoringSubscriber;
     private OutputStreamPublisher publisher;
+    private Random random = new Random(3470);
 
     @BeforeEach
     public void setup() {
@@ -58,6 +64,55 @@ public class OutputStreamPublisherTest {
         assertThat(storingSubscriber.poll()).hasValueSatisfying(e -> {
             assertThat(e.value().get()).isEqualTo((byte) 0);
         });
+    }
+
+    @Test
+    public void writeArrayReuseSameArray_shouldNotOverride() {
+        publisher.subscribe(storingSubscriber);
+        List<ByteBuffer> expectedBuffers = new ArrayList<>();
+
+        byte[] bytes = new byte[512];
+        for (int i = 0; i < 10; i++) {
+            random.nextBytes(bytes);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(512);
+            byteBuffer.put(bytes);
+            byteBuffer.flip();
+
+            expectedBuffers.add(byteBuffer);
+            publisher.write(bytes);
+        }
+
+        List<ByteBuffer> actualBuffers = new ArrayList<>();
+        while(storingSubscriber.peek().isPresent()) {
+            StoringSubscriber.Event<ByteBuffer> event = storingSubscriber.poll().get();
+            actualBuffers.add(event.value());
+        }
+        assertThat(actualBuffers).hasSameElementsAs(expectedBuffers);
+    }
+
+    @Test
+    public void writeArrayWithOffsetReuseSameArray_shouldNotOverride() {
+        publisher.subscribe(storingSubscriber);
+        int bytesToWrite = 32;
+        List<ByteBuffer> expectedBuffers = new ArrayList<>();
+
+        byte[] bytes = new byte[512];
+        for (int i = 0; i < 10; i++) {
+            random.nextBytes(bytes);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(bytesToWrite);
+            byteBuffer.put(bytes, 10, bytesToWrite);
+            byteBuffer.flip();
+
+            expectedBuffers.add(byteBuffer);
+            publisher.write(bytes, 10, bytesToWrite);
+        }
+
+        List<ByteBuffer> actualBuffers = new ArrayList<>();
+        while(storingSubscriber.peek().isPresent()) {
+            StoringSubscriber.Event<ByteBuffer> event = storingSubscriber.poll().get();
+            actualBuffers.add(event.value());
+        }
+        assertThat(actualBuffers).hasSameElementsAs(expectedBuffers);
     }
 
     @Test

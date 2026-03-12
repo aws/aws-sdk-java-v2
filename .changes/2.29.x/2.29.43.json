@@ -1,0 +1,18 @@
+{
+    "version": "2.29.43",
+    "date": "2024-12-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Restoring custom endpoint functionality for ECR"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry Public",
+            "contributor": "",
+            "description": "Restoring custom endpoint functionality for ECR Public"
+        }
+    ]
+}

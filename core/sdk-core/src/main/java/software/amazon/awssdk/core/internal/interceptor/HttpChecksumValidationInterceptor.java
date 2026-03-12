@@ -25,11 +25,10 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -43,6 +42,8 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * Interceptor to intercepts Sync and Async responses.
  * The Http Checksum is computed and validated with the one that is passed in the header of the response.
+ *
+ * // TODO: convert this to a stage (JAVA-7963)
  */
 @SdkInternalApi
 public final class HttpChecksumValidationInterceptor implements ExecutionInterceptor {
@@ -55,11 +56,15 @@ public final class HttpChecksumValidationInterceptor implements ExecutionInterce
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                            ExecutionAttributes executionAttributes) {
 
+        if (executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE) == ASYNC) {
+            return context.responseBody();
+        }
+
         ChecksumSpecs resolvedChecksumSpecs = HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         if (resolvedChecksumSpecs != null &&
-            isFlexibleChecksumValidationForResponse(executionAttributes, resolvedChecksumSpecs, SYNC)) {
+            isFlexibleChecksumValidationForResponse(executionAttributes, resolvedChecksumSpecs)) {
 
-            Pair<Algorithm, String> algorithmChecksumPair = getAlgorithmChecksumValuePair(
+            Pair<ChecksumAlgorithm, String> algorithmChecksumPair = getAlgorithmChecksumValuePair(
                 context.httpResponse(), resolvedChecksumSpecs);
             updateContextWithChecksumValidationStatus(executionAttributes, algorithmChecksumPair);
 
@@ -75,11 +80,16 @@ public final class HttpChecksumValidationInterceptor implements ExecutionInterce
     @Override
     public Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(Context.ModifyHttpResponse context,
                                                                           ExecutionAttributes executionAttributes) {
+
+        if (executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE) == SYNC) {
+            return context.responsePublisher();
+        }
+
         ChecksumSpecs resolvedChecksumSpecs = HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes);
         if (resolvedChecksumSpecs != null &&
-            isFlexibleChecksumValidationForResponse(executionAttributes, resolvedChecksumSpecs, ASYNC)) {
-            Pair<Algorithm, String> algorithmChecksumPair = getAlgorithmChecksumValuePair(context.httpResponse(),
-                                                                                          resolvedChecksumSpecs);
+            isFlexibleChecksumValidationForResponse(executionAttributes, resolvedChecksumSpecs)) {
+            Pair<ChecksumAlgorithm, String> algorithmChecksumPair = getAlgorithmChecksumValuePair(context.httpResponse(),
+                                                                                                  resolvedChecksumSpecs);
             updateContextWithChecksumValidationStatus(executionAttributes, algorithmChecksumPair);
             if (algorithmChecksumPair != null && context.responsePublisher().isPresent()) {
                 return Optional.of(new ChecksumValidatingPublisher(context.responsePublisher().get(),
@@ -91,24 +101,22 @@ public final class HttpChecksumValidationInterceptor implements ExecutionInterce
     }
 
     private void updateContextWithChecksumValidationStatus(ExecutionAttributes executionAttributes,
-                                                           Pair<Algorithm, String> algorithmChecksumPair) {
+                                                           Pair<ChecksumAlgorithm, String> algorithmChecksumPair) {
         if (algorithmChecksumPair == null || algorithmChecksumPair.left() == null) {
             executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                              ChecksumValidation.CHECKSUM_ALGORITHM_NOT_FOUND);
         } else {
             executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                              ChecksumValidation.VALIDATED);
-            executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM,
+            executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2,
                                              algorithmChecksumPair.left());
         }
     }
 
     private boolean isFlexibleChecksumValidationForResponse(ExecutionAttributes executionAttributes,
-                                                            ChecksumSpecs checksumSpecs,
-                                                            ClientType clientType) {
+                                                            ChecksumSpecs checksumSpecs) {
 
         return HttpChecksumUtils.isHttpChecksumValidationEnabled(checksumSpecs) &&
-               executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE).equals(clientType) &&
                !IS_FORCE_SKIPPED_VALIDATION.test(executionAttributes);
     }
 }

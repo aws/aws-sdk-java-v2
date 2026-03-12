@@ -74,6 +74,20 @@ public final class StaticAttributeTags {
     }
 
     /**
+     * Marks an attribute as being part of a composite partition key for a secondary index.
+     *
+     * @param indexName The name of the index this key participates in.
+     * @param order     the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondaryPartitionKey(String indexName, Order order) {
+        return new KeyAttributeTag((tableMetadataBuilder, attribute) ->
+                                       tableMetadataBuilder.addIndexPartitionKey(indexName,
+                                                                                 attribute.getAttributeName(),
+                                                                                 attribute.getAttributeValueType(),
+                                                                                 order));
+    }
+
+    /**
      * Marks an attribute as being a partition key for multiple secondary indices.
      * @param indexNames The names of the indices this key participates in.
      */
@@ -84,6 +98,22 @@ public final class StaticAttributeTags {
                     indexName -> tableMetadataBuilder.addIndexPartitionKey(indexName,
                                                                            attribute.getAttributeName(),
                                                                            attribute.getAttributeValueType())));
+    }
+
+    /**
+     * Marks an attribute as being part of a composite partition key for multiple secondary indices.
+     *
+     * @param indexNames The names of the indices this key participates in.
+     * @param order      the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondaryPartitionKey(Collection<String> indexNames, Order order) {
+        return new KeyAttributeTag(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexPartitionKey(indexName,
+                                                                           attribute.getAttributeName(),
+                                                                           attribute.getAttributeValueType(),
+                                                                           order)));
     }
 
     /**
@@ -98,6 +128,20 @@ public final class StaticAttributeTags {
     }
 
     /**
+     * Marks an attribute as being part of a composite sort key for a secondary index.
+     *
+     * @param indexName The name of the index this key participates in.
+     * @param order     the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondarySortKey(String indexName, Order order) {
+        return new KeyAttributeTag((tableMetadataBuilder, attribute) ->
+                                       tableMetadataBuilder.addIndexSortKey(indexName,
+                                                                            attribute.getAttributeName(),
+                                                                            attribute.getAttributeValueType(),
+                                                                            order));
+    }
+
+    /**
      * Marks an attribute as being a sort key for multiple secondary indices.
      * @param indexNames The names of the indices this key participates in.
      */
@@ -108,6 +152,22 @@ public final class StaticAttributeTags {
                     indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
                                                                       attribute.getAttributeName(),
                                                                       attribute.getAttributeValueType())));
+    }
+
+    /**
+     * Marks an attribute as being part of a composite sort key for multiple secondary indices.
+     *
+     * @param indexNames The names of the indices this key participates in.
+     * @param order      the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondarySortKey(Collection<String> indexNames, Order order) {
+        return new KeyAttributeTag(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
+                                                                      attribute.getAttributeName(),
+                                                                      attribute.getAttributeValueType(),
+                                                                      order)));
     }
 
     /**

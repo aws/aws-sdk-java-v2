@@ -1,0 +1,15 @@
+[
+  [
+    "org.apache.http.conn.HttpClientConnectionManager",
+    "org.apache.http.pool.ConnPoolControl",
+    "import software.amazon.awssdk.http.apache5.internal.conn.Wrapped"
+  ],
+  [
+    "org.apache.http.conn.HttpClientConnectionManager",
+    "import software.amazon.awssdk.http.apache5.internal.conn.Wrapped"
+  ],
+  [
+    "org.apache.http.conn.ConnectionRequest",
+    "import software.amazon.awssdk.http.apache5.internal.conn.Wrapped"
+  ]
+]

@@ -81,15 +81,16 @@ public class MockH2Server extends BaseMockServer {
         HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(https);
 
         // SSL Connection Factory
-        SslConnectionFactory ssl = new SslConnectionFactory(sslContextFactory, "h2");
+        SslConnectionFactory ssl;
         ServerConnector http2Connector;
 
         if (usingAlpn) {
-            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
-            alpn.setDefaultProtocol("h2");
+            ssl = new SslConnectionFactory(sslContextFactory, "alpn");
+            ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory("h2");
             // HTTP/2 Connector
             http2Connector = new ServerConnector(server, ssl, alpn, h2, new HttpConnectionFactory(https));
         } else {
+            ssl = new SslConnectionFactory(sslContextFactory, "h2");
             http2Connector = new ServerConnector(server, ssl, h2, new HttpConnectionFactory(https));
         }
 

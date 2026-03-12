@@ -212,7 +212,7 @@ public class ProxyTunnelInitHandlerTest {
 
         String uri = REMOTE_HOST.getHost() + ":" + REMOTE_HOST.getPort();
         HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
-                                                                 Unpooled.EMPTY_BUFFER, false);
+                                                                 Unpooled.EMPTY_BUFFER);
         expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
 
         assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
@@ -229,7 +229,7 @@ public class ProxyTunnelInitHandlerTest {
 
         String uri = REMOTE_HOST.getHost() + ":" + REMOTE_HOST.getPort();
         HttpRequest expectedRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
-                Unpooled.EMPTY_BUFFER, false);
+                Unpooled.EMPTY_BUFFER);
         expectedRequest.headers().add(HttpHeaderNames.HOST, uri);
 
         String authB64 = Base64.getEncoder().encodeToString(String.format("%s:%s", PROXY_USER, PROXY_PASSWORD).getBytes(CharsetUtil.UTF_8));

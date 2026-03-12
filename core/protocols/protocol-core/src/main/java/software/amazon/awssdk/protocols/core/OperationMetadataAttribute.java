@@ -30,4 +30,18 @@ public final class OperationMetadataAttribute<T> extends AttributeMap.Key<T> {
     public OperationMetadataAttribute(Class<T> valueType) {
         super(valueType);
     }
+
+    OperationMetadataAttribute(UnsafeValueType type) {
+        super(type);
+    }
+
+    /**
+     * Useful for parameterized types.
+     *
+     * E.g.,
+     * {@code OperationMetadataAttribute<Map<String, String>> KEY = forUnsafe(Map.class)}
+     */
+    public static <T> OperationMetadataAttribute<T> forUnsafe(Class<?> valueClass) {
+        return new OperationMetadataAttribute<>(new UnsafeValueType(valueClass));
+    }
 }

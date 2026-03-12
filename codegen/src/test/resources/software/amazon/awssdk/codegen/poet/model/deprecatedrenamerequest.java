@@ -2,13 +2,17 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -37,6 +41,8 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NEW_NAME_NO_DEPRECATION_FIELD,
                                                                                                    NEW_NAME_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String newNameNoDeprecation;
 
@@ -147,6 +153,18 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("OriginalNameNoDeprecation", NEW_NAME_NO_DEPRECATION_FIELD);
+        map.put("OriginalNameDeprecated", NEW_NAME_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<DeprecatedRenameRequest, T> g) {
         return obj -> g.apply((DeprecatedRenameRequest) obj);
     }
@@ -155,6 +173,8 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo, CopyableBuilder<Builder, DeprecatedRenameRequest> {
         /**
          * Sets the value of the NewNameNoDeprecation property for this object.
@@ -268,6 +288,11 @@ public final class DeprecatedRenameRequest extends JsonProtocolTestsRequest impl
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

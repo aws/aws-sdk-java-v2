@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -50,7 +51,8 @@ public class HttpTestUtils {
     public static SdkClientConfiguration testClientConfiguration() {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
-                                     .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                             ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost:8080")))
                                      .option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.defaultRetryStrategy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)

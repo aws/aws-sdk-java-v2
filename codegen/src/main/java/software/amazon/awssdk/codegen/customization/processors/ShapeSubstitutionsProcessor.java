@@ -31,6 +31,8 @@ import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This processor internally keeps track of all the structure members whose
@@ -53,6 +55,8 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
      */
     private final Map<String, Map<String, String>> substitutedListMemberReferences = new HashMap<>();
 
+    private final Map<String, Shape> newShapesToAdd = new HashMap<>();
+
     ShapeSubstitutionsProcessor(
             Map<String, ShapeSubstitution> shapeSubstitutions) {
         this.shapeSubstitutions = shapeSubstitutions;
@@ -66,12 +70,15 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
         }
 
         // Make sure the substituted shapes exist in the service model
-        for (String substitutedShape : shapeSubstitutions.keySet()) {
-            if (!serviceModel.getShapes().containsKey(substitutedShape)) {
+        for (Entry<String, ShapeSubstitution> substitutedShapeEntry : shapeSubstitutions.entrySet()) {
+            if (!serviceModel.getShapes().containsKey(substitutedShapeEntry.getKey())) {
                 throw new IllegalStateException(
-                        "shapeSubstitution customization found for shape "
-                        + substitutedShape + ", which does not exist in the service model.");
+                    "shapeSubstitution customization found for shape "
+                    + substitutedShapeEntry + ", which does not exist in the service model.");
             }
+            ShapeSubstitution shapeSubstitution = substitutedShapeEntry.getValue();
+            Validate.mutuallyExclusive("emitAsShape and emitAsType are mutually exclusive",
+                                       shapeSubstitution.getEmitAsShape(), shapeSubstitution.getEmitAsType());
         }
 
         // Make sure the substituted shapes are not referenced by any operation
@@ -84,8 +91,11 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
         for (Entry<String, Shape> entry : serviceModel.getShapes().entrySet()) {
             String shapeName = entry.getKey();
             Shape shape = entry.getValue();
-
             preprocessSubstituteShapeReferencesInShape(shapeName, shape, serviceModel);
+        }
+
+        if (!CollectionUtils.isNullOrEmpty(newShapesToAdd)) {
+            serviceModel.getShapes().putAll(newShapesToAdd);
         }
     }
 
@@ -209,8 +219,24 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
     private ShapeSubstitution substituteMemberShape(Member member) {
         ShapeSubstitution substitute = shapeSubstitutions.get(member.getShape());
 
-        if (substitute != null) {
-            member.setShape(substitute.getEmitAsShape());
+        if (substitute == null) {
+            return null;
+        }
+
+        String emitAsShape = substitute.getEmitAsShape();
+        if (emitAsShape != null) {
+            member.setShape(emitAsShape);
+            return substitute;
+        }
+
+        String emitAsType = substitute.getEmitAsType();
+
+        if (emitAsType != null) {
+            Shape newShapeForType = new Shape();
+            newShapeForType.setType(emitAsType);
+            String shapeName = "SdkCustomization_" + emitAsType;
+            member.setShape(shapeName);
+            newShapesToAdd.put(shapeName, newShapeForType);
             return substitute;
         }
 

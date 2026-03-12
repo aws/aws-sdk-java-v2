@@ -15,7 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
-import java.util.Optional;
+import static java.util.Comparator.comparingInt;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
@@ -24,13 +29,21 @@ import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
 @SdkInternalApi
 public class StaticIndexMetadata implements IndexMetadata {
     private final String name;
-    private final KeyAttributeMetadata partitionKey;
-    private final KeyAttributeMetadata sortKey;
+    private final List<KeyAttributeMetadata> partitionKeys;
+    private final List<KeyAttributeMetadata> sortKeys;
 
     private StaticIndexMetadata(Builder b) {
         this.name = b.name;
-        this.partitionKey = b.partitionKey;
-        this.sortKey = b.sortKey;
+        this.partitionKeys = Collections.unmodifiableList(
+            b.partitionKeys.stream()
+                           .sorted(comparingInt(key -> key.order().getIndex()))
+                           .collect(Collectors.toList())
+        );
+        this.sortKeys = Collections.unmodifiableList(
+            b.sortKeys.stream()
+                      .sorted(comparingInt(key -> key.order().getIndex()))
+                      .collect(Collectors.toList())
+        );
     }
 
     public static Builder builder() {
@@ -38,9 +51,12 @@ public class StaticIndexMetadata implements IndexMetadata {
     }
 
     public static Builder builderFrom(IndexMetadata index) {
-        return index == null ? builder() : builder().name(index.name())
-                                                    .partitionKey(index.partitionKey().orElse(null))
-                                                    .sortKey(index.sortKey().orElse(null));
+        if (index == null) {
+            return builder();
+        }
+        return builder().name(index.name())
+                        .partitionKeys(index.partitionKeys())
+                        .sortKeys(index.sortKeys());
     }
 
     @Override
@@ -49,20 +65,20 @@ public class StaticIndexMetadata implements IndexMetadata {
     }
 
     @Override
-    public Optional<KeyAttributeMetadata> partitionKey() {
-        return Optional.ofNullable(this.partitionKey);
+    public List<KeyAttributeMetadata> partitionKeys() {
+        return this.partitionKeys;
     }
 
     @Override
-    public Optional<KeyAttributeMetadata> sortKey() {
-        return Optional.ofNullable(this.sortKey);
+    public List<KeyAttributeMetadata> sortKeys() {
+        return this.sortKeys;
     }
 
     @NotThreadSafe
     public static class Builder {
         private String name;
-        private KeyAttributeMetadata partitionKey;
-        private KeyAttributeMetadata sortKey;
+        private List<KeyAttributeMetadata> partitionKeys = new ArrayList<>();
+        private List<KeyAttributeMetadata> sortKeys = new ArrayList<>();
 
         private Builder() {
         }
@@ -72,15 +88,51 @@ public class StaticIndexMetadata implements IndexMetadata {
             return this;
         }
 
+        public Builder partitionKeys(List<KeyAttributeMetadata> partitionKeys) {
+            this.partitionKeys = new ArrayList<>(partitionKeys);
+            return this;
+        }
+
+        public Builder sortKeys(List<KeyAttributeMetadata> sortKeys) {
+            this.sortKeys = new ArrayList<>(sortKeys);
+            return this;
+        }
+
+        public Builder addPartitionKey(KeyAttributeMetadata partitionKey) {
+            this.partitionKeys.add(partitionKey);
+            return this;
+        }
+
+        public Builder addSortKey(KeyAttributeMetadata sortKey) {
+            this.sortKeys.add(sortKey);
+            return this;
+        }
+
+        public List<KeyAttributeMetadata> getPartitionKeys() {
+            return new ArrayList<>(this.partitionKeys);
+        }
+
+        public List<KeyAttributeMetadata> getSortKeys() {
+            return new ArrayList<>(this.sortKeys);
+        }
+
+        // Backward compatibility methods
         public Builder partitionKey(KeyAttributeMetadata partitionKey) {
-            this.partitionKey = partitionKey;
+            this.partitionKeys = new ArrayList<>();
+            if (partitionKey != null) {
+                this.partitionKeys.add(partitionKey);
+            }
             return this;
         }
 
         public Builder sortKey(KeyAttributeMetadata sortKey) {
-            this.sortKey = sortKey;
+            this.sortKeys = new ArrayList<>();
+            if (sortKey != null) {
+                this.sortKeys.add(sortKey);
+            }
             return this;
         }
+
 
         public StaticIndexMetadata build() {
             return new StaticIndexMetadata(this);
@@ -101,17 +153,25 @@ public class StaticIndexMetadata implements IndexMetadata {
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
-        if (partitionKey != null ? !partitionKey.equals(that.partitionKey) : that.partitionKey != null) {
+        if (!partitionKeys.equals(that.partitionKeys)) {
             return false;
         }
-        return sortKey != null ? sortKey.equals(that.sortKey) : that.sortKey == null;
+        return sortKeys.equals(that.sortKeys);
     }
 
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (partitionKey != null ? partitionKey.hashCode() : 0);
-        result = 31 * result + (sortKey != null ? sortKey.hashCode() : 0);
+        result = listHashCode(partitionKeys, result);
+        result = listHashCode(sortKeys, result);
+        return result;
+    }
+
+    private static int listHashCode(List<KeyAttributeMetadata> list, int hash) {
+        int result = hash;
+        for (KeyAttributeMetadata key : list) {
+            result = 31 * result + key.hashCode();
+        }
         return result;
     }
 }

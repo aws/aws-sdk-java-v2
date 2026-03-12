@@ -1,0 +1,138 @@
+{
+    "version": "2.29.20",
+    "date": "2024-11-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Pricing Calculator",
+            "contributor": "",
+            "description": "Initial release of the AWS Billing and Cost Management Pricing Calculator API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Chatbot",
+            "contributor": "",
+            "description": "Adds support for programmatic management of custom actions and aliases which can be associated with channel configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "AWS CodePipeline V2 type pipelines now support ECRBuildAndPublish and InspectorScan actions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release adds the Impact field(contains Contribution field) to the GetAnomalies API response under RootCause"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add ProvisionedPollerConfig to Lambda event-source-mapping API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Add support for variables and JSONata in TestState, GetExecutionHistory, DescribeStateMachine, and DescribeStateMachineForExecution"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "InvokeInlineAgent API release to help invoke runtime agents without any dependency on preconfigured agents."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Add support for users to sign up and sign in without passwords, using email and SMS OTPs and Passkeys. Add support for Passkeys based on WebAuthn. Add support for enhanced branding customization for hosted authentication pages with Amazon Cognito Managed Login. Add feature tiers with new pricing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Service Feature: Add APIs for Amazon Connect Email Channel"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Advanced Scaling in Amazon EMR Managed Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Add 4 new APIs to support new Export features, allowing Parquet and CSV formats. Add new arguments in Import APIs to support Parquet import. Add a new query \"neptune.read\" to run algorithms without loading data into database"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "This release adds support for resource policy based cross account S3 access to sequence store read sets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release includes: Update APIs to support Image, Layer Map, font customization, and Plugin Visual. Add Identity center related information in ListNamsespace API. Update API for restrictedFolder support in topics and add API for SearchTopics, Describe/Update DashboardsQA Configration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds APIs for new features for SageMaker endpoint to scale down to zero instances, native support for multi-adapter inference, and endpoint scaling improvements."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release adds support for starting email contacts in your Amazon Connect instance as an email receiving action."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "ArchivePolicy attribute added to Archive and Replay feature"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "While integrating WSP-DCV rebrand, a few mentions were erroneously renamed from WSP to DCV. This release reverts those mentions back to WSP."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Now, Amazon EC2 Auto Scaling customers can enable target tracking policies to take quicker scaling decisions, enhancing their application performance and EC2 utilization. To get started, specify target tracking to monitor a metric that is available on Amazon CloudWatch at seconds-level interval."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "This release adds support for advertising trusted CA certificate names in associated trust stores."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Extend inspector2 service model to include ServiceQuotaExceededException."
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Added new \"DeliverToQBusiness\" rule action to MailManager RulesSet for ingesting email data into Amazon Q Business customer applications"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

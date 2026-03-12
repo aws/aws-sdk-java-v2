@@ -1,0 +1,30 @@
+{
+    "version": "2.31.28",
+    "date": "2025-04-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Add support for custom instance type for reserved capacity fleets"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "Documentation-only update for CreateView option correction"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Add support to roll back an In_Progress ECS Service Deployment"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -29,4 +29,9 @@ public final class RequiredTrait implements Trait {
     public static RequiredTrait create() {
         return new RequiredTrait();
     }
+
+    @Override
+    public TraitType type() {
+        return TraitType.REQUIRED_TRAIT;
+    }
 }

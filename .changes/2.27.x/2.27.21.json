@@ -1,0 +1,18 @@
+{
+    "version": "2.27.21",
+    "date": "2024-09-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Adds UpdateLibraryItemMetadata api to change status of app for admin verification feature and returns isVerified field in any api returning the app or library item."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

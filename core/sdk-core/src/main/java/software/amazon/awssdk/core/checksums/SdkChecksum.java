@@ -22,7 +22,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 /**
  * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that
  * are not provided by the JDK.
+ * @deprecated this class is deprecated and will not be updated.
  */
+@Deprecated
 @SdkPublicApi
 public interface SdkChecksum extends Checksum {
 
@@ -40,8 +42,6 @@ public interface SdkChecksum extends Checksum {
      * @param readLimit the maximum limit of bytes that can be read before the mark position becomes invalid.
      */
     void mark(int readLimit);
-
-
 
     /**
      * Gets the Checksum based on the required Algorithm.

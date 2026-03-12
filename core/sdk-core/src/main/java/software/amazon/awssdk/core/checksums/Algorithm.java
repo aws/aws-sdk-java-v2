@@ -22,12 +22,16 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Enum that indicates all the checksums supported by Flexible checksums in a Service Request/Response Header.
+ *
+ * @deprecated this class is deprecated and will not be updated.
  */
+@Deprecated
 @SdkPublicApi
 public enum Algorithm {
 
     CRC32C("crc32c", 8),
     CRC32("crc32", 8),
+    CRC64NVME("crc64nvme", 12),
     SHA256("sha256", 44),
     SHA1("sha1", 28),
     ;

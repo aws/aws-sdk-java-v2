@@ -63,12 +63,19 @@ public interface MarshallingType<T> {
 
     MarshallingType<Short> SHORT = newType(Short.class);
 
+    MarshallingType<Byte> BYTE = newType(Byte.class);
+
     MarshallingType<Document> DOCUMENT = newType(Document.class);
 
     Class<? super T> getTargetClass();
 
+    default MarshallingKnownType getKnownType() {
+        return null;
+    }
+
     static <T> MarshallingType<T> newType(Class<? super T> clzz) {
         return new MarshallingType<T>() {
+            private final MarshallingKnownType knownType = MarshallingKnownType.from(clzz);
 
             @Override
             public Class<? super T> getTargetClass() {
@@ -76,11 +83,14 @@ public interface MarshallingType<T> {
             }
 
             @Override
+            public MarshallingKnownType getKnownType() {
+                return knownType;
+            }
+
+            @Override
             public String toString() {
                 return clzz.getSimpleName();
             }
         };
-
     }
-
 }

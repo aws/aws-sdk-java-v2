@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 public class SqsNettyAsyncStabilityTest extends SqsBaseStabilityTest {
     private static String queueName;

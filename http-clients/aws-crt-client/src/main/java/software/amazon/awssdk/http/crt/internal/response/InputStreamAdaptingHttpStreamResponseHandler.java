@@ -147,6 +147,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
+        responseHandlerHelper.releaseConnection(stream);
     }
 }

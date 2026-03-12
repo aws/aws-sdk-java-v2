@@ -1,0 +1,78 @@
+{
+    "version": "2.31.12",
+    "date": "2025-03-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "With this release you can use a new field to specify the search term match type. Search term match types currently support fuzzy and contains matching."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "Add support for Marketplace Entitlement Service dual-stack endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Enabling Asset Level Capacity Management feature, which allows customers to create a Capacity Task for a single Asset on their active Outpost."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Amazon S3 adds support for S3 Access Points for directory buckets in AWS Dedicated Local Zones"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Add WebAppEndpointPolicy support for WebApps"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Add Prompt Caching support to Converse and ConverseStream APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Use String instead of Select enum for ProjectionExpression to support future values"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Release VPC Route Server, a new feature allowing dynamic routing in VPCs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Add support for updating RemoteNetworkConfig for hybrid nodes on EKS UpdateClusterConfig API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Add dual-stack support to global endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Amazon S3 adds support for S3 Access Points for directory buckets in AWS Dedicated Local Zones"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

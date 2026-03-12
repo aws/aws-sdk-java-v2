@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 
 @SdkProtectedApi
 public final class S3MultipartExecutionAttribute extends SdkExecutionAttribute {
@@ -26,4 +27,14 @@ public final class S3MultipartExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<PauseObservable> PAUSE_OBSERVABLE = new ExecutionAttribute<>("PauseObservable");
     public static final ExecutionAttribute<PublisherListener<Long>> JAVA_PROGRESS_LISTENER =
         new ExecutionAttribute<>("JavaProgressListener");
+    public static final ExecutionAttribute<MultipartDownloadResumeContext> MULTIPART_DOWNLOAD_RESUME_CONTEXT =
+        new ExecutionAttribute<>("MultipartDownloadResumeContext");
+
+    /**
+     * When true, indicates that the request body wrapper does not report progress (e.g., for in-memory bodies),
+     * so {@code uploadInOneChunk} should report progress after the server responds. When false or absent,
+     * the wrapper handles progress reporting and {@code uploadInOneChunk} should not report to avoid double-counting.
+     */
+    public static final ExecutionAttribute<Boolean> REPORT_PROGRESS_IN_SINGLE_CHUNK =
+        new ExecutionAttribute<>("ReportProgressInSingleChunk");
 }

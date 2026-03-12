@@ -5,7 +5,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -18,8 +17,9 @@ public final class QueryRequestSetEndpointInterceptor implements ExecutionInterc
         if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
             return context.httpRequest();
         }
-        Endpoint endpoint = (Endpoint) executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
+        Endpoint endpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
         return AwsEndpointProviderUtils.setUri(context.httpRequest(),
-                                               executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT), endpoint.url());
+                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER).clientEndpoint(),
+                                               endpoint.url());
     }
 }

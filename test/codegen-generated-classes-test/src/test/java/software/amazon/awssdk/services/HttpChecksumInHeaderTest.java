@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
 /**
  * Verify that the "HttpChecksum" C2J trait results in a valid checksum of the payload being included in the HTTP
- * request.
+ * request for different protocols.
  */
 public class HttpChecksumInHeaderTest {
 
@@ -119,8 +119,7 @@ public class HttpChecksumInHeaderTest {
                                                           .checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build());
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form "<?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("FB/utBbwFLbIIt5ul3Ojuy5dKgU=");
     }
 
     @Test
@@ -129,8 +128,7 @@ public class HttpChecksumInHeaderTest {
 
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form "<?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
     }
 
     @Test
@@ -148,8 +146,7 @@ public class HttpChecksumInHeaderTest {
 
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form <?xml version="1.0" encoding="UTF-8"?><stringMember>Hello world</stringMember>"
-        // TODO(sra-identity-and-auth): Uncomment once sra is set to true
-        // assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
+        assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
     }
 
     private SdkHttpRequest getSyncRequest() {

@@ -16,6 +16,7 @@
 
 package software.amazon.awssdk.services.s3;
 
+import static java.util.Base64.getEncoder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.CHECKSUM;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
@@ -25,68 +26,72 @@ import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Integration tests for {@code PutObject}.
  */
 public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
-    private static final String ASYNC_KEY = "async-key";
-    private static final String SYNC_KEY = "sync-key";
-    private static final String TEXT_CONTENT_TYPE = "text/plain";
+    private static final String ASYNC_KEY = "async-key" ;
+    private static final String SYNC_KEY = "sync-key" ;
+    private static final String TEXT_CONTENT_TYPE = "text/plain" ;
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
+    private static final Random RANDOM = new Random(3470);
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test
-    public void putObject_withUserCalculatedChecksum_doesNotPerformMd5Validation() throws NoSuchAlgorithmException {
-        CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
-        S3Client s3Client = s3ClientBuilder()
-            .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
-            .build();
-
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(CONTENT);
-        byte[] checksum = md.digest();
-        String checksumVal = Base64.getEncoder().encodeToString(checksum);
-
-        PutObjectRequest request = PutObjectRequest.builder()
-                                                   .bucket(BUCKET)
-                                                   .key(SYNC_KEY)
-                                                   .checksumSHA1(checksumVal)
-                                                   .build();
-
-        s3Client.putObject(request, RequestBody.fromString("Hello"));
-        assertThat(capturingInterceptor.isMd5Enabled).isFalse();
+    public static Stream<Arguments> s3Clients() {
+        return Stream.of(
+            Arguments.of(s3AsyncClientBuilder().requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED).build()),
+            Arguments.of(s3AsyncClientBuilder().build()),
+            Arguments.of(crtClientBuilder().build()));
     }
 
     @Test
@@ -122,6 +127,88 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
         assertThat(response.contentType()).isEqualTo(TEXT_CONTENT_TYPE);
     }
 
+    @ParameterizedTest
+    @MethodSource("s3Clients")
+    public void blockingOutputStreamAsyncRequestBody_writeArrayWithOffset_shouldSucceed(S3AsyncClient client) throws Exception {
+        BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(320L);
+
+        PutObjectRequest.Builder request = PutObjectRequest.builder()
+                                                           .bucket(BUCKET)
+                                                           .key(ASYNC_KEY);
+        CompletableFuture<PutObjectResponse> responseFuture = client.putObject(request.build(), body);
+        MessageDigest expectedDigest = writeArrayWithOffset(body, 32);
+        responseFuture.join();
+
+        ResponseInputStream<GetObjectResponse> responseInputStream =
+            client.getObject(b -> b.bucket(BUCKET).key(ASYNC_KEY),
+                              AsyncResponseTransformer.toBlockingInputStream()).join();
+
+        DigestInputStream digestInputStream = new DigestInputStream(
+            responseInputStream, MessageDigest.getInstance("SHA-256"));
+        IoUtils.drainInputStream(digestInputStream);
+        MessageDigest actual = digestInputStream.getMessageDigest();
+
+        assertThat(getEncoder().encodeToString(actual.digest()))
+            .isEqualTo(getEncoder().encodeToString(expectedDigest.digest()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("s3Clients")
+    public void blockingOutputStreamAsyncRequestBody_writeArray_shouldSucceed(S3AsyncClient client) throws Exception {
+        BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(320L);
+
+        PutObjectRequest.Builder request = PutObjectRequest.builder()
+                                                           .bucket(BUCKET)
+                                                           .key(ASYNC_KEY);
+        CompletableFuture<PutObjectResponse> responseFuture = client.putObject(request.build(), body);
+        MessageDigest expectedDigest = writeArray(body);
+        responseFuture.join();
+
+        ResponseInputStream<GetObjectResponse> responseInputStream =
+            client.getObject(b -> b.bucket(BUCKET).key(ASYNC_KEY),
+                              AsyncResponseTransformer.toBlockingInputStream()).join();
+
+        DigestInputStream digestInputStream = new DigestInputStream(
+            responseInputStream, MessageDigest.getInstance("SHA-256"));
+        IoUtils.drainInputStream(digestInputStream);
+        MessageDigest actual = digestInputStream.getMessageDigest();
+
+        assertThat(getEncoder().encodeToString(actual.digest()))
+            .isEqualTo(getEncoder().encodeToString(expectedDigest.digest()));
+    }
+
+    private static MessageDigest writeArray(BlockingOutputStreamAsyncRequestBody body)
+        throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (OutputStream outputStream = body.outputStream()) {
+            byte[] buffer = new byte[32];
+            for (int i = 0; i < 10; i++) {
+                RANDOM.nextBytes(buffer);
+                digest.update(buffer);
+                outputStream.write(buffer);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return digest;
+    }
+
+    private static MessageDigest writeArrayWithOffset(BlockingOutputStreamAsyncRequestBody body, int chunkSize)
+        throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (OutputStream outputStream = body.outputStream()) {
+            byte[] buffer = new byte[1024];
+            for (int i = 0; i < 10; i++) {
+                RANDOM.nextBytes(buffer);
+                digest.update(buffer, 10, chunkSize);
+                outputStream.write(buffer, 10, chunkSize);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return digest;
+    }
+
     @Test
     public void s3Client_usingHttpAndDisableChunkedEncoding() {
         try (S3Client s3Client = s3ClientBuilder()
@@ -133,6 +220,61 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
             assertThat(s3Client.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY), RequestBody.fromBytes(
                 "helloworld".getBytes()))).isNotNull();
         }
+    }
+
+    @Test
+    public void putObject_syncClientWithRequestBody_reportsWriteThroughputMetric() {
+        AtomicReference<MetricCollection> metricsRef = new AtomicReference<>();
+        MetricPublisher capturingPublisher = createCapturingPublisher(metricsRef);
+
+        try (S3Client client = s3ClientBuilder()
+            .overrideConfiguration(c -> c.addMetricPublisher(capturingPublisher))
+            .build()) {
+
+            client.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY),
+                             RequestBody.fromString(RandomStringUtils.randomAlphanumeric(1024)));
+        }
+
+        assertWriteThroughputReported(metricsRef.get());
+    }
+
+    @Test
+    public void putObject_asyncClientWithRequestBody_reportsWriteThroughputMetric() {
+        AtomicReference<MetricCollection> metricsRef = new AtomicReference<>();
+        MetricPublisher capturingPublisher = createCapturingPublisher(metricsRef);
+
+        try (S3AsyncClient client = s3AsyncClientBuilder()
+            .overrideConfiguration(c -> c.addMetricPublisher(capturingPublisher))
+            .build()) {
+
+            client.putObject(b -> b.bucket(BUCKET).key(ASYNC_KEY),
+                             AsyncRequestBody.fromString(RandomStringUtils.randomAlphanumeric(1024))).join();
+        }
+
+        assertWriteThroughputReported(metricsRef.get());
+    }
+
+    private MetricPublisher createCapturingPublisher(AtomicReference<MetricCollection> metricsRef) {
+        return new MetricPublisher() {
+            @Override
+            public void publish(MetricCollection metricCollection) {
+                metricsRef.set(metricCollection);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+    }
+
+    private void assertWriteThroughputReported(MetricCollection metrics) {
+        assertThat(metrics).isNotNull();
+        assertThat(metrics.children()).isNotEmpty();
+
+        MetricCollection attemptMetrics = metrics.children().get(0);
+        List<Double> writeThroughput = attemptMetrics.metricValues(CoreMetric.WRITE_THROUGHPUT);
+        assertThat(writeThroughput).hasSize(1);
+        assertThat(writeThroughput.get(0)).isGreaterThan(0);
     }
 
     private static class TestContentProvider implements ContentStreamProvider {

@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -40,6 +41,44 @@ import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 class ChunkBufferTest {
+
+    @Test
+    void totalBytesSmallerThanInput_OneChunk_shouldLimitLastChunkToTotalBytes() {
+        int chunkSize = 1024;
+        int totalBytes = 16;
+        int inputBufferSize = 64;
+        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
+                                             .totalBytes(totalBytes)
+                                             .bufferSize(chunkSize)
+                                             .build();
+
+        String inputString = RandomStringUtils.randomAscii(inputBufferSize);
+        ByteBuffer inputBuffer = ByteBuffer.wrap(inputString.getBytes());
+        List<ByteBuffer> buffers = (List<ByteBuffer>) chunkBuffer.split(inputBuffer);
+        assertThat(buffers).hasSize(1);
+        ByteBuffer buff = buffers.get(0);
+        assertThat(buff).isEqualByComparingTo(ByteBuffer.wrap(inputString.substring(0, totalBytes).getBytes()));
+    }
+
+    @Test
+    void totalBytesLessThanInput_MoreThanOneChunk_shouldLimitLastChunkToTotalBytes() {
+        int chunkSize = 20;
+        int totalBytes = 50;
+        int inputBufferSize = 70;
+
+        // we should split the input into 20-20-10
+        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
+                                             .bufferSize(chunkSize)
+                                             .totalBytes(totalBytes)
+                                             .build();
+        String inputString = RandomStringUtils.randomAscii(inputBufferSize);
+        ByteBuffer inputBuffer = ByteBuffer.wrap(inputString.getBytes());
+        List<ByteBuffer> buffers = (List<ByteBuffer>) chunkBuffer.split(inputBuffer);
+        assertThat(buffers).hasSize(3);
+        assertThat(buffers.get(0).remaining()).isEqualTo(20);
+        assertThat(buffers.get(1).remaining()).isEqualTo(20);
+        assertThat(buffers.get(2).remaining()).isEqualTo(10);
+    }
 
     @ParameterizedTest
     @ValueSource(ints = {1, 6, 10, 23, 25})
@@ -280,5 +319,34 @@ class ChunkBufferTest {
         assertThat(remainderBytes.get()).isEqualTo((totalBytes * threads) % bufferSize);
         assertThat(remainderBytesBuffers.get()).isOne();
         assertThat(otherSizeBuffers.get()).isZero();
+    }
+
+    @Test
+    void doesNotOverflow_whenInputBufferRemainingBytesPlusPositionExceedTotalBytes() {
+        int inputBufferSize = 2000;
+        int totalBytes = 500;
+        int chunkSize = 128;
+        int troublePosition = 127;
+
+        ChunkBuffer chunkBuffer = ChunkBuffer.builder()
+                                             .totalBytes(totalBytes)
+                                             .bufferSize(chunkSize)
+                                             .build();
+
+        String inputString = RandomStringUtils.randomAscii(inputBufferSize);
+        ByteBuffer inputBuffer = ByteBuffer.wrap(inputString.getBytes());
+        inputBuffer.position(troublePosition);
+        Iterable<ByteBuffer> buffers = chunkBuffer.split(inputBuffer);
+
+        AtomicInteger total = new AtomicInteger(0);
+        buffers.forEach(b -> total.addAndGet(b.remaining()));
+        assertThat(total.get()).isEqualTo(totalBytes);
+
+        ByteBuffer actualFullBuffer = ByteBuffer.allocate(totalBytes);
+        buffers.forEach(actualFullBuffer::put);
+        actualFullBuffer.position(0);
+        assertThat(actualFullBuffer).isEqualByComparingTo(
+            ByteBuffer.wrap(inputString.substring(troublePosition, troublePosition + totalBytes).getBytes())
+        );
     }
 }

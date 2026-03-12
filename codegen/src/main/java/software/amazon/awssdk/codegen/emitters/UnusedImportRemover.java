@@ -26,7 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UnusedImportRemover implements CodeTransformer {
-    private static Pattern IMPORT_PATTERN = Pattern.compile("import(?:\\s+)(?:static\\s+)?(.*)(?:\\s*);");
+    private static final Pattern IMPORT_PATTERN = Pattern.compile("^import(?:\\s+)(?:static\\s+)?(.*)(?:\\s*);",
+                                                            Pattern.MULTILINE);
 
     @Override
     public String apply(String content) {
@@ -52,7 +53,8 @@ public class UnusedImportRemover implements CodeTransformer {
     }
 
     private String removeAllImports(String content) {
-        return content.replaceAll(IMPORT_PATTERN.pattern(), "");
+        Matcher matcher = IMPORT_PATTERN.matcher(content);
+        return matcher.replaceAll("");
     }
 
     private Predicate<String> isUnused(String content) {

@@ -1,0 +1,18 @@
+{
+    "version": "2.35.2",
+    "date": "2025-10-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Proton",
+            "contributor": "",
+            "description": "Deprecating APIs in AWS Proton namespace."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

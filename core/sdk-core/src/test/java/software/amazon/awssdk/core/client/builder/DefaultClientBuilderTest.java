@@ -30,7 +30,6 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
@@ -45,8 +44,12 @@ import com.google.common.collect.ImmutableSet;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,11 +63,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -81,6 +87,8 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -99,6 +107,9 @@ public class DefaultClientBuilderTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
     private static final URI ENDPOINT = URI.create("https://example.com");
     private static final NoOpSigner TEST_SIGNER = new NoOpSigner();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private SdkHttpClient.Builder defaultHttpClientFactory;
@@ -285,7 +296,6 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(PROFILE_NAME)).isEqualTo(profileName);
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
-        assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
 
         // Ensure that the SDK won't close the scheduled executor service we provided.
         config.close();
@@ -306,7 +316,8 @@ public class DefaultClientBuilderTest {
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().endpointOverride(ENDPOINT).build();
 
-        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .isEqualTo(ENDPOINT);
     }
 
     @Test
@@ -437,6 +448,13 @@ public class DefaultClientBuilderTest {
         return new TestAsyncClientBuilder().overrideConfiguration(overrideConfig);
     }
 
+    private void writeTestCredentialsFile(File file, String accessKeyId, String secretAccessKey)
+            throws IOException {
+        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
+                                        accessKeyId, secretAccessKey);
+        Files.write(file.toPath(), contents.getBytes(StandardCharsets.UTF_8));
+    }
+
     private static class TestClient {
         private final SdkClientConfiguration clientConfiguration;
 
@@ -482,7 +500,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override
@@ -513,7 +532,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override

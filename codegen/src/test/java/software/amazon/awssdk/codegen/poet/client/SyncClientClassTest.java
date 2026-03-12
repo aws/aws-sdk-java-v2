@@ -17,11 +17,15 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithCustomContextParamsModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
@@ -33,20 +37,14 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 public class SyncClientClassTest {
     @Test
     public void syncClientClassRestJson() {
-        SyncClientClass syncClientClass = createSyncClientClass(restJsonServiceModels(), false);
-        assertThat(syncClientClass, generatesTo("test-json-client-class.java"));
-
-        SyncClientClass sraSyncClientClass = createSyncClientClass(restJsonServiceModels(), true);
-        assertThat(sraSyncClientClass, generatesTo("sra/test-json-client-class.java"));
+        SyncClientClass sraSyncClientClass = createSyncClientClass(restJsonServiceModels());
+        assertThat(sraSyncClientClass, generatesTo("test-json-client-class.java"));
     }
 
     @Test
     public void syncClientClassQuery() {
-        SyncClientClass syncClientClass = createSyncClientClass(queryServiceModels(), false);
-        assertThat(syncClientClass, generatesTo("test-query-client-class.java"));
-
-        SyncClientClass sraSyncClientClass = createSyncClientClass(queryServiceModels(), true);
-        assertThat(sraSyncClientClass, generatesTo("sra/test-query-client-class.java"));
+        SyncClientClass sraSyncClientClass = createSyncClientClass(queryServiceModels());
+        assertThat(sraSyncClientClass, generatesTo("test-query-client-class.java"));
     }
 
     @Test
@@ -57,11 +55,8 @@ public class SyncClientClassTest {
 
     @Test
     public void syncClientClassXml() {
-        SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels(), false);
+        SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
-
-        SyncClientClass sraSyncClientClass = createSyncClientClass(xmlServiceModels(), true);
-        assertThat(sraSyncClientClass, generatesTo("sra/test-xml-client-class.java"));
     }
 
     @Test
@@ -82,12 +77,32 @@ public class SyncClientClassTest {
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-sync.java"));
     }
 
+    @Test
+    public void syncClientClassRpcV2() {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(rpcv2ServiceModels());
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-rpcv2-sync.java"));
+    }
+
+    @Test
+    public void syncClientClassCbor() {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(cborServiceModels());
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-cbor-client-class.java"));
+    }
+
+    @Test
+    public void syncClientWithCustomContextParams() {
+        ClassSpec syncClientClass = createSyncClientClass(serviceWithCustomContextParamsModels());
+        assertThat(syncClientClass, generatesTo("test-custom-context-params-sync-client-class.java"));
+    }
+
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
         return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
     }
 
-    private SyncClientClass createSyncClientClass(IntermediateModel model, boolean useSraAuth) {
-        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
-        return createSyncClientClass(model);
+    @Test
+    public void syncClientClassWithUnsignedPayload() {
+        SyncClientClass syncClientClass = createSyncClientClass(opsWithSigv4a());
+        assertThat(syncClientClass, generatesTo("test-unsigned-payload-trait-sync-client-class.java"));
     }
+
 }

@@ -43,6 +43,11 @@ public final class TimestampFormatTrait implements Trait {
         return new TimestampFormatTrait(timestampFormat);
     }
 
+    @Override
+    public TraitType type() {
+        return TraitType.TIMESTAMP_FORMAT_TRAIT;
+    }
+
     /**
      * Enum of the timestamp formats we currently support.
      */

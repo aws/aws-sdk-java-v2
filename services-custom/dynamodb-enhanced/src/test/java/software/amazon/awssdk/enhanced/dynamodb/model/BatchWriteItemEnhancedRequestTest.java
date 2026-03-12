@@ -16,10 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Collections;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchWriteItemEnhancedRequestTest {
@@ -59,9 +63,9 @@ public class BatchWriteItemEnhancedRequestTest {
     @Test
     public void builder_maximal() {
         WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
-                                         .mappedTableResource(fakeItemMappedTable)
-                                         .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
-                                         .build();
+                                          .mappedTableResource(fakeItemMappedTable)
+                                          .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
+                                          .build();
 
         BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()
                                                                                  .writeBatches(writeBatch)
@@ -82,6 +86,45 @@ public class BatchWriteItemEnhancedRequestTest {
                                                                                  .build();
 
         assertThat(builtObject.writeBatches(), is(Collections.singletonList(writeBatch)));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_returnConsumedCapacityIsDifferent() {
+        WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
+                                          .mappedTableResource(fakeItemMappedTable)
+                                          .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
+                                          .build();
+
+        BatchWriteItemEnhancedRequest builtObject1 = BatchWriteItemEnhancedRequest.builder()
+                                                                                  .writeBatches(writeBatch)
+                                                                                  .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                  .build();
+
+        BatchWriteItemEnhancedRequest builtObject2 = BatchWriteItemEnhancedRequest.builder()
+                                                                                  .writeBatches(writeBatch)
+                                                                                  .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
+                                                                                  .build();
+
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+        assertThat(builtObject1.hashCode(), not(equalTo(builtObject2.hashCode())));
+    }
+
+    @Test
+    public void test_returnConsumedCapacity_unknownToSdkVersion() {
+        String newValue = UUID.randomUUID().toString();
+        WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
+                                          .mappedTableResource(fakeItemMappedTable)
+                                          .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
+                                          .build();
+
+        BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()
+                                                                                 .writeBatches(writeBatch)
+                                                                                 .returnConsumedCapacity(newValue)
+                                                                                 .build();
+
+        // Assert that new value resolves to correct enum value
+        assertThat(builtObject.returnConsumedCapacity(), equalTo(ReturnConsumedCapacity.UNKNOWN_TO_SDK_VERSION));
     }
 
     @Test

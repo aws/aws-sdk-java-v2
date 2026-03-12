@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -24,12 +25,15 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 @SuppressWarnings("unchecked")
 public interface ObjectConstructor<BeanT> extends Supplier<BeanT> {
-    static <BeanT> ObjectConstructor<BeanT> create(Class<BeanT> beanClass, Constructor<BeanT> noArgsConstructor) {
+    static <BeanT> ObjectConstructor<BeanT> create(Class<BeanT> beanClass, Constructor<BeanT> noArgsConstructor,
+                                                   MethodHandles.Lookup lookup) {
+
         Validate.isTrue(noArgsConstructor.getParameterCount() == 0,
                         "%s has no default constructor.",
                         beanClass);
 
         return LambdaToMethodBridgeBuilder.create(ObjectConstructor.class)
+                                          .lookup(lookup)
                                           .lambdaMethodName("get")
                                           .runtimeLambdaSignature(Object.class)
                                           .compileTimeLambdaSignature(beanClass)

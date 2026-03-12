@@ -33,6 +33,7 @@ import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.D
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.StatisticSet;
+import software.amazon.awssdk.utils.MetricValueNormalizer;
 
 /**
  * Aggregates {@link MetricCollection}s by: (1) the minute in which they occurred, and (2) the dimensions in the collection

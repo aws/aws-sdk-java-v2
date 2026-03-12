@@ -39,6 +39,24 @@ public final class BenchmarkConstant {
 
     public static final String ERROR_JSON_BODY = "{}";
 
+    public static final String ENCODED_SMITHY_RPCV2_BODY = ""
+                                                           + "bf6c537472696e674d656d62657263666f6f6d49"
+                                                           + "6e74656765724d656d626572187b6d426f6f6c65"
+                                                           + "616e4d656d626572f56b466c6f61744d656d6265"
+                                                           + "72187b6c446f75626c654d656d626572fb405ef9"
+                                                           + "999999999a6a4c6f6e674d656d626572187b6a53"
+                                                           + "696d706c654c6973748169736f2073696d706c65"
+                                                           + "6d4c6973744f665374727563747381bf6c537472"
+                                                           + "696e674d656d6265726e6c6973744f6653747275"
+                                                           + "63747331ff6f54696d657374616d704d656d6265"
+                                                           + "72c1fb41d6f66221b8c49c781f53747275637457"
+                                                           + "6974684e657374656454696d657374616d704d65"
+                                                           + "6d626572bf6f4e657374656454696d657374616d"
+                                                           + "70c1fb41d6f66221ba1cacff67426c6f62417267"
+                                                           + "4b68656c6c6f20776f726c64ff";
+
+    public static final String ERROR_ENCODED_SMITHY_RPCV2_BODY = "bfff";
+
     public static final String JSON_BODY = "{\"StringMember\":\"foo\",\"IntegerMember\":123,\"BooleanMember\":true,"
                                            + "\"FloatMember\":123.0,\"DoubleMember\":123.9,\"LongMember\":123,"
                                            + "\"SimpleList\":[\"so simple\"],"
@@ -155,6 +173,28 @@ public final class BenchmarkConstant {
                                                                               .blobArg(SdkBytes.fromUtf8String("hello "
                                                                                                                + "world"))
                                                                               .build();
+
+    public static final software.amazon.awssdk.services.protocolsmithyrpcv2.model.AllTypesRequest RPCV2_ALL_TYPES_REQUEST =
+        software.amazon.awssdk.services.protocolsmithyrpcv2.model.AllTypesRequest.builder()
+                                                                                 .stringMember("foo")
+                                                                                 .integerMember(123)
+                                                                                 .booleanMember(true)
+                                                                                 .floatMember(123.0f)
+                                                                                 .doubleMember(123.9)
+                                                                                 .longMember(123L)
+                                                                                 .simpleList("so simple")
+                                                                                 .listOfStructs(b -> b.stringMember(
+                                                                                     "listOfStructs1").stringMember(
+                                                                                     "listOfStructs1"))
+                                                                                 .timestampMember(
+                                                                                     TIMESTAMP_MEMBER)
+                                                                                 .structWithNestedTimestampMember(
+                                                                                     b -> b.nestedTimestamp(
+                                                                                         TIMESTAMP_MEMBER))
+                                                                                 .blobArg(SdkBytes.fromUtf8String("hello "
+                                                                                                                  + "world"))
+                                                                                 .build();
+
     public static final AllTypesRequest EC2_ALL_TYPES_REQUEST =
         AllTypesRequest.builder()
                        .stringMember("foo")

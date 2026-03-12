@@ -1,0 +1,66 @@
+{
+    "version": "2.28.23",
+    "date": "2024-10-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "contributor": "",
+            "description": "Added sourceUrlType field to StartDeployment request"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Documentation update for AWS CloudFormation API Reference."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Enable proxy for reserved capacity fleet."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "AWS Resilience Hub now integrates with the myApplications platform, enabling customers to easily assess the resilience of applications defined in myApplications. The new Resiliency widget provides visibility into application resilience and actionable recommendations for improvement."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "On a channel that you own, you can now replace an ongoing stream with a new stream by streaming up with the priority parameter appended to the stream key."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "This release launches the CreateIntegration, DeleteIntegration, DescribeIntegrations and ModifyIntegration APIs to create and manage Amazon Redshift Zero-ETL Integrations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release adds support for email maximum delivery seconds that allows senders to control the time within which their emails are attempted for delivery."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "contributor": "",
+            "description": "We are expanding support for 40 new locales in AWS Transcribe Streaming."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Amazon Q Business now supports embedding the Amazon Q Business web experience on third-party websites."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

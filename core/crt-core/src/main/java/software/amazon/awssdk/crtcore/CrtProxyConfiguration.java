@@ -281,12 +281,18 @@ public abstract class CrtProxyConfiguration {
 
         /**
          * Configure the hosts that the client is allowed to access without going through the proxy.
+         * The only wildcard available is a single "*" character, which matches all hosts.
+         * IP addresses specified to this option can be provided using CIDR notation: an appended slash and number
+         * specifies the number of "network bits" out of the address to use in the comparison.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
 
         /**
          * Add a host that the client is allowed to access without going through the proxy.
+         * The only wildcard available is a single "*" character, which matches all hosts.
+         * IP addresses specified to this option can be provided using CIDR notation: an appended slash and number
+         * specifies the number of "network bits" out of the address to use in the comparison.
          */
         Builder addNonProxyHost(String nonProxyHost);
 

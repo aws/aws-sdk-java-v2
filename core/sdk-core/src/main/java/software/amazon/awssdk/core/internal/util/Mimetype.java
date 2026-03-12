@@ -26,10 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -69,7 +68,7 @@ public final class Mimetype {
 
     public static final String MIMETYPE_EVENT_STREAM = "application/vnd.amazon.eventstream";
 
-    private static final Logger LOG = LoggerFactory.getLogger(Mimetype.class);
+    private static final Logger LOG = Logger.loggerFor(Mimetype.class);
 
     private static final String MIME_TYPE_PATH = "software/amazon/awssdk/core/util/mime.types";
 
@@ -88,9 +87,9 @@ public final class Mimetype {
                 try {
                     loadAndReplaceMimetypes(stream);
                 } catch (IOException e) {
-                    LOG.debug("Failed to load mime types from file in the classpath: mime.types", e);
+                    LOG.debug(() -> "Failed to load mime types from file in the classpath: mime.types", e);
                 } finally {
-                    IoUtils.closeQuietly(stream, null);
+                    IoUtils.closeQuietlyV2(stream, LOG);
                 }
             }
         );

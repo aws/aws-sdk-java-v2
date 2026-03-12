@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi
@@ -62,11 +63,11 @@ public final class QueryParamMarshaller {
             return;
         }
 
-        MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
+        MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class, TraitType.MAP_TRAIT);
         SdkField valueField = mapTrait.valueFieldInfo();
 
         for (Map.Entry<String, ?> entry : map.entrySet()) {
-            if (valueField.containsTrait(ListTrait.class)) {
+            if (valueField.containsTrait(ListTrait.class, TraitType.LIST_TRAIT)) {
                 ((List<?>) entry.getValue()).forEach(val -> {
                     context.marshallerRegistry().getMarshaller(MarshallLocation.QUERY_PARAM, val)
                            .marshall(val, context, entry.getKey(), null);
@@ -81,7 +82,7 @@ public final class QueryParamMarshaller {
     };
 
     public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };

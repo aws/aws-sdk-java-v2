@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
@@ -178,6 +180,17 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
+         * Flattens all the attributes defined in a Map into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         */
+        public <R> Builder<T> flatten(String mapName,
+                                      Function<T, Map<String, String>> mapItemGetter,
+                                      BiConsumer<T, Map<String, String>> mapItemSetter) {
+            this.delegateBuilder.flatten(mapName, mapItemGetter, mapItemSetter);
+            return this;
+        }
+
+        /**
          * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
          * the super-class into the {@link StaticTableSchema} of the sub-class.
          */
@@ -265,7 +278,19 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
          * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
          */
         public StaticTableSchema<T> build() {
-            return new StaticTableSchema<>(this);
+            return build(ExecutionContext.ROOT);
+        }
+
+        /**
+         * Builds a {@link StaticTableSchema} based on the values this builder has been configured with
+         * @param context The context in which the schema is being executed, from root or from a flatten operation.
+         */
+        public StaticTableSchema<T> build(ExecutionContext context) {
+            StaticTableSchema staticTableSchema = new StaticTableSchema<>(this);
+            if (context == ExecutionContext.ROOT) {
+                IndexValidator.validateAllIndices(staticTableSchema.tableMetadata().indices());
+            }
+            return staticTableSchema;
         }
 
     }

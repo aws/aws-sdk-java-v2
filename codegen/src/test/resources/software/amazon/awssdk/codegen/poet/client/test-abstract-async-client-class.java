@@ -8,6 +8,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.json.batchmanager.JsonAsyncBatchManager;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -546,6 +547,14 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
         AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return invokeOperation(streamingOutputOperationRequest,
                                request -> delegate.streamingOutputOperation(request, asyncResponseTransformer));
+    }
+
+    /**
+     * Creates an instance of {@link JsonAsyncBatchManager} object with the configuration set on this client.
+     */
+    @Override
+    public JsonAsyncBatchManager batchManager() {
+        return delegate.batchManager();
     }
 
     @Override

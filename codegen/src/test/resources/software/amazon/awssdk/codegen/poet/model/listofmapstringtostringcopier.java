@@ -21,13 +21,13 @@ final class ListOfMapStringToStringCopier {
         if (listOfMapStringToStringParam == null || listOfMapStringToStringParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<Map<String, String>> modifiableList = new ArrayList<>();
+            List<Map<String, String>> modifiableList = new ArrayList<>(listOfMapStringToStringParam.size());
             listOfMapStringToStringParam.forEach(entry -> {
                 Map<String, String> map;
                 if (entry == null || entry instanceof SdkAutoConstructMap) {
                     map = DefaultSdkAutoConstructMap.getInstance();
                 } else {
-                    Map<String, String> modifiableMap = new LinkedHashMap<>();
+                    Map<String, String> modifiableMap = new LinkedHashMap<>(entry.size());
                     entry.forEach((key, value) -> {
                         modifiableMap.put(key, value);
                     });

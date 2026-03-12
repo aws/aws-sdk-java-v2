@@ -1,0 +1,54 @@
+{
+    "version": "2.30.25",
+    "date": "2025-02-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Add webhook status and status message to AWS CodeBuild webhooks"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager User Subscriptions",
+            "contributor": "",
+            "description": "Updates entity to include Microsoft RDS SAL as a valid type of user subscription."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Allow users to configure disableS3ExpressSessionAuth for S3CrtAsyncClient"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Reduce the minimum number of required attack sequence signals from 2 to 1"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "CloudWatch Database Insights now supports Amazon RDS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added new capability in the UpdateCluster operation to remove instance groups from your SageMaker HyperPod cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Add support for toolbar configuration under user settings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

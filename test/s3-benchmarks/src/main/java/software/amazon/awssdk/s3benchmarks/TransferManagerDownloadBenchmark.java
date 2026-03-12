@@ -98,7 +98,7 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     private void downloadOnceToMemory(List<Double> latencies) throws Exception {
         long start = System.currentTimeMillis();
-        AsyncResponseTransformer<GetObjectResponse, Void> responseTransformer = new NoOpResponseTransformer<>();
+        AsyncResponseTransformer<GetObjectResponse, Object> responseTransformer = new NoOpResponseTransformer<>();
         transferManager.download(DownloadRequest.builder()
                                                 .getObjectRequest(req -> req.bucket(bucket).key(key))
                                                 .responseTransformer(responseTransformer)

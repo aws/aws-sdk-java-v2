@@ -46,7 +46,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMuta
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParametersToBodyStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage2;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
@@ -181,12 +181,12 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                     .first(RequestPipelineBuilder
                                .first(MakeRequestMutableStage::new)
                                .then(ApplyTransactionIdStage::new)
-                               .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
                                .then(QueryParametersToBodyStage::new)
                                .then(() -> new CompressRequestStage(httpClientDependencies))
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
+                               .then(ApplyUserAgentStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
@@ -199,7 +199,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
                                          .wrappedWith(TimeoutExceptionHandlingStage::new)
                                          .wrappedWith((deps, wrapped) -> new ApiCallAttemptMetricCollectionStage<>(wrapped))
-                                         .wrappedWith(RetryableStage2::new)::build)
+                                         .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                                .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))

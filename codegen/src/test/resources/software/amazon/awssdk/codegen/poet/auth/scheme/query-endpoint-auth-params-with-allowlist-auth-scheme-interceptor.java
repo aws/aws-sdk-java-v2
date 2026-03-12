@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -19,7 +21,11 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -36,6 +42,7 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -49,6 +56,14 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(context, executionAttributes);
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
         putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
+        if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
+            && !SignerOverrideUtils.isSignerOverridden(context.request(), executionAttributes)) {
+            BusinessMetricCollection businessMetrics = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+            if (businessMetrics != null) {
+                businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
+            }
+        }
     }
 
     private List<AuthSchemeOption> resolveAuthOptions(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
@@ -96,6 +111,9 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         builder.operationContextParam(endpointParams.operationContextParam());
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         builder.operation(operation);
+        executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+                           .filter(regionSet -> !CollectionUtils.isNullOrEmpty(regionSet))
+                           .ifPresent(nonEmptyRegionSet -> builder.regionSet(RegionSet.create(nonEmptyRegionSet)));
         if (builder instanceof QueryEndpointResolverAware.Builder) {
             EndpointProvider endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
             if (endpointProvider instanceof QueryEndpointProvider) {

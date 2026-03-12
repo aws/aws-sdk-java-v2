@@ -1,0 +1,132 @@
+{
+    "version": "2.29.18",
+    "date": "2024-11-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Add support to import data from commercially available discovery tools without file manipulation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for Amazon Aurora database instances. It also enables Compute Optimizer to identify idle Amazon EC2 instances, Amazon EBS volumes, Amazon ECS services running on Fargate, and Amazon RDS databases."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "Adds support for child enabled baselines which allow you to see the enabled baseline status for individual accounts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds the ability to reconfigure concurrent job settings for existing queues and create queues with custom concurrent job settings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "MediaPackage v2 now supports the Media Quality Confidence Score (MQCS) published from MediaLive. Customers can control input switching based on the MQCS and publishing HTTP Headers for the MQCS via the API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Node 22.x (node22.x) support to AWS Lambda"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Releasing new Prompt Optimization to enhance your prompts for improved performance"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add support for gRPC, VPC origins, and Anycast IP Lists. Allow LoggingConfig IncludeCookies to be set regardless of whether the LoggingConfig is enabled."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "This release supports Metadata Enforcement Rule feature for Create Subscription Request action."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release adds support for the Availability Zone rebalancing feature on Amazon ECS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "With this release, customers can express their desire to launch instances only in an ODCR or ODCR group rather than OnDemand capacity. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Enabling call caching feature that allows customers to reuse previously computed results from a set of completed tasks in a new workflow run."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Recycle Bin",
+            "contributor": "",
+            "description": "This release adds support for exclusion tags for Recycle Bin, which allows you to identify resources that are to be excluded, or ignored, by a Region-level retention rule."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for scale storage on the DB instance using a Blue/Green Deployment."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Query",
+            "contributor": "",
+            "description": "This release adds support for Provisioning Timestream Compute Units (TCUs), a new feature that allows provisioning dedicated compute resources for your queries, providing predictable and cost-effective query performance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added support for Rocky Linux 8 on Amazon WorkSpaces Personal."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Added data protection settings with support for inline data redaction."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "With this release, customers can prioritize launching instances into ODCRs using targets from ASGs or Launch Templates. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family that meets their needs."
+        },
+        {
+            "type": "feature",
+            "category": "Cost Optimization Hub",
+            "contributor": "",
+            "description": "This release adds action type \"Delete\" to the GetRecommendation, ListRecommendations and ListRecommendationSummaries APIs to support new EBS and ECS recommendations with action type \"Delete\"."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "This release adds support for configuring Load balancer Capacity Unit reservations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

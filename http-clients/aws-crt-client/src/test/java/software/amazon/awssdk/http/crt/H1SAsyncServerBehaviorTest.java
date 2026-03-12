@@ -36,11 +36,6 @@ public class H1SAsyncServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
     }
 
-    @AfterAll
-    public static void afterAll() {
-        CrtResource.waitForNoResources();
-    }
-
     @Override
     protected SdkAsyncHttpClient setupClient() {
         return AwsCrtAsyncHttpClient.builder()

@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 
 import java.net.URI;
@@ -26,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.ServiceConfiguration;
@@ -33,6 +30,8 @@ import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
@@ -44,7 +43,6 @@ import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
@@ -86,16 +84,38 @@ public class SdkExecutionAttribute {
         new ExecutionAttribute<>("ApiCallAttemptMetricCollector");
 
     /**
-     * If true indicates that the configured endpoint of the client is a value that was supplied as an override and not
+     * True indicates that the configured endpoint of the client is a value that was supplied as an override and not
      * generated from regional metadata.
+     *
+     * @deprecated This value should not be trusted. To modify the endpoint used for requests, you should decorate the
+     * {@link EndpointProvider} of the client. This value can be determined there, by checking for the existence of an
+     * override endpoint.
      */
-    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverridden");
+    @Deprecated
+    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN =
+        ExecutionAttribute.derivedBuilder("EndpointOverridden",
+                                          Boolean.class,
+                                          () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                          .readMapping(ClientEndpointProvider::isEndpointOverridden)
+                          .writeMapping((ep, overridden) -> ClientEndpointProvider.create(ep.clientEndpoint(), overridden))
+                          .build();
 
     /**
-     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise the endpoint generated from regional
-     * metadata.
+     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise the endpoint generated from
+     * regional metadata.
+     *
+     * @deprecated This value is not usually accurate, now that the endpoint is almost entirely determined by the
+     * service's endpoint rules. Use {@link SdkHttpRequest#getUri()} from interceptors, to get or modify the actual
+     * endpoint.
      */
-    public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
+    @Deprecated
+    public static final ExecutionAttribute<URI> CLIENT_ENDPOINT =
+        ExecutionAttribute.derivedBuilder("EndpointOverride",
+                                          URI.class,
+                                          () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                          .readMapping(ClientEndpointProvider::clientEndpoint)
+                          .writeMapping((ep, uri) -> ClientEndpointProvider.create(uri, ep.isEndpointOverridden()))
+                          .build();
 
     /**
      * If the client signer value has been overridden.
@@ -128,30 +148,24 @@ public class SdkExecutionAttribute {
                           .build();
 
     /**
-     * The Algorithm used for checksum validation of a response.
+     * The algorithm used for checksum validation of a response.
+     * @deprecated use {@link #HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2} instead
      */
+    @Deprecated
     public static final ExecutionAttribute<Algorithm> HTTP_CHECKSUM_VALIDATION_ALGORITHM = new ExecutionAttribute<>(
         "HttpChecksumValidationAlgorithm");
+
+    /**
+     * The algorithm used for checksum validation of a response.
+     */
+    public static final ExecutionAttribute<ChecksumAlgorithm> HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2 = new ExecutionAttribute<>(
+        "HttpChecksumValidationAlgorithmV2");
 
     /**
      * Provides the status of {@link ChecksumValidation} performed on the  response.
      */
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
-
-    private static final ImmutableMap<ChecksumAlgorithm, Algorithm> ALGORITHM_MAP = ImmutableMap.of(
-        SHA256, Algorithm.SHA256,
-        SHA1, Algorithm.SHA1,
-        CRC32, Algorithm.CRC32,
-        CRC32C, Algorithm.CRC32C
-    );
-
-    private static final ImmutableMap<Algorithm, ChecksumAlgorithm> CHECKSUM_ALGORITHM_MAP = ImmutableMap.of(
-        Algorithm.SHA256, SHA256,
-        Algorithm.SHA1, SHA1,
-        Algorithm.CRC32, CRC32,
-        Algorithm.CRC32C, CRC32C
-    );
 
     protected SdkExecutionAttribute() {
     }
@@ -169,12 +183,13 @@ public class SdkExecutionAttribute {
             authScheme.authSchemeOption().signerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM);
 
         return ChecksumSpecs.builder()
-                            .algorithm(checksumAlgorithm != null ? ALGORITHM_MAP.get(checksumAlgorithm) : null)
+                            .algorithmV2(checksumAlgorithm)
                             .isRequestStreaming(checksumSpecs.isRequestStreaming())
                             .isRequestChecksumRequired(checksumSpecs.isRequestChecksumRequired())
                             .isValidationEnabled(checksumSpecs.isValidationEnabled())
                             .headerName(checksumAlgorithm != null ? checksumHeaderName(checksumAlgorithm) : null)
-                            .responseValidationAlgorithms(checksumSpecs.responseValidationAlgorithms())
+                            .responseValidationAlgorithmsV2(checksumSpecs.responseValidationAlgorithmsV2())
+                            .requestAlgorithmHeader(checksumSpecs.requestAlgorithmHeader())
                             .build();
     }
 
@@ -184,7 +199,7 @@ public class SdkExecutionAttribute {
     private static <T extends Identity> SelectedAuthScheme<?> signerChecksumWriteMapping(SelectedAuthScheme<T> authScheme,
                                                                                          ChecksumSpecs checksumSpecs) {
         ChecksumAlgorithm checksumAlgorithm = checksumSpecs == null ? null :
-                                              CHECKSUM_ALGORITHM_MAP.get(checksumSpecs.algorithm());
+                                              checksumSpecs.algorithmV2();
 
         if (authScheme == null) {
             // This is an unusual use-case.

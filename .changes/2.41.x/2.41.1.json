@@ -1,0 +1,24 @@
+{
+    "version": "2.41.1",
+    "date": "2026-01-02",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Handles the edge case in Netty client where HTTP/2 stream gets cleaned up before metrics collection completes, causing NPE to be thrown. See [#6561](https://github.com/aws/aws-sdk-java-v2/issues/6561)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Added support for publishing detailed metrics to CloudWatch for operational monitoring of collaborations, including query performance and resource utilization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "This change introduces \"Roles\" attribute for User entities supported by AWS Identity Store SDK."
+        }
+    ]
+}

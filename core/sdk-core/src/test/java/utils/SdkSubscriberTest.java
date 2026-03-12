@@ -15,6 +15,7 @@
 
 package utils;
 
+import io.reactivex.Flowable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,8 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.async.LimitingSubscriber;
 import software.amazon.awssdk.utils.internal.async.EmptySubscription;
 
@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,96 +47,83 @@ public class SdkSubscriberTest {
 
     public static final Function<Integer, Iterator<Integer>> SAMPLE_ITERATOR = response -> Arrays.asList(1, 2, 3, 4, 5, 6).listIterator();
     public static final Function<Integer, Iterator<Integer>> EMPTY_ITERATOR = response -> new ArrayList<Integer>().listIterator();
-    @Mock
-    AsyncPageFetcher asyncPageFetcher;
-    PaginatedItemsPublisher<Integer, Integer> itemsPublisher;
 
     @Mock
     Subscriber<Integer> mockSubscriber;
 
+    private SdkPublisher<Integer> sdkPublisher;
+
     @Before
     public void setUp() {
-        doReturn(CompletableFuture.completedFuture(1))
-                .when(asyncPageFetcher).nextPage(null);
-        doReturn(false)
-                .when(asyncPageFetcher).hasNextPage(any());
+        sdkPublisher = SdkPublisher.adapt(Flowable.just(1, 2, 3, 4, 5, 6));
     }
 
     @Test
     public void limitingSubscriber_with_different_limits() throws InterruptedException, ExecutionException, TimeoutException {
-        itemsPublisher = PaginatedItemsPublisher.builder().nextPageFetcher(asyncPageFetcher)
-                .iteratorFunction(SAMPLE_ITERATOR).isLastPage(false).build();
+        List<Integer> belowLimit = new ArrayList<>();
+        sdkPublisher.limit(3).subscribe(belowLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(belowLimit).containsExactly(1, 2, 3);
 
-        final List<Integer> belowLimit = new ArrayList<>();
-        itemsPublisher.limit(3).subscribe(e -> belowLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(belowLimit).isEqualTo(Arrays.asList(1, 2, 3));
+        List<Integer> beyondLimit = new ArrayList<>();
+        sdkPublisher.limit(33).subscribe(beyondLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(beyondLimit).containsExactly(1, 2, 3, 4, 5, 6);
 
-        final List<Integer> beyondLimit = new ArrayList<>();
-        itemsPublisher.limit(33).subscribe(e -> beyondLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(beyondLimit).isEqualTo(Arrays.asList(1, 2, 3, 4, 5, 6));
-
-        final List<Integer> zeroLimit = new ArrayList<>();
-        itemsPublisher.limit(0).subscribe(e -> zeroLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(zeroLimit).isEqualTo(Arrays.asList());
+        List<Integer> zeroLimit = new ArrayList<>();
+        sdkPublisher.limit(0).subscribe(zeroLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(zeroLimit).isEmpty();
     }
 
     @Test
     public void filteringSubscriber_with_different_filters() throws InterruptedException, ExecutionException, TimeoutException {
-        itemsPublisher = PaginatedItemsPublisher.builder().nextPageFetcher(asyncPageFetcher)
-                .iteratorFunction(SAMPLE_ITERATOR).isLastPage(false).build();
 
-        final List<Integer> filteredSomeList = new ArrayList<>();
-        itemsPublisher.filter(i -> i % 2 == 0).subscribe(e -> filteredSomeList.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(filteredSomeList).isEqualTo(Arrays.asList(2, 4, 6));
+        List<Integer> filteredSomeList = new ArrayList<>();
+        sdkPublisher.filter(i -> i % 2 == 0).subscribe(filteredSomeList::add).get(5, TimeUnit.SECONDS);
+        assertThat(filteredSomeList).containsExactly(2, 4, 6);
 
-        final List<Integer> filteredAllList = new ArrayList<>();
-        itemsPublisher.filter(i -> i % 10 == 0).subscribe(e -> filteredAllList.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(filteredAllList).isEqualTo(Arrays.asList());
+        List<Integer> filteredAllList = new ArrayList<>();
+        sdkPublisher.filter(i -> i % 10 == 0).subscribe(filteredAllList::add).get(5, TimeUnit.SECONDS);
+        assertThat(filteredAllList).isEmpty();
 
-        final List<Integer> filteredNone = new ArrayList<>();
-        itemsPublisher.filter(i -> i % 1 == 0).subscribe(e -> filteredNone.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(filteredNone).isEqualTo(Arrays.asList(1, 2, 3, 4, 5, 6));
-
+        List<Integer> filteredNone = new ArrayList<>();
+        sdkPublisher.filter(i -> i % 1 == 0).subscribe(filteredNone::add).get(5, TimeUnit.SECONDS);
+        assertThat(filteredNone).containsExactly(1, 2, 3, 4, 5, 6);
     }
 
     @Test
     public void limit_and_filter_subscriber_chained_with_different_conditions() throws InterruptedException, ExecutionException, TimeoutException {
-        itemsPublisher = PaginatedItemsPublisher.builder().nextPageFetcher(asyncPageFetcher)
-                .iteratorFunction(SAMPLE_ITERATOR).isLastPage(false).build();
 
-        final List<Integer> belowLimitWithFiltering = new ArrayList<>();
-        itemsPublisher.limit(4).filter(i -> i % 2 == 0).subscribe(e -> belowLimitWithFiltering.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(belowLimitWithFiltering).isEqualTo(Arrays.asList(2, 4));
+        List<Integer> belowLimitWithFiltering = new ArrayList<>();
+        sdkPublisher.limit(4).filter(i -> i % 2 == 0).subscribe(belowLimitWithFiltering::add).get(5, TimeUnit.SECONDS);
+        assertThat(belowLimitWithFiltering).containsExactly(2, 4);
 
-        final List<Integer> beyondLimitWithAllFiltering = new ArrayList<>();
-        itemsPublisher.limit(33).filter(i -> i % 10 == 0).subscribe(e -> beyondLimitWithAllFiltering.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(beyondLimitWithAllFiltering).isEqualTo(Arrays.asList());
+        List<Integer> beyondLimitWithAllFiltering = new ArrayList<>();
+        sdkPublisher.limit(33).filter(i -> i % 10 == 0).subscribe(beyondLimitWithAllFiltering::add).get(5, TimeUnit.SECONDS);
+        assertThat(beyondLimitWithAllFiltering).isEmpty();
 
-        final List<Integer> zeroLimitAndNoFilter = new ArrayList<>();
-        itemsPublisher.limit(0).filter(i -> i % 1 == 0).subscribe(e -> zeroLimitAndNoFilter.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(zeroLimitAndNoFilter).isEqualTo(Arrays.asList());
+        List<Integer> zeroLimitAndNoFilter = new ArrayList<>();
+        sdkPublisher.limit(0).filter(i -> i % 1 == 0).subscribe(zeroLimitAndNoFilter::add).get(5, TimeUnit.SECONDS);
+        assertThat(zeroLimitAndNoFilter).isEmpty();
 
-        final List<Integer> filteringbelowLimitWith = new ArrayList<>();
-        itemsPublisher.filter(i -> i % 2 == 0).limit(2).subscribe(e -> filteringbelowLimitWith.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(filteringbelowLimitWith).isEqualTo(Arrays.asList(2, 4));
+        List<Integer> filteringbelowLimitWith = new ArrayList<>();
+        sdkPublisher.filter(i -> i % 2 == 0).limit(2).subscribe(filteringbelowLimitWith::add).get(5, TimeUnit.SECONDS);
+        assertThat(filteringbelowLimitWith).containsExactly(2, 4);
 
-        final List<Integer> filteringAndOutsideLimit = new ArrayList<>();
-        itemsPublisher.filter(i -> i % 10 == 0).limit(33).subscribe(e -> filteringAndOutsideLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(filteringAndOutsideLimit).isEqualTo(Arrays.asList());
+        List<Integer> filteringAndOutsideLimit = new ArrayList<>();
+        sdkPublisher.filter(i -> i % 10 == 0).limit(33).subscribe(filteringAndOutsideLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(filteringAndOutsideLimit).isEmpty();
     }
 
     @Test
     public void limit__subscriber_with_empty_input_and_zero_limit() throws Exception {
-        itemsPublisher = PaginatedItemsPublisher.builder().nextPageFetcher(asyncPageFetcher)
-                .iteratorFunction(EMPTY_ITERATOR).isLastPage(false).build();
+        sdkPublisher = SdkPublisher.adapt(Flowable.empty());
 
-        final List<Integer> zeroLimit = new ArrayList<>();
-        itemsPublisher.limit(0).subscribe(e -> zeroLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(zeroLimit).isEqualTo(Arrays.asList());
+        List<Integer> zeroLimit = new ArrayList<>();
+        sdkPublisher.limit(0).subscribe(zeroLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(zeroLimit).isEmpty();
 
         List<Integer> nonZeroLimit = new ArrayList<>();
-        itemsPublisher.limit(10).subscribe(e -> nonZeroLimit.add(e)).get(5, TimeUnit.SECONDS);
-        assertThat(zeroLimit).isEqualTo(Arrays.asList());
+        sdkPublisher.limit(10).subscribe(nonZeroLimit::add).get(5, TimeUnit.SECONDS);
+        assertThat(zeroLimit).isEmpty();
     }
 
 

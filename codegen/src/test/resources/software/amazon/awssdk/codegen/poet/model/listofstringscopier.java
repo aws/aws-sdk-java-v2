@@ -17,10 +17,7 @@ final class ListOfStringsCopier {
         if (listOfStringsParam == null || listOfStringsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<String> modifiableList = new ArrayList<>();
-            listOfStringsParam.forEach(entry -> {
-                modifiableList.add(entry);
-            });
+            List<String> modifiableList = new ArrayList<>(listOfStringsParam);
             list = Collections.unmodifiableList(modifiableList);
         }
         return list;

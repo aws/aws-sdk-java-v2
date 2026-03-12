@@ -36,13 +36,12 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
 
     @Override
     public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
-
-        if (!isS3Exception404(context.exception()) || !isHeadRequest(context.request())) {
+        if (!isS3ExceptionWithDetails(context.exception()) || !isHeadRequest(context.request())) {
             return context.exception();
         }
 
         String message = context.exception().getMessage();
-        S3Exception exception = (S3Exception) (context.exception());
+        S3Exception exception = (S3Exception) context.exception();
 
         String requestIdFromHeader = exception.awsErrorDetails()
                                               .sdkHttpResponse()
@@ -50,27 +49,43 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
                                               .orElse(null);
 
         String requestId = Optional.ofNullable(exception.requestId()).orElse(requestIdFromHeader);
+        String extendedRequestId = exception.extendedRequestId();
 
         AwsErrorDetails errorDetails = exception.awsErrorDetails();
 
-        if (context.request() instanceof HeadObjectRequest) {
-            return NoSuchKeyException.builder()
-                                    .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchKey",
-                                                                      "The specified key does not exist."))
-                                    .statusCode(404)
-                                    .requestId(requestId)
-                                    .message(message)
-                                    .build();
-        }
+        if (exception.statusCode() == 404) {
+            if (context.request() instanceof HeadObjectRequest) {
+                return NoSuchKeyException.builder()
+                                         .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchKey",
+                                                                           "The specified key does not exist."))
+                                         .statusCode(404)
+                                         .requestId(requestId)
+                                         .extendedRequestId(extendedRequestId)
+                                         .message(message)
+                                         .build();
+            }
 
-        if (context.request() instanceof HeadBucketRequest) {
-            return NoSuchBucketException.builder()
-                                       .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchBucket",
-                                                                         "The specified bucket does not exist."))
-                                       .statusCode(404)
-                                       .requestId(requestId)
-                                       .message(message)
-                                       .build();
+            if (context.request() instanceof HeadBucketRequest) {
+                return NoSuchBucketException.builder()
+                                            .awsErrorDetails(fillErrorDetails(errorDetails, "NoSuchBucket",
+                                                                              "The specified bucket does not exist."))
+                                            .statusCode(404)
+                                            .requestId(requestId)
+                                            .extendedRequestId(extendedRequestId)
+                                            .message(message)
+                                            .build();
+            }
+        } else if (errorDetails.errorMessage() == null) {
+            // Populate the error message using the HTTP response status text. Usually that's just the value from the
+            // HTTP spec (e.g. "Forbidden"), but sometimes S3 throws some more useful things in there, like "Slow Down".
+            String errorMessage = errorDetails.sdkHttpResponse().statusText().orElse(null);
+            return S3Exception.builder()
+                              .awsErrorDetails(fillErrorDetails(errorDetails, null, errorMessage))
+                              .statusCode(exception.statusCode())
+                              .requestId(requestId)
+                              .extendedRequestId(extendedRequestId)
+                              .message(errorMessage)
+                              .build();
         }
 
         return context.exception();
@@ -84,11 +99,8 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
         return (request instanceof HeadObjectRequest || request instanceof HeadBucketRequest);
     }
 
-    private boolean isS3Exception404(Throwable thrown) {
-        if (!(thrown instanceof S3Exception)) {
-            return false;
-        }
-
-        return ((S3Exception) thrown).statusCode() == 404;
+    private boolean isS3ExceptionWithDetails(Throwable thrown) {
+        return thrown instanceof S3Exception &&
+               ((S3Exception) thrown).awsErrorDetails() != null;
     }
 }

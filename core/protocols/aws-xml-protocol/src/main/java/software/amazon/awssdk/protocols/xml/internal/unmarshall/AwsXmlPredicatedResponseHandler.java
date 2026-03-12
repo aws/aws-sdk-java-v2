@@ -19,8 +19,6 @@ import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
 
 import java.util.Optional;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPojo;
@@ -32,6 +30,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception based
@@ -42,7 +41,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkInternalApi
 public class AwsXmlPredicatedResponseHandler<OutputT> implements HttpResponseHandler<Response<OutputT>> {
-    private static final Logger log = LoggerFactory.getLogger(AwsXmlPredicatedResponseHandler.class);
+    private static final Logger log = Logger.loggerFor(AwsXmlPredicatedResponseHandler.class);
 
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
     private final Function<AwsXmlUnmarshallingContext, OutputT> successResponseTransformer;
@@ -173,7 +172,7 @@ public class AwsXmlPredicatedResponseHandler<OutputT> implements HttpResponseHan
         if (didRequestFail || !needsConnectionLeftOpen) {
             Optional.ofNullable(httpResponse)
                     .flatMap(SdkHttpFullResponse::content) // If no content, no need to close
-                    .ifPresent(s -> IoUtils.closeQuietly(s, log));
+                    .ifPresent(s -> IoUtils.closeQuietlyV2(s, log));
         }
     }
 }

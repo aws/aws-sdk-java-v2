@@ -89,12 +89,6 @@ public final class AuthTypeToSigV4Default {
      *     <li>{@code payloadSigningEnabled(false)}
      * </ul>
      * <p>
-     * Also overrides for the following operations
-     *
-     * <ul>
-     *     <li>{@code UploadParts} Sets the defaults and also {@code chunkEncodingEnabled(true)}</li>
-     *     <li>{@code PutObject} Sets the defaults and also {@code chunkEncodingEnabled(true)}</li>
-     * </ul>
      */
     private static SigV4SignerDefaults s3Defaults() {
         return sigv4Default()
@@ -104,26 +98,6 @@ public final class AuthTypeToSigV4Default {
             .doubleUrlEncode(Boolean.FALSE)
             .normalizePath(Boolean.FALSE)
             .payloadSigningEnabled(Boolean.FALSE)
-            .putOperation("UploadPart",
-                          sigv4Default()
-                              .toBuilder()
-                              // Default S3 signer properties
-                              .doubleUrlEncode(Boolean.FALSE)
-                              .normalizePath(Boolean.FALSE)
-                              .payloadSigningEnabled(Boolean.FALSE)
-                              // Including chunkEncodingEnabled TRUE
-                              .chunkEncodingEnabled(Boolean.TRUE)
-                              .build())
-            .putOperation("PutObject",
-                          sigv4Default()
-                              .toBuilder()
-                              // Default S3 signer properties
-                              .doubleUrlEncode(Boolean.FALSE)
-                              .normalizePath(Boolean.FALSE)
-                              .payloadSigningEnabled(Boolean.FALSE)
-                              // Including chunkEncodingEnabled TRUE
-                              .chunkEncodingEnabled(Boolean.TRUE)
-                              .build())
             .build();
     }
 

@@ -1,0 +1,77 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2023-03-10",
+    "auth":["aws.auth#sigv4"],
+    "endpointPrefix":"smithyrpcv2protocol",
+    "protocol":"smithy-rpc-v2-cbor",
+    "protocols":["smithy-rpc-v2-cbor"],
+    "serviceFullName":"RpcV2 Protocol Service",
+    "serviceId":"SmithyRpcV2Protocol",
+    "signatureVersion":"v4",
+    "signingName":"execute-api",
+    "targetPrefix":"RpcV2Protocol",
+    "uid":"smithy-rpcv2protocol-2023-03-10"
+  },
+  "operations":{
+    "Slash":{
+      "name":"Slash",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AllTypesStructure"}
+    },
+    "Custom":{
+      "name":"Custom",
+      "http":{
+        "method":"POST",
+        "requestUri":"/Foo"
+      },
+      "output":{"shape":"AllTypesStructure"}
+    },
+    "None":{
+      "name":"None",
+      "output":{"shape":"AllTypesStructure"}
+    }
+  },
+  "shapes": {
+    "AllTypesStructure": {
+      "type": "structure",
+      "members": {
+        "TimeStampMember": {
+          "shape": "Timestamp"
+        },
+        "ListOfTimestamps": {
+          "shape": "ListOfTimestamps"
+        },
+        "Timestamp": {
+          "shape": "Timestamp"
+        },
+        "StructWithTimestamp": {
+          "shape": "StructWithTimestamp"
+        }
+      }
+    },
+    "ListOfTimestamps": {
+      "type": "list",
+      "member": {
+        "shape": "Timestamp"
+      }
+    },
+    "StructWithTimestamp": {
+      "type": "structure",
+      "members": {
+        "Timestamp": {
+          "shape": "Timestamp"
+        }
+      }
+    },
+    "Timestamp": {
+      "type": "string"
+    },
+    "String" : {
+      "type" : "string"
+    }
+  }
+}

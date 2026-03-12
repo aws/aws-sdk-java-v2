@@ -28,11 +28,14 @@ import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class CrtFileUpload implements FileUpload {
+    private static final Logger log = Logger.loggerFor(CrtFileUpload.class);
+
     private final Lazy<ResumableFileUpload> resumableFileUpload;
     private final CompletableFuture<CompletedFileUpload> completionFuture;
     private final TransferProgress progress;
@@ -57,7 +60,11 @@ public final class CrtFileUpload implements FileUpload {
 
     private ResumableFileUpload doPause() {
         File sourceFile = request.source().toFile();
-        if (completionFuture.isDone()) {
+
+        boolean futureCompletedExceptionally = completionFuture.isCompletedExceptionally();
+        if (completionFuture.isDone() && !futureCompletedExceptionally) {
+            log.debug(() -> "The upload future was completed. There will be no ResumeToken returned.");
+
             Instant fileLastModified = Instant.ofEpochMilli(sourceFile.lastModified());
             return ResumableFileUpload.builder()
                                       .fileLastModified(fileLastModified)
@@ -80,8 +87,16 @@ public final class CrtFileUpload implements FileUpload {
         }
 
         completionFuture.cancel(true);
-        // Upload hasn't started yet, or it's a single object upload
         if (token == null) {
+            // TODO - remove once CRT handles future completed exceptionally to return ResumeToken
+            if (futureCompletedExceptionally) {
+                log.debug(() -> "The upload future was completed exceptionally and the ResumeToken returned by the "
+                                + "S3 MetaRequest was null.");
+            } else {
+                log.debug(() -> "The upload hasn't started yet or it's a single object upload. There will be no ResumeToken "
+                                + "returned");
+            }
+
             return ResumableFileUpload.builder()
                                       .fileLastModified(fileLastModified)
                                       .fileLength(sourceFile.length())

@@ -1,0 +1,48 @@
+{
+    "version": "2.30.21",
+    "date": "2025-02-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Added test suite names to test case metadata"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Introduces premigration assessment feature to DMS Serverless API for start-replication and describe-replications"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "Add support for Stop DB feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "The WAFv2 API now supports configuring data protection in webACLs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Release Notes: 1) Analytics API enhancements: Added new ListAnalyticsDataLakeDataSets API. 2) Onboarding API Idempotency: Adds ClientToken to instance creation and management APIs to support idempotency."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Added support for Content-Range header in HeadObject response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Update Environment and Device name field definitions"
+        }
+    ]
+}

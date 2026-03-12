@@ -15,40 +15,37 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_EVENTS_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.internal.signer.Checksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.ConstantChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32CChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha1Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.FunctionalUtils;
-import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class ChecksumUtil {
 
+    private static final Logger log = Logger.loggerFor(ChecksumUtil.class);
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
-
-    private static final Map<String, Supplier<SdkChecksum>> CHECKSUM_MAP = ImmutableMap.of(
-        SHA256.algorithmId(), Sha256Checksum::new,
-        SHA1.algorithmId(), Sha1Checksum::new,
-        CRC32.algorithmId(), Crc32Checksum::new,
-        CRC32C.algorithmId(), Crc32CChecksum::new,
-        MD5.algorithmId(), Md5Checksum::new
-    );
 
     private ChecksumUtil() {
     }
@@ -69,13 +66,13 @@ public final class ChecksumUtil {
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
         String algorithmId = checksumAlgorithm.algorithmId();
-        Supplier<SdkChecksum> checksumSupplier = CHECKSUM_MAP.get(algorithmId);
-        if (checksumSupplier != null) {
-            return checksumSupplier.get();
-        }
-
         if (CONSTANT_CHECKSUM.equals(algorithmId)) {
             return new ConstantChecksum(((ConstantChecksumAlgorithm) checksumAlgorithm).value);
+        }
+
+        SdkChecksum checksum = SdkChecksum.forAlgorithm(checksumAlgorithm);
+        if (checksum != null) {
+            return checksum;
         }
 
         throw new UnsupportedOperationException("Checksum not supported for " + algorithmId);
@@ -91,6 +88,12 @@ public final class ChecksumUtil {
             while (inputStream.read(buffer) > -1) {
             }
         });
+    }
+
+    public static byte[] longToByte(Long input) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(input);
+        return buffer.array();
     }
 
     /**
@@ -110,5 +113,92 @@ public final class ChecksumUtil {
         public String algorithmId() {
             return CONSTANT_CHECKSUM;
         }
+    }
+
+    public static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
+
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
+        }
+
+        return false;
+    }
+
+    public static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
+                                            boolean isTrailingOrFlexible) {
+
+        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
+    }
+
+    public static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEncrypted = "https".equals(request.request().protocol());
+
+        if (isAnonymous) {
+            return false;
+        }
+
+        // presigning requests should always have a null payload, and should always be unsigned-payload
+        if (!isEncrypted && request.payload().isPresent()) {
+            if (!isPayloadSigningEnabled) {
+                log.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
+                                "Signing will be enabled. Use HTTPS for unsigned payloads.");
+            }
+            return true;
+        }
+
+        return isPayloadSigningEnabled;
+    }
+
+    public static boolean isEventStreaming(SdkHttpRequest request) {
+        return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
+    }
+
+    public static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+                                          Boolean isPayloadSigningOverride, PayloadChecksumStore payloadChecksumStore) {
+        boolean isPayloadSigning = isPayloadSigningOverride != null ? isPayloadSigningOverride : isPayloadSigning(request);
+        boolean isEventStreaming = isEventStreaming(request.request());
+        boolean hasChecksumHeader = hasChecksumHeader(request);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader;
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+
+        if (isEventStreaming) {
+            return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
+        }
+
+        if (isPayloadSigning) {
+            if (isChunkEncoding) {
+                if (isFlexible || isTrailing) {
+                    return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD_TRAILER);
+                }
+                return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD);
+            }
+
+            if (isFlexible) {
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM), payloadChecksumStore);
+            }
+            return Checksummer.create();
+        }
+
+        if (isFlexible || isTrailing) {
+            if (isChunkEncoding) {
+                return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            }
+        }
+
+        if (isFlexible) {
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM), payloadChecksumStore);
+        }
+
+        if (isAnonymous) {
+            return Checksummer.forNoOp();
+        }
+
+        return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 }

@@ -64,6 +64,9 @@ public final class RetryableException extends SdkClientException {
         Builder writableStackTrace(Boolean writableStackTrace);
 
         @Override
+        Builder numAttempts(Integer numAttempts);
+
+        @Override
         RetryableException build();
     }
 
@@ -91,6 +94,12 @@ public final class RetryableException extends SdkClientException {
         @Override
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
+            return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 

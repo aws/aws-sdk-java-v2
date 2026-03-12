@@ -21,6 +21,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
@@ -29,6 +30,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -1560,5 +1564,206 @@ public class StaticTableSchemaTest {
         verifyAttribute(attributeType, staticAttribute, fakeMappedItem, attributeValue);
         verifyNullAttribute(attributeType, staticAttribute, FakeMappedItem.builder().build());
     }
-}
 
+    @Test
+    public void duplicatePartitionKeyOrder_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Duplicate partition key order 0 for index 'test_gsi'");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.FIRST)))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.FIRST)))
+                         .build();
+    }
+
+    @Test
+    public void duplicateSortKeyOrder_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Duplicate sort key order 1 for index 'test_gsi'");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_sk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.SECOND)))
+                         .addAttribute(String.class, a -> a.name("gsi_sk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.SECOND)))
+                         .build();
+    }
+
+    @Test
+    public void mixOrderedAndUnorderedPartitionKeys_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Composite partition keys for index 'test_gsi' must all have explicit ordering (0,1,2,3)");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi")))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.SECOND)))
+                         .build();
+    }
+
+    @Test
+    public void nonSequentialPartitionKeyOrders_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Non-sequential partition key orders for index 'test_gsi'. Expected: 0,1,2,3 but got: [0, 2]");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.FIRST)))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.THIRD)))
+                         .build();
+    }
+
+    @Test
+    public void nonSequentialSortKeyOrders_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Non-sequential sort key orders for index 'test_gsi'. Expected: 0,1,2,3 but got: [0, 3]");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_sk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.FIRST)))
+                         .addAttribute(String.class, a -> a.name("gsi_sk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.FOURTH)))
+                         .build();
+    }
+
+    @Test
+    public void invalidCompositeKeysWithImplicitOrder_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Composite partition keys for index 'test_gsi' must all have explicit ordering (0,1,2,3)");
+        
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi")))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi")))
+                         .build();
+    }
+
+    @Test
+    public void invalidNonCompositeKeyWithExplicitPartitionKeyOrder_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Invalid non-composite partition key order for index 'test_gsi'. Expected: -1,0 but got: 1");
+
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.SECOND)))
+                         .build();
+    }
+
+    @Test
+    public void invalidNonCompositeKeyWithExplicitSortKeyOrder_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Invalid non-composite sort key order for index 'test_gsi'. Expected: -1,0 but got: 2");
+
+        StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi")))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.THIRD)))
+                         .build();
+    }
+
+    @Test
+    public void validCompositeKeysWithExplicitOrder_succeeds() {
+        StaticTableSchema<FakeMappedItem> schema = StaticTableSchema.builder(FakeMappedItem.class)
+                         .newItemSupplier(FakeMappedItem::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(primaryPartitionKey()))
+                         .addAttribute(String.class, a -> a.name("gsi_pk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.FIRST)))
+                         .addAttribute(String.class, a -> a.name("gsi_pk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondaryPartitionKey("test_gsi", Order.SECOND)))
+                         .addAttribute(String.class, a -> a.name("gsi_sk1")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.FIRST)))
+                         .addAttribute(String.class, a -> a.name("gsi_sk2")
+                                                           .getter(FakeMappedItem::getAString)
+                                                           .setter(FakeMappedItem::setAString)
+                                                           .tags(secondarySortKey("test_gsi", Order.SECOND)))
+                         .build();
+
+        assertThat(schema.tableMetadata().indexPartitionKeys("test_gsi"), contains("gsi_pk1", "gsi_pk2"));
+        assertThat(schema.tableMetadata().indexSortKeys("test_gsi"), contains("gsi_sk1", "gsi_sk2"));
+    }
+}

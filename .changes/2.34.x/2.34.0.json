@@ -1,0 +1,66 @@
+{
+    "version": "2.34.0",
+    "date": "2025-09-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Add UNKNOWN state to RemediationExecutionState and add IN_PROGRESS/EXITED/UNKNOWN states to RemediationExecutionStepState."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Add MinBitrate for QVBR mode under H264/H265/AV1 output codec. Add GopBReference, GopNumBFrames, SubGopLength fields under H265 output codec."
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager User Subscriptions",
+            "contributor": "",
+            "description": "Added support for cross-account Active Directories."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add a utils-lite package that wraps threadlocal meant for internal shared usage across multiple applications across multiple applications"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2 Migration Tool",
+            "contributor": "",
+            "description": "General availability release of the AWS SDK for Java v2 migration tool that automatically migrates applications from the AWS SDK for Java v1 to the AWS SDK for Java v2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
+            "contributor": "",
+            "description": "Add tagging and VPC support to AgentCore Runtime, Code Interpreter, and Browser resources. Add support for configuring request headers in Runtime. Fix AgentCore Runtime shape names."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds a persistent connection field to UserPhoneConfig that maintains agent's softphone media connection for faster call connections."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kendra Intelligent Ranking",
+            "contributor": "",
+            "description": "Model whitespace change - no client difference"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Update invalid character handling documentation for SQS SendMessage API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -63,6 +63,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -194,6 +196,43 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
         assertThat(objectAsBytes.asUtf8String()).isEqualTo(appendedString);
     }
 
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("asyncClients")
+    public void uploadMultiplePartAsync_withChecksum(S3AsyncClient s3AsyncClient) {
+        String uploadId = s3AsyncClient.createMultipartUpload(b -> b.bucket(testBucket)
+                                                                    .checksumAlgorithm(ChecksumAlgorithm.CRC64_NVME)
+                                                                    .checksumType(ChecksumType.FULL_OBJECT)
+                                                                    .key(KEY)).join().uploadId();
+
+
+        UploadPartRequest uploadPartRequest = UploadPartRequest.builder().bucket(testBucket).key(KEY)
+                                                               .uploadId(uploadId)
+                                                               .checksumAlgorithm(ChecksumAlgorithm.CRC64_NVME)
+                                                               .partNumber(1)
+                                                               .build();
+
+        UploadPartResponse response = s3AsyncClient.uploadPart(uploadPartRequest, AsyncRequestBody.fromString(CONTENTS)).join();
+
+        List<CompletedPart> completedParts = new ArrayList<>();
+        completedParts.add(CompletedPart.builder()
+                                        .checksumCRC64NVME(response.checksumCRC64NVME())
+                                        .eTag(response.eTag()).partNumber(1).build());
+        CompletedMultipartUpload completedUploadParts = CompletedMultipartUpload.builder().parts(completedParts).build();
+        CompleteMultipartUploadRequest completeRequest = CompleteMultipartUploadRequest.builder()
+                                                                                       .bucket(testBucket)
+                                                                                       .key(KEY)
+                                                                                       .checksumType(ChecksumType.FULL_OBJECT)
+                                                                                       .uploadId(uploadId)
+                                                                                       .multipartUpload(completedUploadParts)
+                                                                                       .build();
+        CompleteMultipartUploadResponse completeMultipartUploadResponse = s3AsyncClient.completeMultipartUpload(completeRequest).join();
+        assertThat(completeMultipartUploadResponse).isNotNull();
+
+        ResponseBytes<GetObjectResponse> objectAsBytes = s3.getObject(b -> b.bucket(testBucket).key(KEY), ResponseTransformer.toBytes());
+        String appendedString = String.join("", CONTENTS);
+        assertThat(objectAsBytes.asUtf8String()).isEqualTo(appendedString);
+    }
+
     @MethodSource("syncTestCases")
     @ParameterizedTest
     public void s3Express_nonObjectTransferApis_Sync(SyncTestCase tc) {
@@ -253,7 +292,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
-                                           .s3Client(s3)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();
@@ -280,7 +319,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
-                                           .s3Client(s3)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();
@@ -307,6 +346,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         S3Presigner presigner = S3Presigner.builder()
                                            .region(TEST_REGION)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(testBucket).key(KEY).build();

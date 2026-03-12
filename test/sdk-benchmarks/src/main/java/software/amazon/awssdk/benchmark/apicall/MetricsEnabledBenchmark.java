@@ -60,7 +60,7 @@ public class MetricsEnabledBenchmark {
         enabledMetricsAsyncClient = enableMetrics(asyncClientBuilder()).build();
     }
 
-    private <T extends SdkClientBuilder<T, ?>> T enableMetrics(T syncClientBuilder) {
+    protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T syncClientBuilder) {
         return syncClientBuilder.overrideConfiguration(c -> c.addMetricPublisher(new EnabledPublisher()));
     }
 

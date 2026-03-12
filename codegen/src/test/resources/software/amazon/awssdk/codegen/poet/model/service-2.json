@@ -1,3 +1,4 @@
+
 {
   "version":"2.0",
   "metadata":{
@@ -127,6 +128,14 @@
         "requestUri":"/2016-03-11/queryParameterOperation/{PathParam}"
       },
       "input":{"shape":"QueryParameterOperationRequest"}
+    },
+    "OperationWithReservedKeywordMember": {
+      "name": "DeprecatedRename",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "OperationWithReservedKeywordMemberRequest"}
     }
   },
   "shapes":{
@@ -140,6 +149,7 @@
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
         "ShortMember":{"shape":"Short"},
+        "ByteMember":{"shape":"Byte"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -211,6 +221,18 @@
         "AllTypesUnionStructure":{"shape":"AllTypesUnionStructure"}
       }
     },
+    "UnionWithTypeMember": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "Type": {
+          "shape": "String"
+        }
+      }
+    },
     "BaseType":{
       "type":"structure",
       "members":{
@@ -261,6 +283,15 @@
         },
         "MemberModifiedAsDeprecated":{"shape": "String"},
         "UndeprecatedMember": {"shape": "String"}
+      }
+    },
+    "OperationWithReservedKeywordMemberRequest": {
+      "type": "structure",
+      "members": {
+        "ReservedKeywordMember": {
+          "shape": "ContainsReservedKeyword"
+        },
+        "UnionWithTypeMember": {"shape": "UnionWithTypeMember"}
       }
     },
     "Double":{"type":"double"},
@@ -341,6 +372,7 @@
     },
     "Long":{"type":"long"},
     "Short":{"type":"short"},
+    "Byte":{"type":"byte"},
     "MapOfStringToIntegerList":{
       "type":"map",
       "key":{"shape":"String"},
@@ -653,6 +685,14 @@
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "ContainsReservedKeyword": {
+      "type": "structure",
+      "members": {
+        "NULL": {
+          "shape": "String"
+        }
+      }
     }
   }
 }

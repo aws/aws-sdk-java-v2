@@ -1,0 +1,36 @@
+{
+    "version": "2.28.21",
+    "date": "2024-10-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "Documentation update: added support notices to each API action."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Doc only updates for clarification around OAuth2GrantType for Salesforce."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release provides new parameter \"Context\" in instance fleet clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Added a new field for network connection details."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Add zonal_shift.config.enabled attribute. Add new AdministrativeOverride construct in the describe-target-health API response to include information about the override status applied to a target."
+        }
+    ]
+}

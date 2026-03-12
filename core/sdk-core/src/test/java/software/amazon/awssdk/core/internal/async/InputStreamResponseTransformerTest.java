@@ -16,13 +16,20 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -79,5 +86,60 @@ class InputStreamResponseTransformerTest {
         assertThat(data[1]).isEqualTo((byte) 1);
         assertThat(data[2]).isEqualTo((byte) 2);
         assertThat(stream.read(data)).isEqualTo(-1);
+    }
+
+    @Test
+    void exceptionOccurred_onStreamCalled_exceptionPropagatedToRead() {
+        ResponseInputStream<SdkResponse> inputStream = resultFuture.join();
+        transformer.exceptionOccurred(new IOException("I/O issue"));
+        assertThatThrownBy(inputStream::read).isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void exceptionOccurred_onStreamNotCalled_doesNotFail() {
+        InputStreamResponseTransformer<SdkResponse> responseTransformer = new InputStreamResponseTransformer<>();
+        responseTransformer.prepare();
+        responseTransformer.onResponse(response);
+        assertThatNoException().isThrownBy(() -> responseTransformer.exceptionOccurred(new IOException("I/O issue")));
+    }
+
+    @Test
+    public void exceptionOccurred_onStreamCalled_onSubscribeNotCalled_doesNotThrow() throws Exception {
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+
+        for (int i = 0; i < 1024; ++i) {
+            InputStreamResponseTransformer<SdkResponse> responseTransformer = new InputStreamResponseTransformer<>();
+            CompletableFuture<ResponseInputStream<SdkResponse>> cf = responseTransformer.prepare();
+            responseTransformer.onResponse(response);
+
+            AtomicBoolean onSubscribeCalled = new AtomicBoolean();
+
+            Phaser phaser = new Phaser(2);
+
+            responseTransformer.exceptionOccurred(new IOException("I/O issue"));
+            phaser.arrive();
+
+            exec.submit(() -> {
+                phaser.arriveAndAwaitAdvance();
+
+                responseTransformer.onStream(SdkPublisher.adapt(s -> {
+                    // the exception should not be forwarded to the inputstream subscriber if onSubscribe is not yet called
+
+                    s.onSubscribe(new Subscription() {
+                        @Override
+                        public void request(long n) {
+                        }
+
+                        @Override
+                        public void cancel() {
+                        }
+                    });
+                    onSubscribeCalled.set(true);
+                }));
+            }).get();
+
+            assertThatThrownBy(() -> cf.join().read()).hasMessageContaining("I/O issue");
+            assertThat(onSubscribeCalled.get()).isTrue();
+        }
     }
 }

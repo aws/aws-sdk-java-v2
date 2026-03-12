@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -41,11 +42,19 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     private final FileWriteOption fileWriteOption;
     private final FailureBehavior failureBehavior;
     private final ExecutorService executorService;
+    private final Long position;
 
     private FileTransformerConfiguration(DefaultBuilder builder) {
         this.fileWriteOption = Validate.paramNotNull(builder.fileWriteOption, "fileWriteOption");
         this.failureBehavior = Validate.paramNotNull(builder.failureBehavior, "failureBehavior");
         this.executorService = builder.executorService;
+        this.position = Validate.isNotNegativeOrNull(builder.position, "position");
+        if (fileWriteOption != FileWriteOption.WRITE_TO_POSITION && position != null) {
+            throw new IllegalArgumentException(String.format(
+                "'position' can only be used with 'WRITE_TO_POSITION' file write option, but was used with '%s'",
+                fileWriteOption
+            ));
+        }
     }
 
     /**
@@ -70,6 +79,18 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      */
     public Optional<ExecutorService> executorService() {
         return Optional.ofNullable(executorService);
+    }
+
+    /**
+     * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
+     * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
+     * configured, bytes 0-127 of the existing file will remain untouched and data will be written starting at byte 128. If not
+     * specified, defaults to 0.
+     *
+     * @return The offset at which to start overwriting data in the file.
+     */
+    public Long position() {
+        return position;
     }
 
     /**
@@ -137,6 +158,9 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         if (failureBehavior != that.failureBehavior) {
             return false;
         }
+        if (!Objects.equals(position, that.position)) {
+            return false;
+        }
         return Objects.equals(executorService, that.executorService);
     }
 
@@ -145,6 +169,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         int result = fileWriteOption != null ? fileWriteOption.hashCode() : 0;
         result = 31 * result + (failureBehavior != null ? failureBehavior.hashCode() : 0);
         result = 31 * result + (executorService != null ? executorService.hashCode() : 0);
+        result = 31 * result + (position != null ? position.hashCode() : 0);
         return result;
     }
 
@@ -165,7 +190,15 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         /**
          * Create a new file if it doesn't exist, otherwise append to the existing file.
          */
-        CREATE_OR_APPEND_TO_EXISTING
+        CREATE_OR_APPEND_TO_EXISTING,
+
+        /**
+         * Write to an existing file at the specified position, defined by the {@link FileTransformerConfiguration#position()}. If
+         * the file does not exist, a {@link java.nio.file.NoSuchFileException} will be thrown. If
+         * {@link FileTransformerConfiguration#position()} is not configured, start overwriting data at the beginning of the file
+         * (byte 0).
+         */
+        WRITE_TO_POSITION
     }
 
     /**
@@ -209,12 +242,24 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
          * @return This object for method chaining.
          */
         Builder executorService(ExecutorService executorService);
+
+        /**
+         * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
+         * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
+         * configured, bytes 0-127 of the existing file will remain untouched and data will be written starting at byte 128. If
+         * not specified, defaults to 0.
+         *
+         * @param writePosition the position at where to start writing data to the file.
+         * @return This object for method chaining.
+         */
+        Builder position(Long writePosition);
     }
 
     private static final class DefaultBuilder implements Builder {
         private FileWriteOption fileWriteOption;
         private FailureBehavior failureBehavior;
         private ExecutorService executorService;
+        private Long position;
 
         private DefaultBuilder() {
         }
@@ -223,6 +268,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
             this.fileWriteOption = fileTransformerConfiguration.fileWriteOption;
             this.failureBehavior = fileTransformerConfiguration.failureBehavior;
             this.executorService = fileTransformerConfiguration.executorService;
+            this.position = fileTransformerConfiguration.position;
         }
 
         @Override
@@ -244,9 +290,24 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         }
 
         @Override
+        public Builder position(Long position) {
+            this.position = position;
+            return this;
+        }
+
+        @Override
         public FileTransformerConfiguration build() {
             return new FileTransformerConfiguration(this);
         }
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("FileTransformerConfiguration")
+                       .add("fileWriteOption", this.fileWriteOption)
+                       .add("failureBehavior", this.failureBehavior)
+                       .add("executorService", this.executorService)
+                       .add("position", this.position)
+                       .build();
+    }
 }

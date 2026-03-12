@@ -1,0 +1,42 @@
+{
+    "version": "2.31.67",
+    "date": "2025-06-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Support Schema Registry feature for Kafka Event Source Mapping. Customers can now configure a Schema Registry to enable schema validation and filtering for Avro, Protobuf, and JSON-formatted events in Lambda for Kafka Event Source."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "This release of the SDK has the API and documentation for the createcustommodel API. This feature lets you copy a trained model into Amazon Bedrock for inference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release introduces alternative support for utilizing CFN templates from S3 for SageMaker Projects."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds the capability to enable IAM IdentityCenter Trusted Identity Propagation for users running Interactive Sessions on EMR Serverless Applications."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Additional support for managing HMAC keys that adheres to changes documented in X9.143-2021 and provides better interoperability for key import/export"
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Additional support for managing HMAC keys that adheres to changes documented in X9.143-2021 and provides better interoperability for key import/export"
+        }
+    ]
+}

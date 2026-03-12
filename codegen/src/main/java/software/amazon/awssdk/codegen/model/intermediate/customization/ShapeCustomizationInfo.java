@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate.customization;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 
 public class ShapeCustomizationInfo {
 
@@ -71,5 +72,34 @@ public class ShapeCustomizationInfo {
     @JsonIgnore
     public boolean hasStaxTargetDepthOffset() {
         return hasStaxTargetDepthOffset;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ShapeCustomizationInfo that = (ShapeCustomizationInfo) o;
+        return skipGeneratingModelClass == that.skipGeneratingModelClass
+               && skipGeneratingMarshaller == that.skipGeneratingMarshaller
+               && skipGeneratingUnmarshaller == that.skipGeneratingUnmarshaller
+               && staxTargetDepthOffset == that.staxTargetDepthOffset
+               && hasStaxTargetDepthOffset == that.hasStaxTargetDepthOffset
+               && Objects.equals(artificialResultWrapper, that.artificialResultWrapper);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(artificialResultWrapper);
+        result = 31 * result + Boolean.hashCode(skipGeneratingModelClass);
+        result = 31 * result + Boolean.hashCode(skipGeneratingMarshaller);
+        result = 31 * result + Boolean.hashCode(skipGeneratingUnmarshaller);
+        result = 31 * result + staxTargetDepthOffset;
+        result = 31 * result + Boolean.hashCode(hasStaxTargetDepthOffset);
+        return result;
     }
 }

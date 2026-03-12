@@ -167,6 +167,16 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
     }
 
     @Override
+    public StructuredJsonGenerator writeValue(byte val) {
+        try {
+            generator.writeNumber(val);
+        } catch (IOException e) {
+            throw new JsonGenerationException(e);
+        }
+        return this;
+    }
+
+    @Override
     public StructuredJsonGenerator writeValue(short val) {
         try {
             generator.writeNumber(val);

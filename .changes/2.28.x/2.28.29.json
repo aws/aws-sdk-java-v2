@@ -1,0 +1,48 @@
+{
+    "version": "2.28.29",
+    "date": "2024-10-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Doc updates for supporting converse"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Service Feature: Add support to start screen sharing for a web calling contact."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 X8g, C8g and M8g instances are powered by AWS Graviton4 processors. X8g provide the lowest cost per GiB of memory among Graviton4 instances. C8g provide the best price performance for compute-intensive workloads. M8g provide the best price performance in for general purpose workloads."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Introducing InvokeRestApi which allows users to invoke the Apache Airflow REST API on the webserver with the specified inputs."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Add support for ECC P-256 and P-384 Keys."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Add ECDH support on PIN operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

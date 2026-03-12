@@ -57,6 +57,9 @@ public final class AsyncApiCallMetricCollectionStage<OutputT> implements Request
             } else {
                 future.complete(r);
             }
+        }).exceptionally(t -> {
+            future.completeExceptionally(t);
+            return null;
         });
 
         return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);

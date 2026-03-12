@@ -28,12 +28,17 @@ public final class TcpKeepAliveConfiguration {
 
     private final Duration keepAliveInterval;
     private final Duration keepAliveTimeout;
+    private final Integer keepAliveProbes;
 
     private TcpKeepAliveConfiguration(DefaultTcpKeepAliveConfigurationBuilder builder) {
         this.keepAliveInterval = Validate.isPositive(builder.keepAliveInterval,
                                                      "keepAliveInterval");
         this.keepAliveTimeout = Validate.isPositive(builder.keepAliveTimeout,
                                                     "keepAliveTimeout");
+        this.keepAliveProbes = builder.keepAliveProbes == null
+                                        ? null
+                                        : Validate.isNotNegative(builder.keepAliveProbes,
+                                                                 "keepAliveProbes");
     }
 
     /**
@@ -48,6 +53,13 @@ public final class TcpKeepAliveConfiguration {
      */
     public Duration keepAliveTimeout() {
         return keepAliveTimeout;
+    }
+
+    /**
+     * @return number of keepalive probes allowed to fail before the connection is considered lost.
+     */
+    public Integer keepAliveProbes() {
+        return keepAliveProbes;
     }
 
     public static Builder builder() {
@@ -74,6 +86,14 @@ public final class TcpKeepAliveConfiguration {
          */
         Builder keepAliveTimeout(Duration keepAliveTimeout);
 
+        /**
+         * Sets the number of keepalive probes allowed to fail before the connection is considered lost.
+         * If not set or set to 0, OS default settings will be used for the probe count.
+         * @param keepAliveProbes Number of keepalive probes allowed to fail before the connection is considered lost.
+         * @return Builder
+         */
+        Builder keepAliveProbes(Integer keepAliveProbes);
+
         TcpKeepAliveConfiguration build();
     }
 
@@ -81,6 +101,7 @@ public final class TcpKeepAliveConfiguration {
      * An SDK-internal implementation of {@link Builder}.
      */
     private static final class DefaultTcpKeepAliveConfigurationBuilder implements Builder {
+        private Integer keepAliveProbes;
         private Duration keepAliveInterval;
         private Duration keepAliveTimeout;
 
@@ -106,6 +127,12 @@ public final class TcpKeepAliveConfiguration {
         @Override
         public Builder keepAliveTimeout(Duration keepAliveTimeout) {
             this.keepAliveTimeout = keepAliveTimeout;
+            return this;
+        }
+
+        @Override
+        public Builder keepAliveProbes(Integer keepAliveProbes) {
+            this.keepAliveProbes = keepAliveProbes;
             return this;
         }
 

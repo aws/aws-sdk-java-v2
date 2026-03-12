@@ -584,7 +584,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
             mappedTable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
                 .attributesToProject("value")
-                .select(Select.SPECIFIC_ATTRIBUTES)
+                .select("SPECIFIC_ATTRIBUTES")
             ).iterator();
 
         assertThat(results.hasNext(), is(true));
@@ -606,7 +606,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<Record>> results =
             mappedTable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                .select(Select.ALL_ATTRIBUTES)
+                .select("ALL_ATTRIBUTES")
             ).iterator();
 
         assertThat(results.hasNext(), is(true));

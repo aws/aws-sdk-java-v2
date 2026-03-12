@@ -84,6 +84,8 @@ public class V4CanonicalRequestTest {
                                                .method(SdkHttpMethod.PUT)
                                                .putHeader("foo", "bar")
                                                .putHeader("x-amzn-trace-id", "wontBePresent")
+                                               .putHeader("Transfer-Encoding", "wontBePresent")
+                                               .putHeader("X-Forwarded-For", "wontBePresent")
                                                .build();
         V4CanonicalRequest cr = new V4CanonicalRequest(request, "sha-256",
                                                        new V4CanonicalRequest.Options(true,

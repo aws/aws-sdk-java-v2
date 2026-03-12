@@ -28,8 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
  *
  * <p>
  * Example using {@link DynamoDbPartitionKey}:
- * <pre>
- * {@code
+ * {@snippet :
  * @DynamoDbBean
  * public class Customer {
  *     private String id;
@@ -47,12 +46,12 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
  *     public Instant getCreatedOn() {
  *          return this.createdOn;
  *     }
+ *
  *     public void setCreatedOn(Instant createdOn) {
  *          this.createdOn = createdOn;
  *      }
  * }
  * }
- * </pre>
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

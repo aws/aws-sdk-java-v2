@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.internal.http.LowCopyListMap;
@@ -438,6 +439,17 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         @Override
         public void forEachRawQueryParameter(BiConsumer<? super String, ? super List<String>> consumer) {
             queryParameters.forInternalRead().forEach((k, v) -> consumer.accept(k, unmodifiableList(v)));
+        }
+
+        @Override
+        public boolean anyMatchingHeader(Predicate<String> predicate) {
+            for (String headerKey : headers.forInternalRead().keySet()) {
+                if (predicate.test(headerKey)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         @Override

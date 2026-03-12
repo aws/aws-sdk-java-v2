@@ -1,0 +1,312 @@
+{
+    "version": "2.35.10",
+    "date": "2025-10-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS ARC - Zonal Shift",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppConfig Data",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Recommended Actions",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar Notifications",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Catalog",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Core Device Advisor",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Things Graph",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT TwinMaker",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager User Subscriptions",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "The ListEntities API now supports two new CAPI filters: DeliveryOptionTypes for SaaS products and CompatibleAWSServices for Container products."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Route53 Recovery Readiness",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Signer",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Telco Network Builder",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppIntegrations Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront KeyValueStore",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Evidently",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Updates documentation to clarify valid application binaries for an Amazon GameLift Streams application and provide descriptions of stream session error status reasons"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kendra Intelligent Ranking",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Media",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Maps V2",
+            "contributor": "",
+            "description": "Added support for optional style parameters in maps, including Terrain, ContourDensity, Traffic, and TravelModes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker geospatial capabilities",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Workflow Service",
+            "contributor": "",
+            "description": "Releasing minor endpoint updates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Write",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AmplifyBackend",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "IAM Roles Anywhere",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Runtime for Amazon Bedrock Data Automation",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

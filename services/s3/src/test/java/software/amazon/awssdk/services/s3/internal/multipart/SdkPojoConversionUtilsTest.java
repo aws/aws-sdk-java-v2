@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -69,7 +70,9 @@ class SdkPojoConversionUtilsTest {
                                                                  "Key",
                                                                  "SSECustomerKeyMD5",
                                                                  "SSECustomerKey",
-                                                                 "SSECustomerAlgorithm"));
+                                                                 "SSECustomerAlgorithm",
+                                                                 "IfMatch",
+                                                                 "IfNoneMatch"));
         verifyFieldsAreCopied(randomCopyObject, convertedToHeadObject, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               HeadObjectRequest.builder().sdkFields());
@@ -152,9 +155,7 @@ class SdkPojoConversionUtilsTest {
     void toUploadPartRequest_shouldCopyProperties() {
         PutObjectRequest randomObject = randomPutObjectRequest();
         UploadPartRequest convertedObject = SdkPojoConversionUtils.toUploadPartRequest(randomObject, 1, "id");
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("ChecksumCRC32", "ChecksumSHA256", "ContentMD5", "ChecksumSHA1",
-                                                                 "ChecksumCRC32C"));
-        verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
+        verifyFieldsAreCopied(randomObject, convertedObject, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE,
                               PutObjectRequest.builder().sdkFields(),
                               UploadPartRequest.builder().sdkFields());
         assertThat(convertedObject.partNumber()).isEqualTo(1);
@@ -184,9 +185,20 @@ class SdkPojoConversionUtilsTest {
         PutObjectRequest randomObject = randomPutObjectRequest();
         CreateMultipartUploadRequest convertedObject = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomObject);
         Set<String> fieldsToIgnore = new HashSet<>();
+        // ChecksumAlgorithm is set in CreateMPU request to the checksum type of the value provided by the user, per TM spec
+        fieldsToIgnore.add("ChecksumAlgorithm");
         verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
                               PutObjectRequest.builder().sdkFields(),
                               CreateMultipartUploadRequest.builder().sdkFields());
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_putObjectRequestWithChecksumAlgorithm_shouldHonor() {
+        PutObjectRequest randomObject = PutObjectRequest.builder()
+                                                        .checksumAlgorithm(ChecksumAlgorithm.SHA256)
+                                                        .checksumSHA1("123").build();
+        CreateMultipartUploadRequest convertedObject = SdkPojoConversionUtils.toCreateMultipartUploadRequest(randomObject);
+        assertThat(convertedObject.checksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA256);
     }
 
     @Test
@@ -209,7 +221,7 @@ class SdkPojoConversionUtilsTest {
         CompletedPart completedPart = CompletedPart.builder().partNumber(1).build();
         parts[0] = completedPart;
         CompleteMultipartUploadRequest convertedObject =
-            SdkPojoConversionUtils.toCompleteMultipartUploadRequest(randomObject, "uploadId", parts);
+            SdkPojoConversionUtils.toCompleteMultipartUploadRequest(randomObject, "uploadId", parts, 99L);
 
         Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(randomObject, convertedObject, fieldsToIgnore,
@@ -217,6 +229,7 @@ class SdkPojoConversionUtilsTest {
                               CompleteMultipartUploadRequest.builder().sdkFields());
         assertThat(convertedObject.uploadId()).isEqualTo("uploadId");
         assertThat(convertedObject.multipartUpload().parts()).contains(completedPart);
+        assertThat(convertedObject.mpuObjectSize()).isEqualTo(99);
     }
 
     @Test
@@ -277,6 +290,12 @@ class SdkPojoConversionUtilsTest {
         PutObjectRequest.Builder builder = PutObjectRequest.builder();
         setFieldsToRandomValues(builder.sdkFields(), builder);
         return builder.build();
+    }
+
+    private PutObjectRequest.Builder randomPutObjectRequestBuilder() {
+        PutObjectRequest.Builder builder = PutObjectRequest.builder();
+        setFieldsToRandomValues(builder.sdkFields(), builder);
+        return builder;
     }
 
     private void populateFields(SdkPojo pojo) {

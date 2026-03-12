@@ -1,0 +1,62 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.ChangeS3EventNotificationTypes
+displayName: Change SDK S3EventNotification types from v1 to v2
+description: Change SDK S3EventNotification types from v1 to v2.
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.RequestParametersEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.RequestParameters
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.ResponseElementsEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.ResponseElements
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.RestoreEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.RestoreEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3BucketEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3Bucket
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3Entity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3ObjectEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3Object
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.TransitionEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.UserIdentityEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.UserIdentity
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification

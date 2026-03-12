@@ -53,7 +53,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-{{PROTOCOL}}-protocol</artifactId>
+            <artifactId>{{PROTOCOL}}-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

@@ -56,4 +56,9 @@ public class Http {
     public void setResponseCode(String responseCode) {
         this.responseCode = responseCode;
     }
+
+    public Http withResponseCode(String responseCode) {
+        this.responseCode = responseCode;
+        return this;
+    }
 }

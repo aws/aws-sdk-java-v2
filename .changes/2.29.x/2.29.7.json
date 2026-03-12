@@ -1,0 +1,54 @@
+{
+    "version": "2.29.7",
+    "date": "2024-11-06",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Moves setting the default backoff strategies for all retry strategies to the builder as per the javadocs instead of only doing it in the `DefaultRetryStrategy` builder methods."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild now adds additional compute types for reserved capacity fleet."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "API changes for new named tag expressions feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Fix ListStorageLensConfigurations and ListStorageLensGroups deserialization for Smithy SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve unmarshalling performance of all JSON protocols by unifying parsing with unmarshalling instead of doing one after the other."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "GuardDuty RDS Protection expands support for Amazon Aurora PostgreSQL Limitless Databases."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Adding BatchGetPolicy API which supports the retrieval of multiple policies across multiple policy stores within a single request."
+        },
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Introduces category apis in AmazonQApps. Web experience users use Categories to tag and filter library items."
+        }
+    ]
+}

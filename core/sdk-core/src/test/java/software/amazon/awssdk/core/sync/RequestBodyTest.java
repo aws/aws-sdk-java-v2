@@ -30,15 +30,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.testutils.RandomInputStream;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 
 
 public class RequestBodyTest {
+    private static final SdkChecksum CRC32 = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC32);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -139,5 +147,47 @@ public class RequestBodyTest {
 
         byte[] requestBodyBytes = IoUtils.toByteArray(requestBody.contentStreamProvider().newStream());
         assertThat(ByteBuffer.wrap(requestBodyBytes)).isEqualTo(bb);
+    }
+
+    @Test
+    public void fromInputStream_streamSupportsReset_resetsTheStream() {
+        byte[] newData = new byte[16536];
+        new Random().nextBytes(newData);
+
+        String streamCrc32 = getCrc32(new ByteArrayInputStream(newData));
+
+        ByteArrayInputStream stream = new ByteArrayInputStream(newData);
+        assertThat(stream.markSupported()).isTrue();
+        RequestBody requestBody = RequestBody.fromInputStream(stream, newData.length);
+
+        assertThat(getCrc32(requestBody.contentStreamProvider().newStream())).isEqualTo(streamCrc32);
+        assertThat(getCrc32(requestBody.contentStreamProvider().newStream())).isEqualTo(streamCrc32);
+    }
+
+    @Test
+    public void fromInputStream_streamNotSupportReset_shouldThrowException() {
+        RandomInputStream stream = new RandomInputStream(100);
+        assertThat(stream.markSupported()).isFalse();
+        RequestBody requestBody = RequestBody.fromInputStream(stream, 100);
+        IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
+        assertThatThrownBy(() -> requestBody.contentStreamProvider().newStream())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Content input stream does not support mark/reset");
+    }
+
+    private static String getCrc32(InputStream inputStream) {
+        byte[] buff = new byte[1024];
+        int read;
+
+        CRC32.reset();
+        try {
+            while ((read = inputStream.read(buff)) != -1) {
+                CRC32.update(buff, 0, read);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return BinaryUtils.toHex(CRC32.getChecksumBytes());
     }
 }

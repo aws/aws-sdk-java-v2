@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
+import static software.amazon.awssdk.enhanced.dynamodb.JsonTestUtils.toJsonNode;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
@@ -211,12 +212,13 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS.stream().map(i -> i
-                       .toBuilder()
-                       .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
-                       .build()
-                       .toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS.stream().map(i -> i
+                                              .toBuilder()
+                                              .attributeConverterProviders(new InnerAttribConverterProvider<>(),
+                                                                           defaultProvider())
+                                              .build())
+                                          .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -245,7 +247,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                .select(Select.SPECIFIC_ATTRIBUTES)
+                .select("SPECIFIC_ATTRIBUTES")
                 .attributesToProject("value")
             ).iterator();
 
@@ -286,7 +288,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                .select(Select.COUNT)
+                .select("COUNT")
             ).iterator();
 
 
@@ -305,12 +307,12 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         PageIterable<EnhancedDocument> query = docMappedtable.query(keyEqualTo(k -> k.partitionValue("id-value")));
         SdkIterable<EnhancedDocument> results = query.items();
-        assertThat(results.stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS.stream().map(i -> i
-                       .toBuilder()
-                       .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
-                       .build()
-                       .toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS.stream().map(i -> i
+                                   .toBuilder()
+                                   .attributeConverterProviders(new InnerAttribConverterProvider<>(), defaultProvider())
+                                   .build())
+                                     .collect(Collectors.toList()))));
 
     }
 
@@ -337,10 +339,12 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
-                                              .map(doc -> doc.toJson())
-                                              .collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(
+                       DOCUMENTS_WITH_PROVIDERS.stream().
+                                               filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber(
+                                                   "sort").intValue() <= 5)
+                                               .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -387,10 +391,10 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
-                                              .map(doc -> doc.toJson())
-                                              .collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.stream()
+                                                         .filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
+                                                         .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -417,13 +421,13 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Map<String, AttributeValue> expectedLastEvaluatedKey2 = new HashMap<>();
         expectedLastEvaluatedKey2.put("id", stringValue("id-value"));
         expectedLastEvaluatedKey2.put("sort", numberValue(9));
-        assertThat(page1.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(0, 5).stream().map( doc -> doc.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page1.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(0, 5))));
         assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
-        assertThat(page2.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(5, 10).stream().map( doc -> doc.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page2.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(5, 10))));
         assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
-        assertThat(page3.items().stream().map(i -> i.toJson()).collect(Collectors.toList()), is(empty()));
+        assertThat(page3.items(), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -461,8 +465,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.items().stream().map(doc -> doc.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -479,8 +483,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                                                      .build())
                           .items();
 
-        assertThat(results.stream().map(doc -> doc.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
     }
 
     @Test

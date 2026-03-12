@@ -120,7 +120,7 @@ public final class ClassLoaderHelper {
      * Attempt to get the current thread's class loader and fallback to the system classloader if null
      * @return a {@link ClassLoader} or null if none found
      */
-    private static ClassLoader contextClassLoader() {
+    public static ClassLoader contextClassLoader() {
         ClassLoader threadClassLoader = Thread.currentThread().getContextClassLoader();
         if (threadClassLoader != null) {
             return threadClassLoader;

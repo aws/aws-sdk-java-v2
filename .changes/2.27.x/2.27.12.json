@@ -1,0 +1,42 @@
+{
+    "version": "2.27.12",
+    "date": "2024-08-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Added support for the MAC_ARM environment type for CodeBuild fleets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Releasing minor partitional endpoint updates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "Update API documentation to clarify the event SLA as well as the data model expectations"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Releasing the support for Action User Confirmation."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Releasing the support for Action User Confirmation."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Amazon QBusiness: Enable support for SAML and OIDC federation through AWS IAM Identity Provider integration."
+        }
+    ]
+}

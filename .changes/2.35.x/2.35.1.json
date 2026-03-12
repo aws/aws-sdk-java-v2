@@ -1,0 +1,60 @@
+{
+    "version": "2.35.1",
+    "date": "2025-10-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "Adds optional MaxScheduledRunsPreview input to GetBackupPlan API to provide a preview of up to 10 next scheduled backup plan runs in the GetBackupPlan response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Adds labeling for DataQualityRuleResult for GetDataQualityResult and PublishDataQualityResult APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "Add new AWS Resource Explorer APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
+            "contributor": "",
+            "description": "Add support for VM lifecycle configuration parameters and A2A protocol"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
+            "contributor": "",
+            "description": "Add support for batch memory management, agent card retrieval and session termination"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon MemoryDB",
+            "contributor": "",
+            "description": "Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Documentation improvements for QuickSight API documentation to clarify that delete operation APIs are global."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Documentation updates to the CreateDBClusterMessage$PubliclyAccessible and CreateDBInstanceMessage$PubliclyAccessible properties."
+        }
+    ]
+}

@@ -27,6 +27,7 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
@@ -38,11 +39,10 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
-import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -55,22 +55,22 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class JsonProtocolSpec implements ProtocolSpec {
 
     private final PoetExtension poetExtensions;
     private final IntermediateModel model;
-    private final boolean useSraAuth;
 
     public JsonProtocolSpec(PoetExtension poetExtensions, IntermediateModel model) {
         this.poetExtensions = poetExtensions;
         this.model = model;
-        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -96,10 +96,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode("return builder\n")
                       .addCode(".clientConfiguration(clientConfiguration)\n")
                       .addCode(".defaultServiceExceptionSupplier($T::builder)\n", baseException)
-                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()))
-                      .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
-                      .addCode("$L", customErrorCodeFieldName());
-
+                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
+        if (metadata.getJsonVersion() != null) {
+            methodSpec.addCode(".protocolVersion($S)\n", metadata.getJsonVersion());
+        }
+        methodSpec.addCode("$L", customErrorCodeFieldName());
         String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
                 .map(MetadataConfig::getContentType)
                 .orElse(metadata.getContentType());
@@ -112,7 +113,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
             methodSpec.addCode("$L", hasAwsQueryCompatible());
         }
 
-        registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
         methodSpec.addCode(";");
 
         return methodSpec.build();
@@ -131,6 +131,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private Class<?> protocolFactoryClass() {
         if (model.getMetadata().isCborProtocol()) {
             return AwsCborProtocolFactory.class;
+        } else if (model.getMetadata().isRpcV2CborProtocol()) {
+            return SmithyRpcV2CborProtocolFactory.class;
         } else {
             return AwsJsonProtocolFactory.class;
         }
@@ -164,11 +166,40 @@ public class JsonProtocolSpec implements ProtocolSpec {
     public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
-        return Optional.of(
-            CodeBlock.builder()
-                     .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
-                          HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
-                     .build());
+        CodeBlock.Builder builder = CodeBlock.builder();
+        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("if (errorCode == null) {\n");
+        builder.add("return $T.empty();\n", Optional.class);
+        builder.add("}\n");
+        builder.add("switch (errorCode) {\n");
+        model.getShapes().values().stream()
+             .filter(shape -> shape.getShapeType() == ShapeType.Exception)
+             .forEach(exceptionShape -> {
+                 String exceptionName = exceptionShape.getShapeName();
+                 String errorCode = exceptionShape.getErrorCode();
+
+                 builder.add("case $S:\n", errorCode);
+                 builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                        .add(".errorCode($S)\n", errorCode);
+                 builder.add(populateHttpStatusCode(exceptionShape, model));
+                 builder.add(".exceptionBuilderSupplier($T::builder)\n",
+                             poetExtensions.getModelClassFromShape(exceptionShape))
+                        .add(".build());\n");
+             });
+
+        builder.add("default: return $T.empty();\n", Optional.class);
+        builder.add("}\n");
+        builder.add("};\n");
+
+        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
+                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
+
+        return Optional.of(builder.build());
     }
 
     @Override
@@ -194,11 +225,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
-        if (!useSraAuth) {
-            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
-
         codeBlock.add(RequestCompressionTrait.create(opModel, model));
+
+        if (opModel.hasStreamingOutput()) {
+            codeBlock.add(".withResponseTransformer(responseTransformer)");
+        }
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
@@ -234,7 +265,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                    .add(".eventStreamResponseHandler(asyncResponseHandler)\n")
                    .add(".eventResponseHandler(eventResponseHandler)\n")
                    .add(".initialResponseHandler(responseHandler)\n")
-                   .add(".exceptionResponseHandler(errorResponseHandler)\n")
+                   .add(".exceptionResponseHandler(errorEventResponseHandler)\n")
                    .add(".future(future)\n")
                    .add(".executor(executor)\n")
                    .add(".serviceName(serviceName())\n")
@@ -271,8 +302,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel));
 
-        if (!useSraAuth) {
-            builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        if (opModel.hasStreamingOutput()) {
+            builder.add(".withAsyncResponseTransformer(asyncResponseTransformer)");
         }
 
         builder.add(RequestCompressionTrait.create(opModel, model))
@@ -405,13 +436,17 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
         ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
+        ParameterizedTypeName mapperType = ParameterizedTypeName.get(ClassName.get(Function.class),
+            ClassName.get(String.class), ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
                                      .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
                                      .addParameter(JsonOperationMetadata.class, "operationMetadata")
+                                     .addParameter(mapperType, "exceptionMetadataMapper")
                                      .returns(responseHandlerOfException)
                                      .addModifiers(Modifier.PRIVATE)
-                                     .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata)")
+                                     .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata, "
+                                                   + "exceptionMetadataMapper)")
                                      .build());
     }
 
@@ -476,6 +511,37 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         });
         builder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))\n"
                     + ".build());\n", SdkPojoBuilder.class, eventStreamBaseClass);
+
+        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        builder.add("\n");
+        builder.add("$T eventstreamExceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("switch (errorCode) {\n");
+        EventStreamUtils.getErrorMembers(eventStream).forEach(m -> {
+            String errorCode = m.getC2jName();
+            builder.add("case $S:\n", errorCode);
+            builder.add("return $T.of($T.builder()", Optional.class, ExceptionMetadata.class);
+            builder.add(".errorCode($S)", m.getShape().getErrorCode());
+            builder.add(populateHttpStatusCode(m.getShape(), model));
+            builder.add(".exceptionBuilderSupplier($T::builder).build());\n",
+                        poetExtensions.getModelClassFromShape(m.getShape()));
+        });
+        builder.add("default: return $T.empty();", Optional.class);
+        builder.add("}\n");
+        builder.add("};\n");
+
+        ParameterizedTypeName errorResponseHandlerType = ParameterizedTypeName.get(HttpResponseHandler.class,
+                                                                                   AwsServiceException.class);
+
+        builder.add("\n");
+        builder.addStatement("$T errorEventResponseHandler = createErrorResponseHandler($N, operationMetadata, "
+                             + "eventstreamExceptionMetadataMapper)",
+                             errorResponseHandlerType,
+                             protocolFactoryLiteral(model, opModel));
+
     }
 
     private String protocolFactoryLiteral(IntermediateModel model, OperationModel opModel) {

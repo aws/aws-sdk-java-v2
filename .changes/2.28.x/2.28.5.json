@@ -1,0 +1,60 @@
+{
+    "version": "2.28.5",
+    "date": "2024-09-19",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "anirudh9391",
+            "description": "Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeConnections",
+            "contributor": "",
+            "description": "This release adds the PullRequestComment field to CreateSyncConfiguration API input, UpdateSyncConfiguration API input, GetSyncConfiguration API output and ListSyncConfiguration API output"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release provides support for additional DRM configurations per SPEKE Version 2.0."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Adds Bandwidth Reduction Filtering for HD AVC and HEVC encodes, multiplex container settings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This change is for releasing TestConnection api SDK model"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Tagging support for Lambda event source mapping, and code signing configuration resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "QuickSight: 1. Add new API - ListFoldersForResource. 2. Commit mode adds visibility configuration of Apply button on multi-select controls for authors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Introduced support for G6e instance types on SageMaker Studio for JupyterLab and CodeEditor applications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "WorkSpaces Secure Browser now enables Administrators to view and manage end-user browsing sessions via Session Management APIs."
+        }
+    ]
+}

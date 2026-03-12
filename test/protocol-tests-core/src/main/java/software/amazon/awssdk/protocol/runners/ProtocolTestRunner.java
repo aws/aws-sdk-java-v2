@@ -66,12 +66,13 @@ public final class ProtocolTestRunner {
     }
 
     public void runTest(TestCase testCase) throws Exception {
-        log.info("Running test: {}", testCase.getDescription());
+        log.info("Running test: [{}] {}", testCase.getId(), testCase.getDescription());
         switch (testCase.getWhen().getAction()) {
             case MARSHALL:
                 marshallingTestRunner.runTest(testCase);
                 break;
             case UNMARSHALL:
+            case ERROR_UNMARSHALL:
                 unmarshallingTestRunner.runTest(testCase);
                 break;
             default:

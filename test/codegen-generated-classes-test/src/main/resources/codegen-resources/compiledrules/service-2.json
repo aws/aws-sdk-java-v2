@@ -1,0 +1,37 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"compiledendpointrules",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"CompiledEndpointRulesService",
+    "serviceFullName":"Compiled Endpoin tRules",
+    "serviceId":"CompiledEndpointRulesService",
+    "signatureVersion":"v4",
+    "targetPrefix":"compiled-endpoint-rules-service",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "OneOperation":{
+      "name":"OneOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/test/uri"
+      },
+      "input":{"shape":"OneShape"}
+    }
+  },
+  "shapes": {
+    "OneShape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

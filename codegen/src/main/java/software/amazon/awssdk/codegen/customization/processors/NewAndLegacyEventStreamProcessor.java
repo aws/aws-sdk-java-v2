@@ -42,7 +42,9 @@ public final class NewAndLegacyEventStreamProcessor implements CodegenCustomizat
         approvedEventStreams.put("Transcribe Streaming", new HashSet<>(Arrays.asList("AudioStream",
                                                                                      "TranscriptResultStream",
                                                                                      "MedicalTranscriptResultStream",
-                                                                                     "CallAnalyticsTranscriptResultStream")));
+                                                                                     "CallAnalyticsTranscriptResultStream",
+                                                                                     "MedicalScribeInputStream",
+                                                                                     "MedicalScribeResultStream")));
 
         APPROVED_EVENT_STREAMS = Collections.unmodifiableMap(approvedEventStreams);
     }

@@ -1,0 +1,66 @@
+{
+    "version": "2.31.41",
+    "date": "2025-05-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add `@Mutable` and `@NotThreadSafe` to model Builders"
+        },
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "AWS Deadline Cloud service-managed fleets now support configuration scripts. Configuration scripts make it easy to install additional software, like plugins and packages, onto a worker."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Add support to the AV1 rate control mode"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Updating the endpoint list for the Identity and access management (IAM) service"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Documenting that EnabledLoggingStrategies is always present in responses of PlaybackConfiguration read operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Updates to support S3 Express zonal endpoints for directory buckets in AWS CLI"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "Launch new AWS Supply Chain public APIs for DataIntegrationEvent, DataIntegrationFlowExecution and DatasetNamespace. Also add more capabilities to existing public APIs to support direct dataset event publish, data deduplication in DataIntegrationFlow, partition specification of custom datasets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EC2 - Adding support for AvailabilityZoneId"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

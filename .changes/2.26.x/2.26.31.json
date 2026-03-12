@@ -1,0 +1,30 @@
+{
+    "version": "2.26.31",
+    "date": "2024-08-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Introduce model invocation output traces for orchestration traces, which contain the model's raw response and usage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Advanced security feature updates to include password history and log export for Cognito user pools."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added support for BYOL_GRAPHICS_G4DN_WSP IngestionProcess"
+        },
+        {
+            "type": "feature",
+            "category": "Cost Optimization Hub",
+            "contributor": "",
+            "description": "This release adds savings percentage support to the ListRecommendationSummaries API."
+        }
+    ]
+}

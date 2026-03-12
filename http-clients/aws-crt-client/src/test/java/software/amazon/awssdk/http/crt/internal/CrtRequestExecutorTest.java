@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
+import javax.net.ssl.SSLHandshakeException;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +61,13 @@ public class CrtRequestExecutorTest {
     public static Stream<Throwable> retryableExceptions() {
         return Stream.of(new CrtRuntimeException(""), new HttpException(0x080a), new IllegalStateException(
             "connection closed"));
+    }
+
+    public static Stream<Entry<Integer, Class<? extends Throwable>>> mappedExceptions() {
+        return Stream.of(
+            new SimpleEntry<>(0x0405, SSLHandshakeException.class), // For AWS_IO_TLS_ERROR_NEGOTIATION_FAILURE (1029)
+            new SimpleEntry<>(0x0418, ConnectException.class) // For AWS_IO_SOCKET_TIMEOUT (1048)
+        );
     }
 
     @BeforeEach
@@ -109,6 +120,23 @@ public class CrtRequestExecutorTest {
 
         CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
         assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCause(exception);
+    }
+
+    @ParameterizedTest
+    @MethodSource("mappedExceptions")
+    public void execute_AcquireConnectionFailure_shouldAlwaysBeInstanceOfIOException(Entry<Integer, Class<? extends Throwable>> entry) {
+        int errorCode = entry.getKey();
+        Class<? extends Throwable> ioExceptionSubclass = entry.getValue();
+
+        CrtRequestContext context = crtRequestContext();
+        HttpException exception = new HttpException(errorCode);
+        CompletableFuture<HttpClientConnection> completableFuture = CompletableFutureUtils.failedFuture(exception);
+
+        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
+
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasMessageContaining(exception.getMessage());
+        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(ioExceptionSubclass);
     }
 
     @Test

@@ -27,13 +27,16 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class StsWebIdentityTokenCredentialProviderTest {
@@ -96,5 +99,123 @@ class StsWebIdentityTokenCredentialProviderTest {
                                                                                  .sessionToken("session").secretAccessKey("secret").build()).build());
         provider.resolveCredentials();
         Mockito.verify(stsClient, Mockito.times(1)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
+    }
+
+    @Test
+    void createAssumeRoleWithWebIdentityTokenCredentialsProvider_raisesInResolveCredentials() {
+        ENVIRONMENT_VARIABLE_HELPER.remove(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE.environmentVariable());
+
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder().stsClient(stsClient)
+                                                      .refreshRequest(r -> r.build())
+                                                      .roleArn("someRole")
+                                                      .roleSessionName("tempRoleSession")
+                                                      .build();
+        // exception should be raised lazily when resolving credentials, not at creation time.
+        Assert.assertThrows(IllegalStateException.class, provider::resolveCredentials);
+    }
+
+    @Test
+    void customPrefetchTime_actuallyTriggersRefreshEarly() throws InterruptedException {
+        Mockito.reset(stsClient);
+
+        Instant tokenExpiration = Instant.now().plusSeconds(5);
+        Duration customPrefetchTime = Duration.ofSeconds(2);
+        Duration customStaleTime = Duration.ofSeconds(1);
+
+        when(stsClient.assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class)))
+            .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
+                                                         .credentials(Credentials.builder()
+                                                                                 .accessKeyId("key1")
+                                                                                 .secretAccessKey("secret1") 
+                                                                                 .sessionToken("session1")
+                                                                                 .expiration(tokenExpiration)
+                                                                                 .build())
+                                                         .assumedRoleUser(AssumedRoleUser.builder()
+                                                                                        .arn("arn:aws:iam::123456789012:role/test-role")
+                                                                                        .assumedRoleId("role:session")
+                                                                                        .build())
+                                                         .build())
+
+            .thenReturn(AssumeRoleWithWebIdentityResponse.builder()
+                                                         .credentials(Credentials.builder()
+                                                                                 .accessKeyId("key2")
+                                                                                 .secretAccessKey("secret2")
+                                                                                 .sessionToken("session2")
+                                                                                 .expiration(Instant.now().plusSeconds(8))
+                                                                                 .build())
+                                                         .assumedRoleUser(AssumedRoleUser.builder()
+                                                                                        .arn("arn:aws:iam::123456789012:role/test-role")
+                                                                                        .assumedRoleId("role:session")
+                                                                                        .build())
+                                                         .build());
+
+
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .asyncCredentialUpdateEnabled(true)
+                                                      .prefetchTime(customPrefetchTime)
+                                                      .staleTime(customStaleTime)
+                                                      .build();
+
+        try {
+            assertThat(provider.prefetchTime()).isEqualTo(customPrefetchTime);
+            assertThat(provider.staleTime()).isEqualTo(customStaleTime);
+
+            provider.resolveCredentials();
+            Mockito.verify(stsClient, Mockito.times(1)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
+
+            // Wait 5 seconds to ensure prefetch completes
+            Thread.sleep(5_000);
+            Mockito.verify(stsClient, Mockito.times(2)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
+
+        } finally {
+            provider.close();
+        }
+    }
+
+    @Test
+    void defaultTiming_usesStandardValues() {
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .build();
+
+        try {
+            assertThat(provider.prefetchTime()).isEqualTo(Duration.ofMinutes(5));
+            assertThat(provider.staleTime()).isEqualTo(Duration.ofMinutes(1));
+        } finally {
+            provider.close();
+        }
+    }
+
+    @Test
+    void toBuilder_preservesCustomTimingConfiguration() {
+        Duration customPrefetch = Duration.ofMinutes(10);
+        Duration customStale = Duration.ofMinutes(3);
+
+        StsWebIdentityTokenFileCredentialsProvider originalProvider =
+            StsWebIdentityTokenFileCredentialsProvider.builder()
+                                                      .stsClient(stsClient)
+                                                      .prefetchTime(customPrefetch)
+                                                      .staleTime(customStale)
+                                                      .build();
+
+        try {
+            assertThat(originalProvider.prefetchTime()).isEqualTo(customPrefetch);
+            assertThat(originalProvider.staleTime()).isEqualTo(customStale);
+
+            StsWebIdentityTokenFileCredentialsProvider copiedProvider = originalProvider.toBuilder().build();
+
+            try {
+                assertThat(copiedProvider.prefetchTime()).isEqualTo(customPrefetch);
+                assertThat(copiedProvider.staleTime()).isEqualTo(customStale);
+            } finally {
+                copiedProvider.close();
+            }
+        } finally {
+            originalProvider.close();
+        }
     }
 }

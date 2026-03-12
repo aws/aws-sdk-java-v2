@@ -18,9 +18,11 @@ package software.amazon.awssdk.core.internal.io;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -29,10 +31,13 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @SdkInternalApi
 public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInputStream {
 
-    private AwsUnsignedChunkedEncodingInputStream(InputStream in, AwsChunkedEncodingConfig awsChunkedEncodingConfig,
+    private AwsUnsignedChunkedEncodingInputStream(InputStream in,
+                                                  AwsChunkedEncodingConfig awsChunkedEncodingConfig,
+                                                  ChecksumAlgorithm checksumAlgorithm,
                                                   SdkChecksum sdkChecksum,
+                                                  PayloadChecksumStore checksumStore,
                                                   String checksumHeaderForTrailer) {
-        super(in, sdkChecksum, checksumHeaderForTrailer, awsChunkedEncodingConfig);
+        super(in, checksumAlgorithm, sdkChecksum, checksumStore, checksumHeaderForTrailer, awsChunkedEncodingConfig);
     }
 
     public static Builder builder() {
@@ -85,8 +90,12 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
     public static final class Builder extends AwsChunkedEncodingInputStream.Builder<Builder> {
         public AwsUnsignedChunkedEncodingInputStream build() {
             return new AwsUnsignedChunkedEncodingInputStream(
-                    this.inputStream, this.awsChunkedEncodingConfig,
-                    this.sdkChecksum, this.checksumHeaderForTrailer);
+                    this.inputStream,
+                    this.awsChunkedEncodingConfig,
+                    this.checksumAlgorithm,
+                    this.sdkChecksum,
+                    this.checksumStore,
+                    this.checksumHeaderForTrailer);
         }
     }
 }

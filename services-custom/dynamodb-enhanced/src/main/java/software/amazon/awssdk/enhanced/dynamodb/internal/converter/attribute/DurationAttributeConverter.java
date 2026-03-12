@@ -104,13 +104,25 @@ public final class DurationAttributeConverter implements AttributeConverter<Dura
             String[] splitOnDecimal = ConverterUtils.splitNumberOnDecimal(value);
 
             long seconds = Long.parseLong(splitOnDecimal[0]);
-            int nanoAdjustment = Integer.parseInt(splitOnDecimal[1]);
+            int nanoAdjustment = Integer.parseInt(padRight(splitOnDecimal[1]));
 
             if (seconds < 0) {
                 nanoAdjustment = -nanoAdjustment;
             }
 
             return Duration.ofSeconds(seconds, nanoAdjustment);
+        }
+
+        private String padRight(String s) {
+            if (s.length() >= 9) {
+                return s;
+            }
+            StringBuilder padding = new StringBuilder(s);
+            for (int i = 0; i < 9 - s.length(); i++) {
+                padding.append("0");
+            }
+
+            return padding.toString();
         }
     }
 }

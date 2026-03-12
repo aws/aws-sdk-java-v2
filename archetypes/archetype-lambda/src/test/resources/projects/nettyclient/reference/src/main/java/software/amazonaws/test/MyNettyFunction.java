@@ -1,7 +1,9 @@
 package software.amazonaws.test;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import java.util.Map;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 /**
@@ -10,7 +12,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
  *
  * @see <a href=https://docs.aws.amazon.com/lambda/latest/dg/java-handler.html>Lambda Java Handler</a> for more information
  */
-public class MyNettyFunction implements RequestHandler<Object, Object> {
+public class MyNettyFunction implements RequestHandler<Map<String, String>, String> {
     private final KinesisAsyncClient kinesisClient;
 
     public MyNettyFunction() {
@@ -21,8 +23,10 @@ public class MyNettyFunction implements RequestHandler<Object, Object> {
     }
 
     @Override
-    public Object handleRequest(final Object input, final Context context) {
+    public String handleRequest(final Map<String, String> input, final Context context) {
+        LambdaLogger lambdaLogger = context.getLogger();
+        lambdaLogger.log("Start to handle request");
         // TODO: invoking the api call using kinesisClient.
-        return input;
+        return "";
     }
 }

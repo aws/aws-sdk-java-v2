@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.CLIENT_TYPE;
-import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
@@ -36,6 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -44,8 +47,6 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.checksums.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -60,19 +61,6 @@ public class AsyncChecksumValidationInterceptorTest {
     private static final String INVALID_CHECKSUM = "3902ee7e149eb8313a34757e89e21af6";
 
     private AsyncChecksumValidationInterceptor interceptor = new AsyncChecksumValidationInterceptor();
-
-    @Test
-    public void modifyAsyncHttpContent_putObjectRequestChecksumEnabled_shouldWrapChecksumRequestBody() {
-        ExecutionAttributes executionAttributes = getExecutionAttributes();
-        Context.ModifyHttpRequest modifyHttpRequest =
-            InterceptorTestUtils.modifyHttpRequestContext(PutObjectRequest.builder().build());
-        Optional<AsyncRequestBody> asyncRequestBody = interceptor.modifyAsyncHttpContent(modifyHttpRequest,
-                                                                                         executionAttributes);
-
-        assertThat(asyncRequestBody.isPresent()).isTrue();
-        assertThat(executionAttributes.getAttribute(CHECKSUM)).isNotNull();
-        assertThat(asyncRequestBody.get()).isExactlyInstanceOf(ChecksumCalculatingAsyncRequestBody.class);
-    }
 
     @Test
     public void modifyAsyncHttpContent_nonPutObjectRequest_shouldNotModify() {
@@ -155,36 +143,6 @@ public class AsyncChecksumValidationInterceptorTest {
     }
 
     @Test
-    public void afterUnmarshalling_putObjectRequest_shouldValidateChecksum_throwExceptionIfInvalid() {
-        SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
-
-        PutObjectResponse response = PutObjectResponse.builder()
-                                                      .eTag(INVALID_CHECKSUM)
-                                                      .build();
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder().build();
-
-        SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
-                                                          .uri(URI.create("http://localhost:8080"))
-                                                          .method(SdkHttpMethod.PUT)
-                                                          .build();
-
-        Context.AfterUnmarshalling afterUnmarshallingContext =
-            InterceptorContext.builder()
-                              .request(putObjectRequest)
-                              .httpRequest(sdkHttpRequest)
-                              .response(response)
-                              .httpResponse(sdkHttpResponse)
-                              .asyncRequestBody(AsyncRequestBody.fromString("Test"))
-                              .build();
-
-        ExecutionAttributes attributes = getExecutionAttributesWithChecksum();
-        interceptor.modifyAsyncHttpContent(afterUnmarshallingContext, attributes);
-        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, attributes))
-            .hasMessageContaining("Data read has a different checksum than expected.");
-    }
-
-    @Test
     public void afterUnmarshalling_putObjectRequest_with_SSE_shouldNotValidateChecksum() {
         SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
 
@@ -215,6 +173,8 @@ public class AsyncChecksumValidationInterceptorTest {
     private ExecutionAttributes getExecutionAttributes() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         executionAttributes.putAttribute(CLIENT_TYPE, ASYNC);
+        executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_SUPPORTED);
+        executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_SUPPORTED);
         return executionAttributes;
     }
 
@@ -227,7 +187,8 @@ public class AsyncChecksumValidationInterceptorTest {
 
     private ExecutionAttributes getExecutionAttributesWithChecksumDisabled() {
         ExecutionAttributes executionAttributes = getExecutionAttributes();
-        executionAttributes.putAttribute(SERVICE_CONFIG, S3Configuration.builder().checksumValidationEnabled(false).build());
+        executionAttributes.putAttribute(REQUEST_CHECKSUM_CALCULATION, RequestChecksumCalculation.WHEN_REQUIRED);
+        executionAttributes.putAttribute(RESPONSE_CHECKSUM_VALIDATION, ResponseChecksumValidation.WHEN_REQUIRED);
         return executionAttributes;
     }
 

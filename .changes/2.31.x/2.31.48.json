@@ -1,0 +1,42 @@
+{
+    "version": "2.31.48",
+    "date": "2025-05-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Amazon Bedrock introduces asynchronous flows (in preview), which let you run flows for longer durations and yield control so that your application can perform other tasks and you don't have to actively monitor the flow's progress."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Adds support for setting up Contributor Insight rules on logs transformed via Logs Transformation feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Release of Dualstack and Ipv6-only EC2 Public DNS hostnames"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "Doc only update that addresses a customer reported issue."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Modified validation to allow expectedCustomerSpend array with zero elements in Partner Opportunity operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

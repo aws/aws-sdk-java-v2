@@ -73,7 +73,7 @@ public class S3EventNotification {
      * @param json the notification message in json format
      * @return an instance of notification message S3EventNotification
      */
-    public S3EventNotification fromJson(InputStream json) {
+    public static S3EventNotification fromJson(InputStream json) {
         return S3EventNotificationReader.create().read(json);
     }
 

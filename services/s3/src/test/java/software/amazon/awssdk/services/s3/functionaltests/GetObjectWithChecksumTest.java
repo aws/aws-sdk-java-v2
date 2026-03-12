@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.Algorithm;
@@ -94,7 +95,7 @@ public class GetObjectWithChecksumTest {
 
         assertThat(response).isEqualTo("Hello world");
         assertThat(captureChecksumValidationInterceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
 
@@ -160,7 +161,7 @@ public class GetObjectWithChecksumTest {
 
         assertThat(stringFromStream.apply(getObject)).isEqualTo("Hello world");
         assertThat(captureChecksumValidationInterceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
 

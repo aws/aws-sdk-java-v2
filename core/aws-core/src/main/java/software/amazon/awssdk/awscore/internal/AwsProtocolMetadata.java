@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.awscore.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -23,8 +23,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Contains AWS-specific protocol metadata. Implementation of {@link SdkProtocolMetadata}.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class AwsProtocolMetadata implements SdkProtocolMetadata, ToCopyableBuilder<AwsProtocolMetadata.Builder,
     AwsProtocolMetadata> {
 

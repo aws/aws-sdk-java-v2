@@ -16,19 +16,25 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.Level;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -36,7 +42,10 @@ import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
@@ -48,8 +57,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
-    // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    // 50 * MB is chosen to make sure we have data written in the file already upon pausing.
+    private static final long OBJ_SIZE = 50 * MB;
     private static File sourceFile;
 
     @BeforeAll
@@ -68,8 +77,64 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         sourceFile.delete();
     }
 
-    @Test
-    void pauseAndResume_ObjectNotChanged_shouldResumeDownload() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_ObjectEtagChange_shouldRestartDownload(S3TransferManager tm) throws IOException {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        TestDownloadListener testDownloadListener = new TestDownloadListener();
+        DownloadFileRequest request = DownloadFileRequest.builder()
+                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                         .destination(path)
+                                                         .addTransferListener(testDownloadListener)
+                                                         .build();
+        FileDownload download = tm.downloadFile(request);
+        waitUntilFirstByteBufferDelivered(download);
+
+        ResumableFileDownload resumableFileDownload = download.pause();
+        log.debug(() -> "Paused: " + resumableFileDownload);
+
+        String originalEtag = testDownloadListener.getObjectResponse.eTag();
+
+        File newSourceFile = new RandomTempFile(OBJ_SIZE);
+        PutObjectResponse putResponse = s3.putObject(PutObjectRequest.builder()
+                                                                     .bucket(BUCKET)
+                                                                     .key(KEY)
+                                                                     .build(), newSourceFile.toPath());
+
+        String newEtag = putResponse.eTag();
+        assertThat(newEtag).isNotEqualTo(originalEtag);
+
+        boolean isCrtClient = tm.getClass().getName().contains("Crt");
+        if (isCrtClient) {
+            try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+                FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
+                CompletedFileDownload completedDownload = resumedFileDownload.completionFuture().join();
+
+                assertThat(completedDownload.response().eTag()).isEqualTo(newEtag);
+                assertThat(testDownloadListener.transferInitiatedCount == 2).isTrue();
+
+                Assertions.assertThat(logCaptor.loggedEvents())
+                          .anySatisfy(logEvent -> Assertions.assertThat(logEvent.getMessage().getFormattedMessage())
+                                                            .contains(String.format("The ETag of the requested object in bucket (%s) with key (%s) "
+                                                                                    + "has changed since the last "
+                                                                                    + "pause. The SDK will download the S3 object from "
+                                                                                    + "the beginning",
+                                                                                    BUCKET, KEY)));
+            }
+        } else {
+            // skip the log assertion for Netty because DEBUG level will log the entire byte stream and crash codebuild
+            FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
+            CompletedFileDownload completedDownload = resumedFileDownload.completionFuture().join();
+
+            assertThat(completedDownload.response().eTag()).isEqualTo(newEtag);
+            assertThat(testDownloadListener.transferInitiatedCount == 2).isTrue();
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         TestDownloadListener testDownloadListener = new TestDownloadListener();
         DownloadFileRequest request = DownloadFileRequest.builder()
@@ -77,34 +142,54 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                          .destination(path)
                                                          .addTransferListener(testDownloadListener)
                                                          .build();
-        FileDownload download = tmCrt.downloadFile(request);
+        FileDownload download = tm.downloadFile(request);
         waitUntilFirstByteBufferDelivered(download);
 
         ResumableFileDownload resumableFileDownload = download.pause();
         long bytesTransferred = resumableFileDownload.bytesTransferred();
         log.debug(() -> "Paused: " + resumableFileDownload);
-        assertThat(resumableFileDownload.downloadFileRequest()).isEqualTo(request);
+        assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
         assertThat(testDownloadListener.getObjectResponse).isNotNull();
-        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
-        assertThat(bytesTransferred).isEqualTo(path.toFile().length());
-        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
 
-        assertThat(bytesTransferred).isLessThan(sourceFile.length());
+        // Skip the test if everything has been downloaded.
+        Assumptions.assumeTrue(resumableFileDownload.bytesTransferred() < sourceFile.length());
+
+        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
+        // Request may not be cancelled right away when pause is invoked, so there may be more bytes written to the file
+        assertThat(bytesTransferred).isLessThanOrEqualTo(path.toFile().length());
+        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
+        assertThat(bytesTransferred).isLessThanOrEqualTo(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");
-        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred);
+        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
     }
 
-    @Test
-    void pauseAndResume_objectChanged_shouldStartFromBeginning() {
+    private void assertEqualsBySdkFields(DownloadFileRequest actual, DownloadFileRequest expected) {
+        // Transfer manager adds an execution attribute to the GetObjectRequest, so both objects are different.
+        // Need to assert equality by sdk fields, which does not check execution attributes.
+        assertThat(actual.destination())
+            .withFailMessage("ResumableFileDownload destination not equal to the original DownloadFileRequest")
+            .isEqualTo(expected.destination());
+        assertThat(actual.transferListeners())
+            .withFailMessage("ResumableFileDownload transferListeners not equal to the original DownloadFileRequest")
+            .isEqualTo(expected.transferListeners());
+        assertTrue(actual.getObjectRequest().equalsBySdkFields(expected.getObjectRequest()),
+                   () -> String.format("ResumableFileDownload GetObjectRequest not equal to the original DownloadFileRequest. "
+                                       + "expected: %s. Actual:"
+                                       + " %s", actual.getObjectRequest(), expected.getObjectRequest()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_objectChanged_shouldStartFromBeginning(S3TransferManager tm) {
         try {
             Path path = RandomTempFile.randomUncreatedFile().toPath();
             DownloadFileRequest request = DownloadFileRequest.builder()
                                                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                              .destination(path)
                                                              .build();
-            FileDownload download = tmCrt.downloadFile(request);
+            FileDownload download = tm.downloadFile(request);
             waitUntilFirstByteBufferDelivered(download);
 
             ResumableFileDownload resumableFileDownload = download.pause();
@@ -118,7 +203,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                          .build(), RequestBody.fromString(newObject));
 
             log.debug(() -> "Resuming download ");
-            FileDownload resumedFileDownload = tmCrt.resumeDownloadFile(resumableFileDownload);
+            FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
             resumedFileDownload.progress().snapshot();
             resumedFileDownload.completionFuture().join();
             assertThat(path.toFile()).hasContent(newObject);
@@ -131,24 +216,26 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         }
     }
 
-    @Test
-    void pauseAndResume_fileChanged_shouldStartFromBeginning() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_fileChanged_shouldStartFromBeginning(S3TransferManager tm) throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         DownloadFileRequest request = DownloadFileRequest.builder()
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                          .destination(path)
                                                          .build();
-        FileDownload download = tmCrt.downloadFile(request);
+        FileDownload download = tm.downloadFile(request);
         waitUntilFirstByteBufferDelivered(download);
 
         ResumableFileDownload resumableFileDownload = download.pause();
         Files.write(path, "helloworld".getBytes(StandardCharsets.UTF_8));
 
-        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE);
+        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE, tm);
     }
 
-    private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload, long expectedBytesTransferred) {
-        FileDownload resumedFileDownload = tmCrt.resumeDownloadFile(resumableFileDownload);
+    private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload,
+                                           long expectedBytesTransferred, S3TransferManager tm) {
+        FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
         resumedFileDownload.completionFuture().join();
         assertThat(resumedFileDownload.progress().snapshot().totalBytes()).hasValue(expectedBytesTransferred);
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
@@ -160,13 +247,19 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE)
-                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(10))))
                                                         .build();
         waiter.run(() -> download.progress().snapshot());
     }
 
     private static final class TestDownloadListener implements TransferListener {
+        private int transferInitiatedCount = 0;
         private GetObjectResponse getObjectResponse;
+
+        @Override
+        public void transferInitiated(Context.TransferInitiated context) {
+            transferInitiatedCount++;
+        }
 
         @Override
         public void bytesTransferred(Context.BytesTransferred context) {

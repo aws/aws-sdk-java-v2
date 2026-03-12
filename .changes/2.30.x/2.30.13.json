@@ -1,0 +1,54 @@
+{
+    "version": "2.30.13",
+    "date": "2025-02-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue in the SDK where it unnecessarily buffers the entire content for streaming operations, causing OOM error. See [#5850](https://github.com/aws/aws-sdk-java-v2/issues/5850)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Doc-only update to provide more information on using Kerberos authentication with SMB locations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Introduces TargetDataSettings with the TablePreparationMode option available for data migrations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "This release adds support for accepting encrypted SAML assertions. Customers can now configure their identity provider to encrypt the SAML assertions it sends to IAM."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Added argument to `list-export` to filter by graph ID"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "IPv6 support for Hyperpod clusters"
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Adds functionality to enable/disable a new Q Business Chat orchestration feature. If enabled, Q Business can orchestrate over datasources and plugins without the need for customers to select specific chat modes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

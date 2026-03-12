@@ -11,7 +11,7 @@ __Jump To:__
 * [Additional Resources](#additional-resources)
 
 ## Bug Reports
-Bug reports are accepted through the [this][bug-report] page.
+Bug reports are accepted through [this][bug-report] page.
 
 The following labels are used to track bug related issues: [Bug][label-bug],
 [Documentation Issue][label-doc-issue].
@@ -38,7 +38,7 @@ please ensure that your bug report has the following:
 
 * A short, descriptive title. Ideally, other community members should be able
   to get a good idea of the issue just from reading the title.
-* A succint, detailed description of the problem you're experiencing. This
+* A succinct, detailed description of the problem you're experiencing. This
   should include:
   * Expected behavior of the SDK and the actual behavior exhibited.
   * Any details of your application environment that may be relevant. At
@@ -51,7 +51,7 @@ please ensure that your bug report has the following:
   stacktraces.
 
 ## Feature Requests
-Feature requests are submitted through the [this][feature-request] page.
+Feature requests are submitted through [this][feature-request] page.
 
 As with Bug Reports, please do a search of the open requests first before
 submitting a new one to avoid duplicates. If you find an existing one, give it
@@ -71,7 +71,7 @@ Open an [issue][issues] with the following:
 
 * A short, descriptive title. Ideally, other community members should be able
   to get a good idea of the feature just from reading the title.
-* A detailed description of the the proposed feature. Include justification for
+* A detailed description of the proposed feature. Include justification for
   why it should be added to the SDK, and possibly example code to illustrate
   how it should work.
 * [Markdown][markdown] formatting as appropriate to make the request easier to
@@ -99,10 +99,9 @@ Please keep the following in mind when considering a code contribution:
   be assigned to it.
 
   If you are thinking about adding entirely new functionality, open a [Feature
-  Request](#feature-requests) or [ping][gitter] the maintainers to ask for
-  feedback first before beginning work; again this is to make sure that no one
-  else is already working on it, and also that it makes sense to be included in
-  the SDK.
+  Request](#feature-requests) to ask for feedback first before beginning work;
+  again this is to make sure that no one else is already working on it, and
+  also that it makes sense to be included in the SDK.
 * All code contributions must be accompanied with new or modified tests that
   verify that the code works as expected; i.e. that the issue has been fixed or
   that the functionality works as intended.
@@ -137,11 +136,11 @@ interfaces](https://github.com/reactive-streams/reactive-streams-jvm), the
 change must also contain verification tests using the [Reactive Streams
 Technology Compatibility
 Kit](https://github.com/reactive-streams/reactive-streams-jvm/tree/master/tck)
-to ensure specificiation compliance.
+to ensure specification compliance.
 
 ### Getting Your Pull Request Merged
 All Pull Requests must be approved by at least one member of the SDK team
-before it can be merged in. The members only have limited bandwitdth to review
+before it can be merged in. The members only have limited bandwidth to review
 Pull Requests so it's not unusual for a Pull Request to go unreviewed for a few
 days, especially if it's a large or complex one. If, after a week, your Pull
 Request has not had any engagement from the SDK team, feel free to ping a
@@ -162,6 +161,5 @@ when contributing to the SDK.
 [label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/documentation
 [label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/feature-request
 [git-rewriting-history]: https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History
-[gitter]: https://gitter.im/aws/aws-sdk-java-v2
 [bug-report]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=bug%2Cneeds-triage&template=bug-report.yml&title=%28short+issue+description%29
 [feature-request]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=feature-request%2Cneeds-triage&template=feature-request.yml&title=%28short+issue+description%29

@@ -1,0 +1,18 @@
+{
+  "version": "2.27.5",
+  "date": "2024-08-14",
+  "entries": [
+    {
+      "type": "feature",
+      "category": "AWS CodeBuild",
+      "contributor": "",
+      "description": "AWS CodeBuild now supports using Secrets Manager to store git credentials and using multiple source credentials in a single project."
+    },
+    {
+      "type": "feature",
+      "category": "S3 Transfer Manager",
+      "contributor": "",
+      "description": "This change enables multipart download for S3 Transfer Manager with the java-based Multipart S3 Async Client."
+    }
+  ]
+}

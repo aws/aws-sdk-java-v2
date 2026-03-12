@@ -17,18 +17,18 @@ import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfMapOfStringToStructCopier {
     static List<Map<String, SimpleStruct>> copy(
-        Collection<? extends Map<String, ? extends SimpleStruct>> listOfMapOfStringToStructParam) {
+            Collection<? extends Map<String, ? extends SimpleStruct>> listOfMapOfStringToStructParam) {
         List<Map<String, SimpleStruct>> list;
         if (listOfMapOfStringToStructParam == null || listOfMapOfStringToStructParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<Map<String, SimpleStruct>> modifiableList = new ArrayList<>();
+            List<Map<String, SimpleStruct>> modifiableList = new ArrayList<>(listOfMapOfStringToStructParam.size());
             listOfMapOfStringToStructParam.forEach(entry -> {
                 Map<String, SimpleStruct> map;
                 if (entry == null || entry instanceof SdkAutoConstructMap) {
                     map = DefaultSdkAutoConstructMap.getInstance();
                 } else {
-                    Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+                    Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(entry.size());
                     entry.forEach((key, value) -> {
                         modifiableMap.put(key, value);
                     });
@@ -42,18 +42,18 @@ final class ListOfMapOfStringToStructCopier {
     }
 
     static List<Map<String, SimpleStruct>> copyFromBuilder(
-        Collection<? extends Map<String, ? extends SimpleStruct.Builder>> listOfMapOfStringToStructParam) {
+            Collection<? extends Map<String, ? extends SimpleStruct.Builder>> listOfMapOfStringToStructParam) {
         List<Map<String, SimpleStruct>> list;
         if (listOfMapOfStringToStructParam == null || listOfMapOfStringToStructParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<Map<String, SimpleStruct>> modifiableList = new ArrayList<>();
+            List<Map<String, SimpleStruct>> modifiableList = new ArrayList<>(listOfMapOfStringToStructParam.size());
             listOfMapOfStringToStructParam.forEach(entry -> {
                 Map<String, SimpleStruct> map;
                 if (entry == null || entry instanceof SdkAutoConstructMap) {
                     map = DefaultSdkAutoConstructMap.getInstance();
                 } else {
-                    Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+                    Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(entry.size());
                     entry.forEach((key, value) -> {
                         SimpleStruct member = value == null ? null : value.build();
                         modifiableMap.put(key, member);
@@ -68,18 +68,18 @@ final class ListOfMapOfStringToStructCopier {
     }
 
     static List<Map<String, SimpleStruct.Builder>> copyToBuilder(
-        Collection<? extends Map<String, ? extends SimpleStruct>> listOfMapOfStringToStructParam) {
+            Collection<? extends Map<String, ? extends SimpleStruct>> listOfMapOfStringToStructParam) {
         List<Map<String, SimpleStruct.Builder>> list;
         if (listOfMapOfStringToStructParam == null || listOfMapOfStringToStructParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<Map<String, SimpleStruct.Builder>> modifiableList = new ArrayList<>();
+            List<Map<String, SimpleStruct.Builder>> modifiableList = new ArrayList<>(listOfMapOfStringToStructParam.size());
             listOfMapOfStringToStructParam.forEach(entry -> {
                 Map<String, SimpleStruct.Builder> map;
                 if (entry == null || entry instanceof SdkAutoConstructMap) {
                     map = DefaultSdkAutoConstructMap.getInstance();
                 } else {
-                    Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>();
+                    Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>(entry.size());
                     entry.forEach((key, value) -> {
                         SimpleStruct.Builder member = value == null ? null : value.toBuilder();
                         modifiableMap.put(key, member);

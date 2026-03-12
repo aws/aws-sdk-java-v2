@@ -115,6 +115,7 @@ public class MarshallerSpec implements ClassSpec {
 
     private MarshallerProtocolSpec getProtocolSpecs(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {
         switch (protocol) {
+            case SMITHY_RPC_V2_CBOR:
             case REST_JSON:
             case CBOR:
             case AWS_JSON:

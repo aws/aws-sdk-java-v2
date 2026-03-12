@@ -148,7 +148,7 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
     private HttpRequest connectRequest() {
         String uri = getUri();
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
-                                                         Unpooled.EMPTY_BUFFER, false);
+                                                         Unpooled.EMPTY_BUFFER);
         request.headers().add(HttpHeaderNames.HOST, uri);
 
         if (!StringUtils.isEmpty(this.username) && !StringUtils.isEmpty(this.password)) {

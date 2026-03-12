@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +11,8 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -130,6 +133,8 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(LIST_OF_LIST_OF_STRINGS_FIELD,
                                                                                                    LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD, MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final List<List<String>> listOfListOfStrings;
 
@@ -310,6 +315,19 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("ListOfListOfStrings", LIST_OF_LIST_OF_STRINGS_FIELD);
+        map.put("ListOfListOfListOfStrings", LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD);
+        map.put("MapOfStringToListOfListOfStrings", MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<NestedContainersResponse, T> g) {
         return obj -> g.apply((NestedContainersResponse) obj);
     }
@@ -318,6 +336,8 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
                                      CopyableBuilder<Builder, NestedContainersResponse> {
         /**
@@ -461,6 +481,11 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

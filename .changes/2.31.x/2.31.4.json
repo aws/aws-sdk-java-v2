@@ -1,0 +1,48 @@
+{
+    "version": "2.31.4",
+    "date": "2025-03-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Ruby 3.4 (ruby3.4) support to AWS Lambda."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "This release adds support for NDI flow outputs in AWS Elemental MediaConnect. You can now send content from your MediaConnect transport streams directly to your NDI environment using the new NDI output type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Support custom prompt routers for evaluation jobs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Doc-only updates for EC2 for March 2025."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Update IAM Role ARN Validation to Support Role Paths"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added support for g6, g6e, m6i, c6i instance types in SageMaker Processing Jobs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

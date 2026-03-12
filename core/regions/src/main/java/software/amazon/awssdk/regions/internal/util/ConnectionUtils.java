@@ -19,8 +19,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.NumericUtils;
 
 @SdkInternalApi
 //TODO: Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient in its own module
@@ -35,9 +38,15 @@ public class ConnectionUtils {
     }
 
     public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
+        return connectToEndpoint(endpoint, headers, method, null);
+    }
+
+    private HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method,
+                                                Duration serviceTimeout) throws IOException {
+        int timeout = serviceTimeout != null ? NumericUtils.saturatedCast(serviceTimeout.toMillis()) : 1000;
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
-        connection.setConnectTimeout(1000);
-        connection.setReadTimeout(1000);
+        connection.setConnectTimeout(timeout);
+        connection.setReadTimeout(timeout);
         connection.setRequestMethod(method);
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
@@ -47,4 +56,8 @@ public class ConnectionUtils {
         return connection;
     }
 
+    public HttpURLConnection connectToEndpoint(ResourcesEndpointProvider endpointProvider, String method) throws IOException {
+        return connectToEndpoint(endpointProvider.endpoint(), endpointProvider.headers(), method,
+                                 endpointProvider.connectionTimeout().orElse(null));
+    }
 }

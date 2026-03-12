@@ -117,4 +117,3 @@ public interface EventStream extends SdkPojo {
         }
     }
 }
-

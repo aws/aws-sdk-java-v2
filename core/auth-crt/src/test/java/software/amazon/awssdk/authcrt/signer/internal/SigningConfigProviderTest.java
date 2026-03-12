@@ -25,11 +25,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
 import software.amazon.awssdk.authcrt.signer.SigningTestCase;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 
 public class SigningConfigProviderTest {
 
@@ -68,7 +68,7 @@ public class SigningConfigProviderTest {
         assertTrue(signingConfig.getService().equals(testCase.signingName));
         assertTrue(signingConfig.getShouldNormalizeUriPath());
         assertTrue(signingConfig.getUseDoubleUriEncode());
-        assertTrue(signingConfig.getExpirationInSeconds() == SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
+        assertTrue(signingConfig.getExpirationInSeconds() == SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.getSeconds());
     }
 
     @Test

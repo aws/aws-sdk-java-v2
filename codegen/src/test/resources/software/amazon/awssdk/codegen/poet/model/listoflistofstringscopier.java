@@ -17,16 +17,13 @@ final class ListOfListOfStringsCopier {
         if (listOfListOfStringsParam == null || listOfListOfStringsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<List<String>> modifiableList = new ArrayList<>();
+            List<List<String>> modifiableList = new ArrayList<>(listOfListOfStringsParam.size());
             listOfListOfStringsParam.forEach(entry -> {
                 List<String> list1;
                 if (entry == null || entry instanceof SdkAutoConstructList) {
                     list1 = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<String> modifiableList1 = new ArrayList<>();
-                    entry.forEach(entry1 -> {
-                        modifiableList1.add(entry1);
-                    });
+                    List<String> modifiableList1 = new ArrayList<>(entry);
                     list1 = Collections.unmodifiableList(modifiableList1);
                 }
                 modifiableList.add(list1);

@@ -87,6 +87,17 @@ public final class ExecutionAttribute<T> {
     public static <T, U> DerivedAttributeBuilder<T, U> derivedBuilder(String name,
                                                                       @SuppressWarnings("unused") Class<T> attributeType,
                                                                       ExecutionAttribute<U> realAttribute) {
+        return new DerivedAttributeBuilder<>(name, () -> realAttribute);
+    }
+
+    /**
+     * This is the same as {@link #derivedBuilder(String, Class, ExecutionAttribute)}, but the real attribute is loaded
+     * lazily at runtime. This is useful when the real attribute is in the same class hierarchy, to avoid initialization
+     * order problems.
+     */
+    public static <T, U> DerivedAttributeBuilder<T, U> derivedBuilder(String name,
+                                                                      @SuppressWarnings("unused") Class<T> attributeType,
+                                                                      Supplier<ExecutionAttribute<U>> realAttribute) {
         return new DerivedAttributeBuilder<>(name, realAttribute);
     }
 
@@ -164,11 +175,11 @@ public final class ExecutionAttribute<T> {
 
     public static final class DerivedAttributeBuilder<T, U> {
         private final String name;
-        private final ExecutionAttribute<U> realAttribute;
+        private final Supplier<ExecutionAttribute<U>> realAttribute;
         private Function<U, T> readMapping;
         private BiFunction<U, T, U> writeMapping;
 
-        private DerivedAttributeBuilder(String name, ExecutionAttribute<U> realAttribute) {
+        private DerivedAttributeBuilder(String name, Supplier<ExecutionAttribute<U>> realAttribute) {
             this.name = name;
             this.realAttribute = realAttribute;
         }
@@ -244,7 +255,7 @@ public final class ExecutionAttribute<T> {
      * attributes map.
      */
     private static final class DerivationValueStorage<T, U> implements ValueStorage<T> {
-        private final ExecutionAttribute<U> realAttribute;
+        private final Supplier<ExecutionAttribute<U>> realAttribute;
         private final Function<U, T> readMapping;
         private final BiFunction<U, T, U> writeMapping;
 
@@ -257,13 +268,13 @@ public final class ExecutionAttribute<T> {
         @SuppressWarnings("unchecked") // Safe because of the implementation of set
         @Override
         public T get(Map<ExecutionAttribute<?>, Object> attributes) {
-            return readMapping.apply((U) attributes.get(realAttribute));
+            return readMapping.apply((U) attributes.get(realAttribute.get()));
         }
 
         @SuppressWarnings("unchecked") // Safe because of the implementation of set
         @Override
         public void set(Map<ExecutionAttribute<?>, Object> attributes, T value) {
-            attributes.compute(realAttribute, (k, real) -> writeMapping.apply((U) real, value));
+            attributes.compute(realAttribute.get(), (k, real) -> writeMapping.apply((U) real, value));
         }
 
         @Override

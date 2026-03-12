@@ -28,7 +28,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 
 class S3CrtRequestBodyStreamAdapterTest {
 
@@ -54,6 +56,29 @@ class S3CrtRequestBodyStreamAdapterTest {
         adapter.sendRequestBody(inputBuffer);
 
         assertThat(inputBuffer.remaining()).isEqualTo(0);
+    }
+
+    @Test
+    void getRequestData_fillsInputBuffer_limitsOutstandingDemand() {
+        int minBytesBuffered  = 16 * 1024 * 1024;
+        int inputBufferSize = 1024;
+
+        RequestTrackingPublisher requestTrackingPublisher = new RequestTrackingPublisher();
+        SdkHttpContentPublisher requestBody = requestBody(requestTrackingPublisher, minBytesBuffered);
+
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+
+        ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
+        adapter.sendRequestBody(inputBuffer); // initiate the subscription, but no bytes available, makes 1 request
+
+        // release 1 request of minBytesBuffered bytes of data, calling onNext (satisfies one request, but then requests 1 more)
+        requestTrackingPublisher.release(1, minBytesBuffered-100);
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(2);
+
+        // call sendRequestBody, outstandingDemand=1, sizeHint=16*1024*1024-100 + existing data buffered is > our min
+        // so no more requests will be made
+        adapter.sendRequestBody(inputBuffer);
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(2);
     }
 
     private static SdkHttpContentPublisher requestBody(Publisher<ByteBuffer> delegate, long size) {
@@ -113,5 +138,45 @@ class S3CrtRequestBodyStreamAdapterTest {
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
             .isInstanceOf(RuntimeException.class)
             .hasCauseInstanceOf(IOException.class);
+    }
+
+    private static class RequestTrackingPublisher implements Publisher<ByteBuffer> {
+        ByteBufferStoringSubscriber subscriber;
+        RequestTrackingSubscription subscription = new RequestTrackingSubscription();
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            assertThat(subscriber).isInstanceOf(ByteBufferStoringSubscriber.class);
+            this.subscriber = (ByteBufferStoringSubscriber) subscriber;
+            this.subscriber.onSubscribe(subscription);
+        }
+
+        // publish up to n requests
+        public void release(int n, int size) {
+            for (int i = 0; i < n; i++) {
+                ByteBuffer buffer = ByteBuffer.allocate(size);
+                subscriber.onNext(buffer);
+            }
+        }
+
+        public long requests() {
+            return subscription.requests;
+        }
+    }
+
+    private static class RequestTrackingSubscription implements Subscription {
+
+            long requests = 0;
+
+            @Override
+            public void request(long n) {
+                requests += n;
+            }
+
+            @Override
+            public void cancel() {
+
+            }
+
     }
 }

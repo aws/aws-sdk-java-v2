@@ -24,12 +24,17 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.internal.ProtocolMetadataConstants;
+import software.amazon.awssdk.codegen.internal.ProtocolMetadataDefault;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
@@ -98,8 +103,23 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                                       .add(".hasImplicitPayloadMembers($L)", shapeModel.hasImplicitPayloadMembers())
                                       .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
+
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
             initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget());
+        }
+
+        String protocol = shapeModel.getMarshaller().getProtocol();
+        ProtocolMetadataConstants metadataConstants = ProtocolMetadataDefault.from(Protocol.fromValue(protocol))
+                                                                             .protocolMetadata(shapeModel.getMarshaller());
+        List<Map.Entry<Class<?>, OperationMetadataAttribute<?>>> keys = metadataConstants.keys();
+        for (Map.Entry<Class<?>, OperationMetadataAttribute<?>> kvp : keys) {
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.$L, ",
+                                               ClassName.get(kvp.getKey()),
+                                               fieldName(kvp.getKey(), kvp.getValue()));
+            Object value = metadataConstants.get(kvp.getValue());
+            CodegenSerializer<Object> serializer = CodegenSerializerResolver.getDefault().serializerFor(value);
+            serializer.serialize(value, initializationCodeBlockBuilder);
+            initializationCodeBlockBuilder.add(")");
         }
 
         if (shapeModel.isHasStreamingMember()) {
@@ -116,5 +136,41 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                         .initializer(codeBlock)
                         .build();
+    }
+
+
+    /**
+     * This method resolves a static reference to its name, for instance, when called with
+     * <pre>
+     * fieldName(AwsClientOption.class, AwsClientOption.AWS_REGION)
+     * </pre>
+     * it will return the string "AWS_REGION" that we can use for codegen. Using the value directly avoid typo bugs and allows the
+     * compiler and the IDE to know about this relationship.
+     * <p>
+     * This method uses the fully qualified names in the reflection package to avoid polluting this class imports. Adapted from
+     * https://stackoverflow.com/a/35416606
+     */
+    private static String fieldName(Class<?> containingClass, Object fieldObject) {
+        java.lang.reflect.Field[] allFields = containingClass.getFields();
+        for (java.lang.reflect.Field field : allFields) {
+            int modifiers = field.getModifiers();
+            if (!java.lang.reflect.Modifier.isStatic(modifiers)) {
+                continue;
+            }
+            Object currentFieldObject;
+            try {
+                // For static fields you can pass a null to get back its value.
+                currentFieldObject = field.get(null);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
+            boolean isWantedField = fieldObject.equals(currentFieldObject);
+            if (isWantedField) {
+                return field.getName();
+            }
+        }
+        throw new java.util.NoSuchElementException(String.format("cannot find constant %s in class %s",
+                                                                 fieldObject,
+                                                                 fieldObject.getClass().getName()));
     }
 }

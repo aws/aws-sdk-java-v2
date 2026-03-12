@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
-import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 /**
@@ -90,7 +88,7 @@ class EndpointProviderTest {
                 Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
-        Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
+        Ec2MetadataConfigProvider endpointProvider = Ec2MetadataConfigProvider.builder().build();
         String endpoint = endpointProvider.resolveEndpoint(endpointMode);
         assertThat(endpoint).isEqualTo(expectedValue);
     }
@@ -130,7 +128,7 @@ class EndpointProviderTest {
                 Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
-        Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
+        Ec2MetadataConfigProvider endpointProvider = Ec2MetadataConfigProvider.builder().build();
         EndpointMode endpointMode = endpointProvider.resolveEndpointMode();
 
         assertThat(endpointMode).isEqualTo(expectedValue);
@@ -141,7 +139,7 @@ class EndpointProviderTest {
         ProfileFile.Builder content = ProfileFile.builder()
             .type(ProfileFile.Type.CONFIGURATION)
                                                  .content(Paths.get("src/test/resources/profile-config/test-profiles.tst"));
-        Ec2MetadataEndpointProvider provider = Ec2MetadataEndpointProvider.builder()
+        Ec2MetadataConfigProvider provider = Ec2MetadataConfigProvider.builder()
                                                                           .profileFile(content::build)
                                                                           .profileName("testIPv4")
                                                                           .build();
@@ -154,7 +152,7 @@ class EndpointProviderTest {
         ProfileFile.Builder content = ProfileFile.builder()
                                                  .type(ProfileFile.Type.CONFIGURATION)
                                                  .content(Paths.get("src/test/resources/profile-config/test-profiles.tst"));
-        Ec2MetadataEndpointProvider provider = Ec2MetadataEndpointProvider.builder()
+        Ec2MetadataConfigProvider provider = Ec2MetadataConfigProvider.builder()
                                                                           .profileFile(content::build)
                                                                           .profileName("testIPv6")
                                                                           .build();

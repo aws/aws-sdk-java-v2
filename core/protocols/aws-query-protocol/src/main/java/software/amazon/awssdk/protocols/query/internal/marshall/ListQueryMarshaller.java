@@ -19,6 +19,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 /**
@@ -28,9 +29,9 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
     private static final PathResolver AWS_QUERY_PATH_RESOLVER = (path, i, listTrait) ->
         listTrait.isFlattened() ?
-        String.format("%s.%d", path, i + 1) :
-        String.format("%s.%s.%d", path, listTrait.memberFieldInfo().locationName(), i + 1);
-    private static final PathResolver EC2_QUERY_PATH_RESOLVER = (path, i, listTrait) -> String.format("%s.%d", path, i + 1);
+        path + "." + (i + 1) :
+        path + "." + listTrait.memberFieldInfo().locationName() + "." + (i + 1);
+    private static final PathResolver EC2_QUERY_PATH_RESOLVER = (path, i, listTrait) -> path + "." + (i + 1);
 
     private static final EmptyListMarshaller AWS_QUERY_EMPTY_LIST_MARSHALLER =
         (context, path) -> context.request().putRawQueryParameter(path, "");
@@ -52,7 +53,7 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
             return;
         }
         for (int i = 0; i < val.size(); i++) {
-            ListTrait listTrait = sdkField.getTrait(ListTrait.class);
+            ListTrait listTrait = sdkField.getTrait(ListTrait.class, TraitType.LIST_TRAIT);
             String listPath = pathResolver.resolve(path, i, listTrait);
             QueryMarshaller<Object> marshaller = context.marshallerRegistry().getMarshaller(
                 ((SdkField<?>) listTrait.memberFieldInfo()).marshallingType(), val);

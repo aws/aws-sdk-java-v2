@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -62,8 +61,7 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
     /**
      * Define the endpoint of IMDS.
      * <p>
-     * If not specified, the IMDS client will attempt to automatically resolve the endpoint value
-     * based on the logic of {@link Ec2MetadataEndpointProvider}.
+     * If not specified, the IMDS client will attempt to automatically resolve the endpoint value.
      *
      * @param endpoint The endpoint of IMDS.
      * @return a reference to this builder
@@ -84,8 +82,7 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * Client only if {@link Ec2MetadataClientBuilder#endpoint(URI)} is not specified. Only one of both endpoint or endpoint mode
      * but not both. If both are specified in the Builder, a {@link IllegalArgumentException} will be thrown.
      * <p>
-     * If not specified, the IMDS client will attempt to automatically resolve the endpoint mode value
-     * based on the logic of {@link Ec2MetadataEndpointProvider}.
+     * If not specified, the IMDS client will attempt to automatically resolve the endpoint mode value.
      *
      * @param endpointMode The endpoint mode of IMDS. Supported values include IPv4 and IPv6.
      * @return a reference to this builder

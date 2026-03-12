@@ -22,9 +22,6 @@ public final class Parameter implements ToParameterReference {
     private final boolean required;
 
     public Parameter(Builder builder) {
-        if (builder.defaultValue != null && builder.builtIn == null) {
-            throw new RuntimeException("Cannot set a default value for non-builtin parameters");
-        }
         if (builder.defaultValue != null && !builder.required) {
             throw new RuntimeException("When a default value is set, the field must also be marked as required");
         }

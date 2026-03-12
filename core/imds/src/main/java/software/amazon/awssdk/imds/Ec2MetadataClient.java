@@ -18,6 +18,7 @@ package software.amazon.awssdk.imds;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataClient;
@@ -66,6 +67,11 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
      *
      * @param path  Input path
      * @return Instance metadata value as part of MetadataResponse Object
+     * @throws Ec2MetadataClientException if the request returns a 4XX error response. The exception includes
+     *         the HTTP status code, headers, and error response body
+     * @throws RetryableException if the request returns a 5XX error response and should be retried
+     * @throws SdkClientException if the maximum number of retries is reached, if there's an IO error during
+     *         the request, or if the response is empty when success is expected
      */
     Ec2MetadataResponse get(String path);
 

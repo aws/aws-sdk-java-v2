@@ -3,12 +3,16 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -28,6 +32,8 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
                                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(SUB_TYPE_ONE_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -109,6 +115,17 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("SubTypeOneMember", SUB_TYPE_ONE_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<SubTypeOne, T> g) {
         return obj -> g.apply((SubTypeOne) obj);
     }
@@ -117,6 +134,8 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, SubTypeOne> {
         /**
          * Sets the value of the SubTypeOneMember property for this object.
@@ -160,6 +179,11 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

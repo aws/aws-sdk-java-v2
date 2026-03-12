@@ -11,7 +11,8 @@
     "signatureVersion":"v4",
     "signingName":"aws-marketplace",
     "targetPrefix":"AWSMPEntitlementService",
-    "uid":"entitlement.marketplace-2017-01-11"
+    "uid":"entitlement.marketplace-2017-01-11",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "GetEntitlements":{
@@ -27,7 +28,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServiceErrorException"}
       ],
-      "documentation":"<p>GetEntitlements retrieves entitlement values for a given product. The results can be filtered based on customer identifier or product dimensions.</p>"
+      "documentation":"<p>GetEntitlements retrieves entitlement values for a given product. The results can be filtered based on customer identifier, AWS account ID, license ARN, or product dimensions.</p>"
     }
   },
   "shapes":{
@@ -48,6 +49,10 @@
           "shape":"NonEmptyString",
           "documentation":"<p>The customer identifier is a handle to each unique customer in an application. Customer identifiers are obtained through the ResolveCustomer operation in AWS Marketplace Metering Service.</p>"
         },
+        "CustomerAWSAccountId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The <code>CustomerAWSAccountId</code> parameter specifies the AWS account ID of the buyer. </p>"
+        },
         "Value":{
           "shape":"EntitlementValue",
           "documentation":"<p>The EntitlementValue represents the amount of capacity that the customer is entitled to for the product.</p>"
@@ -55,6 +60,10 @@
         "ExpirationDate":{
           "shape":"Timestamp",
           "documentation":"<p>The expiration date represents the minimum date through which this entitlement is expected to remain valid. For contractual products listed on AWS Marketplace, the expiration date is the date at which the customer will renew or cancel their contract. Customers who are opting to renew their contract will still have entitlements with an expiration date.</p>"
+        },
+        "LicenseArn":{
+          "shape":"String",
+          "documentation":"<p>The <code>LicenseArn</code> is a unique identifier for a specific granted license. These are used for software purchased through AWS Marketplace.</p>"
         }
       },
       "documentation":"<p>An entitlement represents capacity in a product owned by the customer. For example, a customer might own some number of users or seats in an SaaS application or some amount of data capacity in a multi-tenant database.</p>"
@@ -97,7 +106,9 @@
       "type":"string",
       "enum":[
         "CUSTOMER_IDENTIFIER",
-        "DIMENSION"
+        "DIMENSION",
+        "CUSTOMER_AWS_ACCOUNT_ID",
+        "LICENSE_ARN"
       ]
     },
     "GetEntitlementFilters":{
@@ -115,7 +126,7 @@
         },
         "Filter":{
           "shape":"GetEntitlementFilters",
-          "documentation":"<p>Filter is used to return entitlements for a specific customer or for a specific dimension. Filters are described as keys mapped to a lists of values. Filtered requests are <i>unioned</i> for each value in the value list, and then <i>intersected</i> for each filter key.</p>"
+          "documentation":"<p>Filter is used to return entitlements for a specific customer or for a specific dimension. Filters are described as keys mapped to a lists of values. Filtered requests are <i>unioned</i> for each value in the value list, and then <i>intersected</i> for each filter key.</p> <p> <code>CustomerIdentifier</code> and <code>CustomerAWSAccountId</code> are mutually exclusive parameters. You must use one or the other, but not both in the same request. </p> <note> <p>If you're migrating an existing integration, use <a href=\"https://docs.aws.amazon.com/marketplace/latest/userguide/data-feed-account.html\">Account Feeds</a> to map <code>CustomerIdentifier</code> to <code>CustomerAWSAccountId</code>, and <a href=\"https://docs.aws.amazon.com/marketplace/latest/userguide/data-feed-agreements.html\">Agreements Feeds</a> to map <code>CustomerAWSAccountId</code> and <code>LicenseArn</code>.</p> </note>"
         },
         "NextToken":{
           "shape":"NonEmptyString",

@@ -31,9 +31,12 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -82,6 +85,8 @@ class ModelBuilderSpecs {
     public TypeSpec builderInterface() {
         TypeSpec.Builder builder = TypeSpec.interfaceBuilder(builderInterfaceName())
                 .addSuperinterfaces(builderSuperInterfaces())
+                .addAnnotation(Mutable.class)
+                .addAnnotation(NotThreadSafe.class)
                 .addModifiers(PUBLIC);
 
         shapeModel.getNonStreamingMembers()
@@ -141,6 +146,7 @@ class ModelBuilderSpecs {
         builderClassBuilder.addMethods(accessors());
         builderClassBuilder.addMethod(buildMethod());
         builderClassBuilder.addMethod(sdkFieldsMethod());
+        builderClassBuilder.addMethod(sdkFieldNameToFieldMethod());
 
         if (shapeModel.isUnion()) {
             builderClassBuilder.addMethod(handleUnionValueChangeMethod());
@@ -166,6 +172,17 @@ class ModelBuilderSpecs {
                          .addAnnotation(Override.class)
                          .returns(ParameterizedTypeName.get(ClassName.get(List.class), sdkFieldType))
                          .addCode("return SDK_FIELDS;")
+                         .build();
+    }
+
+    private MethodSpec sdkFieldNameToFieldMethod() {
+        ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                       WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        return MethodSpec.methodBuilder("sdkFieldNameToField")
+                         .addModifiers(PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), sdkFieldType))
+                         .addCode("return SDK_NAME_TO_FIELD;")
                          .build();
     }
 

@@ -1,4 +1,7 @@
 version: 0.2
+cache:
+  paths:
+    - '/root/.m2/**/*'
 
 phases:
   install:
@@ -12,6 +15,7 @@ phases:
       - echo $JAVA_VERSION
       - echo $MAVEN_OPTIONS
       - |
+        set -e
         if [ "$JAVA_VERSION" -ge "9" ]; then
           cd test/module-path-tests
           mvn package

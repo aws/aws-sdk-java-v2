@@ -147,8 +147,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io/" + clientType.name());
-            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http/" + clientName);
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io#" + clientType.name());
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http#" + clientName);
         }
     }
 }

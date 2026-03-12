@@ -24,11 +24,9 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -40,7 +38,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 
 /**
@@ -200,21 +197,23 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
             return null;
         }
 
+        String fluentGetter = fluentGetterMethodForResponseMember(resultKey);
+
+        CodeBlock.Builder iterableFnBuilder = CodeBlock.builder()
+                                                       .add("$1N -> $1N.$2L", RESPONSE_LITERAL, fluentGetter);
+
+        String fluentGetterMethodName = resultKeyModel.getFluentGetterMethodName();
+
+        if (resultKeyModel.isMap()) {
+            iterableFnBuilder.add(".entrySet()");
+        }
+
         TypeName resultKeyType = getTypeForResultKey(resultKey);
 
-        return MethodSpec.methodBuilder(resultKeyModel.getFluentGetterMethodName())
+        return MethodSpec.methodBuilder(fluentGetterMethodName)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                          .returns(ParameterizedTypeName.get(ClassName.get(SdkPublisher.class), resultKeyType))
-                         .addCode("$T getIterator = ",
-                                  ParameterizedTypeName.get(ClassName.get(Function.class),
-                                                            responseType(),
-                                                            ParameterizedTypeName.get(ClassName.get(Iterator.class),
-                                                                                      resultKeyType)))
-                         .addCode(getIteratorLambdaBlock(resultKey, resultKeyModel))
-                         .addCode("\n")
-                         .addStatement("return $1T.builder().$2L(new $3L()).iteratorFunction(getIterator).$4L($4L).build()",
-                                       PaginatedItemsPublisher.class, NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherClassName(),
-                                       LAST_PAGE_FIELD)
+                         .addStatement("return this.flatMapIterable($L)", iterableFnBuilder.build())
                          .addJavadoc(CodeBlock.builder()
                                               .add("Returns a publisher that can be used to get a stream of data. You need to "
                                                    + "subscribe to the publisher to request the stream of data. The publisher "

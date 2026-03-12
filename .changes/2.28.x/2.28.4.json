@@ -1,0 +1,54 @@
+{
+    "version": "2.28.4",
+    "date": "2024-09-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon DynamoDB reservations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "Added new APIs for enabling, disabling, and describing access to the AWS Directory Service Data API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service Data",
+            "contributor": "",
+            "description": "Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add `launchType` and `sourceIPs` fields to GuardDuty findings."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates Amazon RDS documentation with information upgrading snapshots with unsupported engine versions for RDS for MySQL and RDS for PostgreSQL."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Added SSE-KMS support for directory buckets."
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Introduce a new RuleSet condition evaluation, where customers can set up a StringExpression with a MimeHeader condition. This condition will perform the necessary validation based on the X-header provided by customers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java V2",
+            "contributor": "",
+            "description": "Generate and use AWS-account-based endpoints for DynamoDB requests when the account ID is available. The new endpoint URL pattern will be `https://<account-id>.ddb.<region>.amazonaws.com`. See the documentation for details: https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html"
+        }
+    ]
+}

@@ -44,6 +44,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final List<String> customEndpointArray;
 
+    private final List<String> arnList;
+
     private QueryEndpointParams(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
@@ -60,6 +62,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         this.stringContextParam = builder.stringContextParam;
         this.operationContextParam = builder.operationContextParam;
         this.customEndpointArray = builder.customEndpointArray;
+        this.arnList = builder.arnList;
     }
 
     public static Builder builder() {
@@ -127,6 +130,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         return customEndpointArray;
     }
 
+    public List<String> arnList() {
+        return arnList;
+    }
+
     public Builder toBuilder() {
         return new BuilderImpl(this);
     }
@@ -163,6 +170,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder customEndpointArray(List<String> customEndpointArray);
 
+        Builder arnList(List<String> arnList);
+
         QueryEndpointParams build();
     }
 
@@ -197,6 +206,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private List<String> customEndpointArray;
 
+        private List<String> arnList;
+
         private BuilderImpl() {
         }
 
@@ -216,6 +227,7 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.stringContextParam = builder.stringContextParam;
             this.operationContextParam = builder.operationContextParam;
             this.customEndpointArray = builder.customEndpointArray;
+            this.arnList = builder.arnList;
         }
 
         @Override
@@ -315,6 +327,12 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder customEndpointArray(List<String> customEndpointArray) {
             this.customEndpointArray = customEndpointArray;
+            return this;
+        }
+
+        @Override
+        public Builder arnList(List<String> arnList) {
+            this.arnList = arnList;
             return this;
         }
 

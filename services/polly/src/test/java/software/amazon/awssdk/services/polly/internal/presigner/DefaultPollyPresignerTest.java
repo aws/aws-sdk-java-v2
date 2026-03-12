@@ -90,7 +90,7 @@ class DefaultPollyPresignerTest {
     }
 
     @Test
-    void presign_requestLevelSingerAndCredentials_honored() {
+    void presign_requestLevelSignerAndCredentials_honored() {
         IdentityProvider<AwsCredentialsIdentity> requestCedentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("akid2", "skid2")
         );

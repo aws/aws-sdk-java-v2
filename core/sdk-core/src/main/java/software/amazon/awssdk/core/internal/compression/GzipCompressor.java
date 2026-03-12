@@ -15,22 +15,21 @@
 
 package software.amazon.awssdk.core.internal.compression;
 
-import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
+import static software.amazon.awssdk.utils.IoUtils.closeQuietlyV2;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.zip.GZIPOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class GzipCompressor implements Compressor {
 
     private static final String COMPRESSOR_TYPE = "gzip";
-    private static final Logger log = LoggerFactory.getLogger(GzipCompressor.class);
+    private static final Logger log = Logger.loggerFor(GzipCompressor.class);
 
     @Override
     public String compressorType() {
@@ -49,7 +48,7 @@ public final class GzipCompressor implements Compressor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            closeQuietly(gzipOutputStream, log);
+            closeQuietlyV2(gzipOutputStream, log);
         }
     }
 }

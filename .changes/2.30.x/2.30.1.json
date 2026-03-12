@@ -1,0 +1,24 @@
+{
+    "version": "2.30.1",
+    "date": "2025-01-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "The release addresses Amazon ECS documentation tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -93,7 +93,7 @@ public class WalkRuleExpressionVisitor implements RuleExpressionVisitor<Void> {
         visitAll(e.conditions());
         ErrorExpression error = e.error();
         if (error != null) {
-            e.accept(this);
+            error.accept(this);
         }
         EndpointExpression endpoint = e.endpoint();
         if (endpoint != null) {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.checksums;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -91,6 +92,7 @@ public class S3ChecksumValidatingPublisherTest {
 
     assertFalse(s.hasCompleted());
     assertTrue(s.isOnErrorCalled());
+    assertThat(s.getError().getMessage()).contains("Data read has a different checksum than expected");
   }
 
   @Test
@@ -169,10 +171,33 @@ public class S3ChecksumValidatingPublisherTest {
     assertFalse(s.hasCompleted());
   }
 
+  @Test
+  public void emptyObjectReturnsNoData() {
+    Md5Checksum checksum = new Md5Checksum();
+    byte[] checksumBytes = checksum.getChecksumBytes();
+    byte[] emptyWithChecksum = new byte[CHECKSUM_SIZE];
+    for (int i = 0; i < CHECKSUM_SIZE; i++) {
+      emptyWithChecksum[i] = checksumBytes[i];
+    }
+
+    final TestPublisher driver = new TestPublisher();
+    final TestSubscriber s = new TestSubscriber();
+    final S3ChecksumValidatingPublisher p = new S3ChecksumValidatingPublisher(driver, new Md5Checksum(), CHECKSUM_SIZE);
+    p.subscribe(s);
+
+    driver.doOnNext(ByteBuffer.wrap(emptyWithChecksum));
+    driver.doOnComplete();
+
+    assertArrayEquals(new byte[0], s.receivedData());
+    assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
+  }
+
   private class TestSubscriber implements Subscriber<ByteBuffer> {
     final List<ByteBuffer> received;
     boolean completed;
     boolean onErrorCalled;
+    Throwable error;
 
     TestSubscriber() {
       this.received = new ArrayList<>();
@@ -194,6 +219,7 @@ public class S3ChecksumValidatingPublisherTest {
     @Override
     public void onError(Throwable t) {
       onErrorCalled = true;
+      error = t;
     }
 
     @Override
@@ -219,6 +245,10 @@ public class S3ChecksumValidatingPublisherTest {
 
     public boolean isOnErrorCalled() {
       return onErrorCalled;
+    }
+
+    public Throwable getError() {
+      return error;
     }
   }
 

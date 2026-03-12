@@ -39,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -103,17 +104,28 @@ public class ResponseTransformerTest {
     }
 
     @Test
-    public void downloadToExistingFileDoesNotRetry() throws IOException {
+    public void downloadToExistingFileDoesNotRetry() {
         stubForRetriesTimeoutReadingFromStreams();
 
         assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
             ResponseTransformer
                 .toFile(new File(".."))))
-            .isInstanceOf(SdkClientException.class);
+            .isInstanceOf(SdkClientException.class)
+            .isNotInstanceOf(RetryableException.class);
     }
 
     @Test
-    public void downloadToOutputStreamDoesNotRetry() throws IOException {
+    public void downloadToNonExistentDirectoryDoesNotRetry() {
+        stubForRetriesTimeoutReadingFromStreams();
+
+        assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+                                                                       ResponseTransformer.toFile(new File("/nonExistentDir/myFile"))))
+            .isInstanceOf(SdkClientException.class)
+            .isNotInstanceOf(RetryableException.class);
+    }
+
+    @Test
+    public void downloadToOutputStreamDoesNotRetry() {
         stubForRetriesTimeoutReadingFromStreams();
 
         assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),

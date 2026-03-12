@@ -1,0 +1,54 @@
+{
+    "version": "2.28.25",
+    "date": "2024-10-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Data Exchange",
+            "contributor": "",
+            "description": "This release adds Data Grant support, through which customers can programmatically create data grants to share with other AWS accounts and accept data grants from other AWS accounts."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Removing support for topK property in PromptModelInferenceConfiguration object, Making PromptTemplateConfiguration property as required, Limiting the maximum PromptVariant to 1"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This is an Amazon ECS documentation only update to address tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge Pipes",
+            "contributor": "",
+            "description": "This release adds validation to require specifying a SecurityGroup and Subnets in the Vpc object under PipesSourceSelfManagedKafkaParameters. It also adds support for iso-e, iso-f, and other non-commercial partitions in ARN parameters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS Voice V2",
+            "contributor": "",
+            "description": "Added the registrations status of REQUIRES_AUTHENTICATION"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add StartDashboardSnapshotJobSchedule API. RestoreAnalysis now supports restoring analysis to folders."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates Amazon RDS documentation for TAZ IAM support"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Updated the DomainName pattern for Active Directory"
+        }
+    ]
+}

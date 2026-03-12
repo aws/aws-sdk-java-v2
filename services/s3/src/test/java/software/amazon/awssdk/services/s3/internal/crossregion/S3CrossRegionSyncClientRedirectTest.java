@@ -86,21 +86,21 @@ public class S3CrossRegionSyncClientRedirectTest extends S3CrossRegionRedirectTe
     @Override
     protected void stubRedirectWithNoRegionAndThenSuccess(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(redirect, null, null, null))
+            .thenThrow(redirectException(redirect, null, errorCodeFromRedirect(redirect), null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
 
     @Override
     protected void stubRedirectThenError(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(redirect, CROSS_REGION.id(), null, null))
+            .thenThrow(redirectException(redirect, CROSS_REGION.id(), errorCodeFromRedirect(redirect), null))
             .thenThrow(redirectException(400, null, "InvalidArgument", "Invalid id"));
     }
 
     @Override
     protected void stubRedirectSuccessSuccess(Integer redirect) {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(redirect, CROSS_REGION.id(), null, null))
+            .thenThrow(redirectException(redirect, CROSS_REGION.id(), errorCodeFromRedirect(redirect), null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build())
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
@@ -127,6 +127,10 @@ public class S3CrossRegionSyncClientRedirectTest extends S3CrossRegionRedirectTe
 
     @Override
     protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect) {
+        String errorCode = null;
+        if (redirect == 400) {
+            errorCode = ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE;
+        }
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
             .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());

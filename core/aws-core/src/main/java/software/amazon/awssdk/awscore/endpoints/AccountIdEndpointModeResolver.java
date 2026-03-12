@@ -17,13 +17,13 @@ package software.amazon.awssdk.awscore.endpoints;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.OptionalUtils;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class AccountIdEndpointModeResolver {
 
     private static final AccountIdEndpointMode SDK_DEFAULT_MODE = AccountIdEndpointMode.PREFERRED;

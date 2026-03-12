@@ -47,6 +47,7 @@ public class S3CrossRegionCrtIntegrationTest extends S3CrossRegionAsyncIntegrati
     public void initialize() {
         crossRegionS3Client = S3AsyncClient.crtBuilder()
                                            .region(Region.AWS_GLOBAL)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .crossRegionAccessEnabled(true)
                                              .build();
     }

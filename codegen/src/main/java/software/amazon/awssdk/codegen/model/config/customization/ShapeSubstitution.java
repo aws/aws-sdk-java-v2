@@ -28,6 +28,7 @@ import java.util.List;
 public class ShapeSubstitution {
 
     private String emitAsShape;
+    private String emitAsType;
     private String emitFromMember;
 
     /**
@@ -52,6 +53,14 @@ public class ShapeSubstitution {
 
     public String getEmitFromMember() {
         return emitFromMember;
+    }
+
+    public String getEmitAsType() {
+        return emitAsType;
+    }
+
+    public void setEmitAsType(String emitAsType) {
+        this.emitAsType = emitAsType;
     }
 
     public void setEmitFromMember(String emitFromMember) {
