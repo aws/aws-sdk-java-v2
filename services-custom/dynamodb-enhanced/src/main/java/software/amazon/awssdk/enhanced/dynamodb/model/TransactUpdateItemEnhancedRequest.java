@@ -74,6 +74,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
                                .ignoreNulls(ignoreNulls)
                                .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
+                               .updateExpression(updateExpression)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
