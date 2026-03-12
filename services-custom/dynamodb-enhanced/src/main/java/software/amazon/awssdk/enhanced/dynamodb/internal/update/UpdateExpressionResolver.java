@@ -97,7 +97,7 @@ public final class UpdateExpressionResolver {
                                 .collect(Collectors.toSet());
     }
 
-    public static UpdateExpression generateItemSetExpression(Map<String, AttributeValue> itemMap,
+    private static UpdateExpression generateItemSetExpression(Map<String, AttributeValue> itemMap,
                                                              TableMetadata tableMetadata) {
 
         Map<String, AttributeValue> setAttributes = filterMap(itemMap, e -> !isNullAttributeValue(e.getValue()));
@@ -106,7 +106,7 @@ public final class UpdateExpressionResolver {
                                .build();
     }
 
-    public static UpdateExpression generateItemRemoveExpression(Map<String, AttributeValue> itemMap,
+    private static UpdateExpression generateItemRemoveExpression(Map<String, AttributeValue> itemMap,
                                                                 Collection<String> nonRemoveAttributes) {
         Map<String, AttributeValue> removeAttributes =
             filterMap(itemMap, e -> isNullAttributeValue(e.getValue()) && !nonRemoveAttributes.contains(e.getKey()));
