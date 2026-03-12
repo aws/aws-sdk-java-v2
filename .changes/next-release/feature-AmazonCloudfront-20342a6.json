@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cloudfront",
+    "contributor": "",
+    "description": "Add support for resourceUrlPattern to `CloudFrontUtilities.getCookiesForCustomPolicy`."
+}
