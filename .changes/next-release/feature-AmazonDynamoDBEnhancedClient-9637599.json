@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Improved performance by adding a fast path avoiding wrapping of String and Byte types"
-}
