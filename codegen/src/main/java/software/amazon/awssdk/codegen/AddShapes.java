@@ -367,7 +367,13 @@ abstract class AddShapes {
 
         return operation.map(o -> o.getHttp().getRequestUri())
                         .orElseThrow(() -> {
-                            String detailMsg = "Could not find request URI for input shape for operation: " + operation;
+                            String shapeName = allC2jShapes.entrySet().stream()
+                                .filter(e -> e.getValue().equals(parentShape))
+                                .map(Map.Entry::getKey)
+                                .findFirst()
+                                .orElse("unknown");
+                            String detailMsg = "Could not find request URI for input shape '" + shapeName
+                                + "'. No operation was found that references this shape as its input.";
                             ValidationEntry entry =
                                 new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
                                                      .withDetailMessage(detailMsg)

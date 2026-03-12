@@ -48,6 +48,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.codegen.validation.ValidationErrorId;
 
 public class CodeGeneratorTest {
@@ -177,6 +178,23 @@ public class CodeGeneratorTest {
     }
 
     @Test
+    void execute_uriLocationOnNonInputShape_throwsValidationErrorWithShapeName() throws IOException {
+        C2jModels models = C2jModels.builder()
+                                    .customizationConfig(CustomizationConfig.create())
+                                    .serviceModel(getUriOnNonInputShapeServiceModel())
+                                    .build();
+
+        assertThatThrownBy(() -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(e -> {
+                ModelInvalidException ex = (ModelInvalidException) e;
+                ValidationEntry entry = ex.validationEntries().get(0);
+                return entry.getErrorId() == ValidationErrorId.REQUEST_URI_NOT_FOUND
+                       && entry.getDetailMessage().contains("No operation was found");
+            });
+    }
+
+    @Test
     void execute_operationHasNoRequestUri_throwsValidationError() throws IOException {
         C2jModels models = C2jModels.builder()
                                     .customizationConfig(CustomizationConfig.create())
@@ -241,6 +259,11 @@ public class CodeGeneratorTest {
 
     private ServiceModel getMissingRequestUriServiceModel() throws IOException {
         String json = resourceAsString("no-request-uri-operation-service.json");
+        return Jackson.load(ServiceModel.class, json);
+    }
+
+    private ServiceModel getUriOnNonInputShapeServiceModel() throws IOException {
+        String json = resourceAsString("uri-on-non-input-shape-service.json");
         return Jackson.load(ServiceModel.class, json);
     }
 
