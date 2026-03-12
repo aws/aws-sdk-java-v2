@@ -39,14 +39,14 @@ public class S3ConfigurationTest {
     @Test
     public void createConfiguration_minimal() {
         S3Configuration config = S3Configuration.builder().build();
-        assertThat(config.accelerateModeEnabled()).isEqualTo(false);
-        assertThat(config.checksumValidationEnabled()).isEqualTo(true);
-        assertThat(config.chunkedEncodingEnabled()).isEqualTo(true);
-        assertThat(config.dualstackEnabled()).isEqualTo(false);
-        assertThat(config.multiRegionEnabled()).isEqualTo(true);
-        assertThat(config.pathStyleAccessEnabled()).isEqualTo(false);
-        assertThat(config.useArnRegionEnabled()).isEqualTo(false);
-        assertThat(config.expectContinueEnabled()).isEqualTo(true);
+        assertThat(config.accelerateModeEnabled()).isFalse();
+        assertThat(config.checksumValidationEnabled()).isTrue();
+        assertThat(config.chunkedEncodingEnabled()).isTrue();
+        assertThat(config.dualstackEnabled()).isFalse();
+        assertThat(config.multiRegionEnabled()).isTrue();
+        assertThat(config.pathStyleAccessEnabled()).isFalse();
+        assertThat(config.useArnRegionEnabled()).isFalse();
+        assertThat(config.expectContinueEnabled()).isTrue();
     }
 
     @Test
