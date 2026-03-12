@@ -21,7 +21,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
@@ -72,9 +71,6 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
 
     @Override
     public AttributeValue transformFrom(Float input) {
-        if (input == null) {
-            return AttributeValues.nullAttributeValue();
-        }
         ConverterUtils.validateFloat(input);
         return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
     }
