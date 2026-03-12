@@ -37,7 +37,7 @@ public class UpdateTimeToLiveOperation<T> implements TableOperation<T, UpdateTim
 
     private final boolean enabled;
 
-    public UpdateTimeToLiveOperation(boolean enabled) {
+    private UpdateTimeToLiveOperation(boolean enabled) {
         this.enabled = enabled;
     }
 

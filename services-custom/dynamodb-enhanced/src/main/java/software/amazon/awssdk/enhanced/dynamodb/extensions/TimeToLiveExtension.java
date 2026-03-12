@@ -62,22 +62,25 @@ public final class TimeToLiveExtension implements DynamoDbEnhancedClientExtensio
 
     @Override
     public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
-        Map<String, ?> customTTLMetadata = context.tableMetadata()
-                                                  .customMetadataObject(CUSTOM_METADATA_KEY, Map.class).orElse(null);
+        Map<?, ?> customTTLMetadata = context.tableMetadata()
+                                             .customMetadataObject(CUSTOM_METADATA_KEY, Map.class).orElse(null);
 
         if (customTTLMetadata != null) {
-            String ttlAttributeName = (String) customTTLMetadata.get("attributeName");
-            String baseFieldName = (String) customTTLMetadata.get("baseField");
-            Long duration = (Long) customTTLMetadata.get("duration");
-            TemporalUnit unit = (TemporalUnit) customTTLMetadata.get("unit");
+            String ttlAttributeName = validateMetadataValue(customTTLMetadata, "attributeName", String.class);
+            String baseFieldName = validateMetadataValue(customTTLMetadata, "baseField", String.class);
+            long duration = validateMetadataValue(customTTLMetadata, "duration", Long.class);
+            TemporalUnit unit = validateMetadataValue(customTTLMetadata, "unit", TemporalUnit.class);
 
-            Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
+            Validate.isTrue(duration >= 0, "Custom TTL metadata key 'duration' must not be negative.");
 
-            if (!itemToTransform.containsKey(ttlAttributeName) && StringUtils.isNotBlank(baseFieldName)
-                && itemToTransform.containsKey(baseFieldName)) {
+            Map<String, AttributeValue> items = context.items();
+
+            if (!items.containsKey(ttlAttributeName) && StringUtils.isNotBlank(baseFieldName)
+                && items.containsKey(baseFieldName)) {
                 Object baseFieldValue = context.tableSchema().converterForAttribute(baseFieldName)
-                                               .transformTo(itemToTransform.get(baseFieldName));
+                                               .transformTo(items.get(baseFieldName));
                 Long ttlEpochSeconds = computeTTLFromBase(baseFieldValue, duration, unit);
+                Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
                 itemToTransform.put(ttlAttributeName, AttributeValue.builder().n(String.valueOf(ttlEpochSeconds)).build());
 
                 return WriteModification.builder().transformedItem(Collections.unmodifiableMap(itemToTransform)).build();
@@ -85,6 +88,17 @@ public final class TimeToLiveExtension implements DynamoDbEnhancedClientExtensio
         }
 
         return WriteModification.builder().build();
+    }
+
+    private static <T> T validateMetadataValue(Map<?, ?> metadata, String key, Class<T> expectedType) {
+        Object value = Validate.notNull(metadata.get(key), "Custom TTL metadata is missing required key '%s'.", key);
+
+        if (!expectedType.isInstance(value)) {
+            throw new IllegalArgumentException(String.format("Custom TTL metadata key '%s' must be of type %s, but was %s.",
+                                                             key, expectedType.getName(), value.getClass().getName()));
+        }
+
+        return expectedType.cast(value);
     }
 
     private static Long computeTTLFromBase(Object baseValue, long duration, TemporalUnit unit) {
@@ -145,9 +159,9 @@ public final class TimeToLiveExtension implements DynamoDbEnhancedClientExtensio
 
     private static final class TimeToLiveAttribute implements StaticAttributeTag {
 
-        public String baseField;
-        public long duration;
-        public ChronoUnit unit;
+        private final String baseField;
+        private final long duration;
+        private final ChronoUnit unit;
 
         private TimeToLiveAttribute(String baseField, long duration, ChronoUnit unit) {
             this.baseField = baseField;
@@ -173,6 +187,7 @@ public final class TimeToLiveExtension implements DynamoDbEnhancedClientExtensio
         @Override
         public Consumer<StaticTableMetadata.Builder> modifyMetadata(String attributeName,
                                                                     AttributeValueType attributeValueType) {
+            Validate.isTrue(duration >= 0, "duration must not be negative");
             Map<String, Object> customMetadataMap = new HashMap<>();
             customMetadataMap.put("attributeName", attributeName);
             customMetadataMap.put("baseField", baseField);

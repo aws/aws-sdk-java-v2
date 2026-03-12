@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateTimeToLiveResponse;
 
 public class UpdateTimeToLiveEnhancedResponseTest {
     @Test
-    public void builder_populatesTable() {
+    public void builder_populatesTimeToLiveSpecification() {
         TimeToLiveSpecification timeToLiveSpecification = TimeToLiveSpecification.builder()
                                                                                  .attributeName("expirationDate")
                                                                                  .enabled(true)
@@ -38,7 +38,7 @@ public class UpdateTimeToLiveEnhancedResponseTest {
                                                                                        .response(response)
                                                                                        .build();
 
-        assertThat(builtObject.table()).isEqualTo(timeToLiveSpecification);
+        assertThat(builtObject.timeToLiveSpecification()).isEqualTo(timeToLiveSpecification);
     }
 
     @Test

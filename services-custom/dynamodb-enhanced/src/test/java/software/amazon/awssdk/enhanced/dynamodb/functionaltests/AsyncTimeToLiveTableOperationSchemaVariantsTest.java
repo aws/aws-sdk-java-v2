@@ -107,19 +107,19 @@ public class AsyncTimeToLiveTableOperationSchemaVariantsTest extends LocalDynamo
     public void updateTimeToLive_returnsEnabledSpecification_whenEnablingTtl() {
         UpdateTimeToLiveEnhancedResponse response = mappedTable.updateTimeToLive(true).join();
 
-        assertThat(response.table().enabled()).as(schemaType).isTrue();
-        assertThat(response.table().attributeName()).as(schemaType).isEqualTo("expirationDate");
+        assertThat(response.timeToLiveSpecification().enabled()).as(schemaType).isTrue();
+        assertThat(response.timeToLiveSpecification().attributeName()).as(schemaType).isEqualTo("expirationDate");
     }
 
     @Test
     public void updateTimeToLive_returnsDisabledSpecification_whenDisablingTtl() {
         UpdateTimeToLiveEnhancedResponse enableResponse = mappedTable.updateTimeToLive(true).join();
-        assertThat(enableResponse.table().enabled()).as(schemaType).isTrue();
+        assertThat(enableResponse.timeToLiveSpecification().enabled()).as(schemaType).isTrue();
 
         UpdateTimeToLiveEnhancedResponse response = mappedTable.updateTimeToLive(false).join();
 
-        assertThat(response.table().enabled()).as(schemaType).isFalse();
-        assertThat(response.table().attributeName()).as(schemaType).isEqualTo("expirationDate");
+        assertThat(response.timeToLiveSpecification().enabled()).as(schemaType).isFalse();
+        assertThat(response.timeToLiveSpecification().attributeName()).as(schemaType).isEqualTo("expirationDate");
     }
 
     @Test

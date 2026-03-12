@@ -120,6 +120,17 @@ public class TimeToLiveExtensionTest {
     }
 
     @Test
+    public void beforeWrite_withExistingTtlValue_doesNotCopyItemWhenNoTransformationIsNeeded() {
+        Map<String, AttributeValue> item = mock(Map.class);
+        when(item.containsKey("expiresAt")).thenReturn(true);
+        when(item.entrySet()).thenThrow(new AssertionError("No-op TTL paths should not iterate or copy the input item map"));
+
+        WriteModification result = extension.beforeWrite(defaultContext(item, TAGGED_TTL_SCHEMA));
+
+        assertThat(result.transformedItem()).isNull();
+    }
+
+    @Test
     public void beforeWrite_withoutBaseFieldValue_returnsNoTransformation() {
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("id", AttributeValue.builder().s("id-1").build());
@@ -206,8 +217,8 @@ public class TimeToLiveExtensionTest {
 
     @Test
     public void beforeWrite_computesTtlFromEpochSecondsLong() {
-        Long baseEpochSeconds = 1_707_123_456L;
-        Long expectedTtl = baseEpochSeconds + 120L;
+        long baseEpochSeconds = 1_707_123_456L;
+        long expectedTtl = baseEpochSeconds + 120L;
 
         WriteModification result = beforeWriteWithCustomMetadata("ttl", "baseField", baseEpochSeconds,
                                                                  LongAttributeConverter.create(), 120,
@@ -270,32 +281,64 @@ public class TimeToLiveExtensionTest {
 
         ttlTag.modifyMetadata("expiresAt", AttributeValueType.N).accept(metadataBuilder);
 
-        Map<String, Object> metadata = (Map<String, Object>) metadataBuilder.build()
-                                                                            .customMetadataObject(
-                                                                                TimeToLiveExtension.CUSTOM_METADATA_KEY,
-                                                                                Map.class)
-                                                                            .orElseThrow(IllegalStateException::new);
+        Map<?, ?> metadata = metadataBuilder.build()
+                                           .customMetadataObject(TimeToLiveExtension.CUSTOM_METADATA_KEY, Map.class)
+                                           .orElseThrow(IllegalStateException::new);
 
-        assertThat(metadata).containsEntry("attributeName", "expiresAt")
-                            .containsEntry("baseField", "baseTimestamp")
-                            .containsEntry("duration", 7L)
-                            .containsEntry("unit", ChronoUnit.HOURS);
+        assertThat(metadata.get("attributeName")).isEqualTo("expiresAt");
+        assertThat(metadata.get("baseField")).isEqualTo("baseTimestamp");
+        assertThat(metadata.get("duration")).isEqualTo(7L);
+        assertThat(metadata.get("unit")).isEqualTo(ChronoUnit.HOURS);
     }
 
-    private WriteModification beforeWriteWithCustomMetadata(String ttlAttributeName,
-                                                            String baseFieldName,
-                                                            Object baseFieldValue,
-                                                            AttributeConverter converter,
-                                                            long duration,
-                                                            ChronoUnit unit) {
+    @Test
+    public void beforeWrite_withMissingDurationMetadata_throwsDescriptiveException() {
+        Map<String, Object> customMetadata = ttlMetadataWithoutDuration("ttl", "baseField", ChronoUnit.DAYS);
+
+        assertThatThrownBy(() -> beforeWriteWithInstantMetadata(customMetadata))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("Custom TTL metadata is missing required key 'duration'");
+    }
+
+    @Test
+    public void beforeWrite_withWrongMetadataType_throwsDescriptiveException() {
+        Map<String, Object> customMetadata = ttlMetadata("ttl", "baseField", 5L, ChronoUnit.DAYS);
+        customMetadata.put("duration", "5");
+
+        assertThatThrownBy(() -> beforeWriteWithInstantMetadata(customMetadata))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Custom TTL metadata key 'duration' must be of type " + Long.class.getName())
+            .hasMessageContaining(String.class.getName());
+    }
+
+    @Test
+    public void beforeWrite_withNegativeDurationMetadata_throwsDescriptiveException() {
+        Map<String, Object> customMetadata = ttlMetadata("ttl", "baseField", -5L, ChronoUnit.DAYS);
+
+        assertThatThrownBy(() -> beforeWriteWithInstantMetadata(customMetadata))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Custom TTL metadata key 'duration' must not be negative");
+    }
+
+    private <T> WriteModification beforeWriteWithCustomMetadata(String ttlAttributeName,
+                                                                String baseFieldName,
+                                                                T baseFieldValue,
+                                                                AttributeConverter<T> converter,
+                                                                long duration,
+                                                                ChronoUnit unit) {
+        return beforeWriteWithMetadata(ttlMetadata(ttlAttributeName, baseFieldName, duration, unit),
+                                       baseFieldName,
+                                       baseFieldValue,
+                                       converter);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private <T> WriteModification beforeWriteWithMetadata(Map<String, Object> customMetadata,
+                                                          String baseFieldName,
+                                                          T baseFieldValue,
+                                                          AttributeConverter<T> converter) {
         Map<String, AttributeValue> item = new HashMap<>();
         item.put(baseFieldName, converter.transformFrom(baseFieldValue));
-
-        Map<String, Object> customMetadata = new HashMap<>();
-        customMetadata.put("attributeName", ttlAttributeName);
-        customMetadata.put("baseField", baseFieldName);
-        customMetadata.put("duration", duration);
-        customMetadata.put("unit", unit);
 
         TableMetadata tableMetadata = mock(TableMetadata.class);
         when(tableMetadata.customMetadataObject(TimeToLiveExtension.CUSTOM_METADATA_KEY, Map.class))
@@ -310,6 +353,23 @@ public class TimeToLiveExtensionTest {
         when(context.tableSchema()).thenReturn(tableSchema);
 
         return extension.beforeWrite(context);
+    }
+
+    private Map<String, Object> ttlMetadata(String ttlAttributeName, String baseFieldName, long duration, ChronoUnit unit) {
+        Map<String, Object> customMetadata = new HashMap<>();
+        customMetadata.put("attributeName", ttlAttributeName);
+        customMetadata.put("baseField", baseFieldName);
+        customMetadata.put("duration", duration);
+        customMetadata.put("unit", unit);
+        return customMetadata;
+    }
+
+    private Map<String, Object> ttlMetadataWithoutDuration(String ttlAttributeName, String baseFieldName, ChronoUnit unit) {
+        Map<String, Object> customMetadata = new HashMap<>();
+        customMetadata.put("attributeName", ttlAttributeName);
+        customMetadata.put("baseField", baseFieldName);
+        customMetadata.put("unit", unit);
+        return customMetadata;
     }
 
     private long ttlFrom(WriteModification result, String attributeName) {
@@ -376,5 +436,12 @@ public class TimeToLiveExtensionTest {
         public void setBaseTimestamp(Instant baseTimestamp) {
             this.baseTimestamp = baseTimestamp;
         }
+    }
+
+    private WriteModification beforeWriteWithInstantMetadata(Map<String, Object> customMetadata) {
+        return beforeWriteWithMetadata(customMetadata,
+                                       "baseField",
+                                       Instant.parse("2024-01-01T00:00:00Z"),
+                                       InstantAsStringAttributeConverter.create());
     }
 }

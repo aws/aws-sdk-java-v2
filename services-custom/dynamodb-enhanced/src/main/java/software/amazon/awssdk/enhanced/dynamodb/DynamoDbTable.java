@@ -929,10 +929,44 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Describes the time to live (TTL) configuration of the table with the name defined for this
+     * {@link DynamoDbTable}.
+     * <p>
+     * This operation calls the low-level DynamoDB API {@code DescribeTimeToLive} operation.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DescribeTimeToLiveEnhancedResponse response = mappedTable.describeTimeToLive();
+     * }
+     * </pre>
+     *
+     * @return The TTL description returned by DynamoDB.
+     */
     default DescribeTimeToLiveEnhancedResponse describeTimeToLive() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Updates the time to live (TTL) configuration of the table with the name defined for this
+     * {@link DynamoDbTable}.
+     * <p>
+     * This operation calls the low-level DynamoDB API {@code UpdateTimeToLive} operation and uses the
+     * TTL attribute configured in this table's schema metadata.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * UpdateTimeToLiveEnhancedResponse response = mappedTable.updateTimeToLive(true);
+     * }
+     * </pre>
+     *
+     * @param enabled Whether TTL should be enabled or disabled for the table.
+     * @return The TTL specification returned by DynamoDB after the update request is accepted.
+     */
     default UpdateTimeToLiveEnhancedResponse updateTimeToLive(boolean enabled) {
         throw new UnsupportedOperationException();
     }

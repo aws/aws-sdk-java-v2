@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Defines the elements returned by DynamoDB from a {@code DescribeTimeToLive} operation, such as
+ * Defines the elements returned by DynamoDB from a {@code UpdateTimeToLive} operation, such as
  * {@link DynamoDbTable#updateTimeToLive(boolean)}   and {@link DynamoDbAsyncTable#updateTimeToLive(boolean)}
  */
 @SdkPublicApi
@@ -44,7 +44,7 @@ public final class UpdateTimeToLiveEnhancedResponse {
      *
      * @return The properties of the timeToLive specification.
      */
-    public TimeToLiveSpecification table() {
+    public TimeToLiveSpecification timeToLiveSpecification() {
         return response.timeToLiveSpecification();
     }
 
