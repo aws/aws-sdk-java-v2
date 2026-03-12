@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
  * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object or Upload Part
- * request. This behavior can be disabled via {@link S3Configuration#disableExpect100ContinueForPuts()}.
+ * request. This behavior can be disabled via {@link S3Configuration#expectContinueEnabled()}.
  */
 @SdkInternalApi
 //TODO: This should be generalized for all streaming requests
@@ -68,7 +68,7 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
     private boolean isExpect100ContinueDisabled(ExecutionAttributes executionAttributes) {
         ServiceConfiguration serviceConfig = executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
         if (serviceConfig instanceof S3Configuration) {
-            return ((S3Configuration) serviceConfig).disableExpect100ContinueForPuts();
+            return !((S3Configuration) serviceConfig).expectContinueEnabled();
         }
         return false;
     }

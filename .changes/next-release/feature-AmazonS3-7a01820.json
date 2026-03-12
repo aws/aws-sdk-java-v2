@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Added `disableExpect100ContinueForPuts` to `S3Configuration` to control the `Expect: 100-continue` header on PutObject and UploadPart requests. When set to `true`, the SDK stops adding the header. For Apache HTTP client users, to have `ApacheHttpClient.builder().expectContinueEnabled()` fully control the header, set `disableExpect100ContinueForPuts(true)` on `S3Configuration`."
+    "description": "Added `expectContinueEnabled` to `S3Configuration` to control the `Expect: 100-continue` header on PutObject and UploadPart requests. When set to `false`, the SDK stops adding the header. For Apache HTTP client users, to have `ApacheHttpClient.builder().expectContinueEnabled()` fully control the header, set `expectContinueEnabled(false)` on `S3Configuration`."
 }

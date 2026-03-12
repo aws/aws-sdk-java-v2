@@ -71,7 +71,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  * These tests verify the header is correctly omitted for zero-length bodies and included for
  * non-empty bodies in both sync and async S3 operations.
  * <p>
- * Also verifies that {@link S3Configuration#disableExpect100ContinueForPuts()} suppresses the header
+ * Also verifies that {@link S3Configuration#expectContinueEnabled()} suppresses the header
  * for all put operations regardless of body content, across all HTTP client types.
  */
 @WireMockTest(httpsEnabled = true)
@@ -218,12 +218,12 @@ class Expect100ContinueHeaderTest {
     }
 
     // -----------------------------------------------------------------------
-    // disableExpect100ContinueForPuts: parameterized across HTTP client types
+    // expectContinueEnabled: parameterized across HTTP client types
     // -----------------------------------------------------------------------
 
     @ParameterizedTest(name = "PutObject: {0}")
-    @MethodSource("expectContinueDisableConfigProvider")
-    void putObject_whenDisableExpect100ContinueConfigured_shouldMatchExpectedBehavior(
+    @MethodSource("expectContinueConfigProvider")
+    void putObject_whenExpectContinueConfigured_shouldMatchExpectedBehavior(
             String testName, String clientType, S3Configuration config,
             boolean expectHeaderPresent, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         stubAnyPutRequest();
@@ -232,8 +232,8 @@ class Expect100ContinueHeaderTest {
     }
 
     @ParameterizedTest(name = "UploadPart: {0}")
-    @MethodSource("expectContinueDisableConfigProvider")
-    void uploadPart_whenDisableExpect100ContinueConfigured_shouldMatchExpectedBehavior(
+    @MethodSource("expectContinueConfigProvider")
+    void uploadPart_whenExpectContinueConfigured_shouldMatchExpectedBehavior(
             String testName, String clientType, S3Configuration config,
             boolean expectHeaderPresent, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         stubAnyPutRequest();
@@ -284,41 +284,41 @@ class Expect100ContinueHeaderTest {
     // Test data providers
     // -----------------------------------------------------------------------
 
-    private static Stream<Arguments> expectContinueDisableConfigProvider() {
+    private static Stream<Arguments> expectContinueConfigProvider() {
         S3Configuration disabledConfig = S3Configuration.builder()
-                                                        .disableExpect100ContinueForPuts(true)
+                                                        .expectContinueEnabled(false)
                                                         .build();
         S3Configuration enabledConfig = S3Configuration.builder()
-                                                       .disableExpect100ContinueForPuts(false)
+                                                       .expectContinueEnabled(true)
                                                        .build();
 
         return Stream.of(
-            // Apache: default expectContinueEnabled=true — both interceptor and Apache add the header
+            // Apache: default — both interceptor and Apache add the header
             Arguments.of("Apache - default config", "APACHE", null, true),
-            Arguments.of("Apache - S3Config disabled=false", "APACHE", enabledConfig, true),
-            // Apache: S3Config disabled stops the interceptor, but Apache still adds the header independently
-            Arguments.of("Apache - S3Config disabled=true (Apache still adds)", "APACHE", disabledConfig, true),
-            // Apache with expectContinueEnabled=false + S3Config disabled: fully suppressed
-            Arguments.of("Apache(ec=false) + S3Config disabled=true", "APACHE_EC_DISABLED", disabledConfig, false),
-            // Apache with expectContinueEnabled=true + S3Config disabled: Apache still adds the header independently
-            Arguments.of("Apache(ec=true) + S3Config disabled=true", "APACHE_EC_ENABLED", disabledConfig, true),
+            Arguments.of("Apache - S3Config enabled=true", "APACHE", enabledConfig, true),
+            // Apache: S3Config enabled=false stops the interceptor, but Apache still adds the header independently
+            Arguments.of("Apache - S3Config enabled=false (Apache still adds)", "APACHE", disabledConfig, true),
+            // Apache with ec=false + S3Config enabled=false: fully suppressed
+            Arguments.of("Apache(ec=false) + S3Config enabled=false", "APACHE_EC_DISABLED", disabledConfig, false),
+            // Apache with ec=true + S3Config enabled=false: Apache still adds the header independently
+            Arguments.of("Apache(ec=true) + S3Config enabled=false", "APACHE_EC_ENABLED", disabledConfig, true),
 
             // URL Connection: only the interceptor adds the header
             Arguments.of("UrlConnection - default config", "URL_CONNECTION", null, true),
-            Arguments.of("UrlConnection - S3Config disabled=true", "URL_CONNECTION", disabledConfig, false),
+            Arguments.of("UrlConnection - S3Config enabled=false", "URL_CONNECTION", disabledConfig, false),
 
             // CRT sync (generic HTTP client): only the interceptor adds the header
             Arguments.of("CrtSync - default config", "CRT_SYNC", null, true),
-            Arguments.of("CrtSync - S3Config disabled=true", "CRT_SYNC", disabledConfig, false),
+            Arguments.of("CrtSync - S3Config enabled=false", "CRT_SYNC", disabledConfig, false),
 
             // Netty: only the interceptor adds the header
             Arguments.of("Netty - default config", "NETTY", null, true),
-            Arguments.of("Netty - S3Config disabled=false", "NETTY", enabledConfig, true),
-            Arguments.of("Netty - S3Config disabled=true", "NETTY", disabledConfig, false),
+            Arguments.of("Netty - S3Config enabled=true", "NETTY", enabledConfig, true),
+            Arguments.of("Netty - S3Config enabled=false", "NETTY", disabledConfig, false),
 
             // CRT async (generic HTTP client): only the interceptor adds the header
             Arguments.of("CrtAsync - default config", "CRT_ASYNC", null, true),
-            Arguments.of("CrtAsync - S3Config disabled=true", "CRT_ASYNC", disabledConfig, false)
+            Arguments.of("CrtAsync - S3Config enabled=false", "CRT_ASYNC", disabledConfig, false)
         );
     }
 

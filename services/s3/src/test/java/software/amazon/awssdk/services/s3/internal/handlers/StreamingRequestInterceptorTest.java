@@ -117,12 +117,12 @@ class StreamingRequestInterceptorTest {
     }
 
     // -----------------------------------------------------------------------
-    // disableExpect100ContinueForPuts via S3Configuration
+    // S3Configuration.expectContinueEnabled
     // -----------------------------------------------------------------------
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("disableExpect100ContinueProvider")
-    void modifyHttpRequest_whenDisableExpect100ContinueConfigured_shouldMatchExpectedBehavior(
+    @MethodSource("expectContinueConfigProvider")
+    void modifyHttpRequest_whenExpectContinueConfigured_shouldMatchExpectedBehavior(
             String testName, SdkRequest sdkRequest, ExecutionAttributes attrs,
             SdkHttpRequest httpRequest, boolean expectPresent) {
         Context.ModifyHttpRequest context = httpRequest != null
@@ -142,29 +142,32 @@ class StreamingRequestInterceptorTest {
     // Data providers
     // -----------------------------------------------------------------------
 
-    private static Stream<Arguments> disableExpect100ContinueProvider() {
-        ExecutionAttributes disabledAttrs = withDisableExpect100Continue(true);
-        ExecutionAttributes enabledAttrs = withDisableExpect100Continue(false);
+    private static Stream<Arguments> expectContinueConfigProvider() {
+        ExecutionAttributes disabledAttrs = withExpectContinue(false);
+        ExecutionAttributes enabledAttrs = withExpectContinue(true);
         ExecutionAttributes defaultConfigAttrs = new ExecutionAttributes();
         defaultConfigAttrs.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, S3Configuration.builder().build());
         ExecutionAttributes noConfigAttrs = new ExecutionAttributes();
         SdkHttpRequest nonZeroContentLength = buildHttpRequest("Content-Length", "1024");
+        SdkHttpRequest zeroContentLength = buildHttpRequest("Content-Length", "0");
 
         return Stream.of(
-            Arguments.of("PutObject - disabled=true",
+            Arguments.of("PutObject - enabled=false",
                          PutObjectRequest.builder().build(), disabledAttrs, null, false),
-            Arguments.of("UploadPart - disabled=true",
+            Arguments.of("UploadPart - enabled=false",
                          UploadPartRequest.builder().build(), disabledAttrs, null, false),
-            Arguments.of("PutObject - disabled=false",
+            Arguments.of("PutObject - enabled=true",
                          PutObjectRequest.builder().build(), enabledAttrs, null, true),
-            Arguments.of("PutObject - default S3Config (null disabled)",
+            Arguments.of("PutObject - default S3Config (enabled=true)",
                          PutObjectRequest.builder().build(), defaultConfigAttrs, null, true),
             Arguments.of("PutObject - no service config",
                          PutObjectRequest.builder().build(), noConfigAttrs, null, true),
-            Arguments.of("GetObject - disabled=false (non-streaming, never adds header)",
+            Arguments.of("GetObject - enabled=true (non-streaming, never adds header)",
                          GetObjectRequest.builder().build(), enabledAttrs, null, false),
-            Arguments.of("PutObject - disabled=true with non-zero Content-Length",
-                         PutObjectRequest.builder().build(), disabledAttrs, nonZeroContentLength, false)
+            Arguments.of("PutObject - enabled=false with non-zero Content-Length",
+                         PutObjectRequest.builder().build(), disabledAttrs, nonZeroContentLength, false),
+            Arguments.of("PutObject - enabled=true with zero Content-Length",
+                         PutObjectRequest.builder().build(), enabledAttrs, zeroContentLength, false)
         );
     }
 
@@ -198,11 +201,11 @@ class StreamingRequestInterceptorTest {
     // Helpers
     // -----------------------------------------------------------------------
 
-    private static ExecutionAttributes withDisableExpect100Continue(boolean disabled) {
+    private static ExecutionAttributes withExpectContinue(boolean enabled) {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                            S3Configuration.builder()
-                                          .disableExpect100ContinueForPuts(disabled)
+                                          .expectContinueEnabled(enabled)
                                           .build());
         return attrs;
     }

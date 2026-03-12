@@ -72,16 +72,17 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
 
     /**
-     * By default, Expect: 100-continue is sent for {@link PutObjectRequest} and {@link UploadPartRequest}.
+     * By default, the SDK sends the {@code Expect: 100-continue} header for {@link PutObjectRequest}
+     * and {@link UploadPartRequest}.
      */
-    private static final boolean DEFAULT_DISABLE_EXPECT_100_CONTINUE_FOR_PUTS = false;
+    private static final boolean DEFAULT_EXPECT_CONTINUE_ENABLED = true;
 
     private final FieldWithDefault<Boolean> pathStyleAccessEnabled;
     private final FieldWithDefault<Boolean> accelerateModeEnabled;
     private final FieldWithDefault<Boolean> dualstackEnabled;
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
-    private final FieldWithDefault<Boolean> disableExpect100ContinueForPuts;
+    private final FieldWithDefault<Boolean> expectContinueEnabled;
     private final Boolean useArnRegionEnabled;
     private final Boolean multiRegionEnabled;
     private final FieldWithDefault<Supplier<ProfileFile>> profileFile;
@@ -94,8 +95,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         this.checksumValidationEnabled = FieldWithDefault.create(builder.checksumValidationEnabled,
                                                                  DEFAULT_CHECKSUM_VALIDATION_ENABLED);
         this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
-        this.disableExpect100ContinueForPuts =
-            FieldWithDefault.create(builder.disableExpect100ContinueForPuts, DEFAULT_DISABLE_EXPECT_100_CONTINUE_FOR_PUTS);
+        this.expectContinueEnabled = FieldWithDefault.create(builder.expectContinueEnabled,
+                                                             DEFAULT_EXPECT_CONTINUE_ENABLED);
         this.profileFile = FieldWithDefault.create(builder.profileFile, ProfileFile::defaultProfileFile);
         this.profileName = FieldWithDefault.create(builder.profileName,
                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
@@ -226,23 +227,23 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     }
 
     /**
-     * Returns whether the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header is disabled for
+     * Returns whether the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header is enabled for
      * {@link PutObjectRequest} and {@link UploadPartRequest}. This controls whether the SDK adds the header during
      * request interceptor processing.
      * <p>
      * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
-     * reject the request before the client sends the full payload. Setting this to {@code true} disables this behavior.
+     * reject the request before the client sends the full payload. Setting this to {@code false} disables this behavior.
      * <p>
      * <b>Note:</b> When using the Apache HTTP client, the Apache client also independently adds the
      * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully
      * suppress the header on the wire, you must also disable it on the Apache HTTP client builder using
      * {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
      *
-     * @return True if the Expect: 100-continue header is disabled for put operations.
-     * @see S3Configuration.Builder#disableExpect100ContinueForPuts(Boolean)
+     * @return True if the Expect: 100-continue header is enabled.
+     * @see S3Configuration.Builder#expectContinueEnabled(Boolean)
      */
-    public boolean disableExpect100ContinueForPuts() {
-        return disableExpect100ContinueForPuts.value();
+    public boolean expectContinueEnabled() {
+        return expectContinueEnabled.value();
     }
 
     /**
@@ -275,7 +276,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
                 .pathStyleAccessEnabled(pathStyleAccessEnabled.valueOrNullIfDefault())
                 .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())
                 .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
-                .disableExpect100ContinueForPuts(disableExpect100ContinueForPuts.valueOrNullIfDefault())
+                .expectContinueEnabled(expectContinueEnabled.valueOrNullIfDefault())
                 .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile.valueOrNullIfDefault())
                 .profileName(profileName.valueOrNullIfDefault());
@@ -385,26 +386,25 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
 
-        Boolean disableExpect100ContinueForPuts();
+        Boolean expectContinueEnabled();
 
         /**
-         * Option to disable the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header for
-         * {@link PutObjectRequest} and {@link UploadPartRequest}. This controls whether the SDK adds the header
-         * during request interceptor processing.
+         * Option to enable or disable the S3 SDK client's explicit setting of the {@code Expect: 100-continue} header
+         * for {@link PutObjectRequest} and {@link UploadPartRequest}.
          * <p>
          * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
-         * reject the request before the client sends the full payload. Setting this to {@code true} disables this behavior.
+         * reject the request before the client sends the full payload. Setting this to {@code false} disables this behavior.
          * <p>
          * <b>Note:</b> When using the Apache HTTP client, the Apache client also independently adds the
          * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully
          * suppress the header on the wire, you must also disable it on the Apache HTTP client builder using
          * {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
          * <p>
-         * Disabled by default (i.e., the header is sent).
+         * Enabled by default (i.e., the header is sent).
          *
-         * @see S3Configuration#disableExpect100ContinueForPuts()
+         * @see S3Configuration#expectContinueEnabled()
          */
-        Builder disableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts);
+        Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
         Boolean useArnRegionEnabled();
 
@@ -474,7 +474,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean pathStyleAccessEnabled;
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
-        private Boolean disableExpect100ContinueForPuts;
+        private Boolean expectContinueEnabled;
         private Boolean useArnRegionEnabled;
         private Boolean multiRegionEnabled;
         private Supplier<ProfileFile> profileFile;
@@ -552,8 +552,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         }
 
         @Override
-        public Boolean disableExpect100ContinueForPuts() {
-            return disableExpect100ContinueForPuts;
+        public Boolean expectContinueEnabled() {
+            return expectContinueEnabled;
         }
 
         public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
@@ -561,13 +561,13 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         }
 
         @Override
-        public Builder disableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts) {
-            this.disableExpect100ContinueForPuts = disableExpect100ContinueForPuts;
+        public Builder expectContinueEnabled(Boolean expectContinueEnabled) {
+            this.expectContinueEnabled = expectContinueEnabled;
             return this;
         }
 
-        public void setDisableExpect100ContinueForPuts(Boolean disableExpect100ContinueForPuts) {
-            disableExpect100ContinueForPuts(disableExpect100ContinueForPuts);
+        public void setExpectContinueEnabled(Boolean expectContinueEnabled) {
+            expectContinueEnabled(expectContinueEnabled);
         }
 
         @Override
