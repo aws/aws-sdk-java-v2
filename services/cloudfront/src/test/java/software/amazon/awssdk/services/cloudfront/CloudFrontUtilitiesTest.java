@@ -438,6 +438,74 @@ class CloudFrontUtilitiesTest {
     }
 
 
+    @ParameterizedTest
+    @MethodSource("provideUrlPatternsAndExpectedResources")
+    void getCookiesForCustomPolicy_policyResourceUrlShouldHandleVariousPatterns(
+        String resourceUrlPattern, String expectedResource) {
+        KeyTestCase testCase = KeyTestCase.createRsaTestCase();
+        String baseUrl = "https://d1234.cloudfront.net/images/photo.jpg";
+        Instant expiration = Instant.now().plusSeconds(3600);
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(baseUrl)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .resourceUrlPattern(resourceUrlPattern)
+                                                         .expirationDate(expiration)
+                                                         .build();
+
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+
+        // Extract and decode the policy from the cookie header value
+        String policyHeaderValue = cookies.policyHeaderValue();
+        String encodedPolicy = policyHeaderValue.split("CloudFront-Policy=")[1];
+        String standardBase64 = encodedPolicy
+            .replace('-', '+')
+            .replace('_', '=')
+            .replace('~', '/');
+        String decodedPolicy = new String(Base64.getDecoder().decode(standardBase64), UTF_8);
+
+        // Build expected policy
+        StringBuilder expectedPolicy = new StringBuilder();
+        StringJoiner conditions = new StringJoiner(",", "{", "}");
+        conditions.add("\"DateLessThan\":{\"AWS:EpochTime\":" + expiration.getEpochSecond() + "}");
+
+        expectedPolicy.append("{\"Statement\":[{")
+                      .append("\"Resource\":\"").append(expectedResource).append("\",")
+                      .append("\"Condition\":").append(conditions)
+                      .append("}]}");
+
+        assertThat(decodedPolicy.trim()).isEqualTo(expectedPolicy.toString().trim());
+        // resourceUrl on the cookie object should still be the concrete URL, not the pattern
+        assertThat(cookies.resourceUrl()).isEqualTo(baseUrl);
+    }
+
+    @Test
+    void getCookiesForCustomPolicy_withoutResourceUrlPattern_usesResourceUrlInPolicy() {
+        KeyTestCase testCase = KeyTestCase.createRsaTestCase();
+        String baseUrl = "https://d1234.cloudfront.net/images/photo.jpg";
+        Instant expiration = Instant.now().plusSeconds(3600);
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(baseUrl)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expiration)
+                                                         .build();
+
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+
+        // Extract and decode the policy
+        String policyHeaderValue = cookies.policyHeaderValue();
+        String encodedPolicy = policyHeaderValue.split("CloudFront-Policy=")[1];
+        String standardBase64 = encodedPolicy
+            .replace('-', '+')
+            .replace('_', '=')
+            .replace('~', '/');
+        String decodedPolicy = new String(Base64.getDecoder().decode(standardBase64), UTF_8);
+
+        // When resourceUrlPattern is not set, the policy should use resourceUrl
+        assertThat(decodedPolicy).contains("\"Resource\":\"" + baseUrl + "\"");
+    }
+
     private static Stream<Arguments> provideUrlPatternsAndExpectedResources() {
         return Stream.of(
             Arguments.of("*", "*"),
