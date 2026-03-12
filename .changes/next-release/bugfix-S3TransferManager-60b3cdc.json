@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix inaccurate progress tracking for in-memory uploads in the Java-based S3TransferManager."
-}

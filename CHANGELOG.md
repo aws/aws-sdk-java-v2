@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.12__ __2026-03-12__
+## __AWS DataSync__
+  - ### Features
+    - DataSync's 3 location types, Hadoop Distributed File System (HDFS), FSx for Windows File Server (FSx Windows), and FSx for NetApp ONTAP (FSx ONTAP) now have credentials managed via Secrets Manager, which may be encrypted with service keys or be configured to use customer-managed keys or secret.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakefromation Access Grants Plugin version to 1.4.1
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Cloudfront__
+  - ### Features
+    - Add support for resourceUrlPattern to `CloudFrontUtilities.getCookiesForCustomPolicy`.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client. Fixes [#6654](https://github.com/aws/aws-sdk-java-v2/issues/6654)
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Chainguard to PTC upstreamRegistry enum
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for account regional namespaces for general purpose buckets. The account regional namespace is a reserved subdivision of the global bucket namespace where only your account can create general purpose buckets.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix inaccurate progress tracking for in-memory uploads in the Java-based S3TransferManager.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
 # __2.42.11__ __2026-03-11__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
