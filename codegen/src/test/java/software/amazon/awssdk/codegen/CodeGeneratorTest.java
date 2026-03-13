@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.codegen.validation.ValidationErrorId;
 
 public class CodeGeneratorTest {
@@ -177,6 +179,18 @@ public class CodeGeneratorTest {
     }
 
     @Test
+    void execute_uriLocationOnNonInputShape_isIgnored() throws IOException {
+        C2jModels models = C2jModels.builder()
+                                    .customizationConfig(CustomizationConfig.create())
+                                    .serviceModel(getUriOnNonInputShapeServiceModel())
+                                    .build();
+
+        // Per the Smithy spec, httpLabel on non-input shapes has no meaning and is simply ignored.
+        assertThatNoException().isThrownBy(
+            () -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()));
+    }
+
+    @Test
     void execute_operationHasNoRequestUri_throwsValidationError() throws IOException {
         C2jModels models = C2jModels.builder()
                                     .customizationConfig(CustomizationConfig.create())
@@ -241,6 +255,11 @@ public class CodeGeneratorTest {
 
     private ServiceModel getMissingRequestUriServiceModel() throws IOException {
         String json = resourceAsString("no-request-uri-operation-service.json");
+        return Jackson.load(ServiceModel.class, json);
+    }
+
+    private ServiceModel getUriOnNonInputShapeServiceModel() throws IOException {
+        String json = resourceAsString("uri-on-non-input-shape-service.json");
         return Jackson.load(ServiceModel.class, json);
     }
 

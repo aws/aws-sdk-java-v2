@@ -1,0 +1,57 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Rest Json Service",
+    "serviceFullName": "Some Service That Uses Rest-Json Protocol",
+    "serviceId": "Rest Json Service",
+    "signingName": "json-service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "SomeOperation": {
+      "name": "SomeOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/things/{thingId}"
+      },
+      "input": {
+        "shape": "SomeOperationRequest"
+      }
+    }
+  },
+  "shapes": {
+    "SomeOperationRequest": {
+      "type": "structure",
+      "members": {
+        "thingId": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "thingId"
+        },
+        "options": {
+          "shape": "NestedOptions"
+        }
+      }
+    },
+    "NestedOptions": {
+      "type": "structure",
+      "members": {
+        "pageSize": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "pageSize"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  },
+  "documentation": "A service with a uri-bound member on a non-input shape"
+}

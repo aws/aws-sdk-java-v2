@@ -342,9 +342,9 @@ abstract class AddShapes {
      */
     private boolean isGreedy(Shape parentShape, Map<String, Shape> allC2jShapes, ParameterHttpMapping mapping) {
         if (mapping.getLocation() == Location.URI) {
-            // If the location is URI we can assume the parent shape is an input shape.
-            String requestUri = findRequestUri(parentShape, allC2jShapes);
-            if (requestUri.contains(String.format("{%s+}", mapping.getMarshallLocationName()))) {
+            Optional<String> requestUri = findRequestUri(parentShape, allC2jShapes);
+            if (requestUri.isPresent()
+                && requestUri.get().contains(String.format("{%s+}", mapping.getMarshallLocationName()))) {
                 return true;
             }
         }
@@ -352,28 +352,44 @@ abstract class AddShapes {
     }
 
     /**
-     * Given an input shape, finds the Request URI for the operation that input is referenced from.
+     * Given a shape, finds the Request URI for the operation that references it as input.
+     * Returns empty if the shape is not a direct operation input.
+     * Throws if the shape is a direct operation input but the operation is missing a requestUri.
      *
-     * @param parentShape  Input shape to find operation's request URI for.
+     * @param parentShape  Shape to find operation's request URI for.
      * @param allC2jShapes All shapes in the service model.
-     * @return Request URI for operation.
-     * @throws RuntimeException If operation can't be found.
+     * @return Request URI for operation, or empty if the shape is not a direct operation input.
+     * @throws ModelInvalidException If the shape is a direct operation input but requestUri is missing.
      */
-    private String findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
+    private Optional<String> findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
         Optional<Operation> operation = builder.getService().getOperations().values().stream()
                                                .filter(o -> o.getInput() != null)
                                                .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
                                                .findFirst();
 
-        return operation.map(o -> o.getHttp().getRequestUri())
-                        .orElseThrow(() -> {
-                            String detailMsg = "Could not find request URI for input shape for operation: " + operation;
-                            ValidationEntry entry =
-                                new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
-                                                     .withDetailMessage(detailMsg)
-                                                     .withSeverity(ValidationErrorSeverity.DANGER);
-                            return ModelInvalidException.builder().validationEntries(Collections.singletonList(entry)).build();
-                        });
+        if (!operation.isPresent()) {
+            // Not a direct operation input shape, should be ignored.
+            // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
+            return Optional.empty();
+        }
+
+        String requestUri = operation.get().getHttp().getRequestUri();
+        if (requestUri == null) {
+            String shapeName = allC2jShapes.entrySet().stream()
+                .filter(e -> e.getValue().equals(parentShape))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .get();
+            String detailMsg = "Could not find request URI for input shape '" + shapeName
+                + "'. No operation was found that references this shape as its input.";
+            ValidationEntry entry =
+                new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
+                                     .withDetailMessage(detailMsg)
+                                     .withSeverity(ValidationErrorSeverity.DANGER);
+            throw ModelInvalidException.builder().validationEntries(Collections.singletonList(entry)).build();
+        }
+
+        return Optional.of(requestUri);
     }
 
     private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
