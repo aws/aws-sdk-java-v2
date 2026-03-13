@@ -23,9 +23,9 @@ import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.regions.RegionScope;
 
 @SdkInternalApi
@@ -80,7 +80,7 @@ public class SigningConfigProvider {
 
         long expirationInSeconds = expirationTime
             .map(end -> Math.max(0, Duration.between(getSigningClock(executionAttributes).instant(), end).getSeconds()))
-            .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
+            .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.getSeconds());
 
         AwsSigningConfig signingConfig = createDefaultRequestConfig(executionAttributes);
         signingConfig.setExpirationInSeconds(expirationInSeconds);

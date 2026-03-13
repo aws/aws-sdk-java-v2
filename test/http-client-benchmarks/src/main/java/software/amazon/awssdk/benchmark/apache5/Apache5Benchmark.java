@@ -38,11 +38,16 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.benchmark.core.CoreBenchmark;
-import software.amazon.awssdk.benchmark.core.S3BenchmarkImpl;
+import software.amazon.awssdk.benchmark.core.ObjectSize;
+import software.amazon.awssdk.benchmark.core.S3BenchmarkHelper;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @BenchmarkMode(Mode.Throughput)
@@ -57,17 +62,14 @@ public class Apache5Benchmark implements CoreBenchmark {
     @Param({"50"})
     private int maxConnections;
 
-    @Param({"5"})
-    private int testDataInMB;
+    @Param("SMALL")
+    private ObjectSize objectSize;
 
     @Param({"10"})
     private int threadCount;
 
-    @Param({"platform"})
-    private String executorType;
-
     private S3Client s3Client;
-    private S3BenchmarkImpl benchmark;
+    private S3BenchmarkHelper benchmarkHelper;
     private ExecutorService executorService;
 
     @Setup(Level.Trial)
@@ -89,9 +91,8 @@ public class Apache5Benchmark implements CoreBenchmark {
                            .httpClient(httpClient)
                            .build();
 
-        // Initialize benchmark implementation
-        benchmark = new S3BenchmarkImpl(s3Client, new byte[this.testDataInMB * 1024 * 1024]);
-        benchmark.setup();
+        benchmarkHelper = new S3BenchmarkHelper(Apache5Benchmark.class.getSimpleName(), s3Client);
+        benchmarkHelper.setup();
 
         // Always use platform threads
         executorService = Executors.newFixedThreadPool(threadCount, r -> {
@@ -106,15 +107,13 @@ public class Apache5Benchmark implements CoreBenchmark {
     }
 
     @Benchmark
-    @Override
-    public void simpleGet(Blackhole blackhole) throws Exception {
-        benchmark.executeGet("medium", blackhole);
+    public void simpleGet(Blackhole blackhole) {
+        executeGet(blackhole);
     }
 
     @Benchmark
-    @Override
-    public void simplePut(Blackhole blackhole) throws Exception {
-        benchmark.executePut("medium", blackhole);
+    public void simplePut(Blackhole blackhole) {
+        executePut(blackhole);
     }
 
     @Benchmark
@@ -125,7 +124,7 @@ public class Apache5Benchmark implements CoreBenchmark {
         for (int i = 0; i < threadCount; i++) {
             futures.add(executorService.submit(() -> {
                 try {
-                    benchmark.executeGet("medium", blackhole);
+                    executeGet(blackhole);
                 } catch (Exception e) {
                     throw new RuntimeException("GET operation failed", e);
                 }
@@ -146,7 +145,7 @@ public class Apache5Benchmark implements CoreBenchmark {
         for (int i = 0; i < threadCount; i++) {
             futures.add(executorService.submit(() -> {
                 try {
-                    benchmark.executePut("medium", blackhole);
+                    executePut(blackhole);
                 } catch (Exception e) {
                     throw new RuntimeException("PUT operation failed", e);
                 }
@@ -157,6 +156,20 @@ public class Apache5Benchmark implements CoreBenchmark {
         for (Future<?> future : futures) {
             future.get();
         }
+    }
+
+    private void executeGet(Blackhole blackhole) {
+        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(
+            r -> r.bucket(benchmarkHelper.bucketName()).key(benchmarkHelper.objKey(objectSize)));
+        blackhole.consume(object.response());
+        IoUtils.drainInputStream(object);
+    }
+
+    private void executePut(Blackhole blackhole) {
+        PutObjectResponse response = s3Client.putObject(
+            r -> r.bucket(benchmarkHelper.bucketName()).key("Apache5Benchmark-" + Thread.currentThread().getName()),
+            benchmarkHelper.requestBody(objectSize));
+        blackhole.consume(response);
     }
 
     @TearDown(Level.Trial)
@@ -174,8 +187,8 @@ public class Apache5Benchmark implements CoreBenchmark {
             }
         }
 
-        if (benchmark != null) {
-            benchmark.cleanup();
+        if (benchmarkHelper != null) {
+            benchmarkHelper.cleanup();
         }
 
         if (s3Client != null) {

@@ -18,13 +18,13 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * A wrapped stream to represent a "chunk" of data
  */
 @SdkInternalApi
-public final class ChunkInputStream extends SdkLengthAwareInputStream {
+public final class ChunkInputStream extends LengthAwareInputStream {
 
     public ChunkInputStream(InputStream inputStream, long length) {
         super(inputStream, length);

@@ -162,9 +162,9 @@ public class S3MultipartClientGetObjectRetryBehaviorWiremockTest {
             .isInstanceOf(CompletionException.class)
             .hasCauseInstanceOf(S3Exception.class)
             .hasMessageNotContaining(firstRequestId)
-            .hasMessageNotContaining(String.valueOf(firstErrorStatusCode))
+            .hasMessageNotContaining("Status Code: " + firstErrorStatusCode)
             .hasMessageContaining(secondRequestId)
-            .hasMessageContaining(String.valueOf(secondErrorStatusCode));
+            .hasMessageContaining("Status Code: " + secondErrorStatusCode);
 
         verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
         verify(0, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", BUCKET, KEY))));

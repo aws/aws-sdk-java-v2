@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.token.signer.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.TokenSignerParams;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
@@ -24,6 +23,7 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 
 /**
  * A {@link Signer} that will sign a request with Bearer token authorization.

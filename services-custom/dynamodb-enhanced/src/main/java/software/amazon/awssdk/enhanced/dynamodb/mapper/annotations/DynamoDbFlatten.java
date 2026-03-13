@@ -22,11 +22,30 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * This annotation is used to flatten all the attributes of a separate DynamoDb bean that is stored in the current bean
- * object and add them as top level attributes to the record that is read and written to the database. The target bean
- * to flatten must be specified as part of this annotation.
+ * This annotation is used to flatten attributes into top-level attributes of the record that is read and written to the
+ * database.
+ * <p>
+ * This annotation supports two types of flattening:
+ * <ul>
+ *   <li><b>Object flattening:</b> Flattens all attributes of a separate DynamoDb bean object</li>
+ *   <li><b>Map flattening:</b> Flattens all key-value pairs of a {@code Map<String, String>} as individual attributes</li>
+ * </ul>
+ * <p>
+ * The type of flattening is automatically determined based on the annotated property's type:
+ * <ul>
+ *   <li>If the property is a {@code Map<String, String>}, map flattening is used</li>
+ *   <li>If the property is a DynamoDb bean class, object flattening is used</li>
+ * </ul>
+ * <p>
+ * <b>Constraints:</b>
+ * <ul>
+ *   <li>Flattened attribute names cannot conflict with existing class attributes (validated at schema creation for objects,
+ *   validated at runtime for maps)</li>
+ *   <li>Only one {@code @DynamoDbFlatten Map<String, String>} property per class (validated at schema creation)</li>
+ *   <li>Map flattening requires exactly {@code Map<String, String>} type (validated at schema creation)</li>
+ * </ul>
  */
-@Target({ElementType.METHOD})
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @SdkPublicApi
 public @interface DynamoDbFlatten {

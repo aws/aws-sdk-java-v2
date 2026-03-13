@@ -45,6 +45,8 @@
 
     <module name="TreeWalker">
 
+        <module name="PackageDeclaration"/>
+
         <!-- Allow suppressing rules via comments. -->
         <module name="SuppressionCommentFilter"/>
 

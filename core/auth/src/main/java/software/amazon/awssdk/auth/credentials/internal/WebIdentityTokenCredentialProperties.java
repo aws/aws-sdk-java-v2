@@ -32,6 +32,7 @@ public class WebIdentityTokenCredentialProperties {
     private final Duration prefetchTime;
     private final Duration staleTime;
     private final Duration roleSessionDuration;
+    private final String sourceChain;
 
     private WebIdentityTokenCredentialProperties(Builder builder) {
         this.roleArn = builder.roleArn;
@@ -41,6 +42,7 @@ public class WebIdentityTokenCredentialProperties {
         this.prefetchTime = builder.prefetchTime;
         this.staleTime = builder.staleTime;
         this.roleSessionDuration = builder.roleSessionDuration;
+        this.sourceChain = builder.sourceChain;
     }
 
     public String roleArn() {
@@ -71,6 +73,10 @@ public class WebIdentityTokenCredentialProperties {
         return this.roleSessionDuration;
     }
 
+    public String sourceChain() {
+        return sourceChain;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -83,6 +89,7 @@ public class WebIdentityTokenCredentialProperties {
         private Duration prefetchTime;
         private Duration staleTime;
         private Duration roleSessionDuration;
+        private String sourceChain;
 
         public Builder roleArn(String roleArn) {
             this.roleArn = roleArn;
@@ -116,6 +123,11 @@ public class WebIdentityTokenCredentialProperties {
 
         public Builder roleSessionDuration(Duration roleSessionDuration) {
             this.roleSessionDuration = roleSessionDuration;
+            return this;
+        }
+
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 

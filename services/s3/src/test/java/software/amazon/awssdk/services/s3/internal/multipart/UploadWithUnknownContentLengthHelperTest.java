@@ -16,16 +16,18 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCompleteMultipartCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCreateMultipartCall;
+import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulPutObjectCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulUploadPartCalls;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,16 +46,19 @@ import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class UploadWithUnknownContentLengthHelperTest {
     private static final String BUCKET = "bucket";
@@ -110,16 +115,66 @@ public class UploadWithUnknownContentLengthHelperTest {
 
     @Test
     void uploadObject_withMissingContentLength_shouldFailRequest() {
-        AsyncRequestBody asyncRequestBody = createMockAsyncRequestBodyWithEmptyContentLength();
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBodyWithEmptyContentLength();
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
         verifyFailureWithMessage(future, "Content length is missing on the AsyncRequestBody for part number");
     }
 
     @Test
+    void uploadObject_emptyBody_shouldSucceed() {
+        stubSuccessfulPutObjectCall(s3AsyncClient);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+        CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), body);
+        body.writeInputStream(new StringInputStream(""));
+        future.join();
+
+        ArgumentCaptor<PutObjectRequest> requestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        ArgumentCaptor<AsyncRequestBody> requestBodyArgumentCaptor = ArgumentCaptor.forClass(AsyncRequestBody.class);
+        verify(s3AsyncClient, times(1)).putObject(requestArgumentCaptor.capture(),
+                                                                 requestBodyArgumentCaptor.capture());
+
+        List<PutObjectRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<AsyncRequestBody> actualRequestBodies = requestBodyArgumentCaptor.getAllValues();
+        assertThat(actualRequestBodies).hasSize(1);
+        assertThat(actualRequests).hasSize(1);
+
+        PutObjectRequest putObjectRequest = actualRequests.get(0);
+        assertThat(putObjectRequest.bucket()).isEqualTo(BUCKET);
+        assertThat(putObjectRequest.key()).isEqualTo(KEY);
+        assertThat(actualRequestBodies.get(0).contentLength()).hasValue(0L);
+    }
+
+    @Test
     void uploadObject_withPartSizeExceedingLimit_shouldFailRequest() {
-        AsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
         verifyFailureWithMessage(future, "Content length must not be greater than part size");
+    }
+
+    @Test
+    void uploadObject_nullAsyncRequestBody_shouldFailRequest() {
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+        SdkPublisher<CloseableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitCloseable(any(Consumer.class))).thenReturn(mockPublisher);
+
+        ArgumentCaptor<Subscriber<CloseableAsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
+        CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        verify(mockPublisher).subscribe(subscriberCaptor.capture());
+        Subscriber<CloseableAsyncRequestBody> subscriber = subscriberCaptor.getValue();
+
+        Subscription subscription = mock(Subscription.class);
+        subscriber.onSubscribe(subscription);
+        assertThatThrownBy(() -> subscriber.onNext(null)).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "asyncRequestBody");
+
+        assertThat(future).isCompletedExceptionally();
+        future.exceptionally(throwable -> {
+            assertThat(throwable.getCause()).isInstanceOf(NullPointerException.class);
+            assertThat(throwable.getCause().getMessage()).contains("MUST NOT be null");
+            return null;
+        }).join();
     }
 
     private PutObjectRequest createPutObjectRequest() {
@@ -135,27 +190,27 @@ public class UploadWithUnknownContentLengthHelperTest {
                 .collect(Collectors.toList());
     }
 
-    private AsyncRequestBody createMockAsyncRequestBody(long contentLength) {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private CloseableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
+        CloseableAsyncRequestBody mockBody = mock(CloseableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.of(contentLength));
         return mockBody;
     }
 
-    private AsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private CloseableAsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
+        CloseableAsyncRequestBody mockBody = mock(CloseableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.empty());
         return mockBody;
     }
 
-    private CompletableFuture<PutObjectResponse> setupAndTriggerUploadFailure(AsyncRequestBody asyncRequestBody) {
-        SdkPublisher<AsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
-        when(asyncRequestBody.split(any(Consumer.class))).thenReturn(mockPublisher);
+    private CompletableFuture<PutObjectResponse> setupAndTriggerUploadFailure(CloseableAsyncRequestBody asyncRequestBody) {
+        SdkPublisher<CloseableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitCloseable(any(Consumer.class))).thenReturn(mockPublisher);
 
-        ArgumentCaptor<Subscriber<AsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
+        ArgumentCaptor<Subscriber<CloseableAsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), asyncRequestBody);
 
         verify(mockPublisher).subscribe(subscriberCaptor.capture());
-        Subscriber<AsyncRequestBody> subscriber = subscriberCaptor.getValue();
+        Subscriber<CloseableAsyncRequestBody> subscriber = subscriberCaptor.getValue();
 
         Subscription subscription = mock(Subscription.class);
         subscriber.onSubscribe(subscription);
@@ -200,5 +255,51 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
         assertThat(actualRequest.multipartUpload().parts()).isEqualTo(createCompletedParts(NUM_TOTAL_PARTS));
+    }
+
+    @Test
+    void uploadObject_unknownContentLength_contentTypeNotSet_shouldUseContentTypeFromRequestBody() throws IOException {
+        File tempFile = File.createTempFile("test-file", ".txt");
+        tempFile.deleteOnExit();
+        byte[] data = new byte[(int) (PART_SIZE * 2 + 1024)];
+        java.nio.file.Files.write(tempFile.toPath(), data);
+
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        AsyncRequestBody fileBody = AsyncRequestBody.fromFile(tempFile);
+        AsyncRequestBody unknownLengthBody = new AsyncRequestBody() {
+            @Override
+            public java.util.Optional<Long> contentLength() {
+                return java.util.Optional.empty();
+            }
+
+            @Override
+            public String contentType() {
+                return fileBody.contentType();
+            }
+
+            @Override
+            public void subscribe(org.reactivestreams.Subscriber<? super java.nio.ByteBuffer> s) {
+                fileBody.subscribe(s);
+            }
+        };
+
+        PutObjectRequest putObjectRequest = createPutObjectRequest();
+
+        UploadObjectHelper uploadObjectHelper = new UploadObjectHelper(s3AsyncClient,
+            new MultipartConfigurationResolver(software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.builder()
+                .minimumPartSizeInBytes(PART_SIZE)
+                .thresholdInBytes(PART_SIZE)
+                .build()));
+
+        uploadObjectHelper.uploadObject(putObjectRequest, unknownLengthBody).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> requestCaptor =
+            ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(requestCaptor.capture());
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo("text/plain");
     }
 }

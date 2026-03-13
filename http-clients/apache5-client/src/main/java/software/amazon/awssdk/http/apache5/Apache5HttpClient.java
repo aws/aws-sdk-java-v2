@@ -75,7 +75,6 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -126,11 +125,10 @@ import software.amazon.awssdk.utils.Validate;
  * <p>This can be created via {@link #builder()}</p>
  */
 
-@SdkPreviewApi
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
-    private static final String CLIENT_NAME = "Apache5Preview";
+    private static final String CLIENT_NAME = "Apache5";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
@@ -453,10 +451,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
 
         /**
-         * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency.
-         *
-         * <p>Note: A duration of 0 is treated as infinite to maintain backward compatibility with Apache 4.x behavior.
-         * The SDK handles this internally by not setting the TTL when the value is 0.</p>
+         * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency. Only
+         * positive values have an effect.
          */
         Builder connectionTimeToLive(Duration connectionTimeToLive);
 
@@ -769,8 +765,9 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                 .setSocketTimeout(Timeout.ofMilliseconds(
                                     standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
             Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isZero()) {
-                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+            // Only accept positive values.
+            // Note: TTL=0 is infinite in 4.x vs immediate expiration in 5.x
+            if (!connectionTtl.isNegative() && !connectionTtl.isZero()) {
                 connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
             }
             return connectionConfigBuilder.build();

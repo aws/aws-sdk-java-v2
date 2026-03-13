@@ -17,7 +17,9 @@ package software.amazon.awssdk.protocols.rpcv2.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
+import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.dataformat.cbor.CBORFactory;
 import software.amazon.awssdk.thirdparty.jackson.dataformat.cbor.CBORFactoryBuilder;
@@ -47,6 +49,13 @@ public final class SdkStructuredRpcV2CborFactory {
             @Override
             public CBORFactory getJsonFactory() {
                 return CBOR_FACTORY;
+            }
+
+            @Override
+            public ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
+                // smithy cbor ONLY supports the __type field and not code.  Set a customErrorCode to use only __type
+                String errorCodeField = customErrorCodeFieldName == null ? "__type" : customErrorCodeFieldName;
+                return new JsonErrorCodeParser(errorCodeField);
             }
         };
 

@@ -2,6 +2,7 @@
 .classpath
 .project
 .settings/
+.factorypath
 
 # Intellij
 .idea/*
@@ -30,6 +31,7 @@ target/
 
 # VS Code
 .vscode/*
+bin/
 
 # Other
 .attach_pid*

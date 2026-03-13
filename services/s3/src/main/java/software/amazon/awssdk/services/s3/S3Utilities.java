@@ -121,7 +121,7 @@ public final class S3Utilities {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
+                                   .orElseGet(ProfileFileSupplier::defaultSupplier);
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -262,10 +262,11 @@ public final class S3Utilities {
     /**
      * Returns a parsed {@link S3Uri} with which a user can easily retrieve the bucket, key, region, style, and query
      * parameters of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style
-     * URIs, e.g., "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys
-     * and/or query parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with
-     * virtual-hosted-style URIs with bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded
-     * buckets, keys, and query parameters will be returned decoded.
+     * URIs, e.g., "s3://bucket/key". AccessPoints and Outposts URI parsing, or parsing of endpoint modifiers such as FIPS or
+     * dualstack is not supported. If you work with object keys and/or query parameters with special characters, they must be
+     * URL-encoded, e.g., replace " " with "%20".
+     * If you work with virtual-hosted-style URIs with bucket names that contain a dot, i.e., ".", the dot must not be
+     * URL-encoded. Encoded buckets, keys, and query parameters will be returned decoded.
      *
      * <p>
      * For more information on path-style and virtual-hosted-style URIs, see <a href=

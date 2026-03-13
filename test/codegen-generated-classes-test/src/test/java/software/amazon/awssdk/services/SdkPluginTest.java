@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
@@ -61,8 +60,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
-import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
@@ -77,7 +74,6 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
@@ -467,7 +463,6 @@ public class SdkPluginTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    @Disabled("Request-level values are currently higher-priority than plugin settings.") // TODO(sra-identity-auth)
     public <T> void requestPluginSeesCustomerRequestConfiguredValue(TestCase<T> testCase) {
         if (testCase.requestSetter == null) {
             System.out.println("No request setting available.");
@@ -480,7 +475,11 @@ public class SdkPluginTest {
         SdkPlugin plugin = config -> {
             ProtocolRestJsonServiceClientConfiguration.Builder conf =
                 (ProtocolRestJsonServiceClientConfiguration.Builder) config;
-            testCase.pluginValidator.accept(conf, testCase.nonDefaultValue);
+            // Request-level values are currently higher-priority than plugin settings.
+            // This is not the intended behavior and is inconsistent with client-level plugin.
+            // However, we can't fix it directly due to backwards compatibility. See
+            // JAVA-8671 for more details.
+            testCase.pluginValidator.accept(conf, testCase.defaultValue);
             timesCalled.incrementAndGet();
         };
 
@@ -570,8 +569,11 @@ public class SdkPluginTest {
             AwsRequestOverrideConfiguration.builder()
                                            .addPlugin(plugin)
                                            .applyMutation(c -> {
-                                               // TODO(sra-identity-auth): request-level plugins should override request-level
-                                               // configuration
+                                               // testCase.requestSetter is not applied here because request-level values are
+                                               // currently higher-priority than plugin settings.
+                                               // This is not the intended behavior and is inconsistent with client-level plugin.
+                                               // However, we can't fix it directly due to backwards compatibility. See
+                                               // JAVA-8671 for more details.
                                                // if (testCase.requestSetter != null) {
                                                //     testCase.requestSetter.accept(c, testCase.defaultValue);
                                                // }

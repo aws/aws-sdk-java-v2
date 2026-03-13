@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.32.33-SNAPSHOT</version>
+        <version>2.42.14-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -161,7 +161,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache5-client</artifactId>
-            <version>${awsjavasdk.version}-PREVIEW</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -249,7 +249,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson.annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
@@ -279,12 +279,15 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.8.0</version>
                     <!-- Override the configuration in the parent-->
                     <configuration combine.self="override">
                         <compilerVersion>${javac.target}</compilerVersion>
                         <source>${javac.target}</source>
                         <target>${javac.target}</target>
+                        <annotationProcessors>
+                            <annotationProcessor>org.openjdk.jmh.generators.BenchmarkProcessor</annotationProcessor>
+                        </annotationProcessors>
                     </configuration>
                     <executions>
                         <execution>
@@ -340,7 +343,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

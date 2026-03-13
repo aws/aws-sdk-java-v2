@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
  * methods to create plugins for common cases such as enable payload signing by default. For instance, if you want
  * to unconditionally enable payload signing across the board you can create the S3 client, e.g.,
  *
- * {@snippet
+ * {@snippet :
  * S3AsyncClient s3 = S3AsyncClient.builder()
  *                                 .region(Region.US_WEST_2)
  *                                 .credentialsProvider(CREDENTIALS)
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
  *
  * The plugin can also be used for a particular request, e.g.,
  *
- * {@snippet
+ * {@snippet :
  * s3Client.putObject(PutObjectRequest.builder()
  *                            .overrideConfiguration(c -> c.addPlugin(
  *                                S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin()))

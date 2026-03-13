@@ -1,0 +1,54 @@
+{
+    "version": "2.41.21",
+    "date": "2026-02-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "AWS Batch Array Job Visibility feature support. Includes new statusSummaryLastUpdatedAt for array job parent DescribeJobs responses for the last time the statusSummary was updated. Includes both statusSummary and statusSummaryLastUpdatedAt in ListJobs responses for array job parents."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "Adds support for Catalog API us-east-1 dualstack endpoint catalog-marketplace.us-east-1.api.aws"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Updated the CloseAccount description."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Added new Region management APIs to support multi-Region replication in IAM Identity Center."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "This change supports the creation of multi-account global tables. It adds two new arguments to CreateTable, GlobalTableSourceArn and GlobalTableSettingsReplicationMode. DescribeTable is also updated to include information about GlobalTableSettingsReplicationMode."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Adds StreamId parameter to AWS Kinesis Data Streams APIs that is reserved for future use."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Maps V2",
+            "contributor": "",
+            "description": "Added support for optional style parameters in maps, including 3D terrain and 3D Buildings"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

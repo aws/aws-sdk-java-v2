@@ -242,8 +242,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
         String accountId = accountIdFromIdentity(executionAttributes
                                                      .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
-        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
-            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        if (accountId != null) {
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
+                BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        }
         return accountId;
     }
 

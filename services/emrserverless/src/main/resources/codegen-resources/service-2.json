@@ -79,7 +79,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Displays detailed information about a specified application.</p>"
+      "documentation":"<p>Displays detailed information about a specified application.</p>",
+      "readonly":true
     },
     "GetDashboardForJobRun":{
       "name":"GetDashboardForJobRun",
@@ -111,7 +112,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Displays detailed information about a job run.</p>"
+      "documentation":"<p>Displays detailed information about a job run.</p>",
+      "readonly":true
     },
     "ListApplications":{
       "name":"ListApplications",
@@ -126,7 +128,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists applications based on a set of parameters.</p>"
+      "documentation":"<p>Lists applications based on a set of parameters.</p>",
+      "readonly":true
     },
     "ListJobRunAttempts":{
       "name":"ListJobRunAttempts",
@@ -142,7 +145,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists all attempt of a job run.</p>"
+      "documentation":"<p>Lists all attempt of a job run.</p>",
+      "readonly":true
     },
     "ListJobRuns":{
       "name":"ListJobRuns",
@@ -157,7 +161,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Lists job runs based on a set of parameters.</p>"
+      "documentation":"<p>Lists job runs based on a set of parameters.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -173,7 +178,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists the tags assigned to the resources.</p>"
+      "documentation":"<p>Lists the tags assigned to the resources.</p>",
+      "readonly":true
     },
     "StartApplication":{
       "name":"StartApplication",
@@ -368,6 +374,10 @@
           "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_Configuration.html\">Configuration</a> specifications of an application. Each configuration consists of a classification and properties. You use this parameter when creating or updating an application. To see the runtimeConfiguration object of an application, run the <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_GetApplication.html\">GetApplication</a> API operation.</p>"
         },
         "monitoringConfiguration":{"shape":"MonitoringConfiguration"},
+        "diskEncryptionConfiguration":{
+          "shape":"DiskEncryptionConfiguration",
+          "documentation":"<p>The configuration object that allows encrypting local disks.</p>"
+        },
         "interactiveConfiguration":{
           "shape":"InteractiveConfiguration",
           "documentation":"<p>The interactive configuration object that enables the interactive use cases for an application.</p>"
@@ -378,7 +388,11 @@
         },
         "identityCenterConfiguration":{
           "shape":"IdentityCenterConfiguration",
-          "documentation":"<p>The IAM Identity Center configuration applied to enable trusted identity propagation. </p>"
+          "documentation":"<p>The IAM Identity Center configuration applied to enable trusted identity propagation.</p>"
+        },
+        "jobLevelCostAllocationConfiguration":{
+          "shape":"JobLevelCostAllocationConfiguration",
+          "documentation":"<p>The configuration object that enables job level cost allocation.</p>"
         }
       },
       "documentation":"<p>Information about an application. Amazon EMR Serverless uses applications to run jobs.</p>"
@@ -642,6 +656,10 @@
         "monitoringConfiguration":{
           "shape":"MonitoringConfiguration",
           "documentation":"<p>The override configurations for monitoring.</p>"
+        },
+        "diskEncryptionConfiguration":{
+          "shape":"DiskEncryptionConfiguration",
+          "documentation":"<p>The override configuration to encrypt local disks.</p>"
         }
       },
       "documentation":"<p>A configuration specification to be used to override existing configurations.</p>"
@@ -746,6 +764,10 @@
           "shape":"MonitoringConfiguration",
           "documentation":"<p>The configuration setting for monitoring.</p>"
         },
+        "diskEncryptionConfiguration":{
+          "shape":"DiskEncryptionConfiguration",
+          "documentation":"<p>The configuration object that allows encrypting local disks.</p>"
+        },
         "interactiveConfiguration":{
           "shape":"InteractiveConfiguration",
           "documentation":"<p>The interactive configuration object that enables the interactive use cases to use when running an application.</p>"
@@ -757,6 +779,10 @@
         "identityCenterConfiguration":{
           "shape":"IdentityCenterConfigurationInput",
           "documentation":"<p>The IAM Identity Center Configuration accepts the Identity Center instance parameter required to enable trusted identity propagation. This configuration allows identity propagation between integrated services and the Identity Center instance.</p>"
+        },
+        "jobLevelCostAllocationConfiguration":{
+          "shape":"JobLevelCostAllocationConfiguration",
+          "documentation":"<p>The configuration object that enables job level cost allocation.</p>"
         }
       }
     },
@@ -796,8 +822,21 @@
     },
     "DeleteApplicationResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "DiskEncryptionConfiguration":{
+      "type":"structure",
       "members":{
-      }
+        "encryptionContext":{
+          "shape":"EncryptionContext",
+          "documentation":"<p>Specifies the optional encryption context that will be used when encrypting the data. An encryption context is a collection of non-secret key-value pairs that represent additional authenticated data. </p>"
+        },
+        "encryptionKeyArn":{
+          "shape":"EncryptionKeyArn",
+          "documentation":"<p>The KMS key ARN to encrypt local disks.</p>"
+        }
+      },
+      "documentation":"<p>The configuration object that allows encrypting local disks.</p>"
     },
     "DiskSize":{
       "type":"string",
@@ -817,6 +856,23 @@
       "type":"long",
       "max":1000000,
       "min":0
+    },
+    "EncryptionContext":{
+      "type":"map",
+      "key":{"shape":"EncryptionContextKey"},
+      "value":{"shape":"EncryptionContextValue"},
+      "max":8,
+      "min":0
+    },
+    "EncryptionContextKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "EncryptionContextValue":{
+      "type":"string",
+      "max":384,
+      "min":1
     },
     "EncryptionKeyArn":{
       "type":"string",
@@ -995,9 +1051,13 @@
         "identityCenterApplicationArn":{
           "shape":"IdentityCenterApplicationArn",
           "documentation":"<p>The ARN of the EMR Serverless created IAM Identity Center Application that provides trusted-identity propagation.</p>"
+        },
+        "userBackgroundSessionsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables user background sessions for this application so Livy sessions can continue running after users log out of their interactive notebook or their Identity Center sessions expire.</p>"
         }
       },
-      "documentation":"<p>The IAM Identity Center Configuration that includes the Identify Center instance and application ARNs that provide trusted-identity propagation.</p>"
+      "documentation":"<p>The IAM Identity Center Configuration accepts the Identity Center instance parameter required to enable trusted identity propagation. This configuration allows identity propagation between integrated services and the Identity Center instance.</p>"
     },
     "IdentityCenterConfigurationInput":{
       "type":"structure",
@@ -1005,9 +1065,13 @@
         "identityCenterInstanceArn":{
           "shape":"IdentityCenterInstanceArn",
           "documentation":"<p>The ARN of the IAM Identity Center instance.</p>"
+        },
+        "userBackgroundSessionsEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables user background sessions for this application so Livy sessions can continue running after users log out of their interactive notebook or their Identity Center sessions expire.</p>"
         }
       },
-      "documentation":"<p>Specifies the IAM Identity Center configuration used to enable or disable trusted identity propagation. When provided, this configuration determines how the application interacts with IAM Identity Center for user authentication and access control.</p>"
+      "documentation":"<p>The IAM Identity Center Configuration accepts the Identity Center instance parameter required to enable trusted identity propagation. This configuration allows identity propagation between integrated services and the Identity Center instance.</p>"
     },
     "IdentityCenterInstanceArn":{
       "type":"string",
@@ -1128,6 +1192,16 @@
       },
       "documentation":"<p>The driver that the job runs on.</p>",
       "union":true
+    },
+    "JobLevelCostAllocationConfiguration":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables job level cost allocation for the application.</p>"
+        }
+      },
+      "documentation":"<p>The configuration object that enables job level cost allocation.</p>"
     },
     "JobRun":{
       "type":"structure",
@@ -1985,8 +2059,7 @@
     },
     "StartApplicationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartJobRunRequest":{
       "type":"structure",
@@ -2082,8 +2155,7 @@
     },
     "StopApplicationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "String1024":{
       "type":"string",
@@ -2149,8 +2221,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -2199,8 +2270,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateApplicationRequest":{
       "type":"structure",
@@ -2265,6 +2335,10 @@
           "shape":"MonitoringConfiguration",
           "documentation":"<p>The configuration setting for monitoring.</p>"
         },
+        "diskEncryptionConfiguration":{
+          "shape":"DiskEncryptionConfiguration",
+          "documentation":"<p>The configuration object that allows encrypting local disks.</p>"
+        },
         "schedulerConfiguration":{
           "shape":"SchedulerConfiguration",
           "documentation":"<p>The scheduler configuration for batch and streaming jobs running on this application. Supported with release labels emr-7.0.0 and above.</p>"
@@ -2272,6 +2346,10 @@
         "identityCenterConfiguration":{
           "shape":"IdentityCenterConfigurationInput",
           "documentation":"<p>Specifies the IAM Identity Center configuration used to enable or disable trusted identity propagation. When provided, this configuration determines how the application interacts with IAM Identity Center for user authentication and access control.</p>"
+        },
+        "jobLevelCostAllocationConfiguration":{
+          "shape":"JobLevelCostAllocationConfiguration",
+          "documentation":"<p>The configuration object that enables job level cost allocation.</p>"
         }
       }
     },

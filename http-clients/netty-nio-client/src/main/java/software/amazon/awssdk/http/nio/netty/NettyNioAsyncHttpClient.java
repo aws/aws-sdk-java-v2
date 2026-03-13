@@ -50,6 +50,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.AwaitCloseChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
+import software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
@@ -132,7 +133,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         failIfAlpnUsedWithHttp(request);
         RequestContext ctx = createRequestContext(request);
-        ctx.metricCollector().reportMetric(HTTP_CLIENT_NAME, clientName()); // TODO: Can't this be done in core?
+        NettyRequestMetrics.ifMetricsAreEnabled(
+            ctx.metricCollector(),
+            c -> c.reportMetric(HTTP_CLIENT_NAME, clientName())); // TODO: Can't this be done in core?
         return new NettyRequestExecutor(ctx).execute();
     }
 

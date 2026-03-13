@@ -31,8 +31,11 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+
+import java.util.Optional;
 
 /**
  * Tests for the {@link ContainerCredentialsProviderTest}.
@@ -46,6 +49,7 @@ public class ContainerCredentialsProviderTest {
     private static final String ACCESS_KEY_ID = "ACCESS_KEY_ID";
     private static final String SECRET_ACCESS_KEY = "SECRET_ACCESS_KEY";
     private static final String TOKEN = "TOKEN_TOKEN_TOKEN";
+    private static final String EXPIRATION_TIME = "3000-05-03T04:55:54Z";
     private ContainerCredentialsProvider credentialsProvider;
     private static EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
@@ -73,8 +77,13 @@ public class ContainerCredentialsProviderTest {
                                     .resolveCredentials();
     }
 
+    @Test
+    public void testClassName() {
+        assertThat(credentialsProvider.toString()).contains("ContainerCredentialsProvider");
+    }
+
     /**
-     * Tests that the getCredentials returns a value when it receives a valid 200 response from endpoint.
+     * Tests that the getCredentials returns a valid response from endpoint.
      */
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
@@ -86,7 +95,9 @@ public class ContainerCredentialsProviderTest {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
-        assertThat(credentials.providerName()).isPresent().contains("ContainerCredentialsProvider");
+        assertThat(credentials.expirationTime().isPresent());
+        assertThat(credentials.expirationTime().get()).isEqualTo(EXPIRATION_TIME);
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_HTTP.value());
     }
 
     /**

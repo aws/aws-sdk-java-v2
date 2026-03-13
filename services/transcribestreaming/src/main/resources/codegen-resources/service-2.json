@@ -45,7 +45,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> or <code>identify-language</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
     },
     "StartMedicalScribeStream":{
       "name":"StartMedicalScribeStream",
@@ -250,6 +250,24 @@
         "de-DE",
         "pt-BR"
       ]
+    },
+    "CallAnalyticsLanguageIdentification":{
+      "type":"list",
+      "member":{"shape":"CallAnalyticsLanguageWithScore"}
+    },
+    "CallAnalyticsLanguageWithScore":{
+      "type":"structure",
+      "members":{
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>The language code of the identified language.</p>"
+        },
+        "Score":{
+          "shape":"Double",
+          "documentation":"<p>The confidence score associated with the identified language code. Confidence scores are values between zero and one; larger values indicate a higher confidence in the identified language.</p>"
+        }
+      },
+      "documentation":"<p>The language code that represents the language identified in your audio, including the associated confidence score.</p>"
     },
     "CallAnalyticsTranscriptResultStream":{
       "type":"structure",
@@ -620,7 +638,52 @@
         "tl-PH",
         "uk-UA",
         "vi-VN",
-        "zu-ZA"
+        "zu-ZA",
+        "am-ET",
+        "be-BY",
+        "bg-BG",
+        "bn-IN",
+        "bs-BA",
+        "ckb-IQ",
+        "ckb-IR",
+        "cy-WL",
+        "es-MX",
+        "et-ET",
+        "fa-AF",
+        "gu-IN",
+        "ht-HT",
+        "hu-HU",
+        "hy-AM",
+        "is-IS",
+        "jv-ID",
+        "ka-GE",
+        "kab-DZ",
+        "kk-KZ",
+        "km-KH",
+        "kn-IN",
+        "lg-IN",
+        "lt-LT",
+        "mk-MK",
+        "ml-IN",
+        "mr-IN",
+        "my-MM",
+        "ne-NP",
+        "or-IN",
+        "pa-IN",
+        "ps-AF",
+        "si-LK",
+        "sl-SI",
+        "sq-AL",
+        "su-ID",
+        "sw-BI",
+        "sw-KE",
+        "sw-RW",
+        "sw-TZ",
+        "sw-UG",
+        "ta-IN",
+        "te-IN",
+        "tr-TR",
+        "uz-UZ"
       ]
     },
     "LanguageIdentification":{
@@ -1396,6 +1459,11 @@
       "min":36,
       "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     },
+    "SessionResumeWindow":{
+      "type":"integer",
+      "max":300,
+      "min":1
+    },
     "Specialty":{
       "type":"string",
       "enum":[
@@ -1411,7 +1479,6 @@
     "StartCallAnalyticsStreamTranscriptionRequest":{
       "type":"structure",
       "required":[
-        "LanguageCode",
         "MediaSampleRateHertz",
         "MediaEncoding",
         "AudioStream"
@@ -1468,6 +1535,36 @@
           "documentation":"<p>Specify the name of the custom language model that you want to use when processing your transcription. Note that language model names are case sensitive.</p> <p>The language of the specified language model must match the language code you specify in your transcription request. If the languages don't match, the custom language model isn't applied. There are no errors or warnings associated with a language mismatch.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html\">Custom language models</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "IdentifyLanguage":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables automatic language identification for your Call Analytics transcription.</p> <p>If you include <code>IdentifyLanguage</code>, you must include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your audio stream. You must provide a minimum of two language selections.</p> <p>You can also include a preferred language using <code>PreferredLanguage</code>. Adding a preferred language can help Amazon Transcribe identify the language faster than if you omit this parameter.</p> <p>Note that you must include either <code>LanguageCode</code> or <code>IdentifyLanguage</code> in your request. If you include both parameters, your transcription job fails.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-identify-language"
+        },
+        "LanguageOptions":{
+          "shape":"LanguageOptions",
+          "documentation":"<p>Specify two or more language codes that represent the languages you think may be present in your media.</p> <p>Including language options can improve the accuracy of language identification.</p> <p>If you include <code>LanguageOptions</code> in your request, you must also include <code>IdentifyLanguage</code>.</p> <p>For a list of languages supported with Call Analytics streaming, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p> <important> <p>You can only include one language dialect per language per stream. For example, you cannot include <code>en-US</code> and <code>en-AU</code> in the same request.</p> </important>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-options"
+        },
+        "PreferredLanguage":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Specify a preferred language from the subset of languages codes you specified in <code>LanguageOptions</code>.</p> <p>You can only use this parameter if you've included <code>IdentifyLanguage</code> and <code>LanguageOptions</code> in your request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>Specify the names of the custom vocabularies that you want to use when processing your Call Analytics transcription. Note that vocabulary names are case sensitive.</p> <p>If the custom vocabulary's language doesn't match the identified media language, it won't be applied to the transcription.</p> <important> <p>This parameter is only intended for use <b>with</b> the <code>IdentifyLanguage</code> parameter. If you're <b>not</b> including <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary with your transcription, use the <code>VocabularyName</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html\">Custom vocabularies</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>Specify the names of the custom vocabulary filters that you want to use when processing your Call Analytics transcription. Note that vocabulary filter names are case sensitive.</p> <p>These filters serve to customize the transcript output.</p> <important> <p>This parameter is only intended for use <b>with</b> the <code>IdentifyLanguage</code> parameter. If you're <b>not</b> including <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary filter with your transcription, use the <code>VocabularyFilterName</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         },
         "EnablePartialResultsStabilization":{
           "shape":"Boolean",
@@ -1562,6 +1659,36 @@
           "documentation":"<p>Provides the name of the custom language model that you specified in your Call Analytics request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "IdentifyLanguage":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether automatic language identification was enabled for your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-identify-language"
+        },
+        "LanguageOptions":{
+          "shape":"LanguageOptions",
+          "documentation":"<p>Provides the language codes that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-options"
+        },
+        "PreferredLanguage":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Provides the preferred language that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>Provides the names of the custom vocabularies that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>Provides the names of the custom vocabulary filters that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         },
         "EnablePartialResultsStabilization":{
           "shape":"Boolean",
@@ -1937,7 +2064,7 @@
         },
         "PiiEntityTypes":{
           "shape":"PiiEntityTypes",
-          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>Values must be comma-separated and can include: <code>ADDRESS</code>, <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>EMAIL</code>, <code>NAME</code>, <code>PHONE</code>, <code>PIN</code>, <code>SSN</code>, or <code>ALL</code>.</p> <p>Note that if you include <code>PiiEntityTypes</code> in your request, you must also include <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>If you include <code>ContentRedactionType</code> or <code>ContentIdentificationType</code> in your request, but do not include <code>PiiEntityTypes</code>, all PII is redacted or identified.</p>",
+          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>Values must be comma-separated and can include: <code>ADDRESS</code>, <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>EMAIL</code>, <code>NAME</code>, <code>PHONE</code>, <code>PIN</code>, <code>SSN</code>, <code>AGE</code>, <code>DATE_TIME</code>, <code>LICENSE_PLATE</code>, <code>PASSPORT_NUMBER</code>, <code>PASSWORD</code>, <code>USERNAME</code>, <code>VEHICLE_IDENTIFICATION_NUMBER</code>, or <code>ALL</code>.</p> <p>Note that if you include <code>PiiEntityTypes</code> in your request, you must also include <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>If you include <code>ContentRedactionType</code> or <code>ContentIdentificationType</code> in your request, but do not include <code>PiiEntityTypes</code>, all PII is redacted or identified.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-pii-entity-types"
         },
@@ -1982,6 +2109,12 @@
           "documentation":"<p>Specify the names of the custom vocabulary filters that you want to use when processing your transcription. Note that vocabulary filter names are case sensitive.</p> <p>If none of the languages of the specified custom vocabulary filters match the language identified in your media, your job fails.</p> <important> <p>This parameter is only intended for use <b>with</b> the <code>IdentifyLanguage</code> parameter. If you're <b>not</b> including <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary filter with your transcription, use the <code>VocabularyFilterName</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-names"
+        },
+        "SessionResumeWindow":{
+          "shape":"SessionResumeWindow",
+          "documentation":"<p>Specify the time window, in minutes, during which your transcription session can be resumed, measured from the stream start time. This optional parameter accepts integer values from 1 to 300 (5 hours).</p> <p> For example, if your stream starts at 1 PM and you specify a <code>SessionResumeWindow</code> of 30 minutes, you can reconnect to the session as many times as you want until 1:30 PM. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-resume-window"
         }
       },
       "payload":"AudioStream"
@@ -2130,6 +2263,12 @@
           "documentation":"<p>Provides the names of the custom vocabulary filters that you specified in your request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-names"
+        },
+        "SessionResumeWindow":{
+          "shape":"SessionResumeWindow",
+          "documentation":"<p>Provides the session resume window, in minutes, that you specified in your request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-resume-window"
         }
       },
       "payload":"TranscriptResultStream"
@@ -2264,6 +2403,14 @@
         "IssuesDetected":{
           "shape":"IssuesDetected",
           "documentation":"<p>Provides the issue that was detected in the specified segment.</p>"
+        },
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>The language code that represents the language spoken in your audio stream.</p>"
+        },
+        "LanguageIdentification":{
+          "shape":"CallAnalyticsLanguageIdentification",
+          "documentation":"<p>The language code of the dominant language identified in your stream.</p>"
         }
       },
       "documentation":"<p>Contains set of transcription results from one or more audio segments, along with additional information about the parameters included in your request. For example, channel definitions, partial result stabilization, sentiment, and issue detection.</p>",

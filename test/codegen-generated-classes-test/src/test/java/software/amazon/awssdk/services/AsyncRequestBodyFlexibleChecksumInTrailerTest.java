@@ -26,8 +26,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
-import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
@@ -52,7 +50,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
@@ -86,24 +83,12 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                                            .region(Region.US_EAST_1)
                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                           .overrideConfiguration(
-                                                               // TODO(sra-identity-and-auth): we should remove these
-                                                               //  overrides once we set up codegen to set chunk-encoding to true
-                                                               //  for requests that are streaming and checksum-enabled
-                                                               o -> o.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, true)
-                                                                     .putExecutionAttribute(ENABLE_PAYLOAD_SIGNING, false))
                                                            .build();
 
         asyncClient = ProtocolRestJsonAsyncClient.builder()
                                                  .credentialsProvider(AnonymousCredentialsProvider.create())
                                                  .region(Region.US_EAST_1)
                                                  .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                 .overrideConfiguration(
-                                                     // TODO(sra-identity-and-auth): we should remove these
-                                                     //  overrides once we set up codegen to set chunk-encoding to true
-                                                     //  for requests that are streaming and checksum-enabled
-                                                     o -> o.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, true)
-                                                           .putExecutionAttribute(ENABLE_PAYLOAD_SIGNING, false))
                                                  .build();
     }
 
@@ -181,12 +166,10 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
                                                                  .build()).join();
-        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verifyHeadersForPutRequest("37932", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
-                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
-                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
-                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                "9400" + CRLF + contentString + CRLF
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }
@@ -204,12 +187,10 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
                                                                  .build()).join();
-        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verifyHeadersForPutRequest("37932", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
-                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
-                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
-                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                "9400" + CRLF + contentString + CRLF
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }

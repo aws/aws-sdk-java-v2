@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -24,7 +25,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class StaticCredentialsProvider implements AwsCredentialsProvider {
-    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_CODE.value();
     private final AwsCredentials credentials;
 
     private StaticCredentialsProvider(AwsCredentials credentials) {
@@ -34,10 +35,18 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     private AwsCredentials withProviderName(AwsCredentials credentials) {
         if (credentials instanceof AwsBasicCredentials) {
-            return ((AwsBasicCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
+            AwsBasicCredentials basicCreds = (AwsBasicCredentials) credentials;
+            if (basicCreds.providerName().isPresent()) {
+                return basicCreds;
+            }
+            return basicCreds.copy(c -> c.providerName(PROVIDER_NAME));
         }
         if (credentials instanceof AwsSessionCredentials) {
-            return ((AwsSessionCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
+            AwsSessionCredentials sessionCreds = (AwsSessionCredentials) credentials;
+            if (sessionCreds.providerName().isPresent()) {
+                return sessionCreds;
+            }
+            return sessionCreds.copy(c -> c.providerName(PROVIDER_NAME));
         }
         return credentials;
     }

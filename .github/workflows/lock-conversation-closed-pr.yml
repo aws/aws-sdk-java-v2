@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Lock PR conversation on Close
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:

@@ -288,11 +288,6 @@ public class CustomizationConfig {
     private boolean requiredTraitValidationEnabled = false;
 
     /**
-     * Whether SRA based auth logic should be used.
-     */
-    private boolean useSraAuth = true;
-
-    /**
      * Whether to generate auth scheme params based on endpoint params.
      */
     private boolean enableEndpointAuthSchemeParams = false;
@@ -367,6 +362,11 @@ public class CustomizationConfig {
      * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
      */
     private boolean enableEndpointProviderUriCaching;
+
+    /**
+     * List of specific shape or member names that are allowed to contain underscores.
+     */
+    private List<String> allowedUnderscoreNames = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -834,16 +834,6 @@ public class CustomizationConfig {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
     }
 
-    public void setUseSraAuth(boolean useSraAuth) {
-        this.useSraAuth = useSraAuth;
-    }
-
-    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
-    //  useSraAuth==true branch going forward.
-    public boolean useSraAuth() {
-        return useSraAuth;
-    }
-
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
         this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
     }
@@ -965,5 +955,13 @@ public class CustomizationConfig {
 
     public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
         this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
+    }
+
+    public List<String> getAllowedUnderscoreNames() {
+        return allowedUnderscoreNames;
+    }
+
+    public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
+        this.allowedUnderscoreNames = allowedUnderscoreNames;
     }
 }

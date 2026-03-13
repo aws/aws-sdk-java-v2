@@ -25,11 +25,108 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * An authentication scheme option, composed of the scheme ID and properties for use when resolving the identity and signing
  * the request.
+ *
  * <p>
- * This is used in the output from the auth scheme resolver. The resolver returns a list of these, in the order the auth scheme
- * resolver wishes to use them.
+ * Auth scheme options are returned by {@link AuthSchemeProvider}s to specify which authentication schemes should be used
+ * for a request, along with the properties needed to configure the identity provider and signer. The SDK will attempt
+ * to use the schemes in the order they are returned.
+ *
+ * <p>
+ * Each option contains:
+ * <ul>
+ *     <li>A scheme ID - Identifies which {@link AuthScheme} to use (e.g., "aws.auth#sigv4")</li>
+ *     <li>Identity properties - Configuration for the identity provider (e.g., account ID, role ARN)</li>
+ *     <li>Signer properties - Configuration for the signer (e.g., signing name, region, algorithm parameters)</li>
+ * </ul>
+ *
+ * <p>
+ * <b>Using Auth Scheme Options</b>
+ * <p>
+ * Auth scheme options are typically created and modified within custom {@link AuthSchemeProvider} implementations
+ * to customize authentication behavior.
+ *
+ * <p>
+ * Example - Modifying signer properties in an auth scheme option:
+ *
+ * {@snippet :
+ * public class CustomSigningNameAuthSchemeProvider implements S3AuthSchemeProvider {
+ *     private final S3AuthSchemeProvider delegate;
+ *
+ *     public CustomSigningNameAuthSchemeProvider() {
+ *         this.delegate = S3AuthSchemeProvider.defaultProvider();
+ *     }
+ *
+ *     @Override
+ *     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+ *         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
+ *         return options.stream()
+ *                       .map(option -> option.toBuilder()
+ *                                            .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "custom-service")
+ *                                            .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "us-west-2")
+ *                                            .build())
+ *                       .collect(Collectors.toList());
+ *     }
+ * }
+ * }
+ *
+ * <p>
+ * <b>Creating Custom Auth Scheme Options</b>
+ * <p>
+ * You can create custom auth scheme options from scratch when implementing a custom {@link AuthSchemeProvider}.
+ *
+ * <p>
+ * Example - Creating a custom auth scheme option:
+ *
+ * {@snippet :
+ * public class CustomAuthSchemeProvider implements S3AuthSchemeProvider {
+ *     @Override
+ *     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+ *         AuthSchemeOption customOption = AuthSchemeOption.builder()
+ *             .schemeId("custom.auth#v1")
+ *             .putSignerProperty(CustomHttpSigner.CUSTOM_HEADER, "custom-value")
+ *             .putIdentityProperty(IdentityProperty.create(CustomAuthSchemeProvider.class, "AccountId"), "123456789")
+ *             .build();
+ *
+ *         return Collections.singletonList(customOption);
+ *     }
+ * }
+ * }
+ *
+ * <p>
+ * <b>Reading Properties from Auth Scheme Options</b>
+ * <p>
+ * Within a custom {@link software.amazon.awssdk.http.auth.spi.signer.HttpSigner}, you can read properties from
+ * the auth scheme option via the sign request.
+ *
+ * <p>
+ * Example - Reading signer properties in a custom signer:
+ *
+ * {@snippet :
+ * public class CustomHttpSigner implements HttpSigner<AwsCredentialsIdentity> {
+ *     public static final SignerProperty<String> CUSTOM_HEADER =
+ *         SignerProperty.create(CustomHttpSigner.class, "CustomHeader");
+ *
+ *     @Override
+ *     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+ *         // Read property that was set on the AuthSchemeOption
+ *         String headerValue = request.property(CUSTOM_HEADER);
+ *
+ *         SdkHttpRequest signedRequest = request.request().toBuilder()
+ *             .putHeader("X-Custom-Auth", headerValue)
+ *             .build();
+ *
+ *         return SignedRequest.builder()
+ *             .request(signedRequest)
+ *             .payload(request.payload().orElse(null))
+ *             .build();
+ *     }
+ * }
+ * }
  *
  * @see AuthScheme
+ * @see AuthSchemeProvider
+ * @see SignerProperty
+ * @see IdentityProperty
  */
 @SdkPublicApi
 public interface AuthSchemeOption extends ToCopyableBuilder<AuthSchemeOption.Builder, AuthSchemeOption> {

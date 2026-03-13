@@ -28,6 +28,7 @@ import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWo
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -299,6 +300,16 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getVariableName(String name, Shape parentShape) {
+        if (isJavaKeyword(name) ||
+            isDisallowedNameForShape(unCapitalize(name), parentShape)) {
+            return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
+        }
+
+        return unCapitalize(name);
+    }
+
+    @Override
     public String getEnumValueName(String enumValue) {
         String result = enumValue;
 
@@ -499,6 +510,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
         if (name.contains("_")) {
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
+            List<String> allowedNames = customizationConfig.getAllowedUnderscoreNames();
+            if (allowedNames != null && allowedNames.contains(name)) {
+                return;
+            }
 
             String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
             if (behavior == null) {
@@ -507,8 +522,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
                     ValidationErrorSeverity.DANGER,
                     String.format(
                         "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
-                        + "This isn't idiomatic in Java. Please either remove the underscores",
-                        name, location, supportedBehaviors)
+                        + "This isn't idiomatic in Java. Please remove the underscores.",
+                        name, location)
                 ));
             }
             if (behavior != UnderscoresInNameBehavior.ALLOW) {

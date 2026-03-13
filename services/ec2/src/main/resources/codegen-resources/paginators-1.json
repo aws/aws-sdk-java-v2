@@ -66,6 +66,12 @@
       "output_token": "NextToken",
       "result_key": "CapacityBlocks"
     },
+    "DescribeCapacityManagerDataExports": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityManagerDataExports"
+    },
     "DescribeCapacityReservationBillingRequests": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -315,6 +321,18 @@
       "output_token": "NextToken",
       "result_key": "IpamPools"
     },
+    "DescribeIpamPrefixListResolverTargets": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolverTargets"
+    },
+    "DescribeIpamPrefixListResolvers": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolvers"
+    },
     "DescribeIpamResourceDiscoveries": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -550,6 +568,24 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "ScheduledInstanceSet"
+    },
+    "DescribeSecondaryInterfaces": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondaryInterfaces"
+    },
+    "DescribeSecondaryNetworks": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondaryNetworks"
+    },
+    "DescribeSecondarySubnets": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondarySubnets"
     },
     "DescribeSecurityGroupRules": {
       "input_token": "NextToken",
@@ -803,6 +839,12 @@
       "output_token": "NextToken",
       "result_key": "Vpcs"
     },
+    "DescribeVpnConcentrators": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "VpnConcentrators"
+    },
     "DescribeVpnConnections": {
       "result_key": "VpnConnections"
     },
@@ -820,6 +862,18 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "DataResponses"
+    },
+    "GetCapacityManagerMetricData": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricDataResults"
+    },
+    "GetCapacityManagerMetricDimensions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricDimensionResults"
     },
     "GetGroupsForCapacityReservation": {
       "input_token": "NextToken",
@@ -862,6 +916,24 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "IpamPoolCidrs"
+    },
+    "GetIpamPrefixListResolverRules": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "Rules"
+    },
+    "GetIpamPrefixListResolverVersionEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "Entries"
+    },
+    "GetIpamPrefixListResolverVersions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolverVersions"
     },
     "GetIpamResourceCidrs": {
       "input_token": "NextToken",
@@ -964,6 +1036,13 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "MulticastGroups"
+    },
+    "SearchTransitGatewayRoutes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "more_results": "AdditionalRoutesAvailable",
+      "output_token": "NextToken",
+      "result_key": "Routes"
     }
   }
 }

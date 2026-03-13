@@ -204,8 +204,11 @@ public final class EndpointParamsKnowledgeIndex {
         builder.addStatement("$T accountId = accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME))",
                              String.class, SdkInternalExecutionAttribute.class);
 
-        builder.addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric($T.RESOLVED_ACCOUNT_ID.value())",
-                             SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class);
+        builder
+            .beginControlFlow("if (accountId != null)")
+            .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric($T.RESOLVED_ACCOUNT_ID.value())",
+                             SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+            .endControlFlow();
 
         builder.addStatement("return accountId");
 

@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import java.util.Arrays;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -37,8 +36,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.BillingMode;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
 
 @SdkInternalApi
 public class CreateTableOperation<T> implements TableOperation<T, CreateTableRequest, CreateTableResponse, Void> {
@@ -63,78 +64,31 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                                               OperationContext operationContext,
                                               DynamoDbEnhancedClientExtension extension) {
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
-            throw new IllegalArgumentException("PutItem cannot be executed against a secondary index.");
+            throw new IllegalArgumentException("CreateTable cannot be executed against a secondary index.");
         }
 
-        String primaryPartitionKey = tableSchema.tableMetadata().primaryPartitionKey();
-        Optional<String> primarySortKey = tableSchema.tableMetadata().primarySortKey();
+        List<String> primaryPartitionKeys = tableSchema.tableMetadata().indexPartitionKeys(TableMetadata.primaryIndexName());
+        List<String> primarySortKeys = tableSchema.tableMetadata().indexSortKeys(TableMetadata.primaryIndexName());
+
+        validatePrimaryKeys(primaryPartitionKeys, primarySortKeys);
+
         Set<String> dedupedIndexKeys = new HashSet<>();
-        dedupedIndexKeys.add(primaryPartitionKey);
-        primarySortKey.ifPresent(dedupedIndexKeys::add);
-        List<software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex> sdkGlobalSecondaryIndices = null;
-        List<software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex> sdkLocalSecondaryIndices = null;
+        dedupedIndexKeys.addAll(primaryPartitionKeys);
+        dedupedIndexKeys.addAll(primarySortKeys);
 
-        if (this.request.globalSecondaryIndices() != null && !this.request.globalSecondaryIndices().isEmpty()) {
-            sdkGlobalSecondaryIndices =
-                this.request.globalSecondaryIndices().stream().map(gsi -> {
-                    String indexPartitionKey = tableSchema.tableMetadata().indexPartitionKey(gsi.indexName());
-                    Optional<String> indexSortKey = tableSchema.tableMetadata().indexSortKey(gsi.indexName());
-                    dedupedIndexKeys.add(indexPartitionKey);
-                    indexSortKey.ifPresent(dedupedIndexKeys::add);
+        List<GlobalSecondaryIndex> sdkGlobalSecondaryIndices = buildGlobalSecondaryIndices(tableSchema, dedupedIndexKeys);
+        List<LocalSecondaryIndex> sdkLocalSecondaryIndices = buildLocalSecondaryIndices(tableSchema, dedupedIndexKeys,
+                                                                                        primaryPartitionKeys);
 
-                    return software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex
-                        .builder()
-                        .indexName(gsi.indexName())
-                        .keySchema(generateKeySchema(indexPartitionKey, indexSortKey.orElse(null)))
-                        .projection(gsi.projection())
-                        .provisionedThroughput(gsi.provisionedThroughput())
-                        .build();
-                }).collect(Collectors.toList());
-        }
-
-        if (this.request.localSecondaryIndices() != null && !this.request.localSecondaryIndices().isEmpty()) {
-            sdkLocalSecondaryIndices =
-                this.request.localSecondaryIndices().stream().map(lsi -> {
-                    Optional<String> indexSortKey = tableSchema.tableMetadata().indexSortKey(lsi.indexName());
-                    indexSortKey.ifPresent(dedupedIndexKeys::add);
-
-                    if (!primaryPartitionKey.equals(
-                        tableSchema.tableMetadata().indexPartitionKey(lsi.indexName()))) {
-                        throw new IllegalArgumentException("Attempt to create a local secondary index with a partition "
-                                                           + "key that is not the primary partition key. Index name: "
-                                                           + lsi.indexName());
-                    }
-
-                    return software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex
-                        .builder()
-                        .indexName(lsi.indexName())
-                        .keySchema(generateKeySchema(primaryPartitionKey, indexSortKey.orElse(null)))
-                        .projection(lsi.projection())
-                        .build();
-                }).collect(Collectors.toList());
-        }
-
-        List<AttributeDefinition> attributeDefinitions =
-            dedupedIndexKeys.stream()
-                            .map(attribute ->
-                                     AttributeDefinition.builder()
-                                                        .attributeName(attribute)
-                                                        .attributeType(tableSchema
-                                                                .tableMetadata().scalarAttributeType(attribute)
-                                                                .orElseThrow(() ->
-                                                                        new IllegalArgumentException(
-                                                                                "Could not map the key attribute '" + attribute +
-                                                                                        "' to a valid scalar type.")))
-                                             .build())
-                    .collect(Collectors.toList());
-
+        List<AttributeDefinition> attributeDefinitions = buildAttributeDefinitions(dedupedIndexKeys, tableSchema);
+        
         BillingMode billingMode = this.request.provisionedThroughput() == null ?
                                   BillingMode.PAY_PER_REQUEST :
                                   BillingMode.PROVISIONED;
 
         return CreateTableRequest.builder()
                                  .tableName(operationContext.tableName())
-                                 .keySchema(generateKeySchema(primaryPartitionKey, primarySortKey.orElse(null)))
+                                 .keySchema(generateKeySchema(primaryPartitionKeys, primarySortKeys))
                                  .globalSecondaryIndexes(sdkGlobalSecondaryIndices)
                                  .localSecondaryIndexes(sdkLocalSecondaryIndices)
                                  .attributeDefinitions(attributeDefinitions)
@@ -165,26 +119,111 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
         return null;
     }
 
-    private static Collection<KeySchemaElement> generateKeySchema(String partitionKey, String sortKey) {
-        if (sortKey == null) {
-            return generateKeySchema(partitionKey);
+    private void validatePrimaryKeys(List<String> primaryPartitionKeys, List<String> primarySortKeys) {
+        if (primaryPartitionKeys.isEmpty()) {
+            throw new IllegalArgumentException("Primary partition key is required for table creation");
         }
-
-        return Collections.unmodifiableList(Arrays.asList(KeySchemaElement.builder()
-                                                                          .attributeName(partitionKey)
-                                                                          .keyType(KeyType.HASH)
-                                                                          .build(),
-                                                          KeySchemaElement.builder()
-                                                                          .attributeName(sortKey)
-                                                                          .keyType(KeyType.RANGE)
-                                                                          .build()));
+        if (primaryPartitionKeys.size() > 1) {
+            throw new IllegalArgumentException("Primary table does not support composite partition keys");
+        }
+        if (primarySortKeys.size() > 1) {
+            throw new IllegalArgumentException("Primary table does not support composite sort keys");
+        }
     }
 
-    private static Collection<KeySchemaElement> generateKeySchema(String partitionKey) {
-        return Collections.singletonList(KeySchemaElement.builder()
-                                                         .attributeName(partitionKey)
-                                                         .keyType(KeyType.HASH)
-                                                         .build());
+    private List<GlobalSecondaryIndex> buildGlobalSecondaryIndices(TableSchema<T> tableSchema, Set<String> dedupedIndexKeys) {
+        if (!hasIndices(this.request.globalSecondaryIndices())) {
+            return null;
+        }
+
+        return this.request.globalSecondaryIndices().stream().map(gsi -> {
+            List<String> indexPartitionKeys = tableSchema.tableMetadata().indexPartitionKeys(gsi.indexName());
+            List<String> indexSortKeys = tableSchema.tableMetadata().indexSortKeys(gsi.indexName());
+            dedupedIndexKeys.addAll(indexPartitionKeys);
+            dedupedIndexKeys.addAll(indexSortKeys);
+
+            return GlobalSecondaryIndex.builder()
+                .indexName(gsi.indexName())
+                .keySchema(generateKeySchema(indexPartitionKeys, indexSortKeys))
+                .projection(gsi.projection())
+                .provisionedThroughput(gsi.provisionedThroughput())
+                .build();
+        }).collect(Collectors.toList());
+    }
+
+    private List<LocalSecondaryIndex> buildLocalSecondaryIndices(
+            TableSchema<T> tableSchema, Set<String> dedupedIndexKeys, List<String> primaryPartitionKeys) {
+        if (!hasIndices(this.request.localSecondaryIndices())) {
+            return null;
+        }
+
+        return this.request.localSecondaryIndices().stream().map(lsi -> {
+            List<String> lsiPartitionKeys = tableSchema.tableMetadata().indexPartitionKeys(lsi.indexName());
+            List<String> lsiSortKeys = tableSchema.tableMetadata().indexSortKeys(lsi.indexName());
+
+            validateLsiConstraints(primaryPartitionKeys, lsiPartitionKeys, lsiSortKeys, lsi.indexName());
+
+            dedupedIndexKeys.addAll(lsiPartitionKeys);
+            dedupedIndexKeys.addAll(lsiSortKeys);
+
+            return LocalSecondaryIndex.builder()
+                .indexName(lsi.indexName())
+                .keySchema(generateKeySchema(lsiPartitionKeys, lsiSortKeys))
+                .projection(lsi.projection())
+                .build();
+        }).collect(Collectors.toList());
+    }
+
+    private void validateLsiConstraints(List<String> primaryPartitionKeys, List<String> lsiPartitionKeys,
+                                       List<String> lsiSortKeys, String indexName) {
+        if (lsiPartitionKeys.size() != 1) {
+            throw new IllegalArgumentException("LSI must have exactly one partition key. Index: " + indexName);
+        }
+
+        if (!primaryPartitionKeys.get(0).equals(lsiPartitionKeys.get(0))) {
+            throw new IllegalArgumentException("LSI partition key must match primary partition key. Index: " + indexName);
+        }
+
+        if (lsiSortKeys.size() > 1) {
+            throw new IllegalArgumentException("LSI does not support composite sort keys. Index: " + indexName);
+        }
+    }
+
+    private List<AttributeDefinition> buildAttributeDefinitions(Set<String> dedupedIndexKeys,
+                                                               TableSchema<T> tableSchema) {
+        return dedupedIndexKeys.stream()
+                              .map(attribute -> AttributeDefinition.builder()
+                                           .attributeName(attribute)
+                                           .attributeType(tableSchema.tableMetadata()
+                                                         .scalarAttributeType(attribute)
+                                                         .orElseThrow(() ->
+                                                             new IllegalArgumentException(
+                                                                 String.format(
+                                                                     "Could not map key attribute '%s' to a valid scalar type",
+                                                                     attribute))))
+                                           .build())
+                              .collect(Collectors.toList());
+    }
+
+    private boolean hasIndices(Collection<?> indices) {
+        return indices != null && !indices.isEmpty();
+    }
+
+    private static Collection<KeySchemaElement> generateKeySchema(Collection<String> partitionKeys,
+                                                                 Collection<String> sortKeys) {
+        List<KeySchemaElement> keySchema = partitionKeys.stream()
+                                                        .map(partitionKey -> KeySchemaElement.builder()
+                                                                                          .attributeName(partitionKey)
+                                                                                          .keyType(KeyType.HASH)
+                                                                                          .build())
+                                                        .collect(Collectors.toList());
+
+        sortKeys.stream().map(sortKey -> KeySchemaElement.builder()
+                                                         .attributeName(sortKey)
+                                                         .keyType(KeyType.RANGE)
+                                                         .build()).forEach(keySchema::add);
+
+        return Collections.unmodifiableList(keySchema);
     }
 
 }

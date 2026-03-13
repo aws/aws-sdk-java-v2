@@ -27,7 +27,108 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * A strongly-typed property for input to an {@link HttpSigner}.
+ *
+ * <p>
+ * Signer properties are used to configure signing behavior by passing parameters to signers through
+ * {@link software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption}s. Common properties include signing region,
+ * service name, and signing algorithm parameters.
+ *
+ * <p>
+ * <b>Common Built-in Properties</b>
+ * <p>
+ * The SDK provides several built-in AWS V4 signer properties:
+ * <ul>
+ * <li>{@code AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME} - The service name to use in the signature</li>
+ * <li>{@code AwsV4FamilyHttpSigner.REGION_NAME} - The AWS region for signing</li>
+ * <li>{@code AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE} - Whether to double URL-encode the path</li>
+ * <li>{@code AwsV4FamilyHttpSigner.NORMALIZE_PATH} - Whether to normalize the request path</li>
+ * <li>{@code AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED} - Whether to indicate that a payload is signed or not.</li>
+ * </ul>
+ *
+ * <p>
+ * <b>Overriding Properties via AuthSchemeProvider</b>
+ * <p>
+ * To override signer properties, implement a custom {@link software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider}
+ * that wraps the default provider and modifies the properties on resolved
+ * {@link software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption}s.
+ *
+ * <p>
+ * Example - Overriding service signing name:
+ *
+ * {@snippet :
+ * S3AsyncClient s3 = S3AsyncClient.builder()
+ *                                 .region(Region.US_WEST_2)
+ *                                 .credentialsProvider(CREDENTIALS)
+ *                                 .authSchemeProvider(new CustomSigningNameAuthSchemeProvider())
+ *                                 .build();
+ *
+ * public class CustomSigningNameAuthSchemeProvider implements S3AuthSchemeProvider {
+ *     private final S3AuthSchemeProvider delegate;
+ *
+ *     public CustomSigningNameAuthSchemeProvider() {
+ *         this.delegate = S3AuthSchemeProvider.defaultProvider();
+ *     }
+ *
+ *     @Override
+ *     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+ *         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
+ *         return options.stream()
+ *                       .map(option -> option.toBuilder()
+ *                                            .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "custom-service")
+ *                                            .build())
+ *                       .collect(Collectors.toList());
+ *     }
+ * }
+ * }
+ *
+ * <p>
+ * <b>Creating Custom Properties</b>
+ * <p>
+ * When implementing a custom {@link HttpSigner}, you can define your own properties to accept additional configuration.
+ * Properties should be defined as public static constants in your signer class.
+ *
+ * <p>
+ * Example - Custom signer with custom property:
+ *
+ * {@snippet :
+ * public class CustomHttpSigner implements HttpSigner<AwsCredentialsIdentity> {
+ *     // Define custom property
+ *     public static final SignerProperty<String> CUSTOM_HEADER_NAME =
+ *         SignerProperty.create(CustomHttpSigner.class, "CustomHeaderName");
+ *
+ *     @Override
+ *     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+ *         // Retrieve property value
+ *         String headerName = request.property(CUSTOM_HEADER_NAME);
+ *         // Use the property in signing logic
+ *         // ...
+ *     }
+ * }
+ *
+ * // Configure the property via AuthSchemeProvider
+ * public class CustomPropertyAuthSchemeProvider implements S3AuthSchemeProvider {
+ *     private final S3AuthSchemeProvider delegate;
+ *
+ *     public CustomPropertyAuthSchemeProvider() {
+ *         this.delegate = S3AuthSchemeProvider.defaultProvider();
+ *     }
+ *
+ *     @Override
+ *     public List<AuthSchemeOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams) {
+ *         List<AuthSchemeOption> options = delegate.resolveAuthScheme(authSchemeParams);
+ *         return options.stream()
+ *                       .map(option -> option.toBuilder()
+ *                                            .putSignerProperty(CustomHttpSigner.CUSTOM_HEADER_NAME, "X-Custom-Auth")
+ *                                            .build())
+ *                       .collect(Collectors.toList());
+ *     }
+ * }
+ * }
+ *
  * @param <T> The type of the property.
+ * @see HttpSigner
+ * @see software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption
+ * @see software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider
  */
 @SdkPublicApi
 @Immutable

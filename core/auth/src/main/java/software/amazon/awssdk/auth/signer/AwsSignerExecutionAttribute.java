@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -36,11 +37,13 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.regions.Region;
@@ -51,8 +54,8 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  *
- * @deprecated Signer execution attributes have been deprecated in favor of signer properties, set on the auth scheme's signer
- * option.
+ * @deprecated Signer execution attributes have been deprecated in favor of {@link SignerProperty}s, set on the
+ * {@link AuthSchemeOption}. See {@link AuthSchemeProvider} and {@link SignerProperty} for how to use it.
  */
 @Deprecated
 @SdkProtectedApi
@@ -61,9 +64,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key under which the request credentials are set.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the credential provider via the {@code SdkRequest}'s
+     * from execution interceptors, you should instead be overriding the credential provider via the {@link SdkRequest}'s
      * {@code overrideConfiguration.credentialsProvider}. If you're using it to call the SDK's signers, you should migrate to a
-     * subtype of {@code HttpSigner}.
+     * subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS =
@@ -79,9 +82,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * for global services like IAM.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the signing region via the {@code AuthSchemeProvider} that
+     * from execution interceptors, you should instead be overriding the signing region via the {@link AuthSchemeProvider} that
      * is configured on the SDK client builder. If you're using it to call the SDK's signers, you should migrate to a
-     * subtype of {@code HttpSigner}.
+     * subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<Region> SIGNING_REGION =
@@ -97,9 +100,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * for global services like IAM.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the signing region scope via the {@code AuthSchemeProvider}
+     * from execution interceptors, you should instead be overriding the signing region scope via the {@link AuthSchemeProvider}
      * that is configured on the SDK client builder. If you're using it to call the SDK's signers, you should migrate to a
-     * subtype of {@code HttpSigner}.
+     * subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<RegionScope> SIGNING_REGION_SCOPE =
@@ -114,9 +117,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The signing name of the service to be using in SigV4 signing
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the signing region name via the {@code AuthSchemeProvider}
+     * from execution interceptors, you should instead be overriding the signing region name via the {@link AuthSchemeProvider}
      * that is configured on the SDK client builder. If you're using it to call the SDK's signers, you should migrate to a
-     * subtype of {@code HttpSigner}.
+     * subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<String> SERVICE_SIGNING_NAME =
@@ -131,9 +134,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify whether to use double url encoding during signing.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the double-url-encode setting via the {@code
+     * from execution interceptors, you should instead be overriding the double-url-encode setting via the {@link
      * AuthSchemeProvider} that is configured on the SDK client builder. If you're using it to call the SDK's signers, you
-     * should migrate to a subtype of {@code HttpSigner}.
+     * should migrate to a subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<Boolean> SIGNER_DOUBLE_URL_ENCODE =
@@ -148,9 +151,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify whether to normalize the resource path during signing.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the normalize-path setting via the {@code
+     * from execution interceptors, you should instead be overriding the normalize-path setting via the {@link
      * AuthSchemeProvider} that is configured on the SDK client builder. If you're using it to call the SDK's signers, you
-     * should migrate to a subtype of {@code HttpSigner}.
+     * should migrate to a subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<Boolean> SIGNER_NORMALIZE_PATH =
@@ -167,9 +170,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * @see Aws4SignerParams.Builder#signingClockOverride(Clock)
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the clock setting via the {@code
+     * from execution interceptors, you should instead be overriding the clock setting via the {@link
      * AuthSchemeProvider} that is configured on the SDK client builder. If you're using it to call the SDK's signers, you
-     * should migrate to a subtype of {@code HttpSigner}.
+     * should migrate to a subtype of {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<Clock> SIGNING_CLOCK =
@@ -184,9 +187,9 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify the expiration time when pre-signing aws requests.
      *
      * @deprecated This is a protected class that is internal to the SDK, so you shouldn't be using it. If you are using it
-     * from execution interceptors, you should instead be overriding the expiration via the {@code AuthSchemeProvider} that is
+     * from execution interceptors, you should instead be overriding the expiration via the {@link AuthSchemeProvider} that is
      * configured on the SDK client builder. If you're using it to call the SDK's signers, you should migrate to a subtype of
-     * {@code HttpSigner}.
+     * {@link HttpSigner}.
      */
     @Deprecated
     public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");

@@ -30,6 +30,9 @@ public final class DefaultAwsV4AuthScheme implements AwsV4AuthScheme {
     private static final DefaultAwsV4AuthScheme DEFAULT = new DefaultAwsV4AuthScheme();
     private static final AwsV4HttpSigner DEFAULT_SIGNER = AwsV4HttpSigner.create();
 
+    private DefaultAwsV4AuthScheme() {
+    }
+
     /**
      * Returns an instance of the {@link DefaultAwsV4AuthScheme}.
      */

@@ -1,0 +1,66 @@
+{
+    "version": "2.41.8",
+    "date": "2026-01-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Cost Categories added support to BillingView data filter expressions through the new costCategories parameter, enabling users to filter billing views by AWS Cost Categories for more granular cost management and allocation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "This release clarifies WhatsApp template operations as a resource-authenticated operation via the parent WhatsApp Business Account. It also introduces new parameters for parameter format, CTA URL link tracking, and template body examples, and increases the phone number ID length."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Don't generate the unused files for the service endpoint provider when compiled endpoint rules are enabled (the default behavior). This lowers the overall size of the built JAR."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect makes it easier to manage contact center operating hours by enabling automated scheduling for recurring events like holidays and maintenance windows. Set up recurring patterns (weekly, monthly, etc.) or link to another hours of operation to inherit overrides."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Added support for BOTTLEROCKET NVIDIA FIPS AMIs to AMI types in US regions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Adds support for enabling extra compute resources for automatic optimization during create and modify operations in Amazon Redshift clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "no feature changes. model migrated to Smithy"
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Metric Publisher",
+            "contributor": "",
+            "description": "Optimize metric processing by replacing stream-based operations with direct iteration to reduce allocations and GC pressure."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Adds support for enabling extra compute resources for automatic optimization during create and update operations in Amazon Redshift Serverless workgroups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -98,6 +98,8 @@ public final class Constant {
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
 
+    public static final String EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/example-meta.json";
+
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
     public static final String ASYNC_STREAMING_INPUT_PARAM = "requestBody";

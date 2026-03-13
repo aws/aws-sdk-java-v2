@@ -22,10 +22,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.openrewrite.Cursor;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
@@ -46,6 +49,7 @@ public final class S3TransformUtils {
 
     public static final String V2_TM_CLIENT = "software.amazon.awssdk.transfer.s3.S3TransferManager";
     public static final String V2_TM_MODEL_PKG = "software.amazon.awssdk.transfer.s3.model.";
+    public static final String V2_TM_PROGRESS = "software.amazon.awssdk.transfer.s3.progress.TransferProgress";
 
     public static final Set<String> SUPPORTED_METADATA_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         "contentLength",
@@ -89,6 +93,10 @@ public final class S3TransformUtils {
 
     public static MethodMatcher v2TmMethodMatcher(String methodSignature) {
         return new MethodMatcher(V2_TM_CLIENT + " " + methodSignature, true);
+    }
+
+    public static MethodMatcher v2TransferProgressMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V2_TM_PROGRESS + " " + methodSignature, true);
     }
 
     public static void addMetadataFields(StringBuilder sb, String metadataName,
@@ -202,6 +210,20 @@ public final class S3TransformUtils {
         return isSetterForClassType(method, V2_S3_MODEL_PKG + "HeadObjectResponse");
     }
 
+    public static boolean isObjectMetadataGetter(J.MethodInvocation method) {
+        if (!"objectMetadata".equals(method.getSimpleName()) || hasArguments(method)) {
+            return false;
+        }
+
+        Expression select = method.getSelect();
+        if (!(select instanceof J.MethodInvocation)) {
+            return false;
+        }
+
+        J.MethodInvocation receiverMethod = (J.MethodInvocation) select;
+        return "response".equals(receiverMethod.getSimpleName());
+    }
+
     /** Field set during POJO instantiation, e.g.,
      * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation").withFile(file);
      */
@@ -231,7 +253,7 @@ public final class S3TransformUtils {
     }
 
     public static boolean hasArguments(J.MethodInvocation method) {
-        return !method.getArguments().isEmpty();
+        return method.getArguments().stream().anyMatch(arg -> !(arg instanceof J.Empty));
     }
 
     public static boolean isPayloadSetter(J.MethodInvocation method) {
@@ -275,6 +297,22 @@ public final class S3TransformUtils {
 
     public static boolean isUnsupportedHttpMethod(String httpMethod) {
         return Arrays.asList("Head", "Post", "Patch").contains(httpMethod);
+    }
+
+    public static boolean isS3ETagGetter(String methodName, JavaType.FullyQualified declaringType) {
+        return "getETag".equals(methodName)
+               && declaringType.getFullyQualifiedName().startsWith(V2_S3_MODEL_PKG);
+    }
+
+    public static J.MethodInvocation transformETagGetter(Cursor cursor, J.MethodInvocation method) {
+        String comment = "NOTE: V2's eTag() preserves surrounding quotes in the response, whereas V1's getETag() strips them - "
+                         + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html"
+                         + "#V1s-ObjectMetadata-using-V1s-getETag";
+
+        String template = "#{any()}.eTag().replaceAll(\"^\\\"|\\\"$\", \"\")";
+        return JavaTemplate.builder(template).build()
+                           .apply(cursor, method.getCoordinates().replace(), method.getSelect())
+                           .withComments(createCommentsWithNewline(comment));
     }
 
     public static List<Comment> inputStreamBufferingWarningComment() {

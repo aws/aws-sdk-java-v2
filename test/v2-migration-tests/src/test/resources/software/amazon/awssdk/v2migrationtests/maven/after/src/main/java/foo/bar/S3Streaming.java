@@ -43,8 +43,13 @@ public class S3Streaming {
             .build());
         s3Object.close();
 
+        String cacheControl = s3Object.response().cacheControl();
+
         GetObjectResponse objectMetadata = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
                 .build(), file.toPath());
+
+        String etag = /*AWS SDK for Java v2 migration: NOTE: V2's eTag() preserves surrounding quotes in the response, whereas V1's getETag() strips them - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1s-ObjectMetadata-using-V1s-getETag*/
+objectMetadata.eTag().replaceAll("^\"|\"$", "");
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -61,7 +66,7 @@ public class S3Streaming {
         HeadObjectResponse metadataWithLength = HeadObjectResponse.builder()
             .build();
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength(22L)
-            .build(), RequestBody.fromInputStream(stream, 22L));
+            .build(), RequestBody.fromInputStream(stream, 22));
 
 
         HeadObjectResponse metadataWithoutLength = HeadObjectResponse.builder()
@@ -105,7 +110,7 @@ public class S3Streaming {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
             .build();
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(11L)
-            .build(), RequestBody.fromInputStream(inputStream2, 11L));
+            .build(), RequestBody.fromInputStream(inputStream2, 11));
     }
 
     void putObject_requestPojoWithoutPayload(String bucket, String key) {
@@ -117,8 +122,7 @@ public class S3Streaming {
 
     void putObjectSetters() {
         List<Tag> tags = new ArrayList<>();
-        Tagging objectTagging = Tagging.builder().tagSet(tags)
-            .build();
+        Tagging objectTagging = Tagging.builder().tagSet(tags).build();
 
         PutObjectRequest putObjectRequest =
             PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")

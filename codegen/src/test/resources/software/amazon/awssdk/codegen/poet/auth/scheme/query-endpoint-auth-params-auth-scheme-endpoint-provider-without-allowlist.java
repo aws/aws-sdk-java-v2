@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
     private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
 
-    private static final QueryAuthSchemeProvider MODELED_RESOLVER = ModeledQueryAuthSchemeProvider.create();
+    private static final QueryAuthSchemeProvider FALLBACK_RESOLVER = FallbackQueryAuthSchemeProvider.create();
 
     private static final QueryEndpointProvider DELEGATE = QueryEndpointProvider.defaultProvider();
 
@@ -54,7 +54,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
         Endpoint endpoint = CompletableFutureUtils.joinLikeSync(endpointProvider(params).resolveEndpoint(endpointParameters));
         List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
         if (authSchemes == null) {
-            return MODELED_RESOLVER.resolveAuthScheme(params);
+            return FALLBACK_RESOLVER.resolveAuthScheme(params);
         }
         List<AuthSchemeOption> options = new ArrayList<>();
         for (EndpointAuthScheme authScheme : authSchemes) {

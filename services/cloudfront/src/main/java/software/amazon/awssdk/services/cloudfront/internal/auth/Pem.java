@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 
 @SdkInternalApi
 public final class Pem {
@@ -51,15 +52,18 @@ public final class Pem {
         for (PemObject object : objects) {
             switch (object.getPemObjectType()) {
                 case PRIVATE_KEY_PKCS1:
+                    // only supports RSA keys, so load it as RSA.
                     return Rsa.privateKeyFromPkcs1(object.getDerBytes());
                 case PRIVATE_KEY_PKCS8:
-                    return Rsa.privateKeyFromPkcs8(object.getDerBytes());
+                    return SigningUtils.privateKeyFromPkcs8(object.getDerBytes());
                 default:
                     break;
             }
         }
         throw new IllegalArgumentException("Found no private key");
     }
+
+
 
     /**
      * Returns the first public key that is found from the input stream of a PEM

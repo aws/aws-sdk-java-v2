@@ -1,14 +1,10 @@
 name: AWS CodeBuild CI Integration Tests
 on:
   pull_request:
-    paths:
-      - '**/*.java'
   merge_group:
   push:
     branches:
       - master
-    paths:
-      - '**/*.java'
 
 permissions:
   id-token: write
@@ -19,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2

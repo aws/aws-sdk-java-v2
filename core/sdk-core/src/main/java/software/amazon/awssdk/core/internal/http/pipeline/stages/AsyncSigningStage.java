@@ -43,6 +43,8 @@ import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
+import software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -88,11 +90,15 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     private <T extends Identity> CompletableFuture<SdkHttpFullRequest> sraSignRequest(SdkHttpFullRequest request,
                                                                                       RequestExecutionContext context,
                                                                                       SelectedAuthScheme<T> selectedAuthScheme) {
+        // Should not be null, added by HttpChecksumStage for SRA signed requests
+        PayloadChecksumStore payloadChecksumStore =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE);
+
         adjustForClockSkew(context.executionAttributes());
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         return identityFuture.thenCompose(identity -> {
             CompletableFuture<SdkHttpFullRequest> signedRequestFuture = MetricUtils.reportDuration(
-                () -> doSraSign(request, context, selectedAuthScheme, identity),
+                () -> doSraSign(request, context, selectedAuthScheme, identity, payloadChecksumStore),
                 context.attemptMetricCollector(),
                 CoreMetric.SIGNING_DURATION);
 
@@ -106,7 +112,8 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
     private <T extends Identity> CompletableFuture<SdkHttpFullRequest> doSraSign(SdkHttpFullRequest request,
                                                                                  RequestExecutionContext context,
                                                                                  SelectedAuthScheme<T> selectedAuthScheme,
-                                                                                 T identity) {
+                                                                                 T identity,
+                                                                                 PayloadChecksumStore payloadChecksumStore) {
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
         HttpSigner<T> signer = selectedAuthScheme.signer();
 
@@ -114,6 +121,7 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             SignRequest.Builder<T> signRequestBuilder = SignRequest
                 .builder(identity)
                 .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
+                .putProperty(SdkInternalHttpSignerProperty.CHECKSUM_STORE, payloadChecksumStore)
                 .request(request)
                 .payload(request.contentStreamProvider().orElse(null));
             authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
@@ -125,8 +133,10 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
         AsyncSignRequest.Builder<T> signRequestBuilder = AsyncSignRequest
             .builder(identity)
             .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
+            .putProperty(SdkInternalHttpSignerProperty.CHECKSUM_STORE, payloadChecksumStore)
             .request(request)
             .payload(context.requestProvider());
+
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
         CompletableFuture<AsyncSignedRequest> signedRequestFuture = signer.signAsync(signRequestBuilder.build());

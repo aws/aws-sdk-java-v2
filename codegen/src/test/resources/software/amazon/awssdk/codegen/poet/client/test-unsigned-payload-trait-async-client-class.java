@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
@@ -32,7 +30,6 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -45,7 +42,6 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.database.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.database.model.DatabaseException;
-import software.amazon.awssdk.services.database.model.DatabaseRequest;
 import software.amazon.awssdk.services.database.model.DeleteRowRequest;
 import software.amazon.awssdk.services.database.model.DeleteRowResponse;
 import software.amazon.awssdk.services.database.model.GetRowRequest;
@@ -518,10 +514,6 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4UnSignedPayloadAndStreaming");
-            if (!isSignerOverridden(clientConfiguration)) {
-                opWithSigv4UnSignedPayloadAndStreamingRequest = applySignerOverride(
-                    opWithSigv4UnSignedPayloadAndStreamingRequest, AsyncAws4Signer.create());
-            }
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                            .isPayloadJson(true).build();
 
@@ -967,21 +959,6 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
-    }
-
-    private <T extends DatabaseRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
-        return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {

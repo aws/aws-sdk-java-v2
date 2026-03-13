@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.regression.upload;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -174,6 +176,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 CompletedUpload completedUpload = CompletableFutureUtils.joinLikeSync(upload.completionFuture());
                 return completedUpload.response();
             } catch (Exception e) {
+                LOG.error(() -> "Upload failed for " + config.toString());
                 throw new RuntimeException(e);
             } finally {
                 transferManager.close();
@@ -242,6 +245,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             case BLOCKING_INPUT_STREAM:
             case BLOCKING_OUTPUT_STREAM:
             case INPUTSTREAM_NO_LENGTH:
+            case BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH:
+            case BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH:
                 Assumptions.abort("Test BodyType not supported for sync client: " + bodyType);
             default:
                 throw new RuntimeException("Unsupported body type: " + bodyType);
@@ -356,6 +361,23 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                                                                 contentSize.precalculatedCrc32(),
                                                                 bodyType);
             }
+            case BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH: {
+                byte[] content = contentSize.byteContent();
+
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(
+                    new ByteArrayInputStream(content),
+                    (long) content.length, ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(BufferedSplittableAsyncRequestBody.create(asyncRequestBody), content.length,
+                                         contentSize.precalculatedCrc32(), bodyType);
+            }
+            case BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH: {
+                byte[] content = contentSize.byteContent();
+
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(
+                    new ByteArrayInputStream(content), null, ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(BufferedSplittableAsyncRequestBody.create(asyncRequestBody), content.length,
+                                         contentSize.precalculatedCrc32(), bodyType);
+            }
             default:
                 throw new RuntimeException("Unsupported async body type: " + bodyType);
         }
@@ -378,27 +400,40 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     }
 
     protected enum BodyType {
-        INPUTSTREAM_RESETABLE,
-        INPUTSTREAM_NOT_RESETABLE,
-        INPUTSTREAM_NO_LENGTH,
+        INPUTSTREAM_RESETABLE(true),
+        INPUTSTREAM_NOT_RESETABLE(true),
+        INPUTSTREAM_NO_LENGTH(false),
 
-        STRING,
+        STRING(true),
 
-        FILE,
+        FILE(true),
 
-        CONTENT_PROVIDER_WITH_LENGTH,
+        CONTENT_PROVIDER_WITH_LENGTH(true),
 
-        CONTENT_PROVIDER_NO_LENGTH,
+        CONTENT_PROVIDER_NO_LENGTH(false),
 
-        BYTES,
-        BYTE_BUFFER,
-        REMAINING_BYTE_BUFFER,
+        BYTES(true),
+        BYTE_BUFFER(true),
+        REMAINING_BYTE_BUFFER(true),
 
-        BUFFERS,
-        BUFFERS_REMAINING,
+        BUFFERS(true),
+        BUFFERS_REMAINING(true),
 
-        BLOCKING_INPUT_STREAM,
-        BLOCKING_OUTPUT_STREAM
+        BLOCKING_INPUT_STREAM(true),
+        BLOCKING_OUTPUT_STREAM(true),
+        BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH(true),
+        BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH(false)
+        ;
+
+        private final boolean contentLengthAvailable;
+
+        BodyType(boolean contentLengthAvailable) {
+            this.contentLengthAvailable = contentLengthAvailable;
+        }
+
+        public boolean isContentLengthAvailable() {
+            return contentLengthAvailable;
+        }
     }
 
     protected enum ContentSize {

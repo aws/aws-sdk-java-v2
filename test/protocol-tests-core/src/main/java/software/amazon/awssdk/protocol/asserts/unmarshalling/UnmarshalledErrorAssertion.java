@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocol.asserts.unmarshalling;
 
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 
@@ -39,6 +40,7 @@ public class UnmarshalledErrorAssertion extends UnmarshallingAssertion {
         }
         SdkServiceException actualException = (SdkServiceException) actual;
         SdkServiceException expectedException = createExpectedResult(context);
+        assertEquals(expectedException.getClass(), actualException.getClass());
         for (Field field : expectedException.getClass().getDeclaredFields()) {
             assertFieldEquals(field, actualException, expectedException);
         }

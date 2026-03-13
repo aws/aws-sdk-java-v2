@@ -1,0 +1,42 @@
+{
+    "version": "2.39.5",
+    "date": "2025-11-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Apache5 HTTP Client (Preview)",
+            "contributor": "",
+            "description": "Fix bug where Basic proxy authentication fails with credentials not found."
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache5 HTTP Client (Preview)",
+            "contributor": "",
+            "description": "Fix bug where preemptive Basic authentication was not honored for proxies. Similar to fix for Apache 4.x in [#6333](https://github.com/aws/aws-sdk-java-v2/issues/6333)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Compute Optimizer now identifies idle NAT Gateway resources for cost optimization based on traffic patterns and backup configuration analysis. Access recommendations via the GetIdleRecommendations API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Bedrock Runtime Reserved Service Support"
+        },
+        {
+            "type": "feature",
+            "category": "Cost Optimization Hub",
+            "contributor": "",
+            "description": "This release enables AWS Cost Optimization Hub to show cost optimization recommendations for NAT Gateway."
+        },
+        {
+            "type": "feature",
+            "category": "s3",
+            "contributor": "",
+            "description": "Add CRT shouldStream config as CRT_MEMORY_BUFFER_DISABLED SDK advanced client option"
+        }
+    ]
+}

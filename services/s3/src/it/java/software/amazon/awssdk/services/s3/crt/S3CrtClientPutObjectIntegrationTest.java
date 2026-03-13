@@ -36,6 +36,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
@@ -79,6 +80,25 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
+        S3AsyncClient crtClientWithMemoryBufferDisabled = S3CrtAsyncClient.builder()
+                                .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
+                                .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                .advancedOption(SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED, true)
+                                .build();
+
+        AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
+        crtClientWithMemoryBufferDisabled.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                                               ResponseTransformer.toInputStream());
+
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+
+        Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
+    void putObject_withMemoryBufferDisabled_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
@@ -89,6 +109,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
 
         Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
     }
+
 
     @Test
     void putObject_file_objectSentCorrectly() throws Exception {

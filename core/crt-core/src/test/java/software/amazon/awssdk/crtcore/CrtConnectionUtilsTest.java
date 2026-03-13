@@ -58,19 +58,19 @@ class CrtConnectionUtilsTest {
         assertThat(CrtConfigurationUtils.resolveProxy(null, tlsContext)).isEmpty();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {".*?.2.3.4", "1.*?.3.4", ".*?"})
-    void resolveProxy_withSingleNonProxyHostsWidCards_shouldReturnEmpty(String nonProxyHost) {
+    @Test
+    void resolveProxy_nonProxyHosts_setAsCommaSeperatedString() {
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
         CrtProxyConfiguration configuration = new TestProxy.Builder().host("1.2.3.4")
                                                                      .port(123)
                                                                      .scheme("https")
                                                                      .password("bar")
                                                                      .username("foo")
-                                                                     .nonProxyHosts(Stream.of(nonProxyHost,"someRandom")
-                                                                                          .collect(Collectors.toSet()))
+                                                                     .addNonProxyHost("host1")
+                                                                     .addNonProxyHost("host2")
                                                                      .build();
-        assertThat(CrtConfigurationUtils.resolveProxy(configuration, tlsContext)).isEmpty();
+        assertThat(CrtConfigurationUtils.resolveProxy(configuration, tlsContext).get().getNoProxyHosts())
+            .isEqualTo("host1,host2");
     }
 
 

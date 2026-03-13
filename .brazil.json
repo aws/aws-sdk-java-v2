@@ -34,6 +34,7 @@
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
+        "utils-lite": { "packageName": "AwsJavaSdk-Core-UtilsLite" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
         "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
         "checksums-spi": { "packageName": "AwsJavaSdk-Core-ChecksumsSpi" },
@@ -160,5 +161,9 @@
         "org.openrewrite:rewrite-java-8": {"packageName": "Maven-org-openrewrite_rewrite-java-8", "packageVersion": "8.x"},
         "org.openrewrite:rewrite-java": {"packageName": "Maven-org-openrewrite_rewrite-java", "packageVersion": "8.x"},
         "org.openrewrite.recipe:rewrite-java-dependencies": {"packageName": "Maven-org-openrewrite-recipe_rewrite-java-dependencies", "packageVersion": "1.x"}
+    },
+
+    "test-dependencies": {
+        "s3": ["JUnit5-5.x", "Aws-crt-java-1.0.x"]
     }
 }

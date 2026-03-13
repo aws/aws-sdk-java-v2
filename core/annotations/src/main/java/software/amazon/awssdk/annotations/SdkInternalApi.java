@@ -15,15 +15,23 @@
 
 package software.amazon.awssdk.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for 'internal' APIs that should not be used outside the same module. Breaking
- * changes can and will be introduced to elements marked as {@link SdkInternalApi}. Users of the SDK
- * and the generated clients themselves should not depend on any packages, types, fields,
- * constructors, or methods with this annotation.
+ * Marks APIs that should not be used by SDK users and are internal to the AWS SDK for Java v2, subject to change without notice.
+ * 
+ * <p><b>WARNING:</b> Elements annotated with {@code @SdkInternalApi} are not part of the public API.
+ * They may be modified or removed in any release without warning, including minor and patch releases.
+ * 
+ * <p><b>Intended for:</b> Internal SDK implementation only. This annotation indicates that the
+ * marked element should not be used outside its defining module.
+ * 
+ * @see SdkProtectedApi
+ * @see SdkPublicApi
  */
+@Documented
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
 @SdkProtectedApi
 public @interface SdkInternalApi {

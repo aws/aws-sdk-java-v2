@@ -21,17 +21,21 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
-import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -54,11 +58,30 @@ public final class SigningUtils {
      * >Setting signed cookies using a canned policy</a>.
      */
     public static String buildCannedPolicy(String resourceUrl, Instant expirationDate) {
-        return "{\"Statement\":[{\"Resource\":\""
-               + resourceUrl
-               + "\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":"
-               + expirationDate.getEpochSecond()
-               + "}}}]}";
+        Validate.notNull(resourceUrl, "resourceUrl must not be null");
+        Validate.notNull(expirationDate, "expirationDate must not be null");
+        validateInput(resourceUrl, "resourceUrl");
+
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
+                  .writeStartObject()
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
+                  .writeStartObject()
+                  .writeFieldName("AWS:EpochTime")
+                  .writeValue(expirationDate.getEpochSecond())
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+            return new String(writer.getBytes(), UTF_8);
+        }
     }
 
     /**
@@ -72,24 +95,73 @@ public final class SigningUtils {
      * >Setting signed cookies using a custom policy</a>.
      */
     public static String buildCustomPolicy(String resourceUrl, Instant activeDate, Instant expirationDate,
-                                            String ipAddress) {
-        return "{\"Statement\": [{"
-               + "\"Resource\":\""
-               + resourceUrl
-               + "\""
-               + ",\"Condition\":{"
-               + "\"DateLessThan\":{\"AWS:EpochTime\":"
-               + expirationDate.getEpochSecond()
-               + "}"
-               + (ipAddress == null
-                  ? ""
-                  : ",\"IpAddress\":{\"AWS:SourceIp\":\"" + ipAddress + "\"}"
-               )
-               + (activeDate == null
-                  ? ""
-                  : ",\"DateGreaterThan\":{\"AWS:EpochTime\":" + activeDate.getEpochSecond() + "}"
-               )
-               + "}}]}";
+                                           String ipAddress) {
+        Validate.notNull(resourceUrl, "resourceUrl must not be null");
+        Validate.notNull(expirationDate, "expirationDate must not be null");
+        validateInput(resourceUrl, "resourceUrl");
+        if (ipAddress != null) {
+            validateInput(ipAddress, "ipAddress");
+        }
+
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
+                  .writeStartObject()
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
+                  .writeStartObject()
+                  .writeFieldName("AWS:EpochTime")
+                  .writeValue(expirationDate.getEpochSecond())
+                  .writeEndObject();
+
+            if (ipAddress != null) {
+                writer.writeFieldName("IpAddress")
+                      .writeStartObject()
+                      .writeFieldName("AWS:SourceIp")
+                      .writeValue(ipAddress)
+                      .writeEndObject();
+            }
+
+            if (activeDate != null) {
+                writer.writeFieldName("DateGreaterThan")
+                      .writeStartObject()
+                      .writeFieldName("AWS:EpochTime")
+                      .writeValue(activeDate.getEpochSecond())
+                      .writeEndObject();
+            }
+
+            writer.writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+
+            return new String(writer.getBytes(), UTF_8);
+        }
+    }
+
+    /**
+     * Validates that the input does not contain characters that could be used for JSON injection attacks.
+     * Double quotes, backslashes, and control characters should never appear in valid CloudFront resource URLs
+     * or IP addresses.
+     *
+     * @param input the input string to validate
+     * @param paramName the parameter name for error messages
+     * @throws IllegalArgumentException if the input contains invalid characters
+     */
+    private static void validateInput(String input, String paramName) {
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '"' || c == '\\' || Character.isISOControl(c)) {
+                throw new IllegalArgumentException(
+                    paramName + " contains invalid characters. The character '" + c + "' at position " + i +
+                    " is not allowed. URLs and IP addresses should be properly encoded and must not contain " +
+                    "double quotes, backslashes, or control characters.");
+            }
+        }
     }
 
     /**
@@ -130,6 +202,22 @@ public final class SigningUtils {
     public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
         try {
             Signature signature = Signature.getInstance("SHA1withRSA");
+            SecureRandom random = new SecureRandom();
+            signature.initSign(privateKey, random);
+            signature.update(dataToSign);
+            return signature.sign();
+        } catch (NoSuchAlgorithmException | SignatureException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Signs the data given with the private key given, using the SHA1withECDSA
+     * algorithm provided by bouncy castle.
+     */
+    public static byte[] signWithSha1ECDSA(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException  {
+        try {
+            Signature signature = Signature.getInstance("SHA1withECDSA");
             SecureRandom random = new SecureRandom();
             signature.initSign(privateKey, random);
             signature.update(dataToSign);
@@ -198,10 +286,35 @@ public final class SigningUtils {
         }
         if (StringUtils.lowerCase(keyFile.toString()).endsWith(".der")) {
             try (InputStream is = Files.newInputStream(keyFile)) {
-                return Rsa.privateKeyFromPkcs8(IoUtils.toByteArray(is));
+                return privateKeyFromPkcs8(IoUtils.toByteArray(is));
             }
         }
         throw SdkClientException.create("Unsupported file type for private key");
     }
 
+    /**
+     * Attempt to load a private key from PKCS8 DER
+     */
+    public static PrivateKey privateKeyFromPkcs8(byte[] derBytes) {
+        EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(derBytes);
+        try {
+            return tryKeyLoadFromSpec(privateKeySpec);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid private key, unable to load as either RSA or ECDSA", e);
+        }
+    }
+
+    /**
+     * We don't have a way to determine which algorithm to use, so we try to load as RSA and EC
+     */
+    private static PrivateKey tryKeyLoadFromSpec(EncodedKeySpec privateKeySpec)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            return KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
+        } catch (InvalidKeySpecException rsaFail) {
+            return KeyFactory.getInstance("EC").generatePrivate(privateKeySpec);
+        }
+    }
 }
