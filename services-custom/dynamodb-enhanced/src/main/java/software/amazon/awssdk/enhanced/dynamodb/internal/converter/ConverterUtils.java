@@ -39,6 +39,7 @@ public class ConverterUtils {
      * @param input
      */
     public static void validateDouble(Double input) {
+        Validate.paramNotNull(input, "input");
         Validate.isTrue(!Double.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Double.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
@@ -48,6 +49,7 @@ public class ConverterUtils {
      * @param input
      */
     public static void validateFloat(Float input) {
+        Validate.paramNotNull(input, "input");
         Validate.isTrue(!Float.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Float.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.converters.attribute;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.assertFails;
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformFrom;
@@ -150,6 +151,9 @@ public class NumberAttributeConvertersTest {
         assertFails(() -> transformFrom(converter, Float.NEGATIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Float.POSITIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Float.NaN));
+        assertThatThrownBy(() -> transformFrom(converter, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("input must not be null");
 
         assertThat(transformFrom(converter, -Float.MAX_VALUE).n()).isEqualTo("-3.4028235E38");
         assertThat(Float.parseFloat(transformFrom(converter, -42.42f).n())).isCloseTo(-42.42f, offset(1E-10f));
@@ -179,6 +183,9 @@ public class NumberAttributeConvertersTest {
         assertFails(() -> transformFrom(converter, Double.NEGATIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Double.POSITIVE_INFINITY));
         assertFails(() -> transformFrom(converter, Double.NaN));
+        assertThatThrownBy(() -> transformFrom(converter, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("input must not be null");
 
         assertThat(transformFrom(converter, -Double.MAX_VALUE).n()).isEqualTo("-1.7976931348623157E308");
         assertThat(Double.parseDouble(transformFrom(converter, -42.42d).n())).isCloseTo(-42.42d, offset(1E-10));
