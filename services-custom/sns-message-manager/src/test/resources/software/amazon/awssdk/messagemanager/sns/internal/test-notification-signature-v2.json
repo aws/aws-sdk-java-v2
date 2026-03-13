@@ -1,0 +1,11 @@
+{
+  "Type" : "Notification",
+  "MessageId" : "9d2c5580-b61d-550c-8583-37a582870907",
+  "TopicArn" : "arn:aws:sns:us-west-2:131990247566:dongie-standard-topic",
+  "Message" : "This message uses signature version 2.",
+  "Timestamp" : "2026-03-06T20:00:26.893Z",
+  "SignatureVersion" : "2",
+  "Signature" : "kGNJ7FIM5DJxRv9bdoSJBty2WHpADFWrJ0ZQU/A2sALy6tBE5hqfUvPRlklTJ+PACFMguoFOO7W6ac/Bs4gR+JBRFhx4598X8/HWzrmaLrtB2f7nzViHbpzYN+u+OewXhxjj2lNsu0bLKv6fogkACytDIOhjZylbfJoPphDYAB7T3Ila7u+K3m2wLHH4k1cPYKyBf5FI/kAoQAVsY6qFHeb6CWfHsdM98I2gwyEvwJSzW0iyYBfqckmthQwH3Ex53jrhQlZylXFDYmstSJAdvbLeGqIUxKyk+O25wYgBjbbbeR+2qE2UCGEQrk1Bq018wmTxdHZmDhoBjJXiGmFkfg==",
+  "SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem",
+  "UnsubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:131990247566:dongie-standard-topic:b24e11a2-06bd-4e73-aa29-0ed2de3b41b5"
+}
