@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.internal.Utils.isListShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,10 +38,15 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.Member;
+import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -349,17 +355,38 @@ abstract class AddShapes {
      * Given an input shape, finds the Request URI for the operation that input is referenced from.
      * Per the Smithy spec, httpLabel on non-input shapes has no meaning and is ignored,
      * so this returns Optional.empty() if the shape is not a direct operation input.
-     *
-     * @param parentShape  Shape to find operation's request URI for.
-     * @param allC2jShapes All shapes in the service model.
-     * @return Request URI for operation, or empty if the shape is not a direct operation input.
+     * If the shape IS a direct operation input but the operation is missing a requestUri,
+     * a validation error is thrown.
      */
     private Optional<String> findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
-        return builder.getService().getOperations().values().stream()
-                      .filter(o -> o.getInput() != null)
-                      .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
-                      .findFirst()
-                      .map(o -> o.getHttp().getRequestUri());
+        Optional<Operation> operation = builder.getService().getOperations().values().stream()
+                                               .filter(o -> o.getInput() != null)
+                                               .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
+                                               .findFirst();
+
+        if (!operation.isPresent()) {
+            // Not a direct operation input shape, should be ignored.
+            // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
+            return Optional.empty();
+        }
+
+        String requestUri = operation.get().getHttp().getRequestUri();
+        if (requestUri == null) {
+            String shapeName = allC2jShapes.entrySet().stream()
+                .filter(e -> e.getValue().equals(parentShape))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .get();
+            String detailMsg = "Could not find request URI for input shape '" + shapeName
+                + "'. No operation was found that references this shape as its input.";
+            ValidationEntry entry =
+                new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
+                                     .withDetailMessage(detailMsg)
+                                     .withSeverity(ValidationErrorSeverity.DANGER);
+            throw ModelInvalidException.builder().validationEntries(Collections.singletonList(entry)).build();
+        }
+
+        return Optional.of(requestUri);
     }
 
     private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
