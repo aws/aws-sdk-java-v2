@@ -1,4 +1,144 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.12__ __2026-03-12__
+## __AWS DataSync__
+  - ### Features
+    - DataSync's 3 location types, Hadoop Distributed File System (HDFS), FSx for Windows File Server (FSx Windows), and FSx for NetApp ONTAP (FSx ONTAP) now have credentials managed via Secrets Manager, which may be encrypted with service keys or be configured to use customer-managed keys or secret.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakefromation Access Grants Plugin version to 1.4.1
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Cloudfront__
+  - ### Features
+    - Add support for resourceUrlPattern to `CloudFrontUtilities.getCookiesForCustomPolicy`.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client. Fixes [#6654](https://github.com/aws/aws-sdk-java-v2/issues/6654)
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Chainguard to PTC upstreamRegistry enum
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for account regional namespaces for general purpose buckets. The account regional namespace is a reserved subdivision of the global bucket namespace where only your account can create general purpose buckets.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix inaccurate progress tracking for in-memory uploads in the Java-based S3TransferManager.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
+# __2.42.11__ __2026-03-11__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Only log `SSL Certificate verification is disabled` warning if trustAllCertificatesEnabled is set to true.
+        - Contributed by: [@bsmelo](https://github.com/bsmelo)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.4
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Strip quotes in getETag response
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Today, Amazon Connect is announcing the ability to filter (include or exclude) recommendations based on properties of items and interactions.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improved performance by adding a fast path avoiding wrapping of String and Byte types
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for a new tier in controlPlaneScalingConfig on EKS Clusters.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voices - Ambre (fr-FR), Beatrice (it-IT), Florian (fr-FR), Lennart (de-DE), Lorenzo (it-IT) and Tiffany (en-US). They are available as a Generative voices only.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed misleading checksum mismatch error message for S3 GetObject that incorrectly referenced uploading. See [#6324](https://github.com/aws/aws-sdk-java-v2/issues/6324).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker training plans allow you to extend your existing training plans to avoid workload interruptions without workload reconfiguration. When a training plan is approaching expiration, you can extend it directly through the SageMaker AI console or programmatically using the API or AWS CLI.
+
+## __Amazon SimpleDB v2__
+  - ### Features
+    - Introduced Amazon SimpleDB export functionality enabling domain data export to S3 in JSON format. Added three new APIs StartDomainExport, GetExport, and ListExports via SimpleDBv2 service. Supports cross-region exports and KMS encryption.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added WINDOWS SERVER 2025 OperatingSystemName.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bsmelo](https://github.com/bsmelo)
+# __2.42.10__ __2026-03-10__
+## __AWS Database Migration Service__
+  - ### Features
+    - Not need to include to any release notes. The only change is to correct LoadTimeout unit from milliseconds to seconds in RedshiftSettings
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Code Generator__
+  - ### Features
+    - Improve model validation error message for operations missing request URI.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adding first class support for AG-UI protocol in AgentCore Runtime.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Added functionality for the Required and Hidden case rule types to be conditionally evaluated on up to 5 conditions.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces a new generative AI feature called Lex Bot Analyzer. This feature leverage AI to analyze the bot configuration against AWS Lex best practices to identify configuration issues and provides recommendations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Add dual stack endpoint to SDK
+
+# __2.42.9__ __2026-03-09__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added support for CloudWatch Logs long-term API keys, currently available in Preview
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Implement reset() for XxHashChecksum to allow checksum reuse.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This change enables cross-account and cross-region access for DataSources. Customers can now define access policies on their datasources to allow other AWS accounts to access and query their data.
+
+## __Amazon Route 53 Global Resolver__
+  - ### Features
+    - Adds support for dual stack Global Resolvers and Dictionary-based Domain Generation Firewall Advanced Protection.
+
+## __Application Migration Service__
+  - ### Features
+    - Adds support for new storeSnapshotOnLocalZone field in ReplicationConfiguration and updateReplicationConfiguration
+
 # __2.42.8__ __2026-03-06__
 ## __AWS Billing and Cost Management Data Exports__
   - ### Features
