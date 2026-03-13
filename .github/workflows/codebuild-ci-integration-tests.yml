@@ -26,4 +26,20 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-IntegrationTest-JDK8
           hide-cloudwatch-logs: true
+  integration-tests-apache5:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run Integration Test build with Apache5
+        uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 180
+        with:
+          project-name: aws-sdk-java-v2-IntegrationTest-JDK8-Apache5
+          hide-cloudwatch-logs: true
 
