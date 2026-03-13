@@ -346,6 +346,8 @@
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.ContainerCredentialsProvider" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
 
+            <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
+
             <!-- test modules are allowed to make blocking call as parts of their testing -->
             <Class name="~.*testutils.*" />
             <Class name="~.*s3benchmarks.*" />
