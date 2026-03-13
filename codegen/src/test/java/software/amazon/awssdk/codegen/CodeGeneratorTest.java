@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -178,20 +179,15 @@ public class CodeGeneratorTest {
     }
 
     @Test
-    void execute_uriLocationOnNonInputShape_throwsValidationErrorWithShapeName() throws IOException {
+    void execute_uriLocationOnNonInputShape_isIgnored() throws IOException {
         C2jModels models = C2jModels.builder()
                                     .customizationConfig(CustomizationConfig.create())
                                     .serviceModel(getUriOnNonInputShapeServiceModel())
                                     .build();
 
-        assertThatThrownBy(() -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()))
-            .isInstanceOf(ModelInvalidException.class)
-            .matches(e -> {
-                ModelInvalidException ex = (ModelInvalidException) e;
-                ValidationEntry entry = ex.validationEntries().get(0);
-                return entry.getErrorId() == ValidationErrorId.REQUEST_URI_NOT_FOUND
-                       && entry.getDetailMessage().contains("No operation was found");
-            });
+        // Per the Smithy spec, httpLabel on non-input shapes has no meaning and is simply ignored.
+        assertThatNoException().isThrownBy(
+            () -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()));
     }
 
     @Test
