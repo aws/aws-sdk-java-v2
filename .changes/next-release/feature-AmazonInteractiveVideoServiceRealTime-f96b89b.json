@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service RealTime",
-    "contributor": "",
-    "description": "Updates maximum reconnect window seconds from 60 to 300 for participant replication"
-}

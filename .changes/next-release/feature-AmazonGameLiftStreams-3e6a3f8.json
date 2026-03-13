@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GameLift Streams",
-    "contributor": "",
-    "description": "Feature launch that enables customers to connect streaming sessions to their own VPCs running in AWS."
-}

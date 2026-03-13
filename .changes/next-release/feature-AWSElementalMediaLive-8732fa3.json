@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "Documents the VideoDescription.ScalingBehavior.SMART(underscore)CROP enum value."
-}
