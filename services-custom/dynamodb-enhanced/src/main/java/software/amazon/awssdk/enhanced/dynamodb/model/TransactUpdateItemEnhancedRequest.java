@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -42,6 +43,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
     private final Boolean ignoreNulls;
     private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
+    private final UpdateExpression updateExpression;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactUpdateItemEnhancedRequest(Builder<T> builder) {
@@ -49,6 +51,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         this.ignoreNulls = builder.ignoreNulls;
         this.ignoreNullsMode = builder.ignoreNullsMode;
         this.conditionExpression = builder.conditionExpression;
+        this.updateExpression = builder.updateExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
@@ -71,6 +74,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
                                .ignoreNulls(ignoreNulls)
                                .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
+                               .updateExpression(updateExpression)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
@@ -102,6 +106,13 @@ public class TransactUpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Returns the update expression {@link UpdateExpression} set on this request object, or null if it doesn't exist.
+     */
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     /**
@@ -152,6 +163,9 @@ public class TransactUpdateItemEnhancedRequest<T> {
         if (!Objects.equals(conditionExpression, that.conditionExpression)) {
             return false;
         }
+        if (!Objects.equals(updateExpression, that.updateExpression)) {
+            return false;
+        }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
@@ -160,6 +174,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         int result = Objects.hashCode(item);
         result = 31 * result + Objects.hashCode(ignoreNulls);
         result = 31 * result + Objects.hashCode(conditionExpression);
+        result = 31 * result + Objects.hashCode(updateExpression);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
     }
@@ -175,6 +190,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         private Boolean ignoreNulls;
         private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
+        private UpdateExpression updateExpression;
         private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
@@ -224,6 +240,30 @@ public class TransactUpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Specifies custom update operations using DynamoDB's native update expression syntax.
+         * <p>
+         * <b>Precedence:</b> When performing an update, the final set of attribute modifications is determined as follows:
+         * <ol>
+         *   <li><b>Request-level UpdateExpression</b> (set via this method) has the highest priority and overrides any
+         *   conflicting updates from extensions or POJO item attributes.</li>
+         *   <li><b>Extension-provided UpdateExpression</b> (if present) has medium priority and overrides conflicting updates
+         *   from POJO item attributes.</li>
+         *   <li><b>POJO item attributes</b> have the lowest priority; any conflicts with extension or request expressions are
+         *   overridden.</li>
+         * </ol>
+         * If the same attribute is updated by multiple sources, only the action from the highest-priority source is applied.
+         * <p>
+         * This method does not affect existing behavior if not used.
+         *
+         * @param updateExpression the update operations to perform
+         * @return a builder of this type
+         */
+        public Builder<T> updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
             return this;
         }
 
