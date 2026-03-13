@@ -231,6 +231,11 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
      * further details and constraints.
      * <p>
+     * <b>Optimistic Locking:</b> If the item has a version attribute annotated with
+     * {@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute} and
+     * {@code useVersionOnDelete = true}, optimistic locking will be automatically applied. The deletion will only
+     * succeed if the version matches the current version in the database.
+     * <p>
      * Example:
      * <pre>
      * {@code
