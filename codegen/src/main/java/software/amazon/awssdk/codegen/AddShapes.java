@@ -352,11 +352,14 @@ abstract class AddShapes {
     }
 
     /**
-     * Given an input shape, finds the Request URI for the operation that input is referenced from.
-     * Per the Smithy spec, httpLabel on non-input shapes has no meaning and is ignored,
-     * so this returns Optional.empty() if the shape is not a direct operation input.
-     * If the shape IS a direct operation input but the operation is missing a requestUri,
-     * a validation error is thrown.
+     * Given a shape, finds the Request URI for the operation that references it as input.
+     * Returns empty if the shape is not a direct operation input.
+     * Throws if the shape is a direct operation input but the operation is missing a requestUri.
+     *
+     * @param parentShape  Shape to find operation's request URI for.
+     * @param allC2jShapes All shapes in the service model.
+     * @return Request URI for operation, or empty if the shape is not a direct operation input.
+     * @throws ModelInvalidException If the shape is a direct operation input but requestUri is missing.
      */
     private Optional<String> findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
         Optional<Operation> operation = builder.getService().getOperations().values().stream()
