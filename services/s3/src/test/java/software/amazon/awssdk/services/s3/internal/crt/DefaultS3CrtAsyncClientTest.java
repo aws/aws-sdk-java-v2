@@ -22,7 +22,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
@@ -161,4 +164,76 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(client).isInstanceOf(DefaultS3CrtAsyncClient.class);
         }
     }
+
+    @Test
+    void afterMarshalling_withRequestLevelCredentials_shouldAttachCrtCredentialsAdapterToHttpAttributes() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+
+        ExecutionInterceptor attributeCaptor = new ExecutionInterceptor() {
+            @Override
+            public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(attributeCaptor);
+
+        try (S3AsyncClient s3AsyncClient = builder.build()) {
+            IdentityProvider<? extends AwsCredentialsIdentity> requestCredentials =
+                StaticCredentialsProvider.create(AwsBasicCredentials.create("requestAkid", "requestSkid"));
+
+            assertThatThrownBy(() -> s3AsyncClient.getObject(
+                b -> b.bucket("bucket").key("key")
+                      .overrideConfiguration(o -> o.credentialsProvider(requestCredentials)),
+                AsyncResponseTransformer.toBytes()).join()).hasMessageContaining("STOP");
+
+            SdkHttpExecutionAttributes httpAttributes = capturedAttributes.get();
+            assertThat(httpAttributes).isNotNull();
+            CrtCredentialsProviderAdapter adapter =
+                httpAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
+            assertThat(adapter).isNotNull();
+
+            software.amazon.awssdk.crt.auth.credentials.Credentials crtCreds =
+                adapter.crtCredentials().getCredentials().join();
+            assertThat(crtCreds.getAccessKeyId())
+                .isEqualTo("requestAkid".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            assertThat(crtCreds.getSecretAccessKey())
+                .isEqualTo("requestSkid".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
+    void afterMarshalling_withoutRequestLevelCredentials_shouldNotAttachCrtCredentialsAdapter() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+
+        ExecutionInterceptor attributeCaptor = new ExecutionInterceptor() {
+            @Override
+            public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(attributeCaptor);
+
+        try (S3AsyncClient s3AsyncClient = builder.build()) {
+            assertThatThrownBy(() -> s3AsyncClient.getObject(
+                b -> b.bucket("bucket").key("key"),
+                AsyncResponseTransformer.toBytes()).join()).hasMessageContaining("STOP");
+
+            SdkHttpExecutionAttributes httpAttributes = capturedAttributes.get();
+            assertThat(httpAttributes).isNotNull();
+            CrtCredentialsProviderAdapter adapter =
+                httpAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
+            assertThat(adapter).isNull();
+        }
+    }
+
 }
