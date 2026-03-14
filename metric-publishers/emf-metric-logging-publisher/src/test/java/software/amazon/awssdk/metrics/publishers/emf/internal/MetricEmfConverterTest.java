@@ -379,7 +379,7 @@ public class MetricEmfConverterTest {
     private MetricEmfConverter converterWithProperties(Map<String, String> properties) {
         EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
             .logGroupName("my_log_group_name")
-            .propertiesSupplier(() -> properties)
+            .propertiesFactory(mc -> properties)
             .build();
         return new MetricEmfConverter(config, fixedClock);
     }

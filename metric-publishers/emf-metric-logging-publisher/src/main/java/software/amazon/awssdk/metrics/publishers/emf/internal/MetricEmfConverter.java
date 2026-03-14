@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.metrics.publishers.emf.PropertiesFactory;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.MetricValueNormalizer;
@@ -71,14 +71,14 @@ public class MetricEmfConverter {
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
     private final Clock clock;
-    private final Supplier<Map<String, String>> propertiesSupplier;
+    private final PropertiesFactory propertiesFactory;
 
     @SdkTestInternalApi
     public MetricEmfConverter(EmfMetricConfiguration config, Clock clock) {
         this.config = config;
         this.clock = clock;
         this.metricCategoriesContainsAll = config.metricCategories().contains(MetricCategory.ALL);
-        this.propertiesSupplier = config.propertiesSupplier();
+        this.propertiesFactory = config.propertiesFactory();
     }
 
     public MetricEmfConverter(EmfMetricConfiguration config) {
@@ -143,16 +143,16 @@ public class MetricEmfConverter {
             }
         }
 
-        Map<String, String> properties = resolveProperties();
+        Map<String, String> properties = resolveProperties(metricCollection);
         return createEmfStrings(aggregatedMetrics, properties);
     }
 
-    private Map<String, String> resolveProperties() {
+    private Map<String, String> resolveProperties(MetricCollection metricCollection) {
         try {
-            Map<String, String> result = propertiesSupplier.get();
+            Map<String, String> result = propertiesFactory.create(metricCollection);
             return result == null ? Collections.emptyMap() : result;
         } catch (Exception e) {
-            logger.warn(() -> "Properties supplier threw an exception, publishing without custom properties", e);
+            logger.warn(() -> "Properties factory threw an exception, publishing without custom properties", e);
             return Collections.emptyMap();
         }
     }

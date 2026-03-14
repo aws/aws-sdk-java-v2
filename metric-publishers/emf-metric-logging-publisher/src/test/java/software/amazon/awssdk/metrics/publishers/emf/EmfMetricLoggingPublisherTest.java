@@ -103,20 +103,20 @@ public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
-    void publish_propertiesSupplierThrowsException_publishesWithoutCustomProperties() {
+    void publish_propertiesFactoryThrowsException_publishesWithoutCustomProperties() {
         EmfMetricLoggingPublisher publisher = publisherBuilder
             .logGroupName("/aws/lambda/emfMetricTest")
-            .propertiesSupplier(() -> { throw new RuntimeException("supplier failed"); })
+            .propertiesFactory(mc -> { throw new RuntimeException("factory failed"); })
             .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         publisher.publish(metricCollector.collect());
 
-        // Should have: 1 warning about supplier + 1 EMF info log
+        // Should have: 1 warning about factory + 1 EMF info log
         boolean hasWarning = loggedEvents().stream()
             .anyMatch(e -> e.getLevel() == Level.WARN
-                && e.getMessage().getFormattedMessage().contains("Properties supplier threw an exception"));
+                && e.getMessage().getFormattedMessage().contains("Properties factory threw an exception"));
         assertThat(hasWarning).isTrue();
 
         boolean hasEmfOutput = loggedEvents().stream()
@@ -133,10 +133,10 @@ public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
-    void publish_propertiesSupplierReturnsNull_publishesWithoutCustomProperties() {
+    void publish_propertiesFactoryReturnsNull_publishesWithoutCustomProperties() {
         EmfMetricLoggingPublisher publisher = publisherBuilder
             .logGroupName("/aws/lambda/emfMetricTest")
-            .propertiesSupplier(() -> null)
+            .propertiesFactory(mc -> null)
             .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -161,11 +161,11 @@ public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
-    void publish_statefulSupplier_eachPublishUsesCurrentMap() {
+    void publish_statefulFactory_eachPublishUsesCurrentMap() {
         AtomicInteger counter = new AtomicInteger(0);
         EmfMetricLoggingPublisher publisher = publisherBuilder
             .logGroupName("/aws/lambda/emfMetricTest")
-            .propertiesSupplier(() -> {
+            .propertiesFactory(mc -> {
                 int count = counter.incrementAndGet();
                 Map<String, String> map = new HashMap<String, String>();
                 map.put("InvocationCount", String.valueOf(count));
