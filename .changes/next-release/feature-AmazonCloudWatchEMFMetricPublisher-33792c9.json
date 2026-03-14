@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Amazon CloudWatch EMF Metric Publisher",
     "contributor": "humanzz",
-    "description": "Add `propertiesSupplier` to `EmfMetricLoggingPublisher.Builder`, enabling users to enrich EMF records with custom key-value properties that are searchable in CloudWatch Logs Insights. See [#6595](https://github.com/aws/aws-sdk-java-v2/issues/6595)."
+    "description": "Add `PropertiesFactory` and `propertiesFactory` to `EmfMetricLoggingPublisher.Builder`, enabling users to enrich EMF records with custom key-value properties derived from the metric collection or ambient context, searchable in CloudWatch Logs Insights. See [#6595](https://github.com/aws/aws-sdk-java-v2/issues/6595)."
 }
