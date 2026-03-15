@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
@@ -46,6 +47,12 @@ public class DeleteTableOperationTest {
     @Mock
     private DynamoDbClient mockDynamoDbClient;
 
+
+    @Test
+    public void operationName_returnsDeleteTable() {
+        DeleteTableOperation<FakeItemWithIndices> operation = DeleteTableOperation.create();
+        assertThat(operation.operationName(), is(OperationName.DELETE_TABLE));
+    }
 
     @Test
     public void getServiceCall_makesTheRightCall() {
