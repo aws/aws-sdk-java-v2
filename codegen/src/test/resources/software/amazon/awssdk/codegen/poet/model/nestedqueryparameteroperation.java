@@ -33,13 +33,13 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
         .memberName("QueryParamOne")
         .getter(getter(NestedQueryParameterOperation::queryParamOne))
         .setter(setter(Builder::queryParamOne))
-        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("QueryParamOne").build(),
                 RequiredTrait.create()).build();
 
     private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
                                                                           .memberName("QueryParamTwo").getter(getter(NestedQueryParameterOperation::queryParamTwo))
                                                                           .setter(setter(Builder::queryParamTwo))
-                                                                          .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("QueryParamTwo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(QUERY_PARAM_ONE_FIELD,
                                                                                                    QUERY_PARAM_TWO_FIELD));

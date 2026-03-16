@@ -311,8 +311,13 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
+        // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
+        Location location = isDirectOperationInputOrOutput(parentShape, allC2jShapes)
+                            ? Location.forValue(member.getLocation())
+                            : null;
+
         Shape memberShape = allC2jShapes.get(member.getShape());
-        mapping.withLocation(Location.forValue(member.getLocation()))
+        mapping.withLocation(location)
                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
                .withFlattened(isFlattened(member, memberShape))
                .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberShape, memberName, member))
@@ -321,6 +326,26 @@ abstract class AddShapes {
                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
 
         return mapping;
+    }
+
+    private boolean isDirectOperationInputOrOutput(Shape parentShape, Map<String, Shape> allC2jShapes) {
+        for (Operation operation : builder.getService().getOperations().values()) {
+            if (operation.getInput() != null) {
+                String inputShapeName = operation.getInput().getShape();
+                Shape inputShape = allC2jShapes.get(inputShapeName);
+                if (parentShape.equals(inputShape)) {
+                    return true;
+                }
+            }
+            if (operation.getOutput() != null) {
+                String outputShapeName = operation.getOutput().getShape();
+                Shape outputShape = allC2jShapes.get(outputShapeName);
+                if (parentShape.equals(outputShape)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isFlattened(Member member, Shape memberShape) {
@@ -354,12 +379,10 @@ abstract class AddShapes {
     /**
      * Given a shape, finds the Request URI for the operation that references it as input.
      * Returns empty if the shape is not a direct operation input.
-     * Throws if the shape is a direct operation input but the operation is missing a requestUri.
      *
      * @param parentShape  Shape to find operation's request URI for.
      * @param allC2jShapes All shapes in the service model.
      * @return Request URI for operation, or empty if the shape is not a direct operation input.
-     * @throws ModelInvalidException If the shape is a direct operation input but requestUri is missing.
      */
     private Optional<String> findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
         Optional<Operation> operation = builder.getService().getOperations().values().stream()

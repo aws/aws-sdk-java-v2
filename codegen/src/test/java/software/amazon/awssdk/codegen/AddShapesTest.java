@@ -84,7 +84,7 @@ class AddShapesTest {
         MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
         assertThat(requestShapeModel.getRequired()).contains(queryParamName);
-        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isNull();
         assertThat(requiredMemberModel.isRequired()).isTrue();
     }
 

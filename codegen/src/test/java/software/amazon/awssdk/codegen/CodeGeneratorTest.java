@@ -44,7 +44,10 @@ import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
@@ -188,6 +191,24 @@ public class CodeGeneratorTest {
         // Per the Smithy spec, httpLabel on non-input shapes has no meaning and is simply ignored.
         assertThatNoException().isThrownBy(
             () -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()));
+
+        IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
+        ShapeModel inputShape = intermediateModel.getShapes().get("SomeOperationRequest");
+        MemberModel uriMember = inputShape.findMemberModelByC2jName("thingId");
+        assertThat(uriMember.getHttp().getLocation()).isEqualTo(Location.URI);
+
+        ShapeModel nestedShape = intermediateModel.getShapes().get("NestedOptions");
+        MemberModel nestedUriMember = nestedShape.findMemberModelByC2jName("pageSize");
+        assertThat(nestedUriMember.getHttp().getLocation()).isNull();
+        assertThat(nestedUriMember.getHttp().isGreedy()).isFalse();
+
+        Path generatedNestedOptions = Files.walk(outputDir)
+            .filter(p -> p.getFileName().toString().equals("NestedOptions.java"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("NestedOptions.java not found in generated output"));
+        String actual = new String(Files.readAllBytes(generatedNestedOptions), StandardCharsets.UTF_8);
+        String expected = resourceAsString("expected-nested-options.java");
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
