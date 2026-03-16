@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore",
+    "contributor": "",
+    "description": "Provide support to perform deterministic operations on agent runtime through shell command executions via the new InvokeAgentRuntimeCommand API"
+}
