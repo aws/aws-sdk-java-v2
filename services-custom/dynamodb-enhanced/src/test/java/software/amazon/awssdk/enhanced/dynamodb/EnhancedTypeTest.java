@@ -265,6 +265,18 @@ public class EnhancedTypeTest {
     }
 
     @Test
+    public void wildcardType_equals_notEqualToNonWildcard() {
+        // A wildcard type (rawClass=null) should not be equal to a non-wildcard type (rawClass!=null)
+        EnhancedType<List<?>> listWithWildcard = new EnhancedType<List<?>>(){};
+        EnhancedType<?> wildcardType = listWithWildcard.rawClassParameters().get(0);
+        EnhancedType<String> nonWildcardType = EnhancedType.of(String.class);
+
+        // Wildcard vs non-wildcard should not be equal (tests both comparison directions)
+        assertThat(wildcardType).isNotEqualTo(nonWildcardType);
+        assertThat(nonWildcardType).isNotEqualTo(wildcardType);
+    }
+
+    @Test
     public void wildcardType_toString_doesNotRaiseNPE() {
         // Wildcard types should be convertible to string without NPE
         EnhancedType<List<?>> listWithWildcard = new EnhancedType<List<?>>(){};
