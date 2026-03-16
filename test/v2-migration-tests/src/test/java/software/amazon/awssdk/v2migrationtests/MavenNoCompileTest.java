@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.v2migrationtests;
 
+import static software.amazon.awssdk.v2migrationtests.TestUtils.assertTwoDirectoriesHaveSameStructure;
+import static software.amazon.awssdk.v2migrationtests.TestUtils.normalizeImports;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.replaceVersion;
 
 import java.io.File;
@@ -50,6 +52,8 @@ public class MavenNoCompileTest extends MavenTestBase {
     @Test
     @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
-        verifyTransformation();
+        runTransformation();
+        normalizeImports(mavenActual);
+        assertTwoDirectoriesHaveSameStructure(mavenActual, mavenExpected);
     }
 }

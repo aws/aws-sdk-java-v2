@@ -144,9 +144,18 @@ public class UploadObjectHelperTest {
 
         CompletableFuture<PutObjectResponse> completedFuture =
             CompletableFuture.completedFuture(PutObjectResponse.builder().build());
-        when(s3AsyncClient.putObject(putObjectRequest, asyncRequestBody)).thenReturn(completedFuture);
+        when(s3AsyncClient.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class))).thenReturn(completedFuture);
         uploadHelper.uploadObject(putObjectRequest, asyncRequestBody).join();
-        Mockito.verify(s3AsyncClient).putObject(putObjectRequest, asyncRequestBody);
+
+        ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        Mockito.verify(s3AsyncClient).putObject(requestCaptor.capture(), any(AsyncRequestBody.class));
+
+        PutObjectRequest capturedRequest = requestCaptor.getValue();
+        assertThat(capturedRequest.bucket()).isEqualTo(BUCKET);
+        assertThat(capturedRequest.key()).isEqualTo(KEY);
+        assertThat(capturedRequest.contentLength()).isEqualTo(contentLength);
+        // Content-type should be enriched from AsyncRequestBody (default is application/octet-stream)
+        assertThat(capturedRequest.contentType()).isEqualTo("application/octet-stream");
     }
 
     @ParameterizedTest
@@ -412,6 +421,48 @@ public class UploadObjectHelperTest {
 
         CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
         assertThat(actualRequest.multipartUpload().parts()).isEqualTo(completedParts(numTotalParts));
+    }
+
+    @Test
+    void uploadObject_contentTypeNotSetOnRequest_shouldUseContentTypeFromRequestBody() {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                                                            .bucket(BUCKET)
+                                                            .key(KEY)
+                                                            .build();
+
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        uploadHelper.uploadObject(putObjectRequest, AsyncRequestBody.fromFile(testFile)).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> requestCaptor =
+            ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(requestCaptor.capture());
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo("application/octet-stream");
+    }
+
+    @Test
+    void uploadObject_contentTypeSetOnRequest_shouldNotOverride() {
+        String explicitContentType = "my/content-type";
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                                                            .bucket(BUCKET)
+                                                            .key(KEY)
+                                                            .contentType(explicitContentType)
+                                                            .build();
+
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        uploadHelper.uploadObject(putObjectRequest, AsyncRequestBody.fromFile(testFile)).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> requestCaptor =
+            ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(requestCaptor.capture());
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo(explicitContentType);
     }
 
     private List<CompletedPart> completedParts(int totalNumParts) {

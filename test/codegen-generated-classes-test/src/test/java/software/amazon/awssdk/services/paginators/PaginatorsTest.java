@@ -20,13 +20,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.reactivex.Flowable;
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -66,7 +66,7 @@ public class PaginatorsTest {
     void listStrings_largePage_succeeds() {
         int nItems = 10_000;
         wireMock.stubFor(post(urlEqualTo("/2016-03-11/listStrings")).willReturn(
-            aResponse().withStatus(200).withJsonBody(createResponse(nItems))));
+            aResponse().withStatus(200).withBody(createResponse(nItems))));
 
         ListStringsPublisher publisher = client.listStringsPaginator(ListStringsRequest.builder().build());
 
@@ -74,7 +74,7 @@ public class PaginatorsTest {
         assertThat(itemsSeen).isEqualTo(nItems);
     }
 
-    private static JsonNode createResponse(int nItems) {
+    private static String createResponse(int nItems) {
         ObjectNode resp = mapper.createObjectNode();
 
         ArrayNode strings = mapper.createArrayNode();
@@ -84,6 +84,10 @@ public class PaginatorsTest {
 
         resp.set("Strings", strings);
 
-        return resp;
+        try {
+            return mapper.writeValueAsString(resp);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

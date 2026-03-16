@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +27,7 @@ import static software.amazon.awssdk.services.s3.internal.multipart.utils.Multip
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulPutObjectCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulUploadPartCalls;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -53,6 +53,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
@@ -254,5 +255,51 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         CompleteMultipartUploadRequest actualRequest = completeMpuArgumentCaptor.getValue();
         assertThat(actualRequest.multipartUpload().parts()).isEqualTo(createCompletedParts(NUM_TOTAL_PARTS));
+    }
+
+    @Test
+    void uploadObject_unknownContentLength_contentTypeNotSet_shouldUseContentTypeFromRequestBody() throws IOException {
+        File tempFile = File.createTempFile("test-file", ".txt");
+        tempFile.deleteOnExit();
+        byte[] data = new byte[(int) (PART_SIZE * 2 + 1024)];
+        java.nio.file.Files.write(tempFile.toPath(), data);
+
+        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
+        stubSuccessfulUploadPartCalls(s3AsyncClient);
+        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
+
+        AsyncRequestBody fileBody = AsyncRequestBody.fromFile(tempFile);
+        AsyncRequestBody unknownLengthBody = new AsyncRequestBody() {
+            @Override
+            public java.util.Optional<Long> contentLength() {
+                return java.util.Optional.empty();
+            }
+
+            @Override
+            public String contentType() {
+                return fileBody.contentType();
+            }
+
+            @Override
+            public void subscribe(org.reactivestreams.Subscriber<? super java.nio.ByteBuffer> s) {
+                fileBody.subscribe(s);
+            }
+        };
+
+        PutObjectRequest putObjectRequest = createPutObjectRequest();
+
+        UploadObjectHelper uploadObjectHelper = new UploadObjectHelper(s3AsyncClient,
+            new MultipartConfigurationResolver(software.amazon.awssdk.services.s3.multipart.MultipartConfiguration.builder()
+                .minimumPartSizeInBytes(PART_SIZE)
+                .thresholdInBytes(PART_SIZE)
+                .build()));
+
+        uploadObjectHelper.uploadObject(putObjectRequest, unknownLengthBody).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> requestCaptor =
+            ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(requestCaptor.capture());
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo("text/plain");
     }
 }

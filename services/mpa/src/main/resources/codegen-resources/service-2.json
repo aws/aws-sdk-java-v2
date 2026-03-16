@@ -126,7 +126,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns details for an approval team.</p>"
+      "documentation":"<p>Returns details for an approval team.</p>",
+      "readonly":true
     },
     "GetIdentitySource":{
       "name":"GetIdentitySource",
@@ -144,7 +145,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns details for an identity source. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Identity Source</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns details for an identity source. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Identity Source</a> in the <i>Multi-party approval User Guide</i>.</p>",
+      "readonly":true
     },
     "GetPolicyVersion":{
       "name":"GetPolicyVersion",
@@ -162,7 +164,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns details for the version of a policy. Policies define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns details for the version of a policy. Policies define the permissions for team resources.</p>",
+      "readonly":true
     },
     "GetResourcePolicy":{
       "name":"GetResourcePolicy",
@@ -180,7 +183,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns details about a policy for a resource.</p>"
+      "documentation":"<p>Returns details about a policy for a resource.</p>",
+      "readonly":true
     },
     "GetSession":{
       "name":"GetSession",
@@ -198,7 +202,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns details for an approval session. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Session</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns details for an approval session. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Session</a> in the <i>Multi-party approval User Guide</i>.</p>",
+      "readonly":true
     },
     "ListApprovalTeams":{
       "name":"ListApprovalTeams",
@@ -215,7 +220,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of approval teams.</p>"
+      "documentation":"<p>Returns a list of approval teams.</p>",
+      "readonly":true
     },
     "ListIdentitySources":{
       "name":"ListIdentitySources",
@@ -232,7 +238,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of identity sources. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Identity Source</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns a list of identity sources. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Identity Source</a> in the <i>Multi-party approval User Guide</i>.</p>",
+      "readonly":true
     },
     "ListPolicies":{
       "name":"ListPolicies",
@@ -249,7 +256,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of policies. Policies define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns a list of policies. Policies define the permissions for team resources.</p>",
+      "readonly":true
     },
     "ListPolicyVersions":{
       "name":"ListPolicyVersions",
@@ -267,7 +275,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of the versions for policies. Policies define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns a list of the versions for policies. Policies define the permissions for team resources.</p>",
+      "readonly":true
     },
     "ListResourcePolicies":{
       "name":"ListResourcePolicies",
@@ -285,7 +294,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of policies for a resource.</p>"
+      "documentation":"<p>Returns a list of policies for a resource.</p>",
+      "readonly":true
     },
     "ListSessions":{
       "name":"ListSessions",
@@ -303,7 +313,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of approval sessions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Session</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Returns a list of approval sessions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-concepts.html\">Session</a> in the <i>Multi-party approval User Guide</i>.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -321,7 +332,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a list of the tags for a resource.</p>"
+      "documentation":"<p>Returns a list of the tags for a resource.</p>",
+      "readonly":true
     },
     "StartActiveApprovalTeamDeletion":{
       "name":"StartActiveApprovalTeamDeletion",
@@ -342,6 +354,24 @@
       ],
       "documentation":"<p>Starts the deletion process for an active approval team.</p> <note> <p> <b>Deletions require team approval</b> </p> <p>Requests to delete an active team must be approved by the team.</p> </note>",
       "idempotent":true
+    },
+    "StartApprovalTeamBaseline":{
+      "name":"StartApprovalTeamBaseline",
+      "http":{
+        "method":"POST",
+        "requestUri":"/approval-teams/{Arn}/baseline",
+        "responseCode":200
+      },
+      "input":{"shape":"StartApprovalTeamBaselineRequest"},
+      "output":{"shape":"StartApprovalTeamBaselineResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Starts a baseline session for specified approvers on an <code>ACTIVE</code> approval team.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -436,6 +466,17 @@
       "max":500,
       "min":0
     },
+    "AdditionalSecurityRequirement":{
+      "type":"string",
+      "documentation":"<p>Additional security requirements applied to a session or invitation</p> <ul> <li> <p> <code>APPROVER_VERIFICATION_REQUIRED</code>: Approvers will be required to perform an MFA challenge to vote</p> </li> </ul>",
+      "enum":["APPROVER_VERIFICATION_REQUIRED"]
+    },
+    "AdditionalSecurityRequirements":{
+      "type":"list",
+      "member":{"shape":"AdditionalSecurityRequirement"},
+      "max":100,
+      "min":0
+    },
     "ApprovalStrategy":{
       "type":"structure",
       "members":{
@@ -520,6 +561,14 @@
         "DELETE_FAILED_VALIDATION"
       ]
     },
+    "ApproverLastActivity":{
+      "type":"string",
+      "enum":[
+        "VOTED",
+        "BASELINED",
+        "RESPONDED_TO_INVITATION"
+      ]
+    },
     "Boolean":{
       "type":"boolean",
       "box":true
@@ -538,8 +587,7 @@
     },
     "CancelSessionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ConflictException":{
       "type":"structure",
@@ -586,7 +634,7 @@
         },
         "Policies":{
           "shape":"PoliciesReferences",
-          "documentation":"<p>An array of <code>PolicyReference</code> objects. Contains a list of policies that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+          "documentation":"<p>An array of <code>PolicyReference</code> objects. Contains a list of policies that define the permissions for team resources.</p>"
         },
         "Name":{
           "shape":"ApprovalTeamName",
@@ -690,8 +738,7 @@
     },
     "DeleteInactiveApprovalTeamVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Description":{
       "type":"string",
@@ -799,7 +846,7 @@
         },
         "Policies":{
           "shape":"PoliciesReferences",
-          "documentation":"<p>An array of <code>PolicyReference</code> objects. Contains a list of policies that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+          "documentation":"<p>An array of <code>PolicyReference</code> objects. Contains a list of policies that define the permissions for team resources.</p>"
         },
         "LastUpdateTime":{
           "shape":"IsoTimestamp",
@@ -833,6 +880,22 @@
         "PrimaryIdentityStatus":{
           "shape":"IdentityStatus",
           "documentation":"<p>Status for the identity source. For example, if an approver has accepted a team invitation with a user authentication method managed by the identity source.</p>"
+        },
+        "LastActivity":{
+          "shape":"ApproverLastActivity",
+          "documentation":"<p>Last Activity performed by the approver.</p>"
+        },
+        "LastActivityTime":{
+          "shape":"IsoTimestamp",
+          "documentation":"<p>Timestamp when the approver last responded to an operation or invitation request.</p>"
+        },
+        "PendingBaselineSessionArn":{
+          "shape":"SessionArn",
+          "documentation":"<p>Amazon Resource Name (ARN) for the pending baseline session.</p>"
+        },
+        "MfaMethods":{
+          "shape":"MfaMethods",
+          "documentation":"<p>Multi-factor authentication configuration for the approver</p>"
         }
       },
       "documentation":"<p>Contains details for an approver.</p>"
@@ -906,7 +969,7 @@
       "members":{
         "PolicyVersion":{
           "shape":"PolicyVersion",
-          "documentation":"<p>A <code>PolicyVersion</code> object. Contains details for the version of the policy. Policies define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+          "documentation":"<p>A <code>PolicyVersion</code> object. Contains details for the version of the policy. Policies define the permissions for team resources.</p>"
         }
       }
     },
@@ -1069,6 +1132,10 @@
         "ApproverResponses":{
           "shape":"GetSessionResponseApproverResponses",
           "documentation":"<p>An array of <code>GetSessionResponseApproverResponse</code> objects. Contains details for approver responses in the session.</p>"
+        },
+        "AdditionalSecurityRequirements":{
+          "shape":"AdditionalSecurityRequirements",
+          "documentation":"<p>A list of <code>AdditionalSecurityRequirement</code> applied to the session.</p>"
         }
       }
     },
@@ -1445,7 +1512,7 @@
         },
         "Policies":{
           "shape":"Policies",
-          "documentation":"<p>An array of <code>Policy</code> objects. Contains a list of policies that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+          "documentation":"<p>An array of <code>Policy</code> objects. Contains a list of policies that define the permissions for team resources.</p>"
         }
       }
     },
@@ -1482,7 +1549,7 @@
         },
         "PolicyVersions":{
           "shape":"PolicyVersions",
-          "documentation":"<p>An array of <code>PolicyVersionSummary</code> objects. Contains details for the version of the policies that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+          "documentation":"<p>An array of <code>PolicyVersionSummary</code> objects. Contains details for the version of the policies that define the permissions for team resources.</p>"
         }
       }
     },
@@ -1654,6 +1721,10 @@
         "ActionCompletionStrategy":{
           "shape":"ActionCompletionStrategy",
           "documentation":"<p>Strategy for executing the protected operation. <code>AUTO_COMPLETION_UPON_APPROVAL</code> means the operation is executed automatically using the requester's permissions, if approved.</p>"
+        },
+        "AdditionalSecurityRequirements":{
+          "shape":"AdditionalSecurityRequirements",
+          "documentation":"<p>A list of <code>AdditionalSecurityRequirement</code> applied to the session.</p>"
         }
       },
       "documentation":"<p>Contains details for an approval session. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-health.html\">Session</a> in the <i>Multi-party approval User Guide</i> </p>"
@@ -1695,6 +1766,43 @@
       "type":"string",
       "max":500,
       "min":0
+    },
+    "MfaMethod":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "SyncStatus"
+      ],
+      "members":{
+        "Type":{
+          "shape":"MfaType",
+          "documentation":"<p>The type of MFA configuration used by the approver</p>"
+        },
+        "SyncStatus":{
+          "shape":"MfaSyncStatus",
+          "documentation":"<p>Indicates if the approver's MFA device is in-sync with the Identity Source</p>"
+        }
+      },
+      "documentation":"<p>MFA configuration and sycnronization status for an approver</p>"
+    },
+    "MfaMethods":{
+      "type":"list",
+      "member":{"shape":"MfaMethod"},
+      "max":5,
+      "min":0
+    },
+    "MfaSyncStatus":{
+      "type":"string",
+      "documentation":"<p>Indicates if the approver's MFA device is in-sync with the Identity Source</p> <ul> <li> <p> <code>IN_SYNC</code>: The approver's MFA device is in-sync with the Identity Source</p> </li> <li> <p> <code>OUT_OF_SYNC</code>: The approver's MFA device is out-of-sync with the Identity Source</p> </li> </ul>",
+      "enum":[
+        "IN_SYNC",
+        "OUT_OF_SYNC"
+      ]
+    },
+    "MfaType":{
+      "type":"string",
+      "documentation":"<p>The type of MFA device used by the approver</p> <ul> <li> <p> <code>EMAIL_OTP</code>: The approver will receive emailed one-time passwords to their primary email</p> </li> </ul>",
+      "enum":["EMAIL_OTP"]
     },
     "MofNApprovalStrategy":{
       "type":"structure",
@@ -1811,7 +1919,7 @@
           "documentation":"<p>Name of the policy.</p>"
         }
       },
-      "documentation":"<p>Contains details for a policy. Policies define what operations a team that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Contains details for a policy. Policies define what operations a team that define the permissions for team resources.</p>"
     },
     "PolicyDocument":{
       "type":"string",
@@ -1833,7 +1941,7 @@
           "documentation":"<p>Amazon Resource Name (ARN) for the policy.</p>"
         }
       },
-      "documentation":"<p>Contains the Amazon Resource Name (ARN) for a policy. Policies define what operations a team that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Contains the Amazon Resource Name (ARN) for a policy. Policies define what operations a team that define the permissions for team resources.</p>"
     },
     "PolicyStatus":{
       "type":"string",
@@ -1890,7 +1998,7 @@
         },
         "Status":{
           "shape":"PolicyStatus",
-          "documentation":"<p>Status for the policy. For example, if the policy is <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups_manage_attach-policy.html\">attachable</a> or <a href=\"https://docs.aws.amazon.com/access_policies_managed-deprecated.html\">deprecated</a>.</p>"
+          "documentation":"<p>Status for the policy. For example, if the policy is <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups_manage_attach-policy.html\">attachable</a> or <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-deprecated.html\">deprecated</a>.</p>"
         },
         "CreationTime":{
           "shape":"IsoTimestamp",
@@ -1905,7 +2013,7 @@
           "documentation":"<p>Document that contains the policy contents.</p>"
         }
       },
-      "documentation":"<p>Contains details for the version of a policy. Policies define what operations a team that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Contains details for the version of a policy. Policies define what operations a team that define the permissions for team resources.</p>"
     },
     "PolicyVersionId":{
       "type":"integer",
@@ -1952,7 +2060,7 @@
         },
         "Status":{
           "shape":"PolicyStatus",
-          "documentation":"<p>Status for the policy. For example, if the policy is <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups_manage_attach-policy.html\">attachable</a> or <a href=\"https://docs.aws.amazon.com/access_policies_managed-deprecated.html\">deprecated</a>.</p>"
+          "documentation":"<p>Status for the policy. For example, if the policy is <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups_manage_attach-policy.html\">attachable</a> or <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-deprecated.html\">deprecated</a>.</p>"
         },
         "CreationTime":{
           "shape":"IsoTimestamp",
@@ -1963,7 +2071,7 @@
           "documentation":"<p>Timestamp when the policy was last updated.</p>"
         }
       },
-      "documentation":"<p>Contains details for the version of a policy. Policies define what operations a team that define the permissions for team resources.</p> <p>The protected operation for a service integration might require specific permissions. For more information, see <a href=\"https://docs.aws.amazon.com/mpa/latest/userguide/mpa-integrations.html\">How other services work with Multi-party approval</a> in the <i>Multi-party approval User Guide</i>.</p>"
+      "documentation":"<p>Contains details for the version of a policy. Policies define what operations a team that define the permissions for team resources.</p>"
     },
     "PolicyVersions":{
       "type":"list",
@@ -2075,7 +2183,8 @@
       "enum":[
         "REJECTED",
         "EXPIRED",
-        "CONFIGURATION_CHANGED"
+        "CONFIGURATION_CHANGED",
+        "ALL_APPROVERS_IN_SESSION"
       ]
     },
     "SessionValue":{
@@ -2111,6 +2220,37 @@
         "DeletionStartTime":{
           "shape":"IsoTimestamp",
           "documentation":"<p>Timestamp when the deletion process was initiated.</p>"
+        }
+      }
+    },
+    "StartApprovalTeamBaselineApproverIds":{
+      "type":"list",
+      "member":{"shape":"ParticipantId"},
+      "max":20,
+      "min":0
+    },
+    "StartApprovalTeamBaselineRequest":{
+      "type":"structure",
+      "required":["Arn"],
+      "members":{
+        "Arn":{
+          "shape":"ApprovalTeamArn",
+          "documentation":"<p>Amazon Resource Name (ARN) for the approval team.</p>",
+          "location":"uri",
+          "locationName":"Arn"
+        },
+        "ApproverIds":{
+          "shape":"StartApprovalTeamBaselineApproverIds",
+          "documentation":"<p>Array of approver IDs.</p>"
+        }
+      }
+    },
+    "StartApprovalTeamBaselineResponse":{
+      "type":"structure",
+      "members":{
+        "BaselineSessionArn":{
+          "shape":"SessionArn",
+          "documentation":"<p>Amazon Resource Name (ARN) for the session.</p>"
         }
       }
     },
@@ -2153,8 +2293,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -2236,8 +2375,18 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
+    },
+    "UpdateAction":{
+      "type":"string",
+      "documentation":"<p>Actions that can be taken when updating an approval team</p> <ul> <li> <p> <code>SYNCHRONIZE_MFA_DEVICES</code>: Synchronize MFA devices for all approvers on the team</p> </li> </ul>",
+      "enum":["SYNCHRONIZE_MFA_DEVICES"]
+    },
+    "UpdateActions":{
+      "type":"list",
+      "member":{"shape":"UpdateAction"},
+      "max":100,
+      "min":0
     },
     "UpdateApprovalTeamRequest":{
       "type":"structure",
@@ -2260,6 +2409,10 @@
           "documentation":"<p>Amazon Resource Name (ARN) for the team.</p>",
           "location":"uri",
           "locationName":"Arn"
+        },
+        "UpdateActions":{
+          "shape":"UpdateActions",
+          "documentation":"<p>A list of <code>UpdateAction</code> to perform when updating the team.</p>"
         }
       }
     },

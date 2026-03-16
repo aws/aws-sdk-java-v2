@@ -3370,6 +3370,13 @@
         }
       }
     },
+    "CostScaleFactor":{
+      "type":"float",
+      "documentation":"<p>A multiplier applied to calculated costs. Valid range is 0 to 100. Values less than 1.0 represent discounts, values greater than 1.0 represent markups, and a value of 1.0 represents no adjustment.</p>",
+      "box":true,
+      "max":100,
+      "min":0
+    },
     "CpuArchitectureType":{
       "type":"string",
       "enum":[
@@ -3463,6 +3470,10 @@
         "kmsKeyArn":{
           "shape":"KmsKeyArn",
           "documentation":"<p>The ARN of the KMS key to use on the farm.</p>"
+        },
+        "costScaleFactor":{
+          "shape":"CostScaleFactor",
+          "documentation":"<p>The cost scale factor to apply on the farm.</p>"
         },
         "tags":{
           "shape":"Tags",
@@ -3617,6 +3628,18 @@
         "sourceJobId":{
           "shape":"JobId",
           "documentation":"<p>The job ID for the source job.</p>"
+        },
+        "nameOverride":{
+          "shape":"JobName",
+          "documentation":"<p>A custom name to override the job name derived from the job template.</p>"
+        },
+        "descriptionOverride":{
+          "shape":"JobDescriptionOverride",
+          "documentation":"<p>A custom description to override the job description derived from the job template.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>The tags to add to your job. Each tag consists of a tag key and a tag value. Tag keys and values are both required, but tag values can be empty strings.</p>"
         }
       }
     },
@@ -5416,6 +5439,7 @@
       "required":[
         "farmId",
         "displayName",
+        "costScaleFactor",
         "createdAt",
         "createdBy"
       ],
@@ -5435,6 +5459,10 @@
         "kmsKeyArn":{
           "shape":"KmsKeyArn",
           "documentation":"<p>The ARN of the KMS key used on the farm.</p>"
+        },
+        "costScaleFactor":{
+          "shape":"CostScaleFactor",
+          "documentation":"<p>The cost scale factor applied on the farm.</p>"
         },
         "createdAt":{
           "shape":"CreatedAt",
@@ -6469,7 +6497,7 @@
           "locationName":"maxResults"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -6485,7 +6513,7 @@
           "documentation":"<p>The statistics for the specified fleets or queues.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         },
         "status":{
@@ -7160,6 +7188,13 @@
       "min":1,
       "sensitive":true
     },
+    "JobDescriptionOverride":{
+      "type":"string",
+      "documentation":"<p>The input description for the job. Passing in an empty string removes any existing description.</p>",
+      "max":2048,
+      "min":0,
+      "sensitive":true
+    },
     "JobDetailsEntity":{
       "type":"structure",
       "required":[
@@ -7767,7 +7802,7 @@
       "type":"structure",
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -7789,7 +7824,7 @@
           "documentation":"<p>The metered products.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -7799,7 +7834,7 @@
       "required":["farmId"],
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -7829,7 +7864,7 @@
       "required":["budgets"],
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         },
         "budgets":{
@@ -7849,7 +7884,7 @@
           "locationName":"farmId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -7871,7 +7906,7 @@
           "documentation":"<p>The members on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -7880,7 +7915,7 @@
       "type":"structure",
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -7904,7 +7939,7 @@
       "required":["farms"],
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         },
         "farms":{
@@ -7933,7 +7968,7 @@
           "locationName":"fleetId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -7955,7 +7990,7 @@
           "documentation":"<p>The members on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -7989,7 +8024,7 @@
           "locationName":"status"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8011,7 +8046,7 @@
           "documentation":"<p>The fleets on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8043,7 +8078,7 @@
           "locationName":"jobId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8065,7 +8100,7 @@
           "documentation":"<p>The members on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8097,7 +8132,7 @@
           "locationName":"queueId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8119,7 +8154,7 @@
           "documentation":"<p>Lists parameter definitions of a job.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8150,7 +8185,7 @@
           "locationName":"queueId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8172,7 +8207,7 @@
           "documentation":"<p>The jobs on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8181,7 +8216,7 @@
       "type":"structure",
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8203,7 +8238,7 @@
           "documentation":"<p>The license endpoints.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8219,7 +8254,7 @@
           "locationName":"farmId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8241,7 +8276,7 @@
           "documentation":"<p>A list of limits that the farm contains.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8257,7 +8292,7 @@
           "locationName":"licenseEndpointId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8279,7 +8314,7 @@
           "documentation":"<p>The metered products to list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8288,7 +8323,7 @@
       "type":"structure",
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8306,7 +8341,7 @@
       "required":["monitors"],
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         },
         "monitors":{
@@ -8335,7 +8370,7 @@
           "locationName":"queueId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8357,7 +8392,7 @@
           "documentation":"<p>The environments to include in the queue environments list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8385,7 +8420,7 @@
           "locationName":"fleetId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8407,7 +8442,7 @@
           "documentation":"<p>The queue-fleet associations on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8435,7 +8470,7 @@
           "locationName":"limitId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8457,7 +8492,7 @@
           "documentation":"<p>A list of associations between limits and queues in the farm specified in the request.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8482,7 +8517,7 @@
           "locationName":"queueId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8504,7 +8539,7 @@
           "documentation":"<p>The members on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8532,7 +8567,7 @@
           "locationName":"status"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8554,7 +8589,7 @@
           "documentation":"<p>The queues on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8598,7 +8633,7 @@
           "locationName":"taskId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8620,7 +8655,7 @@
           "documentation":"<p>The session actions.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8652,7 +8687,7 @@
           "locationName":"workerId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8674,7 +8709,7 @@
           "documentation":"<p>The sessions in the response.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>"
         }
       }
@@ -8710,7 +8745,7 @@
           "locationName":"jobId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8732,7 +8767,7 @@
           "documentation":"<p>The sessions on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8771,7 +8806,7 @@
           "locationName":"stepId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8799,7 +8834,7 @@
           "documentation":"<p>The consumers on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8838,7 +8873,7 @@
           "locationName":"stepId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8866,7 +8901,7 @@
           "documentation":"<p>The dependencies on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8898,7 +8933,7 @@
           "locationName":"jobId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8920,7 +8955,7 @@
           "documentation":"<p>The steps on the list.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8945,7 +8980,7 @@
           "locationName":"queueId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -8967,7 +9002,7 @@
           "documentation":"<p>The storage profiles in the queue.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -8983,7 +9018,7 @@
           "locationName":"farmId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -9005,7 +9040,7 @@
           "documentation":"<p>The storage profiles.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -9065,7 +9100,7 @@
           "locationName":"stepId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -9087,7 +9122,7 @@
           "documentation":"<p>Tasks for the job.</p>"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         }
       }
@@ -9112,7 +9147,7 @@
           "locationName":"fleetId"
         },
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>The token for the next set of results, or <code>null</code> to start from the beginning.</p>",
           "location":"querystring",
           "locationName":"nextToken"
@@ -9130,7 +9165,7 @@
       "required":["workers"],
       "members":{
         "nextToken":{
-          "shape":"String",
+          "shape":"NextToken",
           "documentation":"<p>If Deadline Cloud returns <code>nextToken</code>, then there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. To retrieve the next page, call the operation again using the returned token. Keep all other arguments unchanged. If no results remain, then <code>nextToken</code> is set to <code>null</code>. Each pagination token expires after 24 hours. If you provide a token that isn't valid, then you receive an HTTP 400 <code>ValidationException</code> error.</p>"
         },
         "workers":{
@@ -9432,6 +9467,11 @@
       "type":"integer",
       "box":true,
       "max":10000,
+      "min":0
+    },
+    "NextToken":{
+      "type":"string",
+      "max":4096,
       "min":0
     },
     "OutputRelativeDirectoriesList":{
@@ -10036,7 +10076,7 @@
         },
         "stringListFilter":{
           "shape":"StringListFilterExpression",
-          "documentation":"<p>Filters by a list of string values.</p>"
+          "documentation":"<p>Filters by a list of strings.</p>"
         },
         "groupFilter":{
           "shape":"SearchGroupedFilterExpressions",
@@ -11535,14 +11575,14 @@
         },
         "operator":{
           "shape":"ComparisonOperator",
-          "documentation":"<p>The type of comparison to use for this search. ANY_EQUALS and ALL_NOT_EQUALS are supported.</p>"
+          "documentation":"<p>The type of comparison to use for this search.</p>"
         },
         "values":{
           "shape":"StringFilterList",
           "documentation":"<p>The list of string values to search for.</p>"
         }
       },
-      "documentation":"<p>Searches for a match within a list of strings.</p>"
+      "documentation":"<p>Searches for a particular list of strings.</p>"
     },
     "Subdomain":{
       "type":"string",
@@ -12070,6 +12110,10 @@
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the farm to update.</p> <important> <p>This field can store any content. Escape or encode this content before displaying it on a webpage or any other system that might interpret the content of this field.</p> </important>"
+        },
+        "costScaleFactor":{
+          "shape":"CostScaleFactor",
+          "documentation":"<p>The cost scale factor of the farm to update.</p>"
         }
       }
     },
@@ -12162,7 +12206,7 @@
         },
         "priority":{
           "shape":"JobPriority",
-          "documentation":"<p>The job priority to update.</p>"
+          "documentation":"<p>The updated job priority.</p>"
         },
         "maxFailedTasksCount":{
           "shape":"MaxFailedTasksCount",
@@ -12179,6 +12223,14 @@
         "maxWorkerCount":{
           "shape":"MaxWorkerCount",
           "documentation":"<p>The maximum number of worker hosts that can concurrently process a job. When the <code>maxWorkerCount</code> is reached, no more workers will be assigned to process the job, even if the fleets assigned to the job's queue has available workers.</p> <p>You can't set the <code>maxWorkerCount</code> to 0. If you set it to -1, there is no maximum number of workers.</p> <p>If you don't specify the <code>maxWorkerCount</code>, the default is -1.</p> <p>The maximum number of workers that can process tasks in the job.</p>"
+        },
+        "name":{
+          "shape":"JobName",
+          "documentation":"<p>The updated job name.</p>"
+        },
+        "description":{
+          "shape":"JobDescriptionOverride",
+          "documentation":"<p>The updated job description.</p>"
         },
         "farmId":{
           "shape":"FarmId",

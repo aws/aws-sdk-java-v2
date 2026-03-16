@@ -1,0 +1,36 @@
+{
+    "version": "2.41.31",
+    "date": "2026-02-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add Operator field to CreatePlacementGroup and DescribePlacementGroup APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Grafana",
+            "contributor": "",
+            "description": "This release updates Amazon Managed Grafana's APIs to support customer managed KMS keys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for the StorageEncryptionType field to specify encryption type for DB clusters, DB instances, snapshots, automated backups, and global clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Adds support for branding customization without requiring a custom wallpaper."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

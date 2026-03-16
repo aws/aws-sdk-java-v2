@@ -60,6 +60,13 @@ public final class UploadObjectHelper {
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
                                                              AsyncRequestBody asyncRequestBody) {
+
+        // Propagate content-type from AsyncRequestBody if not explicitly set on the request
+        if (putObjectRequest.contentType() == null && asyncRequestBody.contentType() != null) {
+            putObjectRequest = putObjectRequest.toBuilder()
+                                               .contentType(asyncRequestBody.contentType())
+                                               .build();
+        }
         Long contentLength = asyncRequestBody.contentLength().orElseGet(putObjectRequest::contentLength);
 
         if (contentLength == null) {

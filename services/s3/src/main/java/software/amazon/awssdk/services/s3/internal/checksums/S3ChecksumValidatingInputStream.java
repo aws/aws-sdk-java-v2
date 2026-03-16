@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.checksums;
 
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -182,9 +184,8 @@ public class S3ChecksumValidatingInputStream extends InputStream implements Abor
 
         if (!Arrays.equals(computedChecksum, streamChecksum)) {
             throw RetryableException.create(
-                String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
-                              "This commonly means that the data was corrupted between the client and " +
-                              "service.", BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum)));
+                String.format(CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE, BinaryUtils.toHex(computedChecksum),
+                              BinaryUtils.toHex(streamChecksum)));
         }
     }
 

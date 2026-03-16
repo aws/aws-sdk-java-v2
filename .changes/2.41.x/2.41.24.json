@@ -1,0 +1,42 @@
+{
+    "version": "2.41.24",
+    "date": "2026-02-06",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "carhaz",
+            "description": "Update session credentials builder in HttpsCredentialsLoader to include expiration time so it's set in session credentials for ContainerCredentialsProvider"
+        },
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "Adds support for tagging jobs during job creation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adding g7e instance support in Sagemaker Training"
+        },
+        {
+            "type": "feature",
+            "category": "Managed integrations for AWS IoT Device Management",
+            "contributor": "",
+            "description": "Adding support for Custom(General) Authorization in managed integrations for AWS IoT Device Management cloud connectors."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Releasing AWS Opportunity Snapshots for SDK release."
+        },
+        {
+            "type": "feature",
+            "category": "Runtime for Amazon Bedrock Data Automation",
+            "contributor": "",
+            "description": "Add OutputConfiguration to InvokeDataAutomation input and output to support S3 output"
+        }
+    ]
+}
