@@ -61,8 +61,7 @@ public class V1CborRoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = createCborResponseFixture();
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .defaultRoute("application/cbor", response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();

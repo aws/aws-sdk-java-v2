@@ -56,8 +56,7 @@ public class V2Ec2RoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("ec2-protocol/describe-instances-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .defaultRoute("text/xml", response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
