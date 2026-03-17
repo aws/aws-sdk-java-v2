@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "Add S3LoggingConfiguration to Control LogUploads"
-}
