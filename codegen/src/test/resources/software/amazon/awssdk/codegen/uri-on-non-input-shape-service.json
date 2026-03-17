@@ -23,6 +23,16 @@
       "input": {
         "shape": "SomeOperationRequest"
       }
+    },
+    "SharedShapeOperation": {
+      "name": "SharedShapeOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/shared/{sharedId}"
+      },
+      "input": {
+        "shape": "SharedShape"
+      }
     }
   },
   "shapes": {
@@ -36,6 +46,9 @@
         },
         "options": {
           "shape": "NestedOptions"
+        },
+        "shared": {
+          "shape": "SharedShape"
         }
       }
     },
@@ -56,11 +69,31 @@
           "shape": "String",
           "location": "querystring",
           "locationName": "nestedQuery"
+        },
+        "prefixHeaders": {
+          "shape": "MapOfStrings",
+          "location": "headers",
+          "locationName": "x-amz-prefix-"
+        }
+      }
+    },
+    "SharedShape": {
+      "type": "structure",
+      "members": {
+        "sharedId": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "sharedId"
         }
       }
     },
     "String": {
       "type": "string"
+    },
+    "MapOfStrings": {
+      "type": "map",
+      "key": {"shape": "String"},
+      "value": {"shape": "String"}
     }
   },
   "documentation": "A service with HTTP binding locations on non-input shapes"

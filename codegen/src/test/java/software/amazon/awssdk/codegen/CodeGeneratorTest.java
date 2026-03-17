@@ -202,6 +202,10 @@ public class CodeGeneratorTest {
         assertThat(nestedShape.findMemberModelByC2jName("pageSize").getHttp().isGreedy()).isFalse();
         assertThat(nestedShape.findMemberModelByC2jName("headerParam").getHttp().getLocation()).isNull();
         assertThat(nestedShape.findMemberModelByC2jName("queryParam").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("prefixHeaders").getHttp().getLocation()).isNull();
+
+        ShapeModel sharedShape = intermediateModel.getShapes().get("SharedShapeOperationRequest");
+        assertThat(sharedShape.findMemberModelByC2jName("sharedId").getHttp().getLocation()).isEqualTo(Location.URI);
 
         Path generatedNestedOptions = Files.walk(outputDir)
             .filter(p -> p.getFileName().toString().equals("NestedOptions.java"))

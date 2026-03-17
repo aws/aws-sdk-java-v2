@@ -31,6 +31,9 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -52,8 +55,22 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
             .memberName("queryParam").getter(getter(NestedOptions::queryParam)).setter(setter(Builder::queryParam))
             .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("nestedQuery").build()).build();
 
+    private static final SdkField<Map<String, String>> PREFIX_HEADERS_FIELD = SdkField
+            .<Map<String, String>> builder(MarshallingType.MAP)
+            .memberName("prefixHeaders")
+            .getter(getter(NestedOptions::prefixHeaders))
+            .setter(setter(Builder::prefixHeaders))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("x-amz-prefix-").build(),
+                    MapTrait.builder()
+                            .keyLocationName("key")
+                            .valueLocationName("value")
+                            .valueFieldInfo(
+                                    SdkField.<String> builder(MarshallingType.STRING)
+                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                    .locationName("value").build()).build()).build()).build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(PAGE_SIZE_FIELD,
-            HEADER_PARAM_FIELD, QUERY_PARAM_FIELD));
+            HEADER_PARAM_FIELD, QUERY_PARAM_FIELD, PREFIX_HEADERS_FIELD));
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
@@ -65,10 +82,13 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
 
     private final String queryParam;
 
+    private final Map<String, String> prefixHeaders;
+
     private NestedOptions(BuilderImpl builder) {
         this.pageSize = builder.pageSize;
         this.headerParam = builder.headerParam;
         this.queryParam = builder.queryParam;
+        this.prefixHeaders = builder.prefixHeaders;
     }
 
     /**
@@ -98,6 +118,34 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
         return queryParam;
     }
 
+    /**
+     * For responses, this returns true if the service returned a value for the PrefixHeaders property. This DOES NOT
+     * check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property).
+     * This is useful because the SDK will never return a null collection or map, but you may need to differentiate
+     * between the service returning nothing (or null) and the service returning an empty collection or map. For
+     * requests, this returns true if a value for the property was specified in the request builder, and false if a
+     * value was not specified.
+     */
+    public final boolean hasPrefixHeaders() {
+        return prefixHeaders != null && !(prefixHeaders instanceof SdkAutoConstructMap);
+    }
+
+    /**
+     * Returns the value of the PrefixHeaders property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * This method will never return null. If you would like to know whether the service returned this field (so that
+     * you can differentiate between null and empty), you can use the {@link #hasPrefixHeaders} method.
+     * </p>
+     * 
+     * @return The value of the PrefixHeaders property for this object.
+     */
+    public final Map<String, String> prefixHeaders() {
+        return prefixHeaders;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -117,6 +165,7 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
         hashCode = 31 * hashCode + Objects.hashCode(pageSize());
         hashCode = 31 * hashCode + Objects.hashCode(headerParam());
         hashCode = 31 * hashCode + Objects.hashCode(queryParam());
+        hashCode = 31 * hashCode + Objects.hashCode(hasPrefixHeaders() ? prefixHeaders() : null);
         return hashCode;
     }
 
@@ -138,7 +187,8 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
         }
         NestedOptions other = (NestedOptions) obj;
         return Objects.equals(pageSize(), other.pageSize()) && Objects.equals(headerParam(), other.headerParam())
-                && Objects.equals(queryParam(), other.queryParam());
+                && Objects.equals(queryParam(), other.queryParam()) && hasPrefixHeaders() == other.hasPrefixHeaders()
+                && Objects.equals(prefixHeaders(), other.prefixHeaders());
     }
 
     /**
@@ -148,7 +198,7 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
     @Override
     public final String toString() {
         return ToString.builder("NestedOptions").add("PageSize", pageSize()).add("HeaderParam", headerParam())
-                .add("QueryParam", queryParam()).build();
+                .add("QueryParam", queryParam()).add("PrefixHeaders", hasPrefixHeaders() ? prefixHeaders() : null).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -159,6 +209,8 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
             return Optional.ofNullable(clazz.cast(headerParam()));
         case "queryParam":
             return Optional.ofNullable(clazz.cast(queryParam()));
+        case "prefixHeaders":
+            return Optional.ofNullable(clazz.cast(prefixHeaders()));
         default:
             return Optional.empty();
         }
@@ -179,6 +231,7 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
         map.put("pageSize", PAGE_SIZE_FIELD);
         map.put("x-amz-nested-header", HEADER_PARAM_FIELD);
         map.put("nestedQuery", QUERY_PARAM_FIELD);
+        map.put("x-amz-prefix-", PREFIX_HEADERS_FIELD);
         return Collections.unmodifiableMap(map);
     }
 
@@ -219,6 +272,15 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder queryParam(String queryParam);
+
+        /**
+         * Sets the value of the PrefixHeaders property for this object.
+         *
+         * @param prefixHeaders
+         *        The new value for the PrefixHeaders property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder prefixHeaders(Map<String, String> prefixHeaders);
     }
 
     static final class BuilderImpl implements Builder {
@@ -228,6 +290,8 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
 
         private String queryParam;
 
+        private Map<String, String> prefixHeaders = DefaultSdkAutoConstructMap.getInstance();
+
         private BuilderImpl() {
         }
 
@@ -235,6 +299,7 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
             pageSize(model.pageSize);
             headerParam(model.headerParam);
             queryParam(model.queryParam);
+            prefixHeaders(model.prefixHeaders);
         }
 
         public final String getPageSize() {
@@ -276,6 +341,23 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
         @Override
         public final Builder queryParam(String queryParam) {
             this.queryParam = queryParam;
+            return this;
+        }
+
+        public final Map<String, String> getPrefixHeaders() {
+            if (prefixHeaders instanceof SdkAutoConstructMap) {
+                return null;
+            }
+            return prefixHeaders;
+        }
+
+        public final void setPrefixHeaders(Map<String, String> prefixHeaders) {
+            this.prefixHeaders = MapOfStringsCopier.copy(prefixHeaders);
+        }
+
+        @Override
+        public final Builder prefixHeaders(Map<String, String> prefixHeaders) {
+            this.prefixHeaders = MapOfStringsCopier.copy(prefixHeaders);
             return this;
         }
 
