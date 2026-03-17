@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.15__ __2026-03-17__
+## __AWS Glue__
+  - ### Features
+    - Provide approval to overwrite existing Lake Formation permissions on all child resources with the default permissions specified in 'CreateTableDefaultPermissions' and 'CreateDatabaseDefaultPermissions' when updating catalog. Allowed values are ["Accept","Deny"] .
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Deprecating namespaces field and adding namespaceTemplates.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improved performance of UpdateExpression conversion by replacing Stream.concat chains and String.format with direct iteration and StringJoiner.
+
+## __Amazon EMR__
+  - ### Features
+    - Add S3LoggingConfiguration to Control LogUploads
+
 # __2.42.14__ __2026-03-16__
 ## __AWS SDK for Java v2__
   - ### Features
