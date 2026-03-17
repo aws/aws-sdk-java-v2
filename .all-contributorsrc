@@ -1102,6 +1102,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "carhaz",
+      "name": "carhaz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/236483641?v=4",
+      "profile": "https://github.com/carhaz",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "akhilyendluri",
+      "name": "Akhil Yendluri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13486835?v=4",
+      "profile": "https://github.com/akhilyendluri",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ryanyuan",
+      "name": "Ryan Yuan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7124535?v=4",
+      "profile": "https://github.com/ryanyuan",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

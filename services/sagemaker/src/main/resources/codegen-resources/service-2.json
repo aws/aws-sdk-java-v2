@@ -2548,6 +2548,19 @@
       ],
       "documentation":"<p>Retrieves detailed information about a specific training plan.</p>"
     },
+    "DescribeTrainingPlanExtensionHistory":{
+      "name":"DescribeTrainingPlanExtensionHistory",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTrainingPlanExtensionHistoryRequest"},
+      "output":{"shape":"DescribeTrainingPlanExtensionHistoryResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Retrieves the extension history for a specified training plan. The response includes details about each extension, such as the offering ID, start and end dates, status, payment status, and cost information.</p>"
+    },
     "DescribeTransformJob":{
       "name":"DescribeTransformJob",
       "http":{
@@ -2666,6 +2679,19 @@
       "input":{"shape":"EnableSagemakerServicecatalogPortfolioInput"},
       "output":{"shape":"EnableSagemakerServicecatalogPortfolioOutput"},
       "documentation":"<p>Enables using Service Catalog in SageMaker. Service Catalog is used to create SageMaker projects.</p>"
+    },
+    "ExtendTrainingPlan":{
+      "name":"ExtendTrainingPlan",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ExtendTrainingPlanRequest"},
+      "output":{"shape":"ExtendTrainingPlanResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Extends an existing training plan by purchasing an extension offering. This allows you to add additional compute capacity time to your training plan without creating a new plan or reconfiguring your workloads.</p> <p>To find available extension offerings, use the <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_SearchTrainingPlanOfferings.html\">SearchTrainingPlanOfferings</a> </code> API with the <code>TrainingPlanArn</code> parameter.</p> <p>To view the history of extensions for a training plan, use the <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingPlanExtensionHistory.html\">DescribeTrainingPlanExtensionHistory</a> </code> API.</p>"
     },
     "GetDeviceFleetReport":{
       "name":"GetDeviceFleetReport",
@@ -6987,6 +7013,10 @@
       "max":32,
       "min":1,
       "pattern":"[a-z]+\\-[0-9a-z\\-]+"
+    },
+    "AvailabilityZoneId":{
+      "type":"string",
+      "pattern":"[a-z]{3}\\d-az\\d"
     },
     "AvailableInstanceCount":{
       "type":"integer",
@@ -12846,6 +12876,15 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Tags consisting of key-value pairs used to manage metadata for the tracking server.</p>"
+        },
+        "S3BucketOwnerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>Expected Amazon Web Services account ID that owns the Amazon S3 bucket for artifact storage. Defaults to caller's account ID if not provided.</p>"
+        },
+        "S3BucketOwnerVerification":{
+          "shape":"Boolean",
+          "documentation":"<p>Enable Amazon S3 Ownership checks when interacting with Amazon S3 buckets from a SageMaker Managed MLflow Tracking Server. Defaults to <code>True</code> if not provided. </p>",
+          "box":true
         }
       }
     },
@@ -18932,7 +18971,16 @@
           "shape":"Timestamp",
           "documentation":"<p>The timestamp of when the described MLflow Tracking Server was last modified.</p>"
         },
-        "LastModifiedBy":{"shape":"UserContext"}
+        "LastModifiedBy":{"shape":"UserContext"},
+        "S3BucketOwnerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>Expected Amazon Web Services account ID that owns the Amazon S3 bucket for artifact storage.</p>"
+        },
+        "S3BucketOwnerVerification":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether Amazon S3 Bucket Ownership checks are enabled whenever the tracking server interacts with Amazon Amazon S3.</p>",
+          "box":true
+        }
       }
     },
     "DescribeModelBiasJobDefinitionRequest":{
@@ -20642,6 +20690,38 @@
         "OutputModelPackageArn":{
           "shape":"ModelPackageArn",
           "documentation":"<p> The Amazon Resource Name (ARN) of the output model package containing model weights or checkpoints. </p>"
+        }
+      }
+    },
+    "DescribeTrainingPlanExtensionHistoryRequest":{
+      "type":"structure",
+      "required":["TrainingPlanArn"],
+      "members":{
+        "TrainingPlanArn":{
+          "shape":"TrainingPlanArn",
+          "documentation":"<p>The Amazon Resource Name (ARN); of the training plan to retrieve extension history for.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to continue pagination if more results are available.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of extensions to return in the response.</p>"
+        }
+      }
+    },
+    "DescribeTrainingPlanExtensionHistoryResponse":{
+      "type":"structure",
+      "required":["TrainingPlanExtensions"],
+      "members":{
+        "TrainingPlanExtensions":{
+          "shape":"TrainingPlanExtensions",
+          "documentation":"<p>A list of extensions for the specified training plan.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to continue pagination if more results are available.</p>"
         }
       }
     },
@@ -23135,6 +23215,26 @@
         }
       },
       "documentation":"<p>A parameter to activate explainers.</p>"
+    },
+    "ExtendTrainingPlanRequest":{
+      "type":"structure",
+      "required":["TrainingPlanExtensionOfferingId"],
+      "members":{
+        "TrainingPlanExtensionOfferingId":{
+          "shape":"TrainingPlanExtensionOfferingId",
+          "documentation":"<p>The unique identifier of the extension offering to purchase. You can retrieve this ID from the <code>TrainingPlanExtensionOfferings</code> in the response of the <code>SearchTrainingPlanOfferings</code> API.</p>"
+        }
+      }
+    },
+    "ExtendTrainingPlanResponse":{
+      "type":"structure",
+      "required":["TrainingPlanExtensions"],
+      "members":{
+        "TrainingPlanExtensions":{
+          "shape":"TrainingPlanExtensions",
+          "documentation":"<p>The list of extensions for the training plan, including the newly created extension.</p>"
+        }
+      }
     },
     "FSxLustreConfig":{
       "type":"structure",
@@ -38041,7 +38141,7 @@
         },
         "InferenceAmiVersion":{
           "shape":"ProductionVariantInferenceAmiVersion",
-          "documentation":"<p>Specifies an option from a collection of preconfigured Amazon Machine Image (AMI) images. Each image is configured by Amazon Web Services with a set of software and driver versions. Amazon Web Services optimizes these configurations for different machine learning workloads.</p> <p>By selecting an AMI version, you can ensure that your inference environment is compatible with specific software requirements, such as CUDA driver versions, Linux kernel versions, or Amazon Web Services Neuron driver versions.</p> <p>The AMI version names, and their configurations, are the following:</p> <dl> <dt>al2-ami-sagemaker-inference-gpu-2</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 535</p> </li> <li> <p>CUDA version: 12.2</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-gpu-2-1</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 535</p> </li> <li> <p>CUDA version: 12.2</p> </li> <li> <p>NVIDIA Container Toolkit with disabled CUDA-compat mounting</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-gpu-3-1</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 550</p> </li> <li> <p>CUDA version: 12.4</p> </li> <li> <p>NVIDIA Container Toolkit with disabled CUDA-compat mounting</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-neuron-2</dt> <dd> <ul> <li> <p>Accelerator: Inferentia2 and Trainium</p> </li> <li> <p>Neuron driver version: 2.19</p> </li> </ul> </dd> </dl>"
+          "documentation":"<p>Specifies an option from a collection of preconfigured Amazon Machine Image (AMI) images. Each image is configured by Amazon Web Services with a set of software and driver versions. Amazon Web Services optimizes these configurations for different machine learning workloads.</p> <p>By selecting an AMI version, you can ensure that your inference environment is compatible with specific software requirements, such as CUDA driver versions, Linux kernel versions, or Amazon Web Services Neuron driver versions.</p> <p>The AMI version names, and their configurations, are the following:</p> <dl> <dt>al2-ami-sagemaker-inference-gpu-2</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 535</p> </li> <li> <p>CUDA version: 12.2</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-gpu-2-1</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 535</p> </li> <li> <p>CUDA version: 12.2</p> </li> <li> <p>NVIDIA Container Toolkit with disabled CUDA-compat mounting</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-gpu-3-1</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 550</p> </li> <li> <p>CUDA version: 12.4</p> </li> <li> <p>NVIDIA Container Toolkit with disabled CUDA-compat mounting</p> </li> </ul> </dd> <dt>al2023-ami-sagemaker-inference-gpu-4-1</dt> <dd> <ul> <li> <p>Accelerator: GPU</p> </li> <li> <p>NVIDIA driver version: 580</p> </li> <li> <p>CUDA version: 13.0</p> </li> <li> <p>NVIDIA Container Toolkit with disabled CUDA-compat mounting</p> </li> </ul> </dd> <dt>al2-ami-sagemaker-inference-neuron-2</dt> <dd> <ul> <li> <p>Accelerator: Inferentia2 and Trainium</p> </li> <li> <p>Neuron driver version: 2.19</p> </li> </ul> </dd> </dl>"
         },
         "CapacityReservationConfig":{
           "shape":"ProductionVariantCapacityReservationConfig",
@@ -38132,7 +38232,8 @@
         "al2-ami-sagemaker-inference-gpu-2",
         "al2-ami-sagemaker-inference-gpu-2-1",
         "al2-ami-sagemaker-inference-gpu-3-1",
-        "al2-ami-sagemaker-inference-neuron-2"
+        "al2-ami-sagemaker-inference-neuron-2",
+        "al2023-ami-sagemaker-inference-gpu-4-1"
       ]
     },
     "ProductionVariantInstanceType":{
@@ -38266,6 +38367,12 @@
         "ml.g6e.16xlarge",
         "ml.g6e.24xlarge",
         "ml.g6e.48xlarge",
+        "ml.g7e.2xlarge",
+        "ml.g7e.4xlarge",
+        "ml.g7e.8xlarge",
+        "ml.g7e.12xlarge",
+        "ml.g7e.24xlarge",
+        "ml.g7e.48xlarge",
         "ml.p4d.24xlarge",
         "ml.c7g.large",
         "ml.c7g.xlarge",
@@ -38400,6 +38507,7 @@
         "ml.c6in.24xlarge",
         "ml.c6in.32xlarge",
         "ml.p6-b200.48xlarge",
+        "ml.p6-b300.48xlarge",
         "ml.p6e-gb200.36xlarge",
         "ml.p5.4xlarge"
       ]
@@ -39998,6 +40106,14 @@
         "EndTime":{
           "shape":"Timestamp",
           "documentation":"<p>The end time of the reserved capacity offering.</p>"
+        },
+        "ExtensionStartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start time of the extension for the reserved capacity offering.</p>"
+        },
+        "ExtensionEndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end time of the extension for the reserved capacity offering.</p>"
         }
       },
       "documentation":"<p>Details about a reserved capacity offering for a training plan offering.</p> <p>For more information about how to reserve GPU capacity for your SageMaker HyperPod clusters using Amazon SageMaker Training Plan, see <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingPlan.html\">CreateTrainingPlan</a> </code>.</p>"
@@ -41101,6 +41217,10 @@
         "TargetResources":{
           "shape":"SageMakerResourceNames",
           "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints) to search for in the offerings.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> </ul>"
+        },
+        "TrainingPlanArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN); of an existing training plan to search for extension offerings. When specified, the API returns extension offerings that can be used to extend the specified training plan.</p>"
         }
       }
     },
@@ -41111,6 +41231,10 @@
         "TrainingPlanOfferings":{
           "shape":"TrainingPlanOfferings",
           "documentation":"<p>A list of training plan offerings that match the search criteria.</p>"
+        },
+        "TrainingPlanExtensionOfferings":{
+          "shape":"TrainingPlanExtensionOfferings",
+          "documentation":"<p>A list of extension offerings available for the specified training plan. These offerings can be used with the <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ExtendTrainingPlan.html\">ExtendTrainingPlan</a> </code> API to extend an existing training plan.</p>"
         }
       }
     },
@@ -44025,6 +44149,109 @@
       "max":59,
       "min":0
     },
+    "TrainingPlanExtension":{
+      "type":"structure",
+      "required":["TrainingPlanExtensionOfferingId"],
+      "members":{
+        "TrainingPlanExtensionOfferingId":{
+          "shape":"TrainingPlanExtensionOfferingId",
+          "documentation":"<p>The unique identifier of the extension offering that was used to create this extension.</p>"
+        },
+        "ExtendedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the extension was created.</p>"
+        },
+        "StartDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start date of the extension period.</p>"
+        },
+        "EndDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end date of the extension period.</p>"
+        },
+        "Status":{
+          "shape":"String256",
+          "documentation":"<p>The current status of the extension (e.g., Pending, Active, Scheduled, Failed, Expired).</p>"
+        },
+        "PaymentStatus":{
+          "shape":"String256",
+          "documentation":"<p>The payment processing status of the extension.</p>"
+        },
+        "AvailabilityZone":{
+          "shape":"String256",
+          "documentation":"<p>The Availability Zone of the extension.</p>"
+        },
+        "AvailabilityZoneId":{
+          "shape":"AvailabilityZoneId",
+          "documentation":"<p>The Availability Zone ID of the extension.</p>"
+        },
+        "DurationHours":{
+          "shape":"TrainingPlanExtensionDurationHours",
+          "documentation":"<p>The duration of the extension in hours.</p>"
+        },
+        "UpfrontFee":{
+          "shape":"String256",
+          "documentation":"<p>The upfront fee for the extension.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"CurrencyCode",
+          "documentation":"<p>The currency code for the upfront fee (e.g., USD).</p>"
+        }
+      },
+      "documentation":"<p>Details about an extension to a training plan, including the offering ID, dates, status, and cost information.</p>"
+    },
+    "TrainingPlanExtensionDurationHours":{
+      "type":"integer",
+      "box":true,
+      "max":4368,
+      "min":0
+    },
+    "TrainingPlanExtensionOffering":{
+      "type":"structure",
+      "required":["TrainingPlanExtensionOfferingId"],
+      "members":{
+        "TrainingPlanExtensionOfferingId":{
+          "shape":"TrainingPlanExtensionOfferingId",
+          "documentation":"<p>The unique identifier for this extension offering.</p>"
+        },
+        "AvailabilityZone":{
+          "shape":"String256",
+          "documentation":"<p>The Availability Zone for this extension offering.</p>"
+        },
+        "StartDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start date of this extension offering.</p>"
+        },
+        "EndDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end date of this extension offering.</p>"
+        },
+        "DurationHours":{
+          "shape":"TrainingPlanExtensionDurationHours",
+          "documentation":"<p>The duration of this extension offering in hours.</p>"
+        },
+        "UpfrontFee":{
+          "shape":"String256",
+          "documentation":"<p>The upfront fee for this extension offering.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"CurrencyCode",
+          "documentation":"<p>The currency code for the upfront fee (e.g., USD).</p>"
+        }
+      },
+      "documentation":"<p>Details about an available extension offering for a training plan. Use the offering ID with the <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ExtendTrainingPlan.html\">ExtendTrainingPlan</a> </code> API to extend a training plan.</p>"
+    },
+    "TrainingPlanExtensionOfferingId":{"type":"string"},
+    "TrainingPlanExtensionOfferings":{
+      "type":"list",
+      "member":{"shape":"TrainingPlanExtensionOffering"},
+      "min":0
+    },
+    "TrainingPlanExtensions":{
+      "type":"list",
+      "member":{"shape":"TrainingPlanExtension"},
+      "min":0
+    },
     "TrainingPlanFilter":{
       "type":"structure",
       "required":[
@@ -46549,6 +46776,15 @@
         "WeeklyMaintenanceWindowStart":{
           "shape":"WeeklyMaintenanceWindowStart",
           "documentation":"<p>The new weekly maintenance window start day and time to update. The maintenance window day and time should be in Coordinated Universal Time (UTC) 24-hour standard time. For example: TUE:03:30.</p>"
+        },
+        "S3BucketOwnerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The new expected Amazon Web Services account ID that owns the Amazon S3 bucket for artifact storage.</p>"
+        },
+        "S3BucketOwnerVerification":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to enable or disable Amazon S3 Bucket Owenrship Verifaction whenever the MLflow Tracking Server interacts with Amazon Amazon S3.</p>",
+          "box":true
         }
       }
     },
