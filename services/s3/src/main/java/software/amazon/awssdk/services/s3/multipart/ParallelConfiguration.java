@@ -29,11 +29,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfiguration.Builder, ParallelConfiguration> {
 
     private final Integer maxInFlightParts;
-    private final Integer maxInFlightPutObjectParts;
 
     public ParallelConfiguration(Builder builder) {
         this.maxInFlightParts = builder.maxInFlightParts;
-        this.maxInFlightPutObjectParts = builder.maxInFlightPutObjectParts;
     }
 
     public static Builder builder() {
@@ -41,33 +39,23 @@ public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfigur
     }
 
     /**
-     * The maximum number of concurrent GetObject requests that are allowed for multipart download.
-     * @return The value for the maximum number of concurrent GetObject requests that are allowed for multipart download.
+     * The maximum number of concurrent part requests that are allowed for multipart operations, including both multipart
+     * download (GetObject) and multipart upload (PutObject). This limits the number of parts that can be in flight at any
+     * given time, preventing the client from overwhelming the HTTP connection pool when transferring large objects.
+     *
+     * @return The value for the maximum number of concurrent part requests.
      */
     public Integer maxInFlightParts() {
         return maxInFlightParts;
     }
 
-    /**
-     * The maximum number of concurrent PutObject/UploadPart requests that are allowed for multipart upload. This limits the
-     * number of parts that can be in flight at any given time during a multipart putObject operation, preventing the client from
-     * overwhelming the HTTP connection pool when uploading large objects.
-     *
-     * @return The value for the maximum number of concurrent UploadPart requests that are allowed for multipart upload.
-     */
-    public Integer maxInFlightPutObjectParts() {
-        return maxInFlightPutObjectParts;
-    }
-
     @Override
     public Builder toBuilder() {
-        return builder().maxInFlightParts(maxInFlightParts)
-                        .maxInFlightPutObjectParts(maxInFlightPutObjectParts);
+        return builder().maxInFlightParts(maxInFlightParts);
     }
 
     public static class Builder implements CopyableBuilder<Builder, ParallelConfiguration> {
         private int maxInFlightParts;
-        private Integer maxInFlightPutObjectParts;
 
         public Builder maxInFlightParts(int maxInFlightParts) {
             this.maxInFlightParts = maxInFlightParts;
@@ -76,25 +64,6 @@ public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfigur
 
         public int maxInFlightParts() {
             return maxInFlightParts;
-        }
-
-        /**
-         * Configures the maximum number of concurrent UploadPart requests that are allowed for multipart upload. This limits
-         * the number of parts that can be in flight at any given time during a multipart putObject operation, preventing the
-         * client from overwhelming the HTTP connection pool when uploading large objects.
-         *
-         * <p>Default value: 50 (matching the default HTTP client max concurrency)
-         *
-         * @param maxInFlightPutObjectParts the maximum number of concurrent UploadPart requests
-         * @return an instance of this builder.
-         */
-        public Builder maxInFlightPutObjectParts(Integer maxInFlightPutObjectParts) {
-            this.maxInFlightPutObjectParts = maxInFlightPutObjectParts;
-            return this;
-        }
-
-        public Integer maxInFlightPutObjectParts() {
-            return maxInFlightPutObjectParts;
         }
 
         @Override

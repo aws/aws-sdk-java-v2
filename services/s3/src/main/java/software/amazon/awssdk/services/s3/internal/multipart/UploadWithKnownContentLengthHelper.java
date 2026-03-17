@@ -50,13 +50,13 @@ public final class UploadWithKnownContentLengthHelper {
     private final long maxMemoryUsageInBytes;
     private final long multipartUploadThresholdInBytes;
     private final MultipartUploadHelper multipartUploadHelper;
-    private final int maxInFlightPutObjectParts;
+    private final int maxInFlightParts;
 
     public UploadWithKnownContentLengthHelper(S3AsyncClient s3AsyncClient,
                                               long partSizeInBytes,
                                               long multipartUploadThresholdInBytes,
                                               long maxMemoryUsageInBytes,
-                                              int maxInFlightPutObjectParts) {
+                                              int maxInFlightParts) {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
@@ -66,7 +66,7 @@ public final class UploadWithKnownContentLengthHelper {
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
         this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
-        this.maxInFlightPutObjectParts = maxInFlightPutObjectParts;
+        this.maxInFlightParts = maxInFlightParts;
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
@@ -185,7 +185,7 @@ public final class UploadWithKnownContentLengthHelper {
     private void splitAndSubscribe(MpuRequestContext mpuRequestContext, CompletableFuture<PutObjectResponse> returnFuture) {
         KnownContentLengthAsyncRequestBodySubscriber subscriber =
             new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper,
-                                                             maxInFlightPutObjectParts);
+                                                             maxInFlightParts);
 
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
 
