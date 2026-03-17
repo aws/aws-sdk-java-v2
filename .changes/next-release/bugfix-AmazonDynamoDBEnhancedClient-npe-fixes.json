@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types."
+}
