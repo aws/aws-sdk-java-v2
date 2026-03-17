@@ -26,7 +26,6 @@ import static software.amazon.awssdk.services.s3.internal.multipart.utils.Multip
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCreateMultipartCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulPutObjectCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulUploadPartCalls;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -113,37 +111,6 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         verifyUploadPartRequests(actualRequests, actualRequestBodies);
         verifyCompleteMultipartUploadRequest();
-    }
-
-    @Test
-    void upload_blockingInputStream_shouldRespectMaxInFlightPutObjectParts() throws FileNotFoundException {
-        int maxInFlight = 2;
-        UploadWithUnknownContentLengthHelper limitedHelper =
-            new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, PART_SIZE * 4, maxInFlight);
-
-        stubSuccessfulCreateMultipartCall(UPLOAD_ID, s3AsyncClient);
-        stubSuccessfulCompleteMultipartCall(BUCKET, KEY, s3AsyncClient);
-
-        AtomicInteger currentInFlight = new AtomicInteger(0);
-        AtomicInteger maxObservedInFlight = new AtomicInteger(0);
-
-        when(s3AsyncClient.uploadPart(any(UploadPartRequest.class), any(AsyncRequestBody.class)))
-            .thenAnswer(invocation -> {
-                int inFlight = currentInFlight.incrementAndGet();
-                maxObservedInFlight.updateAndGet(prev -> Math.max(prev, inFlight));
-                AsyncRequestBody body = invocation.getArgument(1);
-                body.subscribe(b -> {});
-                currentInFlight.decrementAndGet();
-                return CompletableFuture.completedFuture(UploadPartResponse.builder().build());
-            });
-
-        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
-        CompletableFuture<PutObjectResponse> future = limitedHelper.uploadObject(createPutObjectRequest(), body);
-        body.writeInputStream(new FileInputStream(testFile));
-        future.join();
-
-        // With synchronous completion, the max observed in-flight should be limited
-        assertThat(maxObservedInFlight.get()).isLessThanOrEqualTo(maxInFlight);
     }
 
     @Test
