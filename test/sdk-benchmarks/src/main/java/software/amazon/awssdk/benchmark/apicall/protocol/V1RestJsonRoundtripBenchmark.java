@@ -62,8 +62,7 @@ public class V1RestJsonRoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("rest-json-protocol/createfunction-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .routeByUri("/2015-03-31/functions", "application/json", response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();

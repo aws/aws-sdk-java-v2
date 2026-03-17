@@ -31,8 +31,6 @@ import com.amazonaws.services.cloudfront.model.Origin;
 import com.amazonaws.services.cloudfront.model.Origins;
 import com.amazonaws.services.cloudfront.model.S3OriginConfig;
 import com.amazonaws.services.cloudfront.model.ViewerProtocolPolicy;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -67,9 +65,7 @@ public class V1RestXmlRoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
 
-        Map<String, String> headers = Collections.singletonMap("ETag", "E2QWRUHEXAMPLE");
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .routeByUri("/2020-05-31/distribution", "application/xml", response, headers);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();

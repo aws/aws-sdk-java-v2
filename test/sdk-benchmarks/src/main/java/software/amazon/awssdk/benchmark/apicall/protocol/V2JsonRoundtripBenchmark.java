@@ -59,8 +59,7 @@ public class V2JsonRoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("json-protocol/putitem-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .routeByTarget("DynamoDB_20120810.PutItem", "application/x-amz-json-1.0", response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();

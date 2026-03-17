@@ -55,8 +55,7 @@ public class V2QueryRoundtripBenchmark {
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("query-protocol/assumerole-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet()
-            .defaultRoute("text/xml", response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
