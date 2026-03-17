@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
+import software.amazon.awssdk.codegen.model.service.ErrorMap;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Operation;
@@ -342,6 +343,16 @@ abstract class AddShapes {
                 Shape outputShape = allC2jShapes.get(outputShapeName);
                 if (parentShape.equals(outputShape)) {
                     return true;
+                }
+            }
+
+            if (operation.getErrors() != null) {
+                for (ErrorMap error : operation.getErrors()) {
+                    String errorShapeName = error.getShape();
+                    Shape outputShape = allC2jShapes.get(errorShapeName);
+                    if (parentShape.equals(outputShape)) {
+                        return true;
+                    }
                 }
             }
         }
