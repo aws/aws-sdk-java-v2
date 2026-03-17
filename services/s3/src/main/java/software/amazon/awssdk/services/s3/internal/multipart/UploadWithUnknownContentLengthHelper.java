@@ -62,13 +62,13 @@ public final class UploadWithUnknownContentLengthHelper {
     private final long multipartUploadThresholdInBytes;
 
     private final MultipartUploadHelper multipartUploadHelper;
-    private final int maxInFlightPutObjectParts;
+    private final int maxInFlightParts;
 
     public UploadWithUnknownContentLengthHelper(S3AsyncClient s3AsyncClient,
                                                 long partSizeInBytes,
                                                 long multipartUploadThresholdInBytes,
                                                 long maxMemoryUsageInBytes,
-                                                int maxInFlightPutObjectParts) {
+                                                int maxInFlightParts) {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
@@ -78,7 +78,7 @@ public final class UploadWithUnknownContentLengthHelper {
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
         this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
-        this.maxInFlightPutObjectParts = maxInFlightPutObjectParts;
+        this.maxInFlightParts = maxInFlightParts;
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
@@ -259,7 +259,7 @@ public final class UploadWithUnknownContentLengthHelper {
                         }
                     } else {
                         int inFlight = asyncRequestBodyInFlight.decrementAndGet();
-                        if (!isDone && inFlight < maxInFlightPutObjectParts) {
+                        if (!isDone && inFlight < maxInFlightParts) {
                             synchronized (UnknownContentLengthAsyncRequestBodySubscriber.this) {
                                 subscription.request(1);
                             }
@@ -267,7 +267,7 @@ public final class UploadWithUnknownContentLengthHelper {
                         completeMultipartUploadIfFinish(inFlight);
                     }
                 });
-            if (asyncRequestBodyInFlight.get() < maxInFlightPutObjectParts) {
+            if (asyncRequestBodyInFlight.get() < maxInFlightParts) {
                 synchronized (this) {
                     subscription.request(1);
                 }

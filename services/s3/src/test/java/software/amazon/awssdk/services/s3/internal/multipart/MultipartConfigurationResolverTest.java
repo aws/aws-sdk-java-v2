@@ -71,23 +71,6 @@ public class MultipartConfigurationResolverTest {
     }
 
     @Test
-    void resolveMaxInFlightPutObjectParts_valueProvidedWithBuilder_shouldHonor() {
-        MultipartConfiguration configuration =
-            MultipartConfiguration.builder()
-                                  .parallelConfiguration(p -> p.maxInFlightPutObjectParts(10))
-                                  .build();
-        MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(configuration);
-        assertThat(resolver.maxInFlightPutObjectParts()).isEqualTo(10);
-    }
-
-    @Test
-    void resolveMaxInFlightPutObjectParts_valueNotProvided_shouldUseDefault() {
-        MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(MultipartConfiguration.builder()
-                                                                                                           .build());
-        assertThat(resolver.maxInFlightPutObjectParts()).isEqualTo(50);
-    }
-
-    @Test
     void valueProvidedForAllFields_shouldHonor() {
         MultipartConfiguration configuration =
             MultipartConfiguration.builder()
@@ -96,7 +79,6 @@ public class MultipartConfigurationResolverTest {
                                   .apiCallBufferSizeInBytes(3L)
                                   .parallelConfiguration(ParallelConfiguration.builder()
                                                                               .maxInFlightParts(1)
-                                                                              .maxInFlightPutObjectParts(5)
                                                                               .build())
                                   .build();
         MultipartConfigurationResolver resolver = new MultipartConfigurationResolver(configuration);
@@ -104,7 +86,6 @@ public class MultipartConfigurationResolverTest {
         assertThat(resolver.thresholdInBytes()).isEqualTo(8L);
         assertThat(resolver.apiCallBufferSize()).isEqualTo(3L);
         assertThat(resolver.maxInFlightParts()).isEqualTo(1);
-        assertThat(resolver.maxInFlightPutObjectParts()).isEqualTo(5);
     }
 
     @Test
@@ -115,7 +96,6 @@ public class MultipartConfigurationResolverTest {
         assertThat(resolver.thresholdInBytes()).isEqualTo(8L * 1024 * 1024);
         assertThat(resolver.apiCallBufferSize()).isEqualTo(8L * 1024 * 1024 * 4);
         assertThat(resolver.maxInFlightParts()).isEqualTo(50);
-        assertThat(resolver.maxInFlightPutObjectParts()).isEqualTo(50);
     }
 
 }

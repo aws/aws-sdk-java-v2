@@ -70,7 +70,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicReferenceArray<CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
     private final PublisherListener<Long> progressListener;
-    private final int maxInFlightPutObjectParts;
+    private final int maxInFlightParts;
     private Subscription subscription;
     private volatile boolean isDone;
     private volatile boolean isPaused;
@@ -83,7 +83,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
                                                  CompletableFuture<PutObjectResponse> returnFuture,
                                                  MultipartUploadHelper multipartUploadHelper,
-                                                 int maxInFlightPutObjectParts) {
+                                                 int maxInFlightParts) {
         this.totalSize = mpuRequestContext.contentLength();
         this.partSize = mpuRequestContext.partSize();
         this.expectedNumParts = mpuRequestContext.expectedNumParts();
@@ -94,7 +94,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.existingNumParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
         this.completedParts = new AtomicReferenceArray<>(expectedNumParts);
         this.multipartUploadHelper = multipartUploadHelper;
-        this.maxInFlightPutObjectParts = maxInFlightPutObjectParts;
+        this.maxInFlightParts = maxInFlightParts;
         this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
                                                                                    .getAttribute(JAVA_PROGRESS_LISTENER))
                                                 .orElseGet(PublisherListener::noOp);
@@ -197,13 +197,13 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                      }
                                  } else {
                                      int inFlight = asyncRequestBodyInFlight.decrementAndGet();
-                                     if (!isDone && inFlight < maxInFlightPutObjectParts) {
+                                     if (!isDone && inFlight < maxInFlightParts) {
                                          subscription.request(1);
                                      }
                                      completeMultipartUploadIfFinished(inFlight);
                                  }
                              });
-        if (asyncRequestBodyInFlight.get() < maxInFlightPutObjectParts) {
+        if (asyncRequestBodyInFlight.get() < maxInFlightParts) {
             subscription.request(1);
         }
     }
