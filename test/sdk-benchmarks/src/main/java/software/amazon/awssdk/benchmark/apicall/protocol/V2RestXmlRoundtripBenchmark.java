@@ -56,7 +56,7 @@ import software.amazon.awssdk.services.cloudfront.model.ViewerProtocolPolicy;
 @Measurement(iterations = 5)
 @Fork(2)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 public class V2RestXmlRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;

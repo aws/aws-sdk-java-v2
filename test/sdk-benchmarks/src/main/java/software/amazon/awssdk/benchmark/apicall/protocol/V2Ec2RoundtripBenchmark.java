@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 @Measurement(iterations = 5)
 @Fork(2)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 public class V2Ec2RoundtripBenchmark {
 
     private ProtocolRoundtripServer server;

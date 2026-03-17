@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 @Measurement(iterations = 5)
 @Fork(2)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 public class V2QueryRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;

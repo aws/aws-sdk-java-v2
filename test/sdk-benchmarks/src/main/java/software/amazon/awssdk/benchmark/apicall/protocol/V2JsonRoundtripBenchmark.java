@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 @Measurement(iterations = 5)
 @Fork(2)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 public class V2JsonRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
