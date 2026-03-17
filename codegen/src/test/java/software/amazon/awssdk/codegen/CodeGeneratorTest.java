@@ -193,14 +193,15 @@ public class CodeGeneratorTest {
             () -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()));
 
         IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
+
         ShapeModel inputShape = intermediateModel.getShapes().get("SomeOperationRequest");
-        MemberModel uriMember = inputShape.findMemberModelByC2jName("thingId");
-        assertThat(uriMember.getHttp().getLocation()).isEqualTo(Location.URI);
+        assertThat(inputShape.findMemberModelByC2jName("thingId").getHttp().getLocation()).isEqualTo(Location.URI);
 
         ShapeModel nestedShape = intermediateModel.getShapes().get("NestedOptions");
-        MemberModel nestedUriMember = nestedShape.findMemberModelByC2jName("pageSize");
-        assertThat(nestedUriMember.getHttp().getLocation()).isNull();
-        assertThat(nestedUriMember.getHttp().isGreedy()).isFalse();
+        assertThat(nestedShape.findMemberModelByC2jName("pageSize").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("pageSize").getHttp().isGreedy()).isFalse();
+        assertThat(nestedShape.findMemberModelByC2jName("headerParam").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("queryParam").getHttp().getLocation()).isNull();
 
         Path generatedNestedOptions = Files.walk(outputDir)
             .filter(p -> p.getFileName().toString().equals("NestedOptions.java"))

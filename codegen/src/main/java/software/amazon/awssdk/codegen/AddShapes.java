@@ -22,9 +22,11 @@ import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
@@ -55,6 +57,7 @@ abstract class AddShapes {
 
     private final IntermediateModelBuilder builder;
     private final NamingStrategy namingStrategy;
+    private Set<Shape> directOperationShapes;
 
     AddShapes(IntermediateModelBuilder builder) {
         this.builder = builder;
@@ -313,7 +316,7 @@ abstract class AddShapes {
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
         // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
-        Location location = isDirectOperationInputOrOutput(parentShape, allC2jShapes)
+        Location location = isDirectOperationShape(parentShape, allC2jShapes)
                             ? Location.forValue(member.getLocation())
                             : null;
 
@@ -329,34 +332,24 @@ abstract class AddShapes {
         return mapping;
     }
 
-    private boolean isDirectOperationInputOrOutput(Shape parentShape, Map<String, Shape> allC2jShapes) {
-        for (Operation operation : builder.getService().getOperations().values()) {
-            if (operation.getInput() != null) {
-                String inputShapeName = operation.getInput().getShape();
-                Shape inputShape = allC2jShapes.get(inputShapeName);
-                if (parentShape.equals(inputShape)) {
-                    return true;
+    private boolean isDirectOperationShape(Shape parentShape, Map<String, Shape> allC2jShapes) {
+        if (directOperationShapes == null) {
+            directOperationShapes = new HashSet<>();
+            for (Operation operation : builder.getService().getOperations().values()) {
+                if (operation.getInput() != null) {
+                    directOperationShapes.add(allC2jShapes.get(operation.getInput().getShape()));
                 }
-            }
-            if (operation.getOutput() != null) {
-                String outputShapeName = operation.getOutput().getShape();
-                Shape outputShape = allC2jShapes.get(outputShapeName);
-                if (parentShape.equals(outputShape)) {
-                    return true;
+                if (operation.getOutput() != null) {
+                    directOperationShapes.add(allC2jShapes.get(operation.getOutput().getShape()));
                 }
-            }
-
-            if (operation.getErrors() != null) {
-                for (ErrorMap error : operation.getErrors()) {
-                    String errorShapeName = error.getShape();
-                    Shape outputShape = allC2jShapes.get(errorShapeName);
-                    if (parentShape.equals(outputShape)) {
-                        return true;
+                if (operation.getErrors() != null) {
+                    for (ErrorMap error : operation.getErrors()) {
+                        directOperationShapes.add(allC2jShapes.get(error.getShape()));
                     }
                 }
             }
         }
-        return false;
+        return directOperationShapes.contains(parentShape);
     }
 
     private boolean isFlattened(Member member, Shape memberShape) {
@@ -413,7 +406,7 @@ abstract class AddShapes {
                 .filter(e -> e.getValue().equals(parentShape))
                 .map(Map.Entry::getKey)
                 .findFirst()
-                .get();
+                .orElseThrow(() -> new IllegalStateException("Shape not found in model: " + parentShape));
             String detailMsg = "Could not find request URI for input shape '" + shapeName
                 + "'. No operation was found that references this shape as its input.";
             ValidationEntry entry =

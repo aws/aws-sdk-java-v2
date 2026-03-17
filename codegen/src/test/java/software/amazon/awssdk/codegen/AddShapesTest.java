@@ -84,8 +84,22 @@ class AddShapesTest {
         MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
         assertThat(requestShapeModel.getRequired()).contains(queryParamName);
-        assertThat(requiredMemberModel.getHttp().getLocation()).isNull();
         assertThat(requiredMemberModel.isRequired()).isTrue();
+    }
+
+    @Test
+    void generateShapeModel_locationOnNestedShape_isIgnored() {
+        ShapeModel nestedShape = intermediateModel.getShapes().get("NestedQueryParameterOperation");
+        MemberModel queryParam = nestedShape.findMemberModelByC2jName("QueryParamOne");
+        assertThat(queryParam.getHttp().getLocation()).isNull();
+    }
+
+    @Test
+    void generateShapeModel_locationOnDirectInputShape_isPreserved() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("QueryParameterOperationRequest");
+        assertThat(inputShape.findMemberModelByC2jName("PathParam").getHttp().getLocation()).isEqualTo(Location.URI);
+        assertThat(inputShape.findMemberModelByC2jName("QueryParamOne").getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(inputShape.findMemberModelByC2jName("StringHeaderMember").getHttp().getLocation()).isEqualTo(Location.HEADER);
     }
 
 }

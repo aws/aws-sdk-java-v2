@@ -46,6 +46,16 @@
           "shape": "String",
           "location": "uri",
           "locationName": "pageSize"
+        },
+        "headerParam": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-nested-header"
+        },
+        "queryParam": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "nestedQuery"
         }
       }
     },
@@ -53,5 +63,5 @@
       "type": "string"
     }
   },
-  "documentation": "A service with a uri-bound member on a non-input shape"
+  "documentation": "A service with HTTP binding locations on non-input shapes"
 }
