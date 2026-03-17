@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricStat;
 @Measurement(iterations = 5)
 @Fork(2)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 public class V2CborRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
