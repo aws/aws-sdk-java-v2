@@ -51,7 +51,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.42.12</version>
+      <version>2.42.14</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -85,12 +85,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.42.12</version>
+  <version>2.42.14</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.42.12</version>
+  <version>2.42.14</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.42.12</version>
+  <version>2.42.14</version>
 </dependency>
 ```
 
@@ -348,6 +348,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://mboegie.dev"><img src="https://avatars.githubusercontent.com/u/7557397?v=4?s=100" width="100px;" alt="Merlin Bögershausen"/><br /><sub><b>Merlin Bögershausen</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=MBoegers" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://kennysoft.kr"><img src="https://avatars.githubusercontent.com/u/6624567?v=4?s=100" width="100px;" alt="Hyeonmin Park"/><br /><sub><b>Hyeonmin Park</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=KENNYSOFT" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/carhaz"><img src="https://avatars.githubusercontent.com/u/236483641?v=4?s=100" width="100px;" alt="carhaz"/><br /><sub><b>carhaz</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=carhaz" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/akhilyendluri"><img src="https://avatars.githubusercontent.com/u/13486835?v=4?s=100" width="100px;" alt="Akhil Yendluri"/><br /><sub><b>Akhil Yendluri</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=akhilyendluri" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ryanyuan"><img src="https://avatars.githubusercontent.com/u/7124535?v=4?s=100" width="100px;" alt="Ryan Yuan"/><br /><sub><b>Ryan Yuan</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=ryanyuan" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/salmanmkc"><img src="https://avatars.githubusercontent.com/u/32169182?v=4?s=100" width="100px;" alt="Salman Chishti"/><br /><sub><b>Salman Chishti</b></sub></a><br /><a href="#maintenance-salmanmkc" title="Maintenance">🚧</a></td>
     </tr>

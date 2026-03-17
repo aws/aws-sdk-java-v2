@@ -1,4 +1,82 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.14__ __2026-03-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - You can now generate policy scenarios on demand using the new GENERATE POLICY SCENARIOS build workflow type. Scenarios will no longer be automatically generated during INGEST CONTENT, REFINE POLICY, and IMPORT POLICY workflows, resulting in faster completion times for these operations.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Provide support to perform deterministic operations on agent runtime through shell command executions via the new InvokeAgentRuntimeCommand API
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Supporting hosting of public ECR Container Images in AgentCore Runtime
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports configuring whether tags are propagated to the EC2 Instance Metadata Service (IMDS) for instances launched by the Managed Instances capacity provider. This gives customers control over tag visibility in IMDS when using ECS Managed Instances.
+
+# __2.42.13__ __2026-03-13__
+## __AWS Config__
+  - ### Features
+    - Fix pagination support for DescribeConformancePackCompliance, and update OrganizationConfigRule InputParameters max length to match ConfigRule.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds support for Dolby AC-4 audio output, frame rate conversion between non-Dolby Vision inputs to Dolby Vision outputs, and clear lead CMAF HLS output.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Documents the VideoDescription.ScalingBehavior.SMART(underscore)CROP enum value.
+
+## __AWS Glue__
+  - ### Features
+    - Add QuerySessionContext to BatchGetPartitionRequest
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - upgrade maven-compiler-plugin to 3.14.1
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon API Gateway__
+  - ### Features
+    - API Gateway now supports an additional security policy "SecurityPolicy-TLS13-1-2-FIPS-PFS-PQ-2025-09" for REST APIs and custom domain names. The new policy is compliant with TLS 1.3, Federal Information Processing Standards (FIPS), Perfect Forward Secrecy (PFS), and post-quantum (PQ) cryptography
+
+## __Amazon Connect Service__
+  - ### Features
+    - Deprecating PredefinedNotificationID field
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Feature launch that enables customers to connect streaming sessions to their own VPCs running in AWS.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Updates maximum reconnect window seconds from 60 to 300 for participant replication
+
+## __Amazon QuickSight__
+  - ### Features
+    - The change adds a new capability named ManageSharedFolders in Custom Permissions
+
+## __Amazon S3__
+  - ### Features
+    - Added `expectContinueEnabled` to `S3Configuration` to control the `Expect: 100-continue` header on PutObject and UploadPart requests. When set to `false`, the SDK stops adding the header. For Apache HTTP client users, to have `ApacheHttpClient.builder().expectContinueEnabled()` fully control the header, set `expectContinueEnabled(false)` on `S3Configuration`.
+
+## __Application Migration Service__
+  - ### Features
+    - Network Migration APIs are now publicly available for direct programmatic access. Customers can now call Network Migration APIs directly without going through AWS Transform (ATX), enabling automation, integration with existing tools, and self-service migration workflows.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sullis](https://github.com/sullis)
 # __2.42.12__ __2026-03-12__
 ## __AWS DataSync__
   - ### Features
