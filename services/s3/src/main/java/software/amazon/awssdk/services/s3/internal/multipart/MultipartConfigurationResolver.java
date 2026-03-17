@@ -35,6 +35,7 @@ public final class MultipartConfigurationResolver {
     private final long apiCallBufferSize;
     private final long thresholdInBytes;
     private final int maxInFlightParts;
+    private final int maxInFlightPutObjectParts;
 
     public MultipartConfigurationResolver(MultipartConfiguration multipartConfiguration) {
         Validate.notNull(multipartConfiguration, "multipartConfiguration");
@@ -46,9 +47,13 @@ public final class MultipartConfigurationResolver {
         ParallelConfiguration parallelConfiguration = multipartConfiguration.parallelConfiguration();
         if (parallelConfiguration == null) {
             this.maxInFlightParts = DEFAULT_MAX_IN_FLIGHT_PARTS;
+            this.maxInFlightPutObjectParts = DEFAULT_MAX_IN_FLIGHT_PARTS;
         } else {
             this.maxInFlightParts = Validate.getOrDefault(multipartConfiguration.parallelConfiguration().maxInFlightParts(),
                                                           () -> DEFAULT_MAX_IN_FLIGHT_PARTS);
+            this.maxInFlightPutObjectParts = Validate.getOrDefault(
+                multipartConfiguration.parallelConfiguration().maxInFlightPutObjectParts(),
+                () -> DEFAULT_MAX_IN_FLIGHT_PARTS);
         }
     }
 
@@ -66,5 +71,9 @@ public final class MultipartConfigurationResolver {
 
     public int maxInFlightParts() {
         return maxInFlightParts;
+    }
+
+    public int maxInFlightPutObjectParts() {
+        return maxInFlightPutObjectParts;
     }
 }
