@@ -70,6 +70,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicReferenceArray<CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
     private final PublisherListener<Long> progressListener;
+    private final int maxInFlightPutObjectParts;
     private Subscription subscription;
     private volatile boolean isDone;
     private volatile boolean isPaused;
@@ -81,7 +82,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
 
     KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
                                                  CompletableFuture<PutObjectResponse> returnFuture,
-                                                 MultipartUploadHelper multipartUploadHelper) {
+                                                 MultipartUploadHelper multipartUploadHelper,
+                                                 int maxInFlightPutObjectParts) {
         this.totalSize = mpuRequestContext.contentLength();
         this.partSize = mpuRequestContext.partSize();
         this.expectedNumParts = mpuRequestContext.expectedNumParts();
@@ -92,6 +94,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.existingNumParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
         this.completedParts = new AtomicReferenceArray<>(expectedNumParts);
         this.multipartUploadHelper = multipartUploadHelper;
+        this.maxInFlightPutObjectParts = maxInFlightPutObjectParts;
         this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
                                                                                    .getAttribute(JAVA_PROGRESS_LISTENER))
                                                 .orElseGet(PublisherListener::noOp);
@@ -159,6 +162,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
             asyncRequestBody.close();
+
             subscription.request(1);
             return;
         }
@@ -192,10 +196,16 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                          subscription.cancel();
                                      }
                                  } else {
-                                     completeMultipartUploadIfFinished(asyncRequestBodyInFlight.decrementAndGet());
+                                     int inFlight = asyncRequestBodyInFlight.decrementAndGet();
+                                     if (!isDone && inFlight < maxInFlightPutObjectParts) {
+                                         subscription.request(1);
+                                     }
+                                     completeMultipartUploadIfFinished(inFlight);
                                  }
                              });
-        subscription.request(1);
+        if (asyncRequestBodyInFlight.get() < maxInFlightPutObjectParts) {
+            subscription.request(1);
+        }
     }
 
     private Optional<SdkClientException> validatePart(AsyncRequestBody asyncRequestBody, int currentPartNum) {

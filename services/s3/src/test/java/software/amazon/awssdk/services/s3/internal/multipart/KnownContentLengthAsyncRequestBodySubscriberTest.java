@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -215,6 +216,50 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         return subscriber.pause();
     }
 
+    @Test
+    void maxInFlightPutObjectParts_shouldLimitConcurrentUploads() {
+        int maxInFlight = 2;
+        long contentSize = 5 * PART_SIZE;
+        int totalParts = 5;
+
+        MpuRequestContext context = MpuRequestContext.builder()
+                                                     .request(Pair.of(putObjectRequest, asyncRequestBody))
+                                                     .contentLength(contentSize)
+                                                     .partSize(PART_SIZE)
+                                                     .uploadId(UPLOAD_ID)
+                                                     .numPartsCompleted(0L)
+                                                     .expectedNumParts(totalParts)
+                                                     .build();
+
+        // Use non-completing futures to simulate slow uploads so parts stay in-flight
+        CompletableFuture<CompletedPart> pendingFuture1 = new CompletableFuture<>();
+        CompletableFuture<CompletedPart> pendingFuture2 = new CompletableFuture<>();
+        CompletableFuture<CompletedPart> pendingFuture3 = new CompletableFuture<>();
+
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+            .thenReturn(pendingFuture1)
+            .thenReturn(pendingFuture2)
+            .thenReturn(pendingFuture3);
+
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriber(context, maxInFlight);
+        Subscription mockSubscription = mock(Subscription.class);
+        sub.onSubscribe(mockSubscription);
+
+        // First onNext: in-flight goes to 1, which is < maxInFlight(2), so subscription.request(1) is called
+        sub.onNext(createMockAsyncRequestBody(PART_SIZE));
+        // onSubscribe calls request(1), and first onNext calls request(1) since inFlight(1) < max(2)
+        verify(mockSubscription, times(2)).request(1);
+
+        // Second onNext: in-flight goes to 2, which is NOT < maxInFlight(2), so no additional request
+        sub.onNext(createMockAsyncRequestBody(PART_SIZE));
+        // No additional request(1) call since we're at the limit
+        verify(mockSubscription, times(2)).request(1);
+
+        // Complete the first part — the completion callback should call request(1) since in-flight drops to 1
+        pendingFuture1.complete(CompletedPart.builder().partNumber(1).build());
+        verify(mockSubscription, times(3)).request(1);
+    }
+
     private MpuRequestContext createDefaultMpuRequestContext() {
         return MpuRequestContext.builder()
                                 .request(Pair.of(putObjectRequest, AsyncRequestBody.fromFile(testFile)))
@@ -240,7 +285,13 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     private KnownContentLengthAsyncRequestBodySubscriber createSubscriber(MpuRequestContext mpuRequestContext) {
-        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
+        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper, 50);
+    }
+
+    private KnownContentLengthAsyncRequestBodySubscriber createSubscriber(MpuRequestContext mpuRequestContext,
+                                                                          int maxInFlightPutObjectParts) {
+        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper,
+                                                                maxInFlightPutObjectParts);
     }
 
     private CloseableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {

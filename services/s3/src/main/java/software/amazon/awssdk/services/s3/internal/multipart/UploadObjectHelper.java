@@ -48,14 +48,17 @@ public final class UploadObjectHelper {
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.apiCallBufferSize = resolver.apiCallBufferSize();
         this.multipartUploadThresholdInBytes = resolver.thresholdInBytes();
+        int maxInFlightPutObjectParts = resolver.maxInFlightPutObjectParts();
         this.uploadWithKnownContentLength = new UploadWithKnownContentLengthHelper(s3AsyncClient,
                                                                                    partSizeInBytes,
                                                                                    multipartUploadThresholdInBytes,
-                                                                                   apiCallBufferSize);
+                                                                                   apiCallBufferSize,
+                                                                                   maxInFlightPutObjectParts);
         this.uploadWithUnknownContentLength = new UploadWithUnknownContentLengthHelper(s3AsyncClient,
                                                                                        partSizeInBytes,
                                                                                        multipartUploadThresholdInBytes,
-                                                                                       apiCallBufferSize);
+                                                                                       apiCallBufferSize,
+                                                                                       maxInFlightPutObjectParts);
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
