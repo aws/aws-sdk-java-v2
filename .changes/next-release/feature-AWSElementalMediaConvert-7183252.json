@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "contributor": "",
-    "description": "This update adds additional bitrate options for Dolby AC-4 audio outputs."
-}
