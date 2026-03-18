@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.services.sns.messagemanager.MessageManagerConfiguration;
@@ -88,7 +87,7 @@ public final class DefaultSnsMessageManager implements SnsMessageManager {
             this.httpClient = configuration.httpClient();
             this.shouldCloseHttpClient = false;
         } else {
-            this.httpClient = new DefaultSdkHttpClientBuilder().buildWithDefaults(createHttpDefaults());
+            this.httpClient = null;
             this.shouldCloseHttpClient = true;
         }
         
