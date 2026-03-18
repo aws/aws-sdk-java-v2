@@ -42,6 +42,7 @@ public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfigur
      * The maximum number of concurrent part requests that are allowed for multipart operations, including both multipart
      * download (GetObject) and multipart upload (PutObject). This limits the number of parts that can be in flight at any
      * given time, preventing the client from overwhelming the HTTP connection pool when transferring large objects.
+     * Defaults to 50.
      *
      * @return The value for the maximum number of concurrent part requests.
      */
