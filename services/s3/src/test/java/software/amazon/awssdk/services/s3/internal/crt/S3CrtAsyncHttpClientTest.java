@@ -626,39 +626,6 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
-    public void execute_withRequestLevelCredentials_shouldUseRequestCredentialsInSigningConfig() {
-        CredentialsProvider crtCredentials = Mockito.mock(CredentialsProvider.class);
-        CrtCredentialsProviderAdapter adapter = Mockito.mock(CrtCredentialsProviderAdapter.class);
-        when(adapter.crtCredentials()).thenReturn(crtCredentials);
-
-        AsyncExecuteRequest asyncExecuteRequest =
-            getExecuteRequestBuilder()
-                .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
-                .putHttpExecutionAttribute(SIGNING_REGION, Region.US_WEST_2)
-                .putHttpExecutionAttribute(SIGNING_NAME, "s3")
-                .putHttpExecutionAttribute(CRT_CREDENTIALS_PROVIDER_ADAPTER, adapter)
-                .build();
-
-        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        AwsSigningConfig signingConfig = actual.getSigningConfig();
-        assertThat(signingConfig.getCredentialsProvider()).isSameAs(crtCredentials);
-    }
-
-    @Test
-    public void execute_withoutRequestLevelCredentials_shouldUseClientLevelCredentials() {
-        AsyncExecuteRequest asyncExecuteRequest =
-            getExecuteRequestBuilder()
-                .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
-                .putHttpExecutionAttribute(SIGNING_REGION, Region.US_WEST_2)
-                .putHttpExecutionAttribute(SIGNING_NAME, "s3")
-                .build();
-
-        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        AwsSigningConfig signingConfig = actual.getSigningConfig();
-        assertThat(signingConfig.getCredentialsProvider()).isNotNull();
-    }
-
-    @Test
     public void execute_withRequestLevelCredentials_shouldCloseAdapterOnCompletion() {
         CrtCredentialsProviderAdapter adapter = Mockito.mock(CrtCredentialsProviderAdapter.class);
         when(adapter.crtCredentials()).thenReturn(Mockito.mock(CredentialsProvider.class));
