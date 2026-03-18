@@ -22,15 +22,18 @@ import javax.servlet.http.HttpServletResponse;
 
 class ProtocolRoundtripServlet extends HttpServlet {
     private final byte[] body;
+    private final String contentType;
 
-    ProtocolRoundtripServlet(byte[] body) {
+    ProtocolRoundtripServlet(byte[] body, String contentType) {
         this.body = body;
+        this.contentType = contentType;
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setStatus(200);
         resp.setContentLength(body.length);
+        resp.setContentType(contentType);
         resp.getOutputStream().write(body);
     }
 }

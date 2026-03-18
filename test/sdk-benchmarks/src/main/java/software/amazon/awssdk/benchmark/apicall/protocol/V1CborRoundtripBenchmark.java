@@ -55,13 +55,12 @@ public class V1CborRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private AmazonCloudWatch client;
-    private GetMetricDataRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = createCborResponseFixture();
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/cbor");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -71,23 +70,6 @@ public class V1CborRoundtripBenchmark {
                 server.getHttpUri().toString(), "us-east-1"))
             .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
-
-        Date end = Date.from(java.time.Instant.parse("2026-03-09T00:00:00Z"));
-        Date start = Date.from(java.time.Instant.parse("2026-03-09T00:00:00Z").minusSeconds(3600));
-        request = new GetMetricDataRequest()
-            .withStartTime(start)
-            .withEndTime(end)
-            .withMaxDatapoints(1000)
-            .withMetricDataQueries(
-                new MetricDataQuery()
-                    .withId("cpu")
-                    .withMetricStat(new MetricStat()
-                        .withMetric(new Metric()
-                            .withNamespace("AWS/EC2")
-                            .withMetricName("CPUUtilization"))
-                        .withPeriod(300)
-                        .withStat("Average"))
-                    .withReturnData(true));
     }
 
     @TearDown(Level.Trial)
@@ -98,6 +80,23 @@ public class V1CborRoundtripBenchmark {
 
     @Benchmark
     public void getMetricData(Blackhole bh) {
+        Date end = Date.from(java.time.Instant.parse("2026-03-09T00:00:00Z"));
+        Date start = Date.from(java.time.Instant.parse("2026-03-09T00:00:00Z").minusSeconds(3600));
+        GetMetricDataRequest request = new GetMetricDataRequest()
+            .withStartTime(start)
+            .withEndTime(end)
+            .withMaxDatapoints(1000)
+            .withMetricDataQueries(
+                new MetricDataQuery()
+                    .withId("cpu")
+                    .withMetricStat(new MetricStat()
+                                        .withMetric(new Metric()
+                                                        .withNamespace("AWS/EC2")
+                                                        .withMetricName("CPUUtilization"))
+                                        .withPeriod(300)
+                                        .withStat("Average"))
+                    .withReturnData(true));
+
         bh.consume(client.getMetricData(request));
     }
 

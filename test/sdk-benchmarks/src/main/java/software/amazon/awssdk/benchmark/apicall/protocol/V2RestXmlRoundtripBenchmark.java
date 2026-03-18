@@ -59,13 +59,12 @@ public class V2RestXmlRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private CloudFrontClient client;
-    private CreateDistributionRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -73,43 +72,10 @@ public class V2RestXmlRoundtripBenchmark {
         client = CloudFrontClient.builder()
             .endpointOverride(server.getHttpUri())
             .region(Region.US_EAST_1)
-            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create("test", "test")))
             .httpClient(Apache5HttpClient.create())
-            .build();
-
-        request = CreateDistributionRequest.builder()
-            .distributionConfig(DistributionConfig.builder()
-                .callerReference("benchmark-ref-2024")
-                .aliases(Aliases.builder()
-                    .quantity(2)
-                    .items("www.example.com", "cdn.example.com")
-                    .build())
-                .defaultRootObject("index.html")
-                .origins(Origins.builder()
-                    .quantity(1)
-                    .items(Origin.builder()
-                        .id("myS3Origin")
-                        .domainName("mybucket.s3.amazonaws.com")
-                        .originPath("/production")
-                        .s3OriginConfig(S3OriginConfig.builder()
-                            .originAccessIdentity("origin-access-identity/cloudfront/E127EXAMPLE51Z")
-                            .build())
-                        .build())
-                    .build())
-                .defaultCacheBehavior(DefaultCacheBehavior.builder()
-                    .targetOriginId("myS3Origin")
-                    .viewerProtocolPolicy(ViewerProtocolPolicy.REDIRECT_TO_HTTPS)
-                    .allowedMethods(AllowedMethods.builder()
-                        .quantity(3)
-                        .items(Method.GET, Method.HEAD, Method.OPTIONS)
-                        .cachedMethods(CachedMethods.builder()
-                            .quantity(2)
-                            .items(Method.GET, Method.HEAD)
-                            .build())
-                        .build())
-                    .compress(true)
-                    .build())
-                .build())
             .build();
     }
 
@@ -121,6 +87,57 @@ public class V2RestXmlRoundtripBenchmark {
 
     @Benchmark
     public void createDistribution(Blackhole bh) {
+        S3OriginConfig s3Config = S3OriginConfig.builder()
+            .originAccessIdentity(
+                "origin-access-identity/cloudfront/E127EXAMPLE51Z")
+            .build();
+
+        Origin origin = Origin.builder()
+            .id("myS3Origin")
+            .domainName("mybucket.s3.amazonaws.com")
+            .originPath("/production")
+            .s3OriginConfig(s3Config)
+            .build();
+
+        CachedMethods cached = CachedMethods.builder()
+            .quantity(2)
+            .items(Method.GET, Method.HEAD)
+            .build();
+
+        AllowedMethods allowed = AllowedMethods.builder()
+            .quantity(3)
+            .items(Method.GET, Method.HEAD, Method.OPTIONS)
+            .cachedMethods(cached)
+            .build();
+
+        DefaultCacheBehavior cacheBehavior =
+            DefaultCacheBehavior.builder()
+                .targetOriginId("myS3Origin")
+                .viewerProtocolPolicy(
+                    ViewerProtocolPolicy.REDIRECT_TO_HTTPS)
+                .allowedMethods(allowed)
+                .compress(true)
+                .build();
+
+        DistributionConfig config = DistributionConfig.builder()
+            .callerReference("benchmark-ref-2024")
+            .aliases(Aliases.builder()
+                .quantity(2)
+                .items("www.example.com", "cdn.example.com")
+                .build())
+            .defaultRootObject("index.html")
+            .origins(Origins.builder()
+                .quantity(1)
+                .items(origin)
+                .build())
+            .defaultCacheBehavior(cacheBehavior)
+            .build();
+
+        CreateDistributionRequest request =
+            CreateDistributionRequest.builder()
+                .distributionConfig(config)
+                .build();
+
         bh.consume(client.createDistribution(request));
     }
 }

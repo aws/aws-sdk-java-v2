@@ -59,13 +59,12 @@ public class V1RestXmlRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private AmazonCloudFront client;
-    private CreateDistributionRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -75,32 +74,6 @@ public class V1RestXmlRoundtripBenchmark {
                 server.getHttpUri().toString(), "us-east-1"))
             .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
-
-        request = new CreateDistributionRequest()
-            .withDistributionConfig(new DistributionConfig()
-                .withCallerReference("benchmark-ref-2024")
-                .withAliases(new Aliases()
-                    .withQuantity(2)
-                    .withItems("www.example.com", "cdn.example.com"))
-                .withDefaultRootObject("index.html")
-                .withOrigins(new Origins()
-                    .withQuantity(1)
-                    .withItems(new Origin()
-                        .withId("myS3Origin")
-                        .withDomainName("mybucket.s3.amazonaws.com")
-                        .withOriginPath("/production")
-                        .withS3OriginConfig(new S3OriginConfig()
-                            .withOriginAccessIdentity("origin-access-identity/cloudfront/E127EXAMPLE51Z"))))
-                .withDefaultCacheBehavior(new DefaultCacheBehavior()
-                    .withTargetOriginId("myS3Origin")
-                    .withViewerProtocolPolicy(ViewerProtocolPolicy.RedirectToHttps)
-                    .withAllowedMethods(new AllowedMethods()
-                        .withQuantity(3)
-                        .withItems(Method.GET, Method.HEAD, Method.OPTIONS)
-                        .withCachedMethods(new CachedMethods()
-                            .withQuantity(2)
-                            .withItems(Method.GET, Method.HEAD)))
-                    .withCompress(true)));
     }
 
     @TearDown(Level.Trial)
@@ -111,6 +84,32 @@ public class V1RestXmlRoundtripBenchmark {
 
     @Benchmark
     public void createDistribution(Blackhole bh) {
+        CreateDistributionRequest request = new CreateDistributionRequest()
+            .withDistributionConfig(new DistributionConfig()
+                .withCallerReference("benchmark-ref-2024")
+                .withAliases(new Aliases()
+                                 .withQuantity(2)
+                                 .withItems("www.example.com", "cdn.example.com"))
+                .withDefaultRootObject("index.html")
+                .withOrigins(new Origins()
+                                 .withQuantity(1)
+                                 .withItems(new Origin()
+                                    .withId("myS3Origin")
+                                    .withDomainName("mybucket.s3.amazonaws.com")
+                                    .withOriginPath("/production")
+                                    .withS3OriginConfig(new S3OriginConfig()
+                                        .withOriginAccessIdentity("origin-access-identity/cloudfront/E127EXAMPLE51Z"))))
+                .withDefaultCacheBehavior(new DefaultCacheBehavior()
+                                 .withTargetOriginId("myS3Origin")
+                                 .withViewerProtocolPolicy(ViewerProtocolPolicy.RedirectToHttps)
+                                 .withAllowedMethods(new AllowedMethods()
+                                    .withQuantity(3)
+                                    .withItems(Method.GET, Method.HEAD, Method.OPTIONS)
+                                    .withCachedMethods(new CachedMethods()
+                                         .withQuantity(2)
+                                         .withItems(Method.GET, Method.HEAD)))
+                                    .withCompress(true)));
+
         bh.consume(client.createDistribution(request));
     }
 }

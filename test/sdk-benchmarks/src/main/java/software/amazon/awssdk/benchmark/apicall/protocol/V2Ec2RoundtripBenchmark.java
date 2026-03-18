@@ -50,13 +50,12 @@ public class V2Ec2RoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private Ec2Client client;
-    private DescribeInstancesRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("ec2-protocol/describe-instances-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -66,14 +65,6 @@ public class V2Ec2RoundtripBenchmark {
             .region(Region.US_EAST_1)
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
             .httpClient(Apache5HttpClient.create())
-            .build();
-
-        request = DescribeInstancesRequest.builder()
-            .instanceIds("i-0abcdef1234567890")
-            .filters(
-                Filter.builder().name("instance-state-name").values("running").build(),
-                Filter.builder().name("instance-type").values("m5.xlarge").build())
-            .maxResults(100)
             .build();
     }
 
@@ -85,6 +76,14 @@ public class V2Ec2RoundtripBenchmark {
 
     @Benchmark
     public void describeInstances(Blackhole bh) {
+        DescribeInstancesRequest request = DescribeInstancesRequest.builder()
+                                          .instanceIds("i-0abcdef1234567890")
+                                          .filters(
+                                              Filter.builder().name("instance-state-name").values("running").build(),
+                                              Filter.builder().name("instance-type").values("m5.xlarge").build())
+                                          .maxResults(100)
+                                          .build();
+
         bh.consume(client.describeInstances(request));
     }
 }

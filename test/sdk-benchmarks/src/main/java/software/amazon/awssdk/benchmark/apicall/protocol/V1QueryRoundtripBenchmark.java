@@ -49,13 +49,12 @@ public class V1QueryRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private AWSSecurityTokenService client;
-    private AssumeRoleRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("query-protocol/assumerole-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -65,13 +64,6 @@ public class V1QueryRoundtripBenchmark {
                 server.getHttpUri().toString(), "us-east-1"))
             .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
-
-        request = new AssumeRoleRequest()
-            .withRoleArn("arn:aws:iam::123456789012:role/benchmark-role")
-            .withRoleSessionName("benchmark-session")
-            .withDurationSeconds(3600)
-            .withExternalId("benchmark-external-id")
-            .withPolicy("{\"Version\":\"2012-10-17\"}");
     }
 
     @TearDown(Level.Trial)
@@ -82,6 +74,13 @@ public class V1QueryRoundtripBenchmark {
 
     @Benchmark
     public void assumeRole(Blackhole bh) {
+        AssumeRoleRequest request = new AssumeRoleRequest()
+            .withRoleArn("arn:aws:iam::123456789012:role/benchmark-role")
+            .withRoleSessionName("benchmark-session")
+            .withDurationSeconds(3600)
+            .withExternalId("benchmark-external-id")
+            .withPolicy("{\"Version\":\"2012-10-17\"}");
+
         bh.consume(client.assumeRole(request));
     }
 }

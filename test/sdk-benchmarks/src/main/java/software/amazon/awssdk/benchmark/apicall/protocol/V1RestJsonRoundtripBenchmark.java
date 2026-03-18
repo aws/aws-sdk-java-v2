@@ -56,13 +56,12 @@ public class V1RestJsonRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private AWSLambda client;
-    private CreateFunctionRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("rest-json-protocol/createfunction-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/json");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -72,24 +71,6 @@ public class V1RestJsonRoundtripBenchmark {
                 server.getHttpUri().toString(), "us-east-1"))
             .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
-
-        Map<String, String> envVars = new HashMap<>();
-        envVars.put("ENV_VAR_1", "value1");
-
-        request = new CreateFunctionRequest()
-            .withFunctionName("benchmark-function")
-            .withRuntime(Runtime.Java8)
-            .withRole("arn:aws:iam::123456789012:role/lambda-role")
-            .withHandler("com.example.Handler::handleRequest")
-            .withCode(new FunctionCode()
-                .withS3Bucket("my-deploy-bucket")
-                .withS3Key("code/function.zip"))
-            .withDescription("Benchmark test function")
-            .withTimeout(30)
-            .withMemorySize(512)
-            .withPublish(false)
-            .withEnvironment(new Environment().withVariables(envVars))
-            .withTracingConfig(new TracingConfig().withMode(TracingMode.Active));
     }
 
     @TearDown(Level.Trial)
@@ -100,6 +81,24 @@ public class V1RestJsonRoundtripBenchmark {
 
     @Benchmark
     public void createFunction(Blackhole bh) {
+        Map<String, String> envVars = new HashMap<>();
+        envVars.put("ENV_VAR_1", "value1");
+
+        CreateFunctionRequest request = new CreateFunctionRequest()
+            .withFunctionName("benchmark-function")
+            .withRuntime(Runtime.Java8)
+            .withRole("arn:aws:iam::123456789012:role/lambda-role")
+            .withHandler("com.example.Handler::handleRequest")
+            .withCode(new FunctionCode()
+                          .withS3Bucket("my-deploy-bucket")
+                          .withS3Key("code/function.zip"))
+            .withDescription("Benchmark test function")
+            .withTimeout(30)
+            .withMemorySize(512)
+            .withPublish(false)
+            .withEnvironment(new Environment().withVariables(envVars))
+            .withTracingConfig(new TracingConfig().withMode(TracingMode.Active));
+
         bh.consume(client.createFunction(request));
     }
 }

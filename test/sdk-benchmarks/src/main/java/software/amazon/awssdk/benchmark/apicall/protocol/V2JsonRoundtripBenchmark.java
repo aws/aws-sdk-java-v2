@@ -53,13 +53,12 @@ public class V2JsonRoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private DynamoDbClient client;
-    private PutItemRequest putItemRequest;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("json-protocol/putitem-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/x-amz-json-1.0");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -69,11 +68,6 @@ public class V2JsonRoundtripBenchmark {
             .region(Region.US_EAST_1)
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
             .httpClient(Apache5HttpClient.create())
-            .build();
-
-        putItemRequest = PutItemRequest.builder()
-            .tableName("benchmark-table")
-            .item(itemMap())
             .build();
     }
 
@@ -85,6 +79,11 @@ public class V2JsonRoundtripBenchmark {
 
     @Benchmark
     public void putItem(Blackhole bh) {
+
+        PutItemRequest putItemRequest = PutItemRequest.builder()
+                                       .tableName("benchmark-table")
+                                       .item(itemMap())
+                                       .build();
         bh.consume(client.putItem(putItemRequest));
     }
 
