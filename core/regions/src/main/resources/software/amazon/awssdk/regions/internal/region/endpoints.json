@@ -26969,6 +26969,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "eu-central-2" : { },
           "eu-north-1" : {
             "variants" : [ {
               "hostname" : "transcribe.eu-north-1.api.aws",
@@ -39165,6 +39166,11 @@
           "eu-isoe-west-1" : { }
         }
       },
+      "metrics.sagemaker" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
       "monitoring" : {
         "endpoints" : {
           "eu-isoe-west-1" : { }
@@ -40598,6 +40604,11 @@
         }
       },
       "monitoring" : {
+        "endpoints" : {
+          "eusc-de-east-1" : { }
+        }
+      },
+      "network-firewall" : {
         "endpoints" : {
           "eusc-de-east-1" : { }
         }
