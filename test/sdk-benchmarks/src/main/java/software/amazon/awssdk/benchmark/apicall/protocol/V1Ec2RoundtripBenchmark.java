@@ -50,13 +50,12 @@ public class V1Ec2RoundtripBenchmark {
 
     private ProtocolRoundtripServer server;
     private AmazonEC2 client;
-    private DescribeInstancesRequest request;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = ProtocolRoundtripServer.loadFixture("ec2-protocol/describe-instances-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response);
+        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
 
         server = new ProtocolRoundtripServer(servlet);
         server.start();
@@ -66,13 +65,6 @@ public class V1Ec2RoundtripBenchmark {
                 server.getHttpUri().toString(), "us-east-1"))
             .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
-
-        request = new DescribeInstancesRequest()
-            .withInstanceIds("i-0abcdef1234567890")
-            .withFilters(
-                new Filter("instance-state-name").withValues("running"),
-                new Filter("instance-type").withValues("m5.xlarge"))
-            .withMaxResults(100);
     }
 
     @TearDown(Level.Trial)
@@ -83,6 +75,13 @@ public class V1Ec2RoundtripBenchmark {
 
     @Benchmark
     public void describeInstances(Blackhole bh) {
+        DescribeInstancesRequest request = new DescribeInstancesRequest()
+            .withInstanceIds("i-0abcdef1234567890")
+            .withFilters(
+                new Filter("instance-state-name").withValues("running"),
+                new Filter("instance-type").withValues("m5.xlarge"))
+            .withMaxResults(100);
+
         bh.consume(client.describeInstances(request));
     }
 }
