@@ -315,7 +315,7 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
-        // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
+        // https://smithy.io/2.0/spec/http-bindings.html
         Location location = isDirectOperationShape(parentShape, allC2jShapes)
                             ? Location.forValue(member.getLocation())
                             : null;
