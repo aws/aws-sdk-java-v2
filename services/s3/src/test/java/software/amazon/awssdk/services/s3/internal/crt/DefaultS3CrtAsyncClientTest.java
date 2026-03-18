@@ -161,5 +161,4 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(client).isInstanceOf(DefaultS3CrtAsyncClient.class);
         }
     }
-
 }

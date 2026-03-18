@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,7 +63,6 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
-import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -649,6 +649,26 @@ public class S3CrtAsyncHttpClientTest {
         Mockito.verify(adapter).close();
     }
 
+    @Test
+    void execute_whenMakeMetaRequestThrows_shouldCloseAdapter() {
+        CrtCredentialsProviderAdapter adapter = Mockito.mock(CrtCredentialsProviderAdapter.class);
+        when(adapter.crtCredentials()).thenReturn(Mockito.mock(CredentialsProvider.class));
+        when(s3Client.makeMetaRequest(any(S3MetaRequestOptions.class)))
+            .thenThrow(new RuntimeException("boom"));
+
+        AsyncExecuteRequest asyncExecuteRequest =
+            getExecuteRequestBuilder()
+                .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+                .putHttpExecutionAttribute(SIGNING_REGION, Region.US_WEST_2)
+                .putHttpExecutionAttribute(SIGNING_NAME, "s3")
+                .putHttpExecutionAttribute(CRT_CREDENTIALS_PROVIDER_ADAPTER, adapter)
+                .build();
+
+        assertThatThrownBy(() -> asyncHttpClient.execute(asyncExecuteRequest))
+            .isInstanceOf(RuntimeException.class);
+
+        Mockito.verify(adapter).close();
+    }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {
         return getExecuteRequestBuilder(443);
