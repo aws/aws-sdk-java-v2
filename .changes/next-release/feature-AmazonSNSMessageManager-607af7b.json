@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SNS Message Manager",
+    "contributor": "",
+    "description": "This change introduces the SNS Message Manager for 2.x, a library used to parse and validate messages received from SNS. This aims to provide the same functionality as [SnsMessageManager](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html) from 1.x."
+}

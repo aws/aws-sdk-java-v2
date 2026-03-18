@@ -16,12 +16,12 @@
 package software.amazon.awssdk.messagemanager.sns.model;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * The signature version used to sign an SNS message.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public enum SignatureVersion {
     VERSION_1("1"),
     VERSION_2("2"),
