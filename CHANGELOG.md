@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.16__ __2026-03-18__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds additional bitrate options for Dolby AC-4 audio outputs.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo.
+
 # __2.42.15__ __2026-03-17__
 ## __AWS Glue__
   - ### Features
