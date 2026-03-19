@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Observability Admin Service",
+    "contributor": "",
+    "description": "Adding a new field in the CreateCentralizationRuleForOrganization, UpdateCentralizationRuleForOrganization API and updating the GetCentralizationRuleForOrganization API response to include the new field"
+}
