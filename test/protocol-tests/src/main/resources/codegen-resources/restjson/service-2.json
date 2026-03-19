@@ -255,6 +255,14 @@
         "requestUri":"/2016-03-11/documentInputOperation"
       },
       "input":{"shape":"StructureWithDocumentMember"}
+    },
+    "NestedLocationOperation":{
+      "name":"NestedLocationOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/nestedLocationOperation"
+      },
+      "input":{"shape":"NestedLocationOperationInput"}
     }
   },
   "shapes":{
@@ -779,6 +787,28 @@
     "SimpleStruct":{
       "type":"structure",
       "members":{
+        "StringMember":{"shape":"String"}
+      }
+    },
+    "NestedLocationOperationInput":{
+      "type":"structure",
+      "members":{
+        "TopLevelQueryParam":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"topLevel"
+        },
+        "Nested":{"shape":"NestedShapeWithLocations"}
+      }
+    },
+    "NestedShapeWithLocations":{
+      "type":"structure",
+      "members":{
+        "NestedQueryParam":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"shouldBeIgnored"
+        },
         "StringMember":{"shape":"String"}
       }
     },
