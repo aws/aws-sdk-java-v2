@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -212,8 +213,13 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 }
             } else if (isExplicitPayloadMember(field)) {
                 marshallExplicitJsonPayload(field, val);
-            } else {
+            } else if (val != null) {
                 marshallField(field, val);
+            } else if (field.containsTrait(RequiredTrait.class,
+                                           TraitType.REQUIRED_TRAIT)) {
+                throw new IllegalArgumentException(
+                    String.format("Parameter '%s' must not be null",
+                                  field.locationName()));
             }
         }
     }
