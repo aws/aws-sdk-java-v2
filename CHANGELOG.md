@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.17__ __2026-03-19__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports quota management, enabling administrators to allocate shared compute resources across teams and projects through quota shares with capacity limits, resource-sharing strategies, and priority-based preemption - currently available for SageMaker Training job queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - This release includes SDK support for the following new features on AgentCore Built In Tools. 1. Enterprise Policies for AgentCore Browser Tool. 2. Root CA Configuration Support for AgentCore Browser Tool and Code Interpreter. 3. API changes to AgentCore Browser Profile APIs
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for the following new features. 1. Enterprise Policies support for AgentCore Browser Tool. 2. Root CA Configuration support for AgentCore Browser Tool and Code Interpreter.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet instant mode now supports launching instances into Interruptible Capacity Reservations, enabling customers to use spare capacity shared by Capacity Reservation owners within their AWS Organization.
+
+## __Amazon Polly__
+  - ### Features
+    - Added bi-directional streaming functionality through a new API, StartSpeechSynthesisStream. This API allows streaming input text through inbound events and receiving audio as part of an output stream simultaneously.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Adding a new field in the CreateCentralizationRuleForOrganization, UpdateCentralizationRuleForOrganization API and updating the GetCentralizationRuleForOrganization API response to include the new field
+
 # __2.42.16__ __2026-03-18__
 ## __AWS Elemental MediaConvert__
   - ### Features
