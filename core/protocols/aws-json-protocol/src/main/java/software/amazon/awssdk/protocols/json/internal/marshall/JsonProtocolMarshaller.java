@@ -197,37 +197,36 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
-            if (isExplicitBinaryPayload(field)) {
-                if (val != null) {
-                    SdkBytes sdkBytes = (SdkBytes) val;
-                    request.contentStreamProvider(sdkBytes::asInputStream);
-                    updateContentLengthHeader(sdkBytes.asByteArrayUnsafe().length);
-                }
-            } else if (isExplicitStringPayload(field)) {
-                if (val != null) {
-                    byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);
-                    request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-                    updateContentLengthHeader(content.length);
-
-                }
-            } else if (isExplicitPayloadMember(field)) {
-                marshallExplicitJsonPayload(field, val);
+            if (isExplicitPayloadMember(field)) {
+                marshallExplicitPayload(field, val);
             } else {
                 marshallField(field, val);
             }
         }
     }
 
+    private void marshallExplicitPayload(SdkField<?> field, Object val) {
+        MarshallingType<?> type = field.marshallingType();
+        if (MarshallingType.SDK_BYTES.equals(type)) {
+            if (val != null) {
+                SdkBytes sdkBytes = (SdkBytes) val;
+                request.contentStreamProvider(sdkBytes::asInputStream);
+                updateContentLengthHeader(sdkBytes.asByteArrayUnsafe().length);
+            }
+        } else if (MarshallingType.STRING.equals(type)) {
+            if (val != null) {
+                byte[] content = ((String) val).getBytes(StandardCharsets.UTF_8);
+                request.contentStreamProvider(
+                    () -> new ByteArrayInputStream(content));
+                updateContentLengthHeader(content.length);
+            }
+        } else {
+            marshallExplicitJsonPayload(field, val);
+        }
+    }
+
     private void updateContentLengthHeader(int contentLength) {
         request.putHeader(CONTENT_LENGTH, Integer.toString(contentLength));
-    }
-
-    private boolean isExplicitBinaryPayload(SdkField<?> field) {
-        return isExplicitPayloadMember(field) && MarshallingType.SDK_BYTES.equals(field.marshallingType());
-    }
-
-    private boolean isExplicitStringPayload(SdkField<?> field) {
-        return isExplicitPayloadMember(field) && MarshallingType.STRING.equals(field.marshallingType());
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
