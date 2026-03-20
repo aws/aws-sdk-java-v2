@@ -1,4 +1,67 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.18__ __2026-03-20__
+## __AWS Backup__
+  - ### Features
+    - Fix Typo for S3Backup Options ( S3BackupACLs to BackupACLs)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding ReplicaArn to ReplicaDescription of a global table replica
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added support for Amazon Managed Service for Prometheus (AMP) as a connected data source in OpenSearch UI. Now users can analyze Prometheus metrics in OpenSearch UI without data copy.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds support for Policy Store Aliases, Policy Names, and Policy Template Names. These are customizable identifiers that can be used in place of Policy Store ids, Policy ids, and Policy Template ids respectively in Amazon Verified Permissions APIs.
+
+# __2.42.17__ __2026-03-19__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports quota management, enabling administrators to allocate shared compute resources across teams and projects through quota shares with capacity limits, resource-sharing strategies, and priority-based preemption - currently available for SageMaker Training job queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - This release includes SDK support for the following new features on AgentCore Built In Tools. 1. Enterprise Policies for AgentCore Browser Tool. 2. Root CA Configuration Support for AgentCore Browser Tool and Code Interpreter. 3. API changes to AgentCore Browser Profile APIs
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for the following new features. 1. Enterprise Policies support for AgentCore Browser Tool. 2. Root CA Configuration support for AgentCore Browser Tool and Code Interpreter.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet instant mode now supports launching instances into Interruptible Capacity Reservations, enabling customers to use spare capacity shared by Capacity Reservation owners within their AWS Organization.
+
+## __Amazon Polly__
+  - ### Features
+    - Added bi-directional streaming functionality through a new API, StartSpeechSynthesisStream. This API allows streaming input text through inbound events and receiving audio as part of an output stream simultaneously.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Adding a new field in the CreateCentralizationRuleForOrganization, UpdateCentralizationRuleForOrganization API and updating the GetCentralizationRuleForOrganization API response to include the new field
+
+# __2.42.16__ __2026-03-18__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds additional bitrate options for Dolby AC-4 audio outputs.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo.
+
 # __2.42.15__ __2026-03-17__
 ## __AWS Glue__
   - ### Features
