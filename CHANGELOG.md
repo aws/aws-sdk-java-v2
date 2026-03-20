@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.18__ __2026-03-20__
+## __AWS Backup__
+  - ### Features
+    - Fix Typo for S3Backup Options ( S3BackupACLs to BackupACLs)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding ReplicaArn to ReplicaDescription of a global table replica
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added support for Amazon Managed Service for Prometheus (AMP) as a connected data source in OpenSearch UI. Now users can analyze Prometheus metrics in OpenSearch UI without data copy.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds support for Policy Store Aliases, Policy Names, and Policy Template Names. These are customizable identifiers that can be used in place of Policy Store ids, Policy ids, and Policy Template ids respectively in Amazon Verified Permissions APIs.
+
 # __2.42.17__ __2026-03-19__
 ## __AWS Batch__
   - ### Features
