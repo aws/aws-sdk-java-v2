@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Adding ReplicaArn to ReplicaDescription of a global table replica"
-}

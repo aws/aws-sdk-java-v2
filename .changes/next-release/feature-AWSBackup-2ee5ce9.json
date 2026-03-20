@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "contributor": "",
-    "description": "Fix Typo for S3Backup Options ( S3BackupACLs to BackupACLs)"
-}
