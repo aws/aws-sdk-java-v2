@@ -334,7 +334,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     private Duration maxStaleFailureJitter(int numFailures) {
-        long exponentialBackoffMillis = (1L << numFailures - 1) * 100;
+        long exponentialBackoffMillis = (1L << (numFailures - 1)) * 100;
+        if (exponentialBackoffMillis <= 0) {
+            exponentialBackoffMillis = Long.MAX_VALUE;
+        }
         return ComparableUtils.minimum(Duration.ofMillis(exponentialBackoffMillis), Duration.ofSeconds(10));
     }
 
