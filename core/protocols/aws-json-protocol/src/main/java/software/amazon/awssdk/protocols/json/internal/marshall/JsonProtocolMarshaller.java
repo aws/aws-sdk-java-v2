@@ -217,11 +217,9 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 marshallField(field, val);
             } else if (field.location() != MarshallLocation.PAYLOAD) {
                 marshallField(field, val);
-            } else if (field.containsTrait(RequiredTrait.class,
-                                           TraitType.REQUIRED_TRAIT)) {
+            } else if (field.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
                 throw new IllegalArgumentException(
-                    String.format("Parameter '%s' must not be null",
-                                  field.locationName()));
+                    String.format("Parameter '%s' must not be null", field.locationName()));
             }
         }
     }
