@@ -64,6 +64,9 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
         new S3InternalSdkHttpExecutionAttribute<>(S3MetaRequestOptions.ResponseFileOption.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
+        new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
+
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);
     }
