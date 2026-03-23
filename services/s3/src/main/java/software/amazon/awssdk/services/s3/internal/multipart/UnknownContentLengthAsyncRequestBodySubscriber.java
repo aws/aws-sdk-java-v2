@@ -86,6 +86,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
     private final int maxInFlightParts;
 
+    private final Object subscriptionLock = new Object();
     private Subscription subscription;
     private CloseableAsyncRequestBody firstRequestBody;
     private String uploadId;
@@ -130,8 +131,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
         if (asyncRequestBody == null) {
             NullPointerException exception = new NullPointerException("asyncRequestBody passed to onNext MUST NOT be null.");
-            multipartUploadHelper.failRequestsElegantly(futures,
-                                                        exception, uploadId, returnFuture, putObjectRequest);
+            multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
             throw exception;
         }
 
@@ -145,31 +145,31 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
         Optional<SdkClientException> sdkClientException = validatePart(asyncRequestBody, currentPartNum);
         if (sdkClientException.isPresent()) {
-            multipartUploadHelper.failRequestsElegantly(futures, sdkClientException.get(), uploadId, returnFuture,
-                                                        putObjectRequest);
+            multipartUploadHelper.failRequestsElegantly(
+                futures, sdkClientException.get(), uploadId, returnFuture, putObjectRequest);
             subscription.cancel();
             return;
         }
 
         if (firstAsyncRequestBodyReceived.compareAndSet(false, true)) {
             log.trace(() -> "Received first async request body");
-            // If this is the first AsyncRequestBody received, request another one because we don't know if there is more
             firstRequestBody = asyncRequestBody;
-            subscription.request(1);
+            // If this is the first AsyncRequestBody received, request another one because we don't know if there is more
+            synchronized (subscriptionLock) {
+                subscription.request(1);
+            }
             return;
         }
 
-        // If there are more than 1 AsyncRequestBodies, then we know we need to upload this
-        // object using MPU
+        // If there are more than 1 AsyncRequestBodies, then we know we need to upload using MPU
         if (createMultipartUploadInitiated.compareAndSet(false, true)) {
             log.debug(() -> "Starting the upload as multipart upload request");
-            CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-                multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture);
+            CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture = multipartUploadHelper
+                .createMultipartUpload(putObjectRequest, returnFuture);
 
             createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
                 if (throwable != null) {
-                    genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload",
-                                                           throwable);
+                    genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
                     subscription.cancel();
                 } else {
                     uploadId = createMultipartUploadResponse.uploadId();
@@ -177,9 +177,15 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
 
                     sendUploadPartRequest(uploadId, firstRequestBody, 1);
                     sendUploadPartRequest(uploadId, asyncRequestBody, 2);
-
-                    // We need to complete the uploadIdFuture *after* the first two requests have been sent
                     uploadIdFuture.complete(uploadId);
+
+                    // 2 parts already in flight, request the rest of our max in flight
+                    int additionalDemand = maxInFlightParts - 2;
+                    if (additionalDemand > 0) {
+                        synchronized (subscriptionLock) {
+                            subscription.request(additionalDemand);
+                        }
+                    }
                 }
             });
             CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
@@ -204,8 +210,8 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     }
 
     private void sendUploadPartRequest(String uploadId,
-                                       CloseableAsyncRequestBody asyncRequestBody,
-                                       int currentPartNum) {
+            CloseableAsyncRequestBody asyncRequestBody,
+            int currentPartNum) {
         Long contentLengthCurrentPart = asyncRequestBody.contentLength().get();
         this.contentLength.getAndAdd(contentLengthCurrentPart);
 
@@ -216,30 +222,25 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
                 asyncRequestBody.close();
                 if (t != null) {
                     if (failureActionInitiated.compareAndSet(false, true)) {
-                        multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                        multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture,
+                                                                    putObjectRequest);
                     }
                 } else {
                     int inFlight = asyncRequestBodyInFlight.decrementAndGet();
                     if (!isDone && inFlight < maxInFlightParts) {
-                        synchronized (this) {
+                        synchronized (subscriptionLock) {
                             subscription.request(1);
                         }
                     }
                     completeMultipartUploadIfFinish(inFlight);
                 }
             });
-        if (asyncRequestBodyInFlight.get() < maxInFlightParts) {
-            synchronized (this) {
-                subscription.request(1);
-            }
-        }
     }
 
     private Pair<UploadPartRequest, AsyncRequestBody> uploadPart(AsyncRequestBody asyncRequestBody, int partNum) {
-        UploadPartRequest uploadRequest =
-            SdkPojoConversionUtils.toUploadPartRequest(putObjectRequest,
-                                                       partNum,
-                                                       uploadId);
+        UploadPartRequest uploadRequest = SdkPojoConversionUtils.toUploadPartRequest(putObjectRequest,
+                                                                                     partNum,
+                                                                                     uploadId);
 
         return Pair.of(uploadRequest, asyncRequestBody);
     }
@@ -256,12 +257,12 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
     @Override
     public void onComplete() {
         log.debug(() -> "Received onComplete()");
-        // If CreateMultipartUpload has not been initiated at this point, we know this is a single object upload, and if no
-        // async request body has been received, it's an empty stream
+        // If CreateMultipartUpload has not been initiated at this point, we know this
+        // is a single object upload, and if no async request body has been received, it's an empty stream
         if (createMultipartUploadInitiated.get() == false) {
             log.debug(() -> "Starting the upload as a single object upload request");
-            AsyncRequestBody entireRequestBody = firstAsyncRequestBodyReceived.get() ? firstRequestBody :
-                                                   AsyncRequestBody.empty();
+            AsyncRequestBody entireRequestBody = firstAsyncRequestBodyReceived.get() ? firstRequestBody
+                    : AsyncRequestBody.empty();
             multipartUploadHelper.uploadInOneChunk(putObjectRequest, entireRequestBody, returnFuture);
         } else {
             isDone = true;
@@ -279,14 +280,15 @@ public class UnknownContentLengthAsyncRequestBodySubscriber implements Subscribe
             int expectedNumParts = genericMultipartHelper.determinePartCount(totalLength, partSizeInBytes);
             if (parts.length != expectedNumParts) {
                 SdkClientException exception = SdkClientException.create(
-                    String.format("The number of UploadParts requests is not equal to the expected number of parts. "
-                                  + "Expected: %d, Actual: %d", expectedNumParts, parts.length));
+                    String.format(
+                        "The number of UploadParts requests is not equal to the expected number of parts. "
+                        + "Expected: %d, Actual: %d",
+                        expectedNumParts, parts.length));
                 multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
                 return;
             }
 
-            multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
-                                                          totalLength);
+            multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest, totalLength);
         }
     }
 }

@@ -53,9 +53,9 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
         multipartUploadHelper = mock(MultipartUploadHelper.class);
         genericMultipartHelper = mock(GenericMultipartHelper.class);
         putObjectRequest = PutObjectRequest.builder()
-                                           .bucket("bucket")
-                                           .key("key")
-                                           .build();
+                .bucket("bucket")
+                .key("key")
+                .build();
         returnFuture = new CompletableFuture<>();
         subscription = mock(Subscription.class);
     }
@@ -71,7 +71,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
         // Second onNext triggers CreateMultipartUpload path
         stubSuccessfulCreateMultipartCall();
         when(multipartUploadHelper.sendIndividualUploadPartRequest(any(), any(), any(), any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(CompletedPart.builder().build()));
+                .thenReturn(CompletableFuture.completedFuture(CompletedPart.builder().build()));
 
         subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
 
@@ -101,16 +101,16 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
         subscriber.onSubscribe(subscription);
 
         assertThatThrownBy(() -> subscriber.onNext(null))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("MUST NOT be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("MUST NOT be null");
 
         verify(multipartUploadHelper).failRequestsElegantly(
-            any(), any(NullPointerException.class), any(), eq(returnFuture), eq(putObjectRequest));
+                any(), any(NullPointerException.class), any(), eq(returnFuture), eq(putObjectRequest));
     }
 
     @Test
     void maxInFlightParts_shouldLimitConcurrentUploads() {
-        int maxInFlight = 2;
+        int maxInFlight = 4;
         UnknownContentLengthAsyncRequestBodySubscriber subscriber = createSubscriber(maxInFlight);
         Subscription mockSubscription = mock(Subscription.class);
         subscriber.onSubscribe(mockSubscription);
@@ -122,22 +122,22 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
         subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
         verify(mockSubscription, times(2)).request(1);
 
-        // Second onNext: triggers CreateMultipartUpload, then sends parts 1 and 2
+        // Second onNext: triggers CreateMultipartUpload, sends parts 1 and 2,
+        // then bootstraps pipeline with request(maxInFlight - 2) = request(2)
         stubSuccessfulCreateMultipartCall();
 
         CompletableFuture<CompletedPart> pendingFuture1 = new CompletableFuture<>();
         CompletableFuture<CompletedPart> pendingFuture2 = new CompletableFuture<>();
         when(multipartUploadHelper.sendIndividualUploadPartRequest(any(), any(), any(), any(), any()))
-            .thenReturn(pendingFuture1)
-            .thenReturn(pendingFuture2);
+                .thenReturn(pendingFuture1)
+                .thenReturn(pendingFuture2);
 
         subscriber.onNext(createMockAsyncRequestBody(PART_SIZE));
 
-        // asyncRequestBodyInFlight was incremented to 2 in onNext (once per onNext call).
-        // Both sendUploadPartRequest calls see inFlight=2, NOT < maxInFlight(2) → no additional request
-        verify(mockSubscription, times(2)).request(1);
+        // After sending 2 parts, bootstraps with request(maxInFlight - 2) = request(2)
+        verify(mockSubscription, times(1)).request(2);
 
-        // Complete part 1 — inFlight drops to 1, which is < 2, so request(1) is called
+        // Complete part 1 — inFlight drops to 1, which is < 4, so request(1) is called
         pendingFuture1.complete(CompletedPart.builder().partNumber(1).build());
         verify(mockSubscription, times(3)).request(1);
     }
@@ -167,16 +167,16 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
 
     private UnknownContentLengthAsyncRequestBodySubscriber createSubscriber(int maxInFlightParts) {
         return new UnknownContentLengthAsyncRequestBodySubscriber(
-            PART_SIZE, putObjectRequest, returnFuture,
-            multipartUploadHelper, genericMultipartHelper, maxInFlightParts);
+                PART_SIZE, putObjectRequest, returnFuture,
+                multipartUploadHelper, genericMultipartHelper, maxInFlightParts);
     }
 
     private void stubSuccessfulCreateMultipartCall() {
         when(multipartUploadHelper.createMultipartUpload(any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(
-                software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse.builder()
-                    .uploadId(UPLOAD_ID)
-                    .build()));
+                .thenReturn(CompletableFuture.completedFuture(
+                        software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse.builder()
+                                .uploadId(UPLOAD_ID)
+                                .build()));
     }
 
     private CloseableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
@@ -194,7 +194,7 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
     private void verifyFailRequestsElegantly(String expectedErrorMessage) {
         ArgumentCaptor<Throwable> exceptionCaptor = ArgumentCaptor.forClass(Throwable.class);
         verify(multipartUploadHelper).failRequestsElegantly(
-            any(), exceptionCaptor.capture(), any(), eq(returnFuture), eq(putObjectRequest));
+                any(), exceptionCaptor.capture(), any(), eq(returnFuture), eq(putObjectRequest));
 
         Throwable exception = exceptionCaptor.getValue();
         assertThat(exception).isInstanceOf(SdkClientException.class);
