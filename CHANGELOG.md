@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.19__ __2026-03-23__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch AMI Visibility feature support. Adds read-only batchImageStatus to Ec2Configuration to provide visibility on the status of Batch-vended AMIs used by Compute Environments.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - You can now use the UpdateRelatedItem API to update the content of comments and custom related items associated with a case.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for tagging of ContactMethod resource type
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for batch workflow runs in Amazon Omics, enabling users to submit, manage, and monitor multiple runs as a single batch. Includes APIs to create, cancel, and delete batches, track submission statuses and counts, list runs within a batch, and configure default settings.
+
+## __Amazon S3__
+  - ### Features
+    - Added support of Request-level credentials override in DefaultS3CrtAsyncClient. See [#5354](https://github.com/aws/aws-sdk-java-v2/issues/5354).
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where requests with `Expect: 100-continue` over TLS could hang indefinitely when no response is received, because the read timeout handler was prematurely removed by TLS handshake data.
+
 # __2.42.18__ __2026-03-20__
 ## __AWS Backup__
   - ### Features
