@@ -1,0 +1,31 @@
+name: External Contributor Unit Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11, 17, 21]
+      fail-fast: false
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: ${{ matrix.java }}
+          cache: 'maven'
+      - name: Run unit tests
+        run: mvn clean install -T0.4C
+      - name: Run module path tests
+        if: matrix.java != 8
+        working-directory: test/module-path-tests
+        run: |
+          mvn package
+          mvn exec:exec -P mock-tests
