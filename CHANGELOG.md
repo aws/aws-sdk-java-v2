@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.20__ __2026-03-24__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Reduces the minimum allowed value for startOverWindowSeconds from 60 to 0, allowing customers to effectively disable the start-over window.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for custom slurmdbd and cgroup configuration in AWS PCS. Customers can now specify slurmdbd and cgroup settings to configure database accounting and reporting for their HPC workloads, and control resource allocation and limits for compute jobs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds SDK support for 1) Persist session state in AgentCore Runtime via filesystemConfigurations in CreateAgentRuntime, UpdateAgentRuntime, and GetAgentRuntime APIs, 2) Optional name-based filtering on AgentCore ListBrowserProfiles API.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers launches UDP ping beacons in the Beijing and Ningxia (China) Regions to help measure real-time network latency for multiplayer games. The ListLocations API is now available in these regions to provide endpoint domain and port information as part of the locations list.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support in Aurora PostgreSQL serverless databases for express configuration based creation through WithExpressConfiguration in CreateDbCluster API, and for restoring clusters using RestoreDBClusterToPointInTime and RestoreDBClusterFromSnapshot APIs.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Adds support for updating the vector options field for existing collections.
+
 # __2.42.19__ __2026-03-23__
 ## __AWS Batch__
   - ### Features
