@@ -22,11 +22,9 @@ import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
@@ -38,7 +36,6 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
-import software.amazon.awssdk.codegen.model.service.ErrorMap;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Operation;
@@ -57,7 +54,6 @@ abstract class AddShapes {
 
     private final IntermediateModelBuilder builder;
     private final NamingStrategy namingStrategy;
-    private Set<Shape> directOperationShapes;
 
     AddShapes(IntermediateModelBuilder builder) {
         this.builder = builder;
@@ -315,10 +311,9 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
+        // Per the Smithy spec, HTTP binding traits are only honored on specific shape types:
         // https://smithy.io/2.0/spec/http-bindings.html
-        Location location = isDirectOperationShape(parentShape, allC2jShapes)
-                            ? Location.forValue(member.getLocation())
-                            : null;
+        Location location = resolveLocation(parentShape, member, allC2jShapes);
 
         Shape memberShape = allC2jShapes.get(member.getShape());
         mapping.withLocation(location)
@@ -332,24 +327,43 @@ abstract class AddShapes {
         return mapping;
     }
 
-    private boolean isDirectOperationShape(Shape parentShape, Map<String, Shape> allC2jShapes) {
-        if (directOperationShapes == null) {
-            directOperationShapes = new HashSet<>();
-            for (Operation operation : builder.getService().getOperations().values()) {
-                if (operation.getInput() != null) {
-                    directOperationShapes.add(allC2jShapes.get(operation.getInput().getShape()));
-                }
-                if (operation.getOutput() != null) {
-                    directOperationShapes.add(allC2jShapes.get(operation.getOutput().getShape()));
-                }
-                if (operation.getErrors() != null) {
-                    for (ErrorMap error : operation.getErrors()) {
-                        directOperationShapes.add(allC2jShapes.get(error.getShape()));
-                    }
-                }
-            }
+    private Location resolveLocation(Shape parentShape, Member member, Map<String, Shape> allC2jShapes) {
+        Location location = Location.forValue(member.getLocation());
+        if (location == null) {
+            return null;
         }
-        return directOperationShapes.contains(parentShape);
+        switch (location) {
+            case URI:
+            case QUERY_STRING:
+                return isDirectInputShape(parentShape, allC2jShapes) ? location : null;
+            case HEADER:
+            case HEADERS:
+                return isDirectOperationShape(parentShape, allC2jShapes) ? location : null;
+            case STATUS_CODE:
+                return isDirectOutputShape(parentShape, allC2jShapes) ? location : null;
+            default:
+                return location;
+        }
+    }
+
+    private boolean isDirectInputShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .filter(o -> o.getInput() != null)
+                      .anyMatch(o -> allC2jShapes.get(o.getInput().getShape()).equals(shape));
+    }
+
+    private boolean isDirectOutputShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .filter(o -> o.getOutput() != null)
+                      .anyMatch(o -> allC2jShapes.get(o.getOutput().getShape()).equals(shape));
+    }
+
+    private boolean isDirectOperationShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .anyMatch(o -> (o.getInput() != null && allC2jShapes.get(o.getInput().getShape()).equals(shape))
+                                     || (o.getOutput() != null && allC2jShapes.get(o.getOutput().getShape()).equals(shape))
+                                     || (o.getErrors() != null && o.getErrors().stream()
+                                             .anyMatch(e -> allC2jShapes.get(e.getShape()).equals(shape))));
     }
 
     private boolean isFlattened(Member member, Shape memberShape) {
@@ -407,8 +421,8 @@ abstract class AddShapes {
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Shape not found in model: " + parentShape));
-            String detailMsg = "Could not find request URI for input shape '" + shapeName
-                + "'. No operation was found that references this shape as its input.";
+            String detailMsg = "Operation referencing input shape '" + shapeName
+                + "' has no requestUri configured in its HTTP binding.";
             ValidationEntry entry =
                 new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
                                      .withDetailMessage(detailMsg)
