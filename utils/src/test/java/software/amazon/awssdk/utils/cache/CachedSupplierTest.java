@@ -376,9 +376,9 @@ public class CachedSupplierTest {
                 .as("numFailures=%d: jitter must be positive", i)
                 .isPositive();
 
-            if (i > 60) {
+            if (i > 64) {
                 assertThat(jitter)
-                    .isGreaterThan(Duration.ofSeconds(1));
+                    .isEqualTo(Duration.ofSeconds(10));
             }
         }
 
