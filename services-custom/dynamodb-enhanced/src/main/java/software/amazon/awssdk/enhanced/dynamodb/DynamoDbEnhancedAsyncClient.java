@@ -37,6 +37,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRe
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
+import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
@@ -528,12 +530,21 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     }
 
     /**
+     * Executes an enhanced query (joins, aggregations, filters) described by the given spec, asynchronously.
+     *
+     * @param spec the query specification
+     * @return a publisher of result rows
+     */
+    default SdkPublisher<EnhancedQueryRow> enhancedQuery(QueryExpressionSpec spec) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Returns the underlying low-level {@link DynamoDbAsyncClient} that this enhanced client uses to make API calls.
      * <p>
      * The returned client is the same instance that was provided during construction via
-     * {@link Builder#dynamoDbClient(DynamoDbAsyncClient)}, or the internally-created one if {@link #create()} was used.
-     * It is <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this
-     * enhanced client as well.
+     * {@link Builder#dynamoDbClient(DynamoDbAsyncClient)}, or the internally-created one if {@link #create()} was used. It is
+     * <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this enhanced client as well.
      *
      * @return the underlying {@link DynamoDbAsyncClient}
      * @throws UnsupportedOperationException if the implementation does not support this operation

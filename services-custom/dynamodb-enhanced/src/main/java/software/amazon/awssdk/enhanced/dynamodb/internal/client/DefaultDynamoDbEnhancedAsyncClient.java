@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -37,16 +38,22 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.query.engine.DefaultQueryExpressionAsyncEngine;
+import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionAsyncEngine;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
+import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
 public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhancedAsyncClient {
     private final DynamoDbAsyncClient dynamoDbClient;
     private final DynamoDbEnhancedClientExtension extension;
+    private final QueryExpressionAsyncEngine queryExpressionAsyncEngine;
 
     private DefaultDynamoDbEnhancedAsyncClient(Builder builder) {
         this.dynamoDbClient = builder.dynamoDbClient == null ? DynamoDbAsyncClient.create() : builder.dynamoDbClient;
         this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
+        this.queryExpressionAsyncEngine = new DefaultQueryExpressionAsyncEngine(this);
     }
 
     public static Builder builder() {
@@ -130,6 +137,11 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return transactWriteItemsWithResponse(builder.build());
+    }
+
+    @Override
+    public SdkPublisher<EnhancedQueryRow> enhancedQuery(QueryExpressionSpec spec) {
+        return queryExpressionAsyncEngine.execute(spec);
     }
 
     @Override

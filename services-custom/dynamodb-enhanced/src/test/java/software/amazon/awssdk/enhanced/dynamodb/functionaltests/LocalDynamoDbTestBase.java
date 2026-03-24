@@ -15,7 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -28,16 +35,22 @@ public class LocalDynamoDbTestBase {
                              .writeCapacityUnits(50L)
                              .build();
 
+    private static final AtomicBoolean STARTED = new AtomicBoolean(false);
+
     private String uniqueTableSuffix = UUID.randomUUID().toString();
 
     @BeforeClass
     public static void initializeLocalDynamoDb() {
-        localDynamoDb.start();
+        if (STARTED.compareAndSet(false, true)) {
+            localDynamoDb.start();
+        }
     }
 
     @AfterClass
     public static void stopLocalDynamoDb() {
-        localDynamoDb.stop();
+        if (STARTED.compareAndSet(true, false)) {
+            localDynamoDb.stop();
+        }
     }
 
     protected static LocalDynamoDb localDynamoDb() {
@@ -51,5 +64,22 @@ public class LocalDynamoDbTestBase {
 
     protected ProvisionedThroughput getDefaultProvisionedThroughput() {
         return DEFAULT_PROVISIONED_THROUGHPUT;
+    }
+
+    private static final Path METRICS_FILE = Paths.get("target", "surefire-reports", "query-metrics.txt");
+
+    /**
+     * Appends a structured metric line for the script to read instead of parsing Surefire XML times or stdout logs.
+     * Format per line: {@code ClassName.testName <queryMs> <rowCount>}
+     */
+    protected static synchronized void writeQueryMetric(String label, long queryMs, int rowCount) {
+        try {
+            Files.createDirectories(METRICS_FILE.getParent());
+            Files.write(METRICS_FILE,
+                        Collections.singletonList(label + " " + queryMs + " " + rowCount),
+                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            System.err.println("Failed to write query metric for " + label + ": " + e.getMessage());
+        }
     }
 }
