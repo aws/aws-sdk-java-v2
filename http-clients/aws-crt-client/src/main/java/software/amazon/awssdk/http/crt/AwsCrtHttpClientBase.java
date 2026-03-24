@@ -121,7 +121,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     }
 
     private HttpStreamManager createConnectionPool(URI uri) {
-        log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxStreamsPerEndpoint);
+        log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxStreamsPerEndpoint+ ", MaxStreams: " + maxStreamsPerEndpoint);
 
         boolean isHttps = "https".equalsIgnoreCase(uri.getScheme());
         TlsContext poolTlsContext = isHttps ? tlsContext : null;
