@@ -55,6 +55,7 @@ import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -82,14 +83,14 @@ public class H2ErrorTest {
     }
 
     @Test
-    public void serverSendsRstStream_shouldThrowIOException() throws Exception {
+    public void serverSendsRstStream_shouldNotThrowIOException() throws Exception {
         H2ErrorServer server = new H2ErrorServer(ErrorType.RST_STREAM);
         server.init();
         try {
             CompletableFuture<?> request = sendGetRequest(server.port(), client);
             assertThatThrownBy(request::join)
                 .isInstanceOf(CompletionException.class)
-                .hasCauseInstanceOf(IOException.class)
+                .hasCauseInstanceOf(HttpException.class)
                 .hasMessageContaining("RST_STREAM");
         } finally {
             server.shutdown();
