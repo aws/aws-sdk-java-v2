@@ -58,7 +58,9 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
         super(builder, config);
         if (this.protocol == Protocol.HTTP2) {
-            throw new UnsupportedOperationException("HTTP/2 is not supported in sync client. Use AwsCrtAsyncHttpClient instead.");
+            throw new UnsupportedOperationException(
+                "HTTP/2 is not supported for sync HTTP clients. Either use HTTP/1.1 (the default) or use an async "
+                + "HTTP client (e.g., AwsCrtAsyncHttpClient).");
         }
     }
 

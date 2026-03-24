@@ -69,7 +69,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    private final int maxConnectionsPerEndpoint;
+    private final int maxStreamsPerEndpoint;
     private final long connectionAcquisitionTimeout;
     private final TlsContextOptions tlsContextOptions;
     private boolean isClosed = false;
@@ -95,7 +95,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         this.tlsContext = registerOwnedResource(clientTlsContext);
         this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
                               DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
-        this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
+        this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
         this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
         this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
         this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
@@ -121,7 +121,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     }
 
     private HttpStreamManager createConnectionPool(URI uri) {
-        log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
+        log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxStreamsPerEndpoint+ ", MaxStreams: " + maxStreamsPerEndpoint);
 
         boolean isHttps = "https".equalsIgnoreCase(uri.getScheme());
         TlsContext poolTlsContext = isHttps ? tlsContext : null;
@@ -132,7 +132,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withTlsContext(poolTlsContext)
                 .withUri(uri)
                 .withWindowSize(readBufferSize)
-                .withMaxConnections(maxConnectionsPerEndpoint)
+                .withMaxConnections(maxStreamsPerEndpoint)
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
@@ -144,6 +144,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
 
         if (protocol == Protocol.HTTP2) {
             Http2StreamManagerOptions h2Options = new Http2StreamManagerOptions()
+                .withMaxConcurrentStreams(maxStreamsPerEndpoint)
                 .withConnectionManagerOptions(h1Options);
 
             if (!isHttps) {

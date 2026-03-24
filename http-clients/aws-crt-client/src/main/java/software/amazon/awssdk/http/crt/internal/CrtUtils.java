@@ -28,8 +28,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.CrtRuntimeException;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
@@ -50,10 +50,7 @@ public final class CrtUtils {
     public static Throwable wrapWithIoExceptionIfRetryable(HttpException httpException) {
         Throwable toThrow = httpException;
 
-        // TODO: switch to Crt.awsIsTransientError once https://github.com/awslabs/aws-crt-java/pull/972 is merged
-        if (HttpClientConnection.isErrorRetryable(httpException)) {
-            // IOExceptions get retried, and if the CRT says this error is retryable,
-            // it's semantically an IOException anyway.
+        if (CRT.awsIsTransientError(httpException.getErrorCode())) {
             toThrow = new IOException(httpException);
         }
         return toThrow;
@@ -70,8 +67,7 @@ public final class CrtUtils {
             if (httpErrorCode == CRT_TLS_NEGOTIATION_ERROR_CODE) {
                 return new SSLHandshakeException(httpException.getMessage());
             }
-            // TODO: check with CRT team, could CRT_SOCKET_TIMEOUT be thrown
-            //  from processes other than tcp connect?
+
             if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
                 return new ConnectException(httpException.getMessage());
             }
