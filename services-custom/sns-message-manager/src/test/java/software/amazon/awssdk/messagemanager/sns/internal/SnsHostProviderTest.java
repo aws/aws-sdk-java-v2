@@ -16,6 +16,7 @@
 package software.amazon.awssdk.messagemanager.sns.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,6 +38,17 @@ public class SnsHostProviderTest {
     void signingCertCommonName_returnsCorrectNameForRegion(CommonNameTestCase tc) {
         SnsHostProvider hostProvider = new SnsHostProvider(Region.of(tc.region));
         assertThat(hostProvider.signingCertCommonName()).isEqualTo(tc.expectedCommonName);
+    }
+
+    @Test
+    void ctor_regionNull_throws() {
+        assertThatThrownBy(() -> new SnsHostProvider(null)).hasMessage("region must not be null");
+    }
+
+    @Test
+    void ctor_endpointProviderNull_throws() {
+        assertThatThrownBy(() -> new SnsHostProvider(Region.US_WEST_2, null))
+            .hasMessage("endpointProvider must not be null");
     }
 
     @Test

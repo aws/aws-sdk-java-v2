@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.sns.endpoints.SnsEndpointParams;
 import software.amazon.awssdk.services.sns.endpoints.SnsEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utility class for determining both the regional endpoint that SNS certificates are expected to be hosted from, as well as the
@@ -46,6 +47,8 @@ public class SnsHostProvider {
 
     @SdkTestInternalApi
     SnsHostProvider(Region region, SnsEndpointProvider endpointProvider) {
+        Validate.notNull(region, "region must not be null");
+        Validate.notNull(endpointProvider, "endpointProvider must not be null");
         this.region = region;
         this.endpointProvider = endpointProvider;
     }

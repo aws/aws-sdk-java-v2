@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.messagemanager.sns.internal;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
@@ -23,6 +24,12 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class CertificateUrlValidatorTest {
     private static final String CERT_HOST = "my-test-service.amazonaws.com";
+
+    @Test
+    void validate_urlValid_succeeds() {
+        CertificateUrlValidator validator = new CertificateUrlValidator(CERT_HOST);
+        assertThatNoException().isThrownBy(() -> validator.validate(URI.create("https://" + CERT_HOST)));
+    }
 
     @Test
     void validate_urlNull_throws() {
