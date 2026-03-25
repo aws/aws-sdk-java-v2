@@ -26,55 +26,60 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
-public class StreamingRequestInterceptorTest {
-    private StreamingRequestInterceptor interceptor = new StreamingRequestInterceptor();
+class StreamingRequestInterceptorTest {
+    private final StreamingRequestInterceptor interceptor = new StreamingRequestInterceptor();
+
+    // -----------------------------------------------------------------------
+    // Basic behavior: request type filtering
+    // -----------------------------------------------------------------------
 
     @Test
-    public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsPutObject() {
-
-        final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext(PutObjectRequest.builder().build()),
-                                                                             new ExecutionAttributes());
+    void modifyHttpRequest_whenPutObjectRequest_shouldAddExpectHeader() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(PutObjectRequest.builder().build()), new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
     }
 
     @Test
-    public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsUploadPart() {
-
-        final SdkHttpRequest modifiedRequest =
-            interceptor.modifyHttpRequest(modifyHttpRequestContext(UploadPartRequest.builder().build()),
-                                                                             new ExecutionAttributes());
+    void modifyHttpRequest_whenUploadPartRequest_shouldAddExpectHeader() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(UploadPartRequest.builder().build()), new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
     }
 
     @Test
-    public void modifyHttpRequest_doesNotSetExpect_whenSdkRequestIsNotPutObject() {
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext(GetObjectRequest.builder().build()),
-                                                                             new ExecutionAttributes());
+    void modifyHttpRequest_whenGetObjectRequest_shouldNotAddExpectHeader() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(GetObjectRequest.builder().build()), new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
     }
 
+    // -----------------------------------------------------------------------
+    // Content-Length handling
+    // -----------------------------------------------------------------------
+
     @ParameterizedTest(name = "{0} with {1}={2} should not set Expect header")
     @MethodSource("zeroContentLengthProvider")
-    void modifyHttpRequest_doesNotSetExpect_whenContentLengthIsZero(
-        String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
-
+    void modifyHttpRequest_whenContentLengthIsZero_shouldNotAddExpectHeader(
+            String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
         SdkHttpRequest httpRequest = buildHttpRequest(headerName, headerValue);
 
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest),
-            new ExecutionAttributes());
+            modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest), new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect"))
             .as("Expect header should not be present for zero-length content per RFC 9110")
@@ -83,20 +88,18 @@ public class StreamingRequestInterceptorTest {
 
     @ParameterizedTest(name = "{0} with {1}={2} should set Expect header")
     @MethodSource("nonZeroContentLengthProvider")
-    void modifyHttpRequest_setsExpect_whenContentLengthIsNonZero(
-        String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
-
+    void modifyHttpRequest_whenContentLengthIsNonZero_shouldAddExpectHeader(
+            String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
         SdkHttpRequest httpRequest = buildHttpRequest(headerName, headerValue);
 
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest),
-            new ExecutionAttributes());
+            modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest), new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
     }
 
     @Test
-    void modifyHttpRequest_prioritizesDecodedContentLength_overContentLength() {
+    void modifyHttpRequest_whenBothContentLengthHeaders_shouldPrioritizeDecodedContentLength() {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                                                        .uri(URI.create("http://localhost:8080"))
                                                        .method(SdkHttpMethod.PUT)
@@ -113,16 +116,61 @@ public class StreamingRequestInterceptorTest {
             .isNotPresent();
     }
 
-    // Helper method to build HTTP request with specific header
-    private SdkHttpRequest buildHttpRequest(String headerName, String headerValue) {
-        return SdkHttpFullRequest.builder()
-                                 .uri(URI.create("http://localhost:8080"))
-                                 .method(SdkHttpMethod.PUT)
-                                 .putHeader(headerName, headerValue)
-                                 .build();
+    // -----------------------------------------------------------------------
+    // S3Configuration.expectContinueEnabled
+    // -----------------------------------------------------------------------
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("expectContinueConfigProvider")
+    void modifyHttpRequest_whenExpectContinueConfigured_shouldMatchExpectedBehavior(
+            String testName, SdkRequest sdkRequest, ExecutionAttributes attrs,
+            SdkHttpRequest httpRequest, boolean expectPresent) {
+        Context.ModifyHttpRequest context = httpRequest != null
+            ? modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest)
+            : modifyHttpRequestContext(sdkRequest);
+
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(context, attrs);
+
+        if (expectPresent) {
+            assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
+        } else {
+            assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
+        }
     }
 
-    // Test data providers
+    // -----------------------------------------------------------------------
+    // Data providers
+    // -----------------------------------------------------------------------
+
+    private static Stream<Arguments> expectContinueConfigProvider() {
+        ExecutionAttributes disabledAttrs = withExpectContinue(false);
+        ExecutionAttributes enabledAttrs = withExpectContinue(true);
+        ExecutionAttributes defaultConfigAttrs = new ExecutionAttributes();
+        defaultConfigAttrs.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, S3Configuration.builder().build());
+        ExecutionAttributes noConfigAttrs = new ExecutionAttributes();
+        SdkHttpRequest nonZeroContentLength = buildHttpRequest("Content-Length", "1024");
+        SdkHttpRequest zeroContentLength = buildHttpRequest("Content-Length", "0");
+
+        return Stream.of(
+            Arguments.of("PutObject - enabled=false",
+                         PutObjectRequest.builder().build(), disabledAttrs, null, false),
+            Arguments.of("UploadPart - enabled=false",
+                         UploadPartRequest.builder().build(), disabledAttrs, null, false),
+            Arguments.of("PutObject - enabled=true",
+                         PutObjectRequest.builder().build(), enabledAttrs, null, true),
+            Arguments.of("PutObject - default S3Config (enabled=true)",
+                         PutObjectRequest.builder().build(), defaultConfigAttrs, null, true),
+            Arguments.of("PutObject - no service config",
+                         PutObjectRequest.builder().build(), noConfigAttrs, null, true),
+            Arguments.of("GetObject - enabled=true (non-streaming, never adds header)",
+                         GetObjectRequest.builder().build(), enabledAttrs, null, false),
+            Arguments.of("PutObject - enabled=false with non-zero Content-Length",
+                         PutObjectRequest.builder().build(), disabledAttrs, nonZeroContentLength, false),
+            Arguments.of("PutObject - enabled=true with zero Content-Length",
+                         PutObjectRequest.builder().build(), enabledAttrs, zeroContentLength, false)
+        );
+    }
+
     private static Stream<Arguments> zeroContentLengthProvider() {
         return Stream.of(
             Arguments.of("PutObject", "Content-Length", "0",
@@ -147,5 +195,26 @@ public class StreamingRequestInterceptorTest {
             Arguments.of("UploadPart", "x-amz-decoded-content-length", "1024",
                          UploadPartRequest.builder().build())
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    private static ExecutionAttributes withExpectContinue(boolean enabled) {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
+                           S3Configuration.builder()
+                                          .expectContinueEnabled(enabled)
+                                          .build());
+        return attrs;
+    }
+
+    private static SdkHttpRequest buildHttpRequest(String headerName, String headerValue) {
+        return SdkHttpFullRequest.builder()
+                                 .uri(URI.create("http://localhost:8080"))
+                                 .method(SdkHttpMethod.PUT)
+                                 .putHeader(headerName, headerValue)
+                                 .build();
     }
 }

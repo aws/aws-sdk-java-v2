@@ -538,6 +538,21 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
     }
 
     /**
+     * Returns the underlying low-level {@link DynamoDbClient} that this enhanced client uses to make API calls.
+     * <p>
+     * The returned client is the same instance that was provided during construction via
+     * {@link Builder#dynamoDbClient(DynamoDbClient)}, or the internally-created one if {@link #create()} was used.
+     * It is <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this
+     * enhanced client as well.
+     *
+     * @return the underlying {@link DynamoDbClient}
+     * @throws UnsupportedOperationException if the implementation does not support this operation
+     */
+    default DynamoDbClient dynamoDbClient() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Creates a default builder for {@link DynamoDbEnhancedClient}.
      */
     static Builder builder() {

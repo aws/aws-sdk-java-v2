@@ -1,4 +1,352 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.20__ __2026-03-24__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Reduces the minimum allowed value for startOverWindowSeconds from 60 to 0, allowing customers to effectively disable the start-over window.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for custom slurmdbd and cgroup configuration in AWS PCS. Customers can now specify slurmdbd and cgroup settings to configure database accounting and reporting for their HPC workloads, and control resource allocation and limits for compute jobs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds SDK support for 1) Persist session state in AgentCore Runtime via filesystemConfigurations in CreateAgentRuntime, UpdateAgentRuntime, and GetAgentRuntime APIs, 2) Optional name-based filtering on AgentCore ListBrowserProfiles API.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers launches UDP ping beacons in the Beijing and Ningxia (China) Regions to help measure real-time network latency for multiplayer games. The ListLocations API is now available in these regions to provide endpoint domain and port information as part of the locations list.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support in Aurora PostgreSQL serverless databases for express configuration based creation through WithExpressConfiguration in CreateDbCluster API, and for restoring clusters using RestoreDBClusterToPointInTime and RestoreDBClusterFromSnapshot APIs.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Adds support for updating the vector options field for existing collections.
+
+# __2.42.19__ __2026-03-23__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch AMI Visibility feature support. Adds read-only batchImageStatus to Ec2Configuration to provide visibility on the status of Batch-vended AMIs used by Compute Environments.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - You can now use the UpdateRelatedItem API to update the content of comments and custom related items associated with a case.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for tagging of ContactMethod resource type
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for batch workflow runs in Amazon Omics, enabling users to submit, manage, and monitor multiple runs as a single batch. Includes APIs to create, cancel, and delete batches, track submission statuses and counts, list runs within a batch, and configure default settings.
+
+## __Amazon S3__
+  - ### Features
+    - Added support of Request-level credentials override in DefaultS3CrtAsyncClient. See [#5354](https://github.com/aws/aws-sdk-java-v2/issues/5354).
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where requests with `Expect: 100-continue` over TLS could hang indefinitely when no response is received, because the read timeout handler was prematurely removed by TLS handshake data.
+
+# __2.42.18__ __2026-03-20__
+## __AWS Backup__
+  - ### Features
+    - Fix Typo for S3Backup Options ( S3BackupACLs to BackupACLs)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding ReplicaArn to ReplicaDescription of a global table replica
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added support for Amazon Managed Service for Prometheus (AMP) as a connected data source in OpenSearch UI. Now users can analyze Prometheus metrics in OpenSearch UI without data copy.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds support for Policy Store Aliases, Policy Names, and Policy Template Names. These are customizable identifiers that can be used in place of Policy Store ids, Policy ids, and Policy Template ids respectively in Amazon Verified Permissions APIs.
+
+# __2.42.17__ __2026-03-19__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports quota management, enabling administrators to allocate shared compute resources across teams and projects through quota shares with capacity limits, resource-sharing strategies, and priority-based preemption - currently available for SageMaker Training job queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - This release includes SDK support for the following new features on AgentCore Built In Tools. 1. Enterprise Policies for AgentCore Browser Tool. 2. Root CA Configuration Support for AgentCore Browser Tool and Code Interpreter. 3. API changes to AgentCore Browser Profile APIs
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for the following new features. 1. Enterprise Policies support for AgentCore Browser Tool. 2. Root CA Configuration support for AgentCore Browser Tool and Code Interpreter.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet instant mode now supports launching instances into Interruptible Capacity Reservations, enabling customers to use spare capacity shared by Capacity Reservation owners within their AWS Organization.
+
+## __Amazon Polly__
+  - ### Features
+    - Added bi-directional streaming functionality through a new API, StartSpeechSynthesisStream. This API allows streaming input text through inbound events and receiving audio as part of an output stream simultaneously.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Adding a new field in the CreateCentralizationRuleForOrganization, UpdateCentralizationRuleForOrganization API and updating the GetCentralizationRuleForOrganization API response to include the new field
+
+# __2.42.16__ __2026-03-18__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds additional bitrate options for Dolby AC-4 audio outputs.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo.
+
+# __2.42.15__ __2026-03-17__
+## __AWS Glue__
+  - ### Features
+    - Provide approval to overwrite existing Lake Formation permissions on all child resources with the default permissions specified in 'CreateTableDefaultPermissions' and 'CreateDatabaseDefaultPermissions' when updating catalog. Allowed values are ["Accept","Deny"] .
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Deprecating namespaces field and adding namespaceTemplates.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improved performance of UpdateExpression conversion by replacing Stream.concat chains and String.format with direct iteration and StringJoiner.
+
+## __Amazon EMR__
+  - ### Features
+    - Add S3LoggingConfiguration to Control LogUploads
+
+# __2.42.14__ __2026-03-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - You can now generate policy scenarios on demand using the new GENERATE POLICY SCENARIOS build workflow type. Scenarios will no longer be automatically generated during INGEST CONTENT, REFINE POLICY, and IMPORT POLICY workflows, resulting in faster completion times for these operations.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Provide support to perform deterministic operations on agent runtime through shell command executions via the new InvokeAgentRuntimeCommand API
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Supporting hosting of public ECR Container Images in AgentCore Runtime
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports configuring whether tags are propagated to the EC2 Instance Metadata Service (IMDS) for instances launched by the Managed Instances capacity provider. This gives customers control over tag visibility in IMDS when using ECS Managed Instances.
+
+# __2.42.13__ __2026-03-13__
+## __AWS Config__
+  - ### Features
+    - Fix pagination support for DescribeConformancePackCompliance, and update OrganizationConfigRule InputParameters max length to match ConfigRule.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds support for Dolby AC-4 audio output, frame rate conversion between non-Dolby Vision inputs to Dolby Vision outputs, and clear lead CMAF HLS output.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Documents the VideoDescription.ScalingBehavior.SMART(underscore)CROP enum value.
+
+## __AWS Glue__
+  - ### Features
+    - Add QuerySessionContext to BatchGetPartitionRequest
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - upgrade maven-compiler-plugin to 3.14.1
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon API Gateway__
+  - ### Features
+    - API Gateway now supports an additional security policy "SecurityPolicy-TLS13-1-2-FIPS-PFS-PQ-2025-09" for REST APIs and custom domain names. The new policy is compliant with TLS 1.3, Federal Information Processing Standards (FIPS), Perfect Forward Secrecy (PFS), and post-quantum (PQ) cryptography
+
+## __Amazon Connect Service__
+  - ### Features
+    - Deprecating PredefinedNotificationID field
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Feature launch that enables customers to connect streaming sessions to their own VPCs running in AWS.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Updates maximum reconnect window seconds from 60 to 300 for participant replication
+
+## __Amazon QuickSight__
+  - ### Features
+    - The change adds a new capability named ManageSharedFolders in Custom Permissions
+
+## __Amazon S3__
+  - ### Features
+    - Added `expectContinueEnabled` to `S3Configuration` to control the `Expect: 100-continue` header on PutObject and UploadPart requests. When set to `false`, the SDK stops adding the header. For Apache HTTP client users, to have `ApacheHttpClient.builder().expectContinueEnabled()` fully control the header, set `expectContinueEnabled(false)` on `S3Configuration`.
+
+## __Application Migration Service__
+  - ### Features
+    - Network Migration APIs are now publicly available for direct programmatic access. Customers can now call Network Migration APIs directly without going through AWS Transform (ATX), enabling automation, integration with existing tools, and self-service migration workflows.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sullis](https://github.com/sullis)
+# __2.42.12__ __2026-03-12__
+## __AWS DataSync__
+  - ### Features
+    - DataSync's 3 location types, Hadoop Distributed File System (HDFS), FSx for Windows File Server (FSx Windows), and FSx for NetApp ONTAP (FSx ONTAP) now have credentials managed via Secrets Manager, which may be encrypted with service keys or be configured to use customer-managed keys or secret.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakefromation Access Grants Plugin version to 1.4.1
+        - Contributed by: [@akhilyendluri](https://github.com/akhilyendluri)
+
+## __Amazon Cloudfront__
+  - ### Features
+    - Add support for resourceUrlPattern to `CloudFrontUtilities.getCookiesForCustomPolicy`.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client. Fixes [#6654](https://github.com/aws/aws-sdk-java-v2/issues/6654)
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Chainguard to PTC upstreamRegistry enum
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for account regional namespaces for general purpose buckets. The account regional namespace is a reserved subdivision of the global bucket namespace where only your account can create general purpose buckets.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix inaccurate progress tracking for in-memory uploads in the Java-based S3TransferManager.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akhilyendluri](https://github.com/akhilyendluri)
+# __2.42.11__ __2026-03-11__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Only log `SSL Certificate verification is disabled` warning if trustAllCertificatesEnabled is set to true.
+        - Contributed by: [@bsmelo](https://github.com/bsmelo)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updating Lakeformation Access Grants Plugin version to 1.4
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Strip quotes in getETag response
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Today, Amazon Connect is announcing the ability to filter (include or exclude) recommendations based on properties of items and interactions.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Improved performance by adding a fast path avoiding wrapping of String and Byte types
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for a new tier in controlPlaneScalingConfig on EKS Clusters.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voices - Ambre (fr-FR), Beatrice (it-IT), Florian (fr-FR), Lennart (de-DE), Lorenzo (it-IT) and Tiffany (en-US). They are available as a Generative voices only.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed misleading checksum mismatch error message for S3 GetObject that incorrectly referenced uploading. See [#6324](https://github.com/aws/aws-sdk-java-v2/issues/6324).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker training plans allow you to extend your existing training plans to avoid workload interruptions without workload reconfiguration. When a training plan is approaching expiration, you can extend it directly through the SageMaker AI console or programmatically using the API or AWS CLI.
+
+## __Amazon SimpleDB v2__
+  - ### Features
+    - Introduced Amazon SimpleDB export functionality enabling domain data export to S3 in JSON format. Added three new APIs StartDomainExport, GetExport, and ListExports via SimpleDBv2 service. Supports cross-region exports and KMS encryption.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added WINDOWS SERVER 2025 OperatingSystemName.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bsmelo](https://github.com/bsmelo)
+# __2.42.10__ __2026-03-10__
+## __AWS Database Migration Service__
+  - ### Features
+    - Not need to include to any release notes. The only change is to correct LoadTimeout unit from milliseconds to seconds in RedshiftSettings
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Code Generator__
+  - ### Features
+    - Improve model validation error message for operations missing request URI.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adding first class support for AG-UI protocol in AgentCore Runtime.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Added functionality for the Required and Hidden case rule types to be conditionally evaluated on up to 5 conditions.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release introduces a new generative AI feature called Lex Bot Analyzer. This feature leverage AI to analyze the bot configuration against AWS Lex best practices to identify configuration issues and provides recommendations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Add dual stack endpoint to SDK
+
+# __2.42.9__ __2026-03-09__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added support for CloudWatch Logs long-term API keys, currently available in Preview
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Implement reset() for XxHashChecksum to allow checksum reuse.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This change enables cross-account and cross-region access for DataSources. Customers can now define access policies on their datasources to allow other AWS accounts to access and query their data.
+
+## __Amazon Route 53 Global Resolver__
+  - ### Features
+    - Adds support for dual stack Global Resolvers and Dictionary-based Domain Generation Firewall Advanced Protection.
+
+## __Application Migration Service__
+  - ### Features
+    - Adds support for new storeSnapshotOnLocalZone field in ReplicationConfiguration and updateReplicationConfiguration
+
 # __2.42.8__ __2026-03-06__
 ## __AWS Billing and Cost Management Data Exports__
   - ### Features
