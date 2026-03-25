@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Polly",
+    "contributor": "",
+    "description": "Add support for Mu-law and A-law codecs for output format"
+}
