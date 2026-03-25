@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add support for maxInFlightParts to multipart upload (PutObject) in MultipartS3AsyncClient."
-}
