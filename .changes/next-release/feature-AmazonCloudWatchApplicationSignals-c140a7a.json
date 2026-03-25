@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Application Signals",
+    "contributor": "",
+    "description": "This release adds support for creating SLOs on RUM appMonitors, Synthetics canaries and services."
+}
