@@ -149,7 +149,7 @@ member to ask for a review.
 
 ### Running CI Checks Locally
 
-CI runs unit tests, Checkstyle, and SpotBugs on every PR. 
+CI runs unit tests, integration tests, Checkstyle, and SpotBugs on every PR. 
 While not required before opening a PR, running these locally helps catch issues early and speeds up the code review cycle.
 
 #### Unit Tests (Full Build)
