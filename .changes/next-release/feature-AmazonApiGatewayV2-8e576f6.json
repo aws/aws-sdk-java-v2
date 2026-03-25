@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayV2",
+    "contributor": "",
+    "description": "Added DISABLE IN PROGRESS and DISABLE FAILED Portal statuses."
+}
