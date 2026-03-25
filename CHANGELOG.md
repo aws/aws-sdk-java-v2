@@ -1,4 +1,153 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.21__ __2026-03-25__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update for AWS Batch.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - The Variable Payments APIs enable AWS Marketplace Sellers to perform manage their payment requests (send, get, list, cancel).
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in CachedSupplier that retries aggressively after many consecutive failures
+
+## __AWS User Experience Customization__
+  - ### Features
+    - GA release of AccountCustomizations, used to manage account color, visible services, and visible regions settings in the AWS Management Console.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This release adds support for creating SLOs on RUM appMonitors, Synthetics canaries and services.
+
+## __Amazon Polly__
+  - ### Features
+    - Add support for Mu-law and A-law codecs for output format
+
+## __Amazon S3__
+  - ### Features
+    - Add support for maxInFlightParts to multipart upload (PutObject) in MultipartS3AsyncClient.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Added DISABLE IN PROGRESS and DISABLE FAILED Portal statuses.
+
+# __2.42.20__ __2026-03-24__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Reduces the minimum allowed value for startOverWindowSeconds from 60 to 0, allowing customers to effectively disable the start-over window.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for custom slurmdbd and cgroup configuration in AWS PCS. Customers can now specify slurmdbd and cgroup settings to configure database accounting and reporting for their HPC workloads, and control resource allocation and limits for compute jobs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds SDK support for 1) Persist session state in AgentCore Runtime via filesystemConfigurations in CreateAgentRuntime, UpdateAgentRuntime, and GetAgentRuntime APIs, 2) Optional name-based filtering on AgentCore ListBrowserProfiles API.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers launches UDP ping beacons in the Beijing and Ningxia (China) Regions to help measure real-time network latency for multiplayer games. The ListLocations API is now available in these regions to provide endpoint domain and port information as part of the locations list.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support in Aurora PostgreSQL serverless databases for express configuration based creation through WithExpressConfiguration in CreateDbCluster API, and for restoring clusters using RestoreDBClusterToPointInTime and RestoreDBClusterFromSnapshot APIs.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Adds support for updating the vector options field for existing collections.
+
+# __2.42.19__ __2026-03-23__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch AMI Visibility feature support. Adds read-only batchImageStatus to Ec2Configuration to provide visibility on the status of Batch-vended AMIs used by Compute Environments.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - You can now use the UpdateRelatedItem API to update the content of comments and custom related items associated with a case.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for tagging of ContactMethod resource type
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for batch workflow runs in Amazon Omics, enabling users to submit, manage, and monitor multiple runs as a single batch. Includes APIs to create, cancel, and delete batches, track submission statuses and counts, list runs within a batch, and configure default settings.
+
+## __Amazon S3__
+  - ### Features
+    - Added support of Request-level credentials override in DefaultS3CrtAsyncClient. See [#5354](https://github.com/aws/aws-sdk-java-v2/issues/5354).
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where requests with `Expect: 100-continue` over TLS could hang indefinitely when no response is received, because the read timeout handler was prematurely removed by TLS handshake data.
+
+# __2.42.18__ __2026-03-20__
+## __AWS Backup__
+  - ### Features
+    - Fix Typo for S3Backup Options ( S3BackupACLs to BackupACLs)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix bug in CachedSupplier that disabled InstanceProfileCredentialsProvider credential refreshing after 58 consecutive failures.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding ReplicaArn to ReplicaDescription of a global table replica
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added support for Amazon Managed Service for Prometheus (AMP) as a connected data source in OpenSearch UI. Now users can analyze Prometheus metrics in OpenSearch UI without data copy.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds support for Policy Store Aliases, Policy Names, and Policy Template Names. These are customizable identifiers that can be used in place of Policy Store ids, Policy ids, and Policy Template ids respectively in Amazon Verified Permissions APIs.
+
+# __2.42.17__ __2026-03-19__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports quota management, enabling administrators to allocate shared compute resources across teams and projects through quota shares with capacity limits, resource-sharing strategies, and priority-based preemption - currently available for SageMaker Training job queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - This release includes SDK support for the following new features on AgentCore Built In Tools. 1. Enterprise Policies for AgentCore Browser Tool. 2. Root CA Configuration Support for AgentCore Browser Tool and Code Interpreter. 3. API changes to AgentCore Browser Profile APIs
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for the following new features. 1. Enterprise Policies support for AgentCore Browser Tool. 2. Root CA Configuration support for AgentCore Browser Tool and Code Interpreter.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet instant mode now supports launching instances into Interruptible Capacity Reservations, enabling customers to use spare capacity shared by Capacity Reservation owners within their AWS Organization.
+
+## __Amazon Polly__
+  - ### Features
+    - Added bi-directional streaming functionality through a new API, StartSpeechSynthesisStream. This API allows streaming input text through inbound events and receiving audio as part of an output stream simultaneously.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Adding a new field in the CreateCentralizationRuleForOrganization, UpdateCentralizationRuleForOrganization API and updating the GetCentralizationRuleForOrganization API response to include the new field
+
+# __2.42.16__ __2026-03-18__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update adds additional bitrate options for Dolby AC-4 audio outputs.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo.
+
 # __2.42.15__ __2026-03-17__
 ## __AWS Glue__
   - ### Features
