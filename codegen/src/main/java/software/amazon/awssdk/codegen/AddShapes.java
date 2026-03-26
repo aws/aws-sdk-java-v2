@@ -311,11 +311,11 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
-        // Per the Smithy spec, HTTP binding traits are only honored on specific shape types.
-        // When a trait is ignored, its locationName is also ignored so the member name is used as the wire name.
-        // https://smithy.io/2.0/spec/http-bindings.html
-        Location location = resolveLocation(parentShape, member, allC2jShapes);
-        boolean locationIgnored = member.getLocation() != null && location == null;
+        // Per the Smithy spec, HTTP binding traits are only honored on top-level shapes (direct operation
+        // input/output/error). When a location trait is ignored, its locationName is also ignored so the member
+        // name is used as the wire name. https://smithy.io/2.0/spec/http-bindings.html
+        Location resolvedLocation = resolveLocation(parentShape, member, allC2jShapes);
+        boolean locationIgnored = member.getLocation() != null && resolvedLocation == null;
 
         Shape memberShape = allC2jShapes.get(member.getShape());
         String marshallLocationName = locationIgnored
@@ -323,7 +323,7 @@ abstract class AddShapes {
         String unmarshallLocationName = locationIgnored
             ? memberName : deriveUnmarshallerLocationName(memberShape, memberName, member);
 
-        mapping.withLocation(location)
+        mapping.withLocation(resolvedLocation)
                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
                .withFlattened(isFlattened(member, memberShape))
                .withUnmarshallLocationName(unmarshallLocationName)
@@ -344,7 +344,7 @@ abstract class AddShapes {
                 return isDirectInputShape(parentShape, allC2jShapes) ? location : null;
             case HEADER:
             case HEADERS:
-                return isDirectOperationShape(parentShape, allC2jShapes) ? location : null;
+                return isTopLevelShape(parentShape, allC2jShapes) ? location : null;
             case STATUS_CODE:
                 return isDirectOutputShape(parentShape, allC2jShapes) ? location : null;
             default:
@@ -364,7 +364,7 @@ abstract class AddShapes {
                       .anyMatch(o -> allC2jShapes.get(o.getOutput().getShape()).equals(shape));
     }
 
-    private boolean isDirectOperationShape(Shape shape, Map<String, Shape> allC2jShapes) {
+    private boolean isTopLevelShape(Shape shape, Map<String, Shape> allC2jShapes) {
         return builder.getService().getOperations().values().stream()
                       .anyMatch(o -> (o.getInput() != null && allC2jShapes.get(o.getInput().getShape()).equals(shape))
                                      || (o.getOutput() != null && allC2jShapes.get(o.getOutput().getShape()).equals(shape))

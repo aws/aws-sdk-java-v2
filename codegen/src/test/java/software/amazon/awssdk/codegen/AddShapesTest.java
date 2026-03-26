@@ -109,4 +109,12 @@ class AddShapesTest {
         assertThat(inputShape.findMemberModelByC2jName("NestedHeaderMember").getHttp().getMarshallLocationName()).isEqualTo("NestedHeaderMember");
     }
 
+    @Test
+    void generateShapeModel_locationNameOnTopLevelShape_honorsLocationName() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("QueryParameterOperationRequest");
+        MemberModel member = inputShape.findMemberModelByC2jName("PayloadMemberWithCustomName");
+        assertThat(member.getHttp().getLocation()).isNull();
+        assertThat(member.getHttp().getMarshallLocationName()).isEqualTo("CustomWireName");
+    }
+
 }

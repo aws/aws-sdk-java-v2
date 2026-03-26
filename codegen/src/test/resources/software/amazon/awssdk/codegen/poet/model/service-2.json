@@ -696,6 +696,10 @@
         "StatusCodeOnInput":{
           "shape":"Integer",
           "location":"statusCode"
+        },
+        "PayloadMemberWithCustomName":{
+          "shape":"String",
+          "locationName":"CustomWireName"
         }
       },
       "payload":"NestedQueryParameterOperation"
