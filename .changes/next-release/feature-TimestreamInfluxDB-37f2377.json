@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Timestream InfluxDB",
+    "contributor": "",
+    "description": "Timestream for InfluxDB adds support for customer defined maintenance windows. This allows customers to define maintenance schedule during resource creation and updates"
+}
