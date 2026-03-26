@@ -37,6 +37,8 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
@@ -51,7 +53,7 @@ public class UpdateItemOperationTransactTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
-    public void generateTransactWriteItem_basicRequest() {
+    public void generateTransactWriteItem_wrapsGeneratedUpdateItemRequestInTransactUpdate() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -87,7 +89,7 @@ public class UpdateItemOperationTransactTest {
     }
 
     @Test
-    public void generateTransactWriteItem_conditionalRequest() {
+    public void generateTransactWriteItem_includesConditionExpressionFromGeneratedRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -126,7 +128,7 @@ public class UpdateItemOperationTransactTest {
     }
 
     @Test
-    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
+    public void generateTransactWriteItem_propagatesReturnValuesOnConditionCheckFailure() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         String returnValues = "return-values";
@@ -153,6 +155,40 @@ public class UpdateItemOperationTransactTest {
                                                             .build();
         assertThat(actualResult, is(expectedResult));
         verify(updateItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateRequest_transactUpdateWithSetExpression_emitsSameUpdateExpressionOnTransactWriteItem() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(
+                                SetAction.builder()
+                                         .path("attr")
+                                         .value(":value")
+                                         .putExpressionValue(":value", AttributeValue.builder().s("updated").build())
+                                         .build())
+                            .build();
+
+        UpdateItemOperation<FakeItem> updateItemOperation =
+            UpdateItemOperation.create(TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                        .item(fakeItem)
+                                                                        .ignoreNulls(true)
+                                                                        .updateExpression(requestExpression)
+                                                                        .build());
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        context,
+                                                                        mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem transactWriteItem = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                            context,
+                                                                                            mockDynamoDbEnhancedClientExtension);
+
+        assertThat(request.updateExpression(), is("SET attr = :value"));
+        assertThat(request.expressionAttributeValues(), is(Collections.singletonMap(":value", stringValue("updated"))));
+        assertThat(transactWriteItem.update().updateExpression(), is("SET attr = :value"));
     }
 
 

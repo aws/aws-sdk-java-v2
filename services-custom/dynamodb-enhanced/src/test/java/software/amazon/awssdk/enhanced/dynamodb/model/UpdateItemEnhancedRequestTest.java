@@ -22,6 +22,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +38,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public class UpdateItemEnhancedRequestTest {
 
     @Test
-    public void builder_minimal() {
+    public void builder_defaults_optionalFieldsNull_mergeStrategyLegacy() {
         UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
 
         assertThat(builtObject.item(), is(nullValue()));
@@ -47,6 +49,7 @@ public class UpdateItemEnhancedRequestTest {
         assertThat(builtObject.returnItemCollectionMetrics(), is(nullValue()));
         assertThat(builtObject.returnItemCollectionMetricsAsString(), is(nullValue()));
         assertThat(builtObject.returnValuesOnConditionCheckFailure(), is(nullValue()));
+        assertThat(builtObject.updateExpressionMergeStrategy(), is(LEGACY));
     }
 
     @Test
@@ -85,7 +88,7 @@ public class UpdateItemEnhancedRequestTest {
     }
 
     @Test
-    public void toBuilder() {
+    public void toBuilder_roundTrip_equalsOriginal() {
         FakeItem fakeItem = createUniqueFakeItem();
 
         Expression conditionExpression = Expression.builder()
@@ -303,5 +306,15 @@ public class UpdateItemEnhancedRequestTest {
                                                                                     .build();
 
         assertThat(containsItem.hashCode(), not(equalTo(emptyRequest.hashCode())));
+    }
+
+    @Test
+    public void toBuilder_roundTrip_preservesPrioritizeHigherSourceMergeStrategy() {
+        UpdateItemEnhancedRequest<FakeItem> request =
+            UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                     .build();
+
+        assertThat(request.toBuilder().build().updateExpressionMergeStrategy(), is(PRIORITIZE_HIGHER_SOURCE));
     }
 }

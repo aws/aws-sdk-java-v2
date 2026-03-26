@@ -37,6 +37,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpression
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionResolver;
 import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
@@ -270,17 +271,9 @@ public class UpdateItemOperation<T>
     }
 
     /**
-     * Merges UpdateExpressions from three sources in priority order: POJO attributes (lowest),
-     * extensions (medium), request (highest). Higher priority sources override conflicting actions.
-     * 
-     * <p>Null POJO attributes normally generate REMOVE actions, but are skipped if the same
-     * attribute is referenced in extension/request expressions to avoid DynamoDB conflicts.
-     *
-     * @param tableMetadata metadata about the table structure
-     * @param transformation write modification from extensions containing UpdateExpression
-     * @param attributes non-key attributes from the POJO item
-     * @param request the update request containing optional explicit UpdateExpression
-     * @return merged Expression containing the final update expression, or null if no updates needed
+     * Combines POJO, extension, and request update expressions via {@link UpdateExpressionResolver}, honoring the request's
+     * {@link UpdateExpressionMergeStrategy}. For {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE}, see
+     * {@link UpdateExpressionMergeStrategy} (one winning source per top-level attribute name).
      */
     private Expression generateUpdateExpressionIfExist(
         TableMetadata tableMetadata,
@@ -292,11 +285,18 @@ public class UpdateItemOperation<T>
             request.left().map(UpdateItemEnhancedRequest::updateExpression)
                    .orElseGet(() -> request.right().map(TransactUpdateItemEnhancedRequest::updateExpression).orElse(null));
 
+        UpdateExpressionMergeStrategy updateExpressionMergeStrategy =
+            request.left().map(UpdateItemEnhancedRequest::updateExpressionMergeStrategy)
+                   .orElseGet(() -> request.right()
+                                           .map(TransactUpdateItemEnhancedRequest::updateExpressionMergeStrategy)
+                                           .orElse(UpdateExpressionMergeStrategy.LEGACY));
+
         UpdateExpressionResolver updateExpressionResolver =
             UpdateExpressionResolver.builder()
                                     .tableMetadata(tableMetadata)
                                     .nonKeyAttributes(attributes)
                                     .requestExpression(requestUpdateExpression)
+                                    .updateExpressionMergeStrategy(updateExpressionMergeStrategy)
                                     .extensionExpression(transformation != null ? transformation.updateExpression() : null)
                                     .build();
 

@@ -44,6 +44,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
     private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
     private final UpdateExpression updateExpression;
+    private final UpdateExpressionMergeStrategy updateExpressionMergeStrategy;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactUpdateItemEnhancedRequest(Builder<T> builder) {
@@ -52,6 +53,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         this.ignoreNullsMode = builder.ignoreNullsMode;
         this.conditionExpression = builder.conditionExpression;
         this.updateExpression = builder.updateExpression;
+        this.updateExpressionMergeStrategy = builder.updateExpressionMergeStrategy;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
@@ -75,6 +77,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
                                .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
                                .updateExpression(updateExpression)
+                               .updateExpressionMergeStrategy(updateExpressionMergeStrategy)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
@@ -113,6 +116,16 @@ public class TransactUpdateItemEnhancedRequest<T> {
      */
     public UpdateExpression updateExpression() {
         return updateExpression;
+    }
+
+    /**
+     * Returns how POJO, extension, and request update actions are merged. Defaults to
+     * {@link UpdateExpressionMergeStrategy#LEGACY} when unset on the builder.
+     */
+    public UpdateExpressionMergeStrategy updateExpressionMergeStrategy() {
+        return updateExpressionMergeStrategy == null
+               ? UpdateExpressionMergeStrategy.LEGACY
+               : updateExpressionMergeStrategy;
     }
 
     /**
@@ -166,6 +179,9 @@ public class TransactUpdateItemEnhancedRequest<T> {
         if (!Objects.equals(updateExpression, that.updateExpression)) {
             return false;
         }
+        if (updateExpressionMergeStrategy != that.updateExpressionMergeStrategy) {
+            return false;
+        }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
@@ -175,6 +191,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         result = 31 * result + Objects.hashCode(ignoreNulls);
         result = 31 * result + Objects.hashCode(conditionExpression);
         result = 31 * result + Objects.hashCode(updateExpression);
+        result = 31 * result + Objects.hashCode(updateExpressionMergeStrategy);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
     }
@@ -191,6 +208,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
         private UpdateExpression updateExpression;
+        private UpdateExpressionMergeStrategy updateExpressionMergeStrategy;
         private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
@@ -244,26 +262,33 @@ public class TransactUpdateItemEnhancedRequest<T> {
         }
 
         /**
-         * Specifies custom update operations using DynamoDB's native update expression syntax.
+         * Specifies custom update actions using DynamoDB's native update expression syntax. This expression is combined with
+         * POJO-derived actions and extension-provided actions.
          * <p>
-         * <b>Precedence:</b> When performing an update, the final set of attribute modifications is determined as follows:
-         * <ol>
-         *   <li><b>Request-level UpdateExpression</b> (set via this method) has the highest priority and overrides any
-         *   conflicting updates from extensions or POJO item attributes.</li>
-         *   <li><b>Extension-provided UpdateExpression</b> (if present) has medium priority and overrides conflicting updates
-         *   from POJO item attributes.</li>
-         *   <li><b>POJO item attributes</b> have the lowest priority; any conflicts with extension or request expressions are
-         *   overridden.</li>
-         * </ol>
-         * If the same attribute is updated by multiple sources, only the action from the highest-priority source is applied.
-         * <p>
-         * This method does not affect existing behavior if not used.
+         * Use {@link #updateExpressionMergeStrategy(UpdateExpressionMergeStrategy)} to control how conflicts between these
+         * sources are resolved ({@link UpdateExpressionMergeStrategy#LEGACY} vs
+         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE}).
          *
          * @param updateExpression the update operations to perform
          * @return a builder of this type
+         * @see UpdateExpressionMergeStrategy
          */
         public Builder<T> updateExpression(UpdateExpression updateExpression) {
             this.updateExpression = updateExpression;
+            return this;
+        }
+
+        /**
+         * Sets how update actions from POJO attributes, extensions, and this request's expression are combined. Defaults to
+         * {@link UpdateExpressionMergeStrategy#LEGACY}. See {@link UpdateExpressionMergeStrategy} for behavior of each mode.
+         *
+         * @param updateExpressionMergeStrategy the merge strategy to use
+         * @return a builder of this type
+         * @see UpdateExpressionMergeStrategy
+         */
+        public Builder<T> updateExpressionMergeStrategy(
+            UpdateExpressionMergeStrategy updateExpressionMergeStrategy) {
+            this.updateExpressionMergeStrategy = updateExpressionMergeStrategy;
             return this;
         }
 

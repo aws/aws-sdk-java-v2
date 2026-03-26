@@ -112,6 +112,18 @@ public final class UpdateExpressionConverter {
         return attributeNames;
     }
 
+    /**
+     * Returns the <em>top-level</em> segment of a DynamoDB update expression document path: the substring before the first
+     * {@code .} (nested map attribute) or {@code [} (list index). For example, {@code attr}, {@code attr[0]}, and
+     * {@code attr.nested} all share the same top-level name {@code attr}, which is the DynamoDB attribute used for grouping and
+     * overlap rules.
+     *
+     * @param attributeName a path or name segment after any {@code #} expression-name substitution; must not be {@code null}
+     */
+    static String removeNestingAndListReference(String attributeName) {
+        return attributeName.substring(0, getRemovalIndex(attributeName));
+    }
+
     private static List<String> groupExpressions(UpdateExpression expression) {
         List<String> groupExpressions = new ArrayList<>();
         if (!expression.setActions().isEmpty()) {
@@ -216,9 +228,6 @@ public final class UpdateExpressionConverter {
                                                      .collect(Collectors.toList());
     }
 
-    private static String removeNestingAndListReference(String attributeName) {
-        return attributeName.substring(0, getRemovalIndex(attributeName));
-    }
 
     private static int getRemovalIndex(String attributeName) {
         for (int i = 0; i < attributeName.length(); i++) {

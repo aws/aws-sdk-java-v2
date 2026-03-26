@@ -34,7 +34,7 @@ public class UpdateExpressionUtilsTest {
     private final TableMetadata mockTableMetadata = mock(TableMetadata.class);
 
     @Test
-    public void ifNotExists_createsCorrectExpression() {
+    public void ifNotExists_mapsKeyAndValueToIfNotExistsExpression() {
         String result = UpdateExpressionUtils.ifNotExists("key", "value");
 
         assertThat(result).isEqualTo("if_not_exists(#AMZN_MAPPED_key, :AMZN_MAPPED_value)");
@@ -90,7 +90,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void setActionsFor_nestedAttribute_handlesCorrectly() {
+    public void setActionsFor_twoLevelDottedPath_producesSingleMappedSetAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2", AttributeValue.builder().s("attrValue").build());
         when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
@@ -107,7 +107,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void setActionsFor_deeplyNestedAttribute_handlesCorrectly() {
+    public void setActionsFor_threeLevelDottedPath_producesSingleMappedSetAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2.level3", AttributeValue.builder().s("attrValue").build());
         when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
@@ -124,7 +124,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void setActionsFor_attributeWithSpecialCharacters_handlesCorrectly() {
+    public void setActionsFor_dashAndUnderscoreNames_producesDistinctMappedSetActions() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("attrWithDash", AttributeValue.builder().s("#value").build());
         attributes.put("attrWithUnderscore", AttributeValue.builder().s("_value").build());
@@ -189,7 +189,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void removeActionsFor_nestedAttribute_handlesCorrectly() {
+    public void removeActionsFor_twoLevelDottedPath_producesSingleMappedRemoveAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2", AttributeValue.builder().s("attrValue").build());
 
@@ -203,7 +203,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void removeActionsFor_deeplyNestedAttribute_handlesCorrectly() {
+    public void removeActionsFor_threeLevelDottedPath_producesSingleMappedRemoveAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2.level3", AttributeValue.builder().s("attrValue").build());
 
@@ -217,7 +217,7 @@ public class UpdateExpressionUtilsTest {
     }
 
     @Test
-    public void removeActionsFor_attributeWithSpecialCharacters_handlesCorrectly() {
+    public void removeActionsFor_dashAndUnderscoreNames_producesDistinctMappedRemoveActions() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("attrWithDash", AttributeValue.builder().s("#value").build());
         attributes.put("attrWithUnderscore", AttributeValue.builder().s("_value").build());

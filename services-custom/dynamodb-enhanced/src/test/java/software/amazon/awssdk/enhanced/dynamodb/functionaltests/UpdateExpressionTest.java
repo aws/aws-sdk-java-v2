@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior.WRITE_IF_NOT_EXISTS;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,12 +24,15 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordForUpdateExpressions;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
@@ -73,7 +79,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateExpressionInRequest_atomicIncrementWithIfNotExists_shouldUpdateSuccessfully() {
+    public void updateItem_ifNotExistsPlusIncrement_whenCounterAbsent_persistsRequestedIncrement() {
         initClientWithExtensions();
 
         RecordForUpdateExpressions initialRecord = createKeyOnlyRecord();
@@ -104,7 +110,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateExpressionInRequest_atomicIncrementExistingValue_shouldUpdateSuccessfully() {
+    public void updateItem_ifNotExistsPlusIncrement_whenCounterPresent_persistsSumWithIncrement() {
         initClientWithExtensions();
 
         RecordForUpdateExpressions initialRecord = createKeyOnlyRecord();
@@ -310,7 +316,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * request, REMOVE actions are suppressed for attributes referenced in that UpdateExpression to avoid conflicts.
      */
     @Test
-    public void updateExpressionInRequest_withoutIgnoreNulls_shouldUpdateSuccessfully() {
+    public void updateItem_requestExpressionSetListElement_ignoreNullsFalse_avoidsRemoveConflictsAndUpdatesList() {
         initClientWithExtensions();
         RecordForUpdateExpressions initialRecord = createFullRecord();
         putInitialItemAndVerify(initialRecord);
@@ -330,7 +336,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * operates independently of the ignoreNulls setting and updates the specified attributes.
      */
     @Test
-    public void updateExpressionInRequest_withIgnoreNulls_shouldUpdateSuccessfully() {
+    public void updateItem_requestExpressionSetListElement_ignoreNullsTrue_updatesStoredList() {
         initClientWithExtensions();
         RecordForUpdateExpressions initialRecord = createFullRecord();
         putInitialItemAndVerify(initialRecord);
@@ -350,7 +356,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * UpdateExpression provided on the request
      */
     @Test
-    public void updateExpressionInRequest_whenAttributeAlsoInPojo_shouldThrowConflictError() {
+    public void updateItem_requestExpressionOverlapsPojoAttribute_dynamoDbRejectsOverlappingPaths() {
         initClientWithExtensions();
         RecordForUpdateExpressions initialRecord = createFullRecord();
         putInitialItemAndVerify(initialRecord);
@@ -363,17 +369,198 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
             .hasMessageContaining("Two document paths overlap");
     }
 
-    /**
-     * Tests DynamoDbException is thrown when same attribute is referenced both in an extension's UpdateExpression and in an
-     * explicit UpdateExpression provided on the request.
-     */
+    // -------------------------------------------------------
+    // Simple scalar attribute: POJO vs request — LEGACY
+    // -------------------------------------------------------
+
     @Test
-    public void updateExpressionInRequest_whenAttributeAlsoInExtension_shouldThrowDynamoDbError() {
+    public void updateItem_whenLegacyMergeAndPojoAndRequestSetSameScalar_thenDynamoDbRejectsOverlap() {
+        initClientWithExtensions();
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setExtensionNumberAttribute(100L);
+        UpdateExpression requestExpression = expressionWithSetNumberAttribute("extensionNumberAttribute", 200L);
+
+        assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(record)
+                                                              .updateExpression(requestExpression)
+                                                              .updateExpressionMergeStrategy(LEGACY)))
+            .isInstanceOf(DynamoDbException.class)
+            .hasMessageContaining("Two document paths");
+    }
+
+    // -------------------------------------------------------
+    // Simple scalar attribute: POJO vs request — PRIORITIZE_HIGHER_SOURCE
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndPojoAndRequestSetSameScalar_thenRequestValueWins() {
+        initClientWithExtensions();
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setExtensionNumberAttribute(100L);
+        mappedTable.updateItem(r -> r.item(record)
+                                     .updateExpression(expressionWithSetNumberAttribute("extensionNumberAttribute", 200L))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
+        assertThat(persistedRecord.getExtensionNumberAttribute()).isEqualTo(200L);
+    }
+
+    // -------------------------------------------------------
+    // List paths: three sources (POJO root, extension [0], request [1]) — PRIORITIZE_HIGHER_SOURCE
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndPojoExtensionRequestTouchSameList_thenRequestMutationWins() {
+        initClientWithExtensions(new ListFirstElementUpdateExtension());
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setRequestAttributeList(Arrays.asList("pojo1", "pojo2"));
+        mappedTable.updateItem(r -> r.item(record)
+                                     .updateExpression(expressionWithSetListElement(1, "request1"))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
+        assertThat(persistedRecord.getRequestAttributeList()).containsExactly("attr1", "request1");
+    }
+
+    // -------------------------------------------------------
+    // Object parent/child: POJO root vs request nested path — LEGACY
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenLegacyMergeAndPojoSetsObjectRootAndRequestSetsNestedField_thenDynamoDbRejectsOverlap() {
+        initClientWithExtensions();
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setObjectAttribute(nestedObject("pojoName", "pojoCity"));
+
+        assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(record)
+                                                              .updateExpression(
+                                                                  expressionWithSetStringPath("objectAttribute.name",
+                                                                                              "requestName"))
+                                                              .updateExpressionMergeStrategy(LEGACY)))
+            .isInstanceOf(DynamoDbException.class)
+            .hasMessageContaining("Two document paths");
+    }
+
+    // -------------------------------------------------------
+    // Object parent/child: POJO root vs request nested path — PRIORITIZE_HIGHER_SOURCE
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndPojoSetsObjectRootAndRequestSetsNestedField_thenNestedRequestValuePersists() {
+        initClientWithExtensions();
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setObjectAttribute(nestedObject("pojoName", "pojoCity"));
+        mappedTable.updateItem(r -> r.item(record)
+                                     .updateExpression(expressionWithSetStringPath("objectAttribute.name", "requestName"))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
+        assertThat(persistedRecord.getObjectAttribute().getName()).isEqualTo("requestName");
+        assertThat(persistedRecord.getObjectAttribute().getCity()).isEqualTo("originCity");
+    }
+
+    // -------------------------------------------------------
+    // List-of-objects: three sources — PRIORITIZE_HIGHER_SOURCE
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndPojoExtensionRequestTouchObjectList_thenRequestNestedUpdatePersists() {
+        initClientWithExtensions(new ObjectListFirstElementNameUpdateExtension());
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        record.setObjectListAttribute(Arrays.asList(
+            nestedObject("pojo0", "pojoCity0"),
+            nestedObject("pojo1", "pojoCity1")));
+        mappedTable.updateItem(r -> r.item(record)
+                                     .updateExpression(
+                                         expressionWithSetStringPath("objectListAttribute[1].name", "requestObject1"))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
+        assertThat(persistedRecord.getObjectListAttribute().get(0).getName()).isEqualTo("originObject0");
+        assertThat(persistedRecord.getObjectListAttribute().get(0).getCity()).isEqualTo("originCity0");
+        assertThat(persistedRecord.getObjectListAttribute().get(1).getName()).isEqualTo("requestObject1");
+        assertThat(persistedRecord.getObjectListAttribute().get(1).getCity()).isEqualTo("originCity1");
+    }
+
+    // -------------------------------------------------------
+    // Extension vs request overlap on same scalar — LEGACY
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenLegacyMergeAndExtensionAndRequestSetSameScalar_thenDynamoDbRejectsOverlap() {
+        initClientWithExtensions(new ItemPreservingUpdateExtension());
+        RecordForUpdateExpressions keyRecord = createKeyOnlyRecord();
+
+        UpdateExpression conflictingExpression = expressionWithSetNumberAttribute("extensionNumberAttribute", 99L);
+
+        assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(keyRecord)
+                                                              .updateExpression(conflictingExpression)
+                                                              .updateExpressionMergeStrategy(LEGACY)))
+            .isInstanceOf(DynamoDbException.class)
+            .hasMessageContaining("Two document paths");
+    }
+
+    // -------------------------------------------------------
+    // Extension vs request overlap on same scalar — PRIORITIZE_HIGHER_SOURCE
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndExtensionAndRequestSetSameScalar_thenRequestValueWins() {
+        initClientWithExtensions(new ItemPreservingUpdateExtension());
+        RecordForUpdateExpressions keyRecord = createKeyOnlyRecord();
+        mappedTable.putItem(keyRecord);
+
+        mappedTable.updateItem(r -> r.item(keyRecord)
+                                     .updateExpression(expressionWithSetNumberAttribute("extensionNumberAttribute", 99L))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(keyRecord);
+        assertThat(persistedRecord.getExtensionNumberAttribute()).isEqualTo(99L);
+    }
+
+    // -------------------------------------------------------
+    // Different top-level names: PRIORITIZE_HIGHER_SOURCE keeps both actions
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenPrioritizeHigherSourceAndTopLevelAttributesAreDisjoint_thenEachMutationAppliesIndependently() {
+        initClientWithExtensions();
+        RecordForUpdateExpressions record = createFullRecord();
+        mappedTable.putItem(record);
+
+        RecordForUpdateExpressions updateRecord = createKeyOnlyRecord();
+        updateRecord.setStringAttribute("updated");
+        mappedTable.updateItem(r -> r.item(updateRecord)
+                                     .ignoreNulls(true)
+                                     .updateExpression(expressionWithSetListElement(0, "reqVal"))
+                                     .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(updateRecord);
+        // stringAttribute uses WRITE_IF_NOT_EXISTS in the schema, so an existing value is preserved on update.
+        assertThat(persistedRecord.getStringAttribute()).isEqualTo("init");
+        assertThat(persistedRecord.getRequestAttributeList().get(0)).isEqualTo("reqVal");
+    }
+
+    // -------------------------------------------------------
+    // Extension vs request overlap (no explicit strategy) — defaults to LEGACY
+    // -------------------------------------------------------
+
+    @Test
+    public void updateItem_whenMergeStrategyNotProvidedAndExtensionAndRequestSetSameScalar_thenLegacyOverlapErrorIsReturned() {
         initClientWithExtensions(new ItemPreservingUpdateExtension());
         RecordForUpdateExpressions recordForUpdateExpressions = createKeyOnlyRecord();
 
-        // Create an UpdateExpression that conflicts with the extension's UpdateExpression
-        // Extension modifies extensionNumberAttribute, so we create a request expression that also modifies it
         UpdateExpression conflictingExpression = UpdateExpression.builder()
                                                                  .addAction(SetAction.builder()
                                                                                      .path("extensionNumberAttribute")
@@ -395,7 +582,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * providing an UpdateExpression on the request, behavior is identical ad before.
      */
     @Test
-    public void backwardCompatibility_pojoOnlyUpdates() {
+    public void updateItem_withoutRequestExpression_pojoOnlyUpdate_preservesPriorBehavior() {
         initClientWithExtensions();
         RecordForUpdateExpressions record = createSimpleRecord();
 
@@ -413,7 +600,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * without providing an UpdateExpression on the request, behavior is identical as before
      */
     @Test
-    public void backwardCompatibility_extensionOnlyUpdates() {
+    public void updateItem_withoutRequestExpression_extensionOnlyUpdate_preservesPriorBehavior() {
         initClientWithExtensions(new ItemPreservingUpdateExtension());
         RecordForUpdateExpressions record = createSimpleRecord();
 
@@ -429,7 +616,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * Tests scan() operation Verifies that scan operations work correctly after update expressions are applied.
      */
     @Test
-    public void scanOperation_afterUpdateExpression() {
+    public void scanTable_reflectsPriorRequestExpressionOnListAttribute() {
         initClientWithExtensions();
         RecordForUpdateExpressions record1 = createFullRecord();
         record1.setId("scan1");
@@ -460,7 +647,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * Tests deleteItem() operation Verifies that items can be deleted after being updated with expressions.
      */
     @Test
-    public void deleteItem_afterUpdateExpression() {
+    public void deleteItem_afterRequestExpressionUpdate_removesItemSuccessfully() {
         initClientWithExtensions();
         RecordForUpdateExpressions record = createFullRecord();
         mappedTable.putItem(record);
@@ -486,7 +673,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * Tests batchGetItem() operation Verifies that batch get operations work correctly after update expressions.
      */
     @Test
-    public void batchGetItem_afterUpdateExpression() {
+    public void batchGetItem_reflectsPriorRequestExpressionUpdates() {
         initClientWithExtensions();
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                       .dynamoDbClient(getDynamoDbClient())
@@ -531,7 +718,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * applied.
      */
     @Test
-    public void batchWriteItem_withUpdateExpressionItems() {
+    public void batchWriteItem_putAndDelete_afterRequestExpressionUpdate_completesSuccessfully() {
         initClientWithExtensions();
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                       .dynamoDbClient(getDynamoDbClient())
@@ -568,7 +755,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * Tests transactGetItems() operation Verifies that transactional get operations work after update expressions.
      */
     @Test
-    public void transactGetItems_afterUpdateExpression() {
+    public void transactGetItems_reflectsPriorRequestExpressionOnMatchingKey() {
         initClientWithExtensions();
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                       .dynamoDbClient(getDynamoDbClient())
@@ -610,7 +797,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
      * Tests transactWriteItems() operation Verifies that transactional write operations work correctly.
      */
     @Test
-    public void transactWriteItems_withUpdateExpression() {
+    public void transactWriteItems_deleteAndPut_completesSuccessfully() {
         initClientWithExtensions();
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                       .dynamoDbClient(getDynamoDbClient())
@@ -639,11 +826,44 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         assertThat(persistedRecord2.getRequestAttributeList()).containsExactly("attr1", "attr2");
     }
 
+    // -------------------------------------------------------
+    // Transactional update: request-level expression via TransactUpdateItemEnhancedRequest
+    // -------------------------------------------------------
+
+    @Test
+    public void transactWriteItems_transactUpdateWithRequestExpression_updatesListElement() {
+        initClientWithExtensions();
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                      .dynamoDbClient(getDynamoDbClient())
+                                                                      .build();
+
+        RecordForUpdateExpressions record = createFullRecord();
+        record.setId("transactUpdateReqExpr");
+        mappedTable.putItem(record);
+
+        RecordForUpdateExpressions keyRecord = createKeyOnlyRecord();
+        keyRecord.setId("transactUpdateReqExpr");
+
+        enhancedClient.transactWriteItems(
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .addUpdateItem(
+                                                 mappedTable,
+                                                 TransactUpdateItemEnhancedRequest.builder(RecordForUpdateExpressions.class)
+                                                                                  .item(keyRecord)
+                                                                                  .updateExpression(
+                                                                                      expressionWithSetListElement(1, "txn"))
+                                                                                  .build())
+                                             .build());
+
+        RecordForUpdateExpressions persistedRecord = mappedTable.getItem(keyRecord);
+        assertThat(persistedRecord.getRequestAttributeList()).containsExactly("attr1", "txn");
+    }
+
     /**
      * Tests StaticTableSchema with UpdateExpression extensions
      */
     @Test
-    public void staticTableSchema_withUpdateExpressions() {
+    public void updateItem_staticTableSchemaWithExtension_persistsAndReadsMergedState() {
         TableSchema<RecordForUpdateExpressions> staticSchema = TableSchema.builder(RecordForUpdateExpressions.class)
                                                                           .newItemSupplier(RecordForUpdateExpressions::new)
                                                                           .addAttribute(String.class, a -> a.name("id")
@@ -727,7 +947,18 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         RecordForUpdateExpressions record = createSimpleRecord();
         record.setRequestAttributeList(new ArrayList<>(REQUEST_ATTRIBUTES));
         record.setExtensionSetAttribute(SET_ATTRIBUTE_INIT_VALUE);
+        record.setObjectAttribute(nestedObject("originName", "originCity"));
+        record.setObjectListAttribute(Arrays.asList(
+            nestedObject("originObject0", "originCity0"),
+            nestedObject("originObject1", "originCity1")));
         return record;
+    }
+
+    private NestedRecordForUpdateExpressions nestedObject(String name, String city) {
+        NestedRecordForUpdateExpressions nestedObject = new NestedRecordForUpdateExpressions();
+        nestedObject.setName(name);
+        nestedObject.setCity(city);
+        return nestedObject;
     }
 
     private void putInitialItemAndVerify(RecordForUpdateExpressions record) {
@@ -748,6 +979,31 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                                             .putExpressionName(keyRef(listAttributeName), listAttributeName)
                                             .build();
         return UpdateExpression.builder().addAction(setListElement).build();
+    }
+
+    private UpdateExpression expressionWithSetNumberAttribute(String attributeName, long value) {
+        String valueRef = ":value_" + value;
+        SetAction setAction = SetAction.builder()
+                                       .path(attributeName)
+                                       .value(valueRef)
+                                       .putExpressionValue(valueRef, AttributeValue.builder().n(Long.toString(value)).build())
+                                       .build();
+        return UpdateExpression.builder().addAction(setAction).build();
+    }
+
+    private UpdateExpression expressionWithSetStringPath(String path, String value) {
+        String valueRef = ":str_" + value.replaceAll("[^a-zA-Z0-9]", "_");
+        // Tokenize every path segment so reserved words (for example "name") are safe in UpdateExpression paths.
+        String tokenizedPath = path.replaceAll("([A-Za-z_][A-Za-z0-9_]*)", "#$1");
+        Map<String, String> expressionNames = Arrays.stream(path.replaceAll("\\[[0-9]+\\]", "").split("\\."))
+                                                    .collect(Collectors.toMap(segment -> "#" + segment, segment -> segment));
+        SetAction setAction = SetAction.builder()
+                                       .path(tokenizedPath)
+                                       .value(valueRef)
+                                       .expressionNames(expressionNames)
+                                       .putExpressionValue(valueRef, AttributeValue.builder().s(value).build())
+                                       .build();
+        return UpdateExpression.builder().addAction(setAction).build();
     }
 
     private static final class ItemPreservingUpdateExtension implements DynamoDbEnhancedClientExtension {
@@ -808,6 +1064,146 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                                .value(valueName)
                                .putExpressionValue(valueName, actualValue)
                                .build();
+        }
+    }
+
+    private static final class ListFirstElementUpdateExtension implements DynamoDbEnhancedClientExtension {
+        @Override
+        public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
+            return WriteModification.builder()
+                                    .updateExpression(expressionWithSetFirstElement())
+                                    .build();
+        }
+
+        private UpdateExpression expressionWithSetFirstElement() {
+            return UpdateExpression.builder()
+                                   .addAction(SetAction.builder()
+                                                       .path("requestAttributeList[0]")
+                                                       .value(":extensionValue")
+                                                       .putExpressionValue(":extensionValue",
+                                                                           AttributeValue.builder().s("extension0").build())
+                                                       .build())
+                                   .build();
+        }
+    }
+
+    private static final class ObjectListFirstElementNameUpdateExtension implements DynamoDbEnhancedClientExtension {
+        @Override
+        public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
+            return WriteModification.builder()
+                                    .updateExpression(
+                                        UpdateExpression.builder()
+                                                        .addAction(SetAction.builder()
+                                                                            .path("objectListAttribute[0].name")
+                                                                            .value(":extensionObject0")
+                                                                            .putExpressionValue(":extensionObject0",
+                                                                                                AttributeValue.builder()
+                                                                                                              .s("extensionObject0")
+                                                                                                              .build())
+                                                                            .build())
+                                                        .build())
+                                    .build();
+        }
+    }
+
+    @DynamoDbBean
+    public static final class RecordForUpdateExpressions {
+        private String id;
+        private String stringAttribute1;
+        private List<String> requestAttributeList;
+        private Long extensionAttribute1;
+        private Set<String> extensionAttribute2;
+        private Long incrementedAttribute;
+        private NestedRecordForUpdateExpressions objectAttribute;
+        private List<NestedRecordForUpdateExpressions> objectListAttribute;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDbUpdateBehavior(WRITE_IF_NOT_EXISTS)
+        public String getStringAttribute() {
+            return stringAttribute1;
+        }
+
+        public void setStringAttribute(String stringAttribute1) {
+            this.stringAttribute1 = stringAttribute1;
+        }
+
+        public List<String> getRequestAttributeList() {
+            return requestAttributeList;
+        }
+
+        public void setRequestAttributeList(List<String> requestAttributeList) {
+            this.requestAttributeList = requestAttributeList;
+        }
+
+        public Long getExtensionNumberAttribute() {
+            return extensionAttribute1;
+        }
+
+        public void setExtensionNumberAttribute(Long extensionAttribute1) {
+            this.extensionAttribute1 = extensionAttribute1;
+        }
+
+        public Set<String> getExtensionSetAttribute() {
+            return extensionAttribute2;
+        }
+
+        public void setExtensionSetAttribute(Set<String> extensionAttribute2) {
+            this.extensionAttribute2 = extensionAttribute2;
+        }
+
+        public Long getIncrementedAttribute() {
+            return incrementedAttribute;
+        }
+
+        public RecordForUpdateExpressions setIncrementedAttribute(Long incrementedAttribute) {
+            this.incrementedAttribute = incrementedAttribute;
+            return this;
+        }
+
+        public NestedRecordForUpdateExpressions getObjectAttribute() {
+            return objectAttribute;
+        }
+
+        public void setObjectAttribute(NestedRecordForUpdateExpressions objectAttribute) {
+            this.objectAttribute = objectAttribute;
+        }
+
+        public List<NestedRecordForUpdateExpressions> getObjectListAttribute() {
+            return objectListAttribute;
+        }
+
+        public void setObjectListAttribute(List<NestedRecordForUpdateExpressions> objectListAttribute) {
+            this.objectListAttribute = objectListAttribute;
+        }
+    }
+
+    @DynamoDbBean
+    public static final class NestedRecordForUpdateExpressions {
+        private String name;
+        private String city;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
         }
     }
 }
