@@ -103,4 +103,10 @@ class AddShapesTest {
         assertThat(inputShape.findMemberModelByC2jName("StringHeaderMember").getHttp().getLocation()).isEqualTo(Location.HEADER);
     }
 
+    @Test
+    void generateShapeModel_locationNameOnNestedShape_usesMemberNameForMarshalling() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("NestedQueryParameterOperation");
+        assertThat(inputShape.findMemberModelByC2jName("NestedHeaderMember").getHttp().getMarshallLocationName()).isEqualTo("NestedHeaderMember");
+    }
+
 }

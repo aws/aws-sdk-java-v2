@@ -311,17 +311,23 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
-        // Per the Smithy spec, HTTP binding traits are only honored on specific shape types:
+        // Per the Smithy spec, HTTP binding traits are only honored on specific shape types.
+        // When a trait is ignored, its locationName is also ignored so the member name is used as the wire name.
         // https://smithy.io/2.0/spec/http-bindings.html
         Location location = resolveLocation(parentShape, member, allC2jShapes);
+        boolean locationIgnored = member.getLocation() != null && location == null;
 
         Shape memberShape = allC2jShapes.get(member.getShape());
+        String marshallLocationName = locationIgnored
+            ? memberName : deriveMarshallerLocationName(memberShape, memberName, member, protocol);
+        String unmarshallLocationName = locationIgnored
+            ? memberName : deriveUnmarshallerLocationName(memberShape, memberName, member);
+
         mapping.withLocation(location)
                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
                .withFlattened(isFlattened(member, memberShape))
-               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberShape, memberName, member))
-               .withMarshallLocationName(
-                        deriveMarshallerLocationName(memberShape, memberName, member, protocol))
+               .withUnmarshallLocationName(unmarshallLocationName)
+               .withMarshallLocationName(marshallLocationName)
                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
 
         return mapping;

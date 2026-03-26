@@ -262,7 +262,8 @@
         "method":"POST",
         "requestUri":"/2016-03-11/nestedLocationOperation"
       },
-      "input":{"shape":"NestedLocationOperationInput"}
+      "input":{"shape":"NestedLocationOperationInput"},
+      "output":{"shape":"NestedLocationOperationOutput"}
     }
   },
   "shapes":{
@@ -810,6 +811,28 @@
           "locationName":"shouldBeIgnored"
         },
         "StringMember":{"shape":"String"}
+      }
+    },
+    "NestedLocationOperationOutput":{
+      "type":"structure",
+      "members":{
+        "TopLevelHeader":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-top-level"
+        },
+        "NestedResult":{"shape":"NestedResponseData"}
+      }
+    },
+    "NestedResponseData":{
+      "type":"structure",
+      "members":{
+        "NestedHeader":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-should-be-ignored"
+        },
+        "Value":{"shape":"String"}
       }
     },
     "StatusCodeInOutputStructure":{

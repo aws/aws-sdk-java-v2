@@ -48,19 +48,18 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
 
     private static final SdkField<String> HEADER_PARAM_FIELD = SdkField.<String> builder(MarshallingType.STRING)
             .memberName("headerParam").getter(getter(NestedOptions::headerParam)).setter(setter(Builder::headerParam))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("x-amz-nested-header").build())
-            .build();
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("headerParam").build()).build();
 
     private static final SdkField<String> QUERY_PARAM_FIELD = SdkField.<String> builder(MarshallingType.STRING)
             .memberName("queryParam").getter(getter(NestedOptions::queryParam)).setter(setter(Builder::queryParam))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("nestedQuery").build()).build();
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("queryParam").build()).build();
 
     private static final SdkField<Map<String, String>> PREFIX_HEADERS_FIELD = SdkField
             .<Map<String, String>> builder(MarshallingType.MAP)
             .memberName("prefixHeaders")
             .getter(getter(NestedOptions::prefixHeaders))
             .setter(setter(Builder::prefixHeaders))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("x-amz-prefix-").build(),
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("prefixHeaders").build(),
                     MapTrait.builder()
                             .keyLocationName("key")
                             .valueLocationName("value")
@@ -229,9 +228,9 @@ public final class NestedOptions implements SdkPojo, Serializable, ToCopyableBui
     private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
         Map<String, SdkField<?>> map = new HashMap<>();
         map.put("pageSize", PAGE_SIZE_FIELD);
-        map.put("x-amz-nested-header", HEADER_PARAM_FIELD);
-        map.put("nestedQuery", QUERY_PARAM_FIELD);
-        map.put("x-amz-prefix-", PREFIX_HEADERS_FIELD);
+        map.put("headerParam", HEADER_PARAM_FIELD);
+        map.put("queryParam", QUERY_PARAM_FIELD);
+        map.put("prefixHeaders", PREFIX_HEADERS_FIELD);
         return Collections.unmodifiableMap(map);
     }
 

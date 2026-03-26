@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.NestedLocationOperationRequest;
+import software.amazon.awssdk.services.protocolrestjson.model.NestedLocationOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.NestedShapeWithLocations;
 
 /**
@@ -71,6 +73,21 @@ public class NestedLocationSerializationTest {
         verify(postRequestedFor(anyUrl()).withQueryParam("topLevel", equalTo("topValue")));
 
         verify(postRequestedFor(anyUrl()).withRequestBody(
-            equalToJson("{\"Nested\":{\"shouldBeIgnored\":\"nestedValue\",\"StringMember\":\"hello\"}}")));
+            equalToJson("{\"Nested\":{\"NestedQueryParam\":\"nestedValue\",\"StringMember\":\"hello\"}}")));
+    }
+
+    @Test
+    public void nestedMemberWithLocation_deserializedFromBodyNotHeader() {
+        stubFor(post(anyUrl()).willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("x-amz-top-level", "headerValue")
+            .withBody("{\"NestedResult\":{\"NestedHeader\":\"from-body\",\"Value\":\"hello\"}}")));
+
+        NestedLocationOperationResponse response = client.nestedLocationOperation(
+            NestedLocationOperationRequest.builder().build());
+
+        assertThat(response.topLevelHeader()).isEqualTo("headerValue");
+        assertThat(response.nestedResult().nestedHeader()).isEqualTo("from-body");
+        assertThat(response.nestedResult().value()).isEqualTo("hello");
     }
 }

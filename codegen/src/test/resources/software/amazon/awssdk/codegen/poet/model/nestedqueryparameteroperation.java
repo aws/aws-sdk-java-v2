@@ -51,7 +51,7 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
   .setter(setter(Builder::nestedHeaderMember))
   .traits(LocationTrait.builder()
   .location(MarshallLocation.PAYLOAD)
-  .locationName("x-amz-nested-header")
+  .locationName("NestedHeaderMember")
   .build()).build();
 
   private static final SdkField<Integer> NESTED_STATUS_CODE_FIELD = SdkField.<Integer>builder(MarshallingType.INTEGER)
@@ -191,7 +191,7 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
     Map<String, SdkField<?>> map = new HashMap<>();
     map.put("QueryParamOne", QUERY_PARAM_ONE_FIELD);
     map.put("QueryParamTwo", QUERY_PARAM_TWO_FIELD);
-    map.put("x-amz-nested-header", NESTED_HEADER_MEMBER_FIELD);
+    map.put("NestedHeaderMember", NESTED_HEADER_MEMBER_FIELD);
     map.put("NestedStatusCode", NESTED_STATUS_CODE_FIELD);
     return Collections.unmodifiableMap(map);
   }
