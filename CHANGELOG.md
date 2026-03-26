@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.22__ __2026-03-26__
+## __AWS Billing and Cost Management Data Exports__
+  - ### Features
+    - With this release we are providing an option to accounts to have their export delivered to an S3 bucket that is not owned by the account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch EMF Metric Publisher__
+  - ### Features
+    - Add `PropertiesFactory` and `propertiesFactory` to `EmfMetricLoggingPublisher.Builder`, enabling users to enrich EMF records with custom key-value properties derived from the metric collection or ambient context, searchable in CloudWatch Logs Insights. See [#6595](https://github.com/aws/aws-sdk-java-v2/issues/6595).
+        - Contributed by: [@humanzz](https://github.com/humanzz)
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds parameter support to saved queries in CloudWatch Logs Insights. Define reusable query templates with named placeholders, invoke them using start query. Available in Console, CLI and SDK
+
+## __Amazon EMR__
+  - ### Features
+    - Add StepExecutionRoleArn to RunJobFlow API
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for ml.r5d.16xlarge instance types for SageMaker HyperPod
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB adds support for customer defined maintenance windows. This allows customers to define maintenance schedule during resource creation and updates
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@humanzz](https://github.com/humanzz)
 # __2.42.21__ __2026-03-25__
 ## __AWS Batch__
   - ### Features
