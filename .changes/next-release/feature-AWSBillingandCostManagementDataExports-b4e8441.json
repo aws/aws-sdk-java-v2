@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Billing and Cost Management Data Exports",
-    "contributor": "",
-    "description": "With this release we are providing an option to accounts to have their export delivered to an S3 bucket that is not owned by the account."
-}
