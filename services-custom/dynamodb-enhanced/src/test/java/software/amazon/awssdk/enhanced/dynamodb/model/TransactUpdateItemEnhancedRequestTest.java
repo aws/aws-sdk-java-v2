@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public class TransactUpdateItemEnhancedRequestTest {
 
     @Test
-    public void builder_minimal() {
+    public void emptyBuilder_optionalFieldsAreNull_mergeStrategyIsLegacy() {
         TransactUpdateItemEnhancedRequest<FakeItem> builtObject =
             TransactUpdateItemEnhancedRequest.builder(FakeItem.class).build();
 
@@ -157,6 +157,8 @@ public class TransactUpdateItemEnhancedRequestTest {
                                                     .putExpressionValue(":value", stringValue("wrong"))
                                                     .putExpressionValue(":value1", stringValue("three"))
                                                     .build();
+
+
 
         TransactUpdateItemEnhancedRequest<FakeItem> builtObject1 =
             TransactUpdateItemEnhancedRequest.builder(FakeItem.class).conditionExpression(conditionExpression1).build();
@@ -287,7 +289,7 @@ public class TransactUpdateItemEnhancedRequestTest {
     }
 
     @Test
-    public void toBuilder_roundTrip_preservesPrioritizeHigherSourceMergeStrategy() {
+    public void toBuilder_preservesPrioritizeHigherSourceMergeStrategy() {
         TransactUpdateItemEnhancedRequest<FakeItem> request =
             TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
                                              .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)

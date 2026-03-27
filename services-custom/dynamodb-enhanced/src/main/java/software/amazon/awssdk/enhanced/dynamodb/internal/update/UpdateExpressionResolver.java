@@ -16,16 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static java.util.Objects.requireNonNull;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter.findAttributeNames;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter.removeNestingAndListReference;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.removeActionsFor;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.setActionsFor;
-import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.attributesPresentInOtherExpressions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.generateItemRemoveExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.generateItemSetExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.resolveTopLevelAttributeName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,12 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy;
-import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -83,8 +79,8 @@ public final class UpdateExpressionResolver {
      *
      * <ul>
      *   <li><b>{@link UpdateExpressionMergeStrategy#LEGACY}</b> (default) &mdash; concatenates all actions as-is;
-     *       overlapping paths cause a DynamoDB runtime error. Null-attribute REMOVE actions are suppressed when the
-     *       same attribute appears in an extension or request expression.</li>
+     *       overlapping paths cause a DynamoDB runtime error. As in previous behavior, null-attribute REMOVE actions
+     *       are suppressed when the same attribute appears in an extension or request expression.</li>
      *
      *   <li><b>{@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE}</b> &mdash; groups actions by top-level
      *       attribute name (path before first {@code .} or {@code [}). For each name, only the highest-priority
@@ -118,31 +114,24 @@ public final class UpdateExpressionResolver {
                      .orElse(null);
     }
 
-    private static Set<String> attributesPresentInOtherExpressions(Collection<UpdateExpression> updateExpressions) {
-        return updateExpressions.stream()
-                                .filter(Objects::nonNull)
-                                .map(UpdateExpressionConverter::findAttributeNames)
-                                .flatMap(List::stream)
-                                .collect(Collectors.toSet());
+    TableMetadata tableMetadata() {
+        return tableMetadata;
     }
 
-    private static UpdateExpression generateItemSetExpression(Map<String, AttributeValue> itemMap,
-                                                              TableMetadata tableMetadata) {
-
-        Map<String, AttributeValue> setAttributes = filterMap(itemMap, e -> !isNullAttributeValue(e.getValue()));
-        return UpdateExpression.builder()
-                               .actions(setActionsFor(setAttributes, tableMetadata))
-                               .build();
+    Map<String, AttributeValue> nonKeyAttributes() {
+        return nonKeyAttributes;
     }
 
-    private static UpdateExpression generateItemRemoveExpression(Map<String, AttributeValue> itemMap,
-                                                                 Collection<String> nonRemoveAttributes) {
-        Map<String, AttributeValue> removeAttributes =
-            filterMap(itemMap, e -> isNullAttributeValue(e.getValue()) && !nonRemoveAttributes.contains(e.getKey()));
+    UpdateExpression extensionExpression() {
+        return extensionExpression;
+    }
 
-        return UpdateExpression.builder()
-                               .actions(removeActionsFor(removeAttributes))
-                               .build();
+    UpdateExpression requestExpression() {
+        return requestExpression;
+    }
+
+    UpdateExpressionMergeStrategy updateExpressionMergeStrategy() {
+        return updateExpressionMergeStrategy;
     }
 
     /**
@@ -184,52 +173,24 @@ public final class UpdateExpressionResolver {
         List<UpdateAction> retainedActions = new ArrayList<>();
 
         expression.setActions().stream()
-                  .filter(action -> attributeNames.contains(baseAttributeName(action.path(), action.expressionNames())))
+                  .filter(act -> attributeNames.contains(resolveTopLevelAttributeName(act.path(), act.expressionNames())))
                   .forEach(retainedActions::add);
 
         expression.removeActions().stream()
-                  .filter(action -> attributeNames.contains(baseAttributeName(action.path(), action.expressionNames())))
+                  .filter(act -> attributeNames.contains(resolveTopLevelAttributeName(act.path(), act.expressionNames())))
                   .forEach(retainedActions::add);
 
         expression.deleteActions().stream()
-                  .filter(action -> attributeNames.contains(baseAttributeName(action.path(), action.expressionNames())))
+                  .filter(act -> attributeNames.contains(resolveTopLevelAttributeName(act.path(), act.expressionNames())))
                   .forEach(retainedActions::add);
 
         expression.addActions().stream()
-                  .filter(action -> attributeNames.contains(baseAttributeName(action.path(), action.expressionNames())))
+                  .filter(act -> attributeNames.contains(resolveTopLevelAttributeName(act.path(), act.expressionNames())))
                   .forEach(retainedActions::add);
 
         return retainedActions.isEmpty()
                ? null
                : UpdateExpression.builder().actions(retainedActions).build();
-    }
-
-    /**
-     * Returns the <em>root</em> DynamoDB attribute name for an update action path, used when merging expressions (for example to
-     * decide which actions belong together or overlap).
-     * <p>
-     * The path is resolved in two steps:
-     * <ol>
-     *   <li>Substitute {@link SetAction#expressionNames() expression name} placeholders: each entry's key is replaced by its
-     *   value in {@code fullAttributePath} (in map iteration order), as with {@code ExpressionAttributeNames}.</li>
-     *   <li>{@link UpdateExpressionConverter#removeNestingAndListReference(String)} then takes the segment before the first
-     *       {@code .} (nested map) or {@code [} (list index)—the top-level attribute stored on the item.</li>
-     * </ol>
-     * <p>
-     * Examples (after any placeholder substitution):
-     * <ul>
-     *   <li>{@code list[0]} → {@code list}</li>
-     *   <li>{@code object.listAttr[0]} → {@code object}</li>
-     * </ul>
-     */
-    private static String baseAttributeName(String fullAttributePath, Map<String, String> expressionNames) {
-        String result = fullAttributePath;
-
-        Map<String, String> names = expressionNames != null ? expressionNames : Collections.emptyMap();
-        for (Map.Entry<String, String> entry : names.entrySet()) {
-            result = result.replace(entry.getKey(), entry.getValue());
-        }
-        return removeNestingAndListReference(result);
     }
 
     public static final class Builder {

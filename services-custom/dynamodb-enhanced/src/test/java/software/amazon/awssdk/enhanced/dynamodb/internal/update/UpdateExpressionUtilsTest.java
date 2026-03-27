@@ -15,23 +15,26 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class UpdateExpressionUtilsTest {
 
-    private final TableMetadata mockTableMetadata = mock(TableMetadata.class);
+    private static final TableMetadata TABLE_METADATA = StaticTableMetadata.builder().build();
 
     @Test
     public void ifNotExists_mapsKeyAndValueToIfNotExistsExpression() {
@@ -42,7 +45,7 @@ public class UpdateExpressionUtilsTest {
 
     @Test
     public void setActionsFor_emptyMap_returnsEmptyList() {
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(Collections.emptyMap(), mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(Collections.emptyMap(), TABLE_METADATA);
 
         assertThat(result).isEmpty();
     }
@@ -51,9 +54,8 @@ public class UpdateExpressionUtilsTest {
     public void setActionsFor_singleAttribute_createsSetAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("attrName", AttributeValue.builder().s("attrValue").build());
-        when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
 
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, TABLE_METADATA);
 
         assertThat(result).isEqualTo(Collections.singletonList(
             SetAction.builder()
@@ -69,9 +71,8 @@ public class UpdateExpressionUtilsTest {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("attr1Name", AttributeValue.builder().s("attr1Value").build());
         attributes.put("attr2Name", AttributeValue.builder().n("attr2Value").build());
-        when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
 
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, TABLE_METADATA);
 
         assertThat(result).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
@@ -93,9 +94,8 @@ public class UpdateExpressionUtilsTest {
     public void setActionsFor_twoLevelDottedPath_producesSingleMappedSetAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2", AttributeValue.builder().s("attrValue").build());
-        when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
 
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, TABLE_METADATA);
 
         assertThat(result).isEqualTo(Collections.singletonList(
             SetAction.builder()
@@ -110,9 +110,8 @@ public class UpdateExpressionUtilsTest {
     public void setActionsFor_threeLevelDottedPath_producesSingleMappedSetAction() {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("level1.level2.level3", AttributeValue.builder().s("attrValue").build());
-        when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
 
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, TABLE_METADATA);
 
         assertThat(result).isEqualTo(Collections.singletonList(
             SetAction.builder()
@@ -128,9 +127,8 @@ public class UpdateExpressionUtilsTest {
         Map<String, AttributeValue> attributes = new HashMap<>();
         attributes.put("attrWithDash", AttributeValue.builder().s("#value").build());
         attributes.put("attrWithUnderscore", AttributeValue.builder().s("_value").build());
-        when(mockTableMetadata.primaryKeys()).thenReturn(Collections.emptyList());
 
-        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, mockTableMetadata);
+        List<SetAction> result = UpdateExpressionUtils.setActionsFor(attributes, TABLE_METADATA);
 
         assertThat(result).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
@@ -234,6 +232,117 @@ public class UpdateExpressionUtilsTest {
                         .path("#AMZN_MAPPED_attrWithUnderscore")
                         .putExpressionName("#AMZN_MAPPED_attrWithUnderscore", "attrWithUnderscore")
                         .build());
+    }
+
+    @Test
+    public void attributesPresentInOtherExpressions_skipsNullExpressions() {
+        UpdateExpression expression =
+            UpdateExpression.builder().addAction(
+                                SetAction.builder()
+                                         .path("customer.name")
+                                         .value(":name")
+                                         .putExpressionValue(":name", AttributeValue.builder().s("john").build())
+                                         .build())
+                            .build();
+
+        Set<String> result = UpdateExpressionUtils.attributesPresentInOtherExpressions(Arrays.asList(null, expression));
+
+        assertThat(result).containsExactly("customer");
+    }
+
+    @Test
+    public void attributesPresentInOtherExpressions_unionsTopLevelNamesFromEachExpression() {
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(
+                                SetAction.builder()
+                                         .path("customer.name")
+                                         .value(":name")
+                                         .putExpressionValue(":name", AttributeValue.builder().s("john").build())
+                                         .build())
+                            .build();
+
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(RemoveAction.builder().path("orders[0]").build())
+                            .build();
+
+        Set<String> result = UpdateExpressionUtils.attributesPresentInOtherExpressions(
+            Arrays.asList(requestExpression, extensionExpression));
+
+        assertThat(result).containsExactlyInAnyOrder("customer", "orders");
+    }
+
+    @Test
+    public void generateItemSetExpression_excludesNullAttributes() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("setAttr", AttributeValue.builder().s("set-value").build());
+        itemMap.put("removeAttr", AttributeValue.builder().nul(true).build());
+
+        UpdateExpression result = UpdateExpressionUtils.generateItemSetExpression(itemMap, TABLE_METADATA);
+
+        assertThat(result.setActions()).containsExactly(
+            SetAction.builder()
+                     .path("#AMZN_MAPPED_setAttr")
+                     .value(":AMZN_MAPPED_setAttr")
+                     .putExpressionName("#AMZN_MAPPED_setAttr", "setAttr")
+                     .putExpressionValue(":AMZN_MAPPED_setAttr", AttributeValue.builder().s("set-value").build())
+                     .build());
+    }
+
+    @Test
+    public void generateItemRemoveExpression_skipsNonNullValuesAndExcludedAttributes() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("setAttr", AttributeValue.builder().s("set-value").build());
+        itemMap.put("removeAttr", AttributeValue.builder().nul(true).build());
+        itemMap.put("excludedFromRemovalAttr", AttributeValue.builder().nul(true).build());
+
+        UpdateExpression result = UpdateExpressionUtils.generateItemRemoveExpression(itemMap, singleton(
+            "excludedFromRemovalAttr"));
+
+        assertThat(result.removeActions()).containsExactly(
+            RemoveAction.builder()
+                        .path("#AMZN_MAPPED_removeAttr")
+                        .putExpressionName("#AMZN_MAPPED_removeAttr", "removeAttr")
+                        .build());
+    }
+
+    @Test
+    public void generateItemSetExpression_whenOnlyNullAttributes_returnsNoSetActions() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("removeAttr", AttributeValue.builder().nul(true).build());
+
+        UpdateExpression result = UpdateExpressionUtils.generateItemSetExpression(itemMap, TABLE_METADATA);
+
+        assertThat(result.setActions()).isEmpty();
+    }
+
+    @Test
+    public void generateItemRemoveExpression_whenOnlyNonNullAttributes_returnsNoRemoveActions() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("setAttr", AttributeValue.builder().s("set-value").build());
+
+        UpdateExpression result = UpdateExpressionUtils.generateItemRemoveExpression(itemMap, Collections.emptySet());
+
+        assertThat(result.removeActions()).isEmpty();
+    }
+
+    @Test
+    public void resolveTopLevelAttributeName_whenTokenizedNestedPath_returnsTopLevelName() {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#customer", "customer");
+        expressionNames.put("#name", "name");
+
+        String result = UpdateExpressionUtils.resolveTopLevelAttributeName("#customer.#name[0]", expressionNames);
+
+        assertThat(result).isEqualTo("customer");
+    }
+
+    @Test
+    public void resolveTopLevelAttributeName_whenLiteralPathWithListIndex_returnsTopLevelName() {
+        String result = UpdateExpressionUtils.resolveTopLevelAttributeName("orders[1]", null);
+
+        assertThat(result).isEqualTo("orders");
     }
 }
 

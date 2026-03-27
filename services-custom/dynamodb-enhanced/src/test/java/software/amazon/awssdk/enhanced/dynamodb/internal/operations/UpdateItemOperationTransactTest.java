@@ -53,7 +53,7 @@ public class UpdateItemOperationTransactTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
-    public void generateTransactWriteItem_wrapsGeneratedUpdateItemRequestInTransactUpdate() {
+    public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -89,7 +89,7 @@ public class UpdateItemOperationTransactTest {
     }
 
     @Test
-    public void generateTransactWriteItem_includesConditionExpressionFromGeneratedRequest() {
+    public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
@@ -128,7 +128,7 @@ public class UpdateItemOperationTransactTest {
     }
 
     @Test
-    public void generateTransactWriteItem_propagatesReturnValuesOnConditionCheckFailure() {
+    public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         String returnValues = "return-values";
@@ -158,7 +158,7 @@ public class UpdateItemOperationTransactTest {
     }
 
     @Test
-    public void generateRequest_transactUpdateWithSetExpression_emitsSameUpdateExpressionOnTransactWriteItem() {
+    public void generateTransactWriteItem_withSetAction_includesSetUpdateExpression() {
         FakeItem fakeItem = createUniqueFakeItem();
         UpdateExpression requestExpression =
             UpdateExpression.builder()
@@ -182,15 +182,13 @@ public class UpdateItemOperationTransactTest {
                                                                         context,
                                                                         mockDynamoDbEnhancedClientExtension);
 
-        TransactWriteItem transactWriteItem = updateItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
-                                                                                            context,
-                                                                                            mockDynamoDbEnhancedClientExtension);
+        TransactWriteItem transactWriteItem = updateItemOperation.generateTransactWriteItem(
+            FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.updateExpression(), is("SET attr = :value"));
         assertThat(request.expressionAttributeValues(), is(Collections.singletonMap(":value", stringValue("updated"))));
         assertThat(transactWriteItem.update().updateExpression(), is("SET attr = :value"));
     }
-
 
     private UpdateItemRequest ddbRequest(Map<String, AttributeValue> keys, Consumer<UpdateItemRequest.Builder> modify) {
         UpdateItemRequest.Builder builder = ddbBaseRequestBuilder(keys);

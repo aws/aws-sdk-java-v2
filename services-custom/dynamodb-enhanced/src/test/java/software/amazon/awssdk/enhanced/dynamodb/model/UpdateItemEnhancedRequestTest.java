@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public class UpdateItemEnhancedRequestTest {
 
     @Test
-    public void builder_defaults_optionalFieldsNull_mergeStrategyLegacy() {
+    public void emptyBuilder_optionalFieldsAreNull_mergeStrategyIsLegacy() {
         UpdateItemEnhancedRequest<FakeItem> builtObject = UpdateItemEnhancedRequest.builder(FakeItem.class).build();
 
         assertThat(builtObject.item(), is(nullValue()));
@@ -88,7 +88,7 @@ public class UpdateItemEnhancedRequestTest {
     }
 
     @Test
-    public void toBuilder_roundTrip_equalsOriginal() {
+    public void toBuilder() {
         FakeItem fakeItem = createUniqueFakeItem();
 
         Expression conditionExpression = Expression.builder()
@@ -309,7 +309,7 @@ public class UpdateItemEnhancedRequestTest {
     }
 
     @Test
-    public void toBuilder_roundTrip_preservesPrioritizeHigherSourceMergeStrategy() {
+    public void toBuilder_preservesPrioritizeHigherSourceMergeStrategy() {
         UpdateItemEnhancedRequest<FakeItem> request =
             UpdateItemEnhancedRequest.builder(FakeItem.class)
                                      .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)

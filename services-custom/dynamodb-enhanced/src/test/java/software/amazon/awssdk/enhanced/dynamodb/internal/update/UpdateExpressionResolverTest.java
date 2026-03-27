@@ -17,14 +17,16 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
@@ -32,14 +34,29 @@ import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+/**
+ * Unit tests for {@link UpdateExpressionResolver}.
+ * <p>
+ * Naming convention (merge strategy is reflected in each test name):
+ * <ul>
+ *   <li>{@code resolve_legacy_*} — {@link software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy#LEGACY}
+ *       (default; also when merge strategy is unset or {@code null})</li>
+ *   <li>{@code resolve_prioritizeHigherSource_*} —
+ *       {@link software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE}</li>
+ * </ul>
+ */
 public class UpdateExpressionResolverTest {
 
-    private final TableMetadata mockTableMetadata = mock(TableMetadata.class);
+    private static final TableMetadata TABLE_METADATA = StaticTableMetadata.builder().build();
+
+    // --------------------------------------------------------------
+    // LEGACY — default merge strategy (order map, extension, request)
+    // --------------------------------------------------------------
 
     @Test
-    public void resolve_emptyInputs_returnsEmptyUpdateExpression() {
+    public void resolve_legacy_emptyInputs_returnsNull() {
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(Collections.emptyMap())
                                                                     .build();
 
@@ -49,13 +66,13 @@ public class UpdateExpressionResolverTest {
     }
 
     @Test
-    public void resolve_nonNullAttributes_generatesSetActions() {
+    public void resolve_legacy_nonNullAttributes_generatesSetActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("itemAttr1Name", AttributeValue.builder().s("itemAttr1Value").build());
-        itemMap.put("itemAttr2Name", AttributeValue.builder().n("itemAttr2Value").build());
+        itemMap.put("attr1Name", AttributeValue.builder().s("attr1Value").build());
+        itemMap.put("attr2Name", AttributeValue.builder().n("attr2Value").build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .build();
 
@@ -68,28 +85,28 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_itemAttr1Name")
-                     .value(":AMZN_MAPPED_itemAttr1Name")
-                     .putExpressionName("#AMZN_MAPPED_itemAttr1Name", "itemAttr1Name")
-                     .putExpressionValue(":AMZN_MAPPED_itemAttr1Name", AttributeValue.builder().s("itemAttr1Value").build())
+                     .path("#AMZN_MAPPED_attr1Name")
+                     .value(":AMZN_MAPPED_attr1Name")
+                     .putExpressionName("#AMZN_MAPPED_attr1Name", "attr1Name")
+                     .putExpressionValue(":AMZN_MAPPED_attr1Name", AttributeValue.builder().s("attr1Value").build())
                      .build(),
 
             SetAction.builder()
-                     .path("#AMZN_MAPPED_itemAttr2Name")
-                     .value(":AMZN_MAPPED_itemAttr2Name")
-                     .putExpressionName("#AMZN_MAPPED_itemAttr2Name", "itemAttr2Name")
-                     .putExpressionValue(":AMZN_MAPPED_itemAttr2Name", AttributeValue.builder().n("itemAttr2Value").build())
+                     .path("#AMZN_MAPPED_attr2Name")
+                     .value(":AMZN_MAPPED_attr2Name")
+                     .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
+                     .putExpressionValue(":AMZN_MAPPED_attr2Name", AttributeValue.builder().n("attr2Value").build())
                      .build());
     }
 
     @Test
-    public void resolve_nullAttributes_generatesRemoveActions() {
+    public void resolve_legacy_nullAttributes_generatesRemoveActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("itemAttr1Name", AttributeValue.builder().nul(true).build());
-        itemMap.put("itemAttr2Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr1Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr2Name", AttributeValue.builder().nul(true).build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .build();
 
@@ -102,24 +119,24 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.removeActions()).hasSize(2).containsExactlyInAnyOrder(
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_itemAttr1Name")
-                        .putExpressionName("#AMZN_MAPPED_itemAttr1Name", "itemAttr1Name")
+                        .path("#AMZN_MAPPED_attr1Name")
+                        .putExpressionName("#AMZN_MAPPED_attr1Name", "attr1Name")
                         .build(),
 
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_itemAttr2Name")
-                        .putExpressionName("#AMZN_MAPPED_itemAttr2Name", "itemAttr2Name")
+                        .path("#AMZN_MAPPED_attr2Name")
+                        .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
                         .build());
     }
 
     @Test
-    public void resolve_mixedAttributes_generatesBothActions() {
+    public void resolve_legacy_mixedAttributes_generatesBothActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("setAttrName", AttributeValue.builder().s("setAttrValue").build());
         itemMap.put("removeAttrName", AttributeValue.builder().nul(true).build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .build();
 
@@ -145,9 +162,9 @@ public class UpdateExpressionResolverTest {
     }
 
     @Test
-    public void resolve_withItemAndExtensionExpression_mergesActions() {
+    public void resolve_legacy_withorderAndExtensionExpressions_mergesActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("itemAttrName", AttributeValue.builder().s("itemAttrValue").build());
+        itemMap.put("attrName", AttributeValue.builder().s("attrValue").build());
 
         UpdateExpression extensionExpression =
             UpdateExpression.builder()
@@ -160,7 +177,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .extensionExpression(extensionExpression)
                                                                     .build();
@@ -173,10 +190,10 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).isEqualTo(Collections.singletonList(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_itemAttrName")
-                     .value(":AMZN_MAPPED_itemAttrName")
-                     .putExpressionName("#AMZN_MAPPED_itemAttrName", "itemAttrName")
-                     .putExpressionValue(":AMZN_MAPPED_itemAttrName", AttributeValue.builder().s("itemAttrValue").build())
+                     .path("#AMZN_MAPPED_attrName")
+                     .value(":AMZN_MAPPED_attrName")
+                     .putExpressionName("#AMZN_MAPPED_attrName", "attrName")
+                     .putExpressionValue(":AMZN_MAPPED_attrName", AttributeValue.builder().s("attrValue").build())
                      .build()));
 
         assertThat(result.addActions()).isEqualTo(Collections.singletonList(
@@ -188,32 +205,32 @@ public class UpdateExpressionResolverTest {
     }
 
     @Test
-    public void resolve_withAllExpressionTypes_mergesInCorrectOrder() {
+    public void resolve_legacy_withAllExpressionTypes_mergesActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("itemAttrName", AttributeValue.builder().s("itemAttrValue").build());
+        itemMap.put("attrName", AttributeValue.builder().s("attrValue").build());
 
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(AddAction.builder()
-                                                .path("extensionAttrName")
-                                                .value(":extensionAttrName")
-                                                .putExpressionValue(":extensionAttrName", AttributeValue.builder().s(
-                                                    "extensionAttrValue").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(AddAction.builder()
+                                .path("extensionAttrName")
+                                .value(":extensionAttrName")
+                                .putExpressionValue(":extensionAttrName",
+                                                    AttributeValue.builder().s("extensionAttrValue").build())
+                                .build())
+            .build();
 
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("requestAttrName")
-                                                .value(":requestAttrName")
-                                                .putExpressionValue(":requestAttrName", AttributeValue.builder().s(
-                                                    "requestAttrValue").build())
-                                                .build())
-                            .build();
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("requestAttrName")
+                                .value(":requestAttrName")
+                                .putExpressionValue(":requestAttrName",
+                                                    AttributeValue.builder().s("requestAttrValue").build())
+                                .build())
+            .build();
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .extensionExpression(extensionExpression)
                                                                     .requestExpression(requestExpression)
@@ -227,10 +244,10 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_itemAttrName")
-                     .value(":AMZN_MAPPED_itemAttrName")
-                     .putExpressionName("#AMZN_MAPPED_itemAttrName", "itemAttrName")
-                     .putExpressionValue(":AMZN_MAPPED_itemAttrName", AttributeValue.builder().s("itemAttrValue").build())
+                     .path("#AMZN_MAPPED_attrName")
+                     .value(":AMZN_MAPPED_attrName")
+                     .putExpressionName("#AMZN_MAPPED_attrName", "attrName")
+                     .putExpressionValue(":AMZN_MAPPED_attrName", AttributeValue.builder().s("attrValue").build())
                      .build(),
             SetAction.builder()
                      .path("requestAttrName")
@@ -247,24 +264,23 @@ public class UpdateExpressionResolverTest {
     }
 
     @Test
-    public void resolve_attributeUsedInOtherExpression_filteredOutFromRemoveActions() {
+    public void resolve_legacy_attributeUsedInOtherExpression_filteredOutFromRemoveActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("itemAttr1Name", AttributeValue.builder().nul(true).build());
-        itemMap.put("itemAttr2Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr1Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr2Name", AttributeValue.builder().nul(true).build());
 
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("itemAttr1Name")
-                                                .value(":itemAttr1Value")
-                                                .putExpressionName("#itemAttr1Name", "itemAttr1Name")
-                                                .putExpressionValue(":itemAttr1Value", AttributeValue.builder().s(
-                                                    "itemAttr1Value_new").build())
-                                                .build())
-                            .build();
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr1Name")
+                                .value(":attr1Value")
+                                .putExpressionName("#attr1Name", "attr1Name")
+                                .putExpressionValue(":attr1Value", AttributeValue.builder().s("attr1Value_new").build())
+                                .build())
+            .build();
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .requestExpression(requestExpression)
                                                                     .build();
@@ -277,53 +293,57 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).isEqualTo(Collections.singletonList(
             SetAction.builder()
-                     .path("itemAttr1Name")
-                     .value(":itemAttr1Value")
-                     .putExpressionName("#itemAttr1Name", "itemAttr1Name")
-                     .putExpressionValue(":itemAttr1Value", AttributeValue.builder().s("itemAttr1Value_new").build())
+                     .path("attr1Name")
+                     .value(":attr1Value")
+                     .putExpressionName("#attr1Name", "attr1Name")
+                     .putExpressionValue(":attr1Value", AttributeValue.builder().s("attr1Value_new").build())
                      .build()));
 
-        // only itemAttr2Name, itemAttr1Name filtered out (because was present in a set expression)
+        // only attr2Name, attr1Name filtered out (because was present in a set expression)
         assertThat(result.removeActions()).isEqualTo(Collections.singletonList(
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_itemAttr2Name")
-                        .putExpressionName("#AMZN_MAPPED_itemAttr2Name", "itemAttr2Name")
+                        .path("#AMZN_MAPPED_attr2Name")
+                        .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
                         .build()));
     }
 
     @Test
-    public void builder_allFields_buildsSuccessfully() {
+    public void resolve_legacy_builder_preservesConfiguredFields() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         UpdateExpression extensionExpr = UpdateExpression.builder().build();
         UpdateExpression requestExpr = UpdateExpression.builder().build();
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
-                                                                    .tableMetadata(mockTableMetadata)
+                                                                    .tableMetadata(TABLE_METADATA)
                                                                     .nonKeyAttributes(itemMap)
                                                                     .extensionExpression(extensionExpr)
                                                                     .requestExpression(requestExpr)
                                                                     .build();
 
-        assertThat(resolver).isNotNull();
+        assertThat(resolver.tableMetadata()).isSameAs(TABLE_METADATA);
+        assertThat(resolver.nonKeyAttributes()).isEmpty();
+        assertThat(resolver.extensionExpression()).isSameAs(extensionExpr);
+        assertThat(resolver.requestExpression()).isSameAs(requestExpr);
+        assertThat(resolver.updateExpressionMergeStrategy()).isEqualTo(LEGACY);
     }
 
-    // -------------------------------------------------------
-    // Null-safety: nonKeyAttributes not explicitly set
-    // -------------------------------------------------------
+    // ---------------------------------------------------------
+    // LEGACY — no non-key order map / no request expression (extension only)
+    // ---------------------------------------------------------
 
     @Test
-    public void resolve_legacy_defaultBuilderWithoutNonKeyAttributes_returnsExtensionExpression() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(AddAction.builder()
-                                                .path("counter")
-                                                .value(":inc")
-                                                .putExpressionValue(":inc", AttributeValue.builder().n("1").build())
-                                                .build())
-                            .build();
+    public void resolve_legacy_whenOnlyExtensionActionPresent_returnsExtensionExpression() {
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(AddAction.builder()
+                                .path("counter")
+                                .value(":inc")
+                                .putExpressionValue(":inc", AttributeValue.builder().n("1").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .build()
                                                           .resolve();
@@ -332,7 +352,7 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // LEGACY mode: overlapping paths are concatenated
+    // LEGACY — overlapping paths are concatenated
     // -------------------------------------------------------
 
     @Test
@@ -350,7 +370,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .requestExpression(requestExpression)
                                                           .build()
@@ -391,7 +411,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .build()
@@ -410,8 +430,49 @@ public class UpdateExpressionResolverTest {
                      .build());
     }
 
+    @Test
+    public void resolve_legacy_mergeStrategyNull_defaultsToConcatenation() {
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("counter")
+                                                .value(":ext")
+                                                .putExpressionValue(":ext", AttributeValue.builder().n("10").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("counter")
+                                                .value(":req")
+                                                .putExpressionValue(":req", AttributeValue.builder().n("20").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .updateExpressionMergeStrategy(null)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactly(
+            SetAction.builder()
+                     .path("counter")
+                     .value(":ext")
+                     .putExpressionValue(":ext", AttributeValue.builder().n("10").build())
+                     .build(),
+            SetAction.builder()
+                     .path("counter")
+                     .value(":req")
+                     .putExpressionValue(":req", AttributeValue.builder().n("20").build())
+                     .build());
+    }
+
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: three-source list overlap
+    // PRIORITIZE_HIGHER_SOURCE — three-source list overlap
     // -------------------------------------------------------
 
     @Test
@@ -419,31 +480,30 @@ public class UpdateExpressionResolverTest {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("list", AttributeValue.builder().l(AttributeValue.builder().s("pojo").build()).build());
 
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("list[0]")
-                                                .value(":extensionValue")
-                                                .putExpressionValue(":extensionValue", AttributeValue.builder().s("ext").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("list[0]")
+                                .value(":extensionValue")
+                                .putExpressionValue(":extensionValue", AttributeValue.builder().s("ext-value").build())
+                                .build())
+            .build();
 
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("list[1]")
-                                                .value(":requestValue")
-                                                .putExpressionValue(":requestValue", AttributeValue.builder().s("req").build())
-                                                .build())
-                            .build();
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("list[1]")
+                                .value(":requestValue")
+                                .putExpressionValue(":requestValue", AttributeValue.builder().s("req-value").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
@@ -451,12 +511,12 @@ public class UpdateExpressionResolverTest {
             SetAction.builder()
                      .path("list[1]")
                      .value(":requestValue")
-                     .putExpressionValue(":requestValue", AttributeValue.builder().s("req").build())
+                     .putExpressionValue(":requestValue", AttributeValue.builder().s("req-value").build())
                      .build());
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: sibling list indices (same top-level name)
+    // PRIORITIZE_HIGHER_SOURCE — sibling list indices (same top-level name)
     // -------------------------------------------------------
 
     @Test
@@ -469,6 +529,7 @@ public class UpdateExpressionResolverTest {
                                                 .putExpressionValue(":v0", AttributeValue.builder().s("v0").build())
                                                 .build())
                             .build();
+
         UpdateExpression requestExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
@@ -479,11 +540,10 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
@@ -496,7 +556,7 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: exact same scalar path
+    // PRIORITIZE_HIGHER_SOURCE — exact same scalar path
     // -------------------------------------------------------
 
     @Test
@@ -509,6 +569,7 @@ public class UpdateExpressionResolverTest {
                                                 .putExpressionValue(":ext", AttributeValue.builder().n("10").build())
                                                 .build())
                             .build();
+
         UpdateExpression requestExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
@@ -519,11 +580,10 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
@@ -536,89 +596,87 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: object parent/child overlap
+    // PRIORITIZE_HIGHER_SOURCE — object parent/child overlap
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_objectRootVersusNestedRequestPath_keepsRequestNestedSetOnly() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("profile")
-                                                .value(":profile")
-                                                .putExpressionValue(":profile",
-                                                                    AttributeValue.builder().m(Collections.emptyMap()).build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("profile.name")
-                                                .value(":name")
-                                                .putExpressionValue(":name", AttributeValue.builder().s("alice").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("customer")
+                                .value(":customer")
+                                .putExpressionValue(":customer", AttributeValue.builder().m(Collections.emptyMap()).build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("customer.name")
+                                .value(":name")
+                                .putExpressionValue(":name", AttributeValue.builder().s("john").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
         assertThat(result.setActions()).containsExactly(
             SetAction.builder()
-                     .path("profile.name")
+                     .path("customer.name")
                      .value(":name")
-                     .putExpressionValue(":name", AttributeValue.builder().s("alice").build())
+                     .putExpressionValue(":name", AttributeValue.builder().s("john").build())
                      .build());
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: list-of-objects parent/child
+    // PRIORITIZE_HIGHER_SOURCE — list-of-objects parent/child
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_objectListRootVersusNestedRequestPath_keepsRequestNestedSetOnly() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("items[0]")
-                                                .value(":item0")
-                                                .putExpressionValue(":item0",
-                                                                    AttributeValue.builder().m(Collections.emptyMap()).build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("items[0].name")
-                                                .value(":name")
-                                                .putExpressionValue(":name", AttributeValue.builder().s("new-name").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("orders[0]")
+                                .value(":order0")
+                                .putExpressionValue(":order0", AttributeValue.builder().m(Collections.emptyMap()).build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("orders[0].id")
+                                .value(":id")
+                                .putExpressionValue(":id", AttributeValue.builder().s("orderId").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
         assertThat(result.setActions()).containsExactly(
             SetAction.builder()
-                     .path("items[0].name")
-                     .value(":name")
-                     .putExpressionValue(":name", AttributeValue.builder().s("new-name").build())
+                     .path("orders[0].id")
+                     .value(":id")
+                     .putExpressionValue(":id", AttributeValue.builder().s("orderId").build())
                      .build());
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: nested object paths under same top-level name
+    // PRIORITIZE_HIGHER_SOURCE — nested object paths under same top-level name
     // -------------------------------------------------------
 
     @Test
@@ -626,43 +684,43 @@ public class UpdateExpressionResolverTest {
         UpdateExpression extensionExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
-                                                .path("profile.name")
+                                                .path("customer.name")
                                                 .value(":name")
-                                                .putExpressionValue(":name", AttributeValue.builder().s("alice").build())
+                                                .putExpressionValue(":name", AttributeValue.builder().s("john").build())
                                                 .build())
                             .build();
+
         UpdateExpression requestExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
-                                                .path("profile.address.city")
+                                                .path("customer.address.city")
                                                 .value(":city")
-                                                .putExpressionValue(":city", AttributeValue.builder().s("seattle").build())
+                                                .putExpressionValue(":city", AttributeValue.builder().s("london").build())
                                                 .build())
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
         assertThat(result.setActions()).containsExactly(
             SetAction.builder()
-                     .path("profile.address.city")
+                     .path("customer.address.city")
                      .value(":city")
-                     .putExpressionValue(":city", AttributeValue.builder().s("seattle").build())
+                     .putExpressionValue(":city", AttributeValue.builder().s("london").build())
                      .build());
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: POJO-extension only (no request)
+    // PRIORITIZE_HIGHER_SOURCE — POJO-extension only (no request)
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_pojoAndExtensionShareAttributeWithoutRequest_keepsExtensionActionsOnly() {
+    public void resolve_prioritizeHigherSource_pojoAndExtensionShareAttributeWithoutRequest_keepsExtensionActionOnly() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("counter", AttributeValue.builder().n("10").build());
 
@@ -676,11 +734,10 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
@@ -693,34 +750,34 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: extension-request only (no POJO)
+    // PRIORITIZE_HIGHER_SOURCE — extension-request only (no POJO)
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_extensionAndRequestShareAttributeWithoutPojo_keepsRequestActionsOnly() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("status")
-                                                .value(":ext")
-                                                .putExpressionValue(":ext", AttributeValue.builder().s("ext-val").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("status")
-                                                .value(":req")
-                                                .putExpressionValue(":req", AttributeValue.builder().s("req-val").build())
-                                                .build())
-                            .build();
+    public void resolve_prioritizeHigherSource_extensionAndRequestShareAttributeWithoutPojo_keepsRequestActionOnly() {
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("status")
+                                .value(":ext")
+                                .putExpressionValue(":ext", AttributeValue.builder().s("ext-val").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("status")
+                                .value(":req")
+                                .putExpressionValue(":req", AttributeValue.builder().s("req-val").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
@@ -733,90 +790,89 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: completely disjoint sources
+    // PRIORITIZE_HIGHER_SOURCE — completely disjoint sources
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_allSourcesDisjointPaths_keepsEveryAction() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attrA", AttributeValue.builder().s("a").build());
+        itemMap.put("pojoAttr", AttributeValue.builder().s("1").build());
 
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("attrB")
-                                                .value(":b")
-                                                .putExpressionValue(":b", AttributeValue.builder().s("b").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("attrC")
-                                                .value(":c")
-                                                .putExpressionValue(":c", AttributeValue.builder().s("c").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("extAttr")
+                                .value(":extAttrValue")
+                                .putExpressionValue(":extAttrValue", AttributeValue.builder().s("2").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("reqAttr")
+                                .value(":reqAttrValue")
+                                .putExpressionValue(":reqAttrValue", AttributeValue.builder().s("3").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("attrC")
-                     .value(":c")
-                     .putExpressionValue(":c", AttributeValue.builder().s("c").build())
+                     .path("#AMZN_MAPPED_pojoAttr")
+                     .value(":AMZN_MAPPED_pojoAttr")
+                     .putExpressionName("#AMZN_MAPPED_pojoAttr", "pojoAttr")
+                     .putExpressionValue(":AMZN_MAPPED_pojoAttr", AttributeValue.builder().s("1").build())
                      .build(),
             SetAction.builder()
-                     .path("attrB")
-                     .value(":b")
-                     .putExpressionValue(":b", AttributeValue.builder().s("b").build())
+                     .path("extAttr")
+                     .value(":extAttrValue")
+                     .putExpressionValue(":extAttrValue", AttributeValue.builder().s("2").build())
                      .build(),
             SetAction.builder()
-                     .path("#AMZN_MAPPED_attrA")
-                     .value(":AMZN_MAPPED_attrA")
-                     .putExpressionName("#AMZN_MAPPED_attrA", "attrA")
-                     .putExpressionValue(":AMZN_MAPPED_attrA", AttributeValue.builder().s("a").build())
+                     .path("reqAttr")
+                     .value(":reqAttrValue")
+                     .putExpressionValue(":reqAttrValue", AttributeValue.builder().s("3").build())
                      .build());
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: POJO REMOVE vs request SET
+    // PRIORITIZE_HIGHER_SOURCE — POJO REMOVE vs request SET
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_pojoRemoveVsRequestSet_keepsRequestSetOnly() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attrX", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr", AttributeValue.builder().nul(true).build());
 
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("attrX")
-                                                .value(":val")
-                                                .putExpressionValue(":val", AttributeValue.builder().s("new-value").build())
-                                                .build())
-                            .build();
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr")
+                                .value(":val")
+                                .putExpressionValue(":val", AttributeValue.builder().s("new-value").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .requestExpression(requestExpression)
-                                                          .updateExpressionMergeStrategy(
-                                                              PRIORITIZE_HIGHER_SOURCE)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
 
         assertThat(result.setActions()).containsExactly(
             SetAction.builder()
-                     .path("attrX")
+                     .path("attr")
                      .value(":val")
                      .putExpressionValue(":val", AttributeValue.builder().s("new-value").build())
                      .build());
@@ -824,7 +880,7 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: three-source exact same path
+    // PRIORITIZE_HIGHER_SOURCE — three-source exact same path
     // -------------------------------------------------------
 
     @Test
@@ -832,25 +888,26 @@ public class UpdateExpressionResolverTest {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("counter", AttributeValue.builder().n("1").build());
 
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("counter")
-                                                .value(":ext")
-                                                .putExpressionValue(":ext", AttributeValue.builder().n("2").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("counter")
-                                                .value(":req")
-                                                .putExpressionValue(":req", AttributeValue.builder().n("3").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("counter")
+                                .value(":ext")
+                                .putExpressionValue(":ext", AttributeValue.builder().n("2").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("counter")
+                                .value(":req")
+                                .putExpressionValue(":req", AttributeValue.builder().n("3").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
@@ -867,20 +924,21 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: expression attribute names (#list → list)
+    // PRIORITIZE_HIGHER_SOURCE — expression attribute names (#list → list)
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_expressionNamePlaceholder_groupsByResolvedTopLevelName() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("#l[0]")
-                                                .value(":v0")
-                                                .putExpressionName("#l", "list")
-                                                .putExpressionValue(":v0", AttributeValue.builder().s("ext").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("#l[0]")
+                                .value(":v0")
+                                .putExpressionName("#l", "list")
+                                .putExpressionValue(":v0", AttributeValue.builder().s("ext").build())
+                                .build())
+            .build();
+
         UpdateExpression requestExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
@@ -891,7 +949,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -907,35 +965,36 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: multiple request actions on one top-level name
+    // PRIORITIZE_HIGHER_SOURCE — multiple request actions on one top-level name
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_requestMultipleActionsOnSameTopLevelName_allKept() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("list[2]")
-                                                .value(":ext")
-                                                .putExpressionValue(":ext", AttributeValue.builder().s("ext").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("list[0]")
-                                                .value(":a")
-                                                .putExpressionValue(":a", AttributeValue.builder().s("a").build())
-                                                .build())
-                            .addAction(SetAction.builder()
-                                                .path("list[1]")
-                                                .value(":b")
-                                                .putExpressionValue(":b", AttributeValue.builder().s("b").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("list[2]")
+                                .value(":ext")
+                                .putExpressionValue(":ext", AttributeValue.builder().s("ext").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("list[0]")
+                                .value(":a")
+                                .putExpressionValue(":a", AttributeValue.builder().s("a").build())
+                                .build())
+            .addAction(SetAction.builder()
+                                .path("list[1]")
+                                .value(":b")
+                                .putExpressionValue(":b", AttributeValue.builder().s("b").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -956,30 +1015,31 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: extension vs request on different nested paths (same first segment)
+    // PRIORITIZE_HIGHER_SOURCE — extension vs request on different nested paths (same first segment)
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_nestedPathsSameFirstSegment_keepsRequestOnly() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("a.b")
-                                                .value(":b")
-                                                .putExpressionValue(":b", AttributeValue.builder().s("from-ext").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("a.c")
-                                                .value(":c")
-                                                .putExpressionValue(":c", AttributeValue.builder().s("from-req").build())
-                                                .build())
-                            .build();
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("a.b")
+                                .value(":b")
+                                .putExpressionValue(":b", AttributeValue.builder().s("from-ext").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("a.c")
+                                .value(":c")
+                                .putExpressionValue(":c", AttributeValue.builder().s("from-req").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -995,13 +1055,13 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: all sources null → returns null
+    // PRIORITIZE_HIGHER_SOURCE — all sources null → returns null
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_allSourcesNull_returnsNull() {
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
@@ -1009,22 +1069,22 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: request only (no extension, no POJO)
+    // PRIORITIZE_HIGHER_SOURCE — request only (no extension, no POJO)
     // -------------------------------------------------------
 
     @Test
     public void resolve_prioritizeHigherSource_requestOnlyNoOtherSources_returnsRequestAsIs() {
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("attr")
-                                                .value(":val")
-                                                .putExpressionValue(":val", AttributeValue.builder().s("v").build())
-                                                .build())
-                            .build();
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr")
+                                .value(":val")
+                                .putExpressionValue(":val", AttributeValue.builder().s("v").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
@@ -1038,8 +1098,30 @@ public class UpdateExpressionResolverTest {
                      .build());
     }
 
+    @Test
+    public void resolve_prioritizeHigherSource_ownedAttributesButNoResolvedPathMatches_returnsNull() {
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("#missing")
+                                                .value(":v")
+                                                .putExpressionName("#other", "logicalAttr")
+                                                .putExpressionValue(":v", AttributeValue.builder().s("value").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                                          .build()
+                                                          .resolve();
+
+        assertNull(result);
+    }
+
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: DELETE action from extension vs SET from request on same attribute
+    // PRIORITIZE_HIGHER_SOURCE — DELETE action from extension vs SET from request on same attribute
     // -------------------------------------------------------
 
     @Test
@@ -1050,9 +1132,9 @@ public class UpdateExpressionResolverTest {
                                                    .path("tags")
                                                    .value(":toRemove")
                                                    .putExpressionValue(":toRemove",
-                                                                      AttributeValue.builder()
-                                                                                    .ss("old-tag")
-                                                                                    .build())
+                                                                       AttributeValue.builder()
+                                                                                     .ss("old-tag")
+                                                                                     .build())
                                                    .build())
                             .build();
         UpdateExpression requestExpression =
@@ -1068,7 +1150,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -1085,7 +1167,7 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: extension ADD vs request SET on same attribute
+    // PRIORITIZE_HIGHER_SOURCE — extension ADD vs request SET on same attribute
     // -------------------------------------------------------
 
     @Test
@@ -1108,7 +1190,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -1125,7 +1207,7 @@ public class UpdateExpressionResolverTest {
     }
 
     // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: POJO REMOVE vs extension SET (no request)
+    // PRIORITIZE_HIGHER_SOURCE — POJO REMOVE vs extension SET (no request)
     // -------------------------------------------------------
 
     @Test
@@ -1143,7 +1225,7 @@ public class UpdateExpressionResolverTest {
                             .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
                                                           .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -1159,36 +1241,129 @@ public class UpdateExpressionResolverTest {
         assertThat(result.removeActions()).isEmpty();
     }
 
-    // -------------------------------------------------------
-    // PRIORITIZE_HIGHER_SOURCE: partial ownership — request owns one attr, extension owns another
-    // -------------------------------------------------------
-
+    /*
+     * LEGACY: concatenate all SETs in order: item → extension → request (6 actions).
+     * attr1 appears in all three (3 SETs); attr2 in ext+req (2); attr3 only from pojo.
+     */
     @Test
-    public void resolve_prioritizeHigherSource_partialOwnership_eachSourceKeepsOwnedAttributes() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("counter")
-                                                .value(":extC")
-                                                .putExpressionValue(":extC", AttributeValue.builder().n("10").build())
-                                                .build())
-                            .addAction(SetAction.builder()
-                                                .path("status")
-                                                .value(":extS")
-                                                .putExpressionValue(":extS", AttributeValue.builder().s("ext-status").build())
-                                                .build())
-                            .build();
-        UpdateExpression requestExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("counter")
-                                                .value(":req")
-                                                .putExpressionValue(":req", AttributeValue.builder().n("99").build())
-                                                .build())
-                            .build();
+    public void resolve_legacy_multiSourceOverlap_concatenatesAllSetActions() {
+        Map<String, AttributeValue> itemMap = new LinkedHashMap<>();
+        itemMap.put("attr1", AttributeValue.builder().s("value1_pojo").build());
+        itemMap.put("attr3", AttributeValue.builder().s("value3_pojo").build());
+
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr1")
+                                .value(":e1")
+                                .putExpressionValue(":e1", AttributeValue.builder().s("value1_ext").build())
+                                .build())
+            .addAction(SetAction.builder()
+                                .path("attr2")
+                                .value(":e2")
+                                .putExpressionValue(":e2", AttributeValue.builder().s("value2_ext").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr1")
+                                .value(":r1")
+                                .putExpressionValue(":r1", AttributeValue.builder().s("value1_req").build())
+                                .build())
+            .addAction(SetAction.builder()
+                                .path("attr2")
+                                .value(":r2")
+                                .putExpressionValue(":r2", AttributeValue.builder().s("value2_req").build())
+                                .build())
+            .build();
 
         UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(mockTableMetadata)
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .nonKeyAttributes(itemMap)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("#AMZN_MAPPED_attr1")
+                     .value(":AMZN_MAPPED_attr1")
+                     .putExpressionName("#AMZN_MAPPED_attr1", "attr1")
+                     .putExpressionValue(":AMZN_MAPPED_attr1", AttributeValue.builder().s("value1_pojo").build())
+                     .build(),
+            SetAction.builder()
+                     .path("#AMZN_MAPPED_attr3")
+                     .value(":AMZN_MAPPED_attr3")
+                     .putExpressionName("#AMZN_MAPPED_attr3", "attr3")
+                     .putExpressionValue(":AMZN_MAPPED_attr3", AttributeValue.builder().s("value3_pojo").build())
+                     .build(),
+            SetAction.builder()
+                     .path("attr1")
+                     .value(":e1")
+                     .putExpressionValue(":e1", AttributeValue.builder().s("value1_ext").build())
+                     .build(),
+            SetAction.builder()
+                     .path("attr2")
+                     .value(":e2")
+                     .putExpressionValue(":e2", AttributeValue.builder().s("value2_ext").build())
+                     .build(),
+            SetAction.builder()
+                     .path("attr1")
+                     .value(":r1")
+                     .putExpressionValue(":r1", AttributeValue.builder().s("value1_req").build())
+                     .build(),
+            SetAction.builder()
+                     .path("attr2")
+                     .value(":r2")
+                     .putExpressionValue(":r2", AttributeValue.builder().s("value2_req").build())
+                     .build());
+    }
+
+    /*
+     * PRIORITIZE_HIGHER_SOURCE: one SET per name; request beats extension beats item.
+     * Same data as the LEGACY test above (3 actions).
+     * Winners: attr1 & attr2 → request; attr3 → item only.
+     */
+    @Test
+    public void resolve_prioritizeHigherSource_multiSourceOverlap_oneSetActionPerTopLevelName() {
+        Map<String, AttributeValue> itemMap = new LinkedHashMap<>();
+        itemMap.put("attr1", AttributeValue.builder().s("value1_pojo").build());
+        itemMap.put("attr3", AttributeValue.builder().s("value3_pojo").build());
+
+        UpdateExpression extensionExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr1")
+                                .value(":e1")
+                                .putExpressionValue(":e1", AttributeValue.builder().s("value1_ext").build())
+                                .build())
+            .addAction(SetAction.builder()
+                                .path("attr2")
+                                .value(":e2")
+                                .putExpressionValue(":e2", AttributeValue.builder().s("value2_ext").build())
+                                .build())
+            .build();
+
+        UpdateExpression requestExpression = UpdateExpression
+            .builder()
+            .addAction(SetAction.builder()
+                                .path("attr1")
+                                .value(":r1")
+                                .putExpressionValue(":r1", AttributeValue.builder().s("value1_req").build())
+                                .build())
+            .addAction(SetAction.builder()
+                                .path("attr2")
+                                .value(":r2")
+                                .putExpressionValue(":r2", AttributeValue.builder().s("value2_req").build())
+                                .build())
+            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .nonKeyAttributes(itemMap)
                                                           .extensionExpression(extensionExpression)
                                                           .requestExpression(requestExpression)
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
@@ -1197,14 +1372,20 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("counter")
-                     .value(":req")
-                     .putExpressionValue(":req", AttributeValue.builder().n("99").build())
+                     .path("attr1")
+                     .value(":r1")
+                     .putExpressionValue(":r1", AttributeValue.builder().s("value1_req").build())
                      .build(),
             SetAction.builder()
-                     .path("status")
-                     .value(":extS")
-                     .putExpressionValue(":extS", AttributeValue.builder().s("ext-status").build())
+                     .path("attr2")
+                     .value(":r2")
+                     .putExpressionValue(":r2", AttributeValue.builder().s("value2_req").build())
+                     .build(),
+            SetAction.builder()
+                     .path("#AMZN_MAPPED_attr3")
+                     .value(":AMZN_MAPPED_attr3")
+                     .putExpressionName("#AMZN_MAPPED_attr3", "attr3")
+                     .putExpressionValue(":AMZN_MAPPED_attr3", AttributeValue.builder().s("value3_pojo").build())
                      .build());
     }
 }
