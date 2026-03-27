@@ -24,8 +24,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
-import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
-import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
@@ -179,13 +177,10 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     }
 
     /**
-     * This test case represents the most likely extension UpdateExpression use case; an attribute is set in the extensions and
-     * isn't present in the request POJO item, and there is no change in the request to set ignoreNull to true.
+     * Extension-only attributes must survive default update behavior.
      * <p>
-     * By default, ignoreNulls is false, so attributes that aren't set on the request are deleted from the DDB table through the
-     * updateItemOperation generating REMOVE actions for those attributes. This is prevented by {@link UpdateItemOperation} using
-     * {@link UpdateExpressionConverter#findAttributeNames(UpdateExpression)} to not create REMOVE actions attributes it finds
-     * referenced in an extension UpdateExpression. Therefore, this use case updates normally.
+     * With {@code ignoreNulls=false}, POJO-null fields would normally produce REMOVE actions. This verifies that attributes
+     * referenced by extension expressions are excluded from generated REMOVE actions to avoid self-conflicts.
      */
     @Test
     public void updateItem_givenPreservingExtension_attributeAbsentFromPojo_whenIgnoreNullsFalse_thenRemoveSuppressedForExtensionPath() {
@@ -381,8 +376,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     }
 
     /**
-     * Tests DynamoDbException is thrown when same attribute is referenced both in the POJO item and in an explicit
-     * UpdateExpression provided on the request
+     * A request expression that targets the same path as the POJO update is rejected by DynamoDB as overlapping paths.
      */
     @Test
     public void updateItem_givenRequestExpressionOverlapsPojoPath_whenUpdate_thenDynamoDbRejectsOverlap() {
@@ -408,11 +402,11 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         mappedTable.putItem(record);
 
         record.setExtensionNumberAttribute(100L);
-        UpdateExpression requestExpression = updateExpressionSetLongAttribute("extensionNumberAttribute", 200L);
+        UpdateExpression reqExpression = updateExpressionSetLongAttribute("extensionNumberAttribute", 200L);
 
         assertThatThrownBy(() -> mappedTable.updateItem(
             r -> r.item(record)
-                  .updateExpression(requestExpression)
+                  .updateExpression(reqExpression)
                   .updateExpressionMergeStrategy(LEGACY)))
             .isInstanceOf(DynamoDbException.class)
             .hasMessageContaining("Two document paths");
@@ -553,12 +547,12 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         initClientWithExtensions(new ItemPreservingUpdateExtension());
         RecordForUpdateExpressions keyRecord = createKeyOnlyRecord();
 
-        UpdateExpression conflictingExpression =
+        UpdateExpression reqExpression =
             updateExpressionSetLongAttribute("extensionNumberAttribute", 99L);
 
         assertThatThrownBy(() -> mappedTable.updateItem(
             r -> r.item(keyRecord)
-                  .updateExpression(conflictingExpression)
+                  .updateExpression(reqExpression)
                   .updateExpressionMergeStrategy(LEGACY)))
             .isInstanceOf(DynamoDbException.class)
             .hasMessageContaining("Two document paths");
@@ -602,9 +596,9 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void updateItem_givenDefaultMergeStrategy_whenExtensionAndRequestSetSameScalar_thenDynamoDbRejectsOverlap() {
         initClientWithExtensions(new ItemPreservingUpdateExtension());
-        RecordForUpdateExpressions recordForUpdateExpressions = createKeyOnlyRecord();
+        RecordForUpdateExpressions keyRecord = createKeyOnlyRecord();
 
-        UpdateExpression conflictingExpression =
+        UpdateExpression reqExpression =
             UpdateExpression.builder()
                             .addAction(
                                 SetAction.builder()
@@ -617,7 +611,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                             .build();
 
         assertThatThrownBy(() -> mappedTable.updateItem(
-            r -> r.item(recordForUpdateExpressions).updateExpression(conflictingExpression)))
+            r -> r.item(keyRecord).updateExpression(reqExpression)))
             .isInstanceOf(DynamoDbException.class)
             .hasMessageContaining("Two document paths")
             .hasMessageContaining(NUMBER_ATTRIBUTE_REF);
@@ -633,7 +627,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         initClientWithExtensions();
         RecordForUpdateExpressions record = createSimpleRecord();
 
-        // This should work exactly as before - just POJO updates, no extensions or request expressions
+        // Backward-compatible baseline: POJO update flow without request-level expression.
         mappedTable.putItem(record);
         record.setExtensionNumberAttribute(100L);
         mappedTable.updateItem(r -> r.item(record));
@@ -650,7 +644,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         initClientWithExtensions(new ItemPreservingUpdateExtension());
         RecordForUpdateExpressions record = createSimpleRecord();
 
-        // This should work exactly as before - extension updates attribute not in POJO
+        // Backward-compatible baseline: extension-only mutation without request-level expression.
         mappedTable.putItem(record);
         mappedTable.updateItem(r -> r.item(record));
 

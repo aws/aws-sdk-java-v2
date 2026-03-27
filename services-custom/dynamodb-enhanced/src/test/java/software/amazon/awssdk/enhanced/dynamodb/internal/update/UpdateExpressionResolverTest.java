@@ -68,8 +68,8 @@ public class UpdateExpressionResolverTest {
     @Test
     public void resolve_legacy_nonNullAttributes_generatesSetActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attr1Name", AttributeValue.builder().s("attr1Value").build());
-        itemMap.put("attr2Name", AttributeValue.builder().n("attr2Value").build());
+        itemMap.put("attr", AttributeValue.builder().s("attrValue").build());
+        itemMap.put("attrTwo", AttributeValue.builder().n("2").build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
                                                                     .tableMetadata(TABLE_METADATA)
@@ -85,25 +85,25 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_attr1Name")
-                     .value(":AMZN_MAPPED_attr1Name")
-                     .putExpressionName("#AMZN_MAPPED_attr1Name", "attr1Name")
-                     .putExpressionValue(":AMZN_MAPPED_attr1Name", AttributeValue.builder().s("attr1Value").build())
+                     .path("#AMZN_MAPPED_attr")
+                     .value(":AMZN_MAPPED_attr")
+                     .putExpressionName("#AMZN_MAPPED_attr", "attr")
+                     .putExpressionValue(":AMZN_MAPPED_attr", AttributeValue.builder().s("attrValue").build())
                      .build(),
 
             SetAction.builder()
-                     .path("#AMZN_MAPPED_attr2Name")
-                     .value(":AMZN_MAPPED_attr2Name")
-                     .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
-                     .putExpressionValue(":AMZN_MAPPED_attr2Name", AttributeValue.builder().n("attr2Value").build())
+                     .path("#AMZN_MAPPED_attrTwo")
+                     .value(":AMZN_MAPPED_attrTwo")
+                     .putExpressionName("#AMZN_MAPPED_attrTwo", "attrTwo")
+                     .putExpressionValue(":AMZN_MAPPED_attrTwo", AttributeValue.builder().n("2").build())
                      .build());
     }
 
     @Test
     public void resolve_legacy_nullAttributes_generatesRemoveActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attr1Name", AttributeValue.builder().nul(true).build());
-        itemMap.put("attr2Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr", AttributeValue.builder().nul(true).build());
+        itemMap.put("attrTwo", AttributeValue.builder().nul(true).build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
                                                                     .tableMetadata(TABLE_METADATA)
@@ -119,21 +119,21 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.removeActions()).hasSize(2).containsExactlyInAnyOrder(
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_attr1Name")
-                        .putExpressionName("#AMZN_MAPPED_attr1Name", "attr1Name")
+                        .path("#AMZN_MAPPED_attr")
+                        .putExpressionName("#AMZN_MAPPED_attr", "attr")
                         .build(),
 
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_attr2Name")
-                        .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
+                        .path("#AMZN_MAPPED_attrTwo")
+                        .putExpressionName("#AMZN_MAPPED_attrTwo", "attrTwo")
                         .build());
     }
 
     @Test
     public void resolve_legacy_mixedAttributes_generatesBothActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("setAttrName", AttributeValue.builder().s("setAttrValue").build());
-        itemMap.put("removeAttrName", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr", AttributeValue.builder().s("attrValue").build());
+        itemMap.put("attrToRemove", AttributeValue.builder().nul(true).build());
 
         UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
                                                                     .tableMetadata(TABLE_METADATA)
@@ -148,30 +148,30 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).isEqualTo(Collections.singletonList(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_setAttrName")
-                     .value(":AMZN_MAPPED_setAttrName")
-                     .putExpressionName("#AMZN_MAPPED_setAttrName", "setAttrName")
-                     .putExpressionValue(":AMZN_MAPPED_setAttrName", AttributeValue.builder().s("setAttrValue").build())
+                     .path("#AMZN_MAPPED_attr")
+                     .value(":AMZN_MAPPED_attr")
+                     .putExpressionName("#AMZN_MAPPED_attr", "attr")
+                     .putExpressionValue(":AMZN_MAPPED_attr", AttributeValue.builder().s("attrValue").build())
                      .build()));
 
         assertThat(result.removeActions()).isEqualTo(Collections.singletonList(
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_removeAttrName")
-                        .putExpressionName("#AMZN_MAPPED_removeAttrName", "removeAttrName")
+                        .path("#AMZN_MAPPED_attrToRemove")
+                        .putExpressionName("#AMZN_MAPPED_attrToRemove", "attrToRemove")
                         .build()));
     }
 
     @Test
-    public void resolve_legacy_withorderAndExtensionExpressions_mergesActions() {
+    public void resolve_legacy_withPojoAndExtensionExpressions_mergesActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attrName", AttributeValue.builder().s("attrValue").build());
+        itemMap.put("attr", AttributeValue.builder().s("attrValue").build());
 
         UpdateExpression extensionExpression =
             UpdateExpression.builder()
                             .addAction(AddAction.builder()
-                                                .path("extensionAttrName")
-                                                .value(":extensionAttrValue")
-                                                .putExpressionValue(":extensionAttrValue",
+                                                .path("extAttr")
+                                                .value(":extAttrValue")
+                                                .putExpressionValue(":extAttrValue",
                                                                     AttributeValue.builder().n("1").build())
                                                 .build())
                             .build();
@@ -190,42 +190,42 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).isEqualTo(Collections.singletonList(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_attrName")
-                     .value(":AMZN_MAPPED_attrName")
-                     .putExpressionName("#AMZN_MAPPED_attrName", "attrName")
-                     .putExpressionValue(":AMZN_MAPPED_attrName", AttributeValue.builder().s("attrValue").build())
+                     .path("#AMZN_MAPPED_attr")
+                     .value(":AMZN_MAPPED_attr")
+                     .putExpressionName("#AMZN_MAPPED_attr", "attr")
+                     .putExpressionValue(":AMZN_MAPPED_attr", AttributeValue.builder().s("attrValue").build())
                      .build()));
 
         assertThat(result.addActions()).isEqualTo(Collections.singletonList(
             AddAction.builder()
-                     .path("extensionAttrName")
-                     .value(":extensionAttrValue")
-                     .putExpressionValue(":extensionAttrValue", AttributeValue.builder().n("1").build())
+                     .path("extAttr")
+                     .value(":extAttrValue")
+                     .putExpressionValue(":extAttrValue", AttributeValue.builder().n("1").build())
                      .build()));
     }
 
     @Test
     public void resolve_legacy_withAllExpressionTypes_mergesActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attrName", AttributeValue.builder().s("attrValue").build());
+        itemMap.put("attr", AttributeValue.builder().s("attrValue").build());
 
         UpdateExpression extensionExpression = UpdateExpression
             .builder()
             .addAction(AddAction.builder()
-                                .path("extensionAttrName")
-                                .value(":extensionAttrName")
-                                .putExpressionValue(":extensionAttrName",
-                                                    AttributeValue.builder().s("extensionAttrValue").build())
+                                .path("extAttr")
+                                .value(":extAttrValue")
+                                .putExpressionValue(":extAttrValue",
+                                                    AttributeValue.builder().s("extAttrValue").build())
                                 .build())
             .build();
 
         UpdateExpression requestExpression = UpdateExpression
             .builder()
             .addAction(SetAction.builder()
-                                .path("requestAttrName")
-                                .value(":requestAttrName")
-                                .putExpressionValue(":requestAttrName",
-                                                    AttributeValue.builder().s("requestAttrValue").build())
+                                .path("reqAttr")
+                                .value(":reqAttrValue")
+                                .putExpressionValue(":reqAttrValue",
+                                                    AttributeValue.builder().s("reqAttrValue").build())
                                 .build())
             .build();
 
@@ -244,38 +244,38 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).hasSize(2).containsExactlyInAnyOrder(
             SetAction.builder()
-                     .path("#AMZN_MAPPED_attrName")
-                     .value(":AMZN_MAPPED_attrName")
-                     .putExpressionName("#AMZN_MAPPED_attrName", "attrName")
-                     .putExpressionValue(":AMZN_MAPPED_attrName", AttributeValue.builder().s("attrValue").build())
+                     .path("#AMZN_MAPPED_attr")
+                     .value(":AMZN_MAPPED_attr")
+                     .putExpressionName("#AMZN_MAPPED_attr", "attr")
+                     .putExpressionValue(":AMZN_MAPPED_attr", AttributeValue.builder().s("attrValue").build())
                      .build(),
             SetAction.builder()
-                     .path("requestAttrName")
-                     .value(":requestAttrName")
-                     .putExpressionValue(":requestAttrName", AttributeValue.builder().s("requestAttrValue").build())
+                     .path("reqAttr")
+                     .value(":reqAttrValue")
+                     .putExpressionValue(":reqAttrValue", AttributeValue.builder().s("reqAttrValue").build())
                      .build());
 
         assertThat(result.addActions()).isEqualTo(Collections.singletonList(
             AddAction.builder()
-                     .path("extensionAttrName")
-                     .value(":extensionAttrName")
-                     .putExpressionValue(":extensionAttrName", AttributeValue.builder().s("extensionAttrValue").build())
+                     .path("extAttr")
+                     .value(":extAttrValue")
+                     .putExpressionValue(":extAttrValue", AttributeValue.builder().s("extAttrValue").build())
                      .build()));
     }
 
     @Test
     public void resolve_legacy_attributeUsedInOtherExpression_filteredOutFromRemoveActions() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
-        itemMap.put("attr1Name", AttributeValue.builder().nul(true).build());
-        itemMap.put("attr2Name", AttributeValue.builder().nul(true).build());
+        itemMap.put("attr", AttributeValue.builder().nul(true).build());
+        itemMap.put("attrTwo", AttributeValue.builder().nul(true).build());
 
         UpdateExpression requestExpression = UpdateExpression
             .builder()
             .addAction(SetAction.builder()
-                                .path("attr1Name")
-                                .value(":attr1Value")
-                                .putExpressionName("#attr1Name", "attr1Name")
-                                .putExpressionValue(":attr1Value", AttributeValue.builder().s("attr1Value_new").build())
+                                .path("attr")
+                                .value(":reqAttrValue")
+                                .putExpressionName("#attr", "attr")
+                                .putExpressionValue(":reqAttrValue", AttributeValue.builder().s("reqAttrValue").build())
                                 .build())
             .build();
 
@@ -293,17 +293,17 @@ public class UpdateExpressionResolverTest {
 
         assertThat(result.setActions()).isEqualTo(Collections.singletonList(
             SetAction.builder()
-                     .path("attr1Name")
-                     .value(":attr1Value")
-                     .putExpressionName("#attr1Name", "attr1Name")
-                     .putExpressionValue(":attr1Value", AttributeValue.builder().s("attr1Value_new").build())
+                     .path("attr")
+                     .value(":reqAttrValue")
+                     .putExpressionName("#attr", "attr")
+                     .putExpressionValue(":reqAttrValue", AttributeValue.builder().s("reqAttrValue").build())
                      .build()));
 
-        // only attr2Name, attr1Name filtered out (because was present in a set expression)
+        // Only attrTwo remains for REMOVE because attr is referenced by request expression.
         assertThat(result.removeActions()).isEqualTo(Collections.singletonList(
             RemoveAction.builder()
-                        .path("#AMZN_MAPPED_attr2Name")
-                        .putExpressionName("#AMZN_MAPPED_attr2Name", "attr2Name")
+                        .path("#AMZN_MAPPED_attrTwo")
+                        .putExpressionName("#AMZN_MAPPED_attrTwo", "attrTwo")
                         .build()));
     }
 
@@ -325,6 +325,17 @@ public class UpdateExpressionResolverTest {
         assertThat(resolver.extensionExpression()).isSameAs(extensionExpr);
         assertThat(resolver.requestExpression()).isSameAs(requestExpr);
         assertThat(resolver.updateExpressionMergeStrategy()).isEqualTo(LEGACY);
+    }
+
+    @Test
+    public void resolve_legacy_builder_whenNonKeyAttributesNull_defaultsToEmptyMap() {
+        UpdateExpressionResolver resolver = UpdateExpressionResolver.builder()
+                                                                    .tableMetadata(TABLE_METADATA)
+                                                                    .nonKeyAttributes(null)
+                                                                    .build();
+
+        assertThat(resolver.nonKeyAttributes()).isEmpty();
+        assertThat(resolver.resolve()).isNull();
     }
 
     // ---------------------------------------------------------
