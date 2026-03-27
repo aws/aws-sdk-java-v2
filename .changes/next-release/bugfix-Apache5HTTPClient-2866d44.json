@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache 5 HTTP Client",
-    "contributor": "",
-    "description": "Fixed an issue in the Apache 5 HTTP client where requests could fail with `\"Endpoint not acquired / already released\"`. These failures are now converted to retryable I/O errors."
-}

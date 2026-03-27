@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Adding AgentCore Code Interpreter Node.js Runtime Support with an optional runtime field"
-}

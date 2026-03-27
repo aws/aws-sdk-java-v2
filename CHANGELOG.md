@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.23__ __2026-03-27__
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adding AgentCore Code Interpreter Node.js Runtime Support with an optional runtime field
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for custom code-based evaluators using customer-managed Lambda functions.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Minor formatting changes to remove unnecessary symbols.
+
+## __Amazon Omics__
+  - ### Features
+    - AWS HealthOmics now supports VPC networking, allowing users to connect runs to external resources with NAT gateway, AWS VPC resources, and more. New Configuration APIs support configuring VPC settings. StartRun API now accepts networkingMode and configurationName parameters to enable VPC networking.
+
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue in the Apache 5 HTTP client where requests could fail with `"Endpoint not acquired / already released"`. These failures are now converted to retryable I/O errors.
+
 # __2.42.22__ __2026-03-26__
 ## __AWS Billing and Cost Management Data Exports__
   - ### Features
