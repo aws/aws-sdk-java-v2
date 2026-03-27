@@ -177,7 +177,7 @@ public class EndpointInterceptorTests {
                                                                                                               "TestValue0"))))
             .hasMessageContaining("stop");
 
-        assertThat(interceptor.context.httpRequest().matchingHeaders("TestHeader")).containsExactly("TestValue", "TestValue0");
+        assertThat(interceptor.context.httpRequest().matchingHeaders("TestHeader")).containsExactly("TestValue0", "TestValue");
     }
 
     @Test
@@ -198,7 +198,7 @@ public class EndpointInterceptorTests {
                                        .join())
             .hasMessageContaining("stop");
 
-        assertThat(interceptor.context.httpRequest().matchingHeaders("TestHeader")).containsExactly("TestValue", "TestValue0");
+        assertThat(interceptor.context.httpRequest().matchingHeaders("TestHeader")).containsExactly("TestValue0", "TestValue");
     }
 
 

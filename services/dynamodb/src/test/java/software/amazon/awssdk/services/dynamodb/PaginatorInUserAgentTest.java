@@ -39,7 +39,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.internal.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
 public class PaginatorInUserAgentTest {

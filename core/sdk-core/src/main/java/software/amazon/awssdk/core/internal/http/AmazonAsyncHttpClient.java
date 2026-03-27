@@ -39,7 +39,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTran
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncSigningStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AuthSchemeResolutionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.EndpointResolutionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeAsyncHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
@@ -198,6 +200,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(QueryParametersToBodyStage::new)
                                 .then(() -> new CompressRequestStage(httpClientDependencies))
                                 .then(() -> new HttpChecksumStage(ClientType.ASYNC))
+                                .then(AuthSchemeResolutionStage::new)
+                                .then(EndpointResolutionStage::new)
                                 .then(ApplyUserAgentStage::new)
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder

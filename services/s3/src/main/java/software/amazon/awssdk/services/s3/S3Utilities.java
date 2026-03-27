@@ -19,11 +19,11 @@ package software.amazon.awssdk.services.s3;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -39,18 +39,18 @@ import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.internal.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -62,9 +62,9 @@ import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
@@ -110,7 +110,6 @@ public final class S3Utilities {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
     private final boolean fipsEnabled;
-    private final ExecutionInterceptorChain interceptorChain;
     private final UseGlobalEndpointResolver useGlobalEndpointResolver;
 
     /**
@@ -139,8 +138,6 @@ public final class S3Utilities {
                                                                             .build()
                                                                             .isFipsEnabled()
                                                                             .orElse(false);
-
-        this.interceptorChain = createEndpointInterceptorChain();
 
         this.useGlobalEndpointResolver = createUseGlobalEndpointResolver();
     }
@@ -243,14 +240,9 @@ public final class S3Utilities {
                                                             .versionId(getUrlRequest.versionId())
                                                             .build();
 
-        InterceptorContext interceptorContext = InterceptorContext.builder()
-                                                                  .httpRequest(marshalledRequest)
-                                                                  .request(getObjectRequest)
-                                                                  .build();
-
         ExecutionAttributes executionAttributes = createExecutionAttributes(clientEndpoint, resolvedRegion);
 
-        SdkHttpRequest modifiedRequest = runInterceptors(interceptorContext, executionAttributes).httpRequest();
+        SdkHttpRequest modifiedRequest = resolveEndpointAndApply(getObjectRequest, marshalledRequest, executionAttributes);
         try {
             return modifiedRequest.getUri().toURL();
         } catch (MalformedURLException exception) {
@@ -506,16 +498,36 @@ public final class S3Utilities {
         return params.build();
     }
 
-    private InterceptorContext runInterceptors(InterceptorContext context, ExecutionAttributes executionAttributes) {
-        context = interceptorChain.modifyRequest(context, executionAttributes);
-        return interceptorChain.modifyHttpRequestAndHttpContent(context, executionAttributes);
-    }
+    private SdkHttpRequest resolveEndpointAndApply(GetObjectRequest request, SdkHttpRequest httpRequest,
+                                                    ExecutionAttributes executionAttributes) {
+        S3EndpointParams endpointParams = S3EndpointResolverUtils.ruleParams(request, executionAttributes);
+        S3EndpointProvider provider = (S3EndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
 
-    private ExecutionInterceptorChain createEndpointInterceptorChain() {
-        List<ExecutionInterceptor> interceptors = new ArrayList<>();
-        interceptors.add(new S3ResolveEndpointInterceptor());
-        interceptors.add(new S3RequestSetEndpointInterceptor());
-        return new ExecutionInterceptorChain(interceptors);
+        Endpoint endpoint;
+        try {
+            endpoint = provider.resolveEndpoint(endpointParams).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
+
+        ClientEndpointProvider clientEndpointProvider =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
+        SdkHttpRequest result = AwsEndpointProviderUtils.setUri(httpRequest,
+            clientEndpointProvider.clientEndpoint(), endpoint.url());
+
+        if (!endpoint.headers().isEmpty()) {
+            SdkHttpRequest.Builder builder = result.toBuilder();
+            endpoint.headers().forEach((name, values) ->
+                values.forEach(v -> builder.appendHeader(name, v)));
+            result = builder.build();
+        }
+
+        return result;
     }
 
     private UseGlobalEndpointResolver createUseGlobalEndpointResolver() {

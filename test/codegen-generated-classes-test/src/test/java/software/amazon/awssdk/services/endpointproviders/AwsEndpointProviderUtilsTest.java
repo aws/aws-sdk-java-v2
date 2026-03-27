@@ -29,7 +29,7 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.internal.endpoints.AwsEndpointProviderUtils;
 
 public class AwsEndpointProviderUtilsTest {
     @Test
