@@ -24,6 +24,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 /**
  * Utility to load the default HTTP client factory and create an instance of {@link SdkHttpClient}.
  */
+// NOTE: This was previously @SdkInternalApi, which is why it's in the .internal. package. It was moved to a protected API to
+// allow usage outside of core for modules that need to use an HTTP client directly, such as sns-message-manager.
 @SdkProtectedApi
 public final class DefaultSdkHttpClientBuilder implements SdkHttpClient.Builder {
 
