@@ -52,11 +52,11 @@ public final class AwsCrtConfigurationUtils {
     }
 
     public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {
-        // As of of v0.39.3, aws-crt-java prefers PQ by default, so only return the pre-PQ-default policy
+        // As of v0.39.3, aws-crt-java prefers PQ by default, so only return the non-PQ-default policy
         // below if the caller explicitly disables PQ by passing in false.
         if (Boolean.FALSE.equals(postQuantumTlsEnabled)
-                && TlsCipherPreference.TLS_CIPHER_PREF_TLSv1_0_2023.isSupported()) {
-            return TlsCipherPreference.TLS_CIPHER_PREF_TLSv1_0_2023;
+                && TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT.isSupported()) {
+            return TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
         }
         return TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
     }

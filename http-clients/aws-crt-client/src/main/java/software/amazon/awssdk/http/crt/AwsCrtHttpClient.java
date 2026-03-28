@@ -262,14 +262,17 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                                                                     tcpKeepAliveConfigurationBuilder);
 
         /**
-         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
-         * encryption protocol when communicating with services that support Post Quantum TLS.
+         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS)
+         * network encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum
+         * cipher suites are not supported on the platform, the SDK will use the default TLS cipher suites.
          *
          * <p>
-         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum TLS with AWS KMS</a>
+         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum
+         * TLS with AWS KMS</a>
          *
          * <p>
-         * It's enabled by default.
+         * It's enabled by default. If set to {@code false}, the SDK will use the latest recommended non-post-quantum
+         * TLS cipher policy, which may change over time as the underlying CRT library is updated.
          *
          * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.

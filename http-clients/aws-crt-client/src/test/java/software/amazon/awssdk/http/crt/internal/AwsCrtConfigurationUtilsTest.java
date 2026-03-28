@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PREF_TLSv1_0_2023;
+import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
 import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
 
 import java.time.Duration;
@@ -37,9 +37,13 @@ class AwsCrtConfigurationUtilsTest {
     }
 
     private static Stream<Arguments> cipherPreferences() {
+        // On platforms where NON_PQ_DEFAULT is not supported (e.g. macOS), the code falls back to SYSTEM_DEFAULT.
+        TlsCipherPreference expectedForFalse = TLS_CIPHER_NON_PQ_DEFAULT.isSupported()
+            ? TLS_CIPHER_NON_PQ_DEFAULT
+            : TLS_CIPHER_SYSTEM_DEFAULT;
         return Stream.of(
             Arguments.of(null, TLS_CIPHER_SYSTEM_DEFAULT),
-            Arguments.of(false, TLS_CIPHER_PREF_TLSv1_0_2023),
+            Arguments.of(false, expectedForFalse),
             Arguments.of(true, TLS_CIPHER_SYSTEM_DEFAULT)
         );
     }
