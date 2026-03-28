@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.jmespath.component.Comparator;
 import software.amazon.awssdk.codegen.jmespath.component.Expression;
+import software.amazon.awssdk.codegen.jmespath.component.MultiSelectList;
 import software.amazon.awssdk.codegen.jmespath.parser.JmesPathParser;
 
 public class JmesPathParserTest {
@@ -36,6 +37,38 @@ public class JmesPathParserTest {
         assertThat(expression.asSubExpression().leftExpression().asIdentifier()).isEqualTo("foo");
         assertThat(expression.asSubExpression().rightSubExpression().asMultiSelectList().expressions()).hasSize(1);
         assertThat(expression.asSubExpression().rightSubExpression().asMultiSelectList().expressions().get(0).asIdentifier()).isEqualTo("bar");
+    }
+
+    @Test
+    public void testSubExpressionWithMultiSelectListAndFlatten() {
+        Expression expression = JmesPathParser.parse("listOfUnions[*][string, object.key][]");
+        
+        // The expression should be parsed as:
+        // IndexExpression(IndexExpression(IndexExpression(listOfUnions, [*]), [string, object.key]), [])
+        assertThat(expression.isIndexExpression()).isTrue();
+        
+        // the right most flatten
+        assertThat(expression.asIndexExpression().bracketSpecifier().isBracketSpecifierWithoutContents()).isTrue();
+        
+        // Middle: [string, object.key]
+        Expression middleBracketsExpr = expression.asIndexExpression().expression().get();
+        assertThat(middleBracketsExpr.isIndexExpression()).isTrue();
+        assertThat(middleBracketsExpr.asIndexExpression().bracketSpecifier().isBracketSpecifierWithContents()).isTrue();
+        assertThat(middleBracketsExpr.asIndexExpression().bracketSpecifier().asBracketSpecifierWithContents().isMultiSelectList()).isTrue();
+        
+        MultiSelectList multiSelectList = middleBracketsExpr.asIndexExpression().bracketSpecifier()
+                                                     .asBracketSpecifierWithContents().asMultiSelectList();
+        assertThat(multiSelectList.expressions()).hasSize(2);
+        assertThat(multiSelectList.expressions().get(0).asIdentifier()).isEqualTo("string");
+        assertThat(multiSelectList.expressions().get(1).asSubExpression().leftExpression().asIdentifier()).isEqualTo("object");
+        assertThat(multiSelectList.expressions().get(1).asSubExpression().rightSubExpression().asIdentifier()).isEqualTo("key");
+        
+        // left most wildcard: listOfUnions[*]
+        Expression wildCardExpr = middleBracketsExpr.asIndexExpression().expression().get();
+        assertThat(wildCardExpr.isIndexExpression()).isTrue();
+        assertThat(wildCardExpr.asIndexExpression().expression().get().asIdentifier()).isEqualTo("listOfUnions");
+        assertThat(wildCardExpr.asIndexExpression().bracketSpecifier().isBracketSpecifierWithContents()).isTrue();
+        assertThat(wildCardExpr.asIndexExpression().bracketSpecifier().asBracketSpecifierWithContents().isWildcardExpression()).isTrue();
     }
 
     @Test

@@ -19,7 +19,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
@@ -161,7 +161,7 @@ jobs:
               fi
               
               # 6. Check if japicmp plugin config is updated
-              JAPICMP_CHECK=$(grep -A 50 "<artifactId>japicmp-maven-plugin</artifactId>" pom.xml 2>/dev/null | grep -A 50 "<includeModules>" 2>/dev/null | grep -q "<includeModule>$MODULE_NAME</includeModule>" 2>/dev/null || echo "MISSING")
+              JAPICMP_CHECK=$(grep -A 75 "<artifactId>japicmp-maven-plugin</artifactId>" pom.xml 2>/dev/null | grep -A 75 "<includeModules>" 2>/dev/null | grep -q "<includeModule>$MODULE_NAME</includeModule>" 2>/dev/null || echo "MISSING")
               if [ "$JAPICMP_CHECK" = "MISSING" ]; then
                 echo "::error::Module $MODULE_NAME is not included in japicmp-maven-plugin includeModules section in pom.xml"
                 HAS_ERRORS=1

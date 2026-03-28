@@ -14,11 +14,11 @@
  */
 
 package foo.bar;
+import org.joda.time.DateTime;
+import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.RestoreEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
-import software.amazon.awssdk.eventnotifications.s3.model.RestoreEventData;
-import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
-import org.joda.time.DateTime;
 
 public class S3EnDateTime {
 

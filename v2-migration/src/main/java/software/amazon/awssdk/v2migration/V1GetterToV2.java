@@ -16,6 +16,8 @@
 package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.changeBucketNameToBucket;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isS3ETagGetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.transformETagGetter;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2ModelClass;
 
 import org.openrewrite.ExecutionContext;
@@ -61,6 +63,10 @@ public class V1GetterToV2 extends Recipe {
 
             if (!shouldChangeGetter(fullyQualified)) {
                 return method;
+            }
+
+            if (isS3ETagGetter(methodName, fullyQualified)) {
+                return transformETagGetter(getCursor(), method);
             }
 
             methodName = changeBucketNameToBucket(methodName);
