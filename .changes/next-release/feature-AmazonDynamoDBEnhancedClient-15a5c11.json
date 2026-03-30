@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Improved performance of UpdateExpression conversion by replacing Stream.concat chains and String.format with direct iteration and StringJoiner."
-}
