@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon OpenSearch Service",
-    "contributor": "",
-    "description": "Added Cluster Insights API's In OpenSearch Service SDK."
-}
