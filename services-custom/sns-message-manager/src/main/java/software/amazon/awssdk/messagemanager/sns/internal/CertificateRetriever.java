@@ -40,6 +40,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 
@@ -49,7 +50,7 @@ import software.amazon.awssdk.utils.cache.lru.LruCache;
  * This class retrieves the certificate used to sign a message, validates it, and caches them for future use.
  */
 @SdkInternalApi
-public final class CertificateRetriever {
+public class CertificateRetriever implements SdkAutoCloseable {
     private static final Lazy<Pattern> X509_FORMAT = new Lazy<>(() ->
         Pattern.compile(
             "^[\\s]*-----BEGIN [A-Z]+-----\\n[A-Za-z\\d+\\/\\n]+[=]{0,2}\\n-----END [A-Z]+-----[\\s]*$"));
@@ -61,26 +62,31 @@ public final class CertificateRetriever {
     private final CertificateUrlValidator certUrlValidator;
     private final LruCache<URI, PublicKey> certificateCache;
 
-    public CertificateRetriever(SdkHttpClient httpClient, String certCommonName) {
-        this(httpClient, certCommonName, new CertificateUrlValidator(certCommonName));
+    public CertificateRetriever(SdkHttpClient httpClient, String certHost, String certCommonName) {
+        this(httpClient, certCommonName, new CertificateUrlValidator(certHost));
     }
 
     CertificateRetriever(SdkHttpClient httpClient, String certCommonName, CertificateUrlValidator certificateUrlValidator) {
         this.httpClient = Validate.paramNotNull(httpClient, "httpClient");
         this.certCommonName = Validate.paramNotNull(certCommonName, "certCommonName");
-        this.certificateCache = LruCache.builder(this::getCertificate)
+        this.certificateCache = LruCache.builder(this::fetchCertificate)
                                         .maxSize(10)
                                         .build();
         this.certUrlValidator = Validate.paramNotNull(certificateUrlValidator, "certificateUrlValidator");
     }
 
-    public byte[] retrieveCertificate(URI certificateUrl) {
+    public PublicKey retrieveCertificate(URI certificateUrl) {
         Validate.paramNotNull(certificateUrl, "certificateUrl");
         certUrlValidator.validate(certificateUrl);
-        return certificateCache.get(certificateUrl).getEncoded();
+        return certificateCache.get(certificateUrl);
     }
 
-    private PublicKey getCertificate(URI certificateUrl) {
+    @Override
+    public void close() {
+        httpClient.close();
+    }
+
+    private PublicKey fetchCertificate(URI certificateUrl) {
         byte[] cert = fetchUrl(certificateUrl);
         validateCertificateData(cert);
         return createPublicKey(cert);

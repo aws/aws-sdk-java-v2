@@ -66,22 +66,35 @@ class CertificateRetrieverTest {
     }
 
     @Test
+    void close_closesHttpClient() {
+        new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(), CERT_COMMON_NAME).close();
+        verify(mockHttpClient).close();
+    }
+
+    @Test
     void constructor_nullHttpClient_throwsException() {
-        assertThatThrownBy(() -> new CertificateRetriever(null, CERT_COMMON_NAME))
+        assertThatThrownBy(() -> new CertificateRetriever(null, TEST_CERT_URI.getHost(), CERT_COMMON_NAME))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("httpClient must not be null.");
     }
 
     @Test
     void constructor_nullCertCommonName_throwsException() {
-        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, null))
+        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(), (String) null))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("certCommonName must not be null.");
     }
 
     @Test
+    void constructor_nullCertHost_throwsException() {
+        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, null, CERT_COMMON_NAME))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("Expected certificate host cannot be null or empty");
+    }
+
+    @Test
     void retrieveCertificate_nullUrl_throwsException() {
-        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME)
+        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(), CERT_COMMON_NAME)
             .retrieveCertificate(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("certificateUrl must not be null.");
@@ -89,7 +102,7 @@ class CertificateRetrieverTest {
 
     @Test
     void retrieveCertificate_httpUrl_throwsException() {
-        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME)
+        assertThatThrownBy(() -> new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),CERT_COMMON_NAME)
             .retrieveCertificate(URI.create("http://my-service.amazonaws.com/cert.pem")))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Certificate URL must use HTTPS");
@@ -99,7 +112,8 @@ class CertificateRetrieverTest {
     void retrieveCertificate_httpError_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(400).build(), null);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -115,7 +129,8 @@ class CertificateRetrieverTest {
 
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockExecRequest);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever
             .retrieveCertificate(TEST_CERT_URI))
@@ -128,7 +143,8 @@ class CertificateRetrieverTest {
     void retrieveCertificate_noResponseStream_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), null);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -139,7 +155,8 @@ class CertificateRetrieverTest {
     void retrieveCertificate_emptyResponseBody_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), new byte[0]);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -150,7 +167,8 @@ class CertificateRetrieverTest {
     void retrieveCertificate_invalidCertificateFormat_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), "this is not a cert".getBytes(StandardCharsets.UTF_8));
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -164,7 +182,8 @@ class CertificateRetrieverTest {
                              + "-----END CERTIFICATE-----\n";
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), certificate.getBytes(StandardCharsets.UTF_8));
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -174,7 +193,8 @@ class CertificateRetrieverTest {
     @Test
     void retrieveCertificate_certificateExpired_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), expiredCert);
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -184,7 +204,8 @@ class CertificateRetrieverTest {
     @Test
     void retrieveCertificate_certNotYetValid_throwsException() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), futureValidCert);
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(TEST_CERT_URI))
             .isInstanceOf(SdkClientException.class)
@@ -196,7 +217,7 @@ class CertificateRetrieverTest {
         String commonName = "my-other-service.amazonaws.com";
         URI certUri = URI.create("https://" + commonName + "/cert.pem");
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), futureValidCert);
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, commonName);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, commonName, commonName);
 
         assertThatThrownBy(() -> certificateRetriever.retrieveCertificate(certUri))
             .isInstanceOf(SdkClientException.class)
@@ -207,17 +228,18 @@ class CertificateRetrieverTest {
     void retrieveCertificate_validPemCertificate_succeeds() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
-        assertThat(certificateRetriever.retrieveCertificate(TEST_CERT_URI))
-            .hasSizeGreaterThan(0);
+        assertThat(certificateRetriever.retrieveCertificate(TEST_CERT_URI)).isNotNull();
     }
 
     @Test
     void retrieveCertificate_cacheHit_returnsFromCache() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         certificateRetriever.retrieveCertificate(TEST_CERT_URI);
         certificateRetriever.retrieveCertificate(TEST_CERT_URI);
@@ -229,7 +251,8 @@ class CertificateRetrieverTest {
     void retrieveCertificate_differentUrls_cachesIndependently() throws IOException {
         mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
 
-        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+        CertificateRetriever certificateRetriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(),
+                                                                             CERT_COMMON_NAME);
 
         URI cert1Url = URI.create("https://" + CERT_COMMON_NAME + "/cert1.pem");
         certificateRetriever.retrieveCertificate(cert1Url);
@@ -255,7 +278,7 @@ class CertificateRetrieverTest {
 
             mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
 
-            CertificateRetriever retriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+            CertificateRetriever retriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(), CERT_COMMON_NAME);
             for (int j = 0; j < threads; ++j) {
                 exec.submit(() -> {
                     start.countDown();
@@ -285,7 +308,7 @@ class CertificateRetrieverTest {
 
             mockResponse(SdkHttpFullResponse.builder().statusCode(200).build(), validCert);
 
-            CertificateRetriever retriever = new CertificateRetriever(mockHttpClient, CERT_COMMON_NAME);
+            CertificateRetriever retriever = new CertificateRetriever(mockHttpClient, TEST_CERT_URI.getHost(), CERT_COMMON_NAME);
             for (int j = 0; j < threads; ++j) {
                 URI uri = URI.create(String.format("https://" + CERT_COMMON_NAME + "/cert%d.pem", j % 2));
                 exec.submit(() -> {

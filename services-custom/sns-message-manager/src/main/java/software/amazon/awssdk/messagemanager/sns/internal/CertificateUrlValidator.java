@@ -18,16 +18,18 @@ package software.amazon.awssdk.messagemanager.sns.internal;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Validates that the signing certificate URL is valid.
  */
 @SdkInternalApi
 public class CertificateUrlValidator {
-    private final String expectedCommonName;
+    private final String certificateHost;
 
-    public CertificateUrlValidator(String expectedCommonName) {
-        this.expectedCommonName = expectedCommonName;
+    public CertificateUrlValidator(String certificateHost) {
+        Validate.notBlank(certificateHost, "Expected certificate host cannot be null or empty");
+        this.certificateHost = certificateHost;
     }
 
     public void validate(URI certificateUrl) {
@@ -39,8 +41,8 @@ public class CertificateUrlValidator {
             throw SdkClientException.create("Certificate URL must use HTTPS");
         }
 
-        if (!expectedCommonName.equals(certificateUrl.getHost())) {
-            throw SdkClientException.create("Certificate URL does not match expected host: " + expectedCommonName);
+        if (!certificateHost.equals(certificateUrl.getHost())) {
+            throw SdkClientException.create("Certificate URL does not match expected host: " + certificateHost);
         }
     }
 }
