@@ -367,7 +367,7 @@ abstract class AddShapes {
 
         return operation.map(o -> o.getHttp().getRequestUri())
                         .orElseThrow(() -> {
-                            String detailMsg = "Could not find request URI for input shape";
+                            String detailMsg = "Could not find request URI for input shape for operation: " + operation;
                             ValidationEntry entry =
                                 new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
                                                      .withDetailMessage(detailMsg)

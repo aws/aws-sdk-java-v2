@@ -19,6 +19,7 @@ import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDow
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.REPORT_PROGRESS_IN_SINGLE_CHUNK;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -138,17 +139,39 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
+        boolean multipartEnabled = isS3ClientMultipartEnabled();
+        boolean isByteBody = AsyncRequestBody.BodyType.BYTES.getName().equals(requestBody.body());
+        // Suppress wrapper progress for byte bodies. All bytes are delivered to the publisher instantly,
+        // so wrapper-based progress is misleading (jumps to 100% before data is sent over the wire).
+        requestBody = progressUpdater.wrapRequestBody(requestBody, isByteBody);
+
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
-        if (isS3ClientMultipartEnabled()) {
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
-                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
-            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        if (multipartEnabled) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressAttributes =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
+                      .putExecutionAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK, isByteBody);
+            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressAttributes);
         }
 
-        doUpload(putObjectRequest, requestBody, returnFuture);
+        if (!multipartEnabled && isByteBody) {
+            // For in-memory bodies on the non-multipart path, use an intermediate future so we can
+            // report progress after the server responds but before completing returnFuture.
+            CompletableFuture<CompletedUpload> uploadFuture = new CompletableFuture<>();
+            doUpload(putObjectRequest, requestBody, uploadFuture);
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, uploadFuture);
+            uploadFuture.whenComplete((result, error) -> {
+                if (error != null) {
+                    returnFuture.completeExceptionally(error);
+                } else {
+                    uploadRequest.requestBody().contentLength().ifPresent(progressUpdater::incrementBytesTransferred);
+                    returnFuture.complete(result);
+                }
+            });
+        } else {
+            doUpload(putObjectRequest, requestBody, returnFuture);
+        }
 
         return new DefaultUpload(returnFuture, progressUpdater.progress());
     }
@@ -192,7 +215,8 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
+        requestBody = progressUpdater.wrapRequestBody(requestBody, false);
+
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
