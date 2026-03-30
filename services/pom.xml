@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.42.23</version>
+        <version>2.42.24</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -439,6 +439,7 @@
         <module>connecthealth</module>
         <module>simpledbv2</module>
         <module>uxc</module>
+        <module>devopsagent</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

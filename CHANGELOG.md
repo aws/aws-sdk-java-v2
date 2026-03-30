@@ -1,4 +1,61 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.24__ __2026-03-30__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent General Availability.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Add setSourceIdentity to DataLakeSettings Parameters
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Optimized JSON serialization by skipping null field marshalling for payload fields
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports three new fleet auto scaling settings. With scale out rate, you can configure how quickly workers launch. With worker idle duration, you can set how long workers wait before shutting down. With standby worker count, you can keep idle workers ready for fast job start.
+
+## __Amazon AppStream__
+  - ### Features
+    - Add support for URL Redirection
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds Ground Truth support for AgentCore Evaluations (Evaluate)
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds Lookup Tables to CloudWatch Logs for log enrichment using CSV key-value data with KMS encryption support.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Improved performance by caching partition and sort key name lookups in StaticTableMetadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding Local Storage support for ECS Managed Instances by introducing a new field "localStorageConfiguration" for CreateCapacityProvider and UpdateCapacityProvider APIs.
+
+## __Amazon GameLift__
+  - ### Features
+    - Update CreateScript API documentation.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added Cluster Insights API's In OpenSearch Service SDK.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for placement strategy and consolidation for SageMaker inference component endpoints. Customers can now configure how inference component copies are distributed across instances and availability zones (AZs), and enable automatic consolidation to optimizes resource utilization.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for new instance lifecycle states introduced by the instance lifecycle policy and replace root volume features.
+
+## __Partner Central Account API__
+  - ### Features
+    - KYB Supplemental Form enables partners who fail business verification to submit additional details and supporting documentation through a self-service form, triggering an automated re-verification without requiring manual intervention from support teams.
+
 # __2.42.23__ __2026-03-27__
 ## __Amazon Bedrock AgentCore__
   - ### Features
