@@ -32,95 +32,92 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class QueryParameterOperationRequest extends JsonProtocolTestsRequest implements ToCopyableBuilder<QueryParameterOperationRequest.Builder, QueryParameterOperationRequest> {
-  private static final SdkField<String> PATH_PARAM_FIELD = SdkField.<String>builder(MarshallingType.STRING)
-  .memberName("PathParam")
-  .getter(getter(QueryParameterOperationRequest::pathParam))
-  .setter(setter(Builder::pathParam))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.PATH)
-  .locationName("PathParam")
-  .build(), RequiredTrait.create()).build();
+public final class QueryParameterOperationRequest extends JsonProtocolTestsRequest implements
+                                                                                   ToCopyableBuilder<QueryParameterOperationRequest.Builder, QueryParameterOperationRequest> {
+  private static final SdkField<String> PATH_PARAM_FIELD = SdkField
+      .<String> builder(MarshallingType.STRING)
+      .memberName("PathParam")
+      .getter(getter(QueryParameterOperationRequest::pathParam))
+      .setter(setter(Builder::pathParam))
+      .traits(LocationTrait.builder().location(MarshallLocation.PATH).locationName("PathParam").build(),
+              RequiredTrait.create()).build();
 
-  private static final SdkField<String> QUERY_PARAM_ONE_FIELD = SdkField.<String>builder(MarshallingType.STRING)
-  .memberName("QueryParamOne")
-  .getter(getter(QueryParameterOperationRequest::queryParamOne))
-  .setter(setter(Builder::queryParamOne))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.QUERY_PARAM)
-  .locationName("QueryParamOne")
-  .build(), RequiredTrait.create()).build();
+  private static final SdkField<String> QUERY_PARAM_ONE_FIELD = SdkField
+      .<String> builder(MarshallingType.STRING)
+      .memberName("QueryParamOne")
+      .getter(getter(QueryParameterOperationRequest::queryParamOne))
+      .setter(setter(Builder::queryParamOne))
+      .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
+              RequiredTrait.create()).build();
 
-  private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String>builder(MarshallingType.STRING)
-  .memberName("QueryParamTwo")
-  .getter(getter(QueryParameterOperationRequest::queryParamTwo))
-  .setter(setter(Builder::queryParamTwo))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.QUERY_PARAM)
-  .locationName("QueryParamTwo")
-  .build()).build();
+  private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+                                                                        .memberName("QueryParamTwo").getter(getter(QueryParameterOperationRequest::queryParamTwo))
+                                                                        .setter(setter(Builder::queryParamTwo))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
 
-  private static final SdkField<String> STRING_HEADER_MEMBER_FIELD = SdkField.<String>builder(MarshallingType.STRING)
-  .memberName("StringHeaderMember")
-  .getter(getter(QueryParameterOperationRequest::stringHeaderMember))
-  .setter(setter(Builder::stringHeaderMember))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.HEADER)
-  .locationName("x-amz-header-string")
-  .build(), RequiredTrait.create()).build();
+  private static final SdkField<String> STRING_HEADER_MEMBER_FIELD = SdkField
+      .<String> builder(MarshallingType.STRING)
+      .memberName("StringHeaderMember")
+      .getter(getter(QueryParameterOperationRequest::stringHeaderMember))
+      .setter(setter(Builder::stringHeaderMember))
+      .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("x-amz-header-string").build(),
+              RequiredTrait.create()).build();
 
-  private static final SdkField<NestedQueryParameterOperation> NESTED_QUERY_PARAMETER_OPERATION_FIELD = SdkField.<NestedQueryParameterOperation>builder(MarshallingType.SDK_POJO)
-  .memberName("NestedQueryParameterOperation")
-  .getter(getter(QueryParameterOperationRequest::nestedQueryParameterOperation))
-  .setter(setter(Builder::nestedQueryParameterOperation))
-  .constructor(NestedQueryParameterOperation::builder)
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.PAYLOAD)
-  .locationName("NestedQueryParameterOperation")
-  .build(), PayloadTrait.create()).build();
+  private static final SdkField<NestedQueryParameterOperation> NESTED_QUERY_PARAMETER_OPERATION_FIELD = SdkField
+      .<NestedQueryParameterOperation> builder(MarshallingType.SDK_POJO)
+      .memberName("NestedQueryParameterOperation")
+      .getter(getter(QueryParameterOperationRequest::nestedQueryParameterOperation))
+      .setter(setter(Builder::nestedQueryParameterOperation))
+      .constructor(NestedQueryParameterOperation::builder)
+      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedQueryParameterOperation")
+                           .build(), PayloadTrait.create()).build();
 
-  private static final SdkField<List<Integer>> REQUIRED_LIST_QUERY_PARAMS_FIELD = SdkField.<List<Integer>>builder(MarshallingType.LIST)
-  .memberName("RequiredListQueryParams")
-  .getter(getter(QueryParameterOperationRequest::requiredListQueryParams))
-  .setter(setter(Builder::requiredListQueryParams))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.QUERY_PARAM)
-  .locationName("RequiredListQueryParams")
-  .build(), ListTrait.builder()
-  .memberLocationName(null)
-  .memberFieldInfo(SdkField.<Integer>builder(MarshallingType.INTEGER)
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.PAYLOAD)
-  .locationName("member")
-  .build()).build())
-  .build(), RequiredTrait.create()).build();
+  private static final SdkField<List<Integer>> REQUIRED_LIST_QUERY_PARAMS_FIELD = SdkField
+      .<List<Integer>> builder(MarshallingType.LIST)
+      .memberName("RequiredListQueryParams")
+      .getter(getter(QueryParameterOperationRequest::requiredListQueryParams))
+      .setter(setter(Builder::requiredListQueryParams))
+      .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("RequiredListQueryParams")
+                           .build(),
+              ListTrait
+                  .builder()
+                  .memberLocationName(null)
+                  .memberFieldInfo(
+                      SdkField.<Integer> builder(MarshallingType.INTEGER)
+                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                   .locationName("member").build()).build()).build(), RequiredTrait.create())
+      .build();
 
-  private static final SdkField<List<Integer>> OPTIONAL_LIST_QUERY_PARAMS_FIELD = SdkField.<List<Integer>>builder(MarshallingType.LIST)
-  .memberName("OptionalListQueryParams")
-  .getter(getter(QueryParameterOperationRequest::optionalListQueryParams))
-  .setter(setter(Builder::optionalListQueryParams))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.QUERY_PARAM)
-  .locationName("OptionalListQueryParams")
-  .build(), ListTrait.builder()
-  .memberLocationName(null)
-  .memberFieldInfo(SdkField.<Integer>builder(MarshallingType.INTEGER)
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.PAYLOAD)
-  .locationName("member")
-  .build()).build())
-  .build()).build();
+  private static final SdkField<List<Integer>> OPTIONAL_LIST_QUERY_PARAMS_FIELD = SdkField
+      .<List<Integer>> builder(MarshallingType.LIST)
+      .memberName("OptionalListQueryParams")
+      .getter(getter(QueryParameterOperationRequest::optionalListQueryParams))
+      .setter(setter(Builder::optionalListQueryParams))
+      .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("OptionalListQueryParams")
+                           .build(),
+              ListTrait
+                  .builder()
+                  .memberLocationName(null)
+                  .memberFieldInfo(
+                      SdkField.<Integer> builder(MarshallingType.INTEGER)
+                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                   .locationName("member").build()).build()).build()).build();
 
-  private static final SdkField<Integer> STATUS_CODE_ON_INPUT_FIELD = SdkField.<Integer>builder(MarshallingType.INTEGER)
-  .memberName("StatusCodeOnInput")
-  .getter(getter(QueryParameterOperationRequest::statusCodeOnInput))
-  .setter(setter(Builder::statusCodeOnInput))
-  .traits(LocationTrait.builder()
-  .location(MarshallLocation.PAYLOAD)
-  .locationName("StatusCodeOnInput")
-  .build()).build();
+  private static final SdkField<Integer> STATUS_CODE_ON_INPUT_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
+                                                                              .memberName("StatusCodeOnInput").getter(getter(QueryParameterOperationRequest::statusCodeOnInput))
+                                                                              .setter(setter(Builder::statusCodeOnInput))
+                                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StatusCodeOnInput").build()).build();
 
-  private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(PATH_PARAM_FIELD,QUERY_PARAM_ONE_FIELD,QUERY_PARAM_TWO_FIELD,STRING_HEADER_MEMBER_FIELD,NESTED_QUERY_PARAMETER_OPERATION_FIELD,REQUIRED_LIST_QUERY_PARAMS_FIELD,OPTIONAL_LIST_QUERY_PARAMS_FIELD,STATUS_CODE_ON_INPUT_FIELD));
+  private static final SdkField<String> PAYLOAD_MEMBER_WITH_CUSTOM_NAME_FIELD = SdkField
+      .<String> builder(MarshallingType.STRING).memberName("PayloadMemberWithCustomName")
+      .getter(getter(QueryParameterOperationRequest::payloadMemberWithCustomName))
+      .setter(setter(Builder::payloadMemberWithCustomName))
+      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("CustomWireName").build()).build();
+
+  private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(PATH_PARAM_FIELD,
+                                                                                                 QUERY_PARAM_ONE_FIELD, QUERY_PARAM_TWO_FIELD, STRING_HEADER_MEMBER_FIELD, NESTED_QUERY_PARAMETER_OPERATION_FIELD,
+                                                                                                 REQUIRED_LIST_QUERY_PARAMS_FIELD, OPTIONAL_LIST_QUERY_PARAMS_FIELD, STATUS_CODE_ON_INPUT_FIELD,
+                                                                                                 PAYLOAD_MEMBER_WITH_CUSTOM_NAME_FIELD));
 
   private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
@@ -140,6 +137,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   private final Integer statusCodeOnInput;
 
+  private final String payloadMemberWithCustomName;
+
   private QueryParameterOperationRequest(BuilderImpl builder) {
     super(builder);
     this.pathParam = builder.pathParam;
@@ -150,10 +149,12 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     this.requiredListQueryParams = builder.requiredListQueryParams;
     this.optionalListQueryParams = builder.optionalListQueryParams;
     this.statusCodeOnInput = builder.statusCodeOnInput;
+    this.payloadMemberWithCustomName = builder.payloadMemberWithCustomName;
   }
 
   /**
    * Returns the value of the PathParam property for this object.
+   *
    * @return The value of the PathParam property for this object.
    */
   public final String pathParam() {
@@ -162,6 +163,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   /**
    * Returns the value of the QueryParamOne property for this object.
+   *
    * @return The value of the QueryParamOne property for this object.
    */
   public final String queryParamOne() {
@@ -170,6 +172,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   /**
    * Returns the value of the QueryParamTwo property for this object.
+   *
    * @return The value of the QueryParamTwo property for this object.
    */
   public final String queryParamTwo() {
@@ -178,6 +181,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   /**
    * Returns the value of the StringHeaderMember property for this object.
+   *
    * @return The value of the StringHeaderMember property for this object.
    */
   public final String stringHeaderMember() {
@@ -186,6 +190,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   /**
    * Returns the value of the NestedQueryParameterOperation property for this object.
+   *
    * @return The value of the NestedQueryParameterOperation property for this object.
    */
   public final NestedQueryParameterOperation nestedQueryParameterOperation() {
@@ -193,7 +198,12 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
   }
 
   /**
-   * For responses, this returns true if the service returned a value for the RequiredListQueryParams property. This DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is useful because the SDK will never return a null collection or map, but you may need to differentiate between the service returning nothing (or null) and the service returning an empty collection or map. For requests, this returns true if a value for the property was specified in the request builder, and false if a value was not specified.
+   * For responses, this returns true if the service returned a value for the RequiredListQueryParams property. This
+   * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+   * property). This is useful because the SDK will never return a null collection or map, but you may need to
+   * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+   * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+   * if a value was not specified.
    */
   public final boolean hasRequiredListQueryParams() {
     return requiredListQueryParams != null && !(requiredListQueryParams instanceof SdkAutoConstructList);
@@ -205,8 +215,10 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
    * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
    * </p>
    * <p>
-   * This method will never return null. If you would like to know whether the service returned this field (so that you can differentiate between null and empty), you can use the {@link #hasRequiredListQueryParams} method.
+   * This method will never return null. If you would like to know whether the service returned this field (so that
+   * you can differentiate between null and empty), you can use the {@link #hasRequiredListQueryParams} method.
    * </p>
+   *
    * @return The value of the RequiredListQueryParams property for this object.
    */
   public final List<Integer> requiredListQueryParams() {
@@ -214,7 +226,12 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
   }
 
   /**
-   * For responses, this returns true if the service returned a value for the OptionalListQueryParams property. This DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is useful because the SDK will never return a null collection or map, but you may need to differentiate between the service returning nothing (or null) and the service returning an empty collection or map. For requests, this returns true if a value for the property was specified in the request builder, and false if a value was not specified.
+   * For responses, this returns true if the service returned a value for the OptionalListQueryParams property. This
+   * DOES NOT check that the value is non-empty (for which, you should check the {@code isEmpty()} method on the
+   * property). This is useful because the SDK will never return a null collection or map, but you may need to
+   * differentiate between the service returning nothing (or null) and the service returning an empty collection or
+   * map. For requests, this returns true if a value for the property was specified in the request builder, and false
+   * if a value was not specified.
    */
   public final boolean hasOptionalListQueryParams() {
     return optionalListQueryParams != null && !(optionalListQueryParams instanceof SdkAutoConstructList);
@@ -226,8 +243,10 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
    * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
    * </p>
    * <p>
-   * This method will never return null. If you would like to know whether the service returned this field (so that you can differentiate between null and empty), you can use the {@link #hasOptionalListQueryParams} method.
+   * This method will never return null. If you would like to know whether the service returned this field (so that
+   * you can differentiate between null and empty), you can use the {@link #hasOptionalListQueryParams} method.
    * </p>
+   *
    * @return The value of the OptionalListQueryParams property for this object.
    */
   public final List<Integer> optionalListQueryParams() {
@@ -236,10 +255,20 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   /**
    * Returns the value of the StatusCodeOnInput property for this object.
+   *
    * @return The value of the StatusCodeOnInput property for this object.
    */
   public final Integer statusCodeOnInput() {
     return statusCodeOnInput;
+  }
+
+  /**
+   * Returns the value of the PayloadMemberWithCustomName property for this object.
+   *
+   * @return The value of the PayloadMemberWithCustomName property for this object.
+   */
+  public final String payloadMemberWithCustomName() {
+    return payloadMemberWithCustomName;
   }
 
   @Override
@@ -267,6 +296,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     hashCode = 31 * hashCode + Objects.hashCode(hasRequiredListQueryParams() ? requiredListQueryParams() : null);
     hashCode = 31 * hashCode + Objects.hashCode(hasOptionalListQueryParams() ? optionalListQueryParams() : null);
     hashCode = 31 * hashCode + Objects.hashCode(statusCodeOnInput());
+    hashCode = 31 * hashCode + Objects.hashCode(payloadMemberWithCustomName());
     return hashCode;
   }
 
@@ -287,28 +317,56 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
       return false;
     }
     QueryParameterOperationRequest other = (QueryParameterOperationRequest) obj;
-    return Objects.equals(pathParam(), other.pathParam())&&Objects.equals(queryParamOne(), other.queryParamOne())&&Objects.equals(queryParamTwo(), other.queryParamTwo())&&Objects.equals(stringHeaderMember(), other.stringHeaderMember())&&Objects.equals(nestedQueryParameterOperation(), other.nestedQueryParameterOperation())&&hasRequiredListQueryParams() == other.hasRequiredListQueryParams() && Objects.equals(requiredListQueryParams(), other.requiredListQueryParams())&&hasOptionalListQueryParams() == other.hasOptionalListQueryParams() && Objects.equals(optionalListQueryParams(), other.optionalListQueryParams())&&Objects.equals(statusCodeOnInput(), other.statusCodeOnInput());
+    return Objects.equals(pathParam(), other.pathParam()) && Objects.equals(queryParamOne(), other.queryParamOne())
+           && Objects.equals(queryParamTwo(), other.queryParamTwo())
+           && Objects.equals(stringHeaderMember(), other.stringHeaderMember())
+           && Objects.equals(nestedQueryParameterOperation(), other.nestedQueryParameterOperation())
+           && hasRequiredListQueryParams() == other.hasRequiredListQueryParams()
+           && Objects.equals(requiredListQueryParams(), other.requiredListQueryParams())
+           && hasOptionalListQueryParams() == other.hasOptionalListQueryParams()
+           && Objects.equals(optionalListQueryParams(), other.optionalListQueryParams())
+           && Objects.equals(statusCodeOnInput(), other.statusCodeOnInput())
+           && Objects.equals(payloadMemberWithCustomName(), other.payloadMemberWithCustomName());
   }
 
   /**
-   * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be redacted from this string using a placeholder value. 
+   * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+   * redacted from this string using a placeholder value.
    */
   @Override
   public final String toString() {
-    return ToString.builder("QueryParameterOperationRequest").add("PathParam", pathParam()).add("QueryParamOne", queryParamOne()).add("QueryParamTwo", queryParamTwo()).add("StringHeaderMember", stringHeaderMember()).add("NestedQueryParameterOperation", nestedQueryParameterOperation()).add("RequiredListQueryParams", hasRequiredListQueryParams() ? requiredListQueryParams() : null).add("OptionalListQueryParams", hasOptionalListQueryParams() ? optionalListQueryParams() : null).add("StatusCodeOnInput", statusCodeOnInput()).build();
+    return ToString.builder("QueryParameterOperationRequest").add("PathParam", pathParam())
+                   .add("QueryParamOne", queryParamOne()).add("QueryParamTwo", queryParamTwo())
+                   .add("StringHeaderMember", stringHeaderMember())
+                   .add("NestedQueryParameterOperation", nestedQueryParameterOperation())
+                   .add("RequiredListQueryParams", hasRequiredListQueryParams() ? requiredListQueryParams() : null)
+                   .add("OptionalListQueryParams", hasOptionalListQueryParams() ? optionalListQueryParams() : null)
+                   .add("StatusCodeOnInput", statusCodeOnInput()).add("PayloadMemberWithCustomName", payloadMemberWithCustomName())
+                   .build();
   }
 
   public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
     switch (fieldName) {
-      case "PathParam":return Optional.ofNullable(clazz.cast(pathParam()));
-      case "QueryParamOne":return Optional.ofNullable(clazz.cast(queryParamOne()));
-      case "QueryParamTwo":return Optional.ofNullable(clazz.cast(queryParamTwo()));
-      case "StringHeaderMember":return Optional.ofNullable(clazz.cast(stringHeaderMember()));
-      case "NestedQueryParameterOperation":return Optional.ofNullable(clazz.cast(nestedQueryParameterOperation()));
-      case "RequiredListQueryParams":return Optional.ofNullable(clazz.cast(requiredListQueryParams()));
-      case "OptionalListQueryParams":return Optional.ofNullable(clazz.cast(optionalListQueryParams()));
-      case "StatusCodeOnInput":return Optional.ofNullable(clazz.cast(statusCodeOnInput()));
-      default:return Optional.empty();
+      case "PathParam":
+        return Optional.ofNullable(clazz.cast(pathParam()));
+      case "QueryParamOne":
+        return Optional.ofNullable(clazz.cast(queryParamOne()));
+      case "QueryParamTwo":
+        return Optional.ofNullable(clazz.cast(queryParamTwo()));
+      case "StringHeaderMember":
+        return Optional.ofNullable(clazz.cast(stringHeaderMember()));
+      case "NestedQueryParameterOperation":
+        return Optional.ofNullable(clazz.cast(nestedQueryParameterOperation()));
+      case "RequiredListQueryParams":
+        return Optional.ofNullable(clazz.cast(requiredListQueryParams()));
+      case "OptionalListQueryParams":
+        return Optional.ofNullable(clazz.cast(optionalListQueryParams()));
+      case "StatusCodeOnInput":
+        return Optional.ofNullable(clazz.cast(statusCodeOnInput()));
+      case "PayloadMemberWithCustomName":
+        return Optional.ofNullable(clazz.cast(payloadMemberWithCustomName()));
+      default:
+        return Optional.empty();
     }
   }
 
@@ -332,6 +390,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     map.put("RequiredListQueryParams", REQUIRED_LIST_QUERY_PARAMS_FIELD);
     map.put("OptionalListQueryParams", OPTIONAL_LIST_QUERY_PARAMS_FIELD);
     map.put("StatusCodeOnInput", STATUS_CODE_ON_INPUT_FIELD);
+    map.put("CustomWireName", PAYLOAD_MEMBER_WITH_CUSTOM_NAME_FIELD);
     return Collections.unmodifiableMap(map);
   }
 
@@ -345,11 +404,13 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
   @Mutable
   @NotThreadSafe
-  public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo, CopyableBuilder<Builder, QueryParameterOperationRequest> {
+  public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
+                                   CopyableBuilder<Builder, QueryParameterOperationRequest> {
     /**
      * Sets the value of the PathParam property for this object.
      *
-     * @param pathParam The new value for the PathParam property for this object.
+     * @param pathParam
+     *        The new value for the PathParam property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder pathParam(String pathParam);
@@ -357,7 +418,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the QueryParamOne property for this object.
      *
-     * @param queryParamOne The new value for the QueryParamOne property for this object.
+     * @param queryParamOne
+     *        The new value for the QueryParamOne property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder queryParamOne(String queryParamOne);
@@ -365,7 +427,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the QueryParamTwo property for this object.
      *
-     * @param queryParamTwo The new value for the QueryParamTwo property for this object.
+     * @param queryParamTwo
+     *        The new value for the QueryParamTwo property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder queryParamTwo(String queryParamTwo);
@@ -373,7 +436,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the StringHeaderMember property for this object.
      *
-     * @param stringHeaderMember The new value for the StringHeaderMember property for this object.
+     * @param stringHeaderMember
+     *        The new value for the StringHeaderMember property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder stringHeaderMember(String stringHeaderMember);
@@ -381,31 +445,38 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the NestedQueryParameterOperation property for this object.
      *
-     * @param nestedQueryParameterOperation The new value for the NestedQueryParameterOperation property for this object.
+     * @param nestedQueryParameterOperation
+     *        The new value for the NestedQueryParameterOperation property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
-    Builder nestedQueryParameterOperation(
-        NestedQueryParameterOperation nestedQueryParameterOperation);
+    Builder nestedQueryParameterOperation(NestedQueryParameterOperation nestedQueryParameterOperation);
 
     /**
      * Sets the value of the NestedQueryParameterOperation property for this object.
      *
-     * This is a convenience method that creates an instance of the {@link NestedQueryParameterOperation.Builder} avoiding the need to create one manually via {@link NestedQueryParameterOperation#builder()}.
+     * This is a convenience method that creates an instance of the {@link NestedQueryParameterOperation.Builder}
+     * avoiding the need to create one manually via {@link NestedQueryParameterOperation#builder()}.
      *
-     * <p>When the {@link Consumer} completes, {@link NestedQueryParameterOperation.Builder#build()} is called immediately and its result is passed to {@link #nestedQueryParameterOperation(NestedQueryParameterOperation)}.
-     * @param nestedQueryParameterOperation a consumer that will call methods on {@link NestedQueryParameterOperation.Builder}
+     * <p>
+     * When the {@link Consumer} completes, {@link NestedQueryParameterOperation.Builder#build()} is called
+     * immediately and its result is passed to {@link #nestedQueryParameterOperation(NestedQueryParameterOperation)}.
+     *
+     * @param nestedQueryParameterOperation
+     *        a consumer that will call methods on {@link NestedQueryParameterOperation.Builder}
      * @return Returns a reference to this object so that method calls can be chained together.
      * @see #nestedQueryParameterOperation(NestedQueryParameterOperation)
      */
     default Builder nestedQueryParameterOperation(
         Consumer<NestedQueryParameterOperation.Builder> nestedQueryParameterOperation) {
-      return nestedQueryParameterOperation(NestedQueryParameterOperation.builder().applyMutation(nestedQueryParameterOperation).build());
+      return nestedQueryParameterOperation(NestedQueryParameterOperation.builder()
+                                                                        .applyMutation(nestedQueryParameterOperation).build());
     }
 
     /**
      * Sets the value of the RequiredListQueryParams property for this object.
      *
-     * @param requiredListQueryParams The new value for the RequiredListQueryParams property for this object.
+     * @param requiredListQueryParams
+     *        The new value for the RequiredListQueryParams property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder requiredListQueryParams(Collection<Integer> requiredListQueryParams);
@@ -413,7 +484,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the RequiredListQueryParams property for this object.
      *
-     * @param requiredListQueryParams The new value for the RequiredListQueryParams property for this object.
+     * @param requiredListQueryParams
+     *        The new value for the RequiredListQueryParams property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder requiredListQueryParams(Integer... requiredListQueryParams);
@@ -421,7 +493,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the OptionalListQueryParams property for this object.
      *
-     * @param optionalListQueryParams The new value for the OptionalListQueryParams property for this object.
+     * @param optionalListQueryParams
+     *        The new value for the OptionalListQueryParams property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder optionalListQueryParams(Collection<Integer> optionalListQueryParams);
@@ -429,7 +502,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the OptionalListQueryParams property for this object.
      *
-     * @param optionalListQueryParams The new value for the OptionalListQueryParams property for this object.
+     * @param optionalListQueryParams
+     *        The new value for the OptionalListQueryParams property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder optionalListQueryParams(Integer... optionalListQueryParams);
@@ -437,17 +511,26 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     /**
      * Sets the value of the StatusCodeOnInput property for this object.
      *
-     * @param statusCodeOnInput The new value for the StatusCodeOnInput property for this object.
+     * @param statusCodeOnInput
+     *        The new value for the StatusCodeOnInput property for this object.
      * @return Returns a reference to this object so that method calls can be chained together.
      */
     Builder statusCodeOnInput(Integer statusCodeOnInput);
+
+    /**
+     * Sets the value of the PayloadMemberWithCustomName property for this object.
+     *
+     * @param payloadMemberWithCustomName
+     *        The new value for the PayloadMemberWithCustomName property for this object.
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+    Builder payloadMemberWithCustomName(String payloadMemberWithCustomName);
 
     @Override
     Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
     @Override
-    Builder overrideConfiguration(
-        Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
+    Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
   }
 
   static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
@@ -467,11 +550,14 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
     private Integer statusCodeOnInput;
 
+    private String payloadMemberWithCustomName;
+
     private BuilderImpl() {
     }
 
     private BuilderImpl(QueryParameterOperationRequest model) {
-      super(model);pathParam(model.pathParam);
+      super(model);
+      pathParam(model.pathParam);
       queryParamOne(model.queryParamOne);
       queryParamTwo(model.queryParamTwo);
       stringHeaderMember(model.stringHeaderMember);
@@ -479,6 +565,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
       requiredListQueryParams(model.requiredListQueryParams);
       optionalListQueryParams(model.optionalListQueryParams);
       statusCodeOnInput(model.statusCodeOnInput);
+      payloadMemberWithCustomName(model.payloadMemberWithCustomName);
     }
 
     public final String getPathParam() {
@@ -541,20 +628,22 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
       return nestedQueryParameterOperation != null ? nestedQueryParameterOperation.toBuilder() : null;
     }
 
-    public final void setNestedQueryParameterOperation(
-        NestedQueryParameterOperation.BuilderImpl nestedQueryParameterOperation) {
-      this.nestedQueryParameterOperation = nestedQueryParameterOperation != null ? nestedQueryParameterOperation.build() : null;
+    public final void setNestedQueryParameterOperation(NestedQueryParameterOperation.BuilderImpl nestedQueryParameterOperation) {
+      this.nestedQueryParameterOperation = nestedQueryParameterOperation != null ? nestedQueryParameterOperation.build()
+                                                                                 : null;
     }
 
     @Override
-    public final Builder nestedQueryParameterOperation(
-        NestedQueryParameterOperation nestedQueryParameterOperation) {
+    public final Builder nestedQueryParameterOperation(NestedQueryParameterOperation nestedQueryParameterOperation) {
       this.nestedQueryParameterOperation = nestedQueryParameterOperation;
       return this;
     }
 
     public final Collection<Integer> getRequiredListQueryParams() {
-      if (requiredListQueryParams instanceof SdkAutoConstructList) {return null;}return requiredListQueryParams;
+      if (requiredListQueryParams instanceof SdkAutoConstructList) {
+        return null;
+      }
+      return requiredListQueryParams;
     }
 
     public final void setRequiredListQueryParams(Collection<Integer> requiredListQueryParams) {
@@ -570,11 +659,15 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     @Override
     @SafeVarargs
     public final Builder requiredListQueryParams(Integer... requiredListQueryParams) {
-      requiredListQueryParams(Arrays.asList(requiredListQueryParams));return this;
+      requiredListQueryParams(Arrays.asList(requiredListQueryParams));
+      return this;
     }
 
     public final Collection<Integer> getOptionalListQueryParams() {
-      if (optionalListQueryParams instanceof SdkAutoConstructList) {return null;}return optionalListQueryParams;
+      if (optionalListQueryParams instanceof SdkAutoConstructList) {
+        return null;
+      }
+      return optionalListQueryParams;
     }
 
     public final void setOptionalListQueryParams(Collection<Integer> optionalListQueryParams) {
@@ -590,7 +683,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     @Override
     @SafeVarargs
     public final Builder optionalListQueryParams(Integer... optionalListQueryParams) {
-      optionalListQueryParams(Arrays.asList(optionalListQueryParams));return this;
+      optionalListQueryParams(Arrays.asList(optionalListQueryParams));
+      return this;
     }
 
     public final Integer getStatusCodeOnInput() {
@@ -607,6 +701,20 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
       return this;
     }
 
+    public final String getPayloadMemberWithCustomName() {
+      return payloadMemberWithCustomName;
+    }
+
+    public final void setPayloadMemberWithCustomName(String payloadMemberWithCustomName) {
+      this.payloadMemberWithCustomName = payloadMemberWithCustomName;
+    }
+
+    @Override
+    public final Builder payloadMemberWithCustomName(String payloadMemberWithCustomName) {
+      this.payloadMemberWithCustomName = payloadMemberWithCustomName;
+      return this;
+    }
+
     @Override
     public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
       super.overrideConfiguration(overrideConfiguration);
@@ -614,8 +722,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     }
 
     @Override
-    public Builder overrideConfiguration(
-        Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
+    public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
       super.overrideConfiguration(builderConsumer);
       return this;
     }
