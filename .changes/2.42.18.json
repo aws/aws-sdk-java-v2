@@ -31,6 +31,12 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix bug in CachedSupplier that disabled InstanceProfileCredentialsProvider credential refreshing after 58 consecutive failures."
         }
     ]
 }

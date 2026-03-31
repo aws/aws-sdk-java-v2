@@ -156,7 +156,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p> Creates a custom evaluator for agent quality assessment. Custom evaluators use LLM-as-a-Judge configurations with user-defined prompts, rating scales, and model settings to evaluate agent performance at tool call, trace, or session levels. </p>"
+      "documentation":"<p> Creates a custom evaluator for agent quality assessment. Custom evaluators can use either LLM-as-a-Judge configurations with user-defined prompts, rating scales, and model settings, or code-based configurations with customer-managed Lambda functions to evaluate agent performance at tool call, trace, or session levels. </p>"
     },
     "CreateGateway":{
       "name":"CreateGateway",
@@ -2627,6 +2627,17 @@
       "documentation":"<p>The source code configuration that specifies the location and details of the code to be executed.</p>",
       "union":true
     },
+    "CodeBasedEvaluatorConfig":{
+      "type":"structure",
+      "members":{
+        "lambdaConfig":{
+          "shape":"LambdaEvaluatorConfig",
+          "documentation":"<p> The Lambda function configuration for code-based evaluation. </p>"
+        }
+      },
+      "documentation":"<p> Configuration for a code-based evaluator. Specify the Lambda function to use for evaluation. </p>",
+      "union":true
+    },
     "CodeConfiguration":{
       "type":"structure",
       "required":[
@@ -2950,6 +2961,10 @@
           "shape":"EnvironmentVariablesMap",
           "documentation":"<p>Environment variables to set in the AgentCore Runtime environment.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"FilesystemConfigurations",
+          "documentation":"<p>The filesystem configurations to mount into the AgentCore Runtime. Use filesystem configurations to provide persistent storage to your AgentCore Runtime sessions.</p>"
+        },
         "tags":{
           "shape":"TagsMap",
           "documentation":"<p>A map of tag keys and values to assign to the agent runtime. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment.</p>"
@@ -3250,7 +3265,7 @@
         },
         "evaluatorConfig":{
           "shape":"EvaluatorConfig",
-          "documentation":"<p> The configuration for the evaluator, including LLM-as-a-Judge settings with instructions, rating scale, and model configuration. </p>"
+          "documentation":"<p> The configuration for the evaluator. Specify either LLM-as-a-Judge settings with instructions, rating scale, and model configuration, or code-based settings with a customer-managed Lambda function. </p>"
         },
         "level":{
           "shape":"EvaluatorLevel",
@@ -5232,6 +5247,10 @@
         "llmAsAJudge":{
           "shape":"LlmAsAJudgeEvaluatorConfig",
           "documentation":"<p> The LLM-as-a-Judge configuration that uses a language model to evaluate agent performance based on custom instructions and rating scales. </p>"
+        },
+        "codeBased":{
+          "shape":"CodeBasedEvaluatorConfig",
+          "documentation":"<p> Configuration for a code-based evaluator that uses a customer-managed Lambda function to programmatically assess agent performance. </p>"
         }
       },
       "documentation":"<p> The configuration that defines how an evaluator assesses agent performance, including the evaluation method and parameters. </p>",
@@ -5365,7 +5384,8 @@
       "type":"string",
       "enum":[
         "Builtin",
-        "Custom"
+        "Custom",
+        "CustomCode"
       ]
     },
     "ExceptionLevel":{
@@ -5382,6 +5402,23 @@
       },
       "documentation":"<p>Contains extraction configuration information for a memory strategy.</p>",
       "union":true
+    },
+    "FilesystemConfiguration":{
+      "type":"structure",
+      "members":{
+        "sessionStorage":{
+          "shape":"SessionStorageConfiguration",
+          "documentation":"<p>Configuration for session storage. Session storage provides persistent storage that is preserved across AgentCore Runtime session invocations.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for a filesystem that can be mounted into the AgentCore Runtime.</p>",
+      "union":true
+    },
+    "FilesystemConfigurations":{
+      "type":"list",
+      "member":{"shape":"FilesystemConfiguration"},
+      "max":1,
+      "min":0
     },
     "Filter":{
       "type":"structure",
@@ -5923,6 +5960,10 @@
         "metadataConfiguration":{
           "shape":"RuntimeMetadataConfiguration",
           "documentation":"<p>Configuration for microVM Metadata Service (MMDS) settings for the AgentCore Runtime.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"FilesystemConfigurations",
+          "documentation":"<p>The filesystem configurations mounted into the AgentCore Runtime.</p>"
         }
       }
     },
@@ -6219,7 +6260,7 @@
         },
         "evaluatorConfig":{
           "shape":"EvaluatorConfig",
-          "documentation":"<p> The configuration of the evaluator, including LLM-as-a-Judge settings for custom evaluators. </p>"
+          "documentation":"<p> The configuration of the evaluator, including LLM-as-a-Judge or code-based settings. </p>"
         },
         "level":{
           "shape":"EvaluatorLevel",
@@ -7217,6 +7258,31 @@
       "min":1,
       "pattern":"arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}"
     },
+    "LambdaArn":{
+      "type":"string",
+      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:([a-z]{2}(-gov)?-[a-z]+-\\d{1}):(\\d{12}):function:([a-zA-Z0-9-_.]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+    },
+    "LambdaEvaluatorConfig":{
+      "type":"structure",
+      "required":["lambdaArn"],
+      "members":{
+        "lambdaArn":{
+          "shape":"LambdaArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the Lambda function that implements the evaluation logic. </p>"
+        },
+        "lambdaTimeoutInSeconds":{
+          "shape":"LambdaEvaluatorConfigLambdaTimeoutInSecondsInteger",
+          "documentation":"<p> The timeout in seconds for the Lambda function invocation. Defaults to 60. Must be between 1 and 300. </p>"
+        }
+      },
+      "documentation":"<p> Configuration for a Lambda function used as a code-based evaluator. </p>"
+    },
+    "LambdaEvaluatorConfigLambdaTimeoutInSecondsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":300,
+      "min":1
+    },
     "LambdaFunctionArn":{
       "type":"string",
       "max":170,
@@ -7438,6 +7504,10 @@
           "documentation":"<p>A token to retrieve the next page of results.</p>",
           "location":"querystring",
           "locationName":"nextToken"
+        },
+        "name":{
+          "shape":"BrowserProfileName",
+          "documentation":"<p>The name of the browser profile to filter results by.</p>"
         }
       }
     },
@@ -8566,6 +8636,12 @@
         }
       },
       "documentation":"<p>Contains information for modifying a strategy configuration.</p>"
+    },
+    "MountPath":{
+      "type":"string",
+      "max":200,
+      "min":6,
+      "pattern":"/mnt/[a-zA-Z0-9._-]+/?"
     },
     "Name":{
       "type":"string",
@@ -9983,6 +10059,17 @@
       "max":1440,
       "min":1
     },
+    "SessionStorageConfiguration":{
+      "type":"structure",
+      "required":["mountPath"],
+      "members":{
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The mount path for the session storage filesystem inside the AgentCore Runtime. The path must be under <code>/mnt</code> with exactly one subdirectory level (for example, <code>/mnt/data</code>).</p>"
+        }
+      },
+      "documentation":"<p>Configuration for a session storage filesystem mounted into the AgentCore Runtime. Session storage provides persistent storage that is preserved across AgentCore Runtime session invocations.</p>"
+    },
     "SetTokenVaultCMKRequest":{
       "type":"structure",
       "required":["kmsConfiguration"],
@@ -10836,6 +10923,10 @@
           "shape":"EnvironmentVariablesMap",
           "documentation":"<p>Updated environment variables to set in the AgentCore Runtime environment.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"FilesystemConfigurations",
+          "documentation":"<p>The updated filesystem configurations to mount into the AgentCore Runtime.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request.</p>",
@@ -10954,7 +11045,7 @@
         },
         "evaluatorConfig":{
           "shape":"EvaluatorConfig",
-          "documentation":"<p> The updated configuration for the evaluator, including LLM-as-a-Judge settings with instructions, rating scale, and model configuration. </p>"
+          "documentation":"<p> The updated configuration for the evaluator. Specify either LLM-as-a-Judge settings with instructions, rating scale, and model configuration, or code-based settings with a customer-managed Lambda function. </p>"
         },
         "level":{
           "shape":"EvaluatorLevel",
@@ -11643,10 +11734,10 @@
       "members":{
         "optionalValue":{
           "shape":"Description",
-          "documentation":"<p>Represents an optional value that is used to update the human-readable description of the resource. If set to null, it will clear the current description of the resource.</p>"
+          "documentation":"<p>Represents an optional value that is used to update the human-readable description of the resource. If not specified, it will clear the current description of the resource.</p>"
         }
       },
-      "documentation":"<p>Respresents an optional value that can be provided to update the human-readable description of the resource. If the field is omitted from the request, it will leave the current decription value unchanged.</p>"
+      "documentation":"<p>Wrapper for updating an optional Description field with PATCH semantics. When present in an update request, the description is replaced with optionalValue. When absent, the description is left unchanged. To unset the description, include the wrapper with optionalValue not specified.</p>"
     },
     "UserPreferenceConsolidationOverride":{
       "type":"structure",

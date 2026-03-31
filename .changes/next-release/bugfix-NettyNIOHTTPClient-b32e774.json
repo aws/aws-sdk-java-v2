@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Fixed an issue where requests with `Expect: 100-continue` over TLS could hang indefinitely when no response is received, because the read timeout handler was prematurely removed by TLS handshake data."
-}
