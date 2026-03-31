@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS SDK for Java v2",
+    "category": "Apache 5 HTTP Client",
     "contributor": "",
     "description": "Disable Expect 100-Continue by default in the Apache5 HTTP Client."
 }
