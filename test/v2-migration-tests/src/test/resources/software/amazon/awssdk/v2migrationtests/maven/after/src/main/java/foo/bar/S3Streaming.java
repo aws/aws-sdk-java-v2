@@ -50,6 +50,8 @@ public class S3Streaming {
 
         String etag = /*AWS SDK for Java v2 migration: NOTE: V2's eTag() preserves surrounding quotes in the response, whereas V1's getETag() strips them - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1s-ObjectMetadata-using-V1s-getETag*/
 objectMetadata.eTag().replaceAll("^\"|\"$", "");
+
+        String value = s3Object.response().metadata().get("key");
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
