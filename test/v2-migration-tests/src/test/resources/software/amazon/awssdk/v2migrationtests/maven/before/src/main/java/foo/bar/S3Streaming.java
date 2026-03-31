@@ -45,6 +45,8 @@ public class S3Streaming {
         ObjectMetadata objectMetadata = s3.getObject(new GetObjectRequest(bucket, key), file);
 
         String etag = objectMetadata.getETag();
+
+        String value = s3Object.getObjectMetadata().getUserMetaDataOf("key");
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
