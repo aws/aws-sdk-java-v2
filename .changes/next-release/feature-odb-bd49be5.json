@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "odb",
-    "contributor": "",
-    "description": "Adds support for EC2 Placement Group integration with ODB Network. The GetOdbNetwork and ListOdbNetworks API responses now include the ec2PlacementGroupIds field."
-}

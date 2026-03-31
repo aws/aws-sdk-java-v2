@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Enabled default connection health monitoring for the AWS CRT HTTP client. Connections that remain stalled below 1 byte per second for the duration the read/write timeout (default 30 seconds) are now automatically terminated. This behavior can be overridden via ConnectionHealthConfiguration."
-}

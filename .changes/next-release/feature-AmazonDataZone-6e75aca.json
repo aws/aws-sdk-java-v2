@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Adds environmentConfigurationName field to CreateEnvironmentInput and UpdateEnvironmentInput, so that Domain Owners can now recover orphaned environments by recreating deleted configurations with the same name, and will auto-recover orphaned environments"
-}
