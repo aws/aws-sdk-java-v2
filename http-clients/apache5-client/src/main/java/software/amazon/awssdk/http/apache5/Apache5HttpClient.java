@@ -50,7 +50,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -92,6 +91,7 @@ import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
+import software.amazon.awssdk.http.apache5.internal.conn.SafePoolingHttpClientConnectionManagerBuilder;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.http.apache5.internal.impl.Apache5HttpRequestFactory;
@@ -754,8 +754,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
             TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 
-            PoolingHttpClientConnectionManagerBuilder builder =
-                PoolingHttpClientConnectionManagerBuilder.create()
+            SafePoolingHttpClientConnectionManagerBuilder builder =
+                SafePoolingHttpClientConnectionManagerBuilder.create()
                                                          .setTlsSocketStrategy(tlsStrategy)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);
