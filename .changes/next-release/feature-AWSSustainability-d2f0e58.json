@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Sustainability",
+    "contributor": "",
+    "description": "This is the first release of the AWS Sustainability SDK, which enables customers to access their sustainability impact data via API."
+}
