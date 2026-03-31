@@ -189,7 +189,7 @@ mvn clean install -pl :dynamodb-enhanced -am -Dskip.unit.tests -P integration-te
 ## Automated Tools
 
 The use of AI tooling for assisted development work is accepted and encouraged
-in this repository, but due to the volume of sumissions we ask that you observe
+in this repository, but due to the volume of submissions we ask that you observe
 the following rules:
 
 - All issue and pull request submissions to this repository that are sourced by
