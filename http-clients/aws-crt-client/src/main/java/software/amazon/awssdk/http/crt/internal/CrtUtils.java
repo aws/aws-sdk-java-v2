@@ -43,14 +43,18 @@ public final class CrtUtils {
      */
     public static final int CRT_SOCKET_TIMEOUT = 1048;
 
+    public static final int HEALTH_CHECK_FAILURE_ERROR_CODE = 2073;
+
 
     private CrtUtils() {
     }
 
     public static Throwable wrapWithIoExceptionIfRetryable(HttpException httpException) {
         Throwable toThrow = httpException;
+        int errorCode = httpException.getErrorCode();
 
-        if (CRT.awsIsTransientError(httpException.getErrorCode())) {
+        if (CRT.awsIsTransientError(errorCode) ||
+            errorCode == HEALTH_CHECK_FAILURE_ERROR_CODE) {
             toThrow = new IOException(httpException);
         }
         return toThrow;
