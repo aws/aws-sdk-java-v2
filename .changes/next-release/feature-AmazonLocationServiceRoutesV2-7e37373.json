@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service Routes V2",
-    "contributor": "",
-    "description": "This release makes RoutingBoundary optional in CalculateRouteMatrix, set StopDuration with a maximum value of 49999 for CalculateRoutes, set TrailerCount with a maximum value of 4, and introduces region restrictions for Grab Maps users."
-}
