@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.26__ __2026-04-01__
+## __AWS Health Imaging__
+  - ### Features
+    - Added new boolean flag to persist metadata updates to all primary image sets in the same study as the requested image set.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adds support for Bedrock Batch Inference Job Progress Monitoring
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added the ability to filter out empty sessions when listing sessions. Customers can now retrieve only sessions that still contain events, eliminating the need to check each session individually. No changes required for existing integrations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for VPC egress private endpoints for Amazon Bedrock AgentCore gateway targets, enabling private connectivity through managed VPC Lattice resources. Also adds IAM credential provider for gateway targets, enabling IAM-based authentication to target endpoints
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports Managed Daemons with dedicated APIs for registering daemon task definitions, creating daemons, and managing daemon deployments.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Updated SnapshotRetentionLimit documentation for ServerlessCache to correctly describe the parameter as number of days (max 35) instead of number of snapshots.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adding Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08 as TLS Policy in Supported Regions
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - This release makes RoutingBoundary optional in CalculateRouteMatrix, set StopDuration with a maximum value of 49999 for CalculateRoutes, set TrailerCount with a maximum value of 4, and introduces region restrictions for Grab Maps users.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adding Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08 as TLS Policy in Supported Regions
+
+## __Apache 5 HTTP Client__
+  - ### Features
+    - Disable Expect 100-Continue by default in the Apache5 HTTP Client.
+
 # __2.42.25__ __2026-03-31__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes
