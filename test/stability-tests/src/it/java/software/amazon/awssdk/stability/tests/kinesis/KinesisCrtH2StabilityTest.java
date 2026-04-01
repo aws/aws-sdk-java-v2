@@ -15,32 +15,36 @@
 
 package software.amazon.awssdk.stability.tests.kinesis;
 
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.testutils.retry.RetryableTest;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Stability tests for Kinesis using Netty HTTP client.
+ * Stability tests for Kinesis using CRT HTTP client with HTTP/2.
  */
-public class KinesisStabilityTest extends KinesisBaseStabilityTest {
+public class KinesisCrtH2StabilityTest extends KinesisBaseStabilityTest {
 
     @Override
     protected KinesisAsyncClient createClient() {
         return KinesisAsyncClient.builder()
                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                 .httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(MAX_CONCURRENCY))
+                                 .httpClientBuilder(AwsCrtAsyncHttpClient.builder()
+                                                                  .maxConcurrency(MAX_CONCURRENCY))
                                  .build();
     }
 
     @Override
     protected String getTestNamePrefix() {
-        return "KinesisStabilityTest";
+        return "KinesisCrtH2StabilityTest";
     }
 
     @Override
     protected String getConsumerPrefix() {
-        return "kinesisstabilitytestconsumer_";
+        return "kinesiscrth2stabilitytestconsumer_";
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
