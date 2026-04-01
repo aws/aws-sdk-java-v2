@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
@@ -61,7 +62,7 @@ public final class JoinedTableObjectMapSyncFetcher {
      */
     @SuppressWarnings("unchecked")
     public Map<Object, List<Map<String, Object>>> resolveAndFetchJoinedObjectMaps(
-        DynamoDbTable<Object> joinedTable, Set<Object> joinKeys, String joinedJoinAttr) {
+        DynamoDbTable<Object> joinedTable, Set<Object> joinKeys, String joinedJoinAttr, EnhancedQueryExecutionStats stats) {
         if (joinKeys.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -70,15 +71,15 @@ public final class JoinedTableObjectMapSyncFetcher {
         String primaryPk = joinedSchema.tableMetadata().primaryPartitionKey();
 
         if (primaryPk.equals(joinedJoinAttr)) {
-            return lowLevelQueryByPk(joinedTable.tableName(), primaryPk, joinKeys);
+            return lowLevelQueryByPk(joinedTable.tableName(), primaryPk, joinKeys, stats);
         }
 
         String matchedIndex = QueryEngineSupport.findIndexForAttribute(joinedSchema, joinedJoinAttr);
         if (matchedIndex != null) {
-            return lowLevelQueryByGsi(joinedTable.tableName(), matchedIndex, joinedJoinAttr, joinKeys);
+            return lowLevelQueryByGsi(joinedTable.tableName(), matchedIndex, joinedJoinAttr, joinKeys, stats);
         }
 
-        return parallelScanFallback(joinedTable.tableName(), joinKeys, joinedJoinAttr);
+        return parallelScanFallback(joinedTable.tableName(), joinKeys, joinedJoinAttr, stats);
     }
 
     /**
@@ -86,11 +87,11 @@ public final class JoinedTableObjectMapSyncFetcher {
      * avoid thread pool overhead.
      */
     private Map<Object, List<Map<String, Object>>> lowLevelQueryByPk(
-        String tableName, String pkAttr, Set<Object> joinKeys) {
+        String tableName, String pkAttr, Set<Object> joinKeys, EnhancedQueryExecutionStats stats) {
         List<Callable<Map.Entry<Object, List<Map<String, Object>>>>> tasks = new ArrayList<>();
         for (Object key : joinKeys) {
             Object keyFinal = key;
-            tasks.add(() -> queryByPkForKey(lowLevel, tableName, pkAttr, keyFinal));
+            tasks.add(() -> queryByPkForKey(lowLevel, tableName, pkAttr, keyFinal, stats));
         }
         if (tasks.size() == 1) {
             return executeInline(tasks.get(0));
@@ -99,7 +100,7 @@ public final class JoinedTableObjectMapSyncFetcher {
     }
 
     private static Map.Entry<Object, List<Map<String, Object>>> queryByPkForKey(
-        DynamoDbClient client, String tableName, String pkAttr, Object keyFinal) {
+        DynamoDbClient client, String tableName, String pkAttr, Object keyFinal, EnhancedQueryExecutionStats stats) {
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, AttributeValue> exclusiveStartKey = null;
         do {
@@ -109,11 +110,14 @@ public final class JoinedTableObjectMapSyncFetcher {
                             .keyConditionExpression("#k = :v")
                             .expressionAttributeNames(Collections.singletonMap("#k", pkAttr))
                             .expressionAttributeValues(Collections.singletonMap(
-                                ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)));
+                                ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)))
+                            .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (exclusiveStartKey != null) {
                 reqBuilder.exclusiveStartKey(exclusiveStartKey);
             }
+            stats.addJoinedQuery();
             QueryResponse response = client.query(reqBuilder.build());
+            stats.addConsumedCapacity(response.consumedCapacity(), false, true);
             for (Map<String, AttributeValue> item : response.items()) {
                 items.add(AttributeValueConversion.toObjectMap(item));
             }
@@ -128,11 +132,11 @@ public final class JoinedTableObjectMapSyncFetcher {
      * thread pool overhead.
      */
     private Map<Object, List<Map<String, Object>>> lowLevelQueryByGsi(
-        String tableName, String indexName, String attrName, Set<Object> joinKeys) {
+        String tableName, String indexName, String attrName, Set<Object> joinKeys, EnhancedQueryExecutionStats stats) {
         List<Callable<Map.Entry<Object, List<Map<String, Object>>>>> tasks = new ArrayList<>();
         for (Object key : joinKeys) {
             Object keyFinal = key;
-            tasks.add(() -> queryByGsiForKey(lowLevel, tableName, indexName, attrName, keyFinal));
+            tasks.add(() -> queryByGsiForKey(lowLevel, tableName, indexName, attrName, keyFinal, stats));
         }
         if (tasks.size() == 1) {
             return executeInline(tasks.get(0));
@@ -141,7 +145,8 @@ public final class JoinedTableObjectMapSyncFetcher {
     }
 
     private static Map.Entry<Object, List<Map<String, Object>>> queryByGsiForKey(
-        DynamoDbClient client, String tableName, String indexName, String attrName, Object keyFinal) {
+        DynamoDbClient client, String tableName, String indexName, String attrName, Object keyFinal,
+        EnhancedQueryExecutionStats stats) {
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, AttributeValue> exclusiveStartKey = null;
         do {
@@ -152,11 +157,14 @@ public final class JoinedTableObjectMapSyncFetcher {
                             .keyConditionExpression("#k = :v")
                             .expressionAttributeNames(Collections.singletonMap("#k", attrName))
                             .expressionAttributeValues(Collections.singletonMap(
-                                ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)));
+                                ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)))
+                            .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (exclusiveStartKey != null) {
                 reqBuilder.exclusiveStartKey(exclusiveStartKey);
             }
+            stats.addJoinedQuery();
             QueryResponse response = client.query(reqBuilder.build());
+            stats.addConsumedCapacity(response.consumedCapacity(), false, true);
             for (Map<String, AttributeValue> item : response.items()) {
                 items.add(AttributeValueConversion.toObjectMap(item));
             }
@@ -171,7 +179,7 @@ public final class JoinedTableObjectMapSyncFetcher {
      * map -> Object map) and goes straight from AV map -> Object map (one conversion).
      */
     private Map<Object, List<Map<String, Object>>> parallelScanFallback(
-        String tableName, Set<Object> neededKeys, String joinedJoinAttr) {
+        String tableName, Set<Object> neededKeys, String joinedJoinAttr, EnhancedQueryExecutionStats stats) {
         int totalSegments = QueryEngineSupport.PARALLEL_SCAN_SEGMENTS;
 
         List<Callable<Map<Object, List<Map<String, Object>>>>> tasks = new ArrayList<>();
@@ -185,11 +193,14 @@ public final class JoinedTableObjectMapSyncFetcher {
                         ScanRequest.builder()
                                    .tableName(tableName)
                                    .segment(segment)
-                                   .totalSegments(totalSegments);
+                                   .totalSegments(totalSegments)
+                                   .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
                     if (exclusiveStartKey != null) {
                         reqBuilder.exclusiveStartKey(exclusiveStartKey);
                     }
+                    stats.addJoinedScan();
                     ScanResponse response = lowLevel.scan(reqBuilder.build());
+                    stats.addConsumedCapacity(response.consumedCapacity(), false, false);
                     for (Map<String, AttributeValue> item : response.items()) {
                         AttributeValue keyAv = item.get(joinedJoinAttr);
                         if (keyAv == null) {

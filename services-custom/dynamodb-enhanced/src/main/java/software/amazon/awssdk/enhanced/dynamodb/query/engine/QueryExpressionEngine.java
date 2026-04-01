@@ -22,8 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 
 /**
- * Engine that executes a {@link QueryExpressionSpec} against DynamoDB, producing an
- * {@link EnhancedQueryResult}.
+ * Engine that executes a {@link QueryExpressionSpec} against DynamoDB, producing an {@link EnhancedQueryResult}.
  */
 @SdkInternalApi
 public interface QueryExpressionEngine {
@@ -34,20 +33,11 @@ public interface QueryExpressionEngine {
     EnhancedQueryResult execute(QueryExpressionSpec spec);
 
     /**
-     * Execute the given spec and optionally report latency.
+     * Execute the given spec and optionally report latency and DynamoDB request counts.
      *
      * @param spec           the query specification
      * @param reportConsumer optional consumer for the latency report; may be null
      * @return iterable of result rows
      */
-    default EnhancedQueryResult execute(QueryExpressionSpec spec,
-                                        Consumer<EnhancedQueryLatencyReport> reportConsumer) {
-        long start = System.nanoTime();
-        EnhancedQueryResult result = execute(spec);
-        if (reportConsumer != null) {
-            long totalMs = (System.nanoTime() - start) / 1_000_000;
-            reportConsumer.accept(new EnhancedQueryLatencyReport(0L, 0L, 0L, totalMs));
-        }
-        return result;
-    }
+    EnhancedQueryResult execute(QueryExpressionSpec spec, Consumer<EnhancedQueryLatencyReport> reportConsumer);
 }

@@ -37,6 +37,8 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbE
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
+import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
+import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;

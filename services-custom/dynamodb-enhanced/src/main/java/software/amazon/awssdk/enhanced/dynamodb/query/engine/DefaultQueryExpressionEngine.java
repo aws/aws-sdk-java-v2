@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.condition.ConditionEvaluat
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.DefaultEnhancedQueryResult;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.AggregateSpec;
@@ -50,8 +52,10 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Default implementation of {@link QueryExpressionEngine}. Interprets the spec, runs base Query (or Scan when allowed), optional
@@ -71,6 +75,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 @SdkInternalApi
 public final class DefaultQueryExpressionEngine implements QueryExpressionEngine {
 
+    private static final Logger LOG = Logger.loggerFor(DefaultQueryExpressionEngine.class);
+
     private static final ExecutorService JOIN_LOOKUP_EXECUTOR = Executors.newFixedThreadPool(200);
 
     private final DynamoDbEnhancedClient enhancedClient;
@@ -83,45 +89,84 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
 
     @Override
     public EnhancedQueryResult execute(QueryExpressionSpec spec) {
+        EnhancedQueryExecutionStats stats = new EnhancedQueryExecutionStats();
+        long startNanos = System.nanoTime();
+        EnhancedQueryResult result = executeInternal(spec, stats);
+        long totalMs = (System.nanoTime() - startNanos) / 1_000_000;
+        logDebugStats(stats, totalMs);
+        EnhancedQueryTelemetry.logExecutionComplete(stats, totalMs, false);
+        return result;
+    }
+
+    @Override
+    public EnhancedQueryResult execute(QueryExpressionSpec spec,
+                                       Consumer<EnhancedQueryLatencyReport> reportConsumer) {
+        EnhancedQueryExecutionStats stats = new EnhancedQueryExecutionStats();
+        long startNanos = System.nanoTime();
+        EnhancedQueryResult result = executeInternal(spec, stats);
+        long totalMs = (System.nanoTime() - startNanos) / 1_000_000;
+        if (reportConsumer != null) {
+            reportConsumer.accept(stats.toLatencyReport(totalMs));
+        }
+        logDebugStats(stats, totalMs);
+        EnhancedQueryTelemetry.logExecutionComplete(stats, totalMs, false);
+        return result;
+    }
+
+    private EnhancedQueryResult executeInternal(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         if (spec.hasJoin()) {
-            return executeJoin(spec);
+            return executeJoin(spec, stats);
         }
         if (!spec.aggregates().isEmpty() && !spec.groupByAttributes().isEmpty()) {
-            return executeAggregation(spec);
+            return executeAggregation(spec, stats);
         }
-        return executeBaseOnly(spec);
+        return executeBaseOnly(spec, stats);
+    }
+
+    private static void logDebugStats(EnhancedQueryExecutionStats stats, long totalMs) {
+        LOG.debug(() -> String.format(
+            "EnhancedQuery completed in %d ms; DynamoDB API requests: baseQuery=%d, baseScan=%d, joinedQuery=%d, joinedScan=%d,"
+            + " total=%d",
+            totalMs,
+            stats.baseQueryRequestCount(),
+            stats.baseScanRequestCount(),
+            stats.joinedQueryRequestCount(),
+            stats.joinedScanRequestCount(),
+            stats.totalDynamoDbRequestCount()));
     }
 
     // ---- base-only --------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private EnhancedQueryResult executeBaseOnly(QueryExpressionSpec spec) {
+    private EnhancedQueryResult executeBaseOnly(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         DynamoDbTable<Object> baseTable = (DynamoDbTable<Object>) spec.baseTable();
         TableSchema<Object> baseSchema = (TableSchema<Object>) baseTable.tableSchema();
         Integer limit = spec.limit();
 
         if (spec.keyCondition() != null) {
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
-                                                                          .queryConditional(spec.keyCondition());
+                                                                          .queryConditional(spec.keyCondition())
+                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (limit != null) {
                 reqBuilder.limit(limit);
             }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
-            List<EnhancedQueryRow> rows = collectBaseRows(baseTable, baseSchema, reqBuilder.build(), spec, limit);
+            List<EnhancedQueryRow> rows = collectBaseRows(baseTable, baseSchema, reqBuilder.build(), spec, limit, stats);
             return new DefaultEnhancedQueryResult(rows);
         }
 
         if (spec.executionMode() == ExecutionMode.ALLOW_SCAN) {
-            ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder();
+            ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
+                                                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (limit != null) {
                 scanBuilder.limit(limit);
             }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
-            List<EnhancedQueryRow> rows = collectBaseRowsFromScan(baseTable, baseSchema, scanBuilder.build(), spec, limit);
+            List<EnhancedQueryRow> rows = collectBaseRowsFromScan(baseTable, baseSchema, scanBuilder.build(), spec, limit, stats);
             return new DefaultEnhancedQueryResult(rows);
         }
 
@@ -131,9 +176,11 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
     @SuppressWarnings("unchecked")
     private List<EnhancedQueryRow> collectBaseRows(DynamoDbTable<Object> baseTable, TableSchema<Object> baseSchema,
                                                    QueryEnhancedRequest request, QueryExpressionSpec spec,
-                                                   Integer limit) {
+                                                   Integer limit, EnhancedQueryExecutionStats stats) {
         List<EnhancedQueryRow> rows = new ArrayList<>();
         for (Page<Object> page : baseTable.query(request)) {
+            stats.addBaseQuery();
+            stats.addConsumedCapacity(page.consumedCapacity(), true, true);
             for (Object item : page.items()) {
                 if (limit != null && rows.size() >= limit) {
                     return rows;
@@ -153,9 +200,11 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
     @SuppressWarnings("unchecked")
     private List<EnhancedQueryRow> collectBaseRowsFromScan(DynamoDbTable<Object> baseTable, TableSchema<Object> baseSchema,
                                                            ScanEnhancedRequest request, QueryExpressionSpec spec,
-                                                           Integer limit) {
+                                                           Integer limit, EnhancedQueryExecutionStats stats) {
         List<EnhancedQueryRow> rows = new ArrayList<>();
         for (Page<Object> page : baseTable.scan(request)) {
+            stats.addBaseScan();
+            stats.addConsumedCapacity(page.consumedCapacity(), true, false);
             for (Object item : page.items()) {
                 if (limit != null && rows.size() >= limit) {
                     return rows;
@@ -175,9 +224,9 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
     // ---- join (no aggregation) --------------------------------------
 
     @SuppressWarnings("unchecked")
-    private EnhancedQueryResult executeJoin(QueryExpressionSpec spec) {
+    private EnhancedQueryResult executeJoin(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         if (!spec.aggregates().isEmpty() && !spec.groupByAttributes().isEmpty()) {
-            return executeJoinWithAggregation(spec);
+            return executeJoinWithAggregation(spec, stats);
         }
 
         DynamoDbTable<Object> baseTable = (DynamoDbTable<Object>) spec.baseTable();
@@ -202,12 +251,15 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
             int pageLimit = limit != null ? Math.min(limit, maxPage) : maxPage;
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
                                                                           .queryConditional(spec.keyCondition())
-                                                                          .limit(pageLimit);
+                                                                          .limit(pageLimit)
+                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
             QueryEnhancedRequest req = reqBuilder.build();
             for (Page<Object> page : baseTable.query(req)) {
+                stats.addBaseQuery();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, true);
                 List<Map.Entry<Map<String, Object>, Object>> baseRowsWithKeys = new ArrayList<>();
                 for (Object baseItem : page.items()) {
                     Map<String, Object> baseMap = AttributeValueConversion.toObjectMap(baseSchema.itemToMap(baseItem, false));
@@ -232,7 +284,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                     break;
                 }
                 mergeJoinCacheForDistinctKeys(baseRowsWithKeys, alreadyFetchedKeys, globalJoinCache,
-                                              joinedTable, joinedJoinAttr);
+                                              joinedTable, joinedJoinAttr, stats);
                 DefaultEnhancedQueryResult early = expandJoinPairsToRows(
                     baseRowsWithKeys, globalJoinCache, joinType, spec, limit, rows);
                 if (early != null) {
@@ -243,12 +295,15 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
             int maxPage = QueryEngineSupport.MAX_BASE_PAGE_SIZE;
             int pageLimit = limit != null ? Math.min(limit, maxPage) : maxPage;
             ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
-                                                                         .limit(pageLimit);
+                                                                         .limit(pageLimit)
+                                                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
             ScanEnhancedRequest scanReq = scanBuilder.build();
             for (Page<Object> page : baseTable.scan(scanReq)) {
+                stats.addBaseScan();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, false);
                 List<Map.Entry<Map<String, Object>, Object>> baseRowsWithKeys = new ArrayList<>();
                 for (Object baseItem : page.items()) {
                     Map<String, Object> baseMap = AttributeValueConversion.toObjectMap(baseSchema.itemToMap(baseItem, false));
@@ -273,7 +328,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                     break;
                 }
                 mergeJoinCacheForDistinctKeys(baseRowsWithKeys, alreadyFetchedKeys, globalJoinCache,
-                                              joinedTable, joinedJoinAttr);
+                                              joinedTable, joinedJoinAttr, stats);
                 DefaultEnhancedQueryResult earlyScan = expandJoinPairsToRows(
                     baseRowsWithKeys, globalJoinCache, joinType, spec, limit, rows);
                 if (earlyScan != null) {
@@ -283,7 +338,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         }
 
         if (spec.keyCondition() == null && (joinType == JoinType.RIGHT || joinType == JoinType.FULL)) {
-            addRightSideOnlyRows(rows, spec, joinedTable, joinedJoinAttr, keysWithBase, limit);
+            addRightSideOnlyRows(rows, spec, joinedTable, joinedJoinAttr, keysWithBase, limit, stats);
         }
 
         return new DefaultEnhancedQueryResult(rows);
@@ -298,14 +353,15 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         Set<Object> alreadyFetchedKeys,
         Map<Object, List<Map<String, Object>>> globalJoinCache,
         DynamoDbTable<Object> joinedTable,
-        String joinedJoinAttr) {
+        String joinedJoinAttr,
+        EnhancedQueryExecutionStats stats) {
 
         Set<Object> distinctKeys = baseRowsWithKeys.stream()
                                                    .map(Map.Entry::getValue).collect(Collectors.toSet());
         distinctKeys.removeAll(alreadyFetchedKeys);
         if (!distinctKeys.isEmpty()) {
             Map<Object, List<Map<String, Object>>> joinMap =
-                joinFetcher.resolveAndFetchJoinedObjectMaps(joinedTable, distinctKeys, joinedJoinAttr);
+                joinFetcher.resolveAndFetchJoinedObjectMaps(joinedTable, distinctKeys, joinedJoinAttr, stats);
             globalJoinCache.putAll(joinMap);
             alreadyFetchedKeys.addAll(distinctKeys);
         }
@@ -373,7 +429,8 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         List<String> groupByAttrs,
         List<AggregateSpec> aggregateSpecs,
         JoinType joinType,
-        Integer limit) {
+        Integer limit,
+        EnhancedQueryExecutionStats stats) {
 
         DynamoDbClient lowLevel = enhancedClient.dynamoDbClient();
         TableSchema<Object> joinedSchema = (TableSchema<Object>) joinedTable.tableSchema();
@@ -404,15 +461,18 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                                         .keyConditionExpression("#k = :v")
                                         .expressionAttributeNames(Collections.singletonMap("#k", joinedJoinAttr))
                                         .expressionAttributeValues(Collections.singletonMap(
-                                            ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)));
+                                            ":v", AttributeValueConversion.toKeyAttributeValue(keyFinal)))
+                                        .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
                         if (indexName != null) {
                             reqBuilder.indexName(indexName);
                         }
                         if (exclusiveStartKey != null) {
                             reqBuilder.exclusiveStartKey(exclusiveStartKey);
                         }
+                        stats.addJoinedQuery();
                         QueryResponse response =
                             lowLevel.query(reqBuilder.build());
+                        stats.addConsumedCapacity(response.consumedCapacity(), false, true);
                         for (Map<String, AttributeValue> item : response.items()) {
                             Map<String, Object> joinedMap = AttributeValueConversion.toObjectMap(item);
                             if (!ConditionEvaluator.evaluate(spec.filterJoined(), joinedMap)) {
@@ -474,7 +534,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
     // ---- join + aggregation -----------------------------------------
 
     @SuppressWarnings("unchecked")
-    private EnhancedQueryResult executeJoinWithAggregation(QueryExpressionSpec spec) {
+    private EnhancedQueryResult executeJoinWithAggregation(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         DynamoDbTable<Object> baseTable = (DynamoDbTable<Object>) spec.baseTable();
         DynamoDbTable<Object> joinedTable = (DynamoDbTable<Object>) spec.joinedTable();
         TableSchema<Object> baseSchema = (TableSchema<Object>) baseTable.tableSchema();
@@ -496,18 +556,28 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         int maxPage = QueryEngineSupport.MAX_BASE_PAGE_SIZE;
         int pageLimit = limit != null ? Math.min(limit, maxPage) : maxPage;
         Iterable<Page<Object>> basePages;
-        if (spec.keyCondition() != null) {
+        boolean baseUsesQuery = spec.keyCondition() != null;
+        if (baseUsesQuery) {
             basePages = baseTable.query(QueryEnhancedRequest.builder()
                                                             .queryConditional(spec.keyCondition())
                                                             .limit(pageLimit)
+                                                            .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                                             .build());
         } else {
             basePages = baseTable.scan(ScanEnhancedRequest.builder()
                                                           .limit(pageLimit)
+                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                                           .build());
         }
 
         for (Page<Object> page : basePages) {
+            if (baseUsesQuery) {
+                stats.addBaseQuery();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, true);
+            } else {
+                stats.addBaseScan();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, false);
+            }
             for (Object baseItem : page.items()) {
                 Map<String, Object> baseMap = AttributeValueConversion.toObjectMap(baseSchema.itemToMap(baseItem, false));
                 if (!ConditionEvaluator.evaluate(spec.filterBase(), baseMap)) {
@@ -540,10 +610,10 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                                  .add(entry.getKey());
             }
             buckets = queryAndAggregateDirect(joinedTable, distinctJoinKeys, spec.rightJoinKey(),
-                                              baseRowsByJoinKey, spec, groupByAttrs, aggregateSpecs, joinType, limit);
+                                              baseRowsByJoinKey, spec, groupByAttrs, aggregateSpecs, joinType, limit, stats);
         } else {
             Map<Object, List<Map<String, Object>>> joinedObjectMaps = joinFetcher.resolveAndFetchJoinedObjectMaps(
-                joinedTable, distinctJoinKeys, spec.rightJoinKey());
+                joinedTable, distinctJoinKeys, spec.rightJoinKey(), stats);
             buckets = processBaseRowsIntoAggBuckets(
                 baseRowsWithKeys, joinedObjectMaps, spec, groupByAttrs, aggregateSpecs, joinType, bucketCreationLimit);
         }
@@ -671,18 +741,22 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                                       DynamoDbTable<Object> joinedTable,
                                       String joinedJoinAttr,
                                       Set<Object> keysWithBase,
-                                      Integer limit) {
+                                      Integer limit,
+                                      EnhancedQueryExecutionStats stats) {
         DynamoDbClient lowLevel = enhancedClient.dynamoDbClient();
         String tableName = joinedTable.tableName();
         Map<String, AttributeValue> exclusiveStartKey = null;
         do {
             ScanRequest.Builder reqBuilder =
                 ScanRequest.builder()
-                           .tableName(tableName);
+                           .tableName(tableName)
+                           .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (exclusiveStartKey != null) {
                 reqBuilder.exclusiveStartKey(exclusiveStartKey);
             }
+            stats.addJoinedScan();
             ScanResponse response = lowLevel.scan(reqBuilder.build());
+            stats.addConsumedCapacity(response.consumedCapacity(), false, false);
             for (Map<String, AttributeValue> item : response.items()) {
                 if (limit != null && rows.size() >= limit) {
                     return;
@@ -710,7 +784,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
     // ---- aggregation (no join) --------------------------------------
 
     @SuppressWarnings("unchecked")
-    private EnhancedQueryResult executeAggregation(QueryExpressionSpec spec) {
+    private EnhancedQueryResult executeAggregation(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         DynamoDbTable<Object> baseTable = (DynamoDbTable<Object>) spec.baseTable();
         TableSchema<Object> baseSchema = (TableSchema<Object>) baseTable.tableSchema();
         List<String> groupByAttrs = spec.groupByAttributes();
@@ -720,19 +794,25 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         List<Object> items = new ArrayList<>();
         if (spec.keyCondition() != null) {
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
-                                                                          .queryConditional(spec.keyCondition());
+                                                                          .queryConditional(spec.keyCondition())
+                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
             for (Page<Object> page : baseTable.query(reqBuilder.build())) {
+                stats.addBaseQuery();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, true);
                 items.addAll(page.items());
             }
         } else if (spec.executionMode() == ExecutionMode.ALLOW_SCAN) {
-            ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder();
+            ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
+                                                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
             for (Page<Object> page : baseTable.scan(scanBuilder.build())) {
+                stats.addBaseScan();
+                stats.addConsumedCapacity(page.consumedCapacity(), true, false);
                 items.addAll(page.items());
             }
         }

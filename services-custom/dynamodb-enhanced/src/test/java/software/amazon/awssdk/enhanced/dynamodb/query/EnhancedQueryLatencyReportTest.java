@@ -33,5 +33,38 @@ public class EnhancedQueryLatencyReportTest {
         assertThat(report.joinedLookupsMs()).isEqualTo(2L);
         assertThat(report.inMemoryProcessingMs()).isEqualTo(3L);
         assertThat(report.totalMs()).isEqualTo(4L);
+        assertThat(report.baseQueryRequestCount()).isEqualTo(0L);
+        assertThat(report.baseScanRequestCount()).isEqualTo(0L);
+        assertThat(report.joinedQueryRequestCount()).isEqualTo(0L);
+        assertThat(report.joinedScanRequestCount()).isEqualTo(0L);
+        assertThat(report.totalDynamoDbRequestCount()).isEqualTo(0L);
+        assertThat(report.baseQueryRcuConsumed()).isEqualTo(0.0d);
+        assertThat(report.baseScanRcuConsumed()).isEqualTo(0.0d);
+        assertThat(report.joinedQueryRcuConsumed()).isEqualTo(0.0d);
+        assertThat(report.joinedScanRcuConsumed()).isEqualTo(0.0d);
+        assertThat(report.totalRcuConsumed()).isEqualTo(0.0d);
+    }
+
+    @Test
+    public void requestCountGetters_sumToTotal() {
+        EnhancedQueryLatencyReport report = new EnhancedQueryLatencyReport(0L, 0L, 0L, 10L, 2L, 1L, 5L, 3L);
+        assertThat(report.baseQueryRequestCount()).isEqualTo(2L);
+        assertThat(report.baseScanRequestCount()).isEqualTo(1L);
+        assertThat(report.joinedQueryRequestCount()).isEqualTo(5L);
+        assertThat(report.joinedScanRequestCount()).isEqualTo(3L);
+        assertThat(report.totalDynamoDbRequestCount()).isEqualTo(11L);
+        assertThat(report.totalRcuConsumed()).isEqualTo(0.0d);
+    }
+
+    @Test
+    public void rcuGetters_sumToTotal() {
+        EnhancedQueryLatencyReport report =
+            new EnhancedQueryLatencyReport(0L, 0L, 0L, 10L, 2L, 1L, 5L, 3L, 1.25d, 2.75d, 3.5d, 4.0d);
+
+        assertThat(report.baseQueryRcuConsumed()).isEqualTo(1.25d);
+        assertThat(report.baseScanRcuConsumed()).isEqualTo(2.75d);
+        assertThat(report.joinedQueryRcuConsumed()).isEqualTo(3.5d);
+        assertThat(report.joinedScanRcuConsumed()).isEqualTo(4.0d);
+        assertThat(report.totalRcuConsumed()).isEqualTo(11.5d);
     }
 }
