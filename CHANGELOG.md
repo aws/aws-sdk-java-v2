@@ -1,4 +1,263 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.25__ __2026-03-31__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Enabled default connection health monitoring for the AWS CRT HTTP client. Connections that remain stalled below 1 byte per second for the duration the read/write timeout (default 30 seconds) are now automatically terminated. This behavior can be overridden via ConnectionHealthConfiguration.
+
+## __AWS Certificate Manager__
+  - ### Features
+    - Adds support for searching for ACM certificates using the new SearchCertificates API.
+
+## __AWS Data Exchange__
+  - ### Features
+    - Support Tags for AWS Data Exchange resource Assets
+
+## __AWS Database Migration Service__
+  - ### Features
+    - To successfully connect to the IBM DB2 LUW database server, you may need to specify additional security parameters that are passed to the JDBC driver. These parameters are EncryptionAlgorithm and SecurityMechanism. Both parameters accept integer values.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent service General Availability release.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release adds 8 new APIs for AWS Marketplace sellers. 4 APIs for Cancellations (Send, List, Get, Cancel action on AgreementCancellationRequest), 3 APIs for Billing Adjustments (BatchCreate, List, Get action on BillingAdjustmentRequest), and 1 API to List Invoices (ListAgreementInvoiceLineItems)
+
+## __AWS Organizations__
+  - ### Features
+    - Added Path field to Account and OrganizationalUnit objects in AWS Organizations API responses.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adding an optional auditContext parameter to S3 Access Grants credential vending API GetDataAccess to enable job-level audit correlation in S3 CloudTrail logs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Netty to 4.1.132
+        - Contributed by: [@mrdziuban](https://github.com/mrdziuban)
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Fix bug for v1 getUserMetaDataOf transform
+
+## __AWS Security Agent__
+  - ### Features
+    - AWS Security Agent is a service that proactively secures applications throughout the development lifecycle with automated security reviews and on-demand penetration testing.
+
+## __AWS Sustainability__
+  - ### Features
+    - This is the first release of the AWS Sustainability SDK, which enables customers to access their sustainability impact data via API.
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds bring your own IP (BYOIP) IPv6 support to CloudFront's CreateAnycastIpList and UpdateAnycastIpList API through the IpamCidrConfigs field.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds environmentConfigurationName field to CreateEnvironmentInput and UpdateEnvironmentInput, so that Domain Owners can now recover orphaned environments by recreating deleted configurations with the same name, and will auto-recover orphaned environments
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Returning correct operation name for DeleteTableOperation
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates the examples in the documentation for DescribeRegions and DescribeAvailabilityZones.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 2.2 in Managed Service for Apache Flink
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - This release expands map customization options with adjustable contour line density, dark mode support for Hybrid and Satellite views, enhanced traffic information across multiple map styles, and transit and truck travel modes for Monochrome and Hybrid map styles.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Support RegisterCapability, GetCapability, DeregisterCapability API for AI Assistant feature management for OpenSearch UI Applications
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This release adds RCS for Business messaging and Notify support. RCS lets you create and manage agents, send and receive messages in the US and Canada via SendTextMessage API, and configure SMS fallback. Notify lets you send templated OTP messages globally in minutes with no phone number required.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds StartAutomationJob and DescribeAutomationJob APIs for automation jobs. Adds three custom permission capabilities that allow admins to control whether users can manage Spaces and chat agents. Adds an OAuthClientCredentials structure to provide OAuth 2.0 client credentials inline to data sources.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports nested types when creating tables. Users can define complex column schemas using struct, list, and map types. These types can be composed together to model complex, hierarchical data structures within table schemas.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add Bucket Metrics configuration support to directory buckets
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - This release adds the Bedrock and Security Hub resource types for Omnia Enablement launch for March 31.
+
+## __MailManager__
+  - ### Features
+    - Amazon SES Mail Manager now supports optional TLS policy for accepting unencrypted connections and mTLS authentication for ingress endpoints with configurable trust stores. Two new rule actions are available, Bounce for sending non-delivery reports and Lambda invocation for custom email processing.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Adding EURO Currency for MRR Amount
+
+## __odb__
+  - ### Features
+    - Adds support for EC2 Placement Group integration with ODB Network. The GetOdbNetwork and ListOdbNetworks API responses now include the ec2PlacementGroupIds field.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@mrdziuban](https://github.com/mrdziuban)
+# __2.42.24__ __2026-03-30__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent General Availability.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Add setSourceIdentity to DataLakeSettings Parameters
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Optimized JSON serialization by skipping null field marshalling for payload fields
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports three new fleet auto scaling settings. With scale out rate, you can configure how quickly workers launch. With worker idle duration, you can set how long workers wait before shutting down. With standby worker count, you can keep idle workers ready for fast job start.
+
+## __Amazon AppStream__
+  - ### Features
+    - Add support for URL Redirection
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds Ground Truth support for AgentCore Evaluations (Evaluate)
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds Lookup Tables to CloudWatch Logs for log enrichment using CSV key-value data with KMS encryption support.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Improved performance by caching partition and sort key name lookups in StaticTableMetadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding Local Storage support for ECS Managed Instances by introducing a new field "localStorageConfiguration" for CreateCapacityProvider and UpdateCapacityProvider APIs.
+
+## __Amazon GameLift__
+  - ### Features
+    - Update CreateScript API documentation.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Added Cluster Insights API's In OpenSearch Service SDK.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for placement strategy and consolidation for SageMaker inference component endpoints. Customers can now configure how inference component copies are distributed across instances and availability zones (AZs), and enable automatic consolidation to optimizes resource utilization.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for new instance lifecycle states introduced by the instance lifecycle policy and replace root volume features.
+
+## __Partner Central Account API__
+  - ### Features
+    - KYB Supplemental Form enables partners who fail business verification to submit additional details and supporting documentation through a self-service form, triggering an automated re-verification without requiring manual intervention from support teams.
+
+# __2.42.23__ __2026-03-27__
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adding AgentCore Code Interpreter Node.js Runtime Support with an optional runtime field
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for custom code-based evaluators using customer-managed Lambda functions.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Minor formatting changes to remove unnecessary symbols.
+
+## __Amazon Omics__
+  - ### Features
+    - AWS HealthOmics now supports VPC networking, allowing users to connect runs to external resources with NAT gateway, AWS VPC resources, and more. New Configuration APIs support configuring VPC settings. StartRun API now accepts networkingMode and configurationName parameters to enable VPC networking.
+
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue in the Apache 5 HTTP client where requests could fail with `"Endpoint not acquired / already released"`. These failures are now converted to retryable I/O errors.
+
+# __2.42.22__ __2026-03-26__
+## __AWS Billing and Cost Management Data Exports__
+  - ### Features
+    - With this release we are providing an option to accounts to have their export delivered to an S3 bucket that is not owned by the account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch EMF Metric Publisher__
+  - ### Features
+    - Add `PropertiesFactory` and `propertiesFactory` to `EmfMetricLoggingPublisher.Builder`, enabling users to enrich EMF records with custom key-value properties derived from the metric collection or ambient context, searchable in CloudWatch Logs Insights. See [#6595](https://github.com/aws/aws-sdk-java-v2/issues/6595).
+        - Contributed by: [@humanzz](https://github.com/humanzz)
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds parameter support to saved queries in CloudWatch Logs Insights. Define reusable query templates with named placeholders, invoke them using start query. Available in Console, CLI and SDK
+
+## __Amazon EMR__
+  - ### Features
+    - Add StepExecutionRoleArn to RunJobFlow API
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for ml.r5d.16xlarge instance types for SageMaker HyperPod
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB adds support for customer defined maintenance windows. This allows customers to define maintenance schedule during resource creation and updates
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@humanzz](https://github.com/humanzz)
+# __2.42.21__ __2026-03-25__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update for AWS Batch.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - The Variable Payments APIs enable AWS Marketplace Sellers to perform manage their payment requests (send, get, list, cancel).
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in CachedSupplier that retries aggressively after many consecutive failures
+
+## __AWS User Experience Customization__
+  - ### Features
+    - GA release of AccountCustomizations, used to manage account color, visible services, and visible regions settings in the AWS Management Console.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This release adds support for creating SLOs on RUM appMonitors, Synthetics canaries and services.
+
+## __Amazon Polly__
+  - ### Features
+    - Add support for Mu-law and A-law codecs for output format
+
+## __Amazon S3__
+  - ### Features
+    - Add support for maxInFlightParts to multipart upload (PutObject) in MultipartS3AsyncClient.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Added DISABLE IN PROGRESS and DISABLE FAILED Portal statuses.
+
 # __2.42.20__ __2026-03-24__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
@@ -57,6 +316,9 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix bug in CachedSupplier that disabled InstanceProfileCredentialsProvider credential refreshing after 58 consecutive failures.
 
 ## __Amazon DynamoDB__
   - ### Features

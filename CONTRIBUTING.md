@@ -8,6 +8,7 @@ __Jump To:__
 * [Bug Reports](#bug-reports)
 * [Feature Requests](#feature-requests)
 * [Code Contributions](#code-contributions)
+* [Running CI Checks Locally](#running-ci-checks-locally)
 * [Additional Resources](#additional-resources)
 
 ## Bug Reports
@@ -145,6 +146,45 @@ Pull Requests so it's not unusual for a Pull Request to go unreviewed for a few
 days, especially if it's a large or complex one. If, after a week, your Pull
 Request has not had any engagement from the SDK team, feel free to ping a
 member to ask for a review.
+
+### Running CI Checks Locally
+
+CI runs unit tests, integration tests, Checkstyle, and SpotBugs on every PR. 
+While not required before opening a PR, running these locally helps catch issues early and speeds up the code review cycle.
+
+#### Unit Tests (Full Build)
+
+```sh
+mvn clean install
+```
+
+To iterate faster, build only the modules you're working on:
+
+```sh
+mvn clean install -pl :dynamodb-enhanced -am
+```
+
+#### Integration Tests
+
+Integration tests make real AWS API calls and will incur costs to the account owner. 
+They require an `aws-test-account` profile in `~/.aws/credentials`:
+
+```
+[aws-test-account]
+aws_access_key_id = <your-access-key>
+aws_secret_access_key = <your-secret-key>
+```
+
+If this profile is not found, the tests fall back to the default credential provider chain.
+
+```sh
+# All integration tests
+mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip
+
+# Specific module
+mvn clean install -pl :dynamodb-enhanced -am -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip
+```
+
 
 ## Additional Resources
 We maintain [docs](docs/README.md) where information like design decisions, internal
