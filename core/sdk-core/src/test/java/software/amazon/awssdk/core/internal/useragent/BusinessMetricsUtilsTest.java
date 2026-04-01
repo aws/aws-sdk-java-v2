@@ -13,28 +13,40 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.useragent.businessmetrics;
+package software.amazon.awssdk.core.internal.useragent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
-import software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 
 class BusinessMetricsUtilsTest {
+    private SdkHttpFullRequest.Builder testRequest;
+
+    @BeforeEach
+    void setup() {
+        testRequest = SdkHttpFullRequest.builder();
+    }
 
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("inputValues")
+    @MethodSource("retryModeMetricInput")
     void when_retryModeMetric_isResolvedFromInput_correctMetricIsReturned(String description, RetryPolicy retryPolicy,
-                                          RetryStrategy retryStrategy, String expected) {
+                                                                          RetryStrategy retryStrategy, String expected) {
         Optional<String> retryModeMetric = BusinessMetricsUtils.resolveRetryMode(retryPolicy, retryStrategy);
 
         if (expected != null) {
@@ -44,7 +56,44 @@ class BusinessMetricsUtilsTest {
         }
     }
 
-    private static Stream<Arguments> inputValues() {
+    @ParameterizedTest(name = "{0} = {1}")
+    @MethodSource("checksumFeatureIdInput")
+    void when_checksumFeatureId_isResolvedFromHeader_correctMetricIsReturned(BusinessMetricFeatureId id, String header) {
+        assertThat(BusinessMetricsUtils.headerToChecksumFeatureId(header)).isEqualTo(id.value());
+    }
+
+    @Test
+    void when_checksumFeatureId_isResolvedFromHeader_unknownIsMappedToNull() {
+        assertThat(BusinessMetricsUtils.headerToChecksumFeatureId("x-amz-checksum-1234567")).isNull();
+    }
+
+    @Test
+    void when_checksumFeatureIds_areResolvedFromAlgorithmAndHeaders_allAlgorithmFeatureIdsReturned() {
+        ChecksumAlgorithm algorithm = DefaultChecksumAlgorithm.XXHASH128;
+        testRequest.putHeader("x-amz-checksum-crc32", "my-checksum");
+
+        assertThat(BusinessMetricsUtils.resolveChecksumAlgorithmFeatureIds(algorithm, testRequest))
+            .containsExactly(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH128.value(),
+                             BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32.value());
+    }
+
+    @Test
+    void when_checksumFeatureIds_areResolvedFromAlgorithmAndHeaders_andTheyResoveToTheSameId_idsAreDeduped() {
+        ChecksumAlgorithm algorithm = DefaultChecksumAlgorithm.CRC32;
+        testRequest.putHeader("x-amz-checksum-crc32", "my-checksum");
+
+        assertThat(BusinessMetricsUtils.resolveChecksumAlgorithmFeatureIds(algorithm, testRequest))
+            .containsExactly(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32.value());
+    }
+
+    @Test
+    void when_checksumFeatureIds_areResolvedFromAlgorithmAndHeaders_headerIsUnknown_ignored() {
+        testRequest.putHeader("x-amz-checksum-foo", "my-checksum");
+
+        assertThat(BusinessMetricsUtils.resolveChecksumAlgorithmFeatureIds(null, testRequest)).isEmpty();
+    }
+
+    private static Stream<Arguments> retryModeMetricInput() {
         return Stream.of(
             Arguments.of("No retry input returns empty", null, null, null),
             Arguments.of("Retry policy for legacy mode returns legacy",
@@ -70,5 +119,20 @@ class BusinessMetricsUtilsTest {
                          SdkDefaultRetryStrategy.forRetryMode(RetryMode.ADAPTIVE_V2),
                          BusinessMetricFeatureId.RETRY_MODE_LEGACY.value())
         );
+    }
+
+    private static Stream<Arguments> checksumFeatureIdInput() {
+        return Arrays.stream(BusinessMetricFeatureId.values())
+                     .filter(id -> id.name().startsWith("FLEXIBLE_CHECKSUMS_REQ_")
+                                   && !id.name().startsWith("FLEXIBLE_CHECKSUMS_REQ_WHEN"))
+                     .map(id -> {
+                         String name = id.name();
+                         String algorithm = name.substring(23).toLowerCase(Locale.US);
+                         // CRC64 is special >_<
+                         if ("crc64".equals(algorithm)) {
+                             algorithm = "crc64nvme";
+                         }
+                         return Arguments.of(id, "x-amz-checksum-" + algorithm);
+                     });
     }
 }
