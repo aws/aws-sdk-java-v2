@@ -48,17 +48,36 @@ public final class CancelOnInterruptWrapper<ResultT> implements Future<ResultT> 
         return f.isDone();
     }
 
+
+    // This method attempts to cancel the wrapped future if the thread is interrupted while blocked on get(). This is done by
+    // attempting to cancel() the future when InterruptedException is thrown. If the the cancel() is unsuccessful (i.e.
+    // the future is completed either successfully or exceptionally), then get the result if present and return it.
     @Override
     public ResultT get() throws InterruptedException, ExecutionException {
-        return f.get();
+        try {
+            return f.get();
+        } catch (InterruptedException ie) {
+            if (!cancel(true)) {
+                try {
+                    // We couldn't cancel so the result will be available or it failed
+                    ResultT entry = f.get();
+                    Thread.currentThread().interrupt();
+                    return entry;
+                } catch (CancellationException | InterruptedException | ExecutionException e) {
+                    // no-op, let it fall through to throwing the original interrupted exception
+                }
+            }
+            throw ie;
+        }
     }
+
 
     // This method attempts to cancel the wrapped future if the thread is interrupted while blocked on get(). This is done by
     // attempting to cancel() the future when InterruptedException is thrown. If the the cancel() is unsuccessful (i.e.
     // the future is completed either successfully or exceptionally), then get the result if present and return it.
     @Override
     public ResultT get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
+        throws InterruptedException, ExecutionException, TimeoutException {
         try {
             return f.get(timeout, unit);
         } catch (InterruptedException ie) {

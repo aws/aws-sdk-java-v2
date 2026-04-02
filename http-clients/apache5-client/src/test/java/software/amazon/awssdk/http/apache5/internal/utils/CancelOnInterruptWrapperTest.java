@@ -30,15 +30,22 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CancelOnInterruptFutureTest {
+public class CancelOnInterruptWrapperTest {
     private Future<String> mockDelegate;
 
     @BeforeEach
     void setup() {
         mockDelegate = mock(Future.class);
+    }
+
+    @AfterEach
+    void teardown() {
+        Thread.interrupted(); // clear the flag if it was set by the last test
     }
 
     @Test
@@ -77,7 +84,7 @@ public class CancelOnInterruptFutureTest {
     }
 
     @Test
-    void get_interrupted_cancelSuccessful_throws() throws ExecutionException, InterruptedException, TimeoutException {
+    void getTimeout_interrupted_cancelSuccessful_throws() throws ExecutionException, InterruptedException, TimeoutException {
         when(mockDelegate.get(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException("interrupt"));
         when(mockDelegate.cancel(eq(true))).thenReturn(true);
 
@@ -94,7 +101,8 @@ public class CancelOnInterruptFutureTest {
     }
 
     @Test
-    void get_interrupted_cancelUnsuccessful_returnsEntry() throws ExecutionException, InterruptedException, TimeoutException {
+    void getTimeout_interrupted_cancelUnsuccessful_returnsEntry() throws ExecutionException, InterruptedException,
+                                                                         TimeoutException {
         String result = "hello there";
 
         when(mockDelegate.get(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException("interrupt"));
@@ -107,7 +115,8 @@ public class CancelOnInterruptFutureTest {
     }
 
     @Test
-    void get_interrupted_cancelUnsuccessful_getUnsuccessful_rethrowsOriginalIe() throws ExecutionException, InterruptedException, TimeoutException {
+    void getTimeout_interrupted_cancelUnsuccessful_getUnsuccessful_rethrowsOriginalIe() throws ExecutionException,
+                                                                                                  InterruptedException, TimeoutException {
         InterruptedException interrupt = new InterruptedException("interrupt");
 
         when(mockDelegate.get(anyLong(), any(TimeUnit.class))).thenThrow(interrupt);
@@ -117,5 +126,94 @@ public class CancelOnInterruptFutureTest {
         CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
 
         assertThatThrownBy(() -> wrapper.get(1, TimeUnit.SECONDS)).isSameAs(interrupt);
+    }
+
+    @Test
+    void get_interrupted_cancelSuccessful_throws() throws ExecutionException, InterruptedException, TimeoutException {
+        when(mockDelegate.get()).thenThrow(new InterruptedException("interrupt"));
+        when(mockDelegate.cancel(eq(true))).thenReturn(true);
+
+        CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
+
+        assertThatThrownBy(wrapper::get)
+            .isInstanceOf(InterruptedException.class)
+            .hasMessage("interrupt");
+
+        verify(mockDelegate).get();
+        verify(mockDelegate).cancel(eq(true));
+
+        verifyNoMoreInteractions(mockDelegate);
+    }
+
+    @Test
+    void get_interrupted_cancelUnsuccessful_returnsEntry() throws ExecutionException, InterruptedException, TimeoutException {
+        String result = "hello there";
+
+        AtomicBoolean first = new AtomicBoolean(true);
+        when(mockDelegate.get()).thenAnswer(i -> {
+           if (first.compareAndSet(true, false)) {
+               throw new InterruptedException("interrupt");
+           }
+           return result;
+        });
+        when(mockDelegate.cancel(eq(true))).thenReturn(false);
+
+        CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
+
+        assertThat(wrapper.get()).isEqualTo(result);
+    }
+
+    @Test
+    void get_interrupted_cancelUnsuccessful_getUnsuccessful_rethrowsOriginalIe() throws ExecutionException, InterruptedException, TimeoutException {
+        InterruptedException interrupt = new InterruptedException("interrupt");
+
+        AtomicBoolean first = new AtomicBoolean(true);
+        when(mockDelegate.get()).thenAnswer(i -> {
+            if (first.compareAndSet(true, false)) {
+                throw interrupt;
+            }
+            throw new CancellationException("cancelled");
+        });
+        when(mockDelegate.cancel(eq(true))).thenReturn(false);
+
+        CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
+
+        assertThatThrownBy(wrapper::get).isSameAs(interrupt);
+    }
+
+    @Test
+    void get_interrupted_cancelUnsuccessful_cancelUnsuccessful_preservesInterruptedFlag() throws ExecutionException, InterruptedException {
+        String result = "hello there";
+
+        AtomicBoolean first = new AtomicBoolean(true);
+        when(mockDelegate.get()).thenAnswer(i -> {
+            if (first.compareAndSet(true, false)) {
+                throw new InterruptedException("interrupt");
+            }
+            return result;
+        });
+        when(mockDelegate.cancel(eq(true))).thenReturn(false);
+
+        CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
+
+        wrapper.get();
+
+        assertThat(Thread.interrupted()).isTrue();
+    }
+
+    @Test
+    void getTimeout_interrupted_cancelUnsuccessful_preservesInterruptedFlag() throws ExecutionException, InterruptedException,
+                                                                         TimeoutException {
+        String result = "hello there";
+
+        when(mockDelegate.get(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException("interrupt"));
+        when(mockDelegate.cancel(eq(true))).thenReturn(false);
+        when(mockDelegate.get()).thenReturn(result);
+
+        CancelOnInterruptWrapper<String> wrapper = new CancelOnInterruptWrapper<>(mockDelegate);
+
+        wrapper.get(1, TimeUnit.SECONDS);
+
+        assertThat(Thread.interrupted()).isTrue();
     }
 }
