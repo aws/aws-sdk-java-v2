@@ -42,6 +42,7 @@ import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Builds one {@link UpdateExpression} from three places the enhanced client can get updates:
@@ -91,8 +92,12 @@ public final class UpdateExpressionResolver {
          * {@link #tableMetadata(TableMetadata)} is required so item {@code SET} and {@code REMOVE} actions can be generated.
          *
          * @return a new resolver instance
+         * @throws NullPointerException if {@code nonKeyAttributes} is non-empty and {@code tableMetadata} was never set
          */
         public UpdateExpressionResolver build() {
+            if (!nonKeyAttributes.isEmpty()) {
+                Validate.paramNotNull(tableMetadata, "tableMetadata");
+            }
             return new UpdateExpressionResolver(this);
         }
 

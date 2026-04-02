@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
@@ -47,6 +48,36 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public class UpdateExpressionResolverTest {
 
     private static final TableMetadata TABLE_METADATA = StaticTableMetadata.builder().build();
+
+    @Test
+    public void build_nonKeyAttributesWithoutTableMetadata_throwsNullPointerException() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("attr", AttributeValue.builder().s("v").build());
+
+        assertThatThrownBy(() -> UpdateExpressionResolver.builder()
+                                                         .nonKeyAttributes(itemMap)
+                                                         .build())
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("tableMetadata");
+    }
+
+    @Test
+    public void build_emptyNonKeyAttributesWithoutTableMetadata_succeeds() {
+        UpdateExpressionResolver resolver =
+            UpdateExpressionResolver
+                .builder()
+                .nonKeyAttributes(Collections.emptyMap())
+                .requestExpression(
+                    UpdateExpression.builder()
+                                    .addAction(SetAction.builder()
+                                                        .path("a")
+                                                        .value(":v")
+                                                        .putExpressionValue(":v", AttributeValue.builder().s("x").build())
+                                                        .build())
+                                    .build())
+                .build();
+        assertThat(resolver.resolve()).isNotNull();
+    }
 
     // --------------------------------------------------------------
     // LEGACY — default merge strategy (order map, extension, request)
