@@ -349,7 +349,7 @@ public final class UpdateItemEnhancedRequest<T> {
          * <p>
          * Use {@link #updateExpressionMergeStrategy(UpdateExpressionMergeStrategy)} to control how conflicts between these
          * sources are resolved ({@link UpdateExpressionMergeStrategy#LEGACY concatenation} vs
-         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE top-level attribute winner}).
+         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE document path overlap resolution}).
          *
          * @param updateExpression the update operations to perform
          * @return a builder of this type
@@ -363,8 +363,8 @@ public final class UpdateItemEnhancedRequest<T> {
         /**
          * Sets how update actions from POJO attributes, extensions, and this request's expression are combined. Defaults to
          * {@link UpdateExpressionMergeStrategy#LEGACY} (concatenate all actions; DynamoDB may reject overlapping paths).
-         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE} picks one winning source per top-level attribute name
-         * (see {@link UpdateExpressionMergeStrategy}).
+         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE} drops lower-priority actions only when their path
+         * overlaps a higher-priority path (see {@link UpdateExpressionMergeStrategy}).
          *
          * @param updateExpressionMergeStrategy the merge strategy to use
          * @return a builder of this type

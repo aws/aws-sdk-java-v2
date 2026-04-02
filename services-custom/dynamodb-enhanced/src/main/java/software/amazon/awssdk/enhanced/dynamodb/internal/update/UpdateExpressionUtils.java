@@ -19,7 +19,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter.removeNestingAndListReference;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Arrays;
@@ -58,8 +57,8 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * SET actions for every {@code itemMap} entry that is not DynamoDB NULL. For each attribute, {@link UpdateBehavior}
-     * is resolved from {@code tableMetadata}.
+     * SET actions for every {@code itemMap} entry that is not DynamoDB NULL. For each attribute, {@link UpdateBehavior} is
+     * resolved from {@code tableMetadata}.
      */
     static UpdateExpression generateItemSetExpression(Map<String, AttributeValue> itemMap,
                                                       TableMetadata tableMetadata) {
@@ -105,8 +104,8 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * Distinct top-level names from non-null expressions (see {@link UpdateExpressionConverter#findAttributeNames}).
-     * Skips {@code null} elements; used to avoid REMOVE when those attributes are updated in other expressions.
+     * Distinct top-level names from non-null expressions (see {@link UpdateExpressionConverter#findAttributeNames}). Skips
+     * {@code null} elements; used to avoid REMOVE when those attributes are updated in other expressions.
      */
     static Set<String> attributesPresentInOtherExpressions(Collection<UpdateExpression> updateExpressions) {
         return updateExpressions.stream()
@@ -117,17 +116,17 @@ public final class UpdateExpressionUtils {
     }
 
     /**
-     * Resolves an action path to its top-level DynamoDB attribute name by first replacing expression-name tokens and then
-     * removing any nested path or list-index suffix.
+     * Resolves an update path by substituting expression attribute name placeholders (e.g. {@code #a} → logical name). The result
+     * is the full DynamoDB document path as used for overlap detection.
      */
-    static String resolveTopLevelAttributeName(String fullAttributePath, Map<String, String> expressionNames) {
+    static String resolveDocumentPath(String fullAttributePath, Map<String, String> expressionNames) {
         String resolvedPath = fullAttributePath;
         Map<String, String> names = expressionNames == null ? Collections.emptyMap() : expressionNames;
 
         for (Map.Entry<String, String> entry : names.entrySet()) {
             resolvedPath = resolvedPath.replace(entry.getKey(), entry.getValue());
         }
-        return removeNestingAndListReference(resolvedPath);
+        return resolvedPath;
     }
 
     /**

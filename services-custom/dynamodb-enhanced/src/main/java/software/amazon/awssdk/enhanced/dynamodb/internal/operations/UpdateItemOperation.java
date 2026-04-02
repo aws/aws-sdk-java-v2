@@ -273,7 +273,7 @@ public class UpdateItemOperation<T>
     /**
      * Combines POJO, extension, and request update expressions via {@link UpdateExpressionResolver}, honoring the request's
      * {@link UpdateExpressionMergeStrategy}. For {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE}, see
-     * {@link UpdateExpressionMergeStrategy} (one winning source per top-level attribute name).
+     * {@link UpdateExpressionMergeStrategy} (path overlap resolution; request wins over extension over POJO).
      */
     private Expression generateUpdateExpressionIfExist(
         TableMetadata tableMetadata,

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNull;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
 import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
@@ -62,7 +61,7 @@ public class UpdateExpressionResolverTest {
 
         UpdateExpression result = resolver.resolve();
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -487,7 +486,7 @@ public class UpdateExpressionResolverTest {
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_listTouchedByPojoExtensionAndRequest_keepsRequestSetActionsOnly() {
+    public void resolve_prioritizeHigherSource_listTouchedByPojoExtensionAndRequest_keepsNonOverlappingExtensionAndRequestIndices() {
         Map<String, AttributeValue> itemMap = new HashMap<>();
         itemMap.put("list", AttributeValue.builder().l(AttributeValue.builder().s("pojo").build()).build());
 
@@ -518,7 +517,12 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("list[0]")
+                     .value(":extensionValue")
+                     .putExpressionValue(":extensionValue", AttributeValue.builder().s("ext-value").build())
+                     .build(),
             SetAction.builder()
                      .path("list[1]")
                      .value(":requestValue")
@@ -531,7 +535,7 @@ public class UpdateExpressionResolverTest {
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_siblingListIndicesUnderSameAttribute_keepsRequestSetOnly() {
+    public void resolve_prioritizeHigherSource_siblingListIndicesUnderSameAttribute_keepsExtensionAndRequest() {
         UpdateExpression extensionExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
@@ -558,7 +562,12 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("list[0]")
+                     .value(":v0")
+                     .putExpressionValue(":v0", AttributeValue.builder().s("v0").build())
+                     .build(),
             SetAction.builder()
                      .path("list[1]")
                      .value(":v1")
@@ -691,7 +700,7 @@ public class UpdateExpressionResolverTest {
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_objectNestedSiblingsUnderSameTopLevelName_keepsRequestOnly() {
+    public void resolve_prioritizeHigherSource_objectNestedSiblingsUnderSameTopLevelName_keepsExtensionAndRequest() {
         UpdateExpression extensionExpression =
             UpdateExpression.builder()
                             .addAction(SetAction.builder()
@@ -718,7 +727,12 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("customer.name")
+                     .value(":name")
+                     .putExpressionValue(":name", AttributeValue.builder().s("john").build())
+                     .build(),
             SetAction.builder()
                      .path("customer.address.city")
                      .value(":city")
@@ -939,7 +953,7 @@ public class UpdateExpressionResolverTest {
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_expressionNamePlaceholder_groupsByResolvedTopLevelName() {
+    public void resolve_prioritizeHigherSource_expressionNamePlaceholder_nonOverlappingListIndices_keepsExtensionAndRequest() {
         UpdateExpression extensionExpression = UpdateExpression
             .builder()
             .addAction(SetAction.builder()
@@ -967,7 +981,13 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("#l[0]")
+                     .value(":v0")
+                     .putExpressionName("#l", "list")
+                     .putExpressionValue(":v0", AttributeValue.builder().s("ext").build())
+                     .build(),
             SetAction.builder()
                      .path("list[1]")
                      .value(":v1")
@@ -1012,7 +1032,12 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("list[2]")
+                     .value(":ext")
+                     .putExpressionValue(":ext", AttributeValue.builder().s("ext").build())
+                     .build(),
             SetAction.builder()
                      .path("list[0]")
                      .value(":a")
@@ -1030,7 +1055,7 @@ public class UpdateExpressionResolverTest {
     // -------------------------------------------------------
 
     @Test
-    public void resolve_prioritizeHigherSource_nestedPathsSameFirstSegment_keepsRequestOnly() {
+    public void resolve_prioritizeHigherSource_nestedPathsSameFirstSegment_keepsNonOverlappingSiblings() {
         UpdateExpression extensionExpression = UpdateExpression
             .builder()
             .addAction(SetAction.builder()
@@ -1057,11 +1082,60 @@ public class UpdateExpressionResolverTest {
                                                           .build()
                                                           .resolve();
 
-        assertThat(result.setActions()).containsExactly(
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("a.b")
+                     .value(":b")
+                     .putExpressionValue(":b", AttributeValue.builder().s("from-ext").build())
+                     .build(),
             SetAction.builder()
                      .path("a.c")
                      .value(":c")
                      .putExpressionValue(":c", AttributeValue.builder().s("from-req").build())
+                     .build());
+    }
+
+    // -------------------------------------------------------
+    // PRIORITIZE_HIGHER_SOURCE — sibling map paths under same root (profile.name vs profile.city)
+    // -------------------------------------------------------
+
+    @Test
+    public void resolve_prioritizeHigherSource_extensionProfileNameAndRequestProfileCity_keepsBoth() {
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("profile.name")
+                                                .value(":n")
+                                                .putExpressionValue(":n", AttributeValue.builder().s("Bob").build())
+                                                .build())
+                            .build();
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("profile.city")
+                                                .value(":c")
+                                                .putExpressionValue(":c", AttributeValue.builder().s("Paris").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactlyInAnyOrder(
+            SetAction.builder()
+                     .path("profile.name")
+                     .value(":n")
+                     .putExpressionValue(":n", AttributeValue.builder().s("Bob").build())
+                     .build(),
+            SetAction.builder()
+                     .path("profile.city")
+                     .value(":c")
+                     .putExpressionValue(":c", AttributeValue.builder().s("Paris").build())
                      .build());
     }
 
@@ -1076,7 +1150,7 @@ public class UpdateExpressionResolverTest {
                                                           .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
                                                           .build()
                                                           .resolve();
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     // -------------------------------------------------------
@@ -1107,28 +1181,6 @@ public class UpdateExpressionResolverTest {
                      .value(":val")
                      .putExpressionValue(":val", AttributeValue.builder().s("v").build())
                      .build());
-    }
-
-    @Test
-    public void resolve_prioritizeHigherSource_ownedAttributesButNoResolvedPathMatches_returnsNull() {
-        UpdateExpression extensionExpression =
-            UpdateExpression.builder()
-                            .addAction(SetAction.builder()
-                                                .path("#missing")
-                                                .value(":v")
-                                                .putExpressionName("#other", "logicalAttr")
-                                                .putExpressionValue(":v", AttributeValue.builder().s("value").build())
-                                                .build())
-                            .build();
-
-        UpdateExpression result = UpdateExpressionResolver.builder()
-                                                          .tableMetadata(TABLE_METADATA)
-                                                          .extensionExpression(extensionExpression)
-                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
-                                                          .build()
-                                                          .resolve();
-
-        assertNull(result);
     }
 
     // -------------------------------------------------------
@@ -1334,9 +1386,9 @@ public class UpdateExpressionResolverTest {
     }
 
     /*
-     * PRIORITIZE_HIGHER_SOURCE: one SET per name; request beats extension beats item.
+     * PRIORITIZE_HIGHER_SOURCE: path overlap only; request beats extension beats item on overlapping paths.
      * Same data as the LEGACY test above (3 actions).
-     * Winners: attr1 & attr2 → request; attr3 → item only.
+     * Winners: attr1 & attr2 → request; attr3 → item only (no overlap with request/extension paths).
      */
     @Test
     public void resolve_prioritizeHigherSource_multiSourceOverlap_oneSetActionPerTopLevelName() {
@@ -1397,6 +1449,80 @@ public class UpdateExpressionResolverTest {
                      .value(":AMZN_MAPPED_attr3")
                      .putExpressionName("#AMZN_MAPPED_attr3", "attr3")
                      .putExpressionValue(":AMZN_MAPPED_attr3", AttributeValue.builder().s("value3_pojo").build())
+                     .build());
+    }
+
+    // Path overlap: candidatePath.startsWith(higher + ".") and startsWith(higher + "[")
+
+    @Test
+    public void resolve_prioritizeHigherSource_extensionNestedMapPathUnderRequestParentPath_dropsExtension() {
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("parent")
+                                                .value(":v")
+                                                .putExpressionValue(":v",
+                                                                    AttributeValue.builder().m(Collections.emptyMap()).build())
+                                                .build())
+                            .build();
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("parent.child")
+                                                .value(":v2")
+                                                .putExpressionValue(":v2", AttributeValue.builder().s("ext").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactly(
+            SetAction.builder()
+                     .path("parent")
+                     .value(":v")
+                     .putExpressionValue(":v", AttributeValue.builder().m(Collections.emptyMap()).build())
+                     .build());
+    }
+
+    @Test
+    public void resolve_prioritizeHigherSource_extensionListIndexUnderRequestListRoot_dropsExtension() {
+        UpdateExpression requestExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("items")
+                                                .value(":v")
+                                                .putExpressionValue(":v",
+                                                                    AttributeValue.builder().l(AttributeValue.builder().s("req").build()).build())
+                                                .build())
+                            .build();
+        UpdateExpression extensionExpression =
+            UpdateExpression.builder()
+                            .addAction(SetAction.builder()
+                                                .path("items[0]")
+                                                .value(":v0")
+                                                .putExpressionValue(":v0", AttributeValue.builder().s("a").build())
+                                                .build())
+                            .build();
+
+        UpdateExpression result = UpdateExpressionResolver.builder()
+                                                          .tableMetadata(TABLE_METADATA)
+                                                          .extensionExpression(extensionExpression)
+                                                          .requestExpression(requestExpression)
+                                                          .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                                          .build()
+                                                          .resolve();
+
+        assertThat(result.setActions()).containsExactly(
+            SetAction.builder()
+                     .path("items")
+                     .value(":v")
+                     .putExpressionValue(":v", AttributeValue.builder().l(AttributeValue.builder().s("req").build()).build())
                      .build());
     }
 }

@@ -50,8 +50,9 @@ import software.amazon.awssdk.utils.CollectionUtils;
  *   <li>PRIORITIZE_HIGHER_SOURCE, same scalar, POJO + request → request value stored</li>
  *   <li>LEGACY, document root vs nested path, POJO + request → overlap error</li>
  *   <li>PRIORITIZE_HIGHER_SOURCE, document root vs nested → nested request path stored</li>
- *   <li>PRIORITIZE_HIGHER_SOURCE, list, POJO + extension + request → request wins</li>
- *   <li>PRIORITIZE_HIGHER_SOURCE, list of maps, three sources → request nested update wins</li>
+ *   <li>PRIORITIZE_HIGHER_SOURCE, list, POJO + extension + request → non-overlapping indices compose (e.g. ext[0] + req[1])</li>
+ *   <li>PRIORITIZE_HIGHER_SOURCE, list of maps, three sources → request and extension sibling paths both apply when
+ *   non-overlapping</li>
  *   <li>LEGACY, extension + request same scalar → overlap error</li>
  *   <li>PRIORITIZE_HIGHER_SOURCE, extension + request same scalar → request wins</li>
  *   <li>PRIORITIZE_HIGHER_SOURCE, disjoint top-level names → both mutations apply</li>
@@ -431,7 +432,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
     // --- Merge strategy: list (POJO + extension + request) ---
 
     @Test
-    public void updateItem_givenPrioritizeHigherSourceMerge_whenPojoExtensionAndRequestTouchSameList_thenRequestWins() {
+    public void updateItem_givenPrioritizeHigherSourceMerge_whenPojoExtensionAndRequestTouchSameList_thenNonOverlappingIndicesCompose() {
         initClientWithExtensions(new ListFirstElementUpdateExtension());
         RecordForUpdateExpressions record = createFullRecord();
         mappedTable.putItem(record);
@@ -443,7 +444,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                   .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
 
         RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
-        assertThat(persistedRecord.getRequestAttributeList()).containsExactly("attr1", "request1");
+        assertThat(persistedRecord.getRequestAttributeList()).containsExactly("extension0", "request1");
     }
 
     // --- Merge strategy: document path (root vs nested) ---
@@ -481,6 +482,9 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
         initClientWithExtensions();
         RecordForUpdateExpressions record = createFullRecord();
         mappedTable.putItem(record);
+
+        RecordForUpdateExpressions afterPut = mappedTable.getItem(record);
+        assertThat(afterPut.getObjectAttribute().getCity()).isEqualTo("originCity");
 
         record.setObjectAttribute(nestedObject("pojoName", "pojoCity"));
         mappedTable.updateItem(
@@ -534,7 +538,7 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                   .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE));
 
         RecordForUpdateExpressions persistedRecord = mappedTable.getItem(record);
-        assertThat(persistedRecord.getObjectListAttribute().get(0).getName()).isEqualTo("originObject0");
+        assertThat(persistedRecord.getObjectListAttribute().get(0).getName()).isEqualTo("extensionObject0");
         assertThat(persistedRecord.getObjectListAttribute().get(0).getCity()).isEqualTo("originCity0");
         assertThat(persistedRecord.getObjectListAttribute().get(1).getName()).isEqualTo("requestObject1");
         assertThat(persistedRecord.getObjectListAttribute().get(1).getCity()).isEqualTo("originCity1");
@@ -1098,8 +1102,10 @@ public class UpdateExpressionTest extends LocalDynamoDbSyncTestBase {
                         .builder()
                         .addAction(
                             SetAction.builder()
-                                     .path("objectListAttribute[0].name")
+                                     .path("#objectListAttribute[0].#name")
                                      .value(":extensionObject0")
+                                     .putExpressionName("#objectListAttribute", "objectListAttribute")
+                                     .putExpressionName("#name", "name")
                                      .putExpressionValue(":extensionObject0",
                                                          AttributeValue.builder().s("extensionObject0").build())
                                      .build())

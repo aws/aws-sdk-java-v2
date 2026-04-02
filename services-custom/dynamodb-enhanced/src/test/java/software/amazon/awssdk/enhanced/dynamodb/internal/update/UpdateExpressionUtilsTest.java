@@ -326,23 +326,5 @@ public class UpdateExpressionUtilsTest {
 
         assertThat(result.removeActions()).isEmpty();
     }
-
-    @Test
-    public void resolveTopLevelAttributeName_whenTokenizedNestedPath_returnsTopLevelName() {
-        Map<String, String> expressionNames = new HashMap<>();
-        expressionNames.put("#customer", "customer");
-        expressionNames.put("#name", "name");
-
-        String result = UpdateExpressionUtils.resolveTopLevelAttributeName("#customer.#name[0]", expressionNames);
-
-        assertThat(result).isEqualTo("customer");
-    }
-
-    @Test
-    public void resolveTopLevelAttributeName_whenLiteralPathWithListIndex_returnsTopLevelName() {
-        String result = UpdateExpressionUtils.resolveTopLevelAttributeName("orders[1]", null);
-
-        assertThat(result).isEqualTo("orders");
-    }
 }
 

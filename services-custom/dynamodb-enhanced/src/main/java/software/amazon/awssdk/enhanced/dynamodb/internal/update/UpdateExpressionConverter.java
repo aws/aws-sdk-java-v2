@@ -93,14 +93,14 @@ public final class UpdateExpressionConverter {
     }
 
     /**
-     * Attempts to find the list of attribute names that will be updated for the supplied {@link UpdateExpression} by looking at
+     * Attempts to find the distinct attribute names that will be updated for the supplied {@link UpdateExpression} by looking at
      * the combined collection of paths and ExpressionName values. Because attribute names can be composed from nested
      * attribute references and list references, the leftmost part will be returned if composition is detected.
      * <p>
      * Examples: The expression contains a {@link DeleteAction} with a path value of 'MyAttribute[1]'; the list returned
      * will have 'MyAttribute' as an element.}
      *
-     * @return A list of top level attribute names that have update actions associated.
+     * @return A list of distinct top-level attribute names that have update actions associated.
      */
     public static List<String> findAttributeNames(UpdateExpression updateExpression) {
         if (updateExpression == null) {
@@ -109,19 +109,7 @@ public final class UpdateExpressionConverter {
         List<String> attributeNames = listPathsWithoutTokens(updateExpression);
         List<String> attributeNamesFromTokens = listAttributeNamesFromTokens(updateExpression);
         attributeNames.addAll(attributeNamesFromTokens);
-        return attributeNames;
-    }
-
-    /**
-     * Returns the <em>top-level</em> segment of a DynamoDB update expression document path: the substring before the first
-     * {@code .} (nested map attribute) or {@code [} (list index). For example, {@code attr}, {@code attr[0]}, and
-     * {@code attr.nested} all share the same top-level name {@code attr}, which is the DynamoDB attribute used for grouping and
-     * overlap rules.
-     *
-     * @param attributeName a path or name segment after any {@code #} expression-name substitution; must not be {@code null}
-     */
-    static String removeNestingAndListReference(String attributeName) {
-        return attributeName.substring(0, getRemovalIndex(attributeName));
+        return attributeNames.stream().distinct().collect(Collectors.toList());
     }
 
     private static List<String> groupExpressions(UpdateExpression expression) {
@@ -228,6 +216,9 @@ public final class UpdateExpressionConverter {
                                                      .collect(Collectors.toList());
     }
 
+    private static String removeNestingAndListReference(String attributeName) {
+        return attributeName.substring(0, getRemovalIndex(attributeName));
+    }
 
     private static int getRemovalIndex(String attributeName) {
         for (int i = 0; i < attributeName.length(); i++) {

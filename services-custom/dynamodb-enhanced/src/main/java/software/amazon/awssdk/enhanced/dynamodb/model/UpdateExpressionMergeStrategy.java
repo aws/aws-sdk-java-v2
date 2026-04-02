@@ -16,32 +16,42 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 
 /**
- * Controls how update actions from three sources (POJO attributes, extensions, and request-level expressions) are combined before
- * being sent to DynamoDB.
+ * Controls how update actions from the POJO item, {@link DynamoDbEnhancedClientExtension extensions}, and the request’s
+ * {@link UpdateExpression} are merged into a single update expression for DynamoDB.
  *
+ * <p><b>{@link #LEGACY}</b> (default) &mdash; Concatenate all actions. DynamoDB fails the request if any document paths overlap.
+ * Additionally, when a POJO field is {@code null}, its {@code REMOVE} is omitted if that attribute name also appears in an
+ * extension or request expression, so the same name is not both removed and set in one call.
+ *
+ * <p><b>{@link #PRIORITIZE_HIGHER_SOURCE}</b> &mdash; Omits lower-priority actions whose <em>resolved</em> path overlaps a
+ * higher-priority path, using the same overlap rules as DynamoDB. Expression name placeholders ({@code #token}) are resolved
+ * first. Two paths overlap if they are equal or one continues the other at {@code .} (map segment) or {@code [} (list index).
+ * Sibling map keys or different list indices do not overlap.
+ *
+ * <p><b>When paths overlap:</b> the request wins over the extension over the POJO.
+ *
+ * <p><b>How the merged expression is built:</b>
+ * <ol>
+ *   <li>Include all update actions from the request.</li>
+ *   <li>Include an extension action only if its path does not overlap any request path.</li>
+ *   <li>Include a POJO-derived action only if its path does not overlap any request path and does not overlap any extension
+ *       action included in step 2.</li>
+ * </ol>
+ * <p>Extension actions omitted in step 2 are not part of the merged expression and are not considered when applying step 3.
+ *
+ * <p><b>Examples:</b>
  * <ul>
- *   <li>{@link #LEGACY} (default) &mdash; all actions are concatenated as-is. If two actions target overlapping
- *       document paths (for example, replacing an entire attribute and also updating a nested path under that same
- *       attribute), DynamoDB rejects the request with a "Two document paths overlap" error. The only automatic safety
- *       is that if a POJO attribute is {@code null}, its {@code REMOVE} action is suppressed when the same attribute
- *       name appears in an extension or request expression.</li>
- *
- *  <li>{@link #PRIORITIZE_HIGHER_SOURCE} &mdash; actions are grouped by <em>top-level attribute name</em> (see below).
- *       For each name, only actions from the single highest-priority source that references that name are kept.
- *       Priority (highest to lowest): request &gt; extension &gt; POJO. Different top-level names do not compete with
- *       each other: one attribute may contribute only request actions and another only extension actions, and both
- *       groups still appear in the merged expression.</li>
+ *   <li>{@code profile.name} and {@code profile.city} &mdash; no overlap; both may appear in the merged expression.</li>
+ *   <li>{@code profile} and {@code profile.name} &mdash; overlap; the lower-priority action is omitted.</li>
+ *   <li>{@code items[0]} and {@code items[1]} &mdash; no overlap; both may appear in the merged expression.</li>
+ *   <li>Two actions on {@code items[0]} &mdash; overlap; only the higher-priority source contributes its action.</li>
  * </ul>
  *
- * <p><b>Top-level name (for {@link #PRIORITIZE_HIGHER_SOURCE}):</b> resolve expression-name placeholders, then take the
- * part of the path before the first {@code .} or {@code [} (for example, {@code list[0]} &rarr; {@code list}, and
- * {@code object.listAttr[0]} &rarr; {@code object}). If multiple sources update paths with the same top-level name,
- * only the highest-priority source's actions for that attribute are kept.
- * Precedence is: request &gt; extension &gt; POJO.
- *
- * <p>Default: {@link #LEGACY}. Not setting this flag preserves backward-compatible behavior.
+ * <p>Default: {@link #LEGACY}.
  *
  * @see UpdateItemEnhancedRequest.Builder#updateExpressionMergeStrategy(UpdateExpressionMergeStrategy)
  * @see TransactUpdateItemEnhancedRequest.Builder#updateExpressionMergeStrategy(UpdateExpressionMergeStrategy)
