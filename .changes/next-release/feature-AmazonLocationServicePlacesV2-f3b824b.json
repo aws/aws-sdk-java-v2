@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service Places V2",
-    "contributor": "",
-    "description": "This release updates API reference documentation for Amazon Location Service Places APIs to reflect regional restrictions for Grab Maps users in ReverseGeocode, Suggest, SearchText, and GetPlace operations"
-}

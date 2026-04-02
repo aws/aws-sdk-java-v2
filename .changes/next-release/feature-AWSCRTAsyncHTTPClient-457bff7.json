@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT Async HTTP Client",
-    "contributor": "",
-    "description": "Add HTTP/2 support in the AWS CRT Async HTTP Client."
-}

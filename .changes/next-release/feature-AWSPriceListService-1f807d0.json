@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Price List Service",
-    "contributor": "",
-    "description": "This release increases the MaxResults parameter of the GetAttributeValues API from 100 to 10000."
-}

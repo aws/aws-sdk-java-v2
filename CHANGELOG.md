@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.27__ __2026-04-02__
+## __AWS CRT Async HTTP Client__
+  - ### Features
+    - Add HTTP/2 support in the AWS CRT Async HTTP Client.
+
+## __AWS Price List Service__
+  - ### Features
+    - This release increases the MaxResults parameter of the GetAttributeValues API from 100 to 10000.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports configurable scheduling on each queue. The scheduling configuration controls how workers are distributed across jobs.
+
+## __Amazon AppStream__
+  - ### Features
+    - Amazon WorkSpaces Applications now supports drain mode for instances in multi-session fleets. This capability allows administrators to instruct individual fleet instances to stop accepting new user sessions while allowing existing sessions to continue uninterrupted.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for three-legged (Authorization Code grant type) OAuth along with predefined MCP tool schema configuration for Amazon Bedrock AgentCore gateway MCP server targets.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Relax ToolUseId pattern to allow dots and colons
+
+## __Amazon CloudWatch__
+  - ### Features
+    - CloudWatch now supports OTel enrichment to make vended metrics for supported AWS resources queryable via PromQL with resource ARN and tag labels, and PromQL alarms for metrics ingested via the OTLP endpoint with multi-contributor evaluation.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - We are pleased to announce that our logs transformation csv processor now has a destination field, allowing you to specify under which parent node parsed columns be placed under.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Include CUSTOMER to evaluation target and participant role. Support Korean, Japanese and Simplified Chinese in evaluation forms.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers now includes a ComputeName field in game session API responses, making it easier to identify which compute is hosting a game session without cross-referencing IP addresses.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - This release updates API reference documentation for Amazon Location Service Places APIs to reflect regional restrictions for Grab Maps users in ReverseGeocode, Suggest, SearchText, and GetPlace operations
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Data Automation Library is a BDA capability that lets you create reusable entity resources to improve extraction accuracy. Libraries support Custom Vocabulary entities that enhance speech recognition for audio and video content with domain-specific terminology shared across projects
+
 # __2.42.26__ __2026-04-01__
 ## __AWS Health Imaging__
   - ### Features
