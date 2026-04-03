@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "akhilyendluri",
-    "description": "Updating Lakeformation Access Grants Plugin version to 1.3"
-}

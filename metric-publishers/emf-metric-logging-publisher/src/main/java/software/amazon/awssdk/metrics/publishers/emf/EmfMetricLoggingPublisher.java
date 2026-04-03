@@ -82,6 +82,7 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
             .dimensions(builder.dimensions)
             .metricLevel(builder.metricLevel)
             .metricCategories(builder.metricCategories)
+            .propertiesFactory(builder.propertiesFactory)
             .build();
 
         this.metricConverter = new MetricEmfConverter(config);
@@ -123,6 +124,7 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
         private Collection<SdkMetric<String>> dimensions;
         private Collection<MetricCategory> metricCategories;
         private MetricLevel metricLevel;
+        private PropertiesFactory propertiesFactory;
 
         private Builder() {
         }
@@ -216,6 +218,28 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
             return this;
         }
 
+
+        /**
+         * Configure a factory for custom properties to include in each EMF record.
+         * The factory is invoked on each {@link #publish(MetricCollection)} call with the
+         * {@link MetricCollection} being published, and the returned map entries are written
+         * as top-level key-value pairs in the EMF JSON output. These appear as searchable
+         * fields in CloudWatch Logs Insights.
+         *
+         * <p>Keys that collide with reserved EMF fields ({@code _aws}), configured
+         * dimension names, or reported metric names are silently skipped.
+         *
+         * <p>If this is not specified, no custom properties are added.
+         *
+         * @param propertiesFactory a factory returning a map of property names to values,
+         *                          or {@code null} to disable custom properties
+         * @return this builder
+         * @see PropertiesFactory
+         */
+        public Builder propertiesFactory(PropertiesFactory propertiesFactory) {
+            this.propertiesFactory = propertiesFactory;
+            return this;
+        }
 
         /**
          * Build a {@link EmfMetricLoggingPublisher} using the configuration currently configured on this publisher.
