@@ -44,7 +44,6 @@ import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.Location;
@@ -52,7 +51,6 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
-import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.codegen.validation.ValidationErrorId;
 
 public class CodeGeneratorTest {
@@ -226,7 +224,9 @@ public class CodeGeneratorTest {
         assertThatThrownBy(() -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()))
             .isInstanceOf(ModelInvalidException.class)
             .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
-                          == ValidationErrorId.REQUEST_URI_NOT_FOUND);
+                          == ValidationErrorId.REQUEST_URI_NOT_FOUND)
+            .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getDetailMessage()
+                          .contains("OperationWithUriMappedParamRequest"));
     }
 
     private void generateCodeFromC2jModels(C2jModels c2jModels, Path outputDir) {
