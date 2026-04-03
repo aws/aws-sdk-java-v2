@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "contributor": "",
+    "description": "Updates close Account quota for member accounts in an Organization."
+}
