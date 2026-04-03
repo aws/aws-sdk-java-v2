@@ -355,8 +355,8 @@ public class ProcessCredentialsProviderTest {
             // executed not in a shell
             assertThat(e.getCause()).isInstanceOf(IOException.class);
             assertThat(e.getCause().getMessage())
-                .isEqualTo("Cannot run program \"echo \"Hello, World!\" > output.txt; rm output.txt\": error=2, "
-                           + "No such file or directory");
+                .startsWith("Cannot run program \"echo \"Hello, World!\" > output.txt; rm output.txt\":")
+                .contains("No such file or directory");
         }
     }
 

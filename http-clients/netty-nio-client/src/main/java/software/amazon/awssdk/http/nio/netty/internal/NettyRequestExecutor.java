@@ -265,10 +265,13 @@ public final class NettyRequestExecutor {
 
         if (shouldExplicitlyTriggerRead()) {
 
-            // Should only add an one-time ReadTimeoutHandler to 100 Continue request.
             if (is100ContinueExpected()) {
-                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(Duration.ofMillis(context.configuration()
-                        .readTimeoutMillis())));
+                // Should only add a one-time ReadTimeoutHandler to 100 Continue request.
+                // Add before HttpStreamsClientHandler so that raw TLS handshake bytes cannot
+                // prematurely remove this one-time handler. See Expect100ContinueReadTimeoutTest.
+                channel.pipeline().addBefore(
+                    channel.pipeline().context(HttpStreamsClientHandler.class).name(), null,
+                    new OneTimeReadTimeoutHandler(Duration.ofMillis(context.configuration().readTimeoutMillis())));
             } else {
                 channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                    TimeUnit.MILLISECONDS));
