@@ -76,8 +76,7 @@ public final class CancelOnInterruptWrapper<ResultT> implements Future<ResultT> 
     // attempting to cancel() the future when InterruptedException is thrown. If the the cancel() is unsuccessful (i.e.
     // the future is completed either successfully or exceptionally), then get the result if present and return it.
     @Override
-    public ResultT get(long timeout, TimeUnit unit)
-        throws InterruptedException, ExecutionException, TimeoutException {
+    public ResultT get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         try {
             return f.get(timeout, unit);
         } catch (InterruptedException ie) {
