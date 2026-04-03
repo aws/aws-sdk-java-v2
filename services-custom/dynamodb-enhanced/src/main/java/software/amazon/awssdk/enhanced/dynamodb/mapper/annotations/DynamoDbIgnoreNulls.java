@@ -62,10 +62,10 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
  *
- * // innerBean1 w/ @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
+ * // innerBean1 with @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
  * assertThat(itemMap.get("innerBean1").m(), anEmptyMap());
  *
- * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULL attribute.
+ * // innerBean2 without @DynamoDbIgnoreNulls has a NULL attribute.
  * assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute", nullAttributeValue()));
  * }
  */
