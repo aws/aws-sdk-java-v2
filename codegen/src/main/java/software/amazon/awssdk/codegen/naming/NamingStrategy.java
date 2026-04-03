@@ -125,6 +125,13 @@ public interface NamingStrategy {
     String getVariableName(String name);
 
     /**
+     * @param name Some contextual name to derive variable name from (i.e. member name, java class name, etc).
+     * @param parentShape The shape containing the member, used to check for shape-specific reserved names.
+     * @return Appropriate name to use for a Java variable or field.
+     */
+    String getVariableName(String name, Shape parentShape);
+
+    /**
      * @param enumValue Enum value as defined in the service model used to derive the java name.
      * @return Appropriate name to use for a Java enum value
      */

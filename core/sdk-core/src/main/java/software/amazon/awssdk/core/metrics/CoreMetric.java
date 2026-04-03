@@ -157,6 +157,27 @@ public final class CoreMetric {
         metric("ReadThroughput", Double.class, MetricLevel.TRACE);
 
     /**
+     * The write throughput of the client, defined as
+     * {@code RequestBytesWritten / (LastByteWrittenTime - FirstByteWrittenTime)}.
+     * This value is in bytes per second.
+     * <p>
+     * This metric measures the rate at which the SDK provides the request body to the HTTP client.
+     * It excludes connection setup, TLS handshake time, and server processing time.
+     * <p>
+     * Note: This metric only measures the request body, not HTTP headers. For requests with small
+     * payloads where the body size is comparable to the headers size, this metric may not accurately
+     * reflect overall network throughput.
+     * <p>
+     * Note: This metric does not account for buffering in the HTTP client layer. The actual network transmission rate may
+     * be lower if the HTTP client buffers data before sending. This metric represents an upper bound of the network
+     * throughput.
+     * <p>
+     * This metric is only reported for requests that have a body.
+     */
+    public static final SdkMetric<Double> WRITE_THROUGHPUT =
+        metric("WriteThroughput", Double.class, MetricLevel.TRACE);
+
+    /**
      * The duration of time it took to resolve the endpoint used for the API call.
      */
     public static final SdkMetric<Duration> ENDPOINT_RESOLVE_DURATION =

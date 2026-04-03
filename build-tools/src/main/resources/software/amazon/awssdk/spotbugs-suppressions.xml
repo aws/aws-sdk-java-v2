@@ -523,4 +523,12 @@
         <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService"/>
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
+
+    <!-- Intentionally passing null to marshallField for non-PAYLOAD fields
+         whose NULL marshallers handle null validation. -->
+    <Match>
+        <Class name="software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshaller"/>
+        <Method name="doMarshall"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
 </FindBugsFilter>

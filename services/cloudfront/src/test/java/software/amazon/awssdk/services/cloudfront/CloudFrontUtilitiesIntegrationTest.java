@@ -65,7 +65,6 @@ import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.DistributionSummary;
 import software.amazon.awssdk.services.cloudfront.model.GetKeyGroupResponse;
-import software.amazon.awssdk.services.cloudfront.model.KeyGroup;
 import software.amazon.awssdk.services.cloudfront.model.KeyGroupConfig;
 import software.amazon.awssdk.services.cloudfront.model.KeyGroupSummary;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
@@ -316,6 +315,108 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                .build()).call();
         int expectedStatus = 403;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(KeyTestCase testCase) throws Exception {
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
+                                                                                             .privateKey(testCase.privateKey)
+                                                                                             .keyPairId(testCase.keyPairId)
+                                                                                             .resourceUrlPattern(resourceUrl + "*")
+                                                                                             .activeDate(activeDate)
+                                                                                             .expirationDate(expirationDate));
+
+        // Request the same resource with an additional query parameter - should still be allowed by the wildcard policy
+        URI uri = URI.create(resourceUrl + "?foo=bar");
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .uri(uri)
+                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCustomPolicy_wildCardPath(KeyTestCase testCase) throws Exception {
+        String resourceUri = "https://" + domainName;
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(
+            r -> r.resourceUrl(resourceUri + "/foo/specific-file")
+                  .privateKey(testCase.privateKey)
+                  .keyPairId(testCase.keyPairId)
+                  .resourceUrlPattern(resourceUri + "/foo/*")
+                  .activeDate(activeDate)
+                  .expirationDate(expirationDate));
+
+        // Use the cookies to access a different file under the same wildcard path
+        URI otherFileUri = URI.create(resourceUri + "/foo/other-file");
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .uri(otherFileUri)
+                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCustomPolicy_wildCardPolicyResource_allowsAnyPath(KeyTestCase testCase) throws Exception {
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(
+            r -> r.resourceUrl(resourceUrl)
+                  .privateKey(testCase.privateKey)
+                  .keyPairId(testCase.keyPairId)
+                  .resourceUrlPattern("*")
+                  .activeDate(activeDate)
+                  .expirationDate(expirationDate));
+
+        // Use the cookies to access a completely different path - the "*" pattern should allow any path
+        URI differentPathUri = URI.create(resourceUrl.replace("/s3ObjectKey", "/foo/other-file"));
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .uri(differentPathUri)
+                                                                                                      .appendHeader("Cookie", cookies.policyHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.signatureHeaderValue())
+                                                                                                      .appendHeader("Cookie", cookies.keyPairIdHeaderValue())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
     @ParameterizedTest(name = "{0}")

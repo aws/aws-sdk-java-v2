@@ -21,10 +21,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.checksums.internal.CrcCloneOnMarkChecksum;
-import software.amazon.awssdk.crt.checksums.CRC32C;
 
 /**
  * Benchmarks for testing CRT implementations of checksums.
@@ -32,39 +29,7 @@ import software.amazon.awssdk.crt.checksums.CRC32C;
  * There are pitfalls with passing buffers to and from native code since it could lead to lots of copying.
  */
 public class CrtChecksumBenchmark {
-    private static final int KB = 1024;
-    private static final int MB = 1024 * KB;
-    private static final int PAYLOAD_SIZE = 512 * MB;
-
-    public enum Algorithm {
-        CRC32C,
-        CRC64,
-        ;
-    }
-
-    public enum Size {
-        SZ_512_KB(512 * KB),
-        SZ_1_MB(MB),
-        SZ_2_MB(2 * MB),
-        SZ_4_MB(4 * MB),
-        SZ_8_MB(8 * MB),
-        SZ_16_MB(16 * MB),
-        SZ_32_MB(32 * MB),
-        SZ_64_MB(64 * MB),
-        SZ_128_MB(128 * MB),
-        SZ_256_MB(256 * MB);
-
-        private int numBytes;
-
-        Size(int bytes) {
-
-            this.numBytes = bytes;
-        }
-
-        public int getNumBytes() {
-            return numBytes;
-        }
-    }
+    private static final int PAYLOAD_SIZE = 512 * BenchmarkConstant.MB;
 
     @State(Scope.Benchmark)
     public static class ChunkedState {
@@ -82,32 +47,16 @@ public class CrtChecksumBenchmark {
                 "SZ_64_MB",
                 "SZ_128_MB",
                 "SZ_256_MB"})
-        private Size chunkSize;
+        private BenchmarkSize chunkSize;
 
-        @Param({"CRC64", "CRC32C"})
-        private Algorithm algorithm;
+        @Param({"CRC64NVME", "CRC32C_CRT"})
+        private ChecksumAlgorithmParam algorithm;
 
         @Setup
         public void setup() {
-            crc = getSdkChecksum(algorithm);
-            chunkData = new byte[chunkSize.getNumBytes()];
+            crc = algorithm.createChecksum();
+            chunkData = new byte[chunkSize.getBytes()];
         }
-    }
-
-    /**
-     * Approximates where we feed a fixed number of bytes (PAYLOAD_BYTES), using different chunk sizes.
-     */
-    @Benchmark
-    public void chunked(ChunkedState s, Blackhole bh) {
-        int chunkSize = s.chunkSize.getNumBytes();
-
-        int nChunks = PAYLOAD_SIZE / chunkSize;
-
-        s.crc.reset();
-        for (int i = 0; i < nChunks; ++i) {
-            s.crc.update(s.chunkData);
-        }
-        bh.consume(s.crc.getChecksumBytes());
     }
 
     /**
@@ -118,48 +67,35 @@ public class CrtChecksumBenchmark {
     @State(Scope.Benchmark)
     public static class FixedInputBufferSizeState {
         @Param({"SZ_32_MB", "SZ_64_MB", "SZ_128_MB", "SZ_256_MB"})
-        private Size fixedBufferSize;
+        private BenchmarkSize fixedBufferSize;
 
         @Param({"SZ_512_KB", "SZ_1_MB", "SZ_2_MB"})
-        private Size chunkSize;
+        private BenchmarkSize chunkSize;
 
-        @Param({"CRC64", "CRC32C"})
-        private Algorithm algorithm;
+        @Param({"CRC64NVME", "CRC32C_CRT", "XXHASH64", "XXHASH3", "XXHASH128"})
+        private ChecksumAlgorithmParam algorithm;
 
         private byte[] buffer;
 
-        private SdkChecksum crc;
+        private SdkChecksum checksum;
 
         @Setup
         public void setup() {
-            buffer = new byte[fixedBufferSize.getNumBytes()];
-            crc = getSdkChecksum(algorithm);
+            buffer = new byte[fixedBufferSize.getBytes()];
+            checksum = algorithm.createChecksum();
         }
     }
 
     @Benchmark
     public void fixedBufferSize(FixedInputBufferSizeState s, Blackhole bh) {
-        int chunkSize = s.chunkSize.getNumBytes();
+        int chunkSize = s.chunkSize.getBytes();
 
         int nChunks = PAYLOAD_SIZE / chunkSize;
 
-        s.crc.reset();
+        s.checksum = s.algorithm.createChecksum();
         for (int i = 0; i < nChunks; ++i) {
-            s.crc.update(s.buffer, 0, chunkSize);
+            s.checksum.update(s.buffer, 0, chunkSize);
         }
-        bh.consume(s.crc.getChecksumBytes());
-    }
-
-    private static SdkChecksum getSdkChecksum(Algorithm algorithm) {
-        switch (algorithm) {
-            case CRC32C:
-                // Construct directly instead of using forAlgorithm because it
-                // will pick up the JVM provided one if it's available.
-                return new CrcCloneOnMarkChecksum(new CRC32C());
-            case CRC64:
-                return SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC64NVME);
-            default:
-                throw new RuntimeException("Unsupported algorithm: " + algorithm);
-        }
+        bh.consume(s.checksum.getChecksumBytes());
     }
 }

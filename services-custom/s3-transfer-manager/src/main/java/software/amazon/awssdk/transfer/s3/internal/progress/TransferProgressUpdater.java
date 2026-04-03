@@ -76,7 +76,15 @@ public class TransferProgressUpdater {
         listenerInvoker.transferInitiated(context);
     }
 
-    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody) {
+    /**
+     * Wraps the request body to track upload progress.
+     *
+     * @param requestBody the original request body
+     * @param disableIncrementalProgress when {@code true}, the wrapper will not report byte-level progress. This is used
+     *     for in-memory byte bodies because all bytes are delivered to the publisher instantly and progress would jump to 100%
+     *     before any data is sent over the wire.
+     */
+    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, boolean disableIncrementalProgress) {
         return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
@@ -89,12 +97,14 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesTransferred(byteBuffer.limit());
-                    progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                        if (Double.compare(ratioTransferred, 1.0) == 0) {
-                            endOfStreamFutureCompleted();
-                        }
-                    });
+                    if (!disableIncrementalProgress) {
+                        incrementBytesTransferred(byteBuffer.limit());
+                        progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
+                            if (Double.compare(ratioTransferred, 1.0) == 0) {
+                                endOfStreamFutureCompleted();
+                            }
+                        });
+                    }
                 }
 
                 @Override
@@ -117,6 +127,10 @@ public class TransferProgressUpdater {
 
     /**
      * Progress listener for Java-based S3Client with multipart enabled.
+     * <p>
+     * For multipart uploads, this is the primary source of progress since the wrapper body is bypassed
+     * by {@code splitCloseable}. For single-chunk uploads via {@code uploadInOneChunk}, this listener
+     * reports progress after the server responds.
      */
     public PublisherListener<Long> multipartClientProgressListener() {
 
@@ -272,7 +286,7 @@ public class TransferProgressUpdater {
         progress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
-    private void incrementBytesTransferred(long numBytes) {
+    public void incrementBytesTransferred(long numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
         });

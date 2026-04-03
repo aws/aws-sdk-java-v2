@@ -291,6 +291,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
             HttpHost target = determineTarget(apacheRequest);
             ClassicHttpResponse httpResponse = httpClient.executeOpen(target, apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
+        } catch (IllegalStateException e) {
+            // TODO: remove this when a permanent fix is made upstream
+            // This is a workaround for a race condition where a connection is not properly acquired when httpClient attempts
+            // to execute a request on a connection from the pool. For now, we rethrow this as an IOException so upper layers
+            // have a chance to retry if possible
+            if ("Endpoint not acquired / already released".equals(e.getMessage())) {
+                throw new IOException("Failed to execute HTTP request", e);
+            }
+            throw e;
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
@@ -445,7 +454,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder localAddress(InetAddress localAddress);
 
         /**
-         * Configure whether the client should send an HTTP expect-continue handshake before each request.
+         * Configure whether the client should send an HTTP expect-continue handshake before each request. By default
+         * this is disabled.
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
