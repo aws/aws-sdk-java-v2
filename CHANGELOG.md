@@ -1,4 +1,135 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.28__ __2026-04-03__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive released a new features that allows customers to use HLG 2020 as a color space for AV1 video codec.
+
+## __AWS Organizations__
+  - ### Features
+    - Updates close Account quota for member accounts in an Organization.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Added strict parameter to ToolSpecification to allow users to enforce strict JSON schema adherence for tool input schemas.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Guardrails enforcement configuration APIs now support selective guarding controls for system prompts as well as user and assistant messages, along with SDK support for Amazon Bedrock resource policy APIs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Documentation Update for Adds support for three-legged (Authorization Code grant type) OAuth along with predefined MCP tool schema configuration for Amazon Bedrock AgentCore gateway MCP server targets.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added queryDuration, bytesScanned, and userIdentity fields to the QueryInfo response object returned by DescribeQueries. Customers can now view detailed query cost information including who ran the query, how long it took, and the volume of data scanned.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for tagging of Alarm resource type
+
+## __EC2 Image Builder__
+  - ### Features
+    - Updated pagination token validation for ListContainerRecipes API to support maximum size of 65K characters
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adds optional support to retrieve previously generated import and export tokens to simplify import and export functions
+
+# __2.42.27__ __2026-04-02__
+## __AWS CRT Async HTTP Client__
+  - ### Features
+    - Add HTTP/2 support in the AWS CRT Async HTTP Client.
+
+## __AWS Price List Service__
+  - ### Features
+    - This release increases the MaxResults parameter of the GetAttributeValues API from 100 to 10000.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports configurable scheduling on each queue. The scheduling configuration controls how workers are distributed across jobs.
+
+## __Amazon AppStream__
+  - ### Features
+    - Amazon WorkSpaces Applications now supports drain mode for instances in multi-session fleets. This capability allows administrators to instruct individual fleet instances to stop accepting new user sessions while allowing existing sessions to continue uninterrupted.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for three-legged (Authorization Code grant type) OAuth along with predefined MCP tool schema configuration for Amazon Bedrock AgentCore gateway MCP server targets.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Relax ToolUseId pattern to allow dots and colons
+
+## __Amazon CloudWatch__
+  - ### Features
+    - CloudWatch now supports OTel enrichment to make vended metrics for supported AWS resources queryable via PromQL with resource ARN and tag labels, and PromQL alarms for metrics ingested via the OTLP endpoint with multi-contributor evaluation.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - We are pleased to announce that our logs transformation csv processor now has a destination field, allowing you to specify under which parent node parsed columns be placed under.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Include CUSTOMER to evaluation target and participant role. Support Korean, Japanese and Simplified Chinese in evaluation forms.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers now includes a ComputeName field in game session API responses, making it easier to identify which compute is hosting a game session without cross-referencing IP addresses.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - This release updates API reference documentation for Amazon Location Service Places APIs to reflect regional restrictions for Grab Maps users in ReverseGeocode, Suggest, SearchText, and GetPlace operations
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Data Automation Library is a BDA capability that lets you create reusable entity resources to improve extraction accuracy. Libraries support Custom Vocabulary entities that enhance speech recognition for audio and video content with domain-specific terminology shared across projects
+
+# __2.42.26__ __2026-04-01__
+## __AWS Health Imaging__
+  - ### Features
+    - Added new boolean flag to persist metadata updates to all primary image sets in the same study as the requested image set.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adds support for Bedrock Batch Inference Job Progress Monitoring
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added the ability to filter out empty sessions when listing sessions. Customers can now retrieve only sessions that still contain events, eliminating the need to check each session individually. No changes required for existing integrations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for VPC egress private endpoints for Amazon Bedrock AgentCore gateway targets, enabling private connectivity through managed VPC Lattice resources. Also adds IAM credential provider for gateway targets, enabling IAM-based authentication to target endpoints
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports Managed Daemons with dedicated APIs for registering daemon task definitions, creating daemons, and managing daemon deployments.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Updated SnapshotRetentionLimit documentation for ServerlessCache to correctly describe the parameter as number of days (max 35) instead of number of snapshots.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adding Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08 as TLS Policy in Supported Regions
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - This release makes RoutingBoundary optional in CalculateRouteMatrix, set StopDuration with a maximum value of 49999 for CalculateRoutes, set TrailerCount with a maximum value of 4, and introduces region restrictions for Grab Maps users.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adding Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08 as TLS Policy in Supported Regions
+
+## __Apache 5 HTTP Client__
+  - ### Features
+    - Disable Expect 100-Continue by default in the Apache5 HTTP Client.
+
 # __2.42.25__ __2026-03-31__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes

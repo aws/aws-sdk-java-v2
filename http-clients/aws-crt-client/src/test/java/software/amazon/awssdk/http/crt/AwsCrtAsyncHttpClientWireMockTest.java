@@ -65,15 +65,6 @@ public class AwsCrtAsyncHttpClientWireMockTest {
     }
 
     @Test
-    public void invalidProtocol_shouldThrowException() {
-        AttributeMap attributeMap = AttributeMap.builder()
-                                                .put(PROTOCOL, Protocol.HTTP2)
-                                                .build();
-        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().buildWithDefaults(attributeMap))
-            .isInstanceOf(UnsupportedOperationException.class);
-    }
-
-    @Test
     public void sendRequest_withCollector_shouldCollectMetrics() throws Exception {
 
         try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().maxConcurrency(10).build()) {
