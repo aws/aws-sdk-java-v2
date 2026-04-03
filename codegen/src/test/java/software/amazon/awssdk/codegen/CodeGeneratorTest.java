@@ -226,7 +226,8 @@ public class CodeGeneratorTest {
             .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
                           == ValidationErrorId.REQUEST_URI_NOT_FOUND)
             .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getDetailMessage()
-                          .contains("OperationWithUriMappedParamRequest"));
+                          .equals("Operation referencing input shape 'OperationWithUriMappedParamRequest'"
+                                  + " has no requestUri configured in its HTTP binding."));
     }
 
     private void generateCodeFromC2jModels(C2jModels c2jModels, Path outputDir) {
