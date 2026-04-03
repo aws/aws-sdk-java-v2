@@ -16,35 +16,34 @@
 package software.amazon.awssdk.http.crt.internal.response;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
-import software.amazon.awssdk.crt.http.HttpStream;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * This is the helper class that contains common logic shared between {@link CrtResponseAdapter} and
  * {@link InputStreamAdaptingHttpStreamResponseHandler}.
  *
- * CRT connection will only be closed, i.e., not reused, in one of the following conditions:
- * 1. 5xx server error OR
- * 2. It fails to read the response OR
- * 3. the response stream is closed/aborted by the caller.
  */
 @SdkInternalApi
 public class ResponseHandlerHelper {
 
     private final SdkHttpResponse.Builder responseBuilder;
-    private final HttpClientConnection connection;
-    private boolean connectionClosed;
-    private final Object lock = new Object();
+    private HttpStreamBase stream;
+    private boolean streamClosed;
+    private final Object streamLock = new Object();
 
-    public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder, HttpClientConnection connection) {
+    public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder) {
         this.responseBuilder = responseBuilder;
-        this.connection = connection;
     }
 
-    public void onResponseHeaders(int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+        synchronized (streamLock) {
+            if (this.stream == null) {
+                this.stream = stream;
+            }
+        }
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
@@ -53,36 +52,18 @@ public class ResponseHandlerHelper {
         }
     }
 
-    /**
-     * Release the connection back to the pool so that it can be reused.
-     */
-    public void releaseConnection(HttpStream stream) {
-        synchronized (lock) {
-            if (!connectionClosed) {
-                connectionClosed = true;
-                connection.close();
-                stream.close();
-            }
-        }
-    }
-
-    public void incrementWindow(HttpStream stream, int windowSize) {
-        synchronized (lock) {
-            if (!connectionClosed) {
+    public void incrementWindow(int windowSize) {
+        synchronized (streamLock) {
+            if (!streamClosed && stream != null) {
                 stream.incrementWindow(windowSize);
             }
         }
     }
 
-    /**
-     * Close the connection completely
-     */
-    public void closeConnection(HttpStream stream) {
-        synchronized (lock) {
-            if (!connectionClosed) {
-                connectionClosed = true;
-                connection.shutdown();
-                connection.close();
+    public void closeStream() {
+        synchronized (streamLock) {
+            if (!streamClosed && stream != null) {
+                streamClosed = true;
                 stream.close();
             }
         }

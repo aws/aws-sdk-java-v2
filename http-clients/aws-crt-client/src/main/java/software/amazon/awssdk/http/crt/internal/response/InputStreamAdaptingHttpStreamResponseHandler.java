@@ -22,12 +22,10 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CRT;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
-import software.amazon.awssdk.crt.http.HttpHeaderBlock;
-import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -40,54 +38,45 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * Response handler adaptor for {@link AwsCrtHttpClient}.
  */
 @SdkInternalApi
-public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamResponseHandler {
+public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpStreamBaseResponseHandler {
     private static final Logger log = Logger.loggerFor(InputStreamAdaptingHttpStreamResponseHandler.class);
     private volatile AbortableInputStreamSubscriber inputStreamSubscriber;
     private final SimplePublisher<ByteBuffer> simplePublisher;
-
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
-
     private final SdkHttpFullResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
 
-    public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
-                                                        CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
-        this(crtConn, requestCompletionFuture, new SimplePublisher<>());
+    public InputStreamAdaptingHttpStreamResponseHandler(CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
+        this(requestCompletionFuture, new SimplePublisher<>());
     }
 
     @SdkTestInternalApi
-    public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
-                                                        CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
+    public InputStreamAdaptingHttpStreamResponseHandler(CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
                                                         SimplePublisher<ByteBuffer> simplePublisher) {
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
-        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
         this.simplePublisher = simplePublisher;
+        this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder);
     }
 
     @Override
-    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType,
+    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int blockType,
                                   HttpHeader[] nextHeaders) {
-        if (blockType == HttpHeaderBlock.MAIN.getValue()) {
-            for (HttpHeader h : nextHeaders) {
-                responseBuilder.appendHeader(h.getName(), h.getValue());
-            }
-            responseBuilder.statusCode(responseStatusCode);
-        }
+        responseHandlerHelper.onResponseHeaders(stream, responseStatusCode, blockType, nextHeaders);
 
         // Propagate cancellation
         requestCompletionFuture.exceptionally(t -> {
-            responseHandlerHelper.closeConnection(stream);
+            responseHandlerHelper.closeStream();
             return null;
         });
     }
 
     @Override
-    public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
+    public int onResponseBody(HttpStreamBase stream, byte[] bodyBytesIn) {
         if (inputStreamSubscriber == null) {
             inputStreamSubscriber =
                 AbortableInputStreamSubscriber.builder()
-                                              .doAfterClose(() -> responseHandlerHelper.closeConnection(stream))
+                                              .doAfterClose(() -> responseHandlerHelper.closeStream())
                                               .build();
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
@@ -107,11 +96,11 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
             if (failure != null) {
                 log.debug(() -> "The subscriber failed to receive the data, closing the connection and failing the future",
                           failure);
-                failFutureAndCloseConnection(stream, failure);
+                requestCompletionFuture.completeExceptionally(failure);
+                responseHandlerHelper.closeStream();
                 return;
             }
-            // increment the window upon buffer consumption.
-            responseHandlerHelper.incrementWindow(stream, bodyBytesIn.length);
+            responseHandlerHelper.incrementWindow(bodyBytesIn.length);
         });
 
         // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
@@ -119,34 +108,28 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     }
 
     @Override
-    public void onResponseComplete(HttpStream stream, int errorCode) {
+    public void onResponseComplete(HttpStreamBase stream, int errorCode) {
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
-            onSuccessfulResponseComplete(stream);
+            onSuccessfulResponseComplete();
         } else {
-            onFailedResponseComplete(stream, errorCode);
+            onFailedResponseComplete(errorCode);
         }
     }
 
-    private void failFutureAndCloseConnection(HttpStream stream, Throwable failure) {
-        requestCompletionFuture.completeExceptionally(failure);
-        responseHandlerHelper.closeConnection(stream);
-    }
-
-    private void onFailedResponseComplete(HttpStream stream, int errorCode) {
-        Throwable toThrow =
-            wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
-
+    private void onFailedResponseComplete(int errorCode) {
+        Throwable toThrow = wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
         simplePublisher.error(toThrow);
-        failFutureAndCloseConnection(stream, toThrow);
+        requestCompletionFuture.completeExceptionally(toThrow);
+        responseHandlerHelper.closeStream();
     }
 
-    private void onSuccessfulResponseComplete(HttpStream stream) {
+    private void onSuccessfulResponseComplete() {
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
-        requestCompletionFuture.complete(responseBuilder.build());
 
+        requestCompletionFuture.complete(responseBuilder.build());
         // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        responseHandlerHelper.releaseConnection(stream);
+        responseHandlerHelper.closeStream();
     }
 }

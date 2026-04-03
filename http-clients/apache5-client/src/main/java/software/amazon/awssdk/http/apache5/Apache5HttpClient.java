@@ -454,7 +454,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder localAddress(InetAddress localAddress);
 
         /**
-         * Configure whether the client should send an HTTP expect-continue handshake before each request.
+         * Configure whether the client should send an HTTP expect-continue handshake before each request. By default
+         * this is disabled.
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
