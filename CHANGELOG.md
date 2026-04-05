@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.28__ __2026-04-03__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive released a new features that allows customers to use HLG 2020 as a color space for AV1 video codec.
+
+## __AWS Organizations__
+  - ### Features
+    - Updates close Account quota for member accounts in an Organization.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Added strict parameter to ToolSpecification to allow users to enforce strict JSON schema adherence for tool input schemas.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Guardrails enforcement configuration APIs now support selective guarding controls for system prompts as well as user and assistant messages, along with SDK support for Amazon Bedrock resource policy APIs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Documentation Update for Adds support for three-legged (Authorization Code grant type) OAuth along with predefined MCP tool schema configuration for Amazon Bedrock AgentCore gateway MCP server targets.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added queryDuration, bytesScanned, and userIdentity fields to the QueryInfo response object returned by DescribeQueries. Customers can now view detailed query cost information including who ran the query, how long it took, and the volume of data scanned.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for tagging of Alarm resource type
+
+## __EC2 Image Builder__
+  - ### Features
+    - Updated pagination token validation for ListContainerRecipes API to support maximum size of 65K characters
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adds optional support to retrieve previously generated import and export tokens to simplify import and export functions
+
 # __2.42.27__ __2026-04-02__
 ## __AWS CRT Async HTTP Client__
   - ### Features
