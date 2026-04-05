@@ -177,6 +177,10 @@ public class EqualsAndHashCodeTest {
                                    .usingGetClass();
                 break;
             }
+            case "software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata" : {
+                verifier = verifier.withIgnoredFields("partitionKeyCache", "sortKeyCache");
+                break;
+            }
             case "software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest": {
                 verifier = verifier.withIgnoredFields("ignoreNullsMode");
                 break;
