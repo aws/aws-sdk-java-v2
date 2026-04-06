@@ -1,4 +1,56 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.29__ __2026-04-06__
+## __AWS MediaTailor__
+  - ### Features
+    - This change adds support for Tagging the resource types Programs and Prefetch Schedules
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add business metrics tracking for precomputed checksum headers in requests.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family Connectors now support IPv6 connectivity, enabling outbound connections to remote SFTP or AS2 servers using IPv4-only or dual-stack (IPv4 and IPv6) configurations based on network requirements.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Added 8 batch APIs (BatchGetJob, BatchGetStep, BatchGetTask, BatchGetSession, BatchGetSessionAction, BatchGetWorker, BatchUpdateJob, BatchUpdateTask) for bulk operations. Monitors can now use an Identity Center instance in a different region via the identityCenterRegion parameter.
+
+## __Access Analyzer__
+  - ### Features
+    - Brookie helps customers preview the impact of SCPs before deployment using historical access activity. It evaluates attached policies and proposed policy updates using collected access activity through CloudTrail authorization events and reports where currently allowed access will be denied.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for Fast Snapshot Restore AvailabilityZone Ids in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Migrated to Smithy. No functional changes
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the Asia Pacific (Malaysia) (ap-southeast-5) Region.
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - This release updates API reference documentation for Amazon Location Service Maps APIs to reflect regional restrictions for Grab Maps users
+
+## __Amazon Q Connect__
+  - ### Features
+    - Added optional originRequestId parameter to SendMessageRequest and ListSpans response in Amazon Q in Connect to support request tracing across service boundaries.
+
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Fixed a connection leak that could occur when the thread waiting to acquire a connection from the pool is interrupted. Fixes [#6786](https://github.com/aws/aws-sdk-java-v2/issues/6786).
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Include channel diagnostics in Read/Write timeout error messages to aid debugging.
+
 # __2.42.28__ __2026-04-03__
 ## __AWS Elemental MediaLive__
   - ### Features
