@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.NumberFormat;
+import java.util.Locale;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.Logger;
 
@@ -53,17 +56,19 @@ public final class JmhResultConverter {
 
     /**
      * Read JMH results from {@code inputPath}, convert to the cross-language output
-     * schema,
-     * and write to {@code outputPath}.
+     * schema, and write both JSON and Markdown files using the given output prefix.
      *
-     * @param inputPath  path to the JMH JSON result file
-     * @param outputPath path to write the converted output JSON
+     * <p>Produces two files: {@code <outputPrefix>.json} and {@code <outputPrefix>.md}.
+     *
+     * @param inputPath    path to the JMH JSON result file
+     * @param outputPrefix path prefix for output files (without extension)
      */
-    public static void convert(String inputPath, String outputPath) {
+    public static void convert(String inputPath, String outputPrefix) {
         try {
             JsonNode jmhResults = MAPPER.readTree(new File(inputPath));
             ObjectNode output = buildOutput(jmhResults);
-            MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(outputPath), output);
+            MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(outputPrefix + ".json"), output);
+            writeMarkdown(output, new File(outputPrefix + ".md"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to convert JMH results: " + e.getMessage(), e);
         }
@@ -186,16 +191,93 @@ public final class JmhResultConverter {
     }
 
     /**
+     * Write the converted output as a rendered Markdown table.
+     *
+     * <p>The format matches the cross-language reference, e.g.:
+     * <pre>
+     * # Java
+     *
+     * ## Linux 5.15.0 x86_64 m7g.xlarge
+     *
+     * ```
+     * AWS SDK for Java / 2.x.y
+     * ```
+     * |id|n|mean|p50|p90|p95|p99|std_dev|
+     * |----:|----:|----:|----:|----:|----:|----:|----:|
+     * |awsJson1_0_...|1,234|5,678|...|
+     * </pre>
+     */
+    static void writeMarkdown(ObjectNode output, File file) throws IOException {
+        JsonNode metadata = output.path("metadata");
+        JsonNode benchmarks = output.path("serde_benchmarks");
+
+        NumberFormat nf = NumberFormat.getIntegerInstance(Locale.US);
+
+        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
+            // Header: # <lang>
+            pw.println("# " + metadata.path("lang").asText("Java"));
+            pw.println();
+
+            // Sub-header: ## <os> <instance>
+            String os = metadata.path("os").asText("");
+            String instance = metadata.path("instance").asText("");
+            pw.println("## " + (os + " " + instance).trim());
+            pw.println();
+            pw.println();
+
+            // Software block
+            JsonNode software = metadata.path("software");
+            if (software.isArray() && software.size() > 0) {
+                pw.println("```");
+                for (JsonNode entry : software) {
+                    if (entry.isArray() && entry.size() >= 2) {
+                        pw.println(entry.get(0).asText() + " / " + entry.get(1).asText());
+                    }
+                }
+                pw.println("```");
+            }
+
+            // Table header
+            pw.println("|id|n|mean|p50|p90|p95|p99|std_dev|");
+            pw.println("|----:|----:|----:|----:|----:|----:|----:|----:|");
+
+            // Table rows
+            if (benchmarks.isArray()) {
+                for (JsonNode bm : benchmarks) {
+                    String id = bm.path("id").asText("");
+                    String n = nf.format(Math.round(bm.path("n").asDouble(0)));
+                    String mean = nf.format(Math.round(bm.path("mean").asDouble(0)));
+                    String p50 = nf.format(Math.round(bm.path("p50").asDouble(0)));
+                    String p90 = nf.format(Math.round(bm.path("p90").asDouble(0)));
+                    String p95 = nf.format(Math.round(bm.path("p95").asDouble(0)));
+                    String p99 = nf.format(Math.round(bm.path("p99").asDouble(0)));
+                    String stdDev = nf.format(Math.round(bm.path("std_dev").asDouble(0)));
+                    pw.println("|" + id
+                               + "|" + n
+                               + "|" + mean
+                               + "|" + p50
+                               + "|" + p90
+                               + "|" + p95
+                               + "|" + p99
+                               + "|" + stdDev + "|");
+                }
+            }
+        }
+    }
+
+    /**
      * Main entry point for command-line usage:
      * 
      * <pre>
-     *   java -cp benchmarks.jar software.amazon.awssdk.benchmark.serde.JmhResultConverter &lt;input.json&gt; &lt;output.json&gt;
+     *   java -cp benchmarks.jar software.amazon.awssdk.benchmark.serde.JmhResultConverter &lt;input.json&gt; &lt;output-prefix&gt;
      * </pre>
+     *
+     * <p>Produces {@code <output-prefix>.json} and {@code <output-prefix>.md}.
      */
     public static void main(String[] args) {
         if (args.length != 2) {
-            log.error(() -> "Usage: JmhResultConverter <input.json> <output.json>");
-            throw new IllegalArgumentException("Expected 2 arguments: <input.json> <output.json>");
+            log.error(() -> "Usage: JmhResultConverter <input.json> <output-prefix>");
+            throw new IllegalArgumentException("Expected 2 arguments: <input.json> <output-prefix>");
         }
         convert(args[0], args[1]);
     }

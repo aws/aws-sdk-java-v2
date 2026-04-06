@@ -78,11 +78,15 @@ The benchmarks produce standard JMH output. To convert it to the cross-language
 # 1. Run benchmarks and write JMH results as JSON
 java -jar target/benchmarks.jar ".*serde.*" -rf json -rff results.json
 
-# 2. Convert to cross-language format
+# 2. Convert to cross-language format (produces output.json and output.md)
 java -cp target/benchmarks.jar \
   software.amazon.awssdk.benchmark.serde.JmhResultConverter \
-  results.json output.json
+  results.json output
 ```
+
+This produces two files:
+- `output.json` — the cross-language JSON schema format
+- `output.md` — a rendered Markdown table for easy viewing
 
 The output JSON has this structure:
 
