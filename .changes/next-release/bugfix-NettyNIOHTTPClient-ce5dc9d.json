@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Include channel diagnostics in Read/Write timeout error messages to aid debugging."
+}
