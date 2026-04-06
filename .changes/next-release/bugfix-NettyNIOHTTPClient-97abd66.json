@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Added idle body write detection to proactively close connections when no request body data is written within the write timeout period."
+}

@@ -27,6 +27,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics.measureTimeTaken;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.WRITE_IDLE_STATE_HANDLER_NAME;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -39,6 +40,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.Attribute;
@@ -238,14 +240,14 @@ public final class NettyRequestExecutor {
     }
 
     private void writeRequest(HttpRequest request) {
-        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
-                                                            TimeUnit.MILLISECONDS));
+        addWriteTimeoutHandlers();
         StreamedRequest streamedRequest = new StreamedRequest(request,
                                                               context.executeRequest().requestContentPublisher());
+
         channel.writeAndFlush(streamedRequest)
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
-                   ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
+                   removeWriteTimeoutHandlers();
                    if (wireCall.isSuccess()) {
                        NettyRequestMetrics.publishHttp2StreamMetrics(context.metricCollector(), channel);
 
@@ -279,6 +281,23 @@ public final class NettyRequestExecutor {
 
             channel.read();
         }
+    }
+
+    private void removeWriteTimeoutHandlers() {
+        ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class,
+                                    WriteIdleTimeoutHandler.class);
+        ChannelUtils.removeIfExists(channel.pipeline(), WRITE_IDLE_STATE_HANDLER_NAME);
+    }
+
+    private void addWriteTimeoutHandlers() {
+        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
+                                                            TimeUnit.MILLISECONDS));
+        String httpStreamsName = channel.pipeline().context(HttpStreamsClientHandler.class).name();
+        channel.pipeline().addBefore(httpStreamsName, WRITE_IDLE_STATE_HANDLER_NAME,
+                                     new IdleStateHandler(0, context.configuration().writeTimeoutMillis(), 0,
+                                                          TimeUnit.MILLISECONDS));
+        channel.pipeline().addBefore(httpStreamsName, null,
+                                     new WriteIdleTimeoutHandler());
     }
 
     /**

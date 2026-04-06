@@ -26,6 +26,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.junit.After;
@@ -37,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HandlerRemovingChannelPoolListenerTest {
@@ -71,6 +73,8 @@ public class HandlerRemovingChannelPoolListenerTest {
         pipeline.addLast(ResponseHandler.getInstance());
         pipeline.addLast(new ReadTimeoutHandler(10));
         pipeline.addLast(new WriteTimeoutHandler(10));
+        pipeline.addLast(new IdleStateHandler(0, 10, 0));
+        pipeline.addLast(new WriteIdleTimeoutHandler());
         handler = HandlerRemovingChannelPoolListener.create();
     }
 
@@ -111,6 +115,8 @@ public class HandlerRemovingChannelPoolListenerTest {
         assertThat(pipeline.get(ResponseHandler.class)).isNull();
         assertThat(pipeline.get(ReadTimeoutHandler.class)).isNull();
         assertThat(pipeline.get(WriteTimeoutHandler.class)).isNull();
+        assertThat(pipeline.get(ChannelUtils.WRITE_IDLE_STATE_HANDLER_NAME)).isNull();
+        assertThat(pipeline.get(WriteIdleTimeoutHandler.class)).isNull();
     }
 
     private void assertHandlersNotRemoved() {
@@ -118,5 +124,7 @@ public class HandlerRemovingChannelPoolListenerTest {
         assertThat(pipeline.get(ResponseHandler.class)).isNotNull();
         assertThat(pipeline.get(ReadTimeoutHandler.class)).isNotNull();
         assertThat(pipeline.get(WriteTimeoutHandler.class)).isNotNull();
+        assertThat(pipeline.get(IdleStateHandler.class)).isNotNull();
+        assertThat(pipeline.get(WriteIdleTimeoutHandler.class)).isNotNull();
     }
 }
