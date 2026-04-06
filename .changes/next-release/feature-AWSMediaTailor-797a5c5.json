@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaTailor",
-    "contributor": "",
-    "description": "This change adds support for Tagging the resource types Programs and Prefetch Schedules"
-}
