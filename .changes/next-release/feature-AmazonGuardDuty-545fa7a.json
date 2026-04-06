@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Migrated to Smithy. No functional changes"
+}
