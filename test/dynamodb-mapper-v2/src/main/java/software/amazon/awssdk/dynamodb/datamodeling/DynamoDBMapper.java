@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -86,7 +87,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         }
 
         T object = privateMarshallIntoObject(
-                toParameters(itemAttributes, clazz, tableName, config));
+                toParameters(new HashMap<>(itemAttributes), clazz, tableName, config));
 
         return object;
     }
