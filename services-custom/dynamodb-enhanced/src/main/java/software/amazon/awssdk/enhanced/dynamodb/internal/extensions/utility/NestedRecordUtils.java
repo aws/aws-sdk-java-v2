@@ -21,6 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.Updat
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -65,45 +66,47 @@ public final class NestedRecordUtils {
     public static TableSchema<?> getTableSchemaForListElement(
         TableSchema<?> rootSchema,
         String key,
-        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> nestedSchemaCache) {
-        TableSchema<?> listElementSchema;
+        Map<SchemaLookupKey, Optional<TableSchema<?>>> nestedSchemaCache) {
 
-        if (!key.contains(NESTED_OBJECT_UPDATE)) {
-            Optional<? extends TableSchema<?>> staticSchema = getNestedSchemaCached(nestedSchemaCache, rootSchema, key);
-            if (staticSchema.isPresent()) {
-                listElementSchema = staticSchema.get();
-            } else {
-                AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
-                if (converter == null) {
-                    throw new IllegalArgumentException("No converter found for attribute: " + key);
-                }
-                List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
-                if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
-                    throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
-                }
-                listElementSchema = TableSchema.fromClass(rawClassParameters.get(0).rawClass());
-            }
-        } else {
-            String[] parts = NESTED_OBJECT_PATTERN.split(key);
-            TableSchema<?> currentSchema = rootSchema;
-
-            for (int i = 0; i < parts.length - 1; i++) {
-                Optional<? extends TableSchema<?>> nestedSchema =
-                    getNestedSchemaCached(nestedSchemaCache, currentSchema, parts[i]);
-                if (nestedSchema.isPresent()) {
-                    currentSchema = nestedSchema.get();
-                }
-            }
-
-            String attributeName = parts[parts.length - 1];
-            Optional<? extends TableSchema<?>> nestedListSchema =
-                getNestedSchemaCached(nestedSchemaCache, currentSchema, attributeName);
-
-            listElementSchema = nestedListSchema.orElseThrow(
-                () -> new IllegalArgumentException("Unable to resolve schema for list element at: " + key));
+        if (key.contains(NESTED_OBJECT_UPDATE)) {
+            return listElementSchemaForDelimitedKey(rootSchema, key, nestedSchemaCache);
         }
 
-        return listElementSchema;
+        Optional<TableSchema<?>> staticSchema = getNestedSchemaCached(nestedSchemaCache, rootSchema, key);
+        if (staticSchema.isPresent()) {
+            return staticSchema.get();
+        }
+
+        AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
+        if (converter == null) {
+            throw new IllegalArgumentException("No converter found for attribute: " + key);
+        }
+        List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
+        if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
+            throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
+        }
+        return TableSchema.fromClass(rawClassParameters.get(0).rawClass());
+    }
+
+    private static TableSchema<?> listElementSchemaForDelimitedKey(
+        TableSchema<?> rootSchema,
+        String key,
+        Map<SchemaLookupKey, Optional<TableSchema<?>>> nestedSchemaCache) {
+
+        String[] parts = NESTED_OBJECT_PATTERN.split(key);
+        TableSchema<?> currentSchema = rootSchema;
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            Optional<TableSchema<?>> nestedSchema =
+                getNestedSchemaCached(nestedSchemaCache, currentSchema, parts[i]);
+            if (nestedSchema.isPresent()) {
+                currentSchema = nestedSchema.get();
+            }
+        }
+
+        String attributeName = parts[parts.length - 1];
+        return getNestedSchemaCached(nestedSchemaCache, currentSchema, attributeName)
+            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve schema for list element at: " + key));
     }
 
     /**
@@ -134,7 +137,7 @@ public final class NestedRecordUtils {
     public static Map<String, TableSchema<?>> resolveSchemasPerPath(
         Map<String, AttributeValue> attributesToSet,
         TableSchema<?> rootSchema,
-        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> nestedSchemaCache) {
+        Map<SchemaLookupKey, Optional<TableSchema<?>>> nestedSchemaCache) {
 
         Map<String, TableSchema<?>> schemaMap = new HashMap<>();
         schemaMap.put("", rootSchema);
@@ -154,7 +157,7 @@ public final class NestedRecordUtils {
                 String path = pathBuilder.toString();
 
                 if (!schemaMap.containsKey(path)) {
-                    Optional<? extends TableSchema<?>> nestedSchema =
+                    Optional<TableSchema<?>> nestedSchema =
                         getNestedSchemaCached(nestedSchemaCache, currentSchema, parts[i]);
 
                     if (nestedSchema.isPresent()) {
@@ -197,8 +200,8 @@ public final class NestedRecordUtils {
      * Cached wrapper around {@link software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils#getNestedSchema}. Cache
      * key is based on (parent schema identity, attribute name).
      */
-    public static Optional<? extends TableSchema<?>> getNestedSchemaCached(
-        Map<SchemaLookupKey, Optional<? extends TableSchema<?>>> cache,
+    public static Optional<TableSchema<?>> getNestedSchemaCached(
+        Map<SchemaLookupKey, Optional<TableSchema<?>>> cache,
         TableSchema<?> parentSchema,
         String attributeName) {
 
@@ -215,7 +218,8 @@ public final class NestedRecordUtils {
     public static TableSchema<?> getListElementSchemaCached(
         Map<SchemaLookupKey, TableSchema<?>> cache,
         TableSchema<?> parentSchema,
-        String attributeName) {
+        String attributeName,
+        Map<SchemaLookupKey, Optional<TableSchema<?>>> nestedSchemaCache) {
 
         SchemaLookupKey key = new SchemaLookupKey(parentSchema, attributeName);
 
@@ -223,7 +227,7 @@ public final class NestedRecordUtils {
             return cache.get(key);
         }
 
-        TableSchema<?> schema = getTableSchemaForListElement(parentSchema, attributeName, new HashMap<>());
+        TableSchema<?> schema = getTableSchemaForListElement(parentSchema, attributeName, nestedSchemaCache);
         cache.put(key, schema);
         return schema;
     }
@@ -235,29 +239,24 @@ public final class NestedRecordUtils {
     public static final class SchemaLookupKey {
         private final TableSchema<?> parentSchema;
         private final String attributeName;
-        private final int hash;
 
         public SchemaLookupKey(TableSchema<?> parentSchema, String attributeName) {
             this.parentSchema = parentSchema;
             this.attributeName = attributeName;
-            this.hash = 31 * System.identityHashCode(parentSchema) + attributeName.hashCode();
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof SchemaLookupKey)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            SchemaLookupKey other = (SchemaLookupKey) o;
-            return this.parentSchema == other.parentSchema && this.attributeName.equals(other.attributeName);
+            SchemaLookupKey that = (SchemaLookupKey) o;
+            return Objects.equals(parentSchema, that.parentSchema) && Objects.equals(attributeName, that.attributeName);
         }
 
         @Override
         public int hashCode() {
-            return hash;
+            return 31 * System.identityHashCode(parentSchema) + (attributeName == null ? 0 : attributeName.hashCode());
         }
     }
 }

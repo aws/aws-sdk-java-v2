@@ -58,7 +58,7 @@ public class NestedRecordUtilsTest {
     public void getListElementSchemaCached_cacheNotPopulated_populatesCacheAndReturnsSchema() {
         TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
         Map<NestedRecordUtils.SchemaLookupKey, TableSchema<?>> cache = new HashMap<>();
-        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children");
+        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children", new HashMap<>());
 
         assertNotNull(result);
         assertThat(result.itemType().rawClass()).isEqualTo(ChildRecord.class);
@@ -79,7 +79,7 @@ public class NestedRecordUtilsTest {
         NestedRecordUtils.SchemaLookupKey key = new NestedRecordUtils.SchemaLookupKey(rootSchema, "children");
         cache.put(key, cachedSchema);
 
-        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children");
+        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(cache, rootSchema, "children", new HashMap<>());
         assertThat(result).isSameAs(cachedSchema);
         assertThat(cache.get(key)).isSameAs(cachedSchema);
     }

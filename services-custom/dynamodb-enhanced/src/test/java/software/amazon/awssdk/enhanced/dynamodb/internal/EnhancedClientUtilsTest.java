@@ -130,8 +130,7 @@ public class EnhancedClientUtilsTest {
     public void getNestedSchema_withNullConverter_returnsEmpty() {
         when(mockSchema.converterForAttribute("nonExistentAttribute")).thenReturn(null);
 
-        Optional<? extends TableSchema<?>> result =
-            EnhancedClientUtils.getNestedSchema(mockSchema, "nonExistentAttribute");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "nonExistentAttribute");
 
         assertThat(result).isEmpty();
     }
@@ -161,7 +160,7 @@ public class EnhancedClientUtilsTest {
     public void getNestedSchema_withWhitespaceAttributeName_doesNotThrow() {
         when(mockSchema.converterForAttribute("   ")).thenReturn(null);
 
-        Optional<? extends TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "   ");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "   ");
 
         assertThat(result).isEmpty();
     }
@@ -171,7 +170,7 @@ public class EnhancedClientUtilsTest {
         when(mockSchema.converterForAttribute("attributeWithNullType")).thenReturn(mockConverter);
         when(mockConverter.type()).thenReturn(null);
 
-        Optional<? extends TableSchema<?>> result =
+        Optional<TableSchema<?>> result =
             EnhancedClientUtils.getNestedSchema(mockSchema, "attributeWithNullType");
 
         assertThat(result).isEmpty();
@@ -185,7 +184,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(parameters);
         when(mockParameterType.tableSchema()).thenReturn(Optional.of(mockNestedSchema));
 
-        Optional<? extends TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "listAttribute");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "listAttribute");
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(mockNestedSchema);
@@ -198,8 +197,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(Collections.emptyList());
         when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(mockNestedSchema));
 
-        Optional<? extends TableSchema<?>> result =
-            EnhancedClientUtils.getNestedSchema(mockSchema, "simpleAttribute");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "simpleAttribute");
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(mockNestedSchema);
@@ -212,8 +210,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(null);
         when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(mockNestedSchema));
 
-        Optional<? extends TableSchema<?>> result =
-            EnhancedClientUtils.getNestedSchema(mockSchema, "simpleAttribute");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "simpleAttribute");
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(mockNestedSchema);
@@ -226,7 +223,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(Collections.emptyList());
         when(mockEnhancedType.tableSchema()).thenReturn(Optional.empty());
 
-        Optional<? extends TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "attributeWithoutSchema");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "attributeWithoutSchema");
 
         assertThat(result).isEmpty();
     }
@@ -239,8 +236,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(parameters);
         when(mockParameterType.tableSchema()).thenReturn(Optional.empty());
 
-        Optional<? extends TableSchema<?>> result =
-            EnhancedClientUtils.getNestedSchema(mockSchema, "listAttributeNoSchema");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "listAttributeNoSchema");
 
         assertThat(result).isEmpty();
     }
@@ -252,7 +248,7 @@ public class EnhancedClientUtilsTest {
         when(mockEnhancedType.rawClassParameters()).thenReturn(Collections.emptyList());
         when(mockEnhancedType.tableSchema()).thenReturn(Optional.of(mockNestedSchema));
 
-        Optional<? extends TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "validAttribute");
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "validAttribute");
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(mockNestedSchema);

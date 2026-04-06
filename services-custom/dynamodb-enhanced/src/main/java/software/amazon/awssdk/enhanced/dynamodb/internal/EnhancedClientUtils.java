@@ -221,7 +221,7 @@ public final class EnhancedClientUtils {
      * @param attributeName the attribute name; must not be null or empty
      * @return the nested schema, or empty if unavailable
      */
-    public static Optional<? extends TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, CharSequence attributeName) {
+    public static Optional<TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, String attributeName) {
         if (parentSchema == null) {
             throw new IllegalArgumentException("Parent schema cannot be null.");
         }
@@ -244,6 +244,6 @@ public final class EnhancedClientUtils {
             enhancedType = rawClassParameters.get(0);
         }
 
-        return enhancedType.tableSchema();
+        return enhancedType.tableSchema().flatMap(Optional::of);
     }
 }
