@@ -1,0 +1,24 @@
+{
+  "Attributes": {
+    "pk": {"S": "benchmark-key"},
+    "sk": {"N": "100"},
+    "stringField": {"S": "test-value"},
+    "numberField": {"N": "123.456"},
+    "binaryField": {"B": "aGVsbG8gd29ybGQ="},
+    "stringSetField": {"SS": ["value1", "value2", "value3"]},
+    "numberSetField": {"NS": ["1.1", "2.2", "3.3"]},
+    "binarySetField": {"BS": ["YmluMQ==", "YmluMg=="]},
+    "mapField": {"M": {
+      "nested": {"S": "nested-value"},
+      "deepNested": {"M": {"level2": {"N": "999"}}}
+    }},
+    "listField": {"L": [
+      {"S": "item1"},
+      {"N": "42"},
+      {"BOOL": true},
+      {"NULL": true}
+    ]},
+    "nullField": {"NULL": true},
+    "boolField": {"BOOL": false}
+  }
+}

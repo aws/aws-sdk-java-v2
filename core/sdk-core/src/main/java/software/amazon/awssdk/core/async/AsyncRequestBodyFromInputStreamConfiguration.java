@@ -137,6 +137,10 @@ public final class AsyncRequestBodyFromInputStreamConfiguration
         /**
          * Configures the {@link ExecutorService} to perform the blocking data reads.
          *
+         * <p>It is recommended to have a dedicated executor for SDK input stream requests and have as many threads as the
+         * number of concurrent requests sharing it. Using an undersized or shared executor may lead to unrecoverable failures.
+         * See {@link AsyncRequestBody#fromInputStream(InputStream, Long, ExecutorService)} for details.
+         *
          * @param executor the executor
          * @return This object for method chaining.
          */

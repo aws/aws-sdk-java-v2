@@ -17,6 +17,8 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 
 import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toAbortMultipartUploadRequest;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.REPORT_PROGRESS_IN_SINGLE_CHUNK;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -152,10 +154,28 @@ public final class MultipartUploadHelper {
     void uploadInOneChunk(PutObjectRequest putObjectRequest,
                           AsyncRequestBody asyncRequestBody,
                           CompletableFuture<PutObjectResponse> returnFuture) {
+        boolean reportProgress = putObjectRequest.overrideConfiguration()
+                                                 .map(c -> c.executionAttributes()
+                                                            .getAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK))
+                                                 .orElse(Boolean.FALSE);
+
         CompletableFuture<PutObjectResponse> putObjectResponseCompletableFuture = s3AsyncClient.putObject(putObjectRequest,
                                                                                                           asyncRequestBody);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, putObjectResponseCompletableFuture);
-        CompletableFutureUtils.forwardResultTo(putObjectResponseCompletableFuture, returnFuture);
+
+        if (reportProgress) {
+            PublisherListener<Long> progressListener = putObjectRequest.overrideConfiguration()
+                                                                       .map(c -> c.executionAttributes()
+                                                                                  .getAttribute(JAVA_PROGRESS_LISTENER))
+                                                                       .orElseGet(PublisherListener::noOp);
+            putObjectResponseCompletableFuture.thenAccept(response -> {
+                asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
+                progressListener.subscriberOnComplete();
+                returnFuture.complete(response);
+            });
+        } else {
+            CompletableFutureUtils.forwardResultTo(putObjectResponseCompletableFuture, returnFuture);
+        }
     }
 
     static SdkClientException contentLengthMissingForPart(int currentPartNum) {
