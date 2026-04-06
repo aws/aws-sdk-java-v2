@@ -87,7 +87,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         }
 
         T object = privateMarshallIntoObject(
-                toParameters(new HashMap<>(itemAttributes), clazz, tableName, config));
+                toParameters(itemAttributes, clazz, tableName, config));
 
         return object;
     }
@@ -154,7 +154,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                 final String tableName) {
 
             this.model = model;
-            this.attributeValues = Collections.unmodifiableMap(attributeValues);
+            this.attributeValues = attributeValues;
             this.partialUpdate = partialUpdate;
             this.modelClass = modelClass;
             this.mapperConfig = mapperConfig;
