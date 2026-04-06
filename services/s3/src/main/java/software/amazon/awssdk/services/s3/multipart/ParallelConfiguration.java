@@ -22,8 +22,13 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Class that holds configuration properties related to multipart operations for a {@link S3AsyncClient}, related specifically
- * to non-linear, parallel operations, that is, when the {@link AsyncResponseTransformer} supports non-serial split.
+ * Configuration for parallel multipart operations performed by a {@link S3AsyncClient}.
+ *
+ * <p>For uploads (putObject), this configuration applies to all multipart uploads regardless of whether the content
+ * length is known.
+ *
+ * <p>For downloads (getObject), this configuration applies only when the {@link AsyncResponseTransformer} supports
+ * parallel split.
  */
 @SdkPublicApi
 public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfiguration.Builder, ParallelConfiguration> {
@@ -39,8 +44,15 @@ public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfigur
     }
 
     /**
-     * The maximum number of concurrent GetObject the that are allowed for multipart download.
-     * @return The value for the maximum number of concurrent GetObject the that are allowed for multipart download.
+     * The maximum number of concurrent part requests that are allowed for multipart operations, including both multipart
+     * download (GetObject) and multipart upload (PutObject). This limits the number of parts that can be in flight at any
+     * given time, preventing the client from overwhelming the HTTP connection pool when transferring large objects.
+     *
+     * <p>For getObject it applies only when the {@link AsyncResponseTransformer} supports parallel split.
+     *
+     * <p>Defaults to 50.
+     *
+     * @return The value for the maximum number of concurrent part requests.
      */
     public Integer maxInFlightParts() {
         return maxInFlightParts;

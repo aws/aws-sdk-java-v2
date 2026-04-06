@@ -25,8 +25,6 @@ import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,18 +34,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseHttpStreamResponseHandlerTest {
-    @Mock HttpClientConnection crtConn;
     CompletableFuture requestFuture;
 
     @Mock
@@ -56,11 +51,11 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     @Mock
     SimplePublisher<ByteBuffer> simplePublisher;
 
-    HttpStreamResponseHandler responseHandler;
+    HttpStreamBaseResponseHandler responseHandler;
 
-    abstract HttpStreamResponseHandler responseHandler();
+    abstract HttpStreamBaseResponseHandler responseHandler();
 
-    abstract HttpStreamResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher);
+    abstract HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher);
 
     @BeforeEach
     public void setUp() {
@@ -69,7 +64,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void serverError_shouldShutdownConnection() {
+    void serverError_shouldCloseStream() {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
@@ -77,13 +72,12 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseHeadersDone(httpStream, 0);
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).close();
         verify(httpStream).close();
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 200, 400, 202, 403 })
-    void nonServerError_shouldNotShutdownConnection(int statusCode) {
+    void nonServerError_shouldCloseStream(int statusCode) {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, statusCode, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
@@ -92,21 +86,17 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseComplete(httpStream, 0);
 
         requestFuture.join();
-        verify(crtConn, never()).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
     }
 
     @Test
-    void failedToGetResponse_shouldShutdownConnection() {
+    void failedToGetResponse_shouldCloseStream() {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
 
         responseHandler.onResponseComplete(httpStream, 1);
         assertThatThrownBy(() -> requestFuture.join()).hasRootCauseInstanceOf(HttpException.class);
-        verify(crtConn).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
     }
 
@@ -120,18 +110,17 @@ public abstract class BaseHttpStreamResponseHandlerTest {
 
         responseHandler.onResponseComplete(httpStream, 0);
         requestFuture.join();
-        verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
     @Test
-    void publisherWritesFutureFails_shouldShutdownConnection() {
+    void publisherWritesFutureFails_shouldCloseStream() {
         SimplePublisher<ByteBuffer> simplePublisher = Mockito.mock(SimplePublisher.class);
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
 
-        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+        HttpStreamBaseResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
         HttpHeader[] httpHeaders = getHttpHeaders();
 
         handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
@@ -148,19 +137,17 @@ public abstract class BaseHttpStreamResponseHandlerTest {
             // we don't verify here because it behaves differently in async and sync
         }
 
-        verify(crtConn).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
     @Test
-    void publisherWritesFutureCompletesAfterConnectionClosed_shouldNotInvokeIncrementWindow() {
+    void publisherWritesFutureCompletesAfterStreamClosed_shouldNotInvokeIncrementWindow() {
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
         when(simplePublisher.complete()).thenReturn(future);
 
-        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+        HttpStreamBaseResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
 
 
         HttpHeader[] httpHeaders = getHttpHeaders();
@@ -174,19 +161,17 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         future.complete(null);
 
         requestFuture.join();
-        verify(crtConn, never()).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
     @Test
-    void publisherWritesFutureCompletesBeforeConnectionClosed_shouldInvokeIncrementWindow() {
+    void publisherWritesFutureCompletesBeforeStreamClosed_shouldInvokeIncrementWindow() {
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
         when(simplePublisher.complete()).thenReturn(future);
 
-        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+        HttpStreamBaseResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
 
 
         HttpHeader[] httpHeaders = getHttpHeaders();
@@ -201,9 +186,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         handler.onResponseComplete(httpStream, 0);
         requestFuture.join();
         verify(httpStream).incrementWindow(anyInt());
-
-        verify(crtConn, never()).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
     }
 

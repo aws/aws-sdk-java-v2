@@ -21,16 +21,17 @@ import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTE
 
 import java.time.Duration;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 
 class AwsCrtConfigurationUtilsTest {
     @ParameterizedTest
@@ -100,6 +101,33 @@ class AwsCrtConfigurationUtilsTest {
                 duration1Minute,
                 expectedAll
             )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("defaultConnectionHealthConfigurationCases")
+    void defaultConnectionHealthConfiguration_shouldUseMaxOfReadWriteTimeout(Duration readTimeout,
+                                                                             Duration writeTimeout,
+                                                                             int expectedInterval) {
+        AttributeMap config = AttributeMap.builder()
+                                          .put(SdkHttpConfigurationOption.READ_TIMEOUT, readTimeout)
+                                          .put(SdkHttpConfigurationOption.WRITE_TIMEOUT, writeTimeout)
+                                          .build();
+
+        HttpMonitoringOptions result = AwsCrtConfigurationUtils.defaultConnectionHealthConfiguration(config);
+
+        assertThat(result.getMinThroughputBytesPerSecond()).isEqualTo(1);
+        assertThat(result.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(expectedInterval);
+    }
+
+    private static Stream<Arguments> defaultConnectionHealthConfigurationCases() {
+        return Stream.of(
+            Arguments.of(Duration.ofSeconds(30), Duration.ofSeconds(30), 30),
+            Arguments.of(Duration.ofSeconds(60), Duration.ofSeconds(10), 60),
+            Arguments.of(Duration.ofSeconds(10), Duration.ofSeconds(45), 45),
+            // overflow: value exceeding Integer.MAX_VALUE should saturate
+            Arguments.of(Duration.ofSeconds((long) Integer.MAX_VALUE + 1), Duration.ofSeconds(1), Integer.MAX_VALUE),
+            Arguments.of(Duration.ofSeconds(1), Duration.ofSeconds((long) Integer.MAX_VALUE + 1), Integer.MAX_VALUE)
         );
     }
 

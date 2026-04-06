@@ -45,7 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *     }
  *
  *     public AbstractBean getInnerBean2() {
- *         return innerBean;
+ *         return innerBean2;
  *     }
  *     public void setInnerBean2(AbstractBean innerBean) {
  *         this.innerBean2 = innerBean;
@@ -62,11 +62,11 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
  *
- * // innerBean1 w/ @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
- * assertThat(itemMap.get("innerBean1").m(), empty());
+ * // innerBean1 with @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
+ * assertThat(itemMap.get("innerBean1").m(), anEmptyMap());
  *
- * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULL attribute.
- * assertThat(nestedBean.getInnerBean2(), hasEntry("attribute", nullAttributeValue()));
+ * // innerBean2 without @DynamoDbIgnoreNulls has a NULL attribute.
+ * assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute", nullAttributeValue()));
  * }
  */
 @SdkPublicApi
