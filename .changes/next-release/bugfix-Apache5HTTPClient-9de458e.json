@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache 5 HTTP Client",
-    "contributor": "",
-    "description": "Fixed a connection leak that could occur when the thread waiting to acquire a connection from the pool is interrupted. Fixes [#6786](https://github.com/aws/aws-sdk-java-v2/issues/6786)."
-}
