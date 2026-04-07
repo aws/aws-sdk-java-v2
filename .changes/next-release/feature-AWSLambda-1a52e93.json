@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Launching Lambda integration with S3 Files as a new file system configuration."
+}
