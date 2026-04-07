@@ -18,9 +18,12 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
 
 @SdkInternalApi
@@ -59,6 +62,16 @@ public final class AwsCrtConfigurationUtils {
             return TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
         }
         return TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
+    }
+
+    public static HttpMonitoringOptions defaultConnectionHealthConfiguration(AttributeMap config) {
+        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
+        httpMonitoringOptions.setMinThroughputBytesPerSecond(1);
+        long readTimeout = config.get(SdkHttpConfigurationOption.READ_TIMEOUT).getSeconds();
+        long writeTimeout = config.get(SdkHttpConfigurationOption.WRITE_TIMEOUT).getSeconds();
+        int maxTimeout = NumericUtils.saturatedCast(Math.max(readTimeout, writeTimeout));
+        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(maxTimeout);
+        return httpMonitoringOptions;
     }
 
 }

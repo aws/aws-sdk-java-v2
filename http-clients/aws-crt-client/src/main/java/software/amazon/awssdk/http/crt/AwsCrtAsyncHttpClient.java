@@ -22,7 +22,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -91,15 +92,15 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(asyncRequest.request()))) {
-            CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                                   .crtConnPool(crtConnPool)
-                                                                   .readBufferSize(this.readBufferSize)
-                                                                   .request(asyncRequest)
-                                                                   .build();
+        HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
+        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
+                                                               .streamManager(streamManager)
+                                                               .readBufferSize(this.readBufferSize)
+                                                               .request(asyncRequest)
+                                                               .protocol(this.protocol)
+                                                               .build();
 
-            return new CrtAsyncRequestExecutor().execute(context);
-        }
+        return new CrtAsyncRequestExecutor().execute(context);
     }
 
     /**
@@ -154,8 +155,10 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * then the connection is considered unhealthy and will be shut down.
          *
          * <p>
-         * By default, monitoring options are disabled. You can enable {@code healthChecks} by providing this configuration
-         * and specifying the options for monitoring for the connection manager.
+         * If not explicitly configured, a default health configuration is applied with a minimum throughput of 1 byte per
+         * second and a throughput failure interval of 30 seconds. The failure interval is derived from the read/write timeout
+         * settings and will change if those are overridden by service specific defaults.
+         *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
@@ -223,9 +226,17 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
                                               tcpKeepAliveConfigurationBuilder);
 
         /**
-         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS)
-         * network encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum
-         * cipher suites are not supported on the platform, the SDK will use the default TLS cipher suites.
+         * Configure the HTTP protocol version to use for connections.
+         *
+         * @param protocol the HTTP protocol version
+         * @return The builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder protocol(Protocol protocol);
+
+        /**
+         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
+         * encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum cipher suites are
+         * not supported on the platform, the SDK will use the default TLS cipher suites.
          *
          * <p>
          * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum
@@ -248,6 +259,13 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
     private static final class DefaultAsyncBuilder
         extends AwsCrtClientBuilderBase<AwsCrtAsyncHttpClient.Builder> implements Builder {
 
+
+        @Override
+        public Builder protocol(Protocol protocol) {
+            getAttributeMap().put(SdkHttpConfigurationOption.PROTOCOL, protocol);
+            return this;
+        }
+
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
@@ -260,5 +278,6 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
                                                                     .merge(serviceDefaults)
                                                                     .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
+
     }
 }

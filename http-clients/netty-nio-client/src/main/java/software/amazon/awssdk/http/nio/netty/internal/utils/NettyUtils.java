@@ -78,14 +78,23 @@ public final class NettyUtils {
     public static Throwable decorateException(Channel channel, Throwable originalCause) {
         if (isAcquireTimeoutException(originalCause)) {
             return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
-        } else if (isTooManyPendingAcquiresException(originalCause)) {
+        }
+
+        if (isTooManyPendingAcquiresException(originalCause)) {
             return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
-        } else if (originalCause instanceof ReadTimeoutException) {
-            return new IOException("Read timed out", originalCause);
-        } else if (originalCause instanceof WriteTimeoutException) {
-            return new IOException("Write timed out", originalCause);
-        } else if (originalCause instanceof ClosedChannelException || isConnectionResetException(originalCause)) {
-            return new IOException(NettyUtils.closedChannelMessage(channel), originalCause);
+        }
+
+        if (originalCause instanceof ReadTimeoutException) {
+            return new IOException(errorMessageWithChannelDiagnostics(channel, "Read timed out"),
+                                   originalCause);
+        }
+
+        if (originalCause instanceof WriteTimeoutException) {
+            return new IOException(errorMessageWithChannelDiagnostics(channel, "Write timed out"), originalCause);
+        }
+
+        if (originalCause instanceof ClosedChannelException || isConnectionResetException(originalCause)) {
+            return new IOException(closedChannelMessage(channel), originalCause);
         }
 
         return originalCause;
@@ -152,7 +161,7 @@ public final class NettyUtils {
                + "AWS, or by increasing the number of hosts sending requests.";
     }
 
-    public static String closedChannelMessage(Channel channel) {
+    public static String errorMessageWithChannelDiagnostics(Channel channel, String message) {
         ChannelDiagnostics channelDiagnostics = channel != null && channel.attr(CHANNEL_DIAGNOSTICS) != null ?
                                                 channel.attr(CHANNEL_DIAGNOSTICS).get() : null;
         ChannelDiagnostics parentChannelDiagnostics = channel != null && channel.parent() != null && 
@@ -160,7 +169,7 @@ public final class NettyUtils {
                                                       channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
 
         StringBuilder error = new StringBuilder();
-        error.append(CLOSED_CHANNEL_ERROR_MESSAGE);
+        error.append(message);
 
         if (channelDiagnostics != null) {
             error.append(" Channel Information: ").append(channelDiagnostics);
@@ -171,6 +180,10 @@ public final class NettyUtils {
         }
 
         return error.toString();
+    }
+
+    public static String closedChannelMessage(Channel channel) {
+        return errorMessageWithChannelDiagnostics(channel, CLOSED_CHANNEL_ERROR_MESSAGE);
     }
 
     /**
