@@ -74,7 +74,7 @@ public class HandlerRemovingChannelPoolListenerTest {
         pipeline.addLast(new ReadTimeoutHandler(10));
         pipeline.addLast(new WriteTimeoutHandler(10));
         pipeline.addLast(new IdleStateHandler(0, 10, 0));
-        pipeline.addLast(new WriteIdleTimeoutHandler());
+        pipeline.addLast(new WriteIdleTimeoutHandler(10000));
         handler = HandlerRemovingChannelPoolListener.create();
     }
 

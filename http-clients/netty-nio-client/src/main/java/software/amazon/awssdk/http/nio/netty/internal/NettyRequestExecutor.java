@@ -297,7 +297,7 @@ public final class NettyRequestExecutor {
                                      new IdleStateHandler(0, context.configuration().writeTimeoutMillis(), 0,
                                                           TimeUnit.MILLISECONDS));
         channel.pipeline().addBefore(httpStreamsName, null,
-                                     new WriteIdleTimeoutHandler());
+                                     new WriteIdleTimeoutHandler(context.configuration().writeTimeoutMillis()));
     }
 
     /**

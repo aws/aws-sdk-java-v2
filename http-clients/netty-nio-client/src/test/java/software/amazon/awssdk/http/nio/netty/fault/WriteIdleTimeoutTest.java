@@ -106,7 +106,7 @@ public class WriteIdleTimeoutTest {
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
             .hasCauseInstanceOf(IOException.class)
-            .hasStackTraceContaining("No data was written to the request body");
+            .hasStackTraceContaining("No data was written to the request body within 500ms");
     }
 
     private CompletableFuture<Void> sendRequest(SdkHttpFullRequest request, SdkHttpContentPublisher contentPublisher) {

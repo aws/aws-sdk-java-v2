@@ -28,19 +28,19 @@ class WriteIdleTimeoutHandlerTest {
 
     @Test
     void writerIdleEvent_shouldFireExceptionAndCloseChannel() {
-        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler());
+        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler(30000));
 
         channel.pipeline().fireUserEventTriggered(IdleStateEvent.WRITER_IDLE_STATE_EVENT);
 
         assertThat(channel.isOpen()).isFalse();
         assertThatThrownBy(channel::checkException)
             .isInstanceOf(IOException.class)
-            .hasMessageContaining("No data was written to the request body");
+            .hasMessageContaining("No data was written to the request body within 30000ms");
     }
 
     @Test
     void readerIdleEvent_shouldBeIgnored() {
-        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler());
+        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler(30000));
 
         channel.pipeline().fireUserEventTriggered(IdleStateEvent.READER_IDLE_STATE_EVENT);
 
@@ -49,7 +49,7 @@ class WriteIdleTimeoutHandlerTest {
 
     @Test
     void duplicateWriterIdleEvent_shouldNotFireTwice() {
-        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler());
+        EmbeddedChannel channel = new EmbeddedChannel(new WriteIdleTimeoutHandler(30000));
 
         channel.pipeline().fireUserEventTriggered(IdleStateEvent.WRITER_IDLE_STATE_EVENT);
 

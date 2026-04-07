@@ -29,7 +29,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class WriteIdleTimeoutHandler extends ChannelDuplexHandler {
+    private final long timeoutMillis;
     private boolean closed;
+
+    public WriteIdleTimeoutHandler(long timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+    }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -42,21 +47,15 @@ public final class WriteIdleTimeoutHandler extends ChannelDuplexHandler {
         super.userEventTriggered(ctx, evt);
     }
 
-    private void writeTimeout(ChannelHandlerContext ctx) throws Exception {
+    private void writeTimeout(ChannelHandlerContext ctx) {
         if (!closed) {
-            IOException exception = new IOException(
-                errorMessageWithChannelDiagnostics(ctx.channel(), "No data was written to the request body for the configured "
-                                                                  + "write timeout duration. "
-                                                                  + "This can occur if the request body publisher is slow to "
-                                                                  + "produce data, "
-                                                                  + "for example when using AsyncRequestBody.fromInputStream() "
-                                                                  + "with an executor "
-                                                                  + "that has fewer threads than concurrent requests. "
-                                                                  + "If applicable, consider increasing the executor's thread "
-                                                                  + "pool size or "
-                                                                  + "investigating what is preventing the request body from "
-                                                                  + "being written."));
-            ctx.fireExceptionCaught(exception);
+            String message = String.format("No data was written to the request body within %dms. "
+                                           + "This can occur if the request body publisher is not producing data, "
+                                           + "for example when using AsyncRequestBody.fromInputStream() with an "
+                                           + "executor that has fewer threads than concurrent requests. "
+                                           + "Verify that the request body publisher is sending data or "
+                                           + "investigate why it may be blocked.", timeoutMillis);
+            ctx.fireExceptionCaught(new IOException(errorMessageWithChannelDiagnostics(ctx.channel(), message)));
             ctx.close();
             closed = true;
         }
