@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "contributor": "",
-    "description": "Allow IAM role ARNs with IAM Paths for \"SecretAccessRoleArn\" field in \"CustomSecretConfig\""
-}

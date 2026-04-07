@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Update Configurations and registerS3AccessGrantLocation as public attributes for cfn"
-}
