@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "The voice enhancement mode used by the agent can now be viewed on the contact record via the DescribeContact api."
+}
