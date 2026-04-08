@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -189,6 +190,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<EndpointResolver> ENDPOINT_RESOLVER =
         new ExecutionAttribute<>("EndpointResolver");
+
+    /**
+     * The HTTP request URI captured before modifyHttpRequest interceptors run.
+     * Used by EndpointResolutionStage to detect if a customer interceptor modified the URL.
+     */
+    public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestUriBeforeModify");
 
     /**
      * The selected auth scheme for a request.
