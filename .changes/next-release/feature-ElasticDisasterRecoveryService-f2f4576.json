@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Disaster Recovery Service",
+    "contributor": "",
+    "description": "This changes adds support for modifying the replication configuration to support data replication using IPv6."
+}
