@@ -32,6 +32,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
@@ -87,8 +88,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -387,6 +386,86 @@ public class DefaultClientBuilderTest {
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
                 .isInstanceOf(SdkDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
+    }
+
+    @Test
+    public void noHttpClientProvided_httpClientConfigTypeIsDefault() {
+        TestClient client = testClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
+    }
+
+    @Test
+    public void noAsyncHttpClientProvided_httpClientConfigTypeIsDefault() {
+        TestAsyncClient client = testAsyncClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
+    }
+
+    @Test
+    public void explicitSyncHttpClientProvided_httpClientConfigTypeIsExplicit() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("e");
+    }
+
+    @Test
+    public void explicitSyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicit() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("e");
+    }
+
+    @Test
+    public void explicitAsyncHttpClientProvided_httpClientConfigTypeIsExplicit() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("e");
+    }
+
+    @Test
+    public void explicitAsyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicit() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("e");
+    }
+
+    @Test
+    public void syncHttpClientSetThenCleared_httpClientConfigTypeIsDefault() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .httpClient((SdkHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
+    }
+
+    @Test
+    public void syncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsDefault() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .httpClientBuilder((SdkHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
+    }
+
+    @Test
+    public void asyncHttpClientSetThenCleared_httpClientConfigTypeIsDefault() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .httpClient((SdkAsyncHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
+    }
+
+    @Test
+    public void asyncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsDefault() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE)).isEqualTo("d");
     }
 
     @Test

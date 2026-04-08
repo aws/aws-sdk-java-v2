@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add HTTP client configuration type metadata to the User-Agent header, tracking whether the HTTP client was auto-detected from the classpath or explicitly configured by the user."
+}

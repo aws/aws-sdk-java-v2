@@ -510,6 +510,128 @@ public class AwsExecutionContextBuilderTest {
         );
     }
 
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withDefaultHttpClient_addsHcMetadata() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("hc").value("d").build())
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClient_addsHcMetadata() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("hc").value("e").build())
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withRequestBodyAndHcMetadata_addsBoth() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withRequestBody(RequestBody.fromFile(testFile));
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Arrays.asList(
+                AdditionalMetadata.builder().name("rb").value("f").build(),
+                AdditionalMetadata.builder().name("hc").value("d").build()
+            )
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withAsyncRequestBodyAndHcMetadata_addsBoth() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withAsyncRequestBody(AsyncRequestBody.fromFile(testFile));
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Arrays.asList(
+                AdditionalMetadata.builder().name("rb").value("f").build(),
+                AdditionalMetadata.builder().name("hc").value("e").build()
+            )
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withResponseTransformerAndHcMetadata_addsBoth() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withResponseTransformer(ResponseTransformer.toFile(testFile));
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Arrays.asList(
+                AdditionalMetadata.builder().name("rt").value("f").build(),
+                AdditionalMetadata.builder().name("hc").value("d").build()
+            )
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withAsyncResponseTransformerAndHcMetadata_addsBoth() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withAsyncResponseTransformer(AsyncResponseTransformer.toFile(testFile));
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Arrays.asList(
+                AdditionalMetadata.builder().name("rt").value("f").build(),
+                AdditionalMetadata.builder().name("hc").value("e").build()
+            )
+        );
+    }
+
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
         return clientExecutionParams(sdkRequest);
     }

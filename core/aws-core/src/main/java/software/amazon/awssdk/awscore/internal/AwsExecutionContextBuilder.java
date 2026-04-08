@@ -171,6 +171,7 @@ public final class AwsExecutionContextBuilder {
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
         putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
+        putHttpClientConfigTypeMetadata(executionAttributes, clientConfig);
 
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
@@ -183,53 +184,54 @@ public final class AwsExecutionContextBuilder {
 
     private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(
         ExecutionAttributes executionAttributes, ClientExecutionParams<InputT, OutputT> executionParams) {
-        List<AdditionalMetadata> userAgentMetadata = new ArrayList<>();
 
         if (executionParams.getRequestBody() != null) {
-            userAgentMetadata.add(
-                AdditionalMetadata
-                    .builder()
-                    .name("rb")
-                    .value(ContentStreamProvider.ProviderType.shortValueFromName(
-                        executionParams.getRequestBody().contentStreamProvider().name())
-                    )
-                    .build());
+            addUserAgentMetadata(executionAttributes, "rb",
+                ContentStreamProvider.ProviderType.shortValueFromName(
+                    executionParams.getRequestBody().contentStreamProvider().name()));
         }
 
         if (executionParams.getAsyncRequestBody() != null) {
-            userAgentMetadata.add(
-                AdditionalMetadata
-                    .builder()
-                    .name("rb")
-                    .value(AsyncRequestBody.BodyType.shortValueFromName(
-                        executionParams.getAsyncRequestBody().body())
-                    )
-                    .build());
+            addUserAgentMetadata(executionAttributes, "rb",
+                AsyncRequestBody.BodyType.shortValueFromName(
+                    executionParams.getAsyncRequestBody().body()));
         }
 
         if (executionParams.getResponseTransformer() != null) {
-            userAgentMetadata.add(
-                AdditionalMetadata
-                    .builder()
-                    .name("rt")
-                    .value(ResponseTransformer.TransformerType.shortValueFromName(
-                        executionParams.getResponseTransformer().name())
-                    )
-                    .build());
+            addUserAgentMetadata(executionAttributes, "rt",
+                ResponseTransformer.TransformerType.shortValueFromName(
+                    executionParams.getResponseTransformer().name()));
         }
 
         if (executionParams.getAsyncResponseTransformer() != null) {
-            userAgentMetadata.add(
-                AdditionalMetadata
-                    .builder()
-                    .name("rt")
-                    .value(AsyncResponseTransformer.TransformerType.shortValueFromName(
-                        executionParams.getAsyncResponseTransformer().name())
-                    )
-                    .build());
+            addUserAgentMetadata(executionAttributes, "rt",
+                AsyncResponseTransformer.TransformerType.shortValueFromName(
+                    executionParams.getAsyncResponseTransformer().name()));
         }
+    }
 
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);
+    private static void putHttpClientConfigTypeMetadata(ExecutionAttributes executionAttributes,
+                                                        SdkClientConfiguration clientConfig) {
+        String httpClientConfigType = clientConfig.option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE);
+        if (httpClientConfigType == null) {
+            return;
+        }
+        addUserAgentMetadata(executionAttributes, "hc", httpClientConfigType);
+    }
+
+    private static void addUserAgentMetadata(ExecutionAttributes executionAttributes, String name, String value) {
+        List<AdditionalMetadata> metadata = executionAttributes.getAttribute(
+            SdkInternalExecutionAttribute.USER_AGENT_METADATA);
+        if (metadata == null) {
+            metadata = new ArrayList<>();
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, metadata);
+        }
+        metadata.add(
+            AdditionalMetadata
+                .builder()
+                .name(name)
+                .value(value)
+                .build());
     }
 
     /**

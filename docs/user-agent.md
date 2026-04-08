@@ -19,3 +19,6 @@ The table below documents additional metadata the SDK may include in the `User-A
 ||`s`|"Stream". The response transformer adapts the response body to an `InputStream`.|
 ||`p`|"Publisher". The response transformer adapts the response body to an `SdkPublisher`.|
 ||`u`|"unknown"|
+|`hc`||The HTTP client configuration type. Indicates whether the HTTP client was selected by default or explicitly configured by the user.|
+||`d`|"Default". The HTTP client was auto-detected from the classpath.|
+||`e`|"Explicit". The HTTP client was explicitly configured by the user via `httpClient()` or `httpClientBuilder()`.|

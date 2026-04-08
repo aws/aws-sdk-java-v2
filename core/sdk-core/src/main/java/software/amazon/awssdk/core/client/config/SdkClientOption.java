@@ -197,6 +197,18 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(new UnsafeValueType(SdkAsyncHttpClient.Builder.class));
 
     /**
+     * The HTTP client configuration type indicating how the HTTP client was selected.
+     * <p>
+     * Possible values:
+     * <ul>
+     *     <li>{@code "d"} - Default: HTTP client was auto-detected from the classpath</li>
+     *     <li>{@code "e"} - Explicit: HTTP client was explicitly configured by the user via
+     *     {@code httpClient()} or {@code httpClientBuilder()} methods</li>
+     * </ul>
+     */
+    public static final SdkClientOption<String> HTTP_CLIENT_CONFIG_TYPE = new SdkClientOption<>(String.class);
+
+    /**
      * Configuration that should be used to build the {@link #SYNC_HTTP_CLIENT} or {@link #ASYNC_HTTP_CLIENT}.
      */
     public static final SdkClientOption<AttributeMap> HTTP_CLIENT_CONFIG = new SdkClientOption<>(AttributeMap.class);
