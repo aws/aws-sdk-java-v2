@@ -38,6 +38,8 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -502,8 +504,8 @@ public final class ClientClassUtils {
         ClassName endpointParamsClass = endpointRulesSpecUtils.parametersClassName();
         ClassName providerInterface = endpointRulesSpecUtils.providerInterfaceName();
         ClassName awsEndpointProviderUtils = endpointRulesSpecUtils.sharedAwsEndpointProviderUtilsName();
-        ClassName awsEndpointAttribute = ClassName.get("software.amazon.awssdk.awscore.endpoints", "AwsEndpointAttribute");
-        ClassName endpointAuthScheme = ClassName.get("software.amazon.awssdk.awscore.endpoints.authscheme", "EndpointAuthScheme");
+        ClassName awsEndpointAttribute = ClassName.get(AwsEndpointAttribute.class);
+        ClassName endpointAuthScheme = ClassName.get(EndpointAuthScheme.class);
 
         MethodSpec.Builder b = MethodSpec.methodBuilder("resolveEndpoint")
                          .addModifiers(PRIVATE)

@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.spi.endpoint;
+package software.amazon.awssdk.core.internal.endpoint;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -24,7 +24,7 @@ import software.amazon.awssdk.endpoints.Endpoint;
  * Callback interface for resolving endpoints from the request and execution context.
  */
 @FunctionalInterface
-@SdkProtectedApi
+@SdkInternalApi
 public interface EndpointResolver {
     /**
      * Resolves the endpoint for the given request.
