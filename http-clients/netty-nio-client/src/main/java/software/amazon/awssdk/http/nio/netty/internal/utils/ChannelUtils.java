@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class ChannelUtils {
     public static final String WRITE_IDLE_STATE_HANDLER_NAME = "WriteIdleStateHandler";
+    public static final String HTTP_STREAMS_HANDLER_NAME = "HttpStreamsClientHandler";
 
     private ChannelUtils() {
     }
