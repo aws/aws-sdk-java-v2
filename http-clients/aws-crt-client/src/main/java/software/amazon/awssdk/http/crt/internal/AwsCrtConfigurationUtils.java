@@ -24,10 +24,12 @@ import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
 @SdkInternalApi
 public final class AwsCrtConfigurationUtils {
+    private static final Logger log = Logger.loggerFor(AwsCrtConfigurationUtils.class);
 
     private AwsCrtConfigurationUtils() {
     }
@@ -57,9 +59,12 @@ public final class AwsCrtConfigurationUtils {
     public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {
         // As of v0.39.3, aws-crt-java prefers PQ by default, so only return the non-PQ-default policy
         // below if the caller explicitly disables PQ by passing in false.
-        if (Boolean.FALSE.equals(postQuantumTlsEnabled)
-                && TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT.isSupported()) {
-            return TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
+        if (Boolean.FALSE.equals(postQuantumTlsEnabled)) {
+            if (TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT.isSupported()) {
+                return TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
+            }
+            log.warn(() -> "Post-quantum TLS was explicitly disabled but TLS_CIPHER_NON_PQ_DEFAULT is not supported. "
+                           + "Falling back to TLS_CIPHER_SYSTEM_DEFAULT.");
         }
         return TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
     }
