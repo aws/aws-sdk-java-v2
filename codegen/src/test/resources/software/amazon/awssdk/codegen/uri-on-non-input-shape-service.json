@@ -1,0 +1,100 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Rest Json Service",
+    "serviceFullName": "Some Service That Uses Rest-Json Protocol",
+    "serviceId": "Rest Json Service",
+    "signingName": "json-service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "SomeOperation": {
+      "name": "SomeOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/things/{thingId}"
+      },
+      "input": {
+        "shape": "SomeOperationRequest"
+      }
+    },
+    "SharedShapeOperation": {
+      "name": "SharedShapeOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/shared/{sharedId}"
+      },
+      "input": {
+        "shape": "SharedShape"
+      }
+    }
+  },
+  "shapes": {
+    "SomeOperationRequest": {
+      "type": "structure",
+      "members": {
+        "thingId": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "thingId"
+        },
+        "options": {
+          "shape": "NestedOptions"
+        },
+        "shared": {
+          "shape": "SharedShape"
+        }
+      }
+    },
+    "NestedOptions": {
+      "type": "structure",
+      "members": {
+        "pageSize": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "pageSize"
+        },
+        "headerParam": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-nested-header"
+        },
+        "queryParam": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "nestedQuery"
+        },
+        "prefixHeaders": {
+          "shape": "MapOfStrings",
+          "location": "headers",
+          "locationName": "x-amz-prefix-"
+        }
+      }
+    },
+    "SharedShape": {
+      "type": "structure",
+      "members": {
+        "sharedId": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "sharedId"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    },
+    "MapOfStrings": {
+      "type": "map",
+      "key": {"shape": "String"},
+      "value": {"shape": "String"}
+    }
+  },
+  "documentation": "A service with HTTP binding locations on non-input shapes"
+}
