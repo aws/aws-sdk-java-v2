@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -54,9 +55,9 @@ public class HeadOperationsThrottlingTest {
 
         assertThatThrownBy(() -> client.headObject(r -> r.bucket("bucket").key("key")))
             .isInstanceOfSatisfying(S3Exception.class, e -> {
-                assert e.statusCode() == 503;
-                assert e.isThrottlingException();
-                assert "SlowDown".equals(e.awsErrorDetails().errorCode());
+                assertThat(e.statusCode()).isEqualTo(503);
+                assertThat(e.isThrottlingException()).isTrue();
+                assertThat(e.awsErrorDetails().errorCode()).isEqualTo("SlowDown");
             });
     }
 
@@ -66,9 +67,9 @@ public class HeadOperationsThrottlingTest {
 
         assertThatThrownBy(() -> client.headBucket(r -> r.bucket("bucket")))
             .isInstanceOfSatisfying(S3Exception.class, e -> {
-                assert e.statusCode() == 503;
-                assert e.isThrottlingException();
-                assert "SlowDown".equals(e.awsErrorDetails().errorCode());
+                assertThat(e.statusCode()).isEqualTo(503);
+                assertThat(e.isThrottlingException()).isTrue();
+                assertThat(e.awsErrorDetails().errorCode()).isEqualTo("SlowDown");
             });
     }
 
@@ -78,9 +79,9 @@ public class HeadOperationsThrottlingTest {
 
         assertThatThrownBy(() -> client.headObject(r -> r.bucket("bucket").key("key")))
             .isInstanceOfSatisfying(S3Exception.class, e -> {
-                assert e.statusCode() == 503;
-                assert !e.isThrottlingException();
-                assert e.awsErrorDetails().errorCode() == null;
+                assertThat(e.statusCode()).isEqualTo(503);
+                assertThat(e.isThrottlingException()).isFalse();
+                assertThat(e.awsErrorDetails().errorCode()).isNull();
             });
     }
 }
