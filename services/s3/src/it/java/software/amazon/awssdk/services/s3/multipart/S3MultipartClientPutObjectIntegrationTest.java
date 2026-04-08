@@ -53,6 +53,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -219,6 +220,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksum);
     }
 
+    //TODO: find out the correct way to set up the test
+    @Disabled("SSE-C is blocked by default on new S3 buckets since April 2026.")
     @Test
     void putObject_withSSECAndChecksum_objectSentCorrectly() throws Exception {
         byte[] secretKey = generateSecretKey();
