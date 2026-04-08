@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.42.30-SNAPSHOT</version>
+        <version>2.42.32-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -442,6 +442,8 @@
         <module>devopsagent</module>
         <module>securityagent</module>
         <module>sustainability</module>
+        <module>s3files</module>
+        <module>marketplacediscovery</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
