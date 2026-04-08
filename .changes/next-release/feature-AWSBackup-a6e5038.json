@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "contributor": "",
-    "description": "Adding EKS specific backup vault notification types for AWS Backup."
-}

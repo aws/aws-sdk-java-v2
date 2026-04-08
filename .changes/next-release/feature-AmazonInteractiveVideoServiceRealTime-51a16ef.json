@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service RealTime",
-    "contributor": "",
-    "description": "Adds support for Amazon IVS real-time streaming redundant ingest."
-}
