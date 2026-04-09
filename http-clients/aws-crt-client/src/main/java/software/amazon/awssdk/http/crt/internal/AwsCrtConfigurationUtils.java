@@ -72,15 +72,4 @@ public final class AwsCrtConfigurationUtils {
 
         return pqTls;
     }
-
-    public static HttpMonitoringOptions defaultConnectionHealthConfiguration(AttributeMap config) {
-        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
-        httpMonitoringOptions.setMinThroughputBytesPerSecond(1);
-        long readTimeout = config.get(SdkHttpConfigurationOption.READ_TIMEOUT).getSeconds();
-        long writeTimeout = config.get(SdkHttpConfigurationOption.WRITE_TIMEOUT).getSeconds();
-        int maxTimeout = NumericUtils.saturatedCast(Math.max(readTimeout, writeTimeout));
-        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(maxTimeout);
-        return httpMonitoringOptions;
-    }
-
 }
