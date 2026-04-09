@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.32__ __2026-04-09__
+## __AWS Billing and Cost Management Dashboards__
+  - ### Features
+    - Scheduled email reports of Billing and Cost Management Dashboards
+
+## __AWS MediaConnect__
+  - ### Features
+    - Adds support for MediaLive Channel-type Router Inputs.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Introducing support for SearchRegistryRecords API on AgentCoreRegistry
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Initial release for CRUDL in AgentCore Registry Service
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for g7e instance types for SageMaker HyperPod
+
+## __Redshift Data API Service__
+  - ### Features
+    - The BatchExecuteStatement API now supports named SQL parameters, enabling secure batch queries with parameterized values. This enhancement helps prevent SQL injection vulnerabilities and improves query reusability.
+
 # __2.42.31__ __2026-04-08__
 ## __AWS Backup__
   - ### Features

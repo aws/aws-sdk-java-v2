@@ -79,6 +79,7 @@ import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.EncryptionType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -110,6 +111,13 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     public static void setup() throws Exception {
         setUp();
         createBucket(TEST_BUCKET);
+
+        s3.putBucketEncryption(r -> r.bucket(TEST_BUCKET)
+                                     .serverSideEncryptionConfiguration(c -> c.rules(
+                                         rule -> rule.applyServerSideEncryptionByDefault(
+                                                         d -> d.sseAlgorithm(AES256))
+                                                     .blockedEncryptionTypes(
+                                                         b -> b.encryptionType(EncryptionType.NONE)))));
 
         testFile = new RandomTempFile(OBJ_SIZE);
         bytes = Files.readAllBytes(testFile.toPath());
