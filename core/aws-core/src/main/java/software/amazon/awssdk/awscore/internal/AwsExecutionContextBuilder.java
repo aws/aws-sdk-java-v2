@@ -212,11 +212,15 @@ public final class AwsExecutionContextBuilder {
 
     private static void putHttpClientConfigTypeMetadata(ExecutionAttributes executionAttributes,
                                                         SdkClientConfiguration clientConfig) {
-        String httpClientConfigType = clientConfig.option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE);
+        BusinessMetricFeatureId httpClientConfigType = clientConfig.option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE);
         if (httpClientConfigType == null) {
             return;
         }
-        addUserAgentMetadata(executionAttributes, "hc", httpClientConfigType);
+        BusinessMetricCollection businessMetrics = executionAttributes.getAttribute(
+            SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics != null) {
+            businessMetrics.addMetric(httpClientConfigType.value());
+        }
     }
 
     private static void addUserAgentMetadata(ExecutionAttributes executionAttributes, String name, String value) {

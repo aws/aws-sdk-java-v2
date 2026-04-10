@@ -97,6 +97,7 @@ import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperti
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
 import software.amazon.awssdk.core.internal.useragent.UserAgentConstant;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -317,13 +318,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .build();
     }
 
-    private String resolveSyncHttpClientConfigType(SdkClientConfiguration config) {
-        SdkHttpClient httpClient = config.option(CONFIGURED_SYNC_HTTP_CLIENT);
-        SdkHttpClient.Builder<?> httpClientBuilder = config.option(CONFIGURED_SYNC_HTTP_CLIENT_BUILDER);
-        if (!(httpClient == null && httpClientBuilder == null)) {
-            return "e";
+    private BusinessMetricFeatureId resolveSyncHttpClientConfigType(SdkClientConfiguration config) {
+        if (config.option(CONFIGURED_SYNC_HTTP_CLIENT) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE;
         }
-        return "d";
+        if (config.option(CONFIGURED_SYNC_HTTP_CLIENT_BUILDER) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY;
+        }
+        return BusinessMetricFeatureId.HTTP_CLIENT_AUTO;
     }
 
     /**
@@ -338,13 +340,14 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .build();
     }
 
-    private String resolveAsyncHttpClientConfigType(SdkClientConfiguration config) {
-        SdkAsyncHttpClient httpClient = config.option(CONFIGURED_ASYNC_HTTP_CLIENT);
-        SdkAsyncHttpClient.Builder<?> httpClientBuilder = config.option(CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER);
-        if (!(httpClient == null && httpClientBuilder == null)) {
-            return "e";
+    private BusinessMetricFeatureId resolveAsyncHttpClientConfigType(SdkClientConfiguration config) {
+        if (config.option(CONFIGURED_ASYNC_HTTP_CLIENT) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE;
         }
-        return "d";
+        if (config.option(CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY;
+        }
+        return BusinessMetricFeatureId.HTTP_CLIENT_AUTO;
     }
 
     /**
@@ -358,7 +361,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
                      .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build());
-        builder.computeOptionIfAbsent(HTTP_CLIENT_CONFIG_TYPE, () -> "d");
+        builder.computeOptionIfAbsent(HTTP_CLIENT_CONFIG_TYPE, () -> BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
         return builder.build();
     }
 

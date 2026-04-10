@@ -66,6 +66,8 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -513,31 +515,31 @@ public class AwsExecutionContextBuilderTest {
     @Test
     public void invokeInterceptorsAndCreateExecutionContext_withDefaultHttpClient_addsHcMetadata() {
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_AUTO)
             .build();
 
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
-        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Collections.singletonList(AdditionalMetadata.builder().name("hc").value("d").build())
-        );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AJ");
     }
 
     @Test
     public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClient_addsHcMetadata() {
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE)
             .build();
 
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
-        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Collections.singletonList(AdditionalMetadata.builder().name("hc").value("e").build())
-        );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AK");
     }
 
     @Test
@@ -548,7 +550,7 @@ public class AwsExecutionContextBuilderTest {
         executionParams.withRequestBody(RequestBody.fromFile(testFile));
 
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_AUTO)
             .build();
 
         ExecutionContext executionContext =
@@ -556,11 +558,11 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Arrays.asList(
-                AdditionalMetadata.builder().name("rb").value("f").build(),
-                AdditionalMetadata.builder().name("hc").value("d").build()
-            )
+            Collections.singletonList(AdditionalMetadata.builder().name("rb").value("f").build())
         );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AJ");
     }
 
     @Test
@@ -571,7 +573,7 @@ public class AwsExecutionContextBuilderTest {
         executionParams.withAsyncRequestBody(AsyncRequestBody.fromFile(testFile));
 
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE)
             .build();
 
         ExecutionContext executionContext =
@@ -579,11 +581,11 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Arrays.asList(
-                AdditionalMetadata.builder().name("rb").value("f").build(),
-                AdditionalMetadata.builder().name("hc").value("e").build()
-            )
+            Collections.singletonList(AdditionalMetadata.builder().name("rb").value("f").build())
         );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AK");
     }
 
     @Test
@@ -594,7 +596,7 @@ public class AwsExecutionContextBuilderTest {
         executionParams.withResponseTransformer(ResponseTransformer.toFile(testFile));
 
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "d")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_AUTO)
             .build();
 
         ExecutionContext executionContext =
@@ -602,11 +604,11 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Arrays.asList(
-                AdditionalMetadata.builder().name("rt").value("f").build(),
-                AdditionalMetadata.builder().name("hc").value("d").build()
-            )
+            Collections.singletonList(AdditionalMetadata.builder().name("rt").value("f").build())
         );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AJ");
     }
 
     @Test
@@ -617,7 +619,7 @@ public class AwsExecutionContextBuilderTest {
         executionParams.withAsyncResponseTransformer(AsyncResponseTransformer.toFile(testFile));
 
         SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, "e")
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE)
             .build();
 
         ExecutionContext executionContext =
@@ -625,11 +627,11 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
-            Arrays.asList(
-                AdditionalMetadata.builder().name("rt").value("f").build(),
-                AdditionalMetadata.builder().name("hc").value("e").build()
-            )
+            Collections.singletonList(AdditionalMetadata.builder().name("rt").value("f").build())
         );
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AK");
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
