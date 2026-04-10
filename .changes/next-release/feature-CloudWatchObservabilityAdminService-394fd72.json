@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Observability Admin Service",
+    "contributor": "",
+    "description": "CloudWatch Observability Admin adds support for multi-region telemetry evaluation and telemetry enablement rules."
+}
