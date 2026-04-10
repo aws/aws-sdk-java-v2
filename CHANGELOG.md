@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.33__ __2026-04-10__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Devops Agent now supports associate Splunk, Datadog and custom MCP server to an Agent Space.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for MV-HEVC video output and clear lead for AV1 DRM output.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Conversational Analytics for Email
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Minor updates to exceptions for completeness
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Support new SageMaker StartClusterHealthCheck API for on-demand DHC on Hyperpod EKS cluster. Support updated CreateCluster, UpdateCluster, DescribeCluster, BatchAddClusterNodes APIs for flexible instance group on HyperPod cluster
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin adds support for multi-region telemetry evaluation and telemetry enablement rules.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Image pipelines can now automatically apply tags to images they create. Set the imageTags property when creating or updating your pipelines to get started.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Added idle body write detection to proactively close connections when no request body data is written within the write timeout period.
+
+## __RTBFabric__
+  - ### Features
+    - Adds optional health check configuration for Responder Gateways with ASG Managed Endpoints. When provided, RTB Fabric continuously probes customers' instance IPs and routes traffic only to healthy ones, reducing errors during deployments, scaling events, and instance failures.
+
 # __2.42.32__ __2026-04-09__
 ## __AWS Billing and Cost Management Dashboards__
   - ### Features
