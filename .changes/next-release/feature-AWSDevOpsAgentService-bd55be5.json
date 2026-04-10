@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DevOps Agent Service",
+    "contributor": "",
+    "description": "Devops Agent now supports associate Splunk, Datadog and custom MCP server to an Agent Space."
+}
