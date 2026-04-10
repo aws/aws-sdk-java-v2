@@ -19,7 +19,6 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMo
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
-import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.defaultConnectionHealthConfiguration;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -99,7 +98,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
         this.monitoringOptions =
             resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration())
-                .orElseGet(() -> defaultConnectionHealthConfiguration(config));
+                .orElse(null);
         this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
         this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
         this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
