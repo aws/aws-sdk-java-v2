@@ -32,8 +32,6 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.h2.auth.scheme.H2AuthSchemeProvider;
 import software.amazon.awssdk.services.h2.endpoints.H2EndpointProvider;
-import software.amazon.awssdk.services.h2.endpoints.internal.H2RequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.h2.endpoints.internal.H2ResolveEndpointInterceptor;
 import software.amazon.awssdk.services.h2.internal.H2ServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -69,8 +67,6 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new H2ResolveEndpointInterceptor());
-        endpointInterceptors.add(new H2RequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/h2/execution.interceptors");

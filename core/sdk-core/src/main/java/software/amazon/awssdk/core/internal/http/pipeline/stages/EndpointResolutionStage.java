@@ -60,9 +60,6 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         }
 
         EndpointResolver resolver = attrs.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER);
-        if (resolver == null) {
-            return request;
-        }
 
         SdkRequest sdkRequest = context.executionContext().interceptorContext().request();
 

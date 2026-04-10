@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -15,21 +16,29 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
+import software.amazon.awssdk.awscore.internal.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -43,6 +52,9 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.foobar.auth.scheme.FooBarAuthSchemeParams;
 import software.amazon.awssdk.services.foobar.auth.scheme.FooBarAuthSchemeProvider;
 import software.amazon.awssdk.services.foobar.endpoints.FooBarClientContextParams;
+import software.amazon.awssdk.services.foobar.endpoints.FooBarEndpointParams;
+import software.amazon.awssdk.services.foobar.endpoints.FooBarEndpointProvider;
+import software.amazon.awssdk.services.foobar.endpoints.internal.FooBarEndpointResolverUtils;
 import software.amazon.awssdk.services.foobar.internal.FooBarServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.foobar.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.foobar.model.FooBarException;
@@ -140,6 +152,7 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
                                  r -> resolveAuthSchemeOptions(r, "GetDatabaseVersion", clientConfiguration))
+                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetDatabaseVersion"))
                              .withInput(getDatabaseVersionRequest));
             CompletableFuture<GetDatabaseVersionResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -191,6 +204,37 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
+    }
+
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+        FooBarEndpointProvider provider = (FooBarEndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+        try {
+            FooBarEndpointParams endpointParams = FooBarEndpointResolverUtils.ruleParams(request, executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = FooBarEndpointResolverUtils.hostPrefix(operationName, request);
+                if (hostPrefix.isPresent()) {
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+                }
+            }
+            List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = FooBarEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
+                                                                                                        selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            FooBarEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
+            return endpoint;
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
