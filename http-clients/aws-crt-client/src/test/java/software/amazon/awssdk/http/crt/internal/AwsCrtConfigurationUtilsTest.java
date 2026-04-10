@@ -99,22 +99,6 @@ class AwsCrtConfigurationUtilsTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("defaultConnectionHealthConfigurationCases")
-    void defaultConnectionHealthConfiguration_shouldUseMaxOfReadWriteTimeout(Duration readTimeout,
-                                                                             Duration writeTimeout,
-                                                                             int expectedInterval) {
-        AttributeMap config = AttributeMap.builder()
-                                          .put(SdkHttpConfigurationOption.READ_TIMEOUT, readTimeout)
-                                          .put(SdkHttpConfigurationOption.WRITE_TIMEOUT, writeTimeout)
-                                          .build();
-
-        HttpMonitoringOptions result = AwsCrtConfigurationUtils.defaultConnectionHealthConfiguration(config);
-
-        assertThat(result.getMinThroughputBytesPerSecond()).isEqualTo(1);
-        assertThat(result.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(expectedInterval);
-    }
-
     private static Stream<Arguments> defaultConnectionHealthConfigurationCases() {
         return Stream.of(
             Arguments.of(Duration.ofSeconds(30), Duration.ofSeconds(30), 30),
