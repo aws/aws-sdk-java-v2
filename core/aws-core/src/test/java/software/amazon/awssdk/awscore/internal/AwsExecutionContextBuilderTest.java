@@ -513,7 +513,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_withDefaultHttpClient_addsHcMetadata() {
+    public void invokeInterceptorsAndCreateExecutionContext_withDefaultHttpClient_addsAutoFeatureId() {
         SdkClientConfiguration clientConfig = testClientConfiguration()
             .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_AUTO)
             .build();
@@ -528,7 +528,7 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClient_addsHcMetadata() {
+    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClientInstance_addsExplicitInstanceFeatureId() {
         SdkClientConfiguration clientConfig = testClientConfiguration()
             .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE)
             .build();
@@ -540,6 +540,21 @@ public class AwsExecutionContextBuilderTest {
         BusinessMetricCollection businessMetrics =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         assertThat(businessMetrics.recordedMetrics()).contains("AK");
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClientFactory_addsExplicitFactoryFeatureId() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AL");
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
