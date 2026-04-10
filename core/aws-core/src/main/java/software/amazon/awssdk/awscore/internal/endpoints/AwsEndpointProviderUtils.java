@@ -118,7 +118,7 @@ public final class AwsEndpointProviderUtils {
      * no way to know, just from the HTTP request object, where the override path ends (if it's even there) and where
      * the request path starts. Additionally, the rule itself may also append other parts to the endpoint override path.
      * <p>
-     * To solve this issue, we pass in the endpoint set on the path, which allows us to the strip the path from the
+     * To solve this issue, we pass in the endpoint set on the client, which allows us to the strip the path from the
      * endpoint override from the request path, and then correctly combine the paths.
      * <p>
      * For example, let's suppose the endpoint override on the client is {@code https://example.com/a}. Then we call an

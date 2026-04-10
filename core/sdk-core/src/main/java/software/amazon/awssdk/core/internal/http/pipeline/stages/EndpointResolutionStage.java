@@ -60,6 +60,9 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         }
 
         EndpointResolver resolver = attrs.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER);
+        if (resolver == null) {
+            return request;
+        }
 
         SdkRequest sdkRequest = context.executionContext().interceptorContext().request();
 
@@ -84,17 +87,17 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         // Apply resolved endpoint URL, unless a customer interceptor modified the URL in modifyHttpRequest()
         ClientEndpointProvider clientEndpointProvider =
             attrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
-        if (customerModifiedUrl(request, attrs)) {
+        if (interceptorModifiedEndpoint(request, attrs)) {
             return request;
         }
         return setUri(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
     }
 
     /**
-     * Detects if a customer interceptor modified the HTTP request URL in modifyHttpRequest().
+     * Detects if an interceptor modified the HTTP request URL in modifyHttpRequest().
      * Compares the current request's host and scheme against the snapshot taken before interceptors ran.
      */
-    private static boolean customerModifiedUrl(SdkHttpFullRequest.Builder request, ExecutionAttributes attrs) {
+    private static boolean interceptorModifiedEndpoint(SdkHttpFullRequest.Builder request, ExecutionAttributes attrs) {
         URI preModifyUri = attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY);
         if (preModifyUri == null) {
             return false;
@@ -102,7 +105,8 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         String requestHost = request.host();
         return requestHost != null
             && (!requestHost.equals(preModifyUri.getHost())
-                || !String.valueOf(request.protocol()).equals(preModifyUri.getScheme()));
+                || !String.valueOf(request.protocol()).equals(preModifyUri.getScheme())
+                || request.port() != preModifyUri.getPort());
     }
 
     /**
