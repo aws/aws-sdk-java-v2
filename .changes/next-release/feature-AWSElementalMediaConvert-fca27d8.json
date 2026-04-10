@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "Adds support for MV-HEVC video output and clear lead for AV1 DRM output."
+}
