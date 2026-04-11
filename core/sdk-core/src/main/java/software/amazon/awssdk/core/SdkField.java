@@ -50,6 +50,9 @@ public final class SdkField<TypeT> {
     private final Map<TraitType, Trait> l1Traits;
     private final Map<Class<? extends Trait>, Trait> l2Traits;
 
+    private volatile Object cachedMarshaller;
+    private volatile Object cachedMarshallerRegistryKey;
+
     private SdkField(Builder<TypeT> builder) {
         this.memberName = builder.memberName;
         this.marshallingType = builder.marshallingType;
@@ -251,6 +254,33 @@ public final class SdkField<TypeT> {
      */
     public boolean containsTrait(Class<? extends Trait> clzz, TraitType type) {
         return getTrait(clzz, type) != null;
+    }
+
+    /**
+     * Returns the cached marshaller for the given registry key, or null if not cached.
+     * Uses reference identity ({@code ==}) for the registry key comparison.
+     *
+     * @param registryKey The registry key to match against the cached key.
+     * @param <T> The type of the cached marshaller.
+     * @return The cached marshaller if the registry key matches, or null.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T cachedMarshaller(Object registryKey) {
+        if (cachedMarshallerRegistryKey == registryKey) {
+            return (T) cachedMarshaller;
+        }
+        return null;
+    }
+
+    /**
+     * Caches the resolved marshaller for the given registry key.
+     *
+     * @param registryKey The registry key to associate with the cached marshaller.
+     * @param marshaller The marshaller instance to cache.
+     */
+    public void cacheMarshaller(Object registryKey, Object marshaller) {
+        this.cachedMarshaller = marshaller;
+        this.cachedMarshallerRegistryKey = registryKey;
     }
 
     /**
