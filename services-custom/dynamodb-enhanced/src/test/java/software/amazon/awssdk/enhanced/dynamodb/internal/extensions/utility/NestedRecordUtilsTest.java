@@ -150,6 +150,37 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
+    public void getTableSchemaForListElement_whenElementTypeNotDynamoDbAnnotated_returnsNull() {
+        List<EnhancedType<?>> rawClassParameters = Collections.singletonList(EnhancedType.of(NonAnnotatedPojo.class));
+        when(mockSchema.converterForAttribute("customConverted")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.rawClassParameters()).thenReturn(rawClassParameters);
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "customConverted");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getListElementSchemaCached_whenElementTypeNotDynamoDbAnnotated_returnsNullAndCachesResult() {
+        List<EnhancedType<?>> rawClassParameters = Collections.singletonList(EnhancedType.of(NonAnnotatedPojo.class));
+        when(mockSchema.converterForAttribute("customConverted")).thenReturn(mockAttributeConverter);
+        when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
+        when(mockEnhancedType.rawClassParameters()).thenReturn(rawClassParameters);
+
+        Map<NestedRecordUtils.SchemaLookupKey, TableSchema<?>> cache = new HashMap<>();
+        TableSchema<?> result = NestedRecordUtils.getListElementSchemaCached(
+            cache, mockSchema, "customConverted", new HashMap<>());
+
+        assertThat(result).isNull();
+
+        NestedRecordUtils.SchemaLookupKey expectedKey =
+            new NestedRecordUtils.SchemaLookupKey(mockSchema, "customConverted");
+        assertThat(cache).containsKey(expectedKey);
+        assertThat(cache.get(expectedKey)).isNull();
+    }
+
+    @Test
     public void getTableSchemaForListElement_withDeepNestedPath_returnsCorrectParts() {
         String nestedKey = "nestedItem" + NESTED_OBJECT_UPDATE + "tags";
         String[] parts = PATTERN.split(nestedKey);
@@ -469,6 +500,23 @@ public class NestedRecordUtilsTest {
         @Override
         public int hashCode() {
             return Objects.hashCode(attribute);
+        }
+    }
+
+    /**
+     * Plain POJO with no DynamoDB annotations. Used to verify that
+     * {@code getTableSchemaForListElement} returns null instead of throwing
+     * when the list element type is not a DynamoDB-annotated class.
+     */
+    public static class NonAnnotatedPojo {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 }
