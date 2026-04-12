@@ -36,18 +36,26 @@ public class ConverterUtils {
 
     /**
      * Validates that a given Double input is a valid double supported by {@link DoubleAttributeConverter}.
+     * Null values are accepted (null will be stored as NULL in DynamoDB and round-trips correctly).
      * @param input
      */
     public static void validateDouble(Double input) {
+        if (input == null) {
+            return;
+        }
         Validate.isTrue(!Double.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Double.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
 
     /**
-     * Validates that a given Float input is a valid double supported by {@link FloatAttributeConverter}.
+     * Validates that a given Float input is a valid float supported by {@link FloatAttributeConverter}.
+     * Null values are accepted (null will be stored as NULL in DynamoDB and round-trips correctly).
      * @param input
      */
     public static void validateFloat(Float input) {
+        if (input == null) {
+            return;
+        }
         Validate.isTrue(!Float.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Float.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
