@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +57,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 Response<OutputT> response = executeRequest(retryableStageHelper, context);
                 retryableStageHelper.recordAttemptSucceeded();
                 return response;
-            } catch (SdkExceptionWithRetryAfterHint | SdkException | IOException e) {
+            } catch (SdkExceptionWithRetryAfterHint | SdkException | IOException | UncheckedIOException e) {
                 Throwable throwable = e;
                 if (e instanceof SdkExceptionWithRetryAfterHint) {
                     SdkExceptionWithRetryAfterHint wrapper = (SdkExceptionWithRetryAfterHint) e;
