@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Fix NullPointerException when converting null values in `Map` and `List` attributes by handling nulls in `MapAttributeConverter` and `ListAttributeConverter` before delegating to element converters. Fixes [#6639](https://github.com/aws/aws-sdk-java-v2/issues/6639)"
+}
