@@ -88,6 +88,7 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         ClientEndpointProvider clientEndpointProvider =
             attrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
         if (interceptorModifiedEndpoint(request, attrs)) {
+            applyResolvedPath(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
             return request;
         }
         return setUri(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
@@ -116,19 +117,22 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
     private static SdkHttpFullRequest.Builder setUri(SdkHttpFullRequest.Builder request,
                                                       URI clientEndpoint,
                                                       URI resolvedUri) {
+        applyResolvedPath(request, clientEndpoint, resolvedUri);
+        return request.protocol(resolvedUri.getScheme())
+                      .host(resolvedUri.getHost())
+                      .port(resolvedUri.getPort());
+    }
+
+    private static void applyResolvedPath(SdkHttpFullRequest.Builder request,
+                                           URI clientEndpoint,
+                                           URI resolvedUri) {
         String clientEndpointPath = clientEndpoint.getRawPath();
         String requestPath = request.encodedPath();
         String resolvedUriPath = resolvedUri.getRawPath();
 
-        String finalPath = requestPath;
         if (!resolvedUriPath.equals(clientEndpointPath)) {
-            finalPath = combinePath(clientEndpointPath, requestPath, resolvedUriPath);
+            request.encodedPath(combinePath(clientEndpointPath, requestPath, resolvedUriPath));
         }
-
-        return request.protocol(resolvedUri.getScheme())
-                      .host(resolvedUri.getHost())
-                      .port(resolvedUri.getPort())
-                      .encodedPath(finalPath);
     }
 
     private static String combinePath(String clientEndpointPath, String requestPath, String resolvedUriPath) {
