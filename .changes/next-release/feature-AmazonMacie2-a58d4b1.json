@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Macie 2",
+    "contributor": "",
+    "description": "This release adds an optional expectedBucketOwner field to the Macie S3 export configuration, allowing customers to verify bucket ownership before Macie writes results to the destination bucket."
+}
