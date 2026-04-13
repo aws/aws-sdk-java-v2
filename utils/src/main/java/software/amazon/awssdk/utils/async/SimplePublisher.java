@@ -199,7 +199,9 @@ public final class SimplePublisher<T> implements Publisher<T> {
         if (subscriber != null) {
             s.onSubscribe(new NoOpSubscription());
             s.onError(new IllegalStateException("Only one subscription may be active at a time."));
+            return;
         }
+
         this.subscriber = s;
         s.onSubscribe(new SubscriptionImpl());
         processEventQueue();
@@ -284,8 +286,6 @@ public final class SimplePublisher<T> implements Publisher<T> {
                         break;
                     case CANCEL:
                         failureMessage.trySet(() -> new CancellationException("subscription has been cancelled."));
-
-                        subscriber = null; // Allow subscriber to be garbage collected after cancellation.
                         break;
                     default:
                         // Should never happen. Famous last words?
