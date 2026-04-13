@@ -28,6 +28,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -49,11 +51,16 @@ public final class NestedRecordUtils {
      * If the provided key contains the nested object delimiter (e.g., {@code _NESTED_ATTR_UPDATE_}), the method traverses the
      * nested hierarchy based on that path to locate the correct schema for the target attribute. Otherwise, it directly resolves
      * the list element type from the root schema using reflection.
+     * <p>
+     * If the list element type is not annotated with {@code @DynamoDbBean} or {@code @DynamoDbImmutable} (e.g. when a custom
+     * converter handles serialization via {@code @DynamoDbConvertedBy}), this method returns {@code null} to indicate that no
+     * schema introspection is possible or necessary for that element type.
      *
      * @param rootSchema The root {@link TableSchema} representing the top-level entity.
      * @param key        The key representing the list attribute, either flat or nested (using a delimiter).
-     * @return The {@link TableSchema} representing the list element type of the specified attribute.
-     * @throws IllegalArgumentException If the list element class cannot be found via reflection.
+     * @return The {@link TableSchema} representing the list element type, or {@code null} if the element type is not a
+     *         DynamoDB-annotated class.
+     * @throws IllegalArgumentException If no converter is found for the attribute or if the converter has no type parameters.
      */
     public static TableSchema<?> getTableSchemaForListElement(TableSchema<?> rootSchema, String key) {
         return getTableSchemaForListElement(rootSchema, key, new HashMap<>());
@@ -85,7 +92,12 @@ public final class NestedRecordUtils {
         if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
             throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
         }
-        return TableSchema.fromClass(rawClassParameters.get(0).rawClass());
+        Class<?> elementClass = rawClassParameters.get(0).rawClass();
+        if (elementClass.getAnnotation(DynamoDbBean.class) == null
+            && elementClass.getAnnotation(DynamoDbImmutable.class) == null) {
+            return null;
+        }
+        return TableSchema.fromClass(elementClass);
     }
 
     private static TableSchema<?> listElementSchemaForDelimitedKey(
@@ -212,8 +224,9 @@ public final class NestedRecordUtils {
     /**
      * Cached wrapper for resolving list element schema, storing results (including null) in the provided cache.
      * <p>
-     * Note: {@link #getTableSchemaForListElement(TableSchema, String, Map)} does not return null today, but this helper is used
-     * by callers that previously cached the list element schema separately, and it keeps the "cache null" behavior.
+     * {@link #getTableSchemaForListElement(TableSchema, String, Map)} returns {@code null} when the list element type is not a
+     * DynamoDB-annotated class (e.g. when a custom converter handles serialization). Callers should check for null before
+     * attempting to introspect the returned schema.
      */
     public static TableSchema<?> getListElementSchemaCached(
         Map<SchemaLookupKey, TableSchema<?>> cache,
