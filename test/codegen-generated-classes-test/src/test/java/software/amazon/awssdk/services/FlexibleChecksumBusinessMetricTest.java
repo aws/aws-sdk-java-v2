@@ -71,6 +71,39 @@ class FlexibleChecksumBusinessMetricTest {
     }
 
     @Test
+    void when_precomputedChecksumProvided_correctMetricIsAdded() {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                                                              .region(Region.US_WEST_2)
+                                                              .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                              .httpClient(mockHttpClient)
+                                                              .build();
+
+        client.putOperationWithChecksum(r -> r.checksumCrc32("checksum"),
+                                        RequestBody.fromString("test content"));
+
+        String userAgent = getUserAgentFromLastRequest();
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_REQ_CRC32.value()));
+    }
+
+    @Test
+    void when_precomputedChecksum_and_checksumAlgProvided_correctMetricsAreAdded() {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                                                              .region(Region.US_WEST_2)
+                                                              .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                              .httpClient(mockHttpClient)
+                                                              .build();
+
+        client.putOperationWithChecksum(r -> r.checksumCrc32("checksum")
+                                              .checksumAlgorithm(ChecksumAlgorithm.CRC32_C),
+                                        RequestBody.fromString("test content"));
+
+        String userAgent = getUserAgentFromLastRequest();
+
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_REQ_CRC32.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(FLEXIBLE_CHECKSUMS_REQ_CRC32C.value()));
+    }
+
+    @Test
     void when_noChecksumConfigurationIsSet_defaultConfigMetricsAreAdded() {
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
                                                               .region(Region.US_WEST_2)

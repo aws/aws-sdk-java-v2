@@ -16,58 +16,51 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
-import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
 
     @Override
-    HttpStreamResponseHandler responseHandler() {
+    HttpStreamBaseResponseHandler responseHandler() {
         AsyncResponseHandler<Void> responseHandler = new AsyncResponseHandler<>((response,
                                                                                           executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, responseHandler);
+        return CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler);
     }
 
     @Override
-    HttpStreamResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher) {
+    HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher) {
         AsyncResponseHandler<Void> responseHandler = new AsyncResponseHandler<>((response,
                                                                                  executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return new CrtResponseAdapter(crtConn, requestFuture, responseHandler, simplePublisher);
+        return new CrtResponseAdapter(requestFuture, responseHandler, simplePublisher);
     }
 
     @Test
-    void publisherFailedToDeliverEvents_shouldShutDownConnection() {
+    void onResponseComplete_publisherCancelled_closesStream() {
         SdkAsyncHttpResponseHandler responseHandler = new TestAsyncHttpResponseHandler();
 
-        HttpStreamResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, responseHandler);
+        HttpStreamBaseResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler);
         HttpHeader[] httpHeaders = getHttpHeaders();
         crtResponseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
@@ -77,8 +70,6 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
         crtResponseHandler.onResponseComplete(httpStream, 0);
         assertThatThrownBy(() -> requestFuture.join()).isInstanceOf(CancellationException.class).hasMessageContaining(
             "subscription has been cancelled");
-        verify(crtConn).shutdown();
-        verify(crtConn).close();
         verify(httpStream).close();
     }
 

@@ -23,11 +23,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -56,6 +57,11 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
 
     private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
         super(builder, config);
+        if (this.protocol == Protocol.HTTP2) {
+            throw new UnsupportedOperationException(
+                "HTTP/2 is not supported for sync HTTP clients. Either use HTTP/1.1 (the default) or use an async "
+                + "HTTP client (e.g., AwsCrtAsyncHttpClient).");
+        }
     }
 
     public static AwsCrtHttpClient.Builder builder() {
@@ -91,14 +97,13 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(request.httpRequest()))) {
-            CrtRequestContext context = CrtRequestContext.builder()
-                                                         .crtConnPool(crtConnPool)
-                                                         .readBufferSize(this.readBufferSize)
-                                                         .request(request)
-                                                         .build();
-            return new CrtHttpRequest(context);
-        }
+        HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(request.httpRequest()));
+        CrtRequestContext context = CrtRequestContext.builder()
+                                                     .streamManager(streamManager)
+                                                     .readBufferSize(this.readBufferSize)
+                                                     .request(request)
+                                                     .build();
+        return new CrtHttpRequest(context);
     }
 
     private static final class CrtHttpRequest implements ExecutableHttpRequest {
@@ -140,7 +145,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         @Override
         public void abort() {
             if (responseFuture != null) {
-                responseFuture.completeExceptionally(new IOException("Request ws cancelled"));
+                responseFuture.completeExceptionally(new IOException("Request was cancelled"));
             }
         }
     }
@@ -193,8 +198,10 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * then the connection is considered unhealthy and will be shut down.
          *
          * <p>
-         * By default, monitoring options are disabled. You can enable {@code healthChecks} by providing this configuration
-         * and specifying the options for monitoring for the connection manager.
+         * If not explicitly configured, a default health configuration is applied with a minimum throughput of 1 byte per
+         * second and a throughput failure interval of 30 seconds. The failure interval is derived from the read/write timeout
+         * settings and will change if those are overridden by service specific defaults.
+         *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */

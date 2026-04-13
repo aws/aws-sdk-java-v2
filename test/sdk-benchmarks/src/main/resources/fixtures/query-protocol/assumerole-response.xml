@@ -1,0 +1,19 @@
+<AssumeRoleResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+  <AssumeRoleResult>
+    <Credentials>
+      <AccessKeyId>ASIAIOSFODNN7EXAMPLE</AccessKeyId>
+      <SecretAccessKey>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</SecretAccessKey>
+      <SessionToken>FwoGZXIvYXdzEBYaDHqa0AP1</SessionToken>
+      <Expiration>2024-01-15T12:00:00Z</Expiration>
+    </Credentials>
+    <AssumedRoleUser>
+      <AssumedRoleId>AROA3XFRBF23EXAMPLE:benchmark-session</AssumedRoleId>
+      <Arn>arn:aws:sts::123456789012:assumed-role/benchmark-role/benchmark-session</Arn>
+    </AssumedRoleUser>
+    <PackedPolicySize>42</PackedPolicySize>
+    <SourceIdentity>benchmark-source</SourceIdentity>
+  </AssumeRoleResult>
+  <ResponseMetadata>
+    <RequestId>c6104cbe-af31-11e0-8154-cde7cf80f29a</RequestId>
+  </ResponseMetadata>
+</AssumeRoleResponse>
