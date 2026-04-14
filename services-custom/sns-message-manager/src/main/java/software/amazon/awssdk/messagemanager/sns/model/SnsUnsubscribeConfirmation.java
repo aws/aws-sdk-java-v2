@@ -78,6 +78,14 @@ public final class SnsUnsubscribeConfirmation extends SnsMessage {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return toStringBuilder("SnsUnsubscribeConfirmation")
+            .add("SubscribeUrl", subscribeUrl())
+            .add("Token", token())
+            .build();
+    }
+
     public static Builder builder() {
         return new BuilderImpl();
     }

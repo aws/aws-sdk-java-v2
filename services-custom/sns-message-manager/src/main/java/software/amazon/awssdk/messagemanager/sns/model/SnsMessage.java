@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Base class for SNS message types. This contains the common fields of SNS messages.
@@ -34,7 +35,7 @@ public abstract class SnsMessage {
     private final SignatureVersion signatureVersion;
     private final URI signingCertUrl;
 
-    SnsMessage(BuilderImpl<?> builder) {
+    protected SnsMessage(BuilderImpl<?> builder) {
         this.messageId = builder.messageId;
         this.message = builder.message;
         this.topicArn = builder.topicArn;
@@ -128,6 +129,17 @@ public abstract class SnsMessage {
         result = 31 * result + Objects.hashCode(signatureVersion);
         result = 31 * result + Objects.hashCode(signingCertUrl);
         return result;
+    }
+
+    protected ToString toStringBuilder(String className) {
+        return ToString.builder(className)
+                       .add("MessageId", messageId())
+                       .add("Message", message())
+                       .add("TopicArn", topicArn())
+                       .add("Timestamp", timestamp())
+                       .add("Signature", signature())
+                       .add("SignatureVersion", signatureVersion())
+                       .add("SigningCertUrl", signingCertUrl());
     }
 
     public interface Builder<SubclassT extends Builder<?>> {

@@ -79,6 +79,14 @@ public final class SnsSubscriptionConfirmation extends SnsMessage {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return toStringBuilder("SnsSubscriptionConfirmation")
+            .add("SubscribeUrl", subscribeUrl())
+            .add("Token", token())
+            .build();
+    }
+
     public static Builder builder() {
         return new BuilderImpl();
     }

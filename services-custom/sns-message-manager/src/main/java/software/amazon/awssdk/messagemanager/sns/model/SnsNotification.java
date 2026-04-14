@@ -81,6 +81,14 @@ public final class SnsNotification extends SnsMessage {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return toStringBuilder("SnsNotification")
+            .add("Subject", subject())
+            .add("UnsubscribeUrl", unsubscribeUrl())
+            .build();
+    }
+
     public interface Builder extends SnsMessage.Builder<Builder> {
 
         /**

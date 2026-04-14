@@ -80,6 +80,9 @@ public interface SnsMessageManager extends SdkAutoCloseable {
      * <p>
      * This method reads the JSON message payload, validates the signature, returns a parsed SNS message object with all
      * message attributes if validation succeeds.
+     *
+     * @param messageStream The binary stream representation of the SNS message.
+     * @return The parsed SNS message.
      */
     SnsMessage parseMessage(InputStream messageStream);
 
@@ -88,6 +91,9 @@ public interface SnsMessageManager extends SdkAutoCloseable {
      * <p>
      * This method reads the JSON message payload, validates the signature, returns a parsed SNS message object with all
      * message attributes if validation succeeds.
+     *
+     * @param messageContent The string representation of the SNS message.
+     * @return the parsed SNS message.
      */
     SnsMessage parseMessage(String messageContent);
 
@@ -112,6 +118,7 @@ public interface SnsMessageManager extends SdkAutoCloseable {
 
         /**
          * Sets the AWS region for certificate validation. This region must match the SNS region where the messages originate.
+         * This is a required parameter.
          *
          * @param region The AWS region where the SNS messages originate.
          * @return This builder for method chaining.
