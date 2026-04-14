@@ -42,8 +42,6 @@ import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.TraitType;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -385,41 +383,20 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 gen.writeValue(((SdkBytes) val).asByteBuffer());
                 break;
             case SDK_POJO:
-                gen.writeFieldName(fieldName);
-                gen.writeStartObject();
-                doMarshall((SdkPojo) val);
-                gen.writeEndObject();
+                SimpleTypeJsonMarshaller.SDK_POJO.marshall((SdkPojo) val, marshallerContext,
+                    fieldName, (SdkField<SdkPojo>) field);
                 break;
             case LIST:
-                List<?> list = (List<?>) val;
-                if (list.isEmpty() && list instanceof SdkAutoConstructList) {
-                    break;
-                }
-                gen.writeFieldName(fieldName);
-                gen.writeStartArray(list.size());
-                for (Object item : list) {
-                    marshallerContext.marshall(MarshallLocation.PAYLOAD, item);
-                }
-                gen.writeEndArray();
+                SimpleTypeJsonMarshaller.LIST.marshall((List<?>) val, marshallerContext,
+                    fieldName, (SdkField<List<?>>) field);
                 break;
             case MAP:
-                Map<String, ?> map = (Map<String, ?>) val;
-                if (map.isEmpty() && map instanceof SdkAutoConstructMap) {
-                    break;
-                }
-                gen.writeFieldName(fieldName);
-                gen.writeStartObject();
-                for (Map.Entry<String, ?> entry : map.entrySet()) {
-                    if (entry.getValue() != null) {
-                        gen.writeFieldName(entry.getKey());
-                        marshallerContext.marshall(MarshallLocation.PAYLOAD, entry.getValue());
-                    }
-                }
-                gen.writeEndObject();
+                SimpleTypeJsonMarshaller.MAP.marshall((Map<String, ?>) val, marshallerContext,
+                    fieldName, (SdkField<Map<String, ?>>) field);
                 break;
             case DOCUMENT:
-                gen.writeFieldName(fieldName);
-                ((Document) val).accept(new DocumentTypeJsonMarshaller(gen));
+                SimpleTypeJsonMarshaller.DOCUMENT.marshall((Document) val, marshallerContext,
+                    fieldName, (SdkField<Document>) field);
                 break;
             default:
                 // Unknown type — fall back to registry lookup

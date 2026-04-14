@@ -50,6 +50,12 @@ public final class SdkField<TypeT> {
     private final Map<TraitType, Trait> l1Traits;
     private final Map<Class<? extends Trait>, Trait> l2Traits;
 
+    // Single-slot marshaller cache. Two volatile fields are used instead of an AtomicReference to an immutable
+    // holder to avoid per-SdkField object allocation. The read in cachedMarshaller() is not atomic across both
+    // fields: between reading the key and reading the marshaller, another thread could overwrite both. This is
+    // safe because (1) in practice there is only one registry per protocol, so all threads converge to the same
+    // marshaller, and (2) the worst case with multiple registries is a benign cache miss or a single call using
+    // a marshaller from a different registry, which self-corrects on the next call.
     private volatile Object cachedMarshaller;
     private volatile Object cachedMarshallerRegistryKey;
 
