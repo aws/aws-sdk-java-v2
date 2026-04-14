@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperti
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -195,6 +196,21 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<SdkHttpClient.Builder<?>> CONFIGURED_SYNC_HTTP_CLIENT_BUILDER =
         new SdkClientOption<>(new UnsafeValueType(SdkAsyncHttpClient.Builder.class));
+
+    /**
+     * The HTTP client configuration type indicating how the HTTP client was selected.
+     * <p>
+     * Possible values:
+     * <ul>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_AUTO} - HTTP client was auto-detected from the classpath</li>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_EXPLICIT_INSTANCE} - HTTP client was explicitly provided
+     *     via {@code httpClient()}</li>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_EXPLICIT_FACTORY} - HTTP client factory was explicitly provided
+     *     via {@code httpClientBuilder()}</li>
+     * </ul>
+     */
+    public static final SdkClientOption<BusinessMetricFeatureId> HTTP_CLIENT_CONFIG_TYPE =
+        new SdkClientOption<>(BusinessMetricFeatureId.class);
 
     /**
      * Configuration that should be used to build the {@link #SYNC_HTTP_CLIENT} or {@link #ASYNC_HTTP_CLIENT}.
