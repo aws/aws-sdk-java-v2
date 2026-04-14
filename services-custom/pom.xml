@@ -32,6 +32,7 @@
         <module>s3-transfer-manager</module>
         <module>iam-policy-builder</module>
         <module>s3-event-notifications</module>
+        <module>sns-message-manager</module>
     </modules>
 
     <dependencyManagement>
