@@ -37,6 +37,7 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
 
     private static final String DECODED_CONTENT_LENGTH_HEADER = "x-amz-decoded-content-length";
     private static final String CONTENT_LENGTH_HEADER = "Content-Length";
+    private static final long DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES = 1_048_576L;
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
@@ -55,22 +56,24 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
             return false;
         }
 
-        if (isExpect100ContinueDisabled(executionAttributes)) {
+        S3Configuration s3Config = getS3Configuration(executionAttributes);
+
+        if (s3Config != null && !s3Config.expectContinueEnabled()) {
             return false;
         }
 
+        long threshold = s3Config != null ? s3Config.expectContinueThresholdInBytes()
+                                          : DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES;
+
         return getContentLengthHeader(context.httpRequest())
             .map(Long::parseLong)
-            .map(length -> length != 0L)
+            .map(length -> length >= threshold && length != 0L)
             .orElse(true);
     }
 
-    private boolean isExpect100ContinueDisabled(ExecutionAttributes executionAttributes) {
+    private S3Configuration getS3Configuration(ExecutionAttributes executionAttributes) {
         ServiceConfiguration serviceConfig = executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
-        if (serviceConfig instanceof S3Configuration) {
-            return !((S3Configuration) serviceConfig).expectContinueEnabled();
-        }
-        return false;
+        return serviceConfig instanceof S3Configuration ? (S3Configuration) serviceConfig : null;
     }
 
     /**
