@@ -54,9 +54,9 @@ import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarsh
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class JsonRpc10MarshallBenchmark {
 
         private static final URI ENDPOINT = URI.create("http://localhost/");
@@ -66,9 +66,6 @@ public class JsonRpc10MarshallBenchmark {
 
         @Param({
                         "awsJson1_0_GetItemInput_Baseline",
-                        "awsQuery_GetMetricDataRequest_S",
-                        "awsQuery_GetMetricDataRequest_M",
-                        "awsQuery_GetMetricDataRequest_L",
                         "awsJson1_0_HealthcheckRequest_Example",
                         "awsJson1_0_PutItemRequest_Baseline",
                         "awsJson1_0_PutItemRequest_ShallowMap_S",
@@ -82,22 +79,6 @@ public class JsonRpc10MarshallBenchmark {
                         "awsJson1_0_PutItemRequest_BinaryData_S",
                         "awsJson1_0_PutItemRequest_BinaryData_M",
                         "awsJson1_0_PutItemRequest_BinaryData_L",
-                        "rpcv2Cbor_PutItemRequest_Baseline",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_S",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_M",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_L",
-                        "rpcv2Cbor_PutItemRequest_Nested_M",
-                        "rpcv2Cbor_PutItemRequest_Nested_L",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_S",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_M",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_L",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_S",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_M",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_L",
-                        "awsQuery_PutMetricDataRequest_Baseline",
-                        "awsQuery_PutMetricDataRequest_S",
-                        "awsQuery_PutMetricDataRequest_M",
-                        "awsQuery_PutMetricDataRequest_L"
         })
         private String testCaseId;
 

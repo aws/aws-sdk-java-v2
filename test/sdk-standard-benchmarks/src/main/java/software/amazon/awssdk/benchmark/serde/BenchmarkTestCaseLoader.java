@@ -40,10 +40,8 @@ import software.amazon.awssdk.utils.StringUtils;
  *
  * <p>
  * The test data files use the c2j protocol test format, where the top-level
- * structure
- * is an array of operation-group objects. Each group contains a {@code cases}
- * array with
- * individual test cases.
+ * structure is an array of operation-group objects. Each group contains
+ * a {@code cases} array with individual test cases.
  * </p>
  */
 public final class BenchmarkTestCaseLoader {
@@ -269,8 +267,7 @@ public final class BenchmarkTestCaseLoader {
     /**
      * Patch member names so that {@code StringUtils.uncapitalize(name)} matches the
      * fluent setter method name. For example, member "SS" with fluentSetter "ss"
-     * gets
-     * its name changed to "Ss" so uncapitalize("Ss") = "ss".
+     * gets its name changed to "Ss" so uncapitalize("Ss") = "ss".
      */
     private static void patchMemberNames(IntermediateModel model) {
         for (ShapeModel shape : model.getShapes().values()) {

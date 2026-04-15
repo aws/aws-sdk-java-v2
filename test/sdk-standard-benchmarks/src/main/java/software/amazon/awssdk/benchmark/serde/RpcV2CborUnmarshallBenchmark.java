@@ -51,9 +51,9 @@ import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class RpcV2CborUnmarshallBenchmark {
 
         private static final String CONTENT_TYPE = "application/cbor";
@@ -67,7 +67,6 @@ public class RpcV2CborUnmarshallBenchmark {
                         "rpcv2Cbor_GetItemOutputBinary_S",
                         "rpcv2Cbor_GetItemOutputBinary_M",
                         "rpcv2Cbor_GetItemOutputBinary_L",
-                        "awsJson1_0_HealthcheckResponse_Example"
         })
         private String testCaseId;
 

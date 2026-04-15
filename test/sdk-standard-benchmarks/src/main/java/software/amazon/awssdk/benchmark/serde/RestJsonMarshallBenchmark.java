@@ -54,9 +54,9 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class RestJsonMarshallBenchmark {
 
         private static final String INTERMEDIATE_MODEL_PATH = "models/awsrestjsondataplane-1999-12-31-intermediate.json";
@@ -65,14 +65,6 @@ public class RestJsonMarshallBenchmark {
         @Param({
                         "restJson1_CopyObjectRequest_Baseline",
                         "restJson1_CopyObjectRequest_M",
-                        "awsQuery_GetMetricDataRequest_S",
-                        "awsQuery_GetMetricDataRequest_M",
-                        "awsQuery_GetMetricDataRequest_L",
-                        "awsJson1_0_HealthcheckRequest_Example",
-                        "awsQuery_PutMetricDataRequest_Baseline",
-                        "awsQuery_PutMetricDataRequest_S",
-                        "awsQuery_PutMetricDataRequest_M",
-                        "awsQuery_PutMetricDataRequest_L",
                         "restJson1_PutObject_S",
                         "restJson1_PutObject_M",
                         "restJson1_PutObject_L"

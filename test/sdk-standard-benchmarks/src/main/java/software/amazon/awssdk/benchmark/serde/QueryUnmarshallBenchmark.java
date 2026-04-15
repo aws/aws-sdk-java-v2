@@ -50,9 +50,9 @@ import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolU
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class QueryUnmarshallBenchmark {
 
         private static final String TEST_DATA_PATH = "serde-tests/query/output/query.json";
@@ -61,7 +61,6 @@ public class QueryUnmarshallBenchmark {
                         "awsQuery_GetMetricDataResponse_S",
                         "awsQuery_GetMetricDataResponse_M",
                         "awsQuery_GetMetricDataResponse_L",
-                        "awsJson1_0_HealthcheckResponse_Example"
         })
         private String testCaseId;
 

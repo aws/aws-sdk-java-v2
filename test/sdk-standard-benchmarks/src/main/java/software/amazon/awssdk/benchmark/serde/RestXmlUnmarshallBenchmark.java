@@ -50,9 +50,9 @@ import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmar
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class RestXmlUnmarshallBenchmark {
 
         private static final String TEST_DATA_PATH = "serde-tests/rest-xml/output/rest_xml.json";
@@ -60,13 +60,9 @@ public class RestXmlUnmarshallBenchmark {
         @Param({
                         "restXml_CopyObjectOutput_Baseline",
                         "restXml_CopyObjectOutput_M",
-                        "awsQuery_GetMetricDataResponse_S",
-                        "awsQuery_GetMetricDataResponse_M",
-                        "awsQuery_GetMetricDataResponse_L",
                         "restXml_GetObject_S",
                         "restXml_GetObject_M",
                         "restXml_GetObject_L",
-                        "awsJson1_0_HealthcheckResponse_Example"
         })
         private String testCaseId;
 

@@ -55,12 +55,12 @@ import software.amazon.awssdk.utils.AttributeMap;
  *   <li>4 - S3 outposts vanilla test</li>
  * </ul>
  */
-@State(Scope.Thread)
-@BenchmarkMode(Mode.AverageTime)
+@State(Scope.Benchmark)
+@BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 10, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 30, timeUnit = TimeUnit.SECONDS)
-@Fork(4)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(3)
 public class S3EndpointResolverBenchmark {
 
     private static final ClientEndpointProvider DEFAULT_ENDPOINT_PROVIDER =
