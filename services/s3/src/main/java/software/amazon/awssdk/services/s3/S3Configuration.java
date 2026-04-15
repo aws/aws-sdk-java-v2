@@ -267,6 +267,12 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * will not include the header.
      * <p>
      * The default value is 1048576 bytes (1 MB).
+     * <p>
+     * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
+     * {@code Expect: 100-continue} header by default without any threshold via its own {@code expectContinueEnabled}
+     * setting. To benefit from the `expectContinueThresholdInBytes` you must disable {@code expectContinueEnabled}
+     * on the Apache4 HTTP client builder using {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
+     * This does NOT apply to the {@code Apache5HttpClient} which defaults {@code expectContinueEnabled} to false.
      *
      * @return The threshold in bytes.
      * @see S3Configuration.Builder#expectContinueThresholdInBytes(Long)
