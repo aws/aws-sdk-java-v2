@@ -37,7 +37,6 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
 
     private static final String DECODED_CONTENT_LENGTH_HEADER = "x-amz-decoded-content-length";
     private static final String CONTENT_LENGTH_HEADER = "Content-Length";
-    private static final long DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES = 1_048_576L;
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
@@ -63,7 +62,7 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
         }
 
         long threshold = s3Config != null ? s3Config.expectContinueThresholdInBytes()
-                                          : DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES;
+                                          : 0L;
 
         return getContentLengthHeader(context.httpRequest())
             .map(Long::parseLong)

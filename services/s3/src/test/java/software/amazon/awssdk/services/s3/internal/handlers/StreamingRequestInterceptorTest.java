@@ -222,108 +222,69 @@ class StreamingRequestInterceptorTest {
     // Threshold behavior
     // -----------------------------------------------------------------------
 
-    @Test
-    void modifyHttpRequest_putObject_contentLengthAboveThreshold_shouldAddExpectHeader() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "2097152");
-        ExecutionAttributes attrs = withExpectContinue(true);
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("thresholdBehaviorProvider")
+    void modifyHttpRequest_thresholdBehavior(String testName, SdkRequest sdkRequest,
+                                             SdkHttpRequest httpRequest, ExecutionAttributes attrs,
+                                             boolean expectPresent) {
+        Context.ModifyHttpRequest context = httpRequest != null
+            ? modifyHttpRequestContextWithHttpRequest(sdkRequest, httpRequest)
+            : modifyHttpRequestContext(sdkRequest);
 
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(context, attrs);
 
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
+        if (expectPresent) {
+            assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
+        } else {
+            assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
+        }
     }
 
-    @Test
-    void modifyHttpRequest_putObject_contentLengthBelowThreshold_shouldNotAddExpectHeader() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "1024");
-        ExecutionAttributes attrs = withExpectContinue(true);
+    private static Stream<Arguments> thresholdBehaviorProvider() {
+        SdkRequest putObject = PutObjectRequest.builder().build();
 
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
+        return Stream.of(
+            // Default threshold (1 MB) behavior
+            Arguments.of("above default threshold (2 MB) → header added",
+                         putObject, buildHttpRequest("Content-Length", "2097152"),
+                         withExpectContinue(true), true),
+            Arguments.of("below default threshold (1 KB) → header not added",
+                         putObject, buildHttpRequest("Content-Length", "1024"),
+                         withExpectContinue(true), false),
+            Arguments.of("exactly at default threshold (1 MB) → header added",
+                         putObject, buildHttpRequest("Content-Length", "1048576"),
+                         withExpectContinue(true), true),
 
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
-    }
+            // expectContinueEnabled=false overrides threshold
+            Arguments.of("disabled + above threshold → header not added",
+                         putObject, buildHttpRequest("Content-Length", "2097152"),
+                         withExpectContinue(false), false),
 
-    @Test
-    void modifyHttpRequest_contentLengthExactlyAtThreshold_shouldAddExpectHeader() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "1048576");
-        ExecutionAttributes attrs = withExpectContinue(true);
+            // No content-length (chunked/unknown) always adds header
+            Arguments.of("no content-length header + high threshold → header added",
+                         putObject, null, withThreshold(999_999_999L), true),
 
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
+            // Zero content-length never adds header
+            Arguments.of("zero content-length + zero threshold → header not added",
+                         putObject, buildHttpRequest("Content-Length", "0"),
+                         withThreshold(0L), false),
 
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
-    }
+            // Custom threshold
+            Arguments.of("custom threshold 100, content-length 500 → header added",
+                         putObject, buildHttpRequest("Content-Length", "500"),
+                         withThreshold(100L), true),
+            Arguments.of("custom threshold 100, content-length 50 → header not added",
+                         putObject, buildHttpRequest("Content-Length", "50"),
+                         withThreshold(100L), false),
 
-    @Test
-    void modifyHttpRequest_expectContinueDisabled_contentLengthAboveThreshold_shouldNotAddExpectHeader() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "2097152");
-        ExecutionAttributes attrs = withExpectContinue(false);
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
-
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
-    }
-
-    @Test
-    void modifyHttpRequest_noContentLengthHeader_shouldAddExpectHeaderRegardlessOfThreshold() {
-        ExecutionAttributes attrs = withThreshold(999_999_999L);
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContext(PutObjectRequest.builder().build()), attrs);
-
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
-    }
-
-    @Test
-    void modifyHttpRequest_zeroContentLength_shouldNotAddHeaderRegardlessOfThreshold() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "0");
-        ExecutionAttributes attrs = withThreshold(0L);
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
-
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
-    }
-
-    @Test
-    void modifyHttpRequest_customThreshold_shouldBeRespected() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "500");
-        ExecutionAttributes attrs = withThreshold(100L);
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
-
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
-    }
-
-    @Test
-    void modifyHttpRequest_customThreshold_belowThreshold_shouldNotAddHeader() {
-        SdkHttpRequest httpRequest = buildHttpRequest("Content-Length", "50");
-        ExecutionAttributes attrs = withThreshold(100L);
-
-        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), httpRequest), attrs);
-
-        assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
-    }
-
-    @Test
-    void modifyHttpRequest_noS3Configuration_shouldUseDefaultThreshold() {
-        // Content-length above default threshold (1 MB) → header added
-        SdkHttpRequest aboveThreshold = buildHttpRequest("Content-Length", "2097152");
-        SdkHttpRequest modifiedAbove = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), aboveThreshold),
-            new ExecutionAttributes());
-        assertThat(modifiedAbove.firstMatchingHeader("Expect")).hasValue("100-continue");
-
-        // Content-length below default threshold (1 MB) → header not added
-        SdkHttpRequest belowThreshold = buildHttpRequest("Content-Length", "1024");
-        SdkHttpRequest modifiedBelow = interceptor.modifyHttpRequest(
-            modifyHttpRequestContextWithHttpRequest(PutObjectRequest.builder().build(), belowThreshold),
-            new ExecutionAttributes());
-        assertThat(modifiedBelow.firstMatchingHeader("Expect")).isNotPresent();
+            // No S3Configuration → enabled with threshold=0
+            Arguments.of("no S3Configuration + large content-length → header added",
+                         putObject, buildHttpRequest("Content-Length", "2097152"),
+                         new ExecutionAttributes(), true),
+            Arguments.of("no S3Configuration + small content-length → header added",
+                         putObject, buildHttpRequest("Content-Length", "1024"),
+                         new ExecutionAttributes(), true)
+        );
     }
 
     private static ExecutionAttributes withThreshold(long threshold) {
