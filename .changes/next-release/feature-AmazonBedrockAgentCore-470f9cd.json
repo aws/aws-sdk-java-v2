@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Introducing NamespacePath in AgentCore Memory to support hierarchical prefix based memory record retrieval."
-}

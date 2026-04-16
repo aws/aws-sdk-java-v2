@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "Update documentation of alarm mute rules start and end date fields"
-}
