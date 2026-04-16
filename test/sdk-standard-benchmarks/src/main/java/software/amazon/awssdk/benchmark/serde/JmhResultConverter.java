@@ -23,7 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.Logger;
 
@@ -50,6 +56,36 @@ public final class JmhResultConverter {
 
     private static final Logger log = Logger.loggerFor(JmhResultConverter.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Protocol prefixes that may appear on test case IDs. These must be stripped
+     * before deduplication because the same test case may have been run with an
+     * incorrect prefix due to a bug in earlier benchmark configurations.
+     */
+    private static final List<String> PROTOCOL_PREFIXES = Arrays.asList(
+        "awsJson1_0_", "awsQuery_", "rpcv2Cbor_", "restJson1_", "restXml_"
+    );
+
+    /**
+     * Pattern to extract the protocol portion from a benchmark class simple name.
+     * E.g. "JsonRpc10MarshallBenchmark" &rarr; group(1) = "JsonRpc10".
+     */
+    private static final Pattern BENCHMARK_CLASS_PROTOCOL_PATTERN =
+        Pattern.compile("^(.*?)(?:Marshall|Unmarshall)Benchmark$");
+
+    /**
+     * Maps the protocol name extracted from the benchmark class to the correct
+     * prefix to use in JSON output IDs.
+     */
+    private static final Map<String, String> PROTOCOL_TO_PREFIX = new LinkedHashMap<String, String>();
+
+    static {
+        PROTOCOL_TO_PREFIX.put("JsonRpc10", "awsJson1_0_");
+        PROTOCOL_TO_PREFIX.put("Query", "awsQuery_");
+        PROTOCOL_TO_PREFIX.put("RestJson", "restJson1_");
+        PROTOCOL_TO_PREFIX.put("RestXml", "restXml_");
+        PROTOCOL_TO_PREFIX.put("RpcV2Cbor", "rpcv2Cbor_");
+    }
 
     private JmhResultConverter() {
     }
@@ -111,21 +147,40 @@ public final class JmhResultConverter {
         if (jmhResults == null || !jmhResults.isArray()) {
             return entries;
         }
+
+        // Use a dedup key of (protocol + strippedId) to keep only the first occurrence.
+        // This handles the case where the same test was run with different (wrong) prefixes.
+        Map<String, ObjectNode> seen = new LinkedHashMap<String, ObjectNode>();
+
         for (JsonNode result : jmhResults) {
-            ObjectNode entry = convertSingleResult(result);
-            if (entry != null) {
-                entries.add(entry);
+            String testCaseId = extractTestCaseId(result);
+            if (testCaseId == null) {
+                continue;
             }
+
+            String protocol = extractProtocol(result);
+            String strippedId = stripProtocolPrefix(testCaseId);
+            String dedupKey = protocol + ":" + strippedId;
+
+            if (seen.containsKey(dedupKey)) {
+                log.debug(() -> "Skipping duplicate test case: " + testCaseId
+                                + " (protocol=" + protocol + ", stripped=" + strippedId + ")");
+                continue;
+            }
+
+            ObjectNode entry = convertSingleResult(result, strippedId, protocol);
+            if (entry != null) {
+                seen.put(dedupKey, entry);
+            }
+        }
+
+        for (ObjectNode entry : seen.values()) {
+            entries.add(entry);
         }
         return entries;
     }
 
-    private static ObjectNode convertSingleResult(JsonNode result) {
-        String testCaseId = extractTestCaseId(result);
-        if (testCaseId == null) {
-            return null;
-        }
-
+    private static ObjectNode convertSingleResult(JsonNode result, String strippedId, String protocol) {
         long n = computeTotalInvocations(result.path("primaryMetric").path("rawDataHistogram"));
         JsonNode primaryMetric = result.path("primaryMetric");
         double mean = primaryMetric.path("score").asDouble(0.0);
@@ -137,8 +192,13 @@ public final class JmhResultConverter {
         double p95 = percentiles.path("95.0").asDouble(0.0);
         double p99 = percentiles.path("99.0").asDouble(0.0);
 
+        // Re-add the correct protocol prefix for the JSON id field
+        String correctPrefix = PROTOCOL_TO_PREFIX.get(protocol);
+        String prefixedId = (correctPrefix != null ? correctPrefix : "") + strippedId;
+
         ObjectNode entry = MAPPER.createObjectNode();
-        entry.put("id", testCaseId);
+        entry.put("id", prefixedId);
+        entry.put("protocol", protocol);
         entry.put("n", n);
         entry.put("mean", mean);
         entry.put("p50", p50);
@@ -191,6 +251,54 @@ public final class JmhResultConverter {
     }
 
     /**
+     * Strip any known protocol prefix from a test case ID.
+     * For example, {@code "awsJson1_0_PutItemRequest_Baseline"} becomes
+     * {@code "PutItemRequest_Baseline"}.
+     */
+    static String stripProtocolPrefix(String testCaseId) {
+        for (String prefix : PROTOCOL_PREFIXES) {
+            if (testCaseId.startsWith(prefix)) {
+                return testCaseId.substring(prefix.length());
+            }
+        }
+        return testCaseId;
+    }
+
+    /**
+     * Extract the protocol name from the JMH result's {@code benchmark} field.
+     *
+     * <p>The benchmark field has the form
+     * {@code "software.amazon.awssdk.benchmark.serde.JsonRpc10MarshallBenchmark.marshall"}.
+     * This method extracts the simple class name and strips the {@code Marshall/UnmarshallBenchmark}
+     * suffix to yield the protocol, e.g. {@code "JsonRpc10"}.
+     *
+     * @return the protocol name, or {@code "Unknown"} if it cannot be determined
+     */
+    static String extractProtocol(JsonNode result) {
+        JsonNode benchmarkNode = result.path("benchmark");
+        if (benchmarkNode.isMissingNode() || !benchmarkNode.isTextual()) {
+            return "Unknown";
+        }
+        String benchmark = benchmarkNode.asText();
+
+        // Extract simple class name: last segment before the method name
+        // e.g. "...serde.JsonRpc10MarshallBenchmark.marshall" -> "JsonRpc10MarshallBenchmark"
+        int lastDot = benchmark.lastIndexOf('.');
+        if (lastDot < 0) {
+            return "Unknown";
+        }
+        String withMethod = benchmark.substring(0, lastDot);
+        int classNameStart = withMethod.lastIndexOf('.');
+        String simpleClassName = classNameStart >= 0 ? withMethod.substring(classNameStart + 1) : withMethod;
+
+        Matcher matcher = BENCHMARK_CLASS_PROTOCOL_PATTERN.matcher(simpleClassName);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        return "Unknown";
+    }
+
+    /**
      * Write the converted output as a rendered Markdown table.
      *
      * <p>The format matches the cross-language reference, e.g.:
@@ -202,9 +310,9 @@ public final class JmhResultConverter {
      * ```
      * AWS SDK for Java / 2.x.y
      * ```
-     * |id|n|mean|p50|p90|p95|p99|std_dev|
-     * |----:|----:|----:|----:|----:|----:|----:|----:|
-     * |awsJson1_0_...|1,234|5,678|...|
+     * |id|protocol|n|mean|p50|p90|p95|p99|std_dev|
+     * |----:|----:|----:|----:|----:|----:|----:|----:|----:|
+     * |PutItemRequest_Baseline|JsonRpc10|1,234|5,678|...|
      * </pre>
      */
     static void writeMarkdown(ObjectNode output, File file) throws IOException {
@@ -238,13 +346,14 @@ public final class JmhResultConverter {
             }
 
             // Table header
-            pw.println("|id|n|mean|p50|p90|p95|p99|std_dev|");
-            pw.println("|----:|----:|----:|----:|----:|----:|----:|----:|");
+            pw.println("|id|protocol|n|mean|p50|p90|p95|p99|std_dev|");
+            pw.println("|----:|----:|----:|----:|----:|----:|----:|----:|----:|");
 
-            // Table rows
+            // Table rows — use stripped (unprefixed) ID and show protocol in its own column
             if (benchmarks.isArray()) {
                 for (JsonNode bm : benchmarks) {
-                    String id = bm.path("id").asText("");
+                    String id = stripProtocolPrefix(bm.path("id").asText(""));
+                    String protocol = bm.path("protocol").asText("");
                     String n = nf.format(Math.round(bm.path("n").asDouble(0)));
                     String mean = nf.format(Math.round(bm.path("mean").asDouble(0)));
                     String p50 = nf.format(Math.round(bm.path("p50").asDouble(0)));
@@ -253,6 +362,7 @@ public final class JmhResultConverter {
                     String p99 = nf.format(Math.round(bm.path("p99").asDouble(0)));
                     String stdDev = nf.format(Math.round(bm.path("std_dev").asDouble(0)));
                     pw.println("|" + id
+                               + "|" + protocol
                                + "|" + n
                                + "|" + mean
                                + "|" + p50
