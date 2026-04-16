@@ -33,10 +33,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonPr
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
-import software.amazon.awssdk.services.database.auth.scheme.internal.DatabaseAuthSchemeInterceptor;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
-import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -76,9 +73,6 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new DatabaseAuthSchemeInterceptor());
-        endpointInterceptors.add(new DatabaseResolveEndpointInterceptor());
-        endpointInterceptors.add(new DatabaseRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/database/execution.interceptors");
