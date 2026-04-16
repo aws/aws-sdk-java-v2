@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -85,13 +86,13 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
 
     @Override
     public void storeToken(SsoOidcToken token) {
-        // Atomic write: write to a temp file with restricted permissions, then move to the destination.
+        // Write to a temp file first, then move to the destination to avoid partial reads.
         try {
             Path temp = createOwnerOnlyTempFile(tokenLocation.getParent(), "token-", ".tmp");
             try (OutputStream os = Files.newOutputStream(temp)) {
                 os.write(marshalToken(token));
             }
-            Files.move(temp, tokenLocation, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            atomicOrFallbackMove(temp, tokenLocation);
         } catch (IOException e) {
             throw SdkClientException.create("Unable to write token to location " + tokenLocation, e);
         }
@@ -110,6 +111,17 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
             // File system does not support POSIX permissions (e.g., Windows, or in-memory file systems);
             // fall back to default permissions.
             return Files.createTempFile(dir, prefix, suffix);
+        }
+    }
+
+    /**
+     * Attempts an atomic move, falling back to a non-atomic replace if the file system does not support it.
+     */
+    private static void atomicOrFallbackMove(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
