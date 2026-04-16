@@ -106,7 +106,7 @@ jobs:
               fi
               
               # 3. Check if Brazil import is skipped
-              if ! grep -q "\"$MODULE_NAME\".*\"skip\".*true" .brazil.json 2>/dev/null; then
+              if ! grep -q "\"$MODULE_NAME\".*\"skipImport\".*true" .brazil.json 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not configured to skip Brazil import in .brazil.json"
                 HAS_ERRORS=1
               else
