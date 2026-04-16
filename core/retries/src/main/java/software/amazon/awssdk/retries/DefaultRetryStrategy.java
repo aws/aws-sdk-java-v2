@@ -87,11 +87,19 @@ public final class DefaultRetryStrategy {
 
     static final class Standard {
         static final int MAX_ATTEMPTS = 3;
-        static final Duration BASE_DELAY = Duration.ofMillis(100);
+
+        // v2.1 constants
+        static final Duration BASE_DELAY_V21 = Duration.ofMillis(50);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V21 = 14;
+        static final int THROTTLING_EXCEPTION_TOKEN_COST_V21 = 5;
+
+        // v2.0 constants
+        static final Duration BASE_DELAY_V20 = Duration.ofMillis(100);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V20 = 5;
+
         static final Duration THROTTLED_BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
         static final int TOKEN_BUCKET_SIZE = 500;
-        static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
 
         private Standard() {
         }
