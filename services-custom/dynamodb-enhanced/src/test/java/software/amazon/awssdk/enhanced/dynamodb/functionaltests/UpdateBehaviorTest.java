@@ -2,14 +2,14 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.UpdateBehaviorTestModels.BeanWithInvalidNestedAttributeName.ChildBeanWithInvalidAttributeName;
 
 import com.google.common.collect.ImmutableList;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -43,7 +43,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     private static final String TEST_ATTRIBUTE = "testAttribute";
 
     private static final TableSchema<RecordWithUpdateBehaviors> TABLE_SCHEMA =
-        TableSchema.fromClass(RecordWithUpdateBehaviors.class);
+            TableSchema.fromClass(RecordWithUpdateBehaviors.class);
 
     private static final TableSchema<FlattenRecord> TABLE_SCHEMA_FLATTEN_RECORD =
         TableSchema.fromClass(FlattenRecord.class);
@@ -390,6 +390,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void when_updatingNestedObjectToEmptyWithSingleLevel_existingInformationIsPreserved_scalar_only_update() {
+        Instant currentTime = Instant.now().minusMillis(1);
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
         nestedRecord.setAttribute(TEST_ATTRIBUTE);
@@ -747,6 +748,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
      */
     @Test
     public void updateBehaviors_nested() {
+        Instant currentTime = Instant.now().minusMillis(1);
         NestedRecordWithUpdateBehavior nestedRecord = new NestedRecordWithUpdateBehavior();
         nestedRecord.setId("id456");
 
