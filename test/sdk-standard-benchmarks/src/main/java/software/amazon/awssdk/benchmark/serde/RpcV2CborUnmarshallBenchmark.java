@@ -56,62 +56,62 @@ import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 @Fork(3)
 public class RpcV2CborUnmarshallBenchmark {
 
-        private static final String CONTENT_TYPE = "application/cbor";
-        private static final String TEST_DATA_PATH = "serde-tests/rpc-v2-cbor/output/rpc_v2_cbor.json";
+    private static final String CONTENT_TYPE = "application/cbor";
+    private static final String TEST_DATA_PATH = "serde-tests/rpc-v2-cbor/output/rpc_v2_cbor.json";
 
-        @Param({
-                        "rpcv2Cbor_GetItemOutput_Baseline",
-                        "rpcv2Cbor_GetItemOutput_S",
-                        "rpcv2Cbor_GetItemOutput_M",
-                        "rpcv2Cbor_GetItemOutput_L",
-                        "rpcv2Cbor_GetItemOutputBinary_S",
-                        "rpcv2Cbor_GetItemOutputBinary_M",
-                        "rpcv2Cbor_GetItemOutputBinary_L",
-        })
-        private String testCaseId;
+    @Param({
+            "rpcv2Cbor_GetItemOutput_Baseline",
+            "rpcv2Cbor_GetItemOutput_S",
+            "rpcv2Cbor_GetItemOutput_M",
+            "rpcv2Cbor_GetItemOutput_L",
+            "rpcv2Cbor_GetItemOutputBinary_S",
+            "rpcv2Cbor_GetItemOutputBinary_M",
+            "rpcv2Cbor_GetItemOutputBinary_L",
+    })
+    private String testCaseId;
 
-        private JsonProtocolUnmarshaller unmarshaller;
-        private byte[] responseBytes;
-        private int statusCode;
-        private SdkResponse emptyResponse;
+    private JsonProtocolUnmarshaller unmarshaller;
+    private byte[] responseBytes;
+    private int statusCode;
+    private SdkResponse emptyResponse;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadUnmarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadUnmarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Pre-store response bytes (CBOR responses are base64-encoded)
-                this.responseBytes = Base64.getDecoder().decode(testCase.getResponseBody().trim());
-                this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
+        // 2. Pre-store response bytes (CBOR responses are base64-encoded)
+        this.responseBytes = Base64.getDecoder().decode(testCase.getResponseBody().trim());
+        this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
 
-                // 3. Pre-construct unmarshaller
-                this.unmarshaller = JsonProtocolUnmarshaller.builder()
-                                .enableFastUnmarshalling(true)
-                                .protocolUnmarshallDependencies(
-                                                SmithyRpcV2CborProtocolFactory.defaultProtocolUnmarshallDependencies())
-                                .build();
+        // 3. Pre-construct unmarshaller
+        this.unmarshaller = JsonProtocolUnmarshaller.builder()
+                .enableFastUnmarshalling(true)
+                .protocolUnmarshallDependencies(
+                        SmithyRpcV2CborProtocolFactory.defaultProtocolUnmarshallDependencies())
+                .build();
 
-                // 4. Resolve response builder via reflection at setup time
-                String fqcn = "software.amazon.awssdk.services.rpccbordataplane.model."
-                                + testCase.getOperationName() + "Response";
-                Class<?> responseClass = Class.forName(fqcn);
-                Method builderMethod = responseClass.getMethod("builder");
-                SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
-                this.emptyResponse = builder.build();
-        }
+        // 4. Resolve response builder via reflection at setup time
+        String fqcn = "software.amazon.awssdk.services.rpccbordataplane.model."
+                + testCase.getOperationName() + "Response";
+        Class<?> responseClass = Class.forName(fqcn);
+        Method builderMethod = responseClass.getMethod("builder");
+        SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
+        this.emptyResponse = builder.build();
+    }
 
-        @Benchmark
-        public void unmarshall(Blackhole bh) throws Exception {
-                SdkHttpFullResponse response = SdkHttpFullResponse.builder()
-                                .statusCode(statusCode)
-                                .putHeader("Content-Type", CONTENT_TYPE)
-                                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
-                                .build();
-                bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
-        }
+    @Benchmark
+    public void unmarshall(Blackhole bh) throws Exception {
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder()
+                .statusCode(statusCode)
+                .putHeader("Content-Type", CONTENT_TYPE)
+                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
+                .build();
+        bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
+    }
 }

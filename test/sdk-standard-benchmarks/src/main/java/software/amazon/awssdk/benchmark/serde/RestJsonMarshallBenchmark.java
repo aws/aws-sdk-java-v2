@@ -41,7 +41,6 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 
 /**
  * JMH benchmark for REST JSON marshalling (serialization).
@@ -59,57 +58,57 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 @Fork(3)
 public class RestJsonMarshallBenchmark {
 
-        private static final String INTERMEDIATE_MODEL_PATH = "models/awsrestjsondataplane-1999-12-31-intermediate.json";
-        private static final String TEST_DATA_PATH = "serde-tests/rest-json/input/rest_json.json";
+    private static final String INTERMEDIATE_MODEL_PATH = "models/awsrestjsondataplane-1999-12-31-intermediate.json";
+    private static final String TEST_DATA_PATH = "serde-tests/rest-json/input/rest_json.json";
 
-        @Param({
-                        "restJson1_CopyObjectRequest_Baseline",
-                        "restJson1_CopyObjectRequest_M",
-                        "restJson1_PutObject_S",
-                        "restJson1_PutObject_M",
-                        "restJson1_PutObject_L"
-        })
-        private String testCaseId;
+    @Param({
+            "restJson1_CopyObjectRequest_Baseline",
+            "restJson1_CopyObjectRequest_M",
+            "restJson1_PutObject_S",
+            "restJson1_PutObject_M",
+            "restJson1_PutObject_L"
+    })
+    private String testCaseId;
 
-        private SdkPojo request;
-        private OperationInfo operationInfo;
-        private AwsJsonProtocolFactory protocolFactory;
+    private SdkPojo request;
+    private OperationInfo operationInfo;
+    private AwsJsonProtocolFactory protocolFactory;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadMarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadMarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Load IntermediateModel
-                IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
+        // 2. Load IntermediateModel
+        IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
 
-                // 3. Build SDK request via ShapeModelReflector
-                String inputShapeName = testCase.getOperationName() + "Request";
-                ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
-                this.request = (SdkPojo) reflector.createShapeObject();
+        // 3. Build SDK request via ShapeModelReflector
+        String inputShapeName = testCase.getOperationName() + "Request";
+        ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
+        this.request = (SdkPojo) reflector.createShapeObject();
 
-                // 4. Pre-build marshaller config using the protocol factory (same as generated
-                // code)
-                this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
-                this.protocolFactory = AwsJsonProtocolFactory.builder()
-                                .clientConfiguration(SdkClientConfiguration.builder()
-                                                .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
-                                                .build())
-                                .defaultServiceExceptionSupplier(null)
-                                .protocol(AwsJsonProtocol.REST_JSON)
-                                .protocolVersion("1.1")
-                                .build();
-        }
+        // 4. Pre-build marshaller config using the protocol factory (same as generated
+        // code)
+        this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
+        this.protocolFactory = AwsJsonProtocolFactory.builder()
+                .clientConfiguration(SdkClientConfiguration.builder()
+                        .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                        .build())
+                .defaultServiceExceptionSupplier(null)
+                .protocol(AwsJsonProtocol.REST_JSON)
+                .protocolVersion("1.1")
+                .build();
+    }
 
-        @Benchmark
-        public void marshall(Blackhole bh) {
-                ProtocolMarshaller<SdkHttpFullRequest> marshaller = protocolFactory
-                                .createProtocolMarshaller(operationInfo);
-                bh.consume(marshaller.marshall(request));
-        }
+    @Benchmark
+    public void marshall(Blackhole bh) {
+        ProtocolMarshaller<SdkHttpFullRequest> marshaller = protocolFactory
+                .createProtocolMarshaller(operationInfo);
+        bh.consume(marshaller.marshall(request));
+    }
 }

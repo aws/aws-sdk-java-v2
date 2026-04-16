@@ -34,7 +34,6 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
@@ -56,52 +55,52 @@ import software.amazon.awssdk.protocols.query.internal.marshall.QueryProtocolMar
 @Fork(3)
 public class QueryMarshallBenchmark {
 
-        private static final URI ENDPOINT = URI.create("http://localhost/");
-        private static final String INTERMEDIATE_MODEL_PATH = "models/awsquerydataplane-1999-12-31-intermediate.json";
-        private static final String TEST_DATA_PATH = "serde-tests/query/input/query.json";
+    private static final URI ENDPOINT = URI.create("http://localhost/");
+    private static final String INTERMEDIATE_MODEL_PATH = "models/awsquerydataplane-1999-12-31-intermediate.json";
+    private static final String TEST_DATA_PATH = "serde-tests/query/input/query.json";
 
-        @Param({
-                        "awsQuery_GetMetricDataRequest_S",
-                        "awsQuery_GetMetricDataRequest_M",
-                        "awsQuery_GetMetricDataRequest_L",
-                        "awsQuery_PutMetricDataRequest_Baseline",
-                        "awsQuery_PutMetricDataRequest_S",
-                        "awsQuery_PutMetricDataRequest_M",
-                        "awsQuery_PutMetricDataRequest_L"
-        })
-        private String testCaseId;
+    @Param({
+            "awsQuery_GetMetricDataRequest_S",
+            "awsQuery_GetMetricDataRequest_M",
+            "awsQuery_GetMetricDataRequest_L",
+            "awsQuery_PutMetricDataRequest_Baseline",
+            "awsQuery_PutMetricDataRequest_S",
+            "awsQuery_PutMetricDataRequest_M",
+            "awsQuery_PutMetricDataRequest_L"
+    })
+    private String testCaseId;
 
-        private SdkPojo request;
-        private OperationInfo operationInfo;
+    private SdkPojo request;
+    private OperationInfo operationInfo;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadMarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadMarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Load IntermediateModel
-                IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
+        // 2. Load IntermediateModel
+        IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
 
-                // 3. Build SDK request via ShapeModelReflector
-                String inputShapeName = testCase.getOperationName() + "Request";
-                ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
-                this.request = (SdkPojo) reflector.createShapeObject();
+        // 3. Build SDK request via ShapeModelReflector
+        String inputShapeName = testCase.getOperationName() + "Request";
+        ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
+        this.request = (SdkPojo) reflector.createShapeObject();
 
-                // 4. Pre-build marshaller config
-                this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
-        }
+        // 4. Pre-build marshaller config
+        this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
+    }
 
-        @Benchmark
-        public void marshall(Blackhole bh) {
-                ProtocolMarshaller<SdkHttpFullRequest> marshaller = QueryProtocolMarshaller.builder()
-                                .endpoint(ENDPOINT)
-                                .operationInfo(operationInfo)
-                                .build();
-                bh.consume(marshaller.marshall(request));
-        }
+    @Benchmark
+    public void marshall(Blackhole bh) {
+        ProtocolMarshaller<SdkHttpFullRequest> marshaller = QueryProtocolMarshaller.builder()
+                .endpoint(ENDPOINT)
+                .operationInfo(operationInfo)
+                .build();
+        bh.consume(marshaller.marshall(request));
+    }
 }

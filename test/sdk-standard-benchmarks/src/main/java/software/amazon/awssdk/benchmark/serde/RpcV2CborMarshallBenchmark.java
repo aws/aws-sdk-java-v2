@@ -34,7 +34,6 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
@@ -59,68 +58,68 @@ import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFac
 @Fork(3)
 public class RpcV2CborMarshallBenchmark {
 
-        private static final URI ENDPOINT = URI.create("http://localhost/");
-        private static final String CONTENT_TYPE = "application/cbor";
-        private static final String INTERMEDIATE_MODEL_PATH = "models/smithyrpcv2cbordataplane-1999-12-31-intermediate.json";
-        private static final String TEST_DATA_PATH = "serde-tests/rpc-v2-cbor/input/rpc_v2_cbor.json";
+    private static final URI ENDPOINT = URI.create("http://localhost/");
+    private static final String CONTENT_TYPE = "application/cbor";
+    private static final String INTERMEDIATE_MODEL_PATH = "models/smithyrpcv2cbordataplane-1999-12-31-intermediate.json";
+    private static final String TEST_DATA_PATH = "serde-tests/rpc-v2-cbor/input/rpc_v2_cbor.json";
 
-        @Param({
-                        "rpcv2Cbor_PutItemRequest_Baseline",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_S",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_M",
-                        "rpcv2Cbor_PutItemRequest_ShallowMap_L",
-                        "rpcv2Cbor_PutItemRequest_Nested_M",
-                        "rpcv2Cbor_PutItemRequest_Nested_L",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_S",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_M",
-                        "rpcv2Cbor_PutItemRequest_MixedItem_L",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_S",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_M",
-                        "rpcv2Cbor_PutItemRequest_BinaryData_L",
-        })
-        private String testCaseId;
+    @Param({
+            "rpcv2Cbor_PutItemRequest_Baseline",
+            "rpcv2Cbor_PutItemRequest_ShallowMap_S",
+            "rpcv2Cbor_PutItemRequest_ShallowMap_M",
+            "rpcv2Cbor_PutItemRequest_ShallowMap_L",
+            "rpcv2Cbor_PutItemRequest_Nested_M",
+            "rpcv2Cbor_PutItemRequest_Nested_L",
+            "rpcv2Cbor_PutItemRequest_MixedItem_S",
+            "rpcv2Cbor_PutItemRequest_MixedItem_M",
+            "rpcv2Cbor_PutItemRequest_MixedItem_L",
+            "rpcv2Cbor_PutItemRequest_BinaryData_S",
+            "rpcv2Cbor_PutItemRequest_BinaryData_M",
+            "rpcv2Cbor_PutItemRequest_BinaryData_L",
+    })
+    private String testCaseId;
 
-        private SdkPojo request;
-        private OperationInfo operationInfo;
-        private AwsJsonProtocolMetadata protocolMetadata;
+    private SdkPojo request;
+    private OperationInfo operationInfo;
+    private AwsJsonProtocolMetadata protocolMetadata;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadMarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.MarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadMarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.MarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Load IntermediateModel
-                IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
+        // 2. Load IntermediateModel
+        IntermediateModel model = BenchmarkTestCaseLoader.loadIntermediateModel(INTERMEDIATE_MODEL_PATH);
 
-                // 3. Build SDK request via ShapeModelReflector
-                String inputShapeName = testCase.getOperationName() + "Request";
-                ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
-                this.request = (SdkPojo) reflector.createShapeObject();
+        // 3. Build SDK request via ShapeModelReflector
+        String inputShapeName = testCase.getOperationName() + "Request";
+        ShapeModelReflector reflector = new ShapeModelReflector(model, inputShapeName, testCase.getInputData());
+        this.request = (SdkPojo) reflector.createShapeObject();
 
-                // 4. Pre-build marshaller config
-                this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
-                this.protocolMetadata = AwsJsonProtocolMetadata.builder()
-                                .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR)
-                                .contentType(CONTENT_TYPE)
-                                .build();
-        }
+        // 4. Pre-build marshaller config
+        this.operationInfo = BenchmarkTestCaseLoader.buildOperationInfo(model, testCase);
+        this.protocolMetadata = AwsJsonProtocolMetadata.builder()
+                .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR)
+                .contentType(CONTENT_TYPE)
+                .build();
+    }
 
-        @Benchmark
-        public void marshall(Blackhole bh) {
-                ProtocolMarshaller<SdkHttpFullRequest> marshaller = JsonProtocolMarshallerBuilder.create()
-                                .endpoint(ENDPOINT)
-                                .jsonGenerator(SdkStructuredRpcV2CborFactory.SDK_CBOR_FACTORY
-                                                .createWriter(CONTENT_TYPE))
-                                .contentType(CONTENT_TYPE)
-                                .operationInfo(operationInfo)
-                                .sendExplicitNullForPayload(false)
-                                .protocolMetadata(protocolMetadata)
-                                .build();
-                bh.consume(marshaller.marshall(request));
-        }
+    @Benchmark
+    public void marshall(Blackhole bh) {
+        ProtocolMarshaller<SdkHttpFullRequest> marshaller = JsonProtocolMarshallerBuilder.create()
+                .endpoint(ENDPOINT)
+                .jsonGenerator(SdkStructuredRpcV2CborFactory.SDK_CBOR_FACTORY
+                        .createWriter(CONTENT_TYPE))
+                .contentType(CONTENT_TYPE)
+                .operationInfo(operationInfo)
+                .sendExplicitNullForPayload(false)
+                .protocolMetadata(protocolMetadata)
+                .build();
+        bh.consume(marshaller.marshall(request));
+    }
 }

@@ -55,64 +55,64 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnm
 @Fork(3)
 public class RestJsonUnmarshallBenchmark {
 
-        private static final String CONTENT_TYPE = "application/x-amz-json-1.1";
-        private static final String TEST_DATA_PATH = "serde-tests/rest-json/output/rest_json.json";
+    private static final String CONTENT_TYPE = "application/x-amz-json-1.1";
+    private static final String TEST_DATA_PATH = "serde-tests/rest-json/output/rest_json.json";
 
-        @Param({
-                        "restJson1_CopyObjectOutput_Baseline",
-                        "restJson1_CopyObjectOutput_M",
-                        "restJson1_GetObject_S",
-                        "restJson1_GetObject_M",
-                        "restJson1_GetObject_L",
-        })
-        private String testCaseId;
+    @Param({
+            "restJson1_CopyObjectOutput_Baseline",
+            "restJson1_CopyObjectOutput_M",
+            "restJson1_GetObject_S",
+            "restJson1_GetObject_M",
+            "restJson1_GetObject_L",
+    })
+    private String testCaseId;
 
-        private JsonProtocolUnmarshaller unmarshaller;
-        private byte[] responseBytes;
-        private int statusCode;
-        private SdkResponse emptyResponse;
-        private java.util.Map<String, String> responseHeaders;
+    private JsonProtocolUnmarshaller unmarshaller;
+    private byte[] responseBytes;
+    private int statusCode;
+    private SdkResponse emptyResponse;
+    private java.util.Map<String, String> responseHeaders;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadUnmarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadUnmarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Pre-store response bytes
-                this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
-                this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
-                this.responseHeaders = testCase.getHeaders();
+        // 2. Pre-store response bytes
+        this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
+        this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
+        this.responseHeaders = testCase.getHeaders();
 
-                // 3. Pre-construct unmarshaller
-                this.unmarshaller = JsonProtocolUnmarshaller.builder()
-                                .enableFastUnmarshalling(true)
-                                .protocolUnmarshallDependencies(
-                                                JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies())
-                                .build();
+        // 3. Pre-construct unmarshaller
+        this.unmarshaller = JsonProtocolUnmarshaller.builder()
+                .enableFastUnmarshalling(true)
+                .protocolUnmarshallDependencies(
+                        JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies())
+                .build();
 
-                // 4. Resolve response builder via reflection at setup time
-                String fqcn = "software.amazon.awssdk.services.restjsondataplane.model."
-                                + testCase.getOperationName() + "Response";
-                Class<?> responseClass = Class.forName(fqcn);
-                Method builderMethod = responseClass.getMethod("builder");
-                SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
-                this.emptyResponse = builder.build();
+        // 4. Resolve response builder via reflection at setup time
+        String fqcn = "software.amazon.awssdk.services.restjsondataplane.model."
+                + testCase.getOperationName() + "Response";
+        Class<?> responseClass = Class.forName(fqcn);
+        Method builderMethod = responseClass.getMethod("builder");
+        SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
+        this.emptyResponse = builder.build();
+    }
+
+    @Benchmark
+    public void unmarshall(Blackhole bh) throws Exception {
+        SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder()
+                .statusCode(statusCode)
+                .putHeader("Content-Type", CONTENT_TYPE)
+                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)));
+        if (responseHeaders != null) {
+            responseHeaders.forEach(responseBuilder::putHeader);
         }
-
-        @Benchmark
-        public void unmarshall(Blackhole bh) throws Exception {
-                SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder()
-                                .statusCode(statusCode)
-                                .putHeader("Content-Type", CONTENT_TYPE)
-                                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)));
-                if (responseHeaders != null) {
-                        responseHeaders.forEach(responseBuilder::putHeader);
-                }
-                bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), responseBuilder.build()));
-        }
+        bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), responseBuilder.build()));
+    }
 }

@@ -55,63 +55,63 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnm
 @Fork(3)
 public class JsonRpc10UnmarshallBenchmark {
 
-        private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
-        private static final String TEST_DATA_PATH = "serde-tests/json-rpc-1-0/output/json_1_0.json";
+    private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
+    private static final String TEST_DATA_PATH = "serde-tests/json-rpc-1-0/output/json_1_0.json";
 
-        @Param({
-                        "awsJson1_0_GetItemOutput_Baseline",
-                        "awsJson1_0_GetItemOutput_S",
-                        "awsJson1_0_GetItemOutput_M",
-                        "awsJson1_0_GetItemOutput_L",
-                        "awsJson1_0_GetItemOutputBinary_S",
-                        "awsJson1_0_GetItemOutputBinary_M",
-                        "awsJson1_0_GetItemOutputBinary_L",
-                        "awsJson1_0_HealthcheckResponse_Example"
-        })
-        private String testCaseId;
+    @Param({
+            "awsJson1_0_GetItemOutput_Baseline",
+            "awsJson1_0_GetItemOutput_S",
+            "awsJson1_0_GetItemOutput_M",
+            "awsJson1_0_GetItemOutput_L",
+            "awsJson1_0_GetItemOutputBinary_S",
+            "awsJson1_0_GetItemOutputBinary_M",
+            "awsJson1_0_GetItemOutputBinary_L",
+            "awsJson1_0_HealthcheckResponse_Example"
+    })
+    private String testCaseId;
 
-        private JsonProtocolUnmarshaller unmarshaller;
-        private byte[] responseBytes;
-        private int statusCode;
-        private SdkResponse emptyResponse;
+    private JsonProtocolUnmarshaller unmarshaller;
+    private byte[] responseBytes;
+    private int statusCode;
+    private SdkResponse emptyResponse;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadUnmarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadUnmarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Pre-store response bytes
-                this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
-                this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
+        // 2. Pre-store response bytes
+        this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
+        this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
 
-                // 3. Pre-construct unmarshaller
-                this.unmarshaller = JsonProtocolUnmarshaller.builder()
-                                .enableFastUnmarshalling(true)
-                                .protocolUnmarshallDependencies(
-                                                JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies())
-                                .build();
+        // 3. Pre-construct unmarshaller
+        this.unmarshaller = JsonProtocolUnmarshaller.builder()
+                .enableFastUnmarshalling(true)
+                .protocolUnmarshallDependencies(
+                        JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies())
+                .build();
 
-                // 4. Resolve response builder via reflection at setup time
-                String fqcn = "software.amazon.awssdk.services.jsonrpc10dataplane.model."
-                                + testCase.getOperationName() + "Response";
-                Class<?> responseClass = Class.forName(fqcn);
-                Method builderMethod = responseClass.getMethod("builder");
-                SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
-                this.emptyResponse = builder.build();
-        }
+        // 4. Resolve response builder via reflection at setup time
+        String fqcn = "software.amazon.awssdk.services.jsonrpc10dataplane.model."
+                + testCase.getOperationName() + "Response";
+        Class<?> responseClass = Class.forName(fqcn);
+        Method builderMethod = responseClass.getMethod("builder");
+        SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
+        this.emptyResponse = builder.build();
+    }
 
-        @Benchmark
-        public void unmarshall(Blackhole bh) throws Exception {
-                SdkHttpFullResponse response = SdkHttpFullResponse.builder()
-                                .statusCode(statusCode)
-                                .putHeader("Content-Type", CONTENT_TYPE)
-                                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
-                                .build();
-                bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
-        }
+    @Benchmark
+    public void unmarshall(Blackhole bh) throws Exception {
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder()
+                .statusCode(statusCode)
+                .putHeader("Content-Type", CONTENT_TYPE)
+                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
+                .build();
+        bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
+    }
 }

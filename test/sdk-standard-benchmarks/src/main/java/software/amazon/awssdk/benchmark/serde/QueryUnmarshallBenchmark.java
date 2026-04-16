@@ -55,54 +55,54 @@ import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolU
 @Fork(3)
 public class QueryUnmarshallBenchmark {
 
-        private static final String TEST_DATA_PATH = "serde-tests/query/output/query.json";
+    private static final String TEST_DATA_PATH = "serde-tests/query/output/query.json";
 
-        @Param({
-                        "awsQuery_GetMetricDataResponse_S",
-                        "awsQuery_GetMetricDataResponse_M",
-                        "awsQuery_GetMetricDataResponse_L",
-        })
-        private String testCaseId;
+    @Param({
+            "awsQuery_GetMetricDataResponse_S",
+            "awsQuery_GetMetricDataResponse_M",
+            "awsQuery_GetMetricDataResponse_L",
+    })
+    private String testCaseId;
 
-        private QueryProtocolUnmarshaller unmarshaller;
-        private byte[] responseBytes;
-        private int statusCode;
-        private SdkResponse emptyResponse;
+    private QueryProtocolUnmarshaller unmarshaller;
+    private byte[] responseBytes;
+    private int statusCode;
+    private SdkResponse emptyResponse;
 
-        @Setup(Level.Trial)
-        public void setup() throws Exception {
-                // 1. Load test cases
-                List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
-                                .loadUnmarshallTestCases(TEST_DATA_PATH);
-                BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
-                                .filter(tc -> tc.getId().equals(testCaseId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        // 1. Load test cases
+        List<BenchmarkTestCaseLoader.UnmarshallTestCase> allCases = BenchmarkTestCaseLoader
+                .loadUnmarshallTestCases(TEST_DATA_PATH);
+        BenchmarkTestCaseLoader.UnmarshallTestCase testCase = allCases.stream()
+                .filter(tc -> tc.getId().equals(testCaseId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Test case not found: " + testCaseId));
 
-                // 2. Pre-store response bytes
-                this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
-                this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
+        // 2. Pre-store response bytes
+        this.responseBytes = testCase.getResponseBody().getBytes(StandardCharsets.UTF_8);
+        this.statusCode = testCase.getStatusCode() != null ? testCase.getStatusCode() : 200;
 
-                // 3. Pre-construct unmarshaller
-                this.unmarshaller = QueryProtocolUnmarshaller.builder()
-                                .hasResultWrapper(true)
-                                .build();
+        // 3. Pre-construct unmarshaller
+        this.unmarshaller = QueryProtocolUnmarshaller.builder()
+                .hasResultWrapper(true)
+                .build();
 
-                // 4. Resolve response builder via reflection at setup time
-                String fqcn = "software.amazon.awssdk.services.querydataplane.model."
-                                + testCase.getOperationName() + "Response";
-                Class<?> responseClass = Class.forName(fqcn);
-                Method builderMethod = responseClass.getMethod("builder");
-                SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
-                this.emptyResponse = builder.build();
-        }
+        // 4. Resolve response builder via reflection at setup time
+        String fqcn = "software.amazon.awssdk.services.querydataplane.model."
+                + testCase.getOperationName() + "Response";
+        Class<?> responseClass = Class.forName(fqcn);
+        Method builderMethod = responseClass.getMethod("builder");
+        SdkResponse.Builder builder = (SdkResponse.Builder) builderMethod.invoke(null);
+        this.emptyResponse = builder.build();
+    }
 
-        @Benchmark
-        public void unmarshall(Blackhole bh) throws Exception {
-                SdkHttpFullResponse response = SdkHttpFullResponse.builder()
-                                .statusCode(statusCode)
-                                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
-                                .build();
-                bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
-        }
+    @Benchmark
+    public void unmarshall(Blackhole bh) throws Exception {
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder()
+                .statusCode(statusCode)
+                .content(AbortableInputStream.create(new ByteArrayInputStream(responseBytes)))
+                .build();
+        bh.consume(unmarshaller.unmarshall((SdkPojo) emptyResponse.toBuilder(), response));
+    }
 }

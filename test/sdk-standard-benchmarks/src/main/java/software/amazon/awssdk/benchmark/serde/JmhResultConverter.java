@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -125,9 +126,9 @@ public final class JmhResultConverter {
         software.add(toJsonArray("AWS SDK for Java", VersionInfo.SDK_VERSION));
         metadata.set("software", software);
 
-        String os = System.getProperty("os.name", "unknown") + " "
-                + System.getProperty("os.version", "") + " "
-                + System.getProperty("os.arch", "");
+        String os = JavaSystemSetting.OS_NAME.getStringValue().orElse("unknown") + " "
+                + JavaSystemSetting.OS_VERSION.getStringValue().orElse("") + " "
+                + JavaSystemSetting.OS_ARCH.getStringValue().orElse("");
         metadata.put("os", os.trim());
         metadata.put("instance", "TODO");
         metadata.put("precision", "-9");
@@ -379,7 +380,8 @@ public final class JmhResultConverter {
      * Main entry point for command-line usage:
      * 
      * <pre>
-     *   java -cp benchmarks.jar software.amazon.awssdk.benchmark.serde.JmhResultConverter &lt;input.json&gt; &lt;output-prefix&gt;
+     *   java -cp benchmarks.jar \
+     *     software.amazon.awssdk.benchmark.serde.JmhResultConverter &lt;input.json&gt; &lt;output-prefix&gt;
      * </pre>
      *
      * <p>Produces {@code <output-prefix>.json} and {@code <output-prefix>.md}.
