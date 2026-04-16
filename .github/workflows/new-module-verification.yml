@@ -83,7 +83,7 @@ jobs:
             echo "New module detected: $MODULE_DIR"
             
             # Check if it's a test module
-            if [[ "$MODULE_DIR" == *"/test/"* || "$MODULE_DIR" == *"/it/"* || "$MODULE_DIR" == *"-test"* || "$MODULE_DIR" == *"-tests"* ]]; then
+            if [[ "$MODULE_DIR" == *"/test/"* || "$MODULE_DIR" == *"/it/"* || "$MODULE_DIR" == *"-test"* || "$MODULE_DIR" == *"-tests"* || "$MODULE_DIR" == *"-benchmarks"* ]]; then
               echo "::group::Test module: $MODULE_DIR"
               TEST_MODULES=$((TEST_MODULES + 1))
               
