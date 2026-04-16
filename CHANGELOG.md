@@ -1,4 +1,77 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.35__ __2026-04-16__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Deprecate the userId from the Chat operations. This update also removes support of AllowVendedLogDeliveryForResource API from AWS SDKs.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for Elemental Inference powered smart crop feature, enabling video verticalization
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add HTTP client configuration type metadata to the User-Agent header, tracking whether the HTTP client was auto-detected from the classpath, an explicit client instance or client builder configured by the customer.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where using a getObject ResponsePublisher as a putObject request body with the CRT HTTP client could cause the SDK to hang on retry when the server returns a retryable error.
+
+## __Amazon AppStream__
+  - ### Features
+    - Add content redirection to Update Stack
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Introducing NamespacePath in AgentCore Memory to support hierarchical prefix based memory record retrieval.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Update documentation of alarm mute rules start and end date fields
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Endpoint update for CloudWatch Logs Streaming APIs.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds support for passkey-based multi-factor authentication in Cognito User Pools. Users can authenticate securely using FIDO2-compliant passkeys with user verification, enabling passwordless MFA flows while maintaining backward compatibility with password-based authentication
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Added error handling for service quota limits
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Amazon Connect Customer Profiles adds RecommenderSchema CRUD APIs for custom ML training columns. CreateRecommender and CreateRecommenderFilter now accept optional RecommenderSchemaName.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the Amazon Connect Rules CRUD APIs to support a new EventSourceName - OnEmailAnalysisAvailable. Use this event source to trigger rules when conversational analytics results are available for email contacts.
+
+## __Amazon DataZone__
+  - ### Features
+    - Launching SMUS IAM domain SDK support
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds a new DescribeServerlessV2PlatformVersions API to describe platform version properties for Aurora Serverless v2. Also introduces a new valid maintenance action value for serverless platform version updates.
+
+## __Amazon SNS Message Manager__
+  - ### Features
+    - This change introduces the SNS Message Manager for 2.x, a library used to parse and validate messages received from SNS. This aims to provide the same functionality as [SnsMessageManager](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html) from 1.x.
+
+## __Apache 5 HTTP Client__
+  - ### Features
+    - Update `httpcore5` to `5.4.2`.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for specifying Availability Zone IDs as an alternative to Availability Zone names when creating or updating Auto Scaling groups.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Updating regex for identification of AWS Regions.
+
 # __2.42.34__ __2026-04-13__
 ## __AWS Glue__
   - ### Features
