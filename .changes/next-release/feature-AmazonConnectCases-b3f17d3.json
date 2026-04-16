@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Cases",
+    "contributor": "",
+    "description": "Added error handling for service quota limits"
+}
