@@ -563,4 +563,44 @@ public class SimplePublisherTest {
         }
     }
 
+    @Test
+    public void subscribeAfterCancel_rejectsWithError() {
+        SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
+        publisher.subscribe(subscriber);
+
+        subscriber.subscription.cancel();
+
+        // Second subscriber after cancel should get onError immediately
+        StoringSubscriber<Integer> secondSubscriber = new StoringSubscriber<>(1);
+        publisher.subscribe(secondSubscriber);
+
+        assertThat(secondSubscriber.peek().get().type()).isEqualTo(EventType.ON_ERROR);
+        assertThat(secondSubscriber.peek().get().runtimeError())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Only one subscription may be active");
+    }
+
+    @Test
+    public void subscribeAfterCancelAndDataConsumed_rejectsWithError() {
+        SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        StoringSubscriber<Integer> subscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
+        publisher.subscribe(subscriber);
+
+        publisher.send(1);
+        publisher.send(2);
+        publisher.complete();
+
+        while (subscriber.poll().isPresent()) {
+            // drain
+        }
+
+        // Now re-subscribe — should be rejected immediately
+        StoringSubscriber<Integer> secondSubscriber = new StoringSubscriber<>(1);
+        publisher.subscribe(secondSubscriber);
+
+        assertThat(secondSubscriber.peek().get().type()).isEqualTo(EventType.ON_ERROR);
+        assertThat(secondSubscriber.peek().get().runtimeError())
+            .isInstanceOf(IllegalStateException.class);
+    }
 }

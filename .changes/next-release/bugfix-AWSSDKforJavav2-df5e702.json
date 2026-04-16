@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where using a getObject ResponsePublisher as a putObject request body with the CRT HTTP client could cause the SDK to hang on retry when the server returns a retryable error."
+}
