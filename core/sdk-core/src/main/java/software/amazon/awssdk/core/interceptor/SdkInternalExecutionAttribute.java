@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
@@ -181,6 +183,20 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<AuthSchemeOptionsResolver> AUTH_SCHEME_OPTIONS_RESOLVER =
         new ExecutionAttribute<>("AuthSchemeOptionsResolver");
+
+    /**
+     * Callback for resolving the endpoint. Generated per-service as a lambda in the client class.
+     * Called by EndpointResolutionStage after interceptors have run.
+     */
+    public static final ExecutionAttribute<EndpointResolver> ENDPOINT_RESOLVER =
+        new ExecutionAttribute<>("EndpointResolver");
+
+    /**
+     * The HTTP request URI captured before modifyHttpRequest interceptors run.
+     * Used by EndpointResolutionStage to detect if a customer interceptor modified the URL.
+     */
+    public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestUriBeforeModify");
 
     /**
      * The selected auth scheme for a request.

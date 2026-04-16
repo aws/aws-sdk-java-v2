@@ -1,27 +1,41 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.awscore.endpoints;
+
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.HostnameValidator;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-@SdkInternalApi
+/**
+ * Shared utility methods for endpoint resolution across all AWS services.
+ * Previously this was generated per-service as an identical copy; now de-duplicated here.
+ */
+@SdkProtectedApi
 public final class AwsEndpointProviderUtils {
-    private static final Logger LOG = Logger.loggerFor(AwsEndpointProviderUtils.class);
 
     private AwsEndpointProviderUtils() {
     }
@@ -57,14 +71,14 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * Read {@link SdkExecutionAttribute#CLIENT_ENDPOINT_PROVIDER}'s isEndpointOverridden attribute.
+     * True if the {@link SdkInternalExecutionAttribute#CLIENT_ENDPOINT_PROVIDER}'s endpoint is overridden.
      */
     public static boolean endpointIsOverridden(ExecutionAttributes attrs) {
         return attrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
     }
 
     /**
-     * True if the the {@link SdkInternalExecutionAttribute#IS_DISCOVERED_ENDPOINT} attribute is present and its value
+     * True if the {@link SdkInternalExecutionAttribute#IS_DISCOVERED_ENDPOINT} attribute is present and its value
      * is {@code true}, {@code false} otherwise.
      */
     public static boolean endpointIsDiscovered(ExecutionAttributes attrs) {
@@ -72,7 +86,7 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * True if the the {@link SdkInternalExecutionAttribute#DISABLE_HOST_PREFIX_INJECTION} attribute is present and its
+     * True if the {@link SdkInternalExecutionAttribute#DISABLE_HOST_PREFIX_INJECTION} attribute is present and its
      * value is {@code true}, {@code false} otherwise.
      */
     public static boolean disableHostPrefixInjection(ExecutionAttributes attrs) {
@@ -86,14 +100,11 @@ public final class AwsEndpointProviderUtils {
         if (StringUtils.isBlank(prefix)) {
             return endpoint;
         }
-
         validatePrefixIsHostNameCompliant(prefix);
-
         URI originalUrl = endpoint.url();
         String newHost = prefix + endpoint.url().getHost();
         URI newUrl = invokeSafely(() -> new URI(originalUrl.getScheme(), null, newHost, originalUrl.getPort(),
                 originalUrl.getPath(), originalUrl.getQuery(), originalUrl.getFragment()));
-
         return endpoint.toBuilder().url(newUrl).build();
     }
 
@@ -107,7 +118,7 @@ public final class AwsEndpointProviderUtils {
      * no way to know, just from the HTTP request object, where the override path ends (if it's even there) and where
      * the request path starts. Additionally, the rule itself may also append other parts to the endpoint override path.
      * <p>
-     * To solve this issue, we pass in the endpoint set on the path, which allows us to the strip the path from the
+     * To solve this issue, we pass in the endpoint set on the client, which allows us to the strip the path from the
      * endpoint override from the request path, and then correctly combine the paths.
      * <p>
      * For example, let's suppose the endpoint override on the client is {@code https://example.com/a}. Then we call an
@@ -117,19 +128,11 @@ public final class AwsEndpointProviderUtils {
      * path is {@code https://example.com/a/b/c}.
      */
     public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, URI resolvedUri) {
-        // [client endpoint path]
         String clientEndpointPath = clientEndpoint.getRawPath();
-
-        // [client endpoint path]/[request path]
         String requestPath = request.encodedPath();
-
-        // [client endpoint path]/[additional path added by resolver]
         String resolvedUriPath = resolvedUri.getRawPath();
 
         String finalPath = requestPath;
-
-        // If there is an additional path added by resolver, i.e., [additional path added by resolver] not null,
-        // we need to combine the path
         if (!resolvedUriPath.equals(clientEndpointPath)) {
             finalPath = combinePath(clientEndpointPath, requestPath, resolvedUriPath);
         }
@@ -139,26 +142,18 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * Our goal is to construct [client endpoint path]/[additional path added by resolver]/[request path], so we just
-     * need to strip the client endpoint path from the marshalled request path to isolate just the part added by the
-     * marshaller. Trailing slash is removed from client endpoint path before stripping because it could cause the
-     * leading slash to be removed from the request path: e.g., StringUtils.replaceOnce("/", "//test", "") generates
-     * "/test" and the expected result is "//test"
+     * Constructs [resolved URI path]/[request path without client endpoint path]. Strips the client endpoint path from
+     * the marshalled request path to isolate just the part added by the marshaller, then appends it to the resolved path.
      */
     private static String combinePath(String clientEndpointPath, String requestPath, String resolvedUriPath) {
         String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
-        String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
-        return finalPath;
+        return SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
     }
 
     private static void validatePrefixIsHostNameCompliant(String prefix) {
-        String[] components = splitHostLabelOnDots(prefix);
+        String[] components = prefix.split("\\.");
         for (String component : components) {
             HostnameValidator.validateHostnameCompliant(component, component, "request");
         }
-    }
-
-    private static String[] splitHostLabelOnDots(String label) {
-        return label.split("\\.");
     }
 }

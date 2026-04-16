@@ -149,6 +149,11 @@ public final class AwsExecutionContextBuilder {
                                              executionParams.authSchemeOptionsResolver());
         }
 
+        if (executionParams.endpointResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER,
+                                             executionParams.endpointResolver());
+        }
+
         // Set the identity provider updater for the pipeline stage to use
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER,
                                          AwsIdentityProviderUpdater.create());

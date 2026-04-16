@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,10 +43,14 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
@@ -55,6 +60,7 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.identity.SdkIdentityProperty;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
@@ -68,6 +74,7 @@ import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -96,8 +103,7 @@ import software.amazon.awssdk.services.s3.auth.scheme.internal.S3EndpointResolve
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressAuthSchemeProvider;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
@@ -248,10 +254,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
-        List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new S3ResolveEndpointInterceptor());
-        additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
-        s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
         return mergeLists(interceptorFactory.getGlobalInterceptors(), s3Interceptors);
     }
 
@@ -415,6 +417,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Resolve auth scheme after interceptors complete
         resolveAndSelectAuthScheme(execCtx, requestToPresign, operationName);
+
+        // Resolve endpoint
+        resolveEndpointAndUpdateContext(execCtx, operationName);
 
         SdkHttpFullRequest httpRequest = getHttpFullRequest(execCtx);
 
@@ -632,6 +637,60 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
+     * Resolve the endpoint using the rules engine and apply it to the HTTP request in the execution context.
+     */
+    private void resolveEndpointAndUpdateContext(ExecutionContext execCtx, String operationName) {
+        ExecutionAttributes executionAttributes = execCtx.executionAttributes();
+        SdkRequest sdkRequest = execCtx.interceptorContext().request();
+
+        S3EndpointParams endpointParams = S3EndpointResolverUtils.ruleParams(sdkRequest, executionAttributes);
+        S3EndpointProvider provider = (S3EndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+
+        Endpoint endpoint;
+        try {
+            endpoint = provider.resolveEndpoint(endpointParams).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
+
+        if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+            Optional<String> hostPrefix = S3EndpointResolverUtils.hostPrefix(operationName, sdkRequest);
+            if (hostPrefix.isPresent()) {
+                endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+            }
+        }
+
+        List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+            selectedAuthScheme = S3EndpointResolverUtils.authSchemeWithEndpointSignerProperties(
+                endpointAuthSchemes, selectedAuthScheme);
+            executionAttributes.putAttribute(SELECTED_AUTH_SCHEME, selectedAuthScheme);
+        }
+
+        SdkHttpRequest httpRequest = execCtx.interceptorContext().httpRequest();
+        ClientEndpointProvider clientEndpointProvider =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
+        SdkHttpRequest updatedRequest = AwsEndpointProviderUtils.setUri(httpRequest,
+            clientEndpointProvider.clientEndpoint(), endpoint.url());
+
+        if (!endpoint.headers().isEmpty()) {
+            SdkHttpRequest.Builder requestBuilder = updatedRequest.toBuilder();
+            endpoint.headers().forEach((name, values) ->
+                values.forEach(v -> requestBuilder.appendHeader(name, v)));
+            updatedRequest = requestBuilder.build();
+        }
+
+        SdkHttpRequest finalRequest = updatedRequest;
+        execCtx.interceptorContext(execCtx.interceptorContext().copy(c -> c.httpRequest(finalRequest)));
+    }
+
+    /**
      * Resolve auth scheme options using full endpoint params.
      */
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName, 
@@ -640,7 +699,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
             "Expected an instance of S3AuthSchemeProvider");
         
-        S3EndpointParams endpointParams = S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        S3EndpointParams endpointParams = S3EndpointResolverUtils.ruleParams(request, executionAttributes);
         S3AuthSchemeParams.Builder paramsBuilder = S3AuthSchemeParams.fromEndpointParams(endpointParams)
             .operation(operationName);
 

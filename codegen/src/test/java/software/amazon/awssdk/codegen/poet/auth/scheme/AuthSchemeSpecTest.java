@@ -187,28 +187,6 @@ public class AuthSchemeSpecTest {
                     .caseName("auth-with-legacy-trait")
                     .outputFileSuffix("default-provider")
                     .build(),
-            // Interceptors
-            // - Normal case
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModels)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query")
-                    .outputFileSuffix("interceptor")
-                    .build(),
-            // - Endpoints based params with allow list
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query-endpoint-auth-params-with-allowlist")
-                    .outputFileSuffix("interceptor")
-                    .build(),
-            // - Endpoints based params without allow list
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query-endpoint-auth-params-without-allowlist")
-                    .outputFileSuffix("interceptor")
-                    .build(),
             // Service with auth trait with Sigv4a
             TestCase.builder()
                     .modelProvider(ClientTestModels::opsWithSigv4a)
@@ -227,19 +205,6 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
                     .caseName("ops-auth-sigv4a-value")
                     .outputFileSuffix("default-params")
-                    .build(),
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::opsWithSigv4a)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("ops-auth-sigv4a-value")
-                    .outputFileSuffix("interceptor")
-                    .build(),
-            // service with environment bearer token enabled
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::envBearerTokenServiceModels)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("env-bearer-token")
-                    .outputFileSuffix("interceptor")
                     .build(),
             // Rest Json service with checksum
             TestCase.builder()

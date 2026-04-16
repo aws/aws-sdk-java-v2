@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -65,6 +66,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private final ExecutionAttributes attributes = new ExecutionAttributes();
     private SdkClientConfiguration requestConfiguration;
     private AuthSchemeOptionsResolver authSchemeOptionsResolver;
+    private EndpointResolver endpointResolver;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -271,6 +273,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> withAuthSchemeOptionsResolver(
             AuthSchemeOptionsResolver authSchemeOptionsResolver) {
         this.authSchemeOptionsResolver = authSchemeOptionsResolver;
+        return this;
+    }
+
+    public EndpointResolver endpointResolver() {
+        return endpointResolver;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withEndpointResolver(EndpointResolver endpointResolver) {
+        this.endpointResolver = endpointResolver;
         return this;
     }
 }

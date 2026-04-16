@@ -172,7 +172,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod())
-            .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
+            .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
+            .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
