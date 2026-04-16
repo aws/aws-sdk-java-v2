@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS CRT HTTP Client",
     "contributor": "WillChilds-Klein",
-    "description": "Java CRT 0.39.3 enables and prefers Post Quantum TLS (PQ TLS) by default. The `postQuantumTlsEnabled` builder option in aws-sdk-java-v2 now becomes an opt-out mechanism; setting it to false explicitly disables PQ TLS."
+    "description": "Java CRT 0.39.3 enables and prefers Post Quantum TLS (PQ TLS) by default when supported by the platform and service. The `postQuantumTlsEnabled` builder option in aws-sdk-java-v2 now becomes an opt-out mechanism; setting it to false explicitly disables PQ TLS."
 }
