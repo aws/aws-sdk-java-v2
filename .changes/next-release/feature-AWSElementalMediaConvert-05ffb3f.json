@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "Adds support for Elemental Inference powered smart crop feature, enabling video verticalization"
+}
