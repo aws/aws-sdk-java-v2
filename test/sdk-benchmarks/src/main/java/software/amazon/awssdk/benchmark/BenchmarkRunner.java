@@ -39,8 +39,9 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtH2ClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
-import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2PriorKnowledgeBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.CrtHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
@@ -73,9 +74,10 @@ public class BenchmarkRunner {
         QueryProtocolBenchmark.class.getSimpleName(), XmlProtocolBenchmark.class.getSimpleName());
 
     private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
-        NettyHttpClientH2Benchmark.class.getSimpleName(),
+        NettyHttpClientH2PriorKnowledgeBenchmark.class.getSimpleName(),
         NettyHttpClientH1Benchmark.class.getSimpleName(),
-        AwsCrtClientBenchmark.class.getSimpleName());
+        AwsCrtClientBenchmark.class.getSimpleName(),
+        AwsCrtH2ClientBenchmark.class.getSimpleName());
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
