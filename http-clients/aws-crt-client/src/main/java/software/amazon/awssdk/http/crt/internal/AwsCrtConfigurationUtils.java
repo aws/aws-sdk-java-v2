@@ -20,7 +20,6 @@ import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
