@@ -455,6 +455,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * <p>
          * This setting only takes effect when {@link #expectContinueEnabled(Boolean)} is {@code true} (the default).
          * <p>
+         * When content length is not known, the {@code Expect: 100-continue} header will always be added
+         * when {@link #expectContinueEnabled(Boolean)} is {@code true}.
+         * <p>
          * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
          * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. This threshold
          * only controls the SDK's own header addition; it does not affect the Apache client's behavior.
