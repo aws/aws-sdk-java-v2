@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.endpoints;
+package software.amazon.awssdk.awscore.endpoints;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Shared utility methods for endpoint resolution across all AWS services.
  * Previously this was generated per-service as an identical copy; now de-duplicated here.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class AwsEndpointProviderUtils {
 
     private AwsEndpointProviderUtils() {

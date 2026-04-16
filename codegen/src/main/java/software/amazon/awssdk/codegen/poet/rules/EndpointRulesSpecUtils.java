@@ -100,7 +100,7 @@ public class EndpointRulesSpecUtils {
     }
 
     public ClassName sharedAwsEndpointProviderUtilsName() {
-        return ClassName.get("software.amazon.awssdk.awscore.internal.endpoints", "AwsEndpointProviderUtils");
+        return ClassName.get("software.amazon.awssdk.awscore.endpoints", "AwsEndpointProviderUtils");
     }
 
     public ClassName requestModifierInterceptorName() {

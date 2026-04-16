@@ -21,8 +21,6 @@ import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -187,6 +185,54 @@ class EndpointResolutionStageTest {
         stage.execute(request, context);
 
         assertThat(capturedRequest[0]).isSameAs(modifiedRequest);
+    }
+
+    @Test
+    void execute_interceptorModifiedHost_preservesCustomHostAndScheme() throws Exception {
+        Endpoint endpoint = Endpoint.builder().url(URI.create("https://resolved.amazonaws.com")).build();
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                                .method(SdkHttpMethod.GET)
+                                                                .protocol("http")
+                                                                .host("custom.example.com")
+                                                                .port(8080)
+                                                                .encodedPath("/my-operation");
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
+                                         URI.create("https://myservice.amazonaws.com/my-operation"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.host()).isEqualTo("custom.example.com");
+        assertThat(result.protocol()).isEqualTo("http");
+        assertThat(result.port()).isEqualTo(8080);
+    }
+
+    @Test
+    void execute_interceptorModifiedHost_stillAppliesResolvedPath() throws Exception {
+        URI clientEndpoint = URI.create("https://s3.us-west-2.amazonaws.com");
+        URI resolvedUri = URI.create("https://s3.us-west-2.amazonaws.com/my-bucket");
+
+        Endpoint endpoint = Endpoint.builder().url(resolvedUri).build();
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                                .method(SdkHttpMethod.GET)
+                                                                .protocol("https")
+                                                                .host("example.com")
+                                                                .encodedPath("/my-key");
+
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
+                                         URI.create("https://s3.us-west-2.amazonaws.com/my-key"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(clientEndpoint));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.host()).isEqualTo("example.com");
+        assertThat(result.encodedPath()).isEqualTo("/my-bucket/my-key");
     }
 
     private SdkHttpFullRequest.Builder defaultRequest() {

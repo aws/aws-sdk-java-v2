@@ -47,7 +47,7 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
-import software.amazon.awssdk.awscore.internal.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientEndpointProvider;
