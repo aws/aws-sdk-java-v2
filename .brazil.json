@@ -103,6 +103,7 @@
         "s3-benchmarks": { "skipImport": true },
         "http-client-benchmarks": { "skipImport": true },
         "sdk-benchmarks": { "skipImport": true },
+        "sdk-standard-benchmarks": { "skipImport": true },
         "sdk-native-image-test": { "skipImport": true },
         "service-test-utils": { "skipImport": true },
         "services": { "skipImport": true },
