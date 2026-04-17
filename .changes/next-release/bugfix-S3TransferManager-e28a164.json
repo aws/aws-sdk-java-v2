@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed an issue where cancelling a directory transfer did not fully stop the operation."
+}

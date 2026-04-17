@@ -48,7 +48,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
                                     CompletableFuture<Void> returnFuture,
                                     int maxConcurrentExecutions) {
         this.returnFuture = returnFuture;
-        this.consumer = consumer;   
+        this.consumer = consumer;
         this.maxConcurrentExecutions = maxConcurrentExecutions;
         this.numRequestsInFlight = new AtomicInteger(0);
         this.requestsInFlight = ConcurrentHashMap.newKeySet();
