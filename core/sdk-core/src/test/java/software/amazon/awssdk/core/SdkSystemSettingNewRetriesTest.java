@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
@@ -36,31 +38,25 @@ class SdkSystemSettingNewRetriesTest {
         assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(false);
     }
 
-    @Test
-    void returnsFalse_whenSystemPropertySetToFalse() {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "false");
-        assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(false);
+    @ParameterizedTest(name = "systemProperty=\"{0}\" -> {1}")
+    @CsvSource({
+        "false, false",
+        "true,  true"
+    })
+    void getBooleanValue_reflectsSystemProperty(String propertyValue, boolean expected) {
+        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), propertyValue);
+        assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(expected);
     }
 
-    @Test
-    void returnsTrue_whenSystemPropertySetToTrue() {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
-        assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(true);
-    }
-
-    @Test
-    void returnsFalse_whenEnvVarSetToFalse() {
+    @ParameterizedTest(name = "envVar=\"{0}\" -> {1}")
+    @CsvSource({
+        "false, false",
+        "true,  true"
+    })
+    void getBooleanValue_reflectsEnvVar(String envVarValue, boolean expected) {
         EnvironmentVariableHelper.run(helper -> {
-            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, "false");
-            assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(false);
-        });
-    }
-
-    @Test
-    void returnsTrue_whenEnvVarSetToTrue() {
-        EnvironmentVariableHelper.run(helper -> {
-            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, "true");
-            assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(true);
+            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, envVarValue);
+            assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(expected);
         });
     }
 

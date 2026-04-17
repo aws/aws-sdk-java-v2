@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -42,31 +44,25 @@ class RetryModeGatedDefaultTest {
         assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
     }
 
-    @Test
-    void defaultRetryMode_returnsLegacy_whenGateSystemPropertyIsFalse() {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "false");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
+    @ParameterizedTest(name = "gate=\"{0}\" -> {1}")
+    @CsvSource({
+        "false, LEGACY",
+        "true,  STANDARD"
+    })
+    void defaultRetryMode_reflectsGate_whenSetViaSystemProperty(String gateValue, RetryMode expected) {
+        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), gateValue);
+        assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
     }
 
-    @Test
-    void defaultRetryMode_returnsStandard_whenGateSystemPropertyIsTrue() {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
-    }
-
-    @Test
-    void defaultRetryMode_returnsLegacy_whenGateEnvVarIsFalse() {
+    @ParameterizedTest(name = "gate=\"{0}\" -> {1}")
+    @CsvSource({
+        "false, LEGACY",
+        "true,  STANDARD"
+    })
+    void defaultRetryMode_reflectsGate_whenSetViaEnvVar(String gateValue, RetryMode expected) {
         EnvironmentVariableHelper.run(helper -> {
-            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, "false");
-            assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
-        });
-    }
-
-    @Test
-    void defaultRetryMode_returnsStandard_whenGateEnvVarIsTrue() {
-        EnvironmentVariableHelper.run(helper -> {
-            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, "true");
-            assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
+            helper.set(SdkSystemSetting.AWS_NEW_RETRIES_2026, gateValue);
+            assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
         });
     }
 
@@ -88,24 +84,16 @@ class RetryModeGatedDefaultTest {
         assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
     }
 
-    @Test
-    void resolve_returnsLegacy_whenExplicitlyConfigured_regardlessOfGate() {
-        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
-        System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), "legacy");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.LEGACY);
-    }
-
-    @Test
-    void resolve_returnsStandard_whenExplicitlyConfigured_regardlessOfGate() {
-        // Gate is disabled, but explicit config should still return STANDARD
-        System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), "standard");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.STANDARD);
-    }
-
-    @Test
-    void resolve_returnsAdaptiveV2_whenExplicitlyConfigured_regardlessOfGate() {
-        System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), "adaptive");
-        assertThat(RetryMode.defaultRetryMode()).isEqualTo(RetryMode.ADAPTIVE_V2);
+    @ParameterizedTest(name = "gate=\"{0}\" retryMode=\"{1}\" -> {2}")
+    @CsvSource({
+        "true,  legacy,   LEGACY",
+        "false, standard, STANDARD",
+        "false, adaptive, ADAPTIVE_V2"
+    })
+    void resolve_honorsExplicitRetryMode_regardlessOfGate(String gateValue, String retryModeValue, RetryMode expected) {
+        System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), gateValue);
+        System.setProperty(SdkSystemSetting.AWS_RETRY_MODE.property(), retryModeValue);
+        assertThat(RetryMode.defaultRetryMode()).isEqualTo(expected);
     }
 
     @Test
