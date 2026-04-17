@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -68,6 +71,10 @@ import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointIn
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -96,7 +103,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * URL url = utilities.getUrl(request);
  * </pre>
  *
- * Note: This class does not make network calls.
+ * Note: Most methods in this class do not make network calls. The exceptions are convenience methods like
+ * {@link #doesObjectExist(String, String)} and {@link #doesBucketExist(String)}, which call S3 on your behalf.
  */
 @Immutable
 @SdkPublicApi
@@ -112,6 +120,7 @@ public final class S3Utilities {
     private final boolean fipsEnabled;
     private final ExecutionInterceptorChain interceptorChain;
     private final UseGlobalEndpointResolver useGlobalEndpointResolver;
+    private final SdkClient s3Client;
 
     /**
      * SDK currently validates that region is present while constructing {@link S3Utilities} object.
@@ -143,6 +152,8 @@ public final class S3Utilities {
         this.interceptorChain = createEndpointInterceptorChain();
 
         this.useGlobalEndpointResolver = createUseGlobalEndpointResolver();
+
+        this.s3Client = builder.s3Client;
     }
 
     private void resolveDualstackSetting(S3Configuration.Builder s3ConfigBuilder, Builder s3UtiltiesBuilder) {
@@ -177,11 +188,17 @@ public final class S3Utilities {
     // Used by low-level client
     @SdkInternalApi
     static S3Utilities create(SdkClientConfiguration clientConfiguration) {
+        return create(clientConfiguration, null);
+    }
+
+    @SdkInternalApi
+    static S3Utilities create(SdkClientConfiguration clientConfiguration, SdkClient s3Client) {
         S3Utilities.Builder builder = builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
                           .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                          .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
+                          .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME))
+                          .s3Client(s3Client);
 
         ClientEndpointProvider clientEndpoint = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
         if (clientEndpoint.isEndpointOverridden()) {
@@ -534,6 +551,115 @@ public final class S3Utilities {
     }
 
     /**
+     * Checks whether an object exists in S3. Returns {@code true} if the object exists, {@code false} if it does not.
+     *
+     * <p><b>Permissions:</b> This method returns {@code false} only when S3 responds with a 404 (NoSuchKey). If the
+     * caller does not have {@code s3:ListBucket} permission on the bucket, S3 may return 403 instead of 404 for
+     * non-existent objects, which will be thrown as an exception.
+     *
+     * @param bucket the bucket name
+     * @param key the object key
+     * @return {@code true} if the object exists, {@code false} otherwise
+     * @throws S3Exception if S3 returns an error other than 404
+     * @throws IllegalStateException if this {@link S3Utilities} was not created via {@link S3Client#utilities()}
+     */
+    public boolean doesObjectExist(String bucket, String key) {
+        Validate.notEmpty(bucket, "bucket must not be null or empty");
+        Validate.notEmpty(key, "key must not be null or empty");
+        Validate.validState(s3Client instanceof S3Client,
+                            "doesObjectExist requires a sync S3Client. Use S3Client.utilities() to create S3Utilities.");
+        try {
+            ((S3Client) s3Client).headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether a bucket exists in S3 and is accessible. Returns {@code true} if the bucket exists and the caller
+     * has access, {@code false} if the bucket does not exist.
+     *
+     * <p><b>Permissions:</b> S3 returns 403 for buckets that exist but the caller does not have access to.
+     * This means the method cannot distinguish between "bucket does not exist" and "bucket exists but access is denied"
+     * — the 403 case will be thrown as an exception.
+     *
+     * @param bucket the bucket name
+     * @return {@code true} if the bucket exists and is accessible, {@code false} if it does not exist
+     * @throws S3Exception if S3 returns an error other than 404
+     * @throws IllegalStateException if this {@link S3Utilities} was not created via {@link S3Client#utilities()}
+     */
+    public boolean doesBucketExist(String bucket) {
+        Validate.notEmpty(bucket, "bucket must not be null or empty");
+        Validate.validState(s3Client instanceof S3Client,
+                            "doesBucketExist requires a sync S3Client. Use S3Client.utilities() to create S3Utilities.");
+        try {
+            ((S3Client) s3Client).headBucket(HeadBucketRequest.builder().bucket(bucket).build());
+            return true;
+        } catch (NoSuchBucketException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Async variant of {@link #doesObjectExist(String, String)}.
+     *
+     * <p>This method is only available when {@link S3Utilities} is created via {@link S3AsyncClient#utilities()}.
+     *
+     * @param bucket the bucket name
+     * @param key the object key
+     * @return a {@link CompletableFuture} that completes with {@code true} if the object exists, {@code false} otherwise
+     * @throws S3Exception if S3 returns an error other than 404
+     * @throws IllegalStateException if this {@link S3Utilities} was not created via {@link S3AsyncClient#utilities()}
+     */
+    public CompletableFuture<Boolean> doesObjectExistAsync(String bucket, String key) {
+        Validate.notEmpty(bucket, "bucket must not be null or empty");
+        Validate.notEmpty(key, "key must not be null or empty");
+        Validate.validState(s3Client instanceof S3AsyncClient,
+                            "doesObjectExistAsync requires an S3AsyncClient."
+                            + " Use S3AsyncClient.utilities() to create S3Utilities.");
+        return ((S3AsyncClient) s3Client).headObject(HeadObjectRequest.builder().bucket(bucket).key(key).build())
+                                         .thenApply(r -> true)
+                                         .exceptionally(t -> {
+                                             Throwable cause = t instanceof CompletionException ? t.getCause() : t;
+                                             if (cause instanceof NoSuchKeyException) {
+                                                 return false;
+                                             }
+                                             throw (cause instanceof RuntimeException)
+                                                   ? (RuntimeException) cause
+                                                   : new RuntimeException(cause);
+                                         });
+    }
+
+    /**
+     * Async variant of {@link #doesBucketExist(String)}.
+     *
+     * <p>This method is only available when {@link S3Utilities} is created via {@link S3AsyncClient#utilities()}.
+     *
+     * @param bucket the bucket name
+     * @return a {@link CompletableFuture} that completes with {@code true} if the bucket exists, {@code false} otherwise
+     * @throws S3Exception if S3 returns an error other than 404
+     * @throws IllegalStateException if this {@link S3Utilities} was not created via {@link S3AsyncClient#utilities()}
+     */
+    public CompletableFuture<Boolean> doesBucketExistAsync(String bucket) {
+        Validate.notEmpty(bucket, "bucket must not be null or empty");
+        Validate.validState(s3Client instanceof S3AsyncClient,
+                            "doesBucketExistAsync requires an S3AsyncClient."
+                            + " Use S3AsyncClient.utilities() to create S3Utilities.");
+        return ((S3AsyncClient) s3Client).headBucket(HeadBucketRequest.builder().bucket(bucket).build())
+                                         .thenApply(r -> true)
+                                         .exceptionally(t -> {
+                                             Throwable cause = t instanceof CompletionException ? t.getCause() : t;
+                                             if (cause instanceof NoSuchBucketException) {
+                                                 return false;
+                                             }
+                                             throw (cause instanceof RuntimeException)
+                                                   ? (RuntimeException) cause
+                                                   : new RuntimeException(cause);
+                                         });
+    }
+
+    /**
      * Builder class to construct {@link S3Utilities} object
      */
     public static final class Builder {
@@ -545,6 +671,7 @@ public final class S3Utilities {
         private String profileName;
         private Boolean dualstackEnabled;
         private Boolean fipsEnabled;
+        private SdkClient s3Client;
 
         private Builder() {
         }
@@ -643,6 +770,15 @@ public final class S3Utilities {
          */
         private Builder profileName(String profileName) {
             this.profileName = profileName;
+            return this;
+        }
+
+        /**
+         * The S3 client to use for convenience methods like {@link S3Utilities#doesObjectExist}. This is private and
+         * only used when the utilities is created via {@link S3Client#utilities()}.
+         */
+        private Builder s3Client(SdkClient s3Client) {
+            this.s3Client = s3Client;
             return this;
         }
 
