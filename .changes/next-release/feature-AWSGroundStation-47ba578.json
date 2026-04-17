@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "contributor": "",
+    "description": "Adds support for updating contacts, listing antennas, and listing ground station reservations. New API operations - UpdateContact, ListContactVersions, DescribeContactVersion, ListAntennas, and ListGroundStationReservations."
+}
