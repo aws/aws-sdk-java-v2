@@ -13,28 +13,6 @@
     "uid":"devops-agent-2026-01-01"
   },
   "operations":{
-    "AllowVendedLogDeliveryForResource":{
-      "name":"AllowVendedLogDeliveryForResource",
-      "http":{
-        "method":"POST",
-        "requestUri":"/allow-vended-log-delivery-for-resource",
-        "responseCode":200
-      },
-      "input":{"shape":"AllowVendedLogDeliveryForResourceInput"},
-      "output":{"shape":"AllowVendedLogDeliveryForResourceOutput"},
-      "errors":[
-        {"shape":"ContentSizeExceededException"},
-        {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"InvalidParameterException"}
-      ],
-      "documentation":"<p>Authorize Ingestion Hub subscription operation.</p>",
-      "endpoint":{"hostPrefix":"cp."}
-    },
     "AssociateService":{
       "name":"AssociateService",
       "http":{
@@ -1241,42 +1219,6 @@
       "min":1,
       "pattern":"[\\p{L}\\p{N}\\p{P}\\p{S}\\p{Z}]+"
     },
-    "AllowVendedLogDeliveryForResourceInput":{
-      "type":"structure",
-      "required":[
-        "resourceArnBeingAuthorized",
-        "deliverySourceArn"
-      ],
-      "members":{
-        "resourceArnBeingAuthorized":{
-          "shape":"String",
-          "documentation":"<p>The ARN of the resource being authorized for vended log delivery.</p>"
-        },
-        "deliverySourceArn":{
-          "shape":"AllowVendedLogDeliveryForResourceInputDeliverySourceArnString",
-          "documentation":"<p>The ARN of the delivery source for vended log delivery.</p>"
-        },
-        "logType":{
-          "shape":"String",
-          "documentation":"<p>The type of log to be delivered.</p>"
-        }
-      },
-      "documentation":"<p>Input for authorizing vended log delivery for a resource.</p>"
-    },
-    "AllowVendedLogDeliveryForResourceInputDeliverySourceArnString":{
-      "type":"string",
-      "pattern":"arn:.*"
-    },
-    "AllowVendedLogDeliveryForResourceOutput":{
-      "type":"structure",
-      "members":{
-        "message":{
-          "shape":"String",
-          "documentation":"<p>A message describing the result of the authorization operation.</p>"
-        }
-      },
-      "documentation":"<p>Output for the vended log delivery authorization operation.</p>"
-    },
     "ApiKeyValue":{
       "type":"string",
       "documentation":"<p>API Key Value for service.</p>",
@@ -1644,10 +1586,7 @@
     },
     "CreateChatRequest":{
       "type":"structure",
-      "required":[
-        "agentSpaceId",
-        "userId"
-      ],
+      "required":["agentSpaceId"],
       "members":{
         "agentSpaceId":{
           "shape":"AgentSpaceId",
@@ -1656,7 +1595,10 @@
         },
         "userId":{
           "shape":"ResourceId",
-          "documentation":"<p>The user identifier for the chat</p>",
+          "documentation":"<p>The user identifier for the chat. This field is deprecated and will be ignored — the service resolves user identity from the authenticated session.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"userId is managed by the service and should not be provided by the caller",
+          "deprecatedSince":"2026-04-15",
           "location":"querystring",
           "locationName":"userId"
         },
@@ -3161,10 +3103,7 @@
     },
     "ListChatsRequest":{
       "type":"structure",
-      "required":[
-        "agentSpaceId",
-        "userId"
-      ],
+      "required":["agentSpaceId"],
       "members":{
         "agentSpaceId":{
           "shape":"AgentSpaceId",
@@ -3173,7 +3112,10 @@
         },
         "userId":{
           "shape":"ResourceId",
-          "documentation":"<p>The user identifier to list chats for</p>",
+          "documentation":"<p>The user identifier to list chats for. This field is deprecated and will be ignored — the service resolves user identity from the authenticated session.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"userId is managed by the service and should not be provided by the caller",
+          "deprecatedSince":"2026-04-15",
           "location":"querystring",
           "locationName":"userId"
         },
@@ -3640,7 +3582,7 @@
       "type":"string",
       "documentation":"<p>API Key Value for service.</p>",
       "min":1,
-      "pattern":"[a-zA-Z0-9+/=._-]+(\\s[a-zA-Z0-9+/=._-]+)?",
+      "pattern":"[!-~]([ \\t]*[!-~])*",
       "sensitive":true
     },
     "MCPServerAuthorizationConfig":{
@@ -3730,6 +3672,22 @@
       "documentation":"<p>Token value for authentication.</p>",
       "pattern":"[\\S]+",
       "sensitive":true
+    },
+    "MCPServerConfiguration":{
+      "type":"structure",
+      "required":["tools"],
+      "members":{
+        "tools":{
+          "shape":"MCPToolsList",
+          "documentation":"<p>List of MCP tools can be used with the association.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for Model Context Protocol (MCP) server integration.</p>"
+    },
+    "MCPServerDatadogConfiguration":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Mixin for webhook update support.</p>"
     },
     "MCPServerDetails":{
       "type":"structure",
@@ -3938,6 +3896,11 @@
     "MCPServerOAuthClientCredentialsConfigExchangeUrlString":{
       "type":"string",
       "pattern":"https://[a-zA-Z0-9.-]+(?::[0-9]+)?(?:/.*)?"
+    },
+    "MCPServerSplunkConfiguration":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Mixin for webhook update support.</p>"
     },
     "MCPToolsList":{
       "type":"list",
@@ -4845,10 +4808,10 @@
     },
     "ResourceConfigurationArn":{
       "type":"string",
-      "documentation":"<p>Resource Configuration ARN.</p>",
+      "documentation":"<p>The ID or ARN of the Resource Configuration.</p>",
       "max":2048,
       "min":20,
-      "pattern":"arn:[a-z0-9\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:resourceconfiguration/rcfg-[0-9a-z]{17}"
+      "pattern":"(arn:[a-z0-9\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:resourceconfiguration/rcfg-[0-9a-z]{17}|rcfg-[0-9a-z]{17})"
     },
     "ResourceGatewayArn":{
       "type":"string",
@@ -4913,7 +4876,7 @@
       "members":{
         "resourceConfigurationId":{
           "shape":"ResourceConfigurationArn",
-          "documentation":"<p>The ARN of the Resource Configuration.</p>"
+          "documentation":"<p>The ID or ARN of the resource configuration.</p>"
         },
         "certificate":{
           "shape":"CertificateString",
@@ -5092,8 +5055,7 @@
       "required":[
         "agentSpaceId",
         "executionId",
-        "content",
-        "userId"
+        "content"
       ],
       "members":{
         "agentSpaceId":{
@@ -5116,7 +5078,10 @@
         },
         "userId":{
           "shape":"ResourceId",
-          "documentation":"<p>Required user identifier</p>"
+          "documentation":"<p>User identifier. This field is deprecated and will be ignored — the service resolves user identity from the authenticated session.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"userId is managed by the service and should not be provided by the caller",
+          "deprecatedSince":"2026-04-15"
         }
       },
       "documentation":"<p>Request structure for sending a chat message</p>"
@@ -5300,9 +5265,21 @@
           "shape":"MCPServerNewRelicConfiguration",
           "documentation":"<p>NewRelic instance integration configuration.</p>"
         },
+        "mcpserverdatadog":{
+          "shape":"MCPServerDatadogConfiguration",
+          "documentation":"<p>Datadog MCP server integration configuration.</p>"
+        },
+        "mcpserver":{
+          "shape":"MCPServerConfiguration",
+          "documentation":"<p>MCP (Model Context Protocol) server integration configuration.</p>"
+        },
         "gitlab":{
           "shape":"GitLabConfiguration",
           "documentation":"<p>GitLab project integration configuration.</p>"
+        },
+        "mcpserversplunk":{
+          "shape":"MCPServerSplunkConfiguration",
+          "documentation":"<p>Splunk MCP server integration configuration.</p>"
         },
         "eventChannel":{
           "shape":"EventChannelConfiguration",

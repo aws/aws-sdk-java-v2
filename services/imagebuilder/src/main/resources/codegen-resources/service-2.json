@@ -1729,7 +1729,7 @@
     },
     "ClientToken":{
       "type":"string",
-      "max":36,
+      "max":64,
       "min":1
     },
     "Component":{
@@ -2532,6 +2532,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The tags of the image pipeline.</p>"
+        },
+        "imageTags":{
+          "shape":"TagMap",
+          "documentation":"<p>The tags to be applied to the images produced by this pipeline.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -4453,6 +4457,10 @@
           "shape":"ImageScanningConfiguration",
           "documentation":"<p>Contains settings for vulnerability scans.</p>"
         },
+        "imageTags":{
+          "shape":"TagMap",
+          "documentation":"<p>The tags to be applied to the images produced by this pipeline.</p>"
+        },
         "executionRole":{
           "shape":"RoleNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) for the IAM role you create that grants Image Builder access to perform workflow actions.</p>"
@@ -5509,7 +5517,8 @@
         },
         "setDefaultVersion":{
           "shape":"Boolean",
-          "documentation":"<p>Set the specified Amazon EC2 launch template as the default launch template for the specified account.</p>"
+          "documentation":"<p>Set the specified Amazon EC2 launch template as the default launch template for the specified account.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Identifies an Amazon EC2 launch template to use for a specific account.</p>"
@@ -6157,7 +6166,7 @@
           "box":true
         },
         "nextToken":{
-          "shape":"NonEmptyString",
+          "shape":"PaginationToken",
           "documentation":"<p>A token to specify where to start paginating. This is the nextToken from a previously truncated response.</p>"
         }
       }
@@ -7955,6 +7964,10 @@
         "executionRole":{
           "shape":"RoleNameOrArn",
           "documentation":"<p>The name or Amazon Resource Name (ARN) for the IAM role you create that grants Image Builder access to perform workflow actions.</p>"
+        },
+        "imageTags":{
+          "shape":"TagMap",
+          "documentation":"<p>The tags to be applied to the images produced by this pipeline.</p>"
         }
       }
     },

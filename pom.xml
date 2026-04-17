@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.42.28-SNAPSHOT</version>
+    <version>2.42.36-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -80,6 +80,7 @@
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
+        <module>test/sdk-standard-benchmarks</module>
         <module>test/http-client-benchmarks</module>
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
@@ -103,8 +104,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.42.27</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.42.26</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.42.35</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.42.34</awsjavasdk.previous-previous.version>
         <jackson.version>2.20.2</jackson.version>
         <jackson.databind.version>2.20.2</jackson.databind.version>
         <jacksonjr.version>2.20.2</jacksonjr.version>
@@ -130,7 +131,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.43.9</awscrt.version>
+        <awscrt.version>0.44.0</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -189,7 +190,7 @@
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
         <httpcomponents.client5.version>5.6</httpcomponents.client5.version>
-        <httpcomponents.core5.version>5.4.1</httpcomponents.core5.version>
+        <httpcomponents.core5.version>5.4.2</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
@@ -630,6 +631,7 @@
                             <includeModule>s3-transfer-manager</includeModule>
                             <includeModule>iam-policy-builder</includeModule>
                             <includeModule>s3-event-notifications</includeModule>
+                            <includeModule>sns-message-manager</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
                              <includeModule>s3</includeModule>

@@ -255,6 +255,15 @@
         "requestUri":"/2016-03-11/documentInputOperation"
       },
       "input":{"shape":"StructureWithDocumentMember"}
+    },
+    "NestedLocationOperation":{
+      "name":"NestedLocationOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/nestedLocationOperation"
+      },
+      "input":{"shape":"NestedLocationOperationInput"},
+      "output":{"shape":"NestedLocationOperationOutput"}
     }
   },
   "shapes":{
@@ -780,6 +789,50 @@
       "type":"structure",
       "members":{
         "StringMember":{"shape":"String"}
+      }
+    },
+    "NestedLocationOperationInput":{
+      "type":"structure",
+      "members":{
+        "TopLevelQueryParam":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"topLevel"
+        },
+        "Nested":{"shape":"NestedShapeWithLocations"}
+      }
+    },
+    "NestedShapeWithLocations":{
+      "type":"structure",
+      "members":{
+        "NestedQueryParam":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"shouldBeIgnored"
+        },
+        "StringMember":{"shape":"String"}
+      }
+    },
+    "NestedLocationOperationOutput":{
+      "type":"structure",
+      "members":{
+        "TopLevelHeader":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-top-level"
+        },
+        "NestedResult":{"shape":"NestedResponseData"}
+      }
+    },
+    "NestedResponseData":{
+      "type":"structure",
+      "members":{
+        "NestedHeader":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-should-be-ignored"
+        },
+        "Value":{"shape":"String"}
       }
     },
     "StatusCodeInOutputStructure":{

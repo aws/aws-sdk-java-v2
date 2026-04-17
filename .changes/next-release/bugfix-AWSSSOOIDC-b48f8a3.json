@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SSO OIDC",
+    "contributor": "",
+    "description": "Add defensive checks to ensure token cache file is created with user read only where possible and use atomic write/copy."
+}
