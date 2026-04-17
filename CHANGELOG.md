@@ -1,4 +1,62 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.36__ __2026-04-17__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Java CRT 0.39.3 enables and prefers Post Quantum TLS (PQ TLS) by default when supported by the platform and service. The `postQuantumTlsEnabled` builder option in aws-sdk-java-v2 now becomes an opt-out mechanism; setting it to false explicitly disables PQ TLS.
+        - Contributed by: [@WillChilds-Klein](https://github.com/WillChilds-Klein)
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for configurable spark properties for Cleanrooms PySpark workloads.
+
+## __AWS Ground Station__
+  - ### Features
+    - Adds support for updating contacts, listing antennas, and listing ground station reservations. New API operations - UpdateContact, ListContactVersions, DescribeContactVersion, ListAntennas, and ListGroundStationReservations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Bugfixes
+    - Add defensive checks to ensure token cache file is created with user read only where possible and use atomic write/copy.
+
+## __AWS Security Token Service__
+  - ### Features
+    - The STS client now supports configuring SigV4a through the auth scheme preference setting. SigV4a uses asymmetric cryptography, enabling customers using long-term IAM credentials to continue making STS API calls even when a region is isolated from the partition leader.
+
+## __AWS Signin__
+  - ### Bugfixes
+    - Add defensive checks to ensure token cache file is writen with user read permissions only where possible.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Fixes in SDK for customers using TestCase APIs
+
+## __Amazon Neptune__
+  - ### Features
+    - Improving Documentation for Neptune
+
+## __Amazon QuickSight__
+  - ### Features
+    - Public release of dashboard customization summary, S3 Tables data source type, Athena cross-account connector, custom sorting for controls, and AI-powered analysis generation.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for providing NetworkInterface for efa enabled instances and Simplified cluster creation for Slurm-orchestrated clusters with optional Lifecycle Script (LCS) configuration.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - This release adds support for campaign entry limits configuration and hourly refresh frequency in Amazon Connect Outbound Campaigns.
+
+## __EC2 Image Builder__
+  - ### Features
+    - ImportDiskImage API adds registerImageOptions for Secure Boot control and custom UEFI data. It adds windowsConfiguration for selecting a specific edition from multi-image .wim files during ISO import.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@WillChilds-Klein](https://github.com/WillChilds-Klein)
 # __2.42.35__ __2026-04-16__
 ## __AWS DevOps Agent Service__
   - ### Features
