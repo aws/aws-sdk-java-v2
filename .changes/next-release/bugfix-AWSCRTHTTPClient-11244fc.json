@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fixed a connection leak in the CRT HTTP client that occurred when aborting a response stream before fully consuming it (e.g., calling `abort()` on a `GetObject` `ResponseInputStream`)."
+}
