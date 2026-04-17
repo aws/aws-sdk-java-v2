@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms Service",
+    "contributor": "",
+    "description": "This release adds support for configurable spark properties for Cleanrooms PySpark workloads."
+}
