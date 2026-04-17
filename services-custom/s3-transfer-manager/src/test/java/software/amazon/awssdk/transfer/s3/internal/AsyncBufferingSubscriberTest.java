@@ -128,7 +128,7 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
-        verify(mockSubscription, times(1)).cancel();
+        verify(mockSubscription, times(2)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
     }
 
