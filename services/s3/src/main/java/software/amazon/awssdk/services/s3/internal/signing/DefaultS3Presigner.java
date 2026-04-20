@@ -21,6 +21,8 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +30,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,9 +80,11 @@ import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -109,6 +114,7 @@ import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignReq
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.HeadBucketPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignPostObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
@@ -116,6 +122,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectR
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPostObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -161,6 +168,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final UseGlobalEndpointResolver useGlobalEndpointResolver;
     private final Boolean disableS3ExpressSessionAuth;
     private final S3Client s3Client;
+    private final Clock clock;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
@@ -188,6 +196,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         }
         this.disableS3ExpressSessionAuth = b.disableS3ExpressSessionAuth;
         this.s3Client = b.s3Client;
+        this.clock = b.clock != null ? b.clock : Clock.systemUTC();
 
         this.serviceConfiguration = serviceConfigBuilder.build();
 
@@ -373,6 +382,99 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        abortMultipartUploadRequestMarshaller::marshall,
                        "AbortMultipartUpload")
             .build();
+    }
+
+    @Override
+    public PresignedPostObjectRequest presignPost(PresignPostObjectRequest request) {
+        AwsCredentialsIdentity credentials =
+            CompletableFutureUtils.joinLikeSync(credentialsProvider().resolveIdentity(ResolveIdentityRequest.builder().build()));
+
+        String sessionToken = null;
+        if (credentials instanceof AwsSessionCredentialsIdentity) {
+            sessionToken = ((AwsSessionCredentialsIdentity) credentials).sessionToken();
+        }
+
+        java.time.Instant signingInstant = clock.instant();
+        java.time.Instant policyExpiration = request.expiration()
+            .orElseGet(() -> signingInstant.plus(request.signatureDuration()
+                .orElseThrow(() -> new IllegalStateException("signatureDuration"))));
+
+        java.util.Map<String, String> mergedFields = mergePostPolicyUserFields(request);
+
+        S3PostPolicySigner.SignInput signInput = S3PostPolicySigner.SignInput.builder()
+                                       .credentials(credentials)
+                                       .region(region().id())
+                                       .signingInstant(signingInstant)
+                                       .policyExpiration(policyExpiration)
+                                       .bucket(request.bucket())
+                                       .objectKey(request.key())
+                                       .userConditions(request.conditions())
+                                       .userFields(mergedFields)
+                                       .sessionToken(sessionToken)
+                                       .build();
+
+        S3PostPolicySigner.SignedPostPolicy signed = S3PostPolicySigner.sign(signInput);
+
+        URL url;
+        try {
+            url = resolvePresignedPostUrl(request.bucket());
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Unable to construct a POST URL for S3.", e);
+        }
+
+        java.util.Map<String, String> signedFormFields = new LinkedHashMap<>();
+        if (!request.fields().containsKey("key")) {
+            signedFormFields.put("key", request.key());
+        }
+        for (java.util.Map.Entry<String, String> entry : request.fields().entrySet()) {
+            signedFormFields.put(entry.getKey(), entry.getValue());
+        }
+        signedFormFields.put("x-amz-algorithm", "AWS4-HMAC-SHA256");
+        signedFormFields.put("x-amz-credential", signed.xAmzCredential());
+        signedFormFields.put("x-amz-date", signed.xAmzDate());
+        if (signed.sessionToken() != null) {
+            signedFormFields.put("x-amz-security-token", signed.sessionToken());
+        }
+        signedFormFields.put("policy", signed.base64Policy());
+        signedFormFields.put("x-amz-signature", signed.hexSignature());
+
+        return PresignedPostObjectRequest.builder()
+                                         .url(url)
+                                         .signedFormFields(signedFormFields)
+                                         .bucket(request.bucket())
+                                         .key(request.key())
+                                         .expiration(policyExpiration)
+                                         .build();
+    }
+
+    private java.util.Map<String, String> mergePostPolicyUserFields(PresignPostObjectRequest request) {
+        java.util.Map<String, String> mergedFields = new LinkedHashMap<>();
+        if (!request.fields().containsKey("key")) {
+            mergedFields.put("key", request.key());
+        }
+        mergedFields.putAll(request.fields());
+        return mergedFields;
+    }
+
+    /**
+     * Constructs the virtual-hosted-style bucket URL used as the HTML form action. When an endpoint override is configured on
+     * the presigner, that override is used as-is (caller responsibility to supply a form-compatible endpoint).
+     */
+    private URL resolvePresignedPostUrl(String bucketName) throws MalformedURLException {
+        if (serviceConfiguration.pathStyleAccessEnabled()) {
+            throw new IllegalStateException("S3 path-style access is not supported for presigned POST URLs.");
+        }
+        if (endpointOverride() != null) {
+            return endpointOverride().toURL();
+        }
+        software.amazon.awssdk.regions.Region awsRegion = region();
+        String host;
+        if (Boolean.TRUE.equals(serviceConfiguration.dualstackEnabled())) {
+            host = bucketName + ".s3.dualstack." + awsRegion.id() + ".amazonaws.com";
+        } else {
+            host = bucketName + ".s3." + awsRegion.id() + ".amazonaws.com";
+        }
+        return new URL("https", host, -1, "/");
     }
 
     protected S3Configuration serviceConfiguration() {
@@ -721,6 +823,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         private S3Configuration serviceConfiguration;
         private Boolean disableS3ExpressSessionAuth;
         private S3Client s3Client;
+        private Clock clock;
 
         private Builder() {
         }
@@ -748,6 +851,15 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         @Override
         public Builder s3Client(S3Client s3Client) {
             this.s3Client = s3Client;
+            return this;
+        }
+
+        /**
+         * Configures the clock used to determine signing time for presigned POST policies.
+         */
+        @Override
+        public Builder clock(Clock clock) {
+            this.clock = clock;
             return this;
         }
 

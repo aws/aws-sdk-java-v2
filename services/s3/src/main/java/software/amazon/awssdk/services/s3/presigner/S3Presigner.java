@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.presigner;
 
 import java.net.URI;
 import java.net.URLConnection;
+import java.time.Clock;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignReq
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.HeadBucketPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignPostObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
@@ -58,6 +60,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectR
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPostObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -509,6 +512,46 @@ public interface S3Presigner extends SdkPresigner {
     }
 
     /**
+     * Presign an Amazon S3 HTTP POST policy for browser-based direct uploads using an HTML {@code <form>} with
+     * {@code enctype="multipart/form-data"}.
+     * <p>
+     * This flow uploads a single object from a web browser. It is unrelated to the S3 multipart upload API.
+     * <p>
+     * Policy conditions and form fields are configured independently: you can require {@code starts-with $Content-Type image/}
+     * while the form submits a concrete {@code Content-Type} value such as {@code image/jpeg}.
+     *
+     * <pre>{@code
+     *     PresignPostObjectRequest request = PresignPostObjectRequest.builder()
+     *         .bucket("my-bucket")
+     *         .key("uploads/${filename}")
+     *         .signatureDuration(Duration.ofMinutes(15))
+     *         .conditions(c -> c.startsWith("$Content-Type", "image/"))
+     *         .addField("Content-Type", "image/jpeg")
+     *         .build();
+     *
+     *     PresignedPostObjectRequest presigned = presigner.presignPost(request);
+     * }</pre>
+     * <p>
+     * SigV4a and Amazon S3 Express One Zone session credentials are not supported by this method.
+     *
+     * @param request instructions for the POST policy and form fields
+     * @return signed form fields and the form action URL
+     */
+    PresignedPostObjectRequest presignPost(PresignPostObjectRequest request);
+
+    /**
+     * Presign an S3 HTTP POST upload policy without needing to call {@code PresignPostObjectRequest.builder()} or
+     * {@code build()}.
+     *
+     * @see #presignPost(PresignPostObjectRequest)
+     */
+    default PresignedPostObjectRequest presignPost(Consumer<PresignPostObjectRequest.Builder> request) {
+        PresignPostObjectRequest.Builder builder = PresignPostObjectRequest.builder();
+        request.accept(builder);
+        return presignPost(builder.build());
+    }
+
+    /**
      * Presign a {@link DeleteObjectRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
      * <p>
@@ -772,6 +815,15 @@ public interface S3Presigner extends SdkPresigner {
          * @return this Builder
          */
         Builder s3Client(S3Client s3Client);
+
+        /**
+         * Configures the clock used when a presigning operation needs the current signing instant (for example, S3 POST
+         * policy generation).
+         *
+         * @param clock clock to use; by default {@link Clock#systemUTC()} is used
+         * @return this builder
+         */
+        Builder clock(Clock clock);
 
         @Override
         Builder region(Region region);
