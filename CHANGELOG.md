@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.37__ __2026-04-20__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed a connection leak in the CRT HTTP client that occurred when aborting a response stream before fully consuming it (e.g., calling `abort()` on a `GetObject` `ResponseInputStream`).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added `AsyncRequestBody.fromInputStream(InputStream, Long)` overload that uses an SDK-managed thread pool, removing the need for users to provide their own ExecutorService.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Supporting listingMode for AgentCore Gateway MCP server targets
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Releasing Second phase of SLO Recommendations where you can create recommended SLOs out-of-the box using CreateSLO API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added Transit Gateway Integration into AWS Client VPN.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now allows you to create connectors to your vCenter appliances and create Windows Server entitlements for virtual machines running in your EVS environments
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Expanded support for new suppression rule fields.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for new Job APIs for bulk workloads. The initial job type supported is Address Validation. The new APIs added are StartJob, CancelJob, ListJobs, and GetJob.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Enablement for Security Hub v2 via Observability Admin Telemetry Rule for account and organization level.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports data migration from external Apache Kafka clusters to Amazon MSK Express brokers. This release adds SaslScram authentication with TLS encryption, enhanced consumer offset synchronization, and customer log forwarding for troubleshooting.
+
 # __2.42.36__ __2026-04-17__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes
