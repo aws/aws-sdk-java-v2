@@ -277,6 +277,23 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
         assertThat(writeThroughput.get(0)).isGreaterThan(0);
     }
 
+    @ParameterizedTest
+    @MethodSource("s3Clients")
+    public void putObject_fromInputStreamWithSdkManagedExecutor_shouldSucceed(S3AsyncClient client) {
+        String key = "sdk-managed-executor-" + ASYNC_KEY;
+        byte[] content = RandomStringUtils.randomAlphanumeric(1024).getBytes(StandardCharsets.UTF_8);
+
+        AsyncRequestBody body = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content), (long) content.length);
+        client.putObject(b -> b.bucket(BUCKET).key(key), body).join();
+
+        ResponseInputStream<GetObjectResponse> response =
+            client.getObject(b -> b.bucket(BUCKET).key(key), AsyncResponseTransformer.toBlockingInputStream()).join();
+
+        assertThat(response.response().contentLength()).isEqualTo(content.length);
+        byte[] downloaded = invokeSafely(() -> IoUtils.toByteArray(response));
+        assertThat(downloaded).isEqualTo(content);
+    }
+
     private static class TestContentProvider implements ContentStreamProvider {
         private final byte[] content;
         private final List<CloseTrackingInputStream> createdStreams = new ArrayList<>();
