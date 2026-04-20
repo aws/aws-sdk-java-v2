@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic VMware Service",
-    "contributor": "",
-    "description": "Amazon EVS now allows you to create connectors to your vCenter appliances and create Windows Server entitlements for virtual machines running in your EVS environments"
-}
