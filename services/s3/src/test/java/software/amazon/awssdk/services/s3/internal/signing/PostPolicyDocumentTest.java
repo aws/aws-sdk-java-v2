@@ -123,7 +123,7 @@ public class PostPolicyDocumentTest {
             "date",
             null);
 
-        assertThat(doc.toJson()).contains("[\"starts-with\",\"$key\",\"prefix\"]");
+        assertThat(doc.toJson()).contains("[\"starts-with\",\"$key\",\"prefix/\"]");
         assertThat(doc.toJson()).doesNotContain("\"key\":\"prefix");
     }
 

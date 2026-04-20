@@ -65,8 +65,8 @@ public class PresignPostObjectRequestTest {
                                                          .signatureDuration(Duration.ofMinutes(1))
                                                          .addField("bucket", "nope")
                                                          .build())
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("bucket");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
     }
 
     @Test
