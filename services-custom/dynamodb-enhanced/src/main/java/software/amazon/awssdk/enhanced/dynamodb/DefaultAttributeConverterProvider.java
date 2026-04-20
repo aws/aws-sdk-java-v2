@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ArnAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.AtomicBooleanAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.AtomicIntegerAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.AtomicLongAttributeConverter;
@@ -209,6 +210,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
 
     private static Builder getDefaultBuilder() {
         return DefaultAttributeConverterProvider.builder()
+                                                .addConverter(ArnAttributeConverter.create())
                                                 .addConverter(AtomicBooleanAttributeConverter.create())
                                                 .addConverter(AtomicIntegerAttributeConverter.create())
                                                 .addConverter(AtomicLongAttributeConverter.create())
