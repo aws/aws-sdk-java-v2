@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Observability Admin Service",
+    "contributor": "",
+    "description": "Enablement for Security Hub v2 via Observability Admin Telemetry Rule for account and organization level."
+}
