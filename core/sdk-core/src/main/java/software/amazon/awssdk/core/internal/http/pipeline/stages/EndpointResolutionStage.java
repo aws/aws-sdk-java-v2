@@ -104,10 +104,11 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
             return false;
         }
         String requestHost = request.host();
+        Integer requestPort = request.port();
         return requestHost != null
             && (!requestHost.equals(preModifyUri.getHost())
                 || !String.valueOf(request.protocol()).equals(preModifyUri.getScheme())
-                || request.port() != preModifyUri.getPort());
+                || (requestPort != null && requestPort != preModifyUri.getPort()));
     }
 
     /**
