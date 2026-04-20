@@ -130,8 +130,6 @@ public enum RetryMode {
      * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
      */
     public static class Resolver {
-        private static final RetryMode SDK_DEFAULT_RETRY_MODE = LEGACY;
-        
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private RetryMode defaultRetryMode;
@@ -204,7 +202,14 @@ public enum RetryMode {
         }
 
         private RetryMode fromDefaultMode() {
-            return defaultRetryMode != null ? defaultRetryMode : SDK_DEFAULT_RETRY_MODE;
+            return defaultRetryMode != null ? defaultRetryMode : sdkDefaultRetryMode();
+        }
+
+        /**
+         * Resolves the SDK default retry mode dynamically based on the {@code AWS_NEW_RETRIES_2026} gate.
+         */
+        private static RetryMode sdkDefaultRetryMode() {
+            return SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue().orElse(false) ? STANDARD : LEGACY;
         }
     }
 }
