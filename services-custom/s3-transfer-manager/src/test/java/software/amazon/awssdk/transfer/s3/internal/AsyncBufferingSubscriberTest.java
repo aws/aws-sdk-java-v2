@@ -128,6 +128,11 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
+        /*
+        subscription.cancel() now exists in two codepaths:
+        - in onNext() catch block.
+        - in future.whenComplete()
+         */
         verify(mockSubscription, times(2)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
     }
