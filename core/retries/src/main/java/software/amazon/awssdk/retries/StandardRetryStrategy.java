@@ -71,7 +71,7 @@ public interface StandardRetryStrategy extends RetryStrategy {
                                                 : DefaultRetryStrategy.Standard.BASE_DELAY_V20;
         int exceptionCost = retries2026Enabled ? DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V21
                                                : DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V20;
-        // 2026 does not treat throttling exceptions differently from others
+        // v2.0 does not treat throttling exceptions differently from others
         int throttlingCost = retries2026Enabled ? DefaultRetryStrategy.Standard.THROTTLING_EXCEPTION_TOKEN_COST_V21
                                                 : exceptionCost;
         return DefaultStandardRetryStrategy

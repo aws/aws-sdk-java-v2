@@ -403,6 +403,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                        .add("tokenBucketStore", tokenBucketStore)
                        .add("defaultsAdded", defaultsAdded)
                        .add("useClientDefaults", useClientDefaults)
+                       .add("throttlingExceptionCost", throttlingExceptionCost)
                        .build();
     }
 
