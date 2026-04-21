@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.presigner.model;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -136,13 +135,13 @@ public final class PresignPostObjectRequest
                                              Map<String, String> fields,
                                              PostPolicyConditions conditions) {
 
-        List<PolicyCondition> conditionList = new ArrayList<>(conditions.conditions());
+        List<PolicyCondition> conditionList = conditions.conditions();
 
         for (Map.Entry<String, String> entry : fields.entrySet()) {
             String fieldName = entry.getKey();
             String value = entry.getValue();
 
-            if (KEY_FIELD.equalsIgnoreCase(fieldName)) {
+            if (KEY_FIELD.equals(fieldName)) {
                 validateKeyField(objectKey, value, conditionList);
                 continue;
             }
@@ -316,56 +315,75 @@ public final class PresignPostObjectRequest
         public Builder addField(String name, String value) {
             Validate.paramNotNull(name, "name");
             Validate.paramNotNull(value, "value");
-            fields.put(name, value);
+            fields.put(normalizeFormFieldName(name), value);
             return this;
         }
 
         public Builder addExactField(String name, String value) {
             Validate.paramNotNull(name, "name");
             Validate.paramNotNull(value, "value");
-            PostPolicyConditions.Builder conditionBuilder = PostPolicyConditions.builder();
-            if (conditions != null) {
-                for (PolicyCondition policyCondition : conditions.conditions()) {
-                    appendCondition(conditionBuilder, policyCondition);
-                }
-            }
-            conditionBuilder.eq(name, value);
-            conditions = conditionBuilder.build();
-            fields.put(name, value);
+            String normalized = normalizeFormFieldName(name);
+            conditions = replaceEqCondition(conditions, normalized, value);
+            fields.put(normalized, value);
             return this;
         }
 
         public Builder addExactFields(Map<String, String> fieldMap) {
             Validate.paramNotNull(fieldMap, "fieldMap");
             for (String name : fieldMap.keySet()) {
-                if (PostPolicyDocument.isReservedFieldName(name)) {
+                Validate.paramNotNull(name, "fieldMap key");
+                if (PostPolicyDocument.isReservedFieldName(normalizeFormFieldName(name))) {
                     throw new IllegalArgumentException("Field '" + name + "' uses a reserved name.");
                 }
             }
 
-            Map<String, String> mergedFields = new LinkedHashMap<>(this.fields);
+            PostPolicyConditions merged = conditions;
             for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-                mergedFields.put(entry.getKey(), entry.getValue());
+                merged = replaceEqCondition(merged, normalizeFormFieldName(entry.getKey()), entry.getValue());
             }
-
-            PostPolicyConditions.Builder conditionBuilder = PostPolicyConditions.builder();
-            if (conditions != null) {
-                for (PolicyCondition policyCondition : conditions.conditions()) {
-                    appendCondition(conditionBuilder, policyCondition);
-                }
-            }
+            this.conditions = merged;
             for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-                conditionBuilder.eq(entry.getKey(), entry.getValue());
-            }
-            PostPolicyConditions mergedConditions = conditionBuilder.build();
-
-            validateFieldMappings(key, mergedFields, mergedConditions);
-
-            this.conditions = mergedConditions;
-            for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-                this.fields.put(entry.getKey(), entry.getValue());
+                this.fields.put(normalizeFormFieldName(entry.getKey()), entry.getValue());
             }
             return this;
+        }
+
+        /**
+         * The S3 POST form expects the object key form field to be literally {@code "key"} (lowercase). Normalising here
+         * prevents a silent mismatch between the form field the browser submits and the {@code $key} policy condition the
+         * presigner emits.
+         */
+        private static String normalizeFormFieldName(String name) {
+            if (KEY_FIELD.equalsIgnoreCase(name)) {
+                return KEY_FIELD;
+            }
+            return name;
+        }
+
+        /**
+         * Rebuilds {@code existing} keeping all conditions in their original order. If an {@code eq} condition with the same
+         * field name already exists, its value is replaced in place (preserving position); otherwise a new {@code eq(name,
+         * value)} is appended. This keeps a single {@code eq} condition per field, so repeated {@code addExactField} calls
+         * behave as overwrites rather than accumulating duplicate conditions that S3 would later reject.
+         */
+        private static PostPolicyConditions replaceEqCondition(PostPolicyConditions existing, String name, String value) {
+            PostPolicyConditions.Builder builder = PostPolicyConditions.builder();
+            boolean replaced = false;
+            if (existing != null) {
+                for (PolicyCondition condition : existing.conditions()) {
+                    if (condition instanceof PostPolicyConditions.Eq
+                        && ((PostPolicyConditions.Eq) condition).field().equals(name)) {
+                        builder.eq(name, value);
+                        replaced = true;
+                        continue;
+                    }
+                    appendCondition(builder, condition);
+                }
+            }
+            if (!replaced) {
+                builder.eq(name, value);
+            }
+            return builder.build();
         }
 
         private static void appendCondition(PostPolicyConditions.Builder builder, PolicyCondition condition) {

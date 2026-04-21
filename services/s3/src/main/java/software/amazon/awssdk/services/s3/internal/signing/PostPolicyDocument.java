@@ -80,19 +80,12 @@ public final class PostPolicyDocument {
 
         boolean userSuppliedKeyCondition = userConditionList.stream().anyMatch(PostPolicyDocument::targetsObjectKey);
 
-        List<PolicyCondition> orderedUserConditions = new ArrayList<>();
-        for (PolicyCondition condition : userConditionList) {
-            orderedUserConditions.add(condition);
-        }
-
         List<Object> serializedConditions = new ArrayList<>();
         serializedConditions.add(bucketCondition(bucket));
         if (!userSuppliedKeyCondition) {
             serializedConditions.add(keyCondition(objectKey));
         }
-        for (PolicyCondition condition : orderedUserConditions) {
-            serializedConditions.add(condition);
-        }
+        serializedConditions.addAll(userConditionList);
         serializedConditions.add(eqSingleton("x-amz-credential", xAmzCredential));
         serializedConditions.add(eqSingleton("x-amz-algorithm", "AWS4-HMAC-SHA256"));
         serializedConditions.add(eqSingleton("x-amz-date", xAmzDate));

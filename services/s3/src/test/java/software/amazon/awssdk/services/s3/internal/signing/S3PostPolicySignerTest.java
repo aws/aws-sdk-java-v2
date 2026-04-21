@@ -12,10 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
+import software.amazon.awssdk.services.s3.presigner.model.PostPolicyConditions;
 
 public class S3PostPolicySignerTest {
 
@@ -36,10 +38,40 @@ public class S3PostPolicySignerTest {
     }
 
     @Test
-    public void goldenVector_base64Policy_matchesAwsDocumentation() {
-        String policyJson = new String(Base64.getDecoder().decode(AWS_DOCS_POST_POLICY_BASE64), StandardCharsets.UTF_8);
-        String recomputed = Base64.getEncoder().encodeToString(policyJson.getBytes(StandardCharsets.UTF_8));
-        assertThat(recomputed).isEqualTo(AWS_DOCS_POST_POLICY_BASE64);
+    public void sign_producesBase64PolicyThatDecodesToAssembledJson() {
+        AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("AKIA", "SECRET");
+        Instant signingInstant = Instant.parse("2015-12-29T00:00:00Z");
+        Instant expiration = Instant.parse("2015-12-30T12:00:00Z");
+
+        PostPolicyConditions userConditions = PostPolicyConditions.builder()
+                                                                  .eq("acl", "public-read")
+                                                                  .build();
+
+        PostPolicyDocument policy = PostPolicyDocument.from("b",
+                                                            "k",
+                                                            expiration,
+                                                            userConditions,
+                                                            Collections.emptyMap(),
+                                                            "AKIA/20151229/us-east-1/s3/aws4_request",
+                                                            "20151229T000000Z",
+                                                            null);
+        String expectedJson = policy.toJson();
+
+        S3PostPolicySigner.SignedPostPolicy signed = S3PostPolicySigner.sign(
+            S3PostPolicySigner.SignInput.builder()
+                                        .credentials(credentials)
+                                        .region("us-east-1")
+                                        .signingInstant(signingInstant)
+                                        .policyExpiration(expiration)
+                                        .bucket("b")
+                                        .objectKey("k")
+                                        .userConditions(userConditions)
+                                        .userFields(Collections.emptyMap())
+                                        .build());
+
+        String decoded = new String(Base64.getDecoder().decode(signed.base64Policy()), StandardCharsets.UTF_8);
+        assertThat(decoded).isEqualTo(expectedJson);
+        assertThat(signed.base64Policy()).doesNotContain("\n");
     }
 
     @Test

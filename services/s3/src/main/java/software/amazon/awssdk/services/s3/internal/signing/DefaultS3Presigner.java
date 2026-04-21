@@ -86,6 +86,8 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
+import software.amazon.awssdk.regions.PartitionMetadata;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -457,22 +459,41 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
-     * Constructs the virtual-hosted-style bucket URL used as the HTML form action. When an endpoint override is configured on
-     * the presigner, that override is used as-is (caller responsibility to supply a form-compatible endpoint).
+     * Constructs the virtual-hosted-style bucket URL used as the HTML form action. Resolves the partition-specific DNS suffix
+     * (e.g. {@code amazonaws.com}, {@code amazonaws.com.cn}, {@code amazonaws-us-gov.com}) from the configured region and
+     * honours dualstack, FIPS, and S3 Transfer Acceleration. When an endpoint override is configured on the presigner, that
+     * override host is used as the base and the bucket is prepended as a virtual-host subdomain.
      */
     private URL resolvePresignedPostUrl(String bucketName) throws MalformedURLException {
         if (serviceConfiguration.pathStyleAccessEnabled()) {
             throw new IllegalStateException("S3 path-style access is not supported for presigned POST URLs.");
         }
         if (endpointOverride() != null) {
-            return endpointOverride().toURL();
+            java.net.URI override = endpointOverride();
+            String scheme = override.getScheme() != null ? override.getScheme() : "https";
+            String host = bucketName + "." + override.getHost();
+            return new URL(scheme, host, override.getPort(), "/");
         }
-        software.amazon.awssdk.regions.Region awsRegion = region();
+
+        boolean dualstack = Boolean.TRUE.equals(serviceConfiguration.dualstackEnabled());
+        boolean accelerate = Boolean.TRUE.equals(serviceConfiguration.accelerateModeEnabled());
+        boolean fips = Boolean.TRUE.equals(fipsEnabled());
+
+        if (accelerate && fips) {
+            throw new IllegalStateException("FIPS endpoints are not supported with S3 Transfer Acceleration.");
+        }
+
+        Region awsRegion = region();
+        String dnsSuffix = PartitionMetadata.of(awsRegion).dnsSuffix();
         String host;
-        if (Boolean.TRUE.equals(serviceConfiguration.dualstackEnabled())) {
-            host = bucketName + ".s3.dualstack." + awsRegion.id() + ".amazonaws.com";
+
+        if (accelerate) {
+            String accelerateHost = dualstack ? "s3-accelerate.dualstack" : "s3-accelerate";
+            host = bucketName + "." + accelerateHost + "." + dnsSuffix;
         } else {
-            host = bucketName + ".s3." + awsRegion.id() + ".amazonaws.com";
+            String servicePrefix = fips ? "s3-fips" : "s3";
+            String dualstackInfix = dualstack ? "dualstack." : "";
+            host = bucketName + "." + servicePrefix + "." + dualstackInfix + awsRegion.id() + "." + dnsSuffix;
         }
         return new URL("https", host, -1, "/");
     }

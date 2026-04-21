@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.presigner.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -265,21 +264,5 @@ public final class PostPolicyConditions {
             }
             return "$" + field;
         }
-    }
-
-    static PolicyCondition contentLengthRangeInternal(long min, long max) {
-        return new ContentLengthRange(min, max);
-    }
-
-    static PolicyCondition startsWithInternal(String field, String prefix) {
-        Objects.requireNonNull(field, "field");
-        Objects.requireNonNull(prefix, "prefix");
-        return new StartsWith(field, prefix);
-    }
-
-    static PolicyCondition eqInternal(String field, String value) {
-        Objects.requireNonNull(field, "field");
-        Objects.requireNonNull(value, "value");
-        return new Eq(field, value);
     }
 }
