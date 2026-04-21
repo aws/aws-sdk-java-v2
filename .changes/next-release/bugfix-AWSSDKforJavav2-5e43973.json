@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "apache-hb",
+    "description": "Simplify generated error unmarshalling code in json protocol based clients."
+}
