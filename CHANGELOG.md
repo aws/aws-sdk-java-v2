@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.38__ __2026-04-21__
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Network Firewall__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon GameLift__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker AI now supports generative AI inference recommendations. Provide your model and workload, and SageMaker AI optimizes configurations, benchmarks them on real GPUs, and returns deployment-ready recommendations with validated metrics, accelerating the path to production from weeks to hours.
+
+## __Compute Optimizer Automation__
+  - ### Features
+    - Service Release Notes
+
 # __2.42.37__ __2026-04-20__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes
