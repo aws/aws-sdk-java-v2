@@ -90,6 +90,11 @@ public final class DefaultStandardRetryStrategy
             return this;
         }
 
+        public Builder throttlingTokenBucketExceptionCost(int throttlingExceptionCost) {
+            setThrottlingTokenBucketExceptionCost(throttlingExceptionCost);
+            return this;
+        }
+
         public Builder tokenBucketStore(TokenBucketStore tokenBucketStore) {
             setTokenBucketStore(tokenBucketStore);
             return this;
