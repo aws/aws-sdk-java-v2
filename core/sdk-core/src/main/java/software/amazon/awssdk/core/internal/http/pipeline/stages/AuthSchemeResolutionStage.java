@@ -108,7 +108,7 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         IdentityProviderUpdater updater =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
         if (updater != null) {
-            identityProviders = updater.update(request, identityProviders);
+            identityProviders = updater.update(request, identityProviders, executionAttributes);
         }
         return identityProviders;
     }

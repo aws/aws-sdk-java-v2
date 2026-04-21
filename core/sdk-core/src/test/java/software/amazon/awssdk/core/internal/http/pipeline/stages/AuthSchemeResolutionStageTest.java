@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -147,7 +148,7 @@ class AuthSchemeResolutionStageTest {
         IdentityProviders updatedProviders = mock(IdentityProviders.class);
 
         IdentityProviderUpdater updater = mock(IdentityProviderUpdater.class);
-        doReturn(updatedProviders).when(updater).update(sdkRequest, baseProviders);
+        doReturn(updatedProviders).when(updater).update(eq(sdkRequest), eq(baseProviders), any(ExecutionAttributes.class));
 
         // Setup so that auth scheme uses the updated providers
         @SuppressWarnings("unchecked")
@@ -162,7 +163,7 @@ class AuthSchemeResolutionStageTest {
 
         stage.execute(httpRequestBuilder, context);
 
-        verify(updater).update(sdkRequest, baseProviders);
+        verify(updater).update(eq(sdkRequest), eq(baseProviders), any(ExecutionAttributes.class));
     }
 
     @Test

@@ -16,14 +16,18 @@
 package software.amazon.awssdk.awscore.internal.identity;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
  * AWS implementation of {@link IdentityProviderUpdater} that reads credential overrides
- * from {@link AwsRequestOverrideConfiguration}.
+ * from {@link AwsRequestOverrideConfiguration} and deprecated {@link AwsSignerExecutionAttribute#AWS_CREDENTIALS}.
  */
 @SdkInternalApi
 public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater {
@@ -38,17 +42,31 @@ public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater
     }
 
     @Override
-    public IdentityProviders update(SdkRequest request, IdentityProviders base) {
+    public IdentityProviders update(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes) {
         if (base == null) {
             return null;
         }
-        return request.overrideConfiguration()
+
+        IdentityProviders updated = request.overrideConfiguration()
             .filter(c -> c instanceof AwsRequestOverrideConfiguration)
             .map(c -> (AwsRequestOverrideConfiguration) c)
             .map(c -> base.copy(b -> {
                 c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
                 c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
             }))
-            .orElse(base);
+            .orElse(null);
+
+        if (updated != null) {
+            return updated;
+        }
+
+        //check deprecated AWS_CREDENTIALS execution attribute set by interceptors
+        AwsCredentials credentials = executionAttributes.getOptionalAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS)
+                                                        .orElse(null);
+        if (credentials != null) {
+            return base.copy(b -> b.putIdentityProvider(StaticCredentialsProvider.create(credentials)));
+        }
+
+        return base;
     }
 }

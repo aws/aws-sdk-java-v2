@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.spi.identity;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
@@ -29,11 +30,12 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 @SdkProtectedApi
 public interface IdentityProviderUpdater {
     /**
-     * Updates identity providers based on request-level overrides.
+     * Updates identity providers based on request-level overrides and execution attributes.
      *
      * @param request The request (after interceptors have modified it)
      * @param base The base identity providers from client configuration
+     * @param executionAttributes The execution attributes (may contain deprecated credential overrides)
      * @return Updated identity providers, or base if no overrides
      */
-    IdentityProviders update(SdkRequest request, IdentityProviders base);
+    IdentityProviders update(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes);
 }
