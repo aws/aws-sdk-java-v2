@@ -20,6 +20,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -102,5 +106,34 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
         responses.add(batchManager.changeMessageVisibility(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
         responses.add(batchManager.changeMessageVisibility(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
         return responses;
+    }
+
+    @Override
+    public CompletableFuture<SendMessageResponse> sendMessageWithOverrideConfig(String queueUrl, String messageBody) {
+        return batchManager.sendMessage(SendMessageRequest.builder()
+                                                          .queueUrl(queueUrl)
+                                                          .messageBody(messageBody)
+                                                          .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                          .build());
+    }
+
+    @Override
+    public CompletableFuture<DeleteMessageResponse> deleteMessageWithOverrideConfig(String queueUrl, String receiptHandle) {
+        return batchManager.deleteMessage(DeleteMessageRequest.builder()
+                                                               .queueUrl(queueUrl)
+                                                               .receiptHandle(receiptHandle)
+                                                               .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                               .build());
+    }
+
+    @Override
+    public CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibilityWithOverrideConfig(String queueUrl,
+                                                                                                        String receiptHandle) {
+        return batchManager.changeMessageVisibility(ChangeMessageVisibilityRequest.builder()
+                                                                                   .queueUrl(queueUrl)
+                                                                                   .receiptHandle(receiptHandle)
+                                                                                   .visibilityTimeout(30)
+                                                                                   .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                                                   .build());
     }
 }
