@@ -89,13 +89,16 @@ public final class S3ExpressUtils {
 
     /**
      * Determines if this request targets an S3Express bucket by checking the bucket name suffix.
-     * This is safe to call from interceptors at any point — it does not depend on auth scheme resolution
-     * or endpoint resolution.
+     * Falls back to checking the resolved endpoint if available.
+     * This is safe to call from interceptors at any point.
      */
-    public static boolean isS3ExpressBucket(SdkRequest request) {
-        return request.getValueForField("Bucket", String.class)
-                      .map(b -> b.endsWith("--x-s3"))
-                      .orElse(false);
+    public static boolean isS3ExpressBucket(SdkRequest request, ExecutionAttributes executionAttributes) {
+        if (request.getValueForField("Bucket", String.class)
+                   .map(b -> b.endsWith("--x-s3"))
+                   .orElse(false)) {
+            return true;
+        }
+        return useS3Express(executionAttributes);
     }
 
     /**
