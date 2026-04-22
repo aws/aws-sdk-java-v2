@@ -76,15 +76,6 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         SelectedAuthScheme<? extends Identity> selectedAuthScheme =
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, metricCollector);
 
-        // Save interceptor-set signer properties so EndpointResolutionStage can re-apply them after
-        // endpoint auth scheme properties. This ensures interceptor overrides take final precedence.
-        SelectedAuthScheme<?> existingAuthScheme =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        if (existingAuthScheme != null) {
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.INTERCEPTOR_AUTH_SCHEME_PROPERTIES,
-                                             existingAuthScheme.authSchemeOption());
-        }
-
         selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
