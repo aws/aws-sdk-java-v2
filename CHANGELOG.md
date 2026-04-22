@@ -303,6 +303,11 @@ Special thanks to the following contributors to this release:
   - ### Features
     - The BatchExecuteStatement API now supports named SQL parameters, enabling secure batch queries with parameterized values. This enhancement helps prevent SQL injection vulnerabilities and improves query reusability.
 
+## __AWS CRT HTTP Client__
+- ### Bugfixes
+    - Rolled back enabling default connection health monitoring for CRT HTTP clients
+
+
 # __2.42.31__ __2026-04-08__
 ## __AWS Backup__
   - ### Features
