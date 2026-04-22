@@ -54,7 +54,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.rules.testing.BaseRuleSetClientTest;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -356,10 +356,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
             s3ClientBuilder.endpointOverride(WM_HTTP_ENDPOINT.apply(wm));
         } else {
             s3ClientBuilder.endpointOverride(WM_HTTPS_ENDPOINT.apply(wm))
-                           .httpClient(ApacheHttpClient.builder()
-                                                       .buildWithDefaults(AttributeMap.builder()
-                                                                                      .put(TRUST_ALL_CERTIFICATES, TRUE)
-                                                                                      .build()));
+                           .httpClient(Apache5HttpClient.builder()
+                                                        .buildWithDefaults(AttributeMap.builder()
+                                                                                       .put(TRUST_ALL_CERTIFICATES, TRUE)
+                                                                                       .build()));
         }
         if (s3ExpressSessionAuth == S3ExpressSessionAuth.DISABLE_AUTH) {
             s3ClientBuilder.disableS3ExpressSessionAuth(true);
