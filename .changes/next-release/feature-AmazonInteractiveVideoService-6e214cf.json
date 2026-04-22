@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "contributor": "",
-    "description": "Adds support for Amazon IVS server-side ad insertion"
-}
