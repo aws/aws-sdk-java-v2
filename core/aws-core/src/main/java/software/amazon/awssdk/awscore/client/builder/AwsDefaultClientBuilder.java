@@ -54,6 +54,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.retry.NewRetries2026Resolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -457,12 +458,18 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config) {
+        Boolean defaultNewRetries2026 = config.get(SdkClientOption.DEFAULT_NEW_RETRIES_2026);
+
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.get(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .defaultNewRetries2026(defaultNewRetries2026)
                                        .resolve();
-        return AwsRetryStrategy.forRetryMode(retryMode);
+
+        NewRetries2026Resolver newRetries2026Resolver = new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026);
+
+        return AwsRetryStrategy.forRetryMode(retryMode, newRetries2026Resolver.resolve());
     }
 
     @Override

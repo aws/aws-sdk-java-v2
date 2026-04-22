@@ -63,17 +63,29 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added. This is equivalent to
+     * {@code forRetryMode(mode, false)}.
      *
      * @param mode The retry mode for which we want to create a retry strategy.
      * @return A retry strategy for the given retry mode.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
+        return forRetryMode(mode, false);
+    }
+
+    /**
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * @param mode The retry mode for which we want to create a retry strategy.
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return A retry strategy for the given retry mode.
+     */
+    public static RetryStrategy forRetryMode(RetryMode mode, boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
-                return standardRetryStrategy();
+                return standardRetryStrategy(newRetries2026Enabled);
             case ADAPTIVE_V2:
-                return adaptiveRetryStrategy();
+                return adaptiveRetryStrategy(newRetries2026Enabled);
             case LEGACY:
                 return legacyRetryStrategy();
             case ADAPTIVE:
@@ -82,6 +94,7 @@ public final class AwsRetryStrategy {
                 throw new IllegalArgumentException("unknown retry mode: " + mode);
         }
     }
+
 
     /**
      * Update the provided {@link RetryStrategy} to add AWS-specific conditions.
@@ -105,12 +118,23 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added.
+     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
+     * standardRetryStrategy(false)}.
      *
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
-        StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder();
+        return standardRetryStrategy(false);
+    }
+
+    /**
+     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added.
+     *
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
+     */
+    public static StandardRetryStrategy standardRetryStrategy(boolean newRetries2026Enabled) {
+        StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder).build();
     }
 
@@ -126,12 +150,23 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
+     * adaptiveRetryStrategy(false)}.
      *
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
-        AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder();
+        return adaptiveRetryStrategy(false);
+    }
+
+    /**
+     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     *
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     */
+    public static AdaptiveRetryStrategy adaptiveRetryStrategy(boolean newRetries2026Enabled) {
+        AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder)
             .build();
     }

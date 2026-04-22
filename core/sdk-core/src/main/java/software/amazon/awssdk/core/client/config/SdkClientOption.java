@@ -307,6 +307,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
 
     /**
+     * Option to specify the default for the {@code AWS_NEW_RETRIES_2026} feature gate for the SDK client.
+     */
+    public static final SdkClientOption<Boolean> DEFAULT_NEW_RETRIES_2026 = new SdkClientOption<>(Boolean.class);
+
+    /**
      * The {@link EndpointProvider} configured on the client.
      */
     public static final SdkClientOption<EndpointProvider> ENDPOINT_PROVIDER = new SdkClientOption<>(EndpointProvider.class);
