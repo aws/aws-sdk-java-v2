@@ -337,7 +337,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         // Request the same resource with an additional query parameter - should still be allowed by the wildcard policy
         URI uri = URI.create(resourceUrl + "?foo=bar");
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .uri(uri)
@@ -372,7 +372,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         // Use the cookies to access a different file under the same wildcard path
         URI otherFileUri = URI.create(resourceUri + "/foo/other-file");
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .uri(otherFileUri)
@@ -406,7 +406,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         // Use the cookies to access a completely different path - the "*" pattern should allow any path
         URI differentPathUri = URI.create(resourceUrl.replace("/s3ObjectKey", "/foo/other-file"));
-        SdkHttpClient client = ApacheHttpClient.create();
+        SdkHttpClient client = Apache5HttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(SdkHttpRequest.builder()
                                                                                                       .uri(differentPathUri)
