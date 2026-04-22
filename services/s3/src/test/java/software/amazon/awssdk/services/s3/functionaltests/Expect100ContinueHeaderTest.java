@@ -50,7 +50,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
@@ -90,7 +90,7 @@ class Expect100ContinueHeaderTest {
         URI endpointOverride = URI.create(wmRuntimeInfo.getHttpsBaseUrl());
 
         syncClient = S3Client.builder()
-                             .httpClient(Apache5HttpClient.builder().buildWithDefaults(trustAllCerts()))
+                             .httpClient(ApacheHttpClient.builder().buildWithDefaults(trustAllCerts()))
                              .region(Region.US_EAST_1)
                              .endpointOverride(endpointOverride)
                              .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
@@ -352,17 +352,17 @@ class Expect100ContinueHeaderTest {
         SdkHttpClient httpClient;
         switch (clientType) {
             case "APACHE":
-                httpClient = Apache5HttpClient.builder().buildWithDefaults(trustAllCerts());
+                httpClient = ApacheHttpClient.builder().buildWithDefaults(trustAllCerts());
                 break;
             case "APACHE_EC_ENABLED":
-                httpClient = Apache5HttpClient.builder()
-                                              .expectContinueEnabled(true)
-                                              .buildWithDefaults(trustAllCerts());
+                httpClient = ApacheHttpClient.builder()
+                                             .expectContinueEnabled(true)
+                                             .buildWithDefaults(trustAllCerts());
                 break;
             case "APACHE_EC_DISABLED":
-                httpClient = Apache5HttpClient.builder()
-                                              .expectContinueEnabled(false)
-                                              .buildWithDefaults(trustAllCerts());
+                httpClient = ApacheHttpClient.builder()
+                                             .expectContinueEnabled(false)
+                                             .buildWithDefaults(trustAllCerts());
                 break;
             case "URL_CONNECTION":
                 httpClient = UrlConnectionHttpClient.builder().buildWithDefaults(trustAllCerts());
