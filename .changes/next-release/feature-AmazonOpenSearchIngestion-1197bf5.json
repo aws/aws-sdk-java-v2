@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Ingestion",
+    "contributor": "",
+    "description": "Update the pipeline configuration body character limit for the CreatePipeline API call."
+}
