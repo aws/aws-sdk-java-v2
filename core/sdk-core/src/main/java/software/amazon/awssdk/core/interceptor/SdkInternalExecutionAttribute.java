@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
@@ -203,6 +204,14 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME =
         new ExecutionAttribute<>("SelectedAuthScheme");
+
+    /**
+     * Signer properties set by interceptors via derived execution attributes (e.g., {@code AwsSignerExecutionAttribute}).
+     * Saved by {@code AuthSchemeResolutionStage} and re-applied by {@code EndpointResolutionStage} after endpoint auth
+     * scheme properties are applied, ensuring interceptor overrides take final precedence.
+     */
+    public static final ExecutionAttribute<AuthSchemeOption> INTERCEPTOR_AUTH_SCHEME_PROPERTIES =
+        new ExecutionAttribute<>("InterceptorAuthSchemeProperties");
 
     /**
      * The supported compression algorithms for an operation, and whether the operation is streaming or not.

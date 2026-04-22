@@ -22,6 +22,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToReques
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -77,6 +79,12 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
 
         attrs.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
 
+        // Re-apply interceptor-set auth scheme properties after endpoint resolution.
+        // The resolver callback applies endpoint auth scheme properties (e.g., signing name, region) via
+        // putSignerProperty, which overwrites interceptor-set values. Re-applying ensures interceptor
+        // overrides (set via AwsSignerExecutionAttribute) take final precedence.
+        reapplyInterceptorAuthSchemeProperties(attrs);
+
         // Copy endpoint headers onto HTTP request
         Map<String, List<String>> headers = endpoint.headers();
         if (headers != null && !headers.isEmpty()) {
@@ -92,6 +100,24 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
             return request;
         }
         return setUri(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void reapplyInterceptorAuthSchemeProperties(ExecutionAttributes attrs) {
+        AuthSchemeOption interceptorOption =
+            attrs.getAttribute(SdkInternalExecutionAttribute.INTERCEPTOR_AUTH_SCHEME_PROPERTIES);
+        if (interceptorOption == null) {
+            return;
+        }
+        SelectedAuthScheme<?> current = attrs.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (current == null) {
+            return;
+        }
+        AuthSchemeOption.Builder merged = current.authSchemeOption().toBuilder();
+        interceptorOption.forEachSignerProperty(merged::putSignerProperty);
+        interceptorOption.forEachIdentityProperty(merged::putIdentityProperty);
+        attrs.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                           new SelectedAuthScheme(current.identity(), current.signer(), merged.build()));
     }
 
     /**

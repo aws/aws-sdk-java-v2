@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.services.ec2.transform.internal;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -35,17 +36,22 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -131,7 +137,7 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                     .build();
 
             URI presignedUrl =
-                sraPresignRequest(executionAttributes, requestForPresigning, sourceRegion);
+                sraPresignRequest(context.request(), executionAttributes, requestForPresigning, sourceRegion);
 
             return request.toBuilder()
                           .putRawQueryParameter("DestinationRegion", destinationRegion)
@@ -142,9 +148,22 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
         return request;
     }
 
-    private URI sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
-                                                 String signingRegion) {
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+    private SelectedAuthScheme<? extends Identity> resolveAuthScheme(SdkRequest request,
+                                                                     ExecutionAttributes executionAttributes) {
+        AuthSchemeOptionsResolver optionsResolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
+        Map<String, AuthScheme<?>> authSchemes =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        IdentityProviders identityProviders =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        List<AuthSchemeOption> authOptions = optionsResolver.resolve(request);
+        return AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, null);
+    }
+
+    private URI sraPresignRequest(SdkRequest sdkRequest, ExecutionAttributes executionAttributes,
+                                  SdkHttpFullRequest request, String signingRegion) {
+        SelectedAuthScheme<?> selectedAuthScheme = resolveAuthScheme(sdkRequest, executionAttributes);
         Instant signingInstant;
         if (testClock != null) {
             signingInstant = testClock.instant();
