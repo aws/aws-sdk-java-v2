@@ -430,7 +430,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                        .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
                        .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
                             executionAttributes.getAttribute(OBJECT_FILE_PATH))
-                       .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.useS3ExpressAuthScheme(executionAttributes))
+                       .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.isS3ExpressAuthRequest(context.request(), executionAttributes))
                        .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
                        .put(REQUEST_CHECKSUM_CALCULATION,
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))

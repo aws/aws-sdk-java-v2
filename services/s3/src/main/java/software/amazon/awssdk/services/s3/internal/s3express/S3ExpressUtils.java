@@ -17,10 +17,13 @@ package software.amazon.awssdk.services.s3.internal.s3express;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -68,5 +71,45 @@ public final class S3ExpressUtils {
                                .ifPresent(businessMetrics ->
                                               businessMetrics.addMetric(BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value()));
         }
+    }
+
+    /**
+     * Adds S3 Express business metric using the provided endpoint directly. Use this overload when
+     * {@code RESOLVED_ENDPOINT} is not yet set in execution attributes (e.g., inside the endpoint resolution callback).
+     */
+    public static void addS3ExpressBusinessMetricIfApplicable(Endpoint endpoint, ExecutionAttributes executionAttributes) {
+        if (endpoint != null && executionAttributes != null
+            && S3_EXPRESS.equals(endpoint.attribute(KnownS3ExpressEndpointProperty.BACKEND))
+            && useS3ExpressAuthScheme(executionAttributes)) {
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS)
+                               .ifPresent(businessMetrics ->
+                                              businessMetrics.addMetric(BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value()));
+        }
+    }
+
+    /**
+     * Determines if this request targets an S3Express bucket by checking the bucket name suffix.
+     * This is safe to call from interceptors at any point — it does not depend on auth scheme resolution
+     * or endpoint resolution.
+     */
+    public static boolean isS3ExpressBucket(SdkRequest request) {
+        return request.getValueForField("Bucket", String.class)
+                      .map(b -> b.endsWith("--x-s3"))
+                      .orElse(false);
+    }
+
+    /**
+     * Determines if this request uses S3Express auth by checking the auth scheme options resolved for the request.
+     * Safe to call from interceptors before pipeline stages have set {@code SELECTED_AUTH_SCHEME} or
+     * {@code RESOLVED_ENDPOINT}.
+     */
+    public static boolean isS3ExpressAuthRequest(SdkRequest request, ExecutionAttributes executionAttributes) {
+        AuthSchemeOptionsResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
+        if (resolver != null) {
+            List<AuthSchemeOption> options = resolver.resolve(request);
+            return options.stream().anyMatch(o -> S3ExpressAuthScheme.SCHEME_ID.equals(o.schemeId()));
+        }
+        return false;
     }
 }
