@@ -32,6 +32,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
@@ -81,14 +82,13 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -387,6 +387,96 @@ public class DefaultClientBuilderTest {
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
                 .isInstanceOf(SdkDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
+    }
+
+    @Test
+    public void noHttpClientProvided_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void noAsyncHttpClientProvided_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void explicitSyncHttpClientProvided_httpClientConfigTypeIsExplicitInstance() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE);
+    }
+
+    @Test
+    public void explicitSyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicitFactory() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY);
+    }
+
+    @Test
+    public void explicitAsyncHttpClientProvided_httpClientConfigTypeIsExplicitInstance() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE);
+    }
+
+    @Test
+    public void explicitAsyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicitFactory() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY);
+    }
+
+    @Test
+    public void syncHttpClientSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .httpClient((SdkHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void syncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .httpClientBuilder((SdkHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void asyncHttpClientSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .httpClient((SdkAsyncHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void asyncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
     }
 
     @Test

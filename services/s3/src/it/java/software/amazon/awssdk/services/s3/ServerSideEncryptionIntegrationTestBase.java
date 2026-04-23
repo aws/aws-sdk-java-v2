@@ -16,6 +16,7 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Fail.fail;
 import static software.amazon.awssdk.services.s3.S3IntegrationTestBase.createBucket;
+import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import javax.crypto.KeyGenerator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.s3.model.EncryptionType;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -47,6 +49,14 @@ public class ServerSideEncryptionIntegrationTestBase extends S3IntegrationTestBa
         createBucket(BUCKET);
         createBucket(BUCKET_WITH_SSE);
         keyId = KMS.createKey().keyMetadata().keyId();
+
+        // Since April 2026, new S3 buckets block SSE-C by default. Unblock it for SSE-C tests.
+        s3.putBucketEncryption(r -> r
+            .bucket(BUCKET)
+            .serverSideEncryptionConfiguration(ssec -> ssec
+                .rules(rule -> rule
+                    .applyServerSideEncryptionByDefault(d -> d.sseAlgorithm(AES256))
+                    .blockedEncryptionTypes(b -> b.encryptionType(EncryptionType.NONE)))));
 
         s3.putBucketEncryption(r -> r
             .bucket(BUCKET_WITH_SSE)
