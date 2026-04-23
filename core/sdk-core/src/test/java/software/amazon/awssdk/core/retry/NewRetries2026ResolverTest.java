@@ -39,7 +39,7 @@ public class NewRetries2026ResolverTest {
         if (newRetries2026Save != null) {
             System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), newRetries2026Save);
         } else {
-            System.clearProperty(SdkSystemSetting.AWS_ENDPOINT_DISCOVERY_ENABLED.property());
+            System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
         }
     }
 
