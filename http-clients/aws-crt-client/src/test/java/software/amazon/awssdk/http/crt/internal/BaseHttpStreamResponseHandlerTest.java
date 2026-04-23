@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -90,14 +91,16 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void failedToGetResponse_shouldCloseStream() {
+    void failedToGetResponse_shouldCancelAndCloseStream() {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
 
         responseHandler.onResponseComplete(httpStream, 1);
         assertThatThrownBy(() -> requestFuture.join()).hasRootCauseInstanceOf(HttpException.class);
-        verify(httpStream).close();
+        InOrder inOrder = Mockito.inOrder(httpStream);
+        inOrder.verify(httpStream).cancel();
+        inOrder.verify(httpStream).close();
     }
 
     @Test
@@ -115,7 +118,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void publisherWritesFutureFails_shouldCloseStream() {
+    void publisherWritesFutureFails_shouldCancelAndCloseStream() {
         SimplePublisher<ByteBuffer> simplePublisher = Mockito.mock(SimplePublisher.class);
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
@@ -137,7 +140,9 @@ public abstract class BaseHttpStreamResponseHandlerTest {
             // we don't verify here because it behaves differently in async and sync
         }
 
-        verify(httpStream).close();
+        InOrder inOrder = Mockito.inOrder(httpStream);
+        inOrder.verify(httpStream).cancel();
+        inOrder.verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 

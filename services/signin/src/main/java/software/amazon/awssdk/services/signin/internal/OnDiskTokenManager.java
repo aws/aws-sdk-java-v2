@@ -20,15 +20,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -41,6 +47,9 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class OnDiskTokenManager implements AccessTokenManager {
+    private static final Set<PosixFilePermission> OWNER_ONLY_PERMISSIONS =
+        EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();
 
     private final Path tokenLocation;
@@ -82,15 +91,42 @@ public final class OnDiskTokenManager implements AccessTokenManager {
 
     @Override
     public void storeToken(LoginAccessToken token) {
-        // atomic write (write to a temp file and then move/replace the destination location).
+        // Write to a temp file first, then move to the destination to avoid partial reads.
         try {
-            Path temp = Files.createTempFile(tokenLocation.getParent(), "token-", ".tmp");
+            Path temp = createOwnerOnlyTempFile(tokenLocation.getParent(), "token-", ".tmp");
             try (OutputStream os = Files.newOutputStream(temp)) {
                 os.write(marshalToken(token));
             }
-            Files.move(temp, tokenLocation, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            atomicOrFallbackMove(temp, tokenLocation);
         } catch (IOException | UncheckedIOException e) {
             throw SdkClientException.create("Unable to write token to location " + tokenLocation, e);
+        }
+    }
+
+    /**
+     * Creates a temp file with owner-only read/write permissions (0600) on POSIX-compatible file systems.
+     * On non-POSIX file systems (e.g., Windows), falls back to default permissions.
+     */
+    private static Path createOwnerOnlyTempFile(Path dir, String prefix, String suffix) throws IOException {
+        try {
+            FileAttribute<Set<PosixFilePermission>> attr =
+                PosixFilePermissions.asFileAttribute(OWNER_ONLY_PERMISSIONS);
+            return Files.createTempFile(dir, prefix, suffix, attr);
+        } catch (UnsupportedOperationException | IllegalArgumentException e) {
+            // File system does not support POSIX permissions (e.g., Windows, or in-memory file systems);
+            // fall back to default permissions.
+            return Files.createTempFile(dir, prefix, suffix);
+        }
+    }
+
+    /**
+     * Attempts an atomic move, falling back to a non-atomic replace if the file system does not support it.
+     */
+    private static void atomicOrFallbackMove(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
