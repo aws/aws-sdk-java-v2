@@ -482,6 +482,36 @@ public abstract class RequestOverrideConfiguration {
          * priority over the auth scheme provider set on the client while resolving the auth scheme for the requests.
          * If this value is null, then the client level auth scheme provider is used for resolving the auth scheme.
          *
+         * <p>Example — overriding the signing region for a single request:
+         * {@snippet :
+         *   // Create a custom auth scheme provider that overrides the signing region.
+         *   // This wraps the default provider and modifies the resolved auth scheme options.
+         *   S3AuthSchemeProvider defaultProvider = S3AuthSchemeProvider.defaultProvider();
+         *
+         *   S3AuthSchemeProvider customRegionProvider = params -> {
+         *       List<AuthSchemeOption> options = defaultProvider.resolveAuthScheme(params);
+         *       return options.stream()
+         *                     .map(option -> option.toBuilder()
+         *                                          .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "eu-west-1")
+         *                                          .build())
+         *                     .collect(Collectors.toList());
+         *   };
+         *
+         *   S3Client s3 = S3Client.builder()
+         *                         .region(Region.US_EAST_1)
+         *                         .build();
+         *
+         *   // Override the auth scheme provider for a single request
+         *   GetObjectResponse response = s3.getObject(
+         *       GetObjectRequest.builder()
+         *           .bucket("my-bucket")
+         *           .key("my-key")
+         *           .overrideConfiguration(c -> c.authSchemeProvider(customRegionProvider))
+         *           .build(),
+         *       ResponseTransformer.toBytes()
+         *   );
+         * }
+         *
          * @param authSchemeProvider Auth scheme provider that will override the client's configured or default
          *                           AuthSchemeProvider for the request.
          * @return This object for method chaining
