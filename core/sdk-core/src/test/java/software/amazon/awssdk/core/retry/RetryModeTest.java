@@ -71,12 +71,12 @@ public class RetryModeTest {
             new TestData("lEgAcY", null, null, null, "true", null, null, RetryMode.LEGACY),
             new TestData("sTanDaRd", null, null, null, "true", null, null, RetryMode.STANDARD),
             new TestData("aDaPtIvE", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
-            new TestData("legacy", null, null, null, "true", null, null, RetryMode.LEGACY),
-            new TestData("standard", null, null, null, "true", null, null, RetryMode.STANDARD),
-            new TestData("adaptive", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
-            new TestData("lEgAcY", null, null, null, "true", null, null, RetryMode.LEGACY),
-            new TestData("sTanDaRd", null, null, null, "true", null, null, RetryMode.STANDARD),
-            new TestData("aDaPtIvE", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("legacy", null, null, null, "false", null, null, RetryMode.LEGACY),
+            new TestData("standard", null, null, null, "false", null, null, RetryMode.STANDARD),
+            new TestData("adaptive", null, null, null, "false", null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("lEgAcY", null, null, null, "false", null, null, RetryMode.LEGACY),
+            new TestData("sTanDaRd", null, null, null, "false", null, null, RetryMode.STANDARD),
+            new TestData("aDaPtIvE", null, null, null, "false", null, null, RetryMode.ADAPTIVE_V2),
 
             // Test precedence
             new TestData("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
