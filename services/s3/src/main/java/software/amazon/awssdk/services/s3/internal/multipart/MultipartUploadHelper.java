@@ -159,23 +159,26 @@ public final class MultipartUploadHelper {
                                                             .getAttribute(REPORT_PROGRESS_IN_SINGLE_CHUNK))
                                                  .orElse(Boolean.FALSE);
 
+        PublisherListener<Long> progressListener = putObjectRequest.overrideConfiguration()
+                                                                   .map(c -> c.executionAttributes()
+                                                                              .getAttribute(JAVA_PROGRESS_LISTENER))
+                                                                   .orElseGet(PublisherListener::noOp);
+
         CompletableFuture<PutObjectResponse> putObjectResponseCompletableFuture = s3AsyncClient.putObject(putObjectRequest,
                                                                                                           asyncRequestBody);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, putObjectResponseCompletableFuture);
 
-        if (reportProgress) {
-            PublisherListener<Long> progressListener = putObjectRequest.overrideConfiguration()
-                                                                       .map(c -> c.executionAttributes()
-                                                                                  .getAttribute(JAVA_PROGRESS_LISTENER))
-                                                                       .orElseGet(PublisherListener::noOp);
-            putObjectResponseCompletableFuture.thenAccept(response -> {
+        putObjectResponseCompletableFuture.thenAccept(response -> {
+            if (reportProgress) {
                 asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
-                progressListener.subscriberOnComplete();
-                returnFuture.complete(response);
-            });
-        } else {
-            CompletableFutureUtils.forwardResultTo(putObjectResponseCompletableFuture, returnFuture);
-        }
+            }
+            // Always signal completion so that TransferProgressUpdater's endOfStreamFuture completes
+            // and the TransferListener's transferComplete callback fires. This is critical for the
+            // unknown-content-length single-chunk path where splitCloseable() bypasses the wrapper body
+            // that would normally complete endOfStreamFuture via subscriberOnComplete.
+            progressListener.subscriberOnComplete();
+            returnFuture.complete(response);
+        });
     }
 
     static SdkClientException contentLengthMissingForPart(int currentPartNum) {
