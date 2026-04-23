@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "Xtansia",
+    "description": "Fix ApacheHttpClient's handling of request bodies on DELETE, GET, HEAD & OPTIONS requests"
+}
