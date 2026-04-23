@@ -409,7 +409,26 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Executes a command in a runtime session container. Returns streaming output with contentStart, contentDelta, and contentStop events.</p>"
+      "documentation":"<p>Executes a command in a runtime session container and streams the output back to the caller. This operation allows you to run shell commands within the agent runtime environment and receive real-time streaming responses including standard output and standard error.</p> <p>To invoke a command, you must specify the agent runtime ARN and a runtime session ID. The command execution supports streaming responses, allowing you to receive output as it becomes available through <code>contentStart</code>, <code>contentDelta</code>, and <code>contentStop</code> events.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:InvokeAgentRuntimeCommand</code> permission.</p>"
+    },
+    "InvokeBrowser":{
+      "name":"InvokeBrowser",
+      "http":{
+        "method":"POST",
+        "requestUri":"/browsers/{browserIdentifier}/sessions/invoke",
+        "responseCode":200
+      },
+      "input":{"shape":"InvokeBrowserRequest"},
+      "output":{"shape":"InvokeBrowserResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Invokes an operating system-level action on a browser session in Amazon Bedrock AgentCore. This operation provides direct OS-level control over browser sessions, enabling mouse actions, keyboard input, and screenshots that the WebSocket-based Chrome DevTools Protocol (CDP) cannot handle — such as interacting with print dialogs, context menus, and JavaScript alerts.</p> <p>You send a request with exactly one action in the <code>BrowserAction</code> union, and receive a corresponding result in the <code>BrowserActionResult</code> union.</p> <p>The following operations are related to <code>InvokeBrowser</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartBrowserSession.html\">StartBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetBrowserSession.html\">GetBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StopBrowserSession.html\">StopBrowserSession</a> </p> </li> </ul>"
     },
     "InvokeCodeInterpreter":{
       "name":"InvokeCodeInterpreter",
@@ -430,6 +449,24 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Executes code within an active code interpreter session in Amazon Bedrock AgentCore. This operation processes the provided code, runs it in a secure environment, and returns the execution results including output, errors, and generated visualizations.</p> <p>To execute code, you must specify the code interpreter identifier, session ID, and the code to run in the arguments parameter. The operation returns a stream containing the execution results, which can include text output, error messages, and data visualizations.</p> <p>This operation is subject to request rate limiting based on your account's service quotas.</p> <p>The following operations are related to <code>InvokeCodeInterpreter</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartCodeInterpreterSession.html\">StartCodeInterpreterSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetCodeInterpreterSession.html\">GetCodeInterpreterSession</a> </p> </li> </ul>"
+    },
+    "InvokeHarness":{
+      "name":"InvokeHarness",
+      "http":{
+        "method":"POST",
+        "requestUri":"/harnesses/invoke",
+        "responseCode":200
+      },
+      "input":{"shape":"InvokeHarnessRequest"},
+      "output":{"shape":"InvokeHarnessResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Operation to invoke a Harness.</p>"
     },
     "ListActors":{
       "name":"ListActors",
@@ -569,7 +606,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListSessions</code> permission.</p>",
+      "documentation":"<p>Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>Empty sessions are automatically deleted after one day.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListSessions</code> permission.</p>",
       "readonly":true
     },
     "RetrieveMemoryRecords":{
@@ -612,6 +649,25 @@
       "documentation":"<p>Saves the current state of a browser session as a reusable profile in Amazon Bedrock AgentCore. A browser profile captures persistent browser data such as cookies and local storage from an active session, enabling you to reuse this data in future browser sessions.</p> <p>To save a browser session profile, you must specify the profile identifier, browser identifier, and session ID. The session must be active when saving the profile. Once saved, the profile can be used with the <code>StartBrowserSession</code> operation to initialize new sessions with the stored browser state.</p> <p>Browser profiles are useful for scenarios that require persistent authentication, maintaining user preferences across sessions, or continuing tasks that depend on previously stored browser data.</p> <p>The following operations are related to <code>SaveBrowserSessionProfile</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StartBrowserSession.html\">StartBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetBrowserSession.html\">GetBrowserSession</a> </p> </li> </ul>",
       "idempotent":true
     },
+    "SearchRegistryRecords":{
+      "name":"SearchRegistryRecords",
+      "http":{
+        "method":"POST",
+        "requestUri":"/registry-records/search",
+        "responseCode":200
+      },
+      "input":{"shape":"SearchRegistryRecordsRequest"},
+      "output":{"shape":"SearchRegistryRecordsResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p> Searches for registry records using semantic, lexical, or hybrid queries. Returns metadata for matching records ordered by relevance within the specified registry.</p>"
+    },
     "StartBrowserSession":{
       "name":"StartBrowserSession",
       "http":{
@@ -630,7 +686,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Creates and initializes a browser session in Amazon Bedrock AgentCore. The session enables agents to navigate and interact with web content, extract information from websites, and perform web-based tasks as part of their response generation.</p> <p>To create a session, you must specify a browser identifier and a name. You can also configure the viewport dimensions to control the visible area of web content. The session remains active until it times out or you explicitly stop it using the <code>StopBrowserSession</code> operation.</p> <p>The following operations are related to <code>StartBrowserSession</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetBrowserSession.html\">GetBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_UpdateBrowserStream.html\">UpdateBrowserStream</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_SaveBrowserSessionProfile.html\">SaveBrowserSessionProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StopBrowserSession.html\">StopBrowserSession</a> </p> </li> </ul>",
+      "documentation":"<p>Creates and initializes a browser session in Amazon Bedrock AgentCore. The session enables agents to navigate and interact with web content, extract information from websites, and perform web-based tasks as part of their response generation.</p> <p>To create a session, you must specify a browser identifier and a name. You can also configure the viewport dimensions to control the visible area of web content. The session remains active until it times out or you explicitly stop it using the <code>StopBrowserSession</code> operation.</p> <p>The following operations are related to <code>StartBrowserSession</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_GetBrowserSession.html\">GetBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_UpdateBrowserStream.html\">UpdateBrowserStream</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_SaveBrowserSessionProfile.html\">SaveBrowserSessionProfile</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_StopBrowserSession.html\">StopBrowserSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_InvokeBrowser.html\">InvokeBrowser</a> </p> </li> </ul>",
       "idempotent":true
     },
     "StartCodeInterpreterSession":{
@@ -762,6 +818,17 @@
     }
   },
   "shapes":{
+    "A2aDescriptor":{
+      "type":"structure",
+      "required":["agentCard"],
+      "members":{
+        "agentCard":{
+          "shape":"AgentCardDefinition",
+          "documentation":"<p> The agent card definition that describes the agent's capabilities and interface.</p>"
+        }
+      },
+      "documentation":"<p> The A2A (Agent-to-Agent) descriptor configuration for a registry record.</p>"
+    },
     "AccessDeniedException":{
       "type":"structure",
       "members":{
@@ -805,6 +872,39 @@
       "type":"structure",
       "members":{},
       "document":true
+    },
+    "AgentCardDefinition":{
+      "type":"structure",
+      "members":{
+        "schemaVersion":{
+          "shape":"SchemaVersion",
+          "documentation":"<p> The schema version of the agent card definition.</p>"
+        },
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline content of the agent card definition.</p>"
+        }
+      },
+      "documentation":"<p> The agent card definition for A2A descriptors, including the schema version and inline content that describes the agent's capabilities.</p>"
+    },
+    "AgentSkillsDescriptor":{
+      "type":"structure",
+      "required":["skillMd"],
+      "members":{
+        "skillMd":{
+          "shape":"SkillMdDefinition",
+          "documentation":"<p> The skill description in markdown format.</p>"
+        },
+        "skillDefinition":{
+          "shape":"SkillDefinition",
+          "documentation":"<p> The structured skill definition with a schema version and content.</p>"
+        }
+      },
+      "documentation":"<p> The agent skills descriptor configuration for a registry record.</p>"
+    },
+    "ApiKeyArn":{
+      "type":"string",
+      "pattern":"arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:token-vault/[a-zA-Z0-9-.]+/apikeycredentialprovider/[a-zA-Z0-9-.]+"
     },
     "ApiKeyType":{
       "type":"string",
@@ -1023,6 +1123,96 @@
       "min":1,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
     },
+    "BrowserAction":{
+      "type":"structure",
+      "members":{
+        "mouseClick":{
+          "shape":"MouseClickArguments",
+          "documentation":"<p>Click at the specified coordinates.</p>"
+        },
+        "mouseMove":{
+          "shape":"MouseMoveArguments",
+          "documentation":"<p>Move the cursor to the specified coordinates.</p>"
+        },
+        "mouseDrag":{
+          "shape":"MouseDragArguments",
+          "documentation":"<p>Drag from a start position to an end position.</p>"
+        },
+        "mouseScroll":{
+          "shape":"MouseScrollArguments",
+          "documentation":"<p>Scroll at the specified position.</p>"
+        },
+        "keyType":{
+          "shape":"KeyTypeArguments",
+          "documentation":"<p>Type a string of text.</p>"
+        },
+        "keyPress":{
+          "shape":"KeyPressArguments",
+          "documentation":"<p>Press a key one or more times.</p>"
+        },
+        "keyShortcut":{
+          "shape":"KeyShortcutArguments",
+          "documentation":"<p>Press a key combination.</p>"
+        },
+        "screenshot":{
+          "shape":"ScreenshotArguments",
+          "documentation":"<p>Capture a full-screen screenshot.</p>"
+        }
+      },
+      "documentation":"<p>The browser action to perform. Exactly one member must be set per request.</p>",
+      "union":true
+    },
+    "BrowserActionResult":{
+      "type":"structure",
+      "members":{
+        "mouseClick":{
+          "shape":"MouseClickResult",
+          "documentation":"<p>The result of a mouse click action.</p>"
+        },
+        "mouseMove":{
+          "shape":"MouseMoveResult",
+          "documentation":"<p>The result of a mouse move action.</p>"
+        },
+        "mouseDrag":{
+          "shape":"MouseDragResult",
+          "documentation":"<p>The result of a mouse drag action.</p>"
+        },
+        "mouseScroll":{
+          "shape":"MouseScrollResult",
+          "documentation":"<p>The result of a mouse scroll action.</p>"
+        },
+        "keyType":{
+          "shape":"KeyTypeResult",
+          "documentation":"<p>The result of a key type action.</p>"
+        },
+        "keyPress":{
+          "shape":"KeyPressResult",
+          "documentation":"<p>The result of a key press action.</p>"
+        },
+        "keyShortcut":{
+          "shape":"KeyShortcutResult",
+          "documentation":"<p>The result of a key shortcut action.</p>"
+        },
+        "screenshot":{
+          "shape":"ScreenshotResult",
+          "documentation":"<p>The result of a screenshot action.</p>"
+        }
+      },
+      "documentation":"<p>The result of a browser action execution. Exactly one member is set, matching the action that was performed.</p>",
+      "union":true
+    },
+    "BrowserActionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a browser action execution.</p>",
+      "enum":[
+        "SUCCESS",
+        "FAILED"
+      ]
+    },
+    "BrowserArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):browser(-custom)?/(aws\\.browser\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
+    },
     "BrowserEnterprisePolicies":{
       "type":"list",
       "member":{"shape":"BrowserEnterprisePolicy"},
@@ -1194,6 +1384,10 @@
       "max":256,
       "min":33,
       "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9]){0,256}"
+    },
+    "CodeInterpreterArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):code-interpreter(-custom)?/(aws\\.codeinterpreter\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
     },
     "CodeInterpreterResult":{
       "type":"structure",
@@ -1399,19 +1593,19 @@
       "members":{
         "stdout":{
           "shape":"String",
-          "documentation":"<p>Standard output content</p>"
+          "documentation":"<p>The standard output content from the command execution. This field contains the incremental output written to stdout by the executing command.</p>"
         },
         "stderr":{
           "shape":"String",
-          "documentation":"<p>Standard error content</p>"
+          "documentation":"<p>The standard error content from the command execution. This field contains the incremental output written to stderr by the executing command.</p>"
         }
       },
-      "documentation":"<p>Content event containing stdout or stderr output</p>"
+      "documentation":"<p>An event that contains incremental output from a command execution. This event streams standard output and standard error content as it becomes available during command execution.</p>"
     },
     "ContentStartEvent":{
       "type":"structure",
       "members":{},
-      "documentation":"<p>First event indicating command execution has started</p>"
+      "documentation":"<p>An event that signals the start of content streaming from a command execution. This event is sent when the command begins producing output.</p>"
     },
     "ContentStopEvent":{
       "type":"structure",
@@ -1422,14 +1616,14 @@
       "members":{
         "exitCode":{
           "shape":"Integer",
-          "documentation":"<p>Exit code: 0 = success, -1 = platform error, &gt;0 = command error</p>"
+          "documentation":"<p>The exit code returned by the executed command. An exit code of 0 indicates successful execution, -1 indicates a platform error, and values greater than 0 indicate command-specific errors.</p>"
         },
         "status":{
           "shape":"CommandExecutionStatus",
-          "documentation":"<p>Execution status</p>"
+          "documentation":"<p>The final status of the command execution. Valid values are <code>COMPLETED</code> for successful completion or <code>TIMED_OUT</code> if the command exceeded the specified timeout.</p>"
         }
       },
-      "documentation":"<p>Final event indicating command execution has completed</p>"
+      "documentation":"<p>An event that signals the completion of a command execution. This event contains the final status and exit code of the executed command.</p>"
     },
     "ContentTextString":{
       "type":"string",
@@ -1528,6 +1722,16 @@
       "min":1,
       "pattern":"[a-zA-Z0-9\\-_]+"
     },
+    "CustomDescriptor":{
+      "type":"structure",
+      "members":{
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline content of the custom descriptor.</p>"
+        }
+      },
+      "documentation":"<p> A custom descriptor configuration for a registry record.</p>"
+    },
     "CustomRequestKeyType":{
       "type":"string",
       "max":256,
@@ -1625,6 +1829,44 @@
         }
       }
     },
+    "Description":{
+      "type":"string",
+      "max":4096,
+      "min":1,
+      "sensitive":true
+    },
+    "DescriptorType":{
+      "type":"string",
+      "documentation":"<p> The type of descriptor associated with a registry record.</p>",
+      "enum":[
+        "MCP",
+        "A2A",
+        "CUSTOM",
+        "AGENT_SKILLS"
+      ]
+    },
+    "Descriptors":{
+      "type":"structure",
+      "members":{
+        "mcp":{
+          "shape":"McpDescriptor",
+          "documentation":"<p> The MCP (Model Context Protocol) descriptor configuration. Populated when the record's <code>descriptorType</code> is <code>MCP</code>.</p>"
+        },
+        "a2a":{
+          "shape":"A2aDescriptor",
+          "documentation":"<p> The A2A (Agent-to-Agent) descriptor configuration. Populated when the record's <code>descriptorType</code> is <code>A2A</code>.</p>"
+        },
+        "custom":{
+          "shape":"CustomDescriptor",
+          "documentation":"<p> The custom descriptor configuration. Populated when the record's <code>descriptorType</code> is <code>CUSTOM</code>.</p>"
+        },
+        "agentSkills":{
+          "shape":"AgentSkillsDescriptor",
+          "documentation":"<p> The agent skills descriptor configuration. Populated when the record's <code>descriptorType</code> is <code>AGENT_SKILLS</code>.</p>"
+        }
+      },
+      "documentation":"<p> Contains the descriptor configuration for a registry record. Only the field that matches the record's <code>descriptorType</code> is populated.</p>"
+    },
     "Document":{
       "type":"structure",
       "members":{},
@@ -1668,7 +1910,7 @@
       "members":{
         "evaluatorId":{
           "shape":"EvaluatorId",
-          "documentation":"<p> The unique identifier of the evaluator to use for scoring. Can be a built-in evaluator (e.g., <code>Builtin.Helpfulness</code>, <code>Builtin.Correctness</code>) or a custom evaluator ARN created through the control plane API. </p>",
+          "documentation":"<p> The unique identifier of the evaluator to use for scoring. Can be a built-in evaluator (e.g., <code>Builtin.Helpfulness</code>, <code>Builtin.Correctness</code>) or a custom evaluator Id created through the control plane API. </p>",
           "location":"uri",
           "locationName":"evaluatorId"
         },
@@ -1679,6 +1921,10 @@
         "evaluationTarget":{
           "shape":"EvaluationTarget",
           "documentation":"<p> The specific trace or span IDs to evaluate within the provided input. Allows targeting evaluation at different levels: individual tool calls, single request-response interactions (traces), or entire conversation sessions. </p>"
+        },
+        "evaluationReferenceInputs":{
+          "shape":"EvaluationReferenceInputs",
+          "documentation":"<p> Ground truth data to compare against agent responses during evaluation. Allows to provide expected responses, assertions, and expected tool trajectories at different evaluation levels. Session-level reference inputs apply to the entire conversation, while trace-level reference inputs target specific request-response interactions identified by trace ID. </p>"
         }
       }
     },
@@ -1692,6 +1938,28 @@
         }
       }
     },
+    "EvaluationContent":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"EvaluationContentTextString",
+          "documentation":"<p> The text content of the ground truth data. Used for expected response text and assertion statements. </p>"
+        }
+      },
+      "documentation":"<p> A content block for ground truth data in evaluation reference inputs. Supports text content for expected responses and assertions. </p>",
+      "union":true
+    },
+    "EvaluationContentList":{
+      "type":"list",
+      "member":{"shape":"EvaluationContent"},
+      "max":100,
+      "min":1
+    },
+    "EvaluationContentTextString":{
+      "type":"string",
+      "max":100000,
+      "min":1
+    },
     "EvaluationErrorCode":{
       "type":"string",
       "max":1024,
@@ -1701,6 +1969,16 @@
       "type":"string",
       "max":2048,
       "min":0
+    },
+    "EvaluationExpectedTrajectory":{
+      "type":"structure",
+      "members":{
+        "toolNames":{
+          "shape":"EvaluationToolNames",
+          "documentation":"<p> The list of tool names representing the expected tool call sequence. </p>"
+        }
+      },
+      "documentation":"<p> The expected tool call trajectory for trajectory-based evaluation. </p>"
     },
     "EvaluationExplanation":{
       "type":"string",
@@ -1718,6 +1996,33 @@
       },
       "documentation":"<p> The input data structure containing agent session spans in OpenTelemetry format. Supports traces from frameworks like Strands (AgentCore Runtime) and LangGraph with OpenInference instrumentation for comprehensive evaluation. </p>",
       "union":true
+    },
+    "EvaluationReferenceInput":{
+      "type":"structure",
+      "required":["context"],
+      "members":{
+        "context":{"shape":"Context"},
+        "expectedResponse":{
+          "shape":"EvaluationContent",
+          "documentation":"<p> The expected response for trace-level evaluation. Built-in evaluators that support this field compare the agent's actual response against this value for assessment. Custom evaluators can access it through the <code>{expected_response}</code> placeholder in their instructions. </p>"
+        },
+        "assertions":{
+          "shape":"EvaluationContentList",
+          "documentation":"<p> A list of assertion statements for session-level evaluation. Each assertion describes an expected behavior or outcome the agent should demonstrate during the session. </p>"
+        },
+        "expectedTrajectory":{
+          "shape":"EvaluationExpectedTrajectory",
+          "documentation":"<p> The expected tool call sequence for session-level trajectory evaluation. Contains a list of tool names representing the tools the agent is expected to invoke. </p>"
+        }
+      },
+      "documentation":"<p> A reference input containing ground truth data for evaluation, scoped to a specific context level (session or trace) through its span context. </p>"
+    },
+    "EvaluationReferenceInputs":{
+      "type":"list",
+      "member":{"shape":"EvaluationReferenceInput"},
+      "max":1000,
+      "min":1,
+      "sensitive":true
     },
     "EvaluationResultContent":{
       "type":"structure",
@@ -1767,6 +2072,10 @@
         "errorCode":{
           "shape":"EvaluationErrorCode",
           "documentation":"<p> The error code indicating the type of failure that occurred during evaluation. Used to programmatically identify and handle different categories of evaluation errors. </p>"
+        },
+        "ignoredReferenceInputFields":{
+          "shape":"IgnoredReferenceInputFields",
+          "documentation":"<p> The list of reference input field names that were provided but not used by the evaluator. Helps identify which ground truth data was not consumed during evaluation. </p>"
         }
       },
       "documentation":"<p> The comprehensive result of an evaluation containing the score, explanation, evaluator metadata, and execution details. Provides both quantitative ratings and qualitative insights about agent performance. </p>"
@@ -1789,6 +2098,17 @@
       },
       "documentation":"<p> The specification of which trace or span IDs to evaluate within the provided input data. Allows precise targeting of evaluation at different levels: tool calls, traces, or sessions. </p>",
       "union":true
+    },
+    "EvaluationToolName":{
+      "type":"string",
+      "max":500,
+      "min":1
+    },
+    "EvaluationToolNames":{
+      "type":"list",
+      "member":{"shape":"EvaluationToolName"},
+      "max":1000,
+      "min":0
     },
     "EvaluatorArn":{
       "type":"string",
@@ -1847,6 +2167,11 @@
         }
       },
       "documentation":"<p>Contains information about an event in an AgentCore Memory resource.</p>"
+    },
+    "EventFilterCondition":{
+      "type":"string",
+      "documentation":"<p>The condition to use for filtering sessions by events.</p>",
+      "enum":["HAS_EVENTS"]
     },
     "EventId":{
       "type":"string",
@@ -2019,6 +2344,10 @@
         }
       },
       "documentation":"<p>Contains filter criteria for listing events.</p>"
+    },
+    "GatewayArn":{
+      "type":"string",
+      "pattern":"arn:aws(|-cn|-us-gov):bedrock-agentcore:[a-z0-9-]{1,20}:[0-9]{12}:gateway/([0-9a-z][-]?){1,48}-[a-z0-9]{10}"
     },
     "GetAgentCardRequest":{
       "type":"structure",
@@ -2459,15 +2788,859 @@
         }
       }
     },
+    "HarnessAgentCoreBrowserConfig":{
+      "type":"structure",
+      "members":{
+        "browserArn":{
+          "shape":"BrowserArn",
+          "documentation":"<p>If not populated, the built-in Browser ARN is used.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for AgentCore Browser.</p>"
+    },
+    "HarnessAgentCoreCodeInterpreterConfig":{
+      "type":"structure",
+      "members":{
+        "codeInterpreterArn":{
+          "shape":"CodeInterpreterArn",
+          "documentation":"<p>If not populated, the built-in Code Interpreter ARN is used.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for AgentCore Code Interpreter.</p>"
+    },
+    "HarnessAgentCoreGatewayConfig":{
+      "type":"structure",
+      "required":["gatewayArn"],
+      "members":{
+        "gatewayArn":{
+          "shape":"GatewayArn",
+          "documentation":"<p>The ARN of the desired AgentCore Gateway.</p>"
+        },
+        "outboundAuth":{
+          "shape":"HarnessGatewayOutboundAuth",
+          "documentation":"<p>How Loopy authenticates to this Gateway. Defaults to AWS_IAM (SigV4) if omitted.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for AgentCore Gateway.</p>"
+    },
+    "HarnessAllowedTool":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"(\\*|@?[^/]+(/[^/]+)?)"
+    },
+    "HarnessAllowedTools":{
+      "type":"list",
+      "member":{"shape":"HarnessAllowedTool"}
+    },
+    "HarnessArn":{
+      "type":"string",
+      "pattern":"arn:([^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:harness/[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}"
+    },
+    "HarnessBedrockModelConfig":{
+      "type":"structure",
+      "required":["modelId"],
+      "members":{
+        "modelId":{
+          "shape":"ModelId",
+          "documentation":"<p>The Bedrock model ID.</p>"
+        },
+        "maxTokens":{
+          "shape":"MaxTokens",
+          "documentation":"<p>The maximum number of tokens to allow in the generated response per iteration.</p>"
+        },
+        "temperature":{
+          "shape":"Temperature",
+          "documentation":"<p>The temperature to set when calling the model.</p>"
+        },
+        "topP":{
+          "shape":"TopP",
+          "documentation":"<p>The topP set when calling the model.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for an Amazon Bedrock model provider.</p>"
+    },
+    "HarnessContentBlock":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"SensitiveText",
+          "documentation":"<p>Text content.</p>"
+        },
+        "toolUse":{
+          "shape":"HarnessToolUseBlock",
+          "documentation":"<p>A tool use request from the model.</p>"
+        },
+        "toolResult":{
+          "shape":"HarnessToolResultBlock",
+          "documentation":"<p>A tool execution result.</p>"
+        },
+        "reasoningContent":{
+          "shape":"HarnessReasoningContentBlock",
+          "documentation":"<p>Model reasoning content.</p>"
+        }
+      },
+      "documentation":"<p>A content block within a message.</p>",
+      "union":true
+    },
+    "HarnessContentBlockDelta":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"SensitiveText",
+          "documentation":"<p>A text delta.</p>"
+        },
+        "toolUse":{
+          "shape":"HarnessToolUseBlockDelta",
+          "documentation":"<p>A tool use input delta.</p>"
+        },
+        "toolResult":{
+          "shape":"HarnessToolResultBlocksDelta",
+          "documentation":"<p>A tool result delta.</p>"
+        },
+        "reasoningContent":{
+          "shape":"HarnessReasoningContentBlockDelta",
+          "documentation":"<p>A reasoning content delta.</p>"
+        }
+      },
+      "documentation":"<p>A delta update to a content block.</p>",
+      "union":true
+    },
+    "HarnessContentBlockDeltaEvent":{
+      "type":"structure",
+      "required":[
+        "contentBlockIndex",
+        "delta"
+      ],
+      "members":{
+        "contentBlockIndex":{
+          "shape":"Integer",
+          "documentation":"<p>The index of the content block being updated.</p>"
+        },
+        "delta":{
+          "shape":"HarnessContentBlockDelta",
+          "documentation":"<p>The delta payload.</p>"
+        }
+      },
+      "documentation":"<p>Event containing a delta update to a content block.</p>",
+      "event":true
+    },
+    "HarnessContentBlockStart":{
+      "type":"structure",
+      "members":{
+        "toolUse":{
+          "shape":"HarnessToolUseBlockStart",
+          "documentation":"<p>Start of a tool use content block.</p>"
+        },
+        "toolResult":{
+          "shape":"HarnessToolResultBlockStart",
+          "documentation":"<p>Start of a tool result content block.</p>"
+        }
+      },
+      "documentation":"<p>The start payload for a content block.</p>",
+      "union":true
+    },
+    "HarnessContentBlockStartEvent":{
+      "type":"structure",
+      "required":[
+        "contentBlockIndex",
+        "start"
+      ],
+      "members":{
+        "contentBlockIndex":{
+          "shape":"Integer",
+          "documentation":"<p>The index of the content block within the message.</p>"
+        },
+        "start":{
+          "shape":"HarnessContentBlockStart",
+          "documentation":"<p>The content block start payload.</p>"
+        }
+      },
+      "documentation":"<p>Event indicating the start of a content block.</p>",
+      "event":true
+    },
+    "HarnessContentBlockStopEvent":{
+      "type":"structure",
+      "required":["contentBlockIndex"],
+      "members":{
+        "contentBlockIndex":{
+          "shape":"Integer",
+          "documentation":"<p>The index of the content block that ended.</p>"
+        }
+      },
+      "documentation":"<p>Event indicating the end of a content block.</p>",
+      "event":true
+    },
+    "HarnessContentBlocks":{
+      "type":"list",
+      "member":{"shape":"HarnessContentBlock"}
+    },
+    "HarnessConversationRole":{
+      "type":"string",
+      "enum":[
+        "user",
+        "assistant"
+      ]
+    },
+    "HarnessGatewayOutboundAuth":{
+      "type":"structure",
+      "members":{
+        "awsIam":{
+          "shape":"Unit",
+          "documentation":"<p>SigV4-sign requests using the agent's execution role.</p>"
+        },
+        "none":{
+          "shape":"Unit",
+          "documentation":"<p>No authentication.</p>"
+        },
+        "oauth":{
+          "shape":"OAuthCredentialProvider",
+          "documentation":"<p>OAuth 2.0 authentication via AgentCore Identity.</p>"
+        }
+      },
+      "documentation":"<p>Authentication method for calling a Gateway.</p>",
+      "union":true
+    },
+    "HarnessGeminiModelConfig":{
+      "type":"structure",
+      "required":[
+        "modelId",
+        "apiKeyArn"
+      ],
+      "members":{
+        "modelId":{
+          "shape":"ModelId",
+          "documentation":"<p>The Gemini model ID.</p>"
+        },
+        "apiKeyArn":{
+          "shape":"ApiKeyArn",
+          "documentation":"<p>The ARN of your Gemini API key on AgentCore Identity.</p>"
+        },
+        "maxTokens":{
+          "shape":"MaxTokens",
+          "documentation":"<p>The maximum number of tokens to allow in the generated response per iteration.</p>"
+        },
+        "temperature":{
+          "shape":"Temperature",
+          "documentation":"<p>The temperature to set when calling the model.</p>"
+        },
+        "topP":{
+          "shape":"TopP",
+          "documentation":"<p>The topP set when calling the model.</p>"
+        },
+        "topK":{
+          "shape":"TopK",
+          "documentation":"<p>The topK set when calling the model.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for a Google Gemini model provider. Requires an API key stored in AgentCore Identity.</p>"
+    },
+    "HarnessInlineFunctionConfig":{
+      "type":"structure",
+      "required":[
+        "description",
+        "inputSchema"
+      ],
+      "members":{
+        "description":{
+          "shape":"HarnessInlineFunctionDescription",
+          "documentation":"<p>Description of what the tool does, provided to the model.</p>"
+        },
+        "inputSchema":{
+          "shape":"SensitiveJson",
+          "documentation":"<p>JSON Schema describing the tool's input parameters.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for an inline function tool. When the agent calls this tool, the tool call is returned to the caller for external execution.</p>"
+    },
+    "HarnessInlineFunctionDescription":{
+      "type":"string",
+      "max":4096,
+      "min":1,
+      "sensitive":true
+    },
+    "HarnessMessage":{
+      "type":"structure",
+      "required":[
+        "role",
+        "content"
+      ],
+      "members":{
+        "role":{
+          "shape":"HarnessConversationRole",
+          "documentation":"<p>The role of the message sender.</p>"
+        },
+        "content":{
+          "shape":"HarnessContentBlocks",
+          "documentation":"<p>The content blocks of the message.</p>"
+        }
+      },
+      "documentation":"<p>A message in the conversation.</p>"
+    },
+    "HarnessMessageStartEvent":{
+      "type":"structure",
+      "required":["role"],
+      "members":{
+        "role":{
+          "shape":"HarnessConversationRole",
+          "documentation":"<p>The role of the message sender.</p>"
+        }
+      },
+      "documentation":"<p>Event indicating the start of a message.</p>",
+      "event":true
+    },
+    "HarnessMessageStopEvent":{
+      "type":"structure",
+      "required":["stopReason"],
+      "members":{
+        "stopReason":{
+          "shape":"HarnessStopReason",
+          "documentation":"<p>The reason the agent stopped generating.</p>"
+        }
+      },
+      "documentation":"<p>Event indicating the end of a message.</p>",
+      "event":true
+    },
+    "HarnessMessages":{
+      "type":"list",
+      "member":{"shape":"HarnessMessage"}
+    },
+    "HarnessMetadataEvent":{
+      "type":"structure",
+      "required":[
+        "usage",
+        "metrics"
+      ],
+      "members":{
+        "usage":{
+          "shape":"HarnessTokenUsage",
+          "documentation":"<p>Token usage counts.</p>"
+        },
+        "metrics":{
+          "shape":"HarnessStreamMetrics",
+          "documentation":"<p>Latency metrics.</p>"
+        }
+      },
+      "documentation":"<p>Token usage and latency metrics for the invocation.</p>",
+      "event":true
+    },
+    "HarnessModelConfiguration":{
+      "type":"structure",
+      "members":{
+        "bedrockModelConfig":{
+          "shape":"HarnessBedrockModelConfig",
+          "documentation":"<p>Configuration for an Amazon Bedrock model.</p>"
+        },
+        "openAiModelConfig":{
+          "shape":"HarnessOpenAiModelConfig",
+          "documentation":"<p>Configuration for an OpenAI model.</p>"
+        },
+        "geminiModelConfig":{
+          "shape":"HarnessGeminiModelConfig",
+          "documentation":"<p>Configuration for a Google Gemini model.</p>"
+        }
+      },
+      "documentation":"<p>Specification of which model to use.</p>",
+      "union":true
+    },
+    "HarnessOpenAiModelConfig":{
+      "type":"structure",
+      "required":[
+        "modelId",
+        "apiKeyArn"
+      ],
+      "members":{
+        "modelId":{
+          "shape":"ModelId",
+          "documentation":"<p>The OpenAI model ID.</p>"
+        },
+        "apiKeyArn":{
+          "shape":"ApiKeyArn",
+          "documentation":"<p>The ARN of your OpenAI API key on AgentCore Identity.</p>"
+        },
+        "maxTokens":{
+          "shape":"MaxTokens",
+          "documentation":"<p>The maximum number of tokens to allow in the generated response per iteration.</p>"
+        },
+        "temperature":{
+          "shape":"Temperature",
+          "documentation":"<p>The temperature to set when calling the model.</p>"
+        },
+        "topP":{
+          "shape":"TopP",
+          "documentation":"<p>The topP set when calling the model.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for an OpenAI model provider. Requires an API key stored in AgentCore Identity.</p>"
+    },
+    "HarnessReasoningContentBlock":{
+      "type":"structure",
+      "members":{
+        "reasoningText":{
+          "shape":"HarnessReasoningTextBlock",
+          "documentation":"<p>The reasoning text.</p>"
+        },
+        "redactedContent":{
+          "shape":"Blob",
+          "documentation":"<p>Redacted reasoning content.</p>"
+        }
+      },
+      "documentation":"<p>Reasoning content from the model.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "HarnessReasoningContentBlockDelta":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"String",
+          "documentation":"<p>Reasoning text delta.</p>"
+        },
+        "redactedContent":{
+          "shape":"Body",
+          "documentation":"<p>Redacted reasoning content.</p>"
+        },
+        "signature":{
+          "shape":"String",
+          "documentation":"<p>Signature for the reasoning content.</p>"
+        }
+      },
+      "documentation":"<p>A delta update to a reasoning content block.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "HarnessReasoningTextBlock":{
+      "type":"structure",
+      "required":["text"],
+      "members":{
+        "text":{
+          "shape":"String",
+          "documentation":"<p>The reasoning text.</p>"
+        },
+        "signature":{
+          "shape":"String",
+          "documentation":"<p>Signature for verifying the reasoning content.</p>"
+        }
+      },
+      "documentation":"<p>A block of reasoning text from the model.</p>",
+      "sensitive":true
+    },
+    "HarnessRemoteMcpConfig":{
+      "type":"structure",
+      "required":["url"],
+      "members":{
+        "url":{
+          "shape":"HarnessRemoteMcpUrl",
+          "documentation":"<p>URL of the MCP endpoint.</p>"
+        },
+        "headers":{"shape":"HttpHeadersMap"}
+      },
+      "documentation":"<p>Configuration for connecting to a remote MCP server.</p>"
+    },
+    "HarnessRemoteMcpUrl":{
+      "type":"string",
+      "max":16383,
+      "min":1,
+      "sensitive":true
+    },
+    "HarnessSkill":{
+      "type":"structure",
+      "members":{
+        "path":{
+          "shape":"HarnessSkillPath",
+          "documentation":"<p>The filesystem path to the skill definition.</p>"
+        }
+      },
+      "documentation":"<p>A skill available to the agent.</p>",
+      "union":true
+    },
+    "HarnessSkillPath":{
+      "type":"string",
+      "min":1
+    },
+    "HarnessSkills":{
+      "type":"list",
+      "member":{"shape":"HarnessSkill"}
+    },
+    "HarnessStopReason":{
+      "type":"string",
+      "enum":[
+        "end_turn",
+        "tool_use",
+        "tool_result",
+        "max_tokens",
+        "stop_sequence",
+        "content_filtered",
+        "malformed_model_output",
+        "malformed_tool_use",
+        "interrupted",
+        "partial_turn",
+        "model_context_window_exceeded",
+        "max_iterations_exceeded",
+        "max_output_tokens_exceeded",
+        "timeout_exceeded"
+      ]
+    },
+    "HarnessStreamMetrics":{
+      "type":"structure",
+      "required":["latencyMs"],
+      "members":{
+        "latencyMs":{
+          "shape":"Long",
+          "documentation":"<p>The end-to-end latency of the invocation in milliseconds.</p>"
+        }
+      },
+      "documentation":"<p>Latency metrics for the invocation.</p>"
+    },
+    "HarnessSystemContentBlock":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"SensitiveText",
+          "documentation":"<p>The text content of the system prompt block.</p>"
+        }
+      },
+      "documentation":"<p>A content block in the system prompt.</p>",
+      "union":true
+    },
+    "HarnessSystemPrompt":{
+      "type":"list",
+      "member":{"shape":"HarnessSystemContentBlock"}
+    },
+    "HarnessTokenUsage":{
+      "type":"structure",
+      "required":[
+        "inputTokens",
+        "outputTokens",
+        "totalTokens"
+      ],
+      "members":{
+        "inputTokens":{
+          "shape":"HarnessTokenUsageInputTokensInteger",
+          "documentation":"<p>The number of input tokens consumed.</p>"
+        },
+        "outputTokens":{
+          "shape":"HarnessTokenUsageOutputTokensInteger",
+          "documentation":"<p>The number of output tokens generated.</p>"
+        },
+        "totalTokens":{
+          "shape":"HarnessTokenUsageTotalTokensInteger",
+          "documentation":"<p>The total number of tokens consumed.</p>"
+        },
+        "cacheReadInputTokens":{
+          "shape":"HarnessTokenUsageCacheReadInputTokensInteger",
+          "documentation":"<p>The number of input tokens read from cache.</p>"
+        },
+        "cacheWriteInputTokens":{
+          "shape":"HarnessTokenUsageCacheWriteInputTokensInteger",
+          "documentation":"<p>The number of input tokens written to cache.</p>"
+        }
+      },
+      "documentation":"<p>Token usage counts for the invocation.</p>"
+    },
+    "HarnessTokenUsageCacheReadInputTokensInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "HarnessTokenUsageCacheWriteInputTokensInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "HarnessTokenUsageInputTokensInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "HarnessTokenUsageOutputTokensInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "HarnessTokenUsageTotalTokensInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "HarnessTool":{
+      "type":"structure",
+      "required":["type"],
+      "members":{
+        "type":{
+          "shape":"HarnessToolType",
+          "documentation":"<p>The type of tool.</p>"
+        },
+        "name":{
+          "shape":"HarnessToolName",
+          "documentation":"<p>Unique name for the tool. If not provided, a name will be inferred or generated.</p>"
+        },
+        "config":{
+          "shape":"HarnessToolConfiguration",
+          "documentation":"<p>Tool-specific configuration.</p>"
+        }
+      },
+      "documentation":"<p>A tool available to the agent loop.</p>"
+    },
+    "HarnessToolConfiguration":{
+      "type":"structure",
+      "members":{
+        "remoteMcp":{
+          "shape":"HarnessRemoteMcpConfig",
+          "documentation":"<p>Configuration for remote MCP server.</p>"
+        },
+        "agentCoreBrowser":{
+          "shape":"HarnessAgentCoreBrowserConfig",
+          "documentation":"<p>Configuration for AgentCore Browser.</p>"
+        },
+        "agentCoreGateway":{
+          "shape":"HarnessAgentCoreGatewayConfig",
+          "documentation":"<p>Configuration for AgentCore Gateway.</p>"
+        },
+        "inlineFunction":{
+          "shape":"HarnessInlineFunctionConfig",
+          "documentation":"<p>Configuration for an inline function tool.</p>"
+        },
+        "agentCoreCodeInterpreter":{
+          "shape":"HarnessAgentCoreCodeInterpreterConfig",
+          "documentation":"<p>Configuration for AgentCore Code Interpreter.</p>"
+        }
+      },
+      "documentation":"<p>Configuration union for different tool types.</p>",
+      "union":true
+    },
+    "HarnessToolName":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_-]+"
+    },
+    "HarnessToolResultBlock":{
+      "type":"structure",
+      "required":[
+        "toolUseId",
+        "content"
+      ],
+      "members":{
+        "toolUseId":{
+          "shape":"HarnessToolUseId",
+          "documentation":"<p>The tool use ID that this result corresponds to.</p>"
+        },
+        "content":{
+          "shape":"HarnessToolResultContentBlocks",
+          "documentation":"<p>The content of the tool result.</p>"
+        },
+        "status":{
+          "shape":"HarnessToolUseStatus",
+          "documentation":"<p>The status of the tool execution.</p>"
+        },
+        "type":{
+          "shape":"HarnessToolUseType",
+          "documentation":"<p>The type of tool use that produced this result.</p>"
+        }
+      },
+      "documentation":"<p>The result of a tool execution.</p>"
+    },
+    "HarnessToolResultBlockDelta":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"SensitiveText",
+          "documentation":"<p>A text tool result delta.</p>"
+        },
+        "json":{
+          "shape":"SensitiveJson",
+          "documentation":"<p>A JSON tool result delta.</p>"
+        }
+      },
+      "documentation":"<p>A delta update to a tool result content block.</p>",
+      "union":true
+    },
+    "HarnessToolResultBlockStart":{
+      "type":"structure",
+      "required":["toolUseId"],
+      "members":{
+        "toolUseId":{
+          "shape":"HarnessToolUseId",
+          "documentation":"<p>The tool use ID that this result corresponds to.</p>"
+        },
+        "status":{
+          "shape":"HarnessToolUseStatus",
+          "documentation":"<p>The status of the tool execution.</p>"
+        }
+      },
+      "documentation":"<p>Start payload for a tool result content block.</p>"
+    },
+    "HarnessToolResultBlocksDelta":{
+      "type":"list",
+      "member":{"shape":"HarnessToolResultBlockDelta"}
+    },
+    "HarnessToolResultContentBlock":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"SensitiveText",
+          "documentation":"<p>Text content.</p>"
+        },
+        "json":{
+          "shape":"SensitiveJson",
+          "documentation":"<p>JSON content.</p>"
+        }
+      },
+      "documentation":"<p>A content block within a tool result.</p>",
+      "union":true
+    },
+    "HarnessToolResultContentBlocks":{
+      "type":"list",
+      "member":{"shape":"HarnessToolResultContentBlock"}
+    },
+    "HarnessToolType":{
+      "type":"string",
+      "enum":[
+        "remote_mcp",
+        "agentcore_browser",
+        "agentcore_gateway",
+        "inline_function",
+        "agentcore_code_interpreter"
+      ]
+    },
+    "HarnessToolUseBlock":{
+      "type":"structure",
+      "required":[
+        "name",
+        "toolUseId",
+        "input"
+      ],
+      "members":{
+        "name":{
+          "shape":"HarnessToolName",
+          "documentation":"<p>The name of the tool to call.</p>"
+        },
+        "toolUseId":{
+          "shape":"HarnessToolUseId",
+          "documentation":"<p>The unique ID of this tool use.</p>"
+        },
+        "input":{
+          "shape":"SensitiveJson",
+          "documentation":"<p>The JSON input to pass to the tool.</p>"
+        },
+        "type":{
+          "shape":"HarnessToolUseType",
+          "documentation":"<p>The type of tool use.</p>"
+        },
+        "serverName":{
+          "shape":"String",
+          "documentation":"<p>The name of the MCP server providing this tool.</p>"
+        }
+      },
+      "documentation":"<p>A tool use request from the model.</p>"
+    },
+    "HarnessToolUseBlockDelta":{
+      "type":"structure",
+      "required":["input"],
+      "members":{
+        "input":{
+          "shape":"SensitiveText",
+          "documentation":"<p>The partial JSON input for the tool call.</p>"
+        }
+      },
+      "documentation":"<p>Delta payload for tool use input.</p>"
+    },
+    "HarnessToolUseBlockStart":{
+      "type":"structure",
+      "required":[
+        "toolUseId",
+        "name"
+      ],
+      "members":{
+        "toolUseId":{
+          "shape":"HarnessToolUseId",
+          "documentation":"<p>The unique ID of this tool use.</p>"
+        },
+        "name":{
+          "shape":"HarnessToolName",
+          "documentation":"<p>The name of the tool being called.</p>"
+        },
+        "type":{
+          "shape":"HarnessToolUseType",
+          "documentation":"<p>The type of tool use.</p>"
+        },
+        "serverName":{
+          "shape":"String",
+          "documentation":"<p>The name of the MCP server providing this tool.</p>"
+        }
+      },
+      "documentation":"<p>Start payload for a tool use content block.</p>"
+    },
+    "HarnessToolUseId":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_-]+"
+    },
+    "HarnessToolUseStatus":{
+      "type":"string",
+      "enum":[
+        "success",
+        "error"
+      ]
+    },
+    "HarnessToolUseType":{
+      "type":"string",
+      "enum":[
+        "tool_use",
+        "server_tool_use",
+        "mcp_tool_use"
+      ]
+    },
+    "HarnessTools":{
+      "type":"list",
+      "member":{"shape":"HarnessTool"}
+    },
     "HostName":{
       "type":"string",
       "max":253,
       "min":1,
       "pattern":"[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*"
     },
+    "HttpHeaderKey":{
+      "type":"string",
+      "documentation":"<p>The key of an HTTP header.</p>",
+      "max":16383,
+      "min":1
+    },
+    "HttpHeaderValue":{
+      "type":"string",
+      "documentation":"<p>The value of an HTTP header.</p>",
+      "max":16383,
+      "min":1
+    },
+    "HttpHeadersMap":{
+      "type":"map",
+      "key":{"shape":"HttpHeaderKey"},
+      "value":{"shape":"HttpHeaderValue"},
+      "documentation":"<p>Map of key/value pairs for HTTP headers.</p>",
+      "sensitive":true
+    },
     "HttpResponseCode":{
       "type":"integer",
       "box":true
+    },
+    "IgnoredReferenceInputField":{
+      "type":"string",
+      "max":1000,
+      "min":1
+    },
+    "IgnoredReferenceInputFields":{
+      "type":"list",
+      "member":{"shape":"IgnoredReferenceInputField"},
+      "max":100,
+      "min":0
+    },
+    "InlineContent":{
+      "type":"string",
+      "max":409600,
+      "min":1
     },
     "InputContentBlock":{
       "type":"structure",
@@ -2540,7 +3713,7 @@
         },
         "runtimeSessionId":{
           "shape":"SessionType",
-          "documentation":"<p>Runtime session identifier</p>",
+          "documentation":"<p>The unique identifier of the runtime session in which to execute the command. This session ID is used to maintain state and context across multiple command invocations.</p>",
           "idempotencyToken":true,
           "location":"header",
           "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"
@@ -2571,28 +3744,28 @@
         },
         "agentRuntimeArn":{
           "shape":"String",
-          "documentation":"<p>ARN of the agent runtime</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the agent runtime on which to execute the command. This identifies the specific agent runtime environment where the command will run.</p>",
           "location":"uri",
           "locationName":"agentRuntimeArn"
         },
         "qualifier":{
           "shape":"String",
-          "documentation":"<p>Version or alias qualifier</p>",
+          "documentation":"<p>The qualifier to use for the agent runtime. This is an endpoint name that points to a specific version. If not specified, Amazon Bedrock AgentCore uses the default endpoint of the agent runtime.</p>",
           "location":"querystring",
           "locationName":"qualifier"
         },
         "accountId":{
           "shape":"InvokeAgentRuntimeCommandRequestAccountIdString",
-          "documentation":"<p>Account ID (12 digits)</p>",
+          "documentation":"<p>The identifier of the Amazon Web Services account for the agent runtime resource. This parameter is required when you specify an agent ID instead of the full ARN for <code>agentRuntimeArn</code>.</p>",
           "location":"querystring",
           "locationName":"accountId"
         },
         "body":{
           "shape":"InvokeAgentRuntimeCommandRequestBody",
-          "documentation":"<p>Request body containing command and timeout</p>"
+          "documentation":"<p>The request body containing the command to execute and optional configuration parameters such as timeout settings.</p>"
         }
       },
-      "documentation":"<p>Request for InvokeAgentRuntimeCommand operation</p>",
+      "documentation":"<p>Request for InvokeAgentRuntimeCommand operation.</p>",
       "payload":"body"
     },
     "InvokeAgentRuntimeCommandRequestAccountIdString":{
@@ -2610,14 +3783,14 @@
       "members":{
         "command":{
           "shape":"InvokeAgentRuntimeCommandRequestBodyCommandString",
-          "documentation":"<p>The command to execute in the runtime container</p>"
+          "documentation":"<p>The shell command to execute on the agent runtime. This command is executed in the runtime environment and its output is streamed back to the caller.</p>"
         },
         "timeout":{
           "shape":"Integer",
-          "documentation":"<p>Command timeout in seconds (default: 300, min:1, max: 3600)</p>"
+          "documentation":"<p>The maximum duration in seconds to wait for the command to complete. If the command execution exceeds this timeout, it will be terminated. Default is 300 seconds. Minimum is 1 second. Maximum is 3600 seconds.</p>"
         }
       },
-      "documentation":"<p>Request body for InvokeAgentRuntimeCommand</p>"
+      "documentation":"<p>The request body structure for the <code>InvokeAgentRuntimeCommand</code> operation, containing the command to execute and optional configuration parameters.</p>"
     },
     "InvokeAgentRuntimeCommandRequestBodyCommandString":{
       "type":"string",
@@ -2648,7 +3821,7 @@
       "members":{
         "runtimeSessionId":{
           "shape":"SessionId",
-          "documentation":"<p>Runtime session identifier</p>",
+          "documentation":"<p>The unique identifier of the runtime session in which the command was executed.</p>",
           "location":"header",
           "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"
         },
@@ -2689,10 +3862,10 @@
         },
         "stream":{
           "shape":"InvokeAgentRuntimeCommandStreamOutput",
-          "documentation":"<p>Streaming output containing command execution events</p>"
+          "documentation":"<p>The streaming output from the command execution. This stream contains events that provide real-time updates including standard output, standard error, and completion status.</p>"
         }
       },
-      "documentation":"<p>Response for InvokeAgentRuntimeCommand operation</p>",
+      "documentation":"<p>Response for InvokeAgentRuntimeCommand operation.</p>",
       "payload":"stream"
     },
     "InvokeAgentRuntimeCommandStreamOutput":{
@@ -2700,11 +3873,11 @@
       "members":{
         "chunk":{
           "shape":"ResponseChunk",
-          "documentation":"<p>Response chunk containing command execution events</p>"
+          "documentation":"<p>A response chunk containing command execution events such as content start, content delta, or content stop events.</p>"
         },
         "accessDeniedException":{
           "shape":"AccessDeniedException",
-          "documentation":"<p>Exception events for error streaming</p>"
+          "documentation":"<p>Exception events for error streaming.</p>"
         },
         "internalServerException":{"shape":"InternalServerException"},
         "resourceNotFoundException":{"shape":"ResourceNotFoundException"},
@@ -2713,7 +3886,7 @@
         "validationException":{"shape":"ValidationException"},
         "runtimeClientError":{"shape":"RuntimeClientError"}
       },
-      "documentation":"<p>Streaming output for InvokeAgentRuntimeCommand operation Delivers typed events: contentStart (first), contentDelta (middle), contentStop (last)</p>",
+      "documentation":"<p>The streaming output union for the <code>InvokeAgentRuntimeCommand</code> operation. This union delivers typed events: <code>contentStart</code> (first), <code>contentDelta</code> (middle), and <code>contentStop</code> (last).</p>",
       "eventstream":true
     },
     "InvokeAgentRuntimeRequest":{
@@ -2897,6 +4070,53 @@
       },
       "payload":"response"
     },
+    "InvokeBrowserRequest":{
+      "type":"structure",
+      "required":[
+        "browserIdentifier",
+        "sessionId",
+        "action"
+      ],
+      "members":{
+        "browserIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the browser associated with the session. This must match the identifier used when creating the session with <code>StartBrowserSession</code>.</p>",
+          "location":"uri",
+          "locationName":"browserIdentifier"
+        },
+        "sessionId":{
+          "shape":"BrowserSessionId",
+          "documentation":"<p>The unique identifier of the browser session on which to perform the action. This must be an active session created with <code>StartBrowserSession</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-browser-session-id"
+        },
+        "action":{
+          "shape":"BrowserAction",
+          "documentation":"<p>The browser action to perform. Exactly one member of the <code>BrowserAction</code> union must be set per request.</p>"
+        }
+      },
+      "documentation":"<p>Request for the InvokeBrowser operation.</p>"
+    },
+    "InvokeBrowserResponse":{
+      "type":"structure",
+      "required":[
+        "result",
+        "sessionId"
+      ],
+      "members":{
+        "result":{
+          "shape":"BrowserActionResult",
+          "documentation":"<p>The result of the browser action. The member set in the result corresponds to the action that was performed.</p>"
+        },
+        "sessionId":{
+          "shape":"BrowserSessionId",
+          "documentation":"<p>The unique identifier of the browser session on which the action was performed.</p>",
+          "location":"header",
+          "locationName":"x-amzn-browser-session-id"
+        }
+      },
+      "documentation":"<p>Response for the InvokeBrowser operation.</p>"
+    },
     "InvokeCodeInterpreterRequest":{
       "type":"structure",
       "required":[
@@ -2964,6 +4184,221 @@
         }
       },
       "payload":"stream"
+    },
+    "InvokeHarnessRequest":{
+      "type":"structure",
+      "required":[
+        "harnessArn",
+        "runtimeSessionId",
+        "messages"
+      ],
+      "members":{
+        "harnessArn":{
+          "shape":"HarnessArn",
+          "documentation":"<p>The ARN of the harness to invoke.</p>",
+          "location":"querystring",
+          "locationName":"harnessArn"
+        },
+        "runtimeSessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID for the invocation. Use the same session ID across requests to continue a conversation.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"
+        },
+        "messages":{
+          "shape":"HarnessMessages",
+          "documentation":"<p>The messages to send to the agent.</p>"
+        },
+        "model":{
+          "shape":"HarnessModelConfiguration",
+          "documentation":"<p>The model configuration to use for this invocation. If specified, overrides the harness default.</p>"
+        },
+        "systemPrompt":{
+          "shape":"HarnessSystemPrompt",
+          "documentation":"<p>The system prompt to use for this invocation. If specified, overrides the harness default.</p>"
+        },
+        "tools":{
+          "shape":"HarnessTools",
+          "documentation":"<p>The tools available to the agent for this invocation. If specified, overrides the harness default.</p>"
+        },
+        "skills":{
+          "shape":"HarnessSkills",
+          "documentation":"<p>The skills available to the agent for this invocation. If specified, overrides the harness default.</p>"
+        },
+        "allowedTools":{
+          "shape":"HarnessAllowedTools",
+          "documentation":"<p>The tools that the agent is allowed to use for this invocation. If specified, overrides the harness default.</p>"
+        },
+        "maxIterations":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of iterations the agent loop can execute. If specified, overrides the harness default.</p>"
+        },
+        "maxTokens":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of tokens the agent can generate per iteration. If specified, overrides the harness default.</p>"
+        },
+        "timeoutSeconds":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum duration in seconds for the agent loop execution. If specified, overrides the harness default.</p>"
+        },
+        "actorId":{
+          "shape":"String",
+          "documentation":"<p>The actor ID for memory operations. Overrides the actor ID configured on the harness.</p>"
+        }
+      }
+    },
+    "InvokeHarnessResponse":{
+      "type":"structure",
+      "required":["stream"],
+      "members":{
+        "stream":{
+          "shape":"InvokeHarnessStreamOutput",
+          "documentation":"<p>The streaming output from the harness invocation.</p>"
+        }
+      },
+      "payload":"stream"
+    },
+    "InvokeHarnessStreamOutput":{
+      "type":"structure",
+      "members":{
+        "messageStart":{
+          "shape":"HarnessMessageStartEvent",
+          "documentation":"<p>Indicates the start of a new message from the agent.</p>"
+        },
+        "contentBlockStart":{
+          "shape":"HarnessContentBlockStartEvent",
+          "documentation":"<p>Indicates the start of a new content block.</p>"
+        },
+        "contentBlockDelta":{
+          "shape":"HarnessContentBlockDeltaEvent",
+          "documentation":"<p>A delta update to the current content block.</p>"
+        },
+        "contentBlockStop":{
+          "shape":"HarnessContentBlockStopEvent",
+          "documentation":"<p>Indicates the end of the current content block.</p>"
+        },
+        "messageStop":{
+          "shape":"HarnessMessageStopEvent",
+          "documentation":"<p>Indicates the end of the current message.</p>"
+        },
+        "metadata":{
+          "shape":"HarnessMetadataEvent",
+          "documentation":"<p>Token usage and latency metrics for the invocation.</p>"
+        },
+        "internalServerException":{"shape":"InternalServerException"},
+        "validationException":{"shape":"ValidationException"},
+        "runtimeClientError":{"shape":"RuntimeClientError"}
+      },
+      "documentation":"<p>The streaming events returned by a harness invocation.</p>",
+      "eventstream":true
+    },
+    "KeyList":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "documentation":"<p>A list of key names for keyboard shortcuts.</p>",
+      "max":5,
+      "min":1
+    },
+    "KeyPressArguments":{
+      "type":"structure",
+      "required":["key"],
+      "members":{
+        "key":{
+          "shape":"String",
+          "documentation":"<p>The key name to press (for example, <code>enter</code>, <code>tab</code>, <code>escape</code>).</p>"
+        },
+        "presses":{
+          "shape":"KeyPressArgumentsPressesInteger",
+          "documentation":"<p>The number of times to press the key. Valid range: 1–100. Defaults to 1.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a key press action.</p>"
+    },
+    "KeyPressArgumentsPressesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "KeyPressResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a key press action.</p>"
+    },
+    "KeyShortcutArguments":{
+      "type":"structure",
+      "required":["keys"],
+      "members":{
+        "keys":{
+          "shape":"KeyList",
+          "documentation":"<p>The key combination to press (for example, <code>[\"ctrl\", \"s\"]</code>). Maximum 5 keys.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a key shortcut action.</p>"
+    },
+    "KeyShortcutResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a key shortcut action.</p>"
+    },
+    "KeyTypeArguments":{
+      "type":"structure",
+      "required":["text"],
+      "members":{
+        "text":{
+          "shape":"KeyTypeArgumentsTextString",
+          "documentation":"<p>The text string to type. Maximum length: 10,000 characters.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a key type action.</p>"
+    },
+    "KeyTypeArgumentsTextString":{
+      "type":"string",
+      "max":10000,
+      "min":0
+    },
+    "KeyTypeResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a key type action.</p>"
+    },
+    "LanguageRuntime":{
+      "type":"string",
+      "enum":[
+        "nodejs",
+        "deno",
+        "python"
+      ]
     },
     "LeftExpression":{
       "type":"structure",
@@ -3190,10 +4625,7 @@
     },
     "ListMemoryRecordsInput":{
       "type":"structure",
-      "required":[
-        "memoryId",
-        "namespace"
-      ],
+      "required":["memoryId"],
       "members":{
         "memoryId":{
           "shape":"MemoryId",
@@ -3204,6 +4636,10 @@
         "namespace":{
           "shape":"Namespace",
           "documentation":"<p>The namespace prefix to filter memory records by. Returns all memory records in namespaces that start with the provided prefix.</p>"
+        },
+        "namespacePath":{
+          "shape":"Namespace",
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
         },
         "memoryStrategyId":{
           "shape":"MemoryStrategyId",
@@ -3259,6 +4695,10 @@
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The token for the next set of results. Use the value returned in the previous response in the next request to retrieve the next set of results.</p>"
+        },
+        "filter":{
+          "shape":"SessionFilter",
+          "documentation":"<p>Filter criteria to apply when listing sessions.</p>"
         }
       }
     },
@@ -3300,6 +4740,29 @@
       "box":true,
       "max":100,
       "min":1
+    },
+    "MaxTokens":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
+    "McpDescriptor":{
+      "type":"structure",
+      "required":[
+        "server",
+        "tools"
+      ],
+      "members":{
+        "server":{
+          "shape":"ServerDefinition",
+          "documentation":"<p> The MCP server definition that describes the server configuration.</p>"
+        },
+        "tools":{
+          "shape":"ToolsDefinition",
+          "documentation":"<p> The MCP tools definition that describes the available tools.</p>"
+        }
+      },
+      "documentation":"<p> The MCP (Model Context Protocol) descriptor configuration for a registry record. Contains the server definition and tools definition.</p>"
     },
     "MemoryContent":{
       "type":"structure",
@@ -3593,6 +5056,12 @@
       "type":"list",
       "member":{"shape":"MessageMetadata"}
     },
+    "MetadataFilterExpression":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p> A JSON document that represents a structured metadata filter expression. Supports field-level operators (<code>$eq</code>, <code>$ne</code>, <code>$in</code>) and logical operators (<code>$and</code>, <code>$or</code>) on filterable fields (<code>name</code>, <code>descriptorType</code>, <code>version</code>).</p>",
+      "document":true
+    },
     "MetadataKey":{
       "type":"string",
       "max":128,
@@ -3628,6 +5097,196 @@
       "max":256,
       "min":1
     },
+    "ModelId":{"type":"string"},
+    "MouseButton":{
+      "type":"string",
+      "documentation":"<p>The mouse button to use for a browser mouse action.</p>",
+      "enum":[
+        "LEFT",
+        "RIGHT",
+        "MIDDLE"
+      ]
+    },
+    "MouseClickArguments":{
+      "type":"structure",
+      "required":[
+        "x",
+        "y"
+      ],
+      "members":{
+        "x":{
+          "shape":"Integer",
+          "documentation":"<p>The X coordinate on screen where the click occurs.</p>"
+        },
+        "y":{
+          "shape":"Integer",
+          "documentation":"<p>The Y coordinate on screen where the click occurs.</p>"
+        },
+        "button":{
+          "shape":"MouseButton",
+          "documentation":"<p>The mouse button to use. Defaults to <code>LEFT</code>.</p>"
+        },
+        "clickCount":{
+          "shape":"MouseClickArgumentsClickCountInteger",
+          "documentation":"<p>The number of clicks to perform. Valid range: 1–10. Defaults to 1.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a mouse click action.</p>"
+    },
+    "MouseClickArgumentsClickCountInteger":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":1
+    },
+    "MouseClickResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a mouse click action.</p>"
+    },
+    "MouseDragArguments":{
+      "type":"structure",
+      "required":[
+        "endX",
+        "endY",
+        "startX",
+        "startY"
+      ],
+      "members":{
+        "endX":{
+          "shape":"Integer",
+          "documentation":"<p>The ending X coordinate for the drag.</p>"
+        },
+        "endY":{
+          "shape":"Integer",
+          "documentation":"<p>The ending Y coordinate for the drag.</p>"
+        },
+        "startX":{
+          "shape":"Integer",
+          "documentation":"<p>The starting X coordinate for the drag.</p>"
+        },
+        "startY":{
+          "shape":"Integer",
+          "documentation":"<p>The starting Y coordinate for the drag.</p>"
+        },
+        "button":{
+          "shape":"MouseButton",
+          "documentation":"<p>The mouse button to use for the drag. Defaults to <code>LEFT</code>.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a mouse drag action.</p>"
+    },
+    "MouseDragResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a mouse drag action.</p>"
+    },
+    "MouseMoveArguments":{
+      "type":"structure",
+      "required":[
+        "x",
+        "y"
+      ],
+      "members":{
+        "x":{
+          "shape":"Integer",
+          "documentation":"<p>The target X coordinate on screen.</p>"
+        },
+        "y":{
+          "shape":"Integer",
+          "documentation":"<p>The target Y coordinate on screen.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a mouse move action.</p>"
+    },
+    "MouseMoveResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a mouse move action.</p>"
+    },
+    "MouseScrollArguments":{
+      "type":"structure",
+      "required":[
+        "x",
+        "y"
+      ],
+      "members":{
+        "x":{
+          "shape":"Integer",
+          "documentation":"<p>The X coordinate on screen where the scroll occurs.</p>"
+        },
+        "y":{
+          "shape":"Integer",
+          "documentation":"<p>The Y coordinate on screen where the scroll occurs.</p>"
+        },
+        "deltaX":{
+          "shape":"MouseScrollArgumentsDeltaXInteger",
+          "documentation":"<p>The horizontal scroll delta. Valid range: -1000 to 1000.</p>"
+        },
+        "deltaY":{
+          "shape":"MouseScrollArgumentsDeltaYInteger",
+          "documentation":"<p>The vertical scroll delta. Valid range: -1000 to 1000. Negative values scroll down.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a mouse scroll action.</p>"
+    },
+    "MouseScrollArgumentsDeltaXInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":-1000
+    },
+    "MouseScrollArgumentsDeltaYInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":-1000
+    },
+    "MouseScrollResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a mouse scroll action.</p>"
+    },
     "Name":{
       "type":"string",
       "max":100,
@@ -3654,6 +5313,82 @@
     "NonBlankString":{
       "type":"string",
       "pattern":"[\\s\\S]+"
+    },
+    "OAuthCredentialProvider":{
+      "type":"structure",
+      "required":[
+        "providerArn",
+        "scopes"
+      ],
+      "members":{
+        "providerArn":{
+          "shape":"OAuthCredentialProviderArn",
+          "documentation":"<p>The ARN of the OAuth 2.0 credential provider in AgentCore Identity.</p>"
+        },
+        "scopes":{
+          "shape":"OAuthScopes",
+          "documentation":"<p>The OAuth 2.0 scopes to request when obtaining an access token.</p>"
+        },
+        "customParameters":{
+          "shape":"OAuthCustomParameters",
+          "documentation":"<p>Additional custom parameters to include in the OAuth 2.0 token request.</p>"
+        },
+        "grantType":{
+          "shape":"OAuthGrantType",
+          "documentation":"<p>The OAuth 2.0 grant type to use for authentication.</p>"
+        },
+        "defaultReturnUrl":{
+          "shape":"OAuthDefaultReturnUrl",
+          "documentation":"<p>The default return URL for the OAuth 2.0 authorization flow.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for an OAuth 2.0 credential provider used to authenticate tool calls.</p>"
+    },
+    "OAuthCredentialProviderArn":{
+      "type":"string",
+      "pattern":"arn:([^:]*):([^:]*):([^:]*):([0-9]{12})?:(.+)"
+    },
+    "OAuthCustomParameters":{
+      "type":"map",
+      "key":{"shape":"OAuthCustomParametersKey"},
+      "value":{"shape":"OAuthCustomParametersValue"},
+      "max":10,
+      "min":1
+    },
+    "OAuthCustomParametersKey":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "OAuthCustomParametersValue":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "sensitive":true
+    },
+    "OAuthDefaultReturnUrl":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"\\w+:(\\/?\\/?)[^\\s]+"
+    },
+    "OAuthGrantType":{
+      "type":"string",
+      "enum":[
+        "CLIENT_CREDENTIALS",
+        "AUTHORIZATION_CODE"
+      ]
+    },
+    "OAuthScope":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "OAuthScopes":{
+      "type":"list",
+      "member":{"shape":"OAuthScope"},
+      "max":100,
+      "min":0
     },
     "Oauth2FlowType":{
       "type":"string",
@@ -3753,6 +5488,119 @@
       "documentation":"<p>Union type representing different proxy authentication methods. Currently supports HTTP Basic Authentication (username and password).</p>",
       "union":true
     },
+    "RegistryArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:registry/[a-zA-Z0-9]{12,16}"
+    },
+    "RegistryIdentifier":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:registry/)?[a-zA-Z0-9]{12,16}"
+    },
+    "RegistryRecordArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:registry/[a-zA-Z0-9]{12,16}/record/[a-zA-Z0-9]{12}"
+    },
+    "RegistryRecordId":{
+      "type":"string",
+      "max":12,
+      "min":12,
+      "pattern":"[a-zA-Z0-9]{12}"
+    },
+    "RegistryRecordName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9][a-zA-Z0-9_\\-\\.\\/]*"
+    },
+    "RegistryRecordStatus":{
+      "type":"string",
+      "documentation":"<p> The status of a registry record in its lifecycle.</p>",
+      "enum":[
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "REJECTED",
+        "DEPRECATED"
+      ]
+    },
+    "RegistryRecordSummary":{
+      "type":"structure",
+      "required":[
+        "registryArn",
+        "recordArn",
+        "recordId",
+        "name",
+        "descriptorType",
+        "descriptors",
+        "version",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "registryArn":{
+          "shape":"RegistryArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the registry that this record belongs to.</p>"
+        },
+        "recordArn":{
+          "shape":"RegistryRecordArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the registry record.</p>"
+        },
+        "recordId":{
+          "shape":"RegistryRecordId",
+          "documentation":"<p> The unique identifier of the registry record.</p>"
+        },
+        "name":{
+          "shape":"RegistryRecordName",
+          "documentation":"<p> The name of the registry record.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p> A description of the registry record.</p>"
+        },
+        "descriptorType":{
+          "shape":"DescriptorType",
+          "documentation":"<p> The type of descriptor associated with this registry record.</p>"
+        },
+        "descriptors":{
+          "shape":"Descriptors",
+          "documentation":"<p> The descriptor configurations for this registry record.</p>"
+        },
+        "version":{
+          "shape":"RegistryRecordVersion",
+          "documentation":"<p> The version of the registry record.</p>"
+        },
+        "status":{
+          "shape":"RegistryRecordStatus",
+          "documentation":"<p> The current status of the registry record.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p> The date and time when the registry record was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p> The date and time when the registry record was last updated.</p>"
+        }
+      },
+      "documentation":"<p> Summary information about a registry record.</p>"
+    },
+    "RegistryRecordSummaryList":{
+      "type":"list",
+      "member":{"shape":"RegistryRecordSummary"}
+    },
+    "RegistryRecordVersion":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9.-]+"
+    },
     "RequestIdentifier":{
       "type":"string",
       "max":80,
@@ -3833,18 +5681,18 @@
       "members":{
         "contentStart":{
           "shape":"ContentStartEvent",
-          "documentation":"<p>First chunk - indicates command execution has started</p>"
+          "documentation":"<p>An event indicating the start of content streaming from the command execution. This is the first chunk received.</p>"
         },
         "contentDelta":{
           "shape":"ContentDeltaEvent",
-          "documentation":"<p>Middle chunks - stdout/stderr output</p>"
+          "documentation":"<p>An event containing incremental output (stdout or stderr) from the command execution. These are the middle chunks.</p>"
         },
         "contentStop":{
           "shape":"ContentStopEvent",
-          "documentation":"<p>Last chunk - indicates command execution has completed</p>"
+          "documentation":"<p>An event indicating the completion of the command execution, including the exit code and final status. This is the last chunk received.</p>"
         }
       },
-      "documentation":"<p>Response chunk containing exactly one of: contentStart, contentDelta, or contentStop</p>",
+      "documentation":"<p>A structure representing a response chunk that contains exactly one of the possible event types: <code>contentStart</code>, <code>contentDelta</code>, or <code>contentStop</code>.</p>",
       "event":true
     },
     "ResponseStream":{
@@ -3856,7 +5704,6 @@
       "type":"structure",
       "required":[
         "memoryId",
-        "namespace",
         "searchCriteria"
       ],
       "members":{
@@ -3869,6 +5716,10 @@
         "namespace":{
           "shape":"Namespace",
           "documentation":"<p>The namespace prefix to filter memory records by. Searches for memory records in namespaces that start with the provided prefix.</p>"
+        },
+        "namespacePath":{
+          "shape":"Namespace",
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
         },
         "searchCriteria":{
           "shape":"SearchCriteria",
@@ -4060,6 +5911,11 @@
         }
       }
     },
+    "SchemaVersion":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
     "ScopeType":{
       "type":"string",
       "max":128,
@@ -4068,6 +5924,40 @@
     "ScopesListType":{
       "type":"list",
       "member":{"shape":"ScopeType"}
+    },
+    "ScreenshotArguments":{
+      "type":"structure",
+      "members":{
+        "format":{
+          "shape":"ScreenshotFormat",
+          "documentation":"<p>The image format for the screenshot. Defaults to <code>PNG</code>.</p>"
+        }
+      },
+      "documentation":"<p>Arguments for a screenshot action.</p>"
+    },
+    "ScreenshotFormat":{
+      "type":"string",
+      "documentation":"<p>The image format for a browser screenshot.</p>",
+      "enum":["PNG"]
+    },
+    "ScreenshotResult":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"BrowserActionStatus",
+          "documentation":"<p>The status of the action execution.</p>"
+        },
+        "error":{
+          "shape":"String",
+          "documentation":"<p>The error message. Present only when the action failed.</p>"
+        },
+        "data":{
+          "shape":"Blob",
+          "documentation":"<p>The base64-encoded image data. Present only when the action succeeded.</p>"
+        }
+      },
+      "documentation":"<p>The result of a screenshot action.</p>"
     },
     "SearchCriteria":{
       "type":"structure",
@@ -4104,6 +5994,58 @@
       "max":100,
       "min":1
     },
+    "SearchRegistryRecordsRequest":{
+      "type":"structure",
+      "required":[
+        "searchQuery",
+        "registryIds"
+      ],
+      "members":{
+        "searchQuery":{
+          "shape":"SearchRegistryRecordsRequestSearchQueryString",
+          "documentation":"<p> The search query to find matching registry records.</p>"
+        },
+        "registryIds":{
+          "shape":"SearchRegistryRecordsRequestRegistryIdsList",
+          "documentation":"<p> The list of registry identifiers to search within. Currently, you can specify exactly one registry identifier. You can provide either the full Amazon Web Services Resource Name (ARN) or the 12-character alphanumeric registry ID.</p>"
+        },
+        "maxResults":{
+          "shape":"SearchRegistryRecordsRequestMaxResultsInteger",
+          "documentation":"<p> The maximum number of records to return in a single call. Valid values are 1 through 20. The default value is 10.</p>"
+        },
+        "filters":{
+          "shape":"MetadataFilterExpression",
+          "documentation":"<p> A metadata filter expression to narrow search results. Uses structured JSON operators including field-level operators (<code>$eq</code>, <code>$ne</code>, <code>$in</code>) and logical operators (<code>$and</code>, <code>$or</code>) on filterable fields (<code>name</code>, <code>descriptorType</code>, <code>version</code>). For example, to filter by descriptor type: <code>{\"descriptorType\": {\"$eq\": \"MCP\"}}</code>. To combine filters: <code>{\"$and\": [{\"descriptorType\": {\"$eq\": \"MCP\"}}, {\"name\": {\"$eq\": \"my-tool\"}}]}</code>.</p>"
+        }
+      }
+    },
+    "SearchRegistryRecordsRequestMaxResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":20,
+      "min":1
+    },
+    "SearchRegistryRecordsRequestRegistryIdsList":{
+      "type":"list",
+      "member":{"shape":"RegistryIdentifier"},
+      "max":1,
+      "min":1
+    },
+    "SearchRegistryRecordsRequestSearchQueryString":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "SearchRegistryRecordsResponse":{
+      "type":"structure",
+      "required":["registryRecords"],
+      "members":{
+        "registryRecords":{
+          "shape":"RegistryRecordSummaryList",
+          "documentation":"<p> The list of registry records that match the search query, ordered by relevance.</p>"
+        }
+      }
+    },
     "SecretArn":{
       "type":"string",
       "pattern":"arn:aws(-[a-z-]+)?:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[a-zA-Z0-9/_+=.@-]+"
@@ -4118,6 +6060,31 @@
         }
       },
       "documentation":"<p>The Amazon Web Services Secrets Manager location configuration.</p>"
+    },
+    "SensitiveJson":{
+      "type":"structure",
+      "members":{},
+      "document":true,
+      "sensitive":true
+    },
+    "SensitiveText":{
+      "type":"string",
+      "min":1,
+      "sensitive":true
+    },
+    "ServerDefinition":{
+      "type":"structure",
+      "members":{
+        "schemaVersion":{
+          "shape":"SchemaVersion",
+          "documentation":"<p> The schema version of the MCP server configuration. The schema version identifies the format of the server definition content.</p>"
+        },
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline content of the server definition.</p>"
+        }
+      },
+      "documentation":"<p> The MCP server definition with a schema version and inline content. The <code>schemaVersion</code> identifies the version of the MCP server configuration schema.</p>"
     },
     "ServiceException":{
       "type":"structure",
@@ -4141,6 +6108,16 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "SessionFilter":{
+      "type":"structure",
+      "members":{
+        "eventFilter":{
+          "shape":"EventFilterCondition",
+          "documentation":"<p>The event filter condition to apply. Use this to filter sessions based on event presence.</p>"
+        }
+      },
+      "documentation":"<p>Contains filter criteria for listing sessions.</p>"
     },
     "SessionId":{
       "type":"string",
@@ -4186,6 +6163,30 @@
       "type":"string",
       "max":256,
       "min":33
+    },
+    "SkillDefinition":{
+      "type":"structure",
+      "members":{
+        "schemaVersion":{
+          "shape":"SchemaVersion",
+          "documentation":"<p> The schema version of the skill definition. If you don't specify a version, the service detects it automatically.</p>"
+        },
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline content of the skill definition.</p>"
+        }
+      },
+      "documentation":"<p> The structured skill definition with a schema version and inline content.</p>"
+    },
+    "SkillMdDefinition":{
+      "type":"structure",
+      "members":{
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline markdown content of the skill definition.</p>"
+        }
+      },
+      "documentation":"<p> The skill markdown definition for agent skills descriptors.</p>"
     },
     "Span":{
       "type":"structure",
@@ -4658,6 +6659,12 @@
         "failed"
       ]
     },
+    "Temperature":{
+      "type":"float",
+      "box":true,
+      "max":2.0,
+      "min":0.0
+    },
     "ThrottledException":{
       "type":"structure",
       "required":["message"],
@@ -4711,7 +6718,7 @@
         },
         "language":{
           "shape":"ProgrammingLanguage",
-          "documentation":"<p>The programming language of the code to execute. This tells the code interpreter which language runtime to use for execution. Common values include 'python', 'javascript', and 'r'.</p>"
+          "documentation":"<p>The programming language of the code to execute. This tells the code interpreter which language runtime to use for execution.</p>"
         },
         "clearContext":{
           "shape":"Boolean",
@@ -4740,6 +6747,10 @@
         "taskId":{
           "shape":"MaxLenString",
           "documentation":"<p>The identifier of the task for the tool operation.</p>"
+        },
+        "runtime":{
+          "shape":"LanguageRuntime",
+          "documentation":"<p>The runtime environment to use for code execution. If not specified, defaults to <code>deno</code> for JavaScript and TypeScript.</p>"
         }
       },
       "documentation":"<p>The collection of arguments that specify the operation to perform and its parameters when invoking a tool in Amazon Bedrock AgentCore. Different tools require different arguments, and this structure provides a flexible way to pass the appropriate arguments to each tool type.</p>"
@@ -4788,6 +6799,32 @@
       },
       "documentation":"<p>Contains structured content from a tool result.</p>"
     },
+    "ToolsDefinition":{
+      "type":"structure",
+      "members":{
+        "protocolVersion":{
+          "shape":"SchemaVersion",
+          "documentation":"<p> The MCP protocol version that the tools conform to. This differs from the <code>schemaVersion</code> field in the server definition, which identifies the server configuration schema format.</p>"
+        },
+        "inlineContent":{
+          "shape":"InlineContent",
+          "documentation":"<p> The inline content of the tools definition.</p>"
+        }
+      },
+      "documentation":"<p> The MCP tools definition with a protocol version and inline content. The <code>protocolVersion</code> identifies the MCP protocol version that the tools conform to. This differs from <code>schemaVersion</code> in the server definition, which identifies the server configuration schema format.</p>"
+    },
+    "TopK":{
+      "type":"integer",
+      "box":true,
+      "max":500,
+      "min":0
+    },
+    "TopP":{
+      "type":"float",
+      "box":true,
+      "max":1.0,
+      "min":0.0
+    },
     "TraceId":{
       "type":"string",
       "max":32,
@@ -4810,6 +6847,10 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "Unit":{
+      "type":"structure",
+      "members":{}
     },
     "UpdateBrowserStreamRequest":{
       "type":"structure",

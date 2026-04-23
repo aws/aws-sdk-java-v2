@@ -315,6 +315,18 @@ public final class S3TransformUtils {
                            .withComments(createCommentsWithNewline(comment));
     }
 
+    public static boolean isS3UserMetaDataOfGetter(String methodName, JavaType.FullyQualified declaringType) {
+        return "getUserMetaDataOf".equals(methodName)
+               && declaringType.getFullyQualifiedName().startsWith(V2_S3_MODEL_PKG);
+    }
+
+    public static J.MethodInvocation transformUserMetaDataOfGetter(Cursor cursor, J.MethodInvocation method) {
+        String template = "#{any()}.metadata().get(#{any()})";
+        return JavaTemplate.builder(template).build()
+                           .apply(cursor, method.getCoordinates().replace(),
+                                  method.getSelect(), method.getArguments().get(0));
+    }
+
     public static List<Comment> inputStreamBufferingWarningComment() {
         String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
                          + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"

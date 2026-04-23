@@ -50,7 +50,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -92,6 +91,7 @@ import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
+import software.amazon.awssdk.http.apache5.internal.conn.SafePoolingHttpClientConnectionManagerBuilder;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.http.apache5.internal.impl.Apache5HttpRequestFactory;
@@ -291,6 +291,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
             HttpHost target = determineTarget(apacheRequest);
             ClassicHttpResponse httpResponse = httpClient.executeOpen(target, apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
+        } catch (IllegalStateException e) {
+            // TODO: remove this when a permanent fix is made upstream
+            // This is a workaround for a race condition where a connection is not properly acquired when httpClient attempts
+            // to execute a request on a connection from the pool. For now, we rethrow this as an IOException so upper layers
+            // have a chance to retry if possible
+            if ("Endpoint not acquired / already released".equals(e.getMessage())) {
+                throw new IOException("Failed to execute HTTP request", e);
+            }
+            throw e;
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
@@ -445,7 +454,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder localAddress(InetAddress localAddress);
 
         /**
-         * Configure whether the client should send an HTTP expect-continue handshake before each request.
+         * Configure whether the client should send an HTTP expect-continue handshake before each request. By default
+         * this is disabled.
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
@@ -745,8 +755,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
             TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 
-            PoolingHttpClientConnectionManagerBuilder builder =
-                PoolingHttpClientConnectionManagerBuilder.create()
+            SafePoolingHttpClientConnectionManagerBuilder builder =
+                SafePoolingHttpClientConnectionManagerBuilder.create()
                                                          .setTlsSocketStrategy(tlsStrategy)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);

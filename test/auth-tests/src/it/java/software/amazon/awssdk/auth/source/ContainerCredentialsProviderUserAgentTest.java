@@ -20,10 +20,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -34,6 +36,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -127,7 +130,7 @@ class ContainerCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("containerCredentialProviders")
     void userAgentString_containsContainerBusinessMetric_WhenUsingContainerCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
         
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -136,23 +139,25 @@ class ContainerCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        String ua = userAgentHeaders.get(0);
+
+        assertUserAgentHasFeatureIds(ua, expectedIds);
     }
 
     private static Stream<Arguments> containerCredentialProviders() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), "m/D,z"),
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z")),
 
             Arguments.of(ContainerCredentialsProvider.builder()
                             .endpoint(CONTAINER_SERVICE_ENDPOINT + wireMockServer.getPort())
-                            .build(), "m/D,z")
+                            .build(), Arrays.asList("D", "z"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("containerCredentialProvidersWithSessionToken")
     void userAgentString_containsContainerBusinessMetric_WhenUsingContainerCredentialsWithSessionToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         stubContainerCredentialsResponsesWithSessionToken();
         
@@ -163,19 +168,21 @@ class ContainerCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        String ua = userAgentHeaders.get(0);
+
+        assertUserAgentHasFeatureIds(ua, expectedIds);
     }
 
     private static Stream<Arguments> containerCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), "m/D,z")
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("containerCredentialProvidersWithAuthToken")
     void userAgentString_containsContainerBusinessMetric_WhenUsingContainerCredentialsWithAuthToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         stubContainerCredentialsResponsesWithAuthToken();
         
@@ -186,12 +193,15 @@ class ContainerCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+
+        String ua = userAgentHeaders.get(0);
+
+        assertUserAgentHasFeatureIds(ua, expectedIds);
     }
 
     private static Stream<Arguments> containerCredentialProvidersWithAuthToken() {
         return Stream.of(
-            Arguments.of(ContainerCredentialsProvider.create(), "m/D,z")
+            Arguments.of(ContainerCredentialsProvider.create(), Arrays.asList("D", "z"))
         );
     }
 

@@ -1,0 +1,36 @@
+{
+    "version": "2.42.23",
+    "date": "2026-03-27",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue in the Apache 5 HTTP client where requests could fail with `\"Endpoint not acquired / already released\"`. These failures are now converted to retryable I/O errors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Adding AgentCore Code Interpreter Node.js Runtime Support with an optional runtime field"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds support for custom code-based evaluators using customer-managed Lambda functions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon NeptuneData",
+            "contributor": "",
+            "description": "Minor formatting changes to remove unnecessary symbols."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "AWS HealthOmics now supports VPC networking, allowing users to connect runs to external resources with NAT gateway, AWS VPC resources, and more. New Configuration APIs support configuring VPC settings. StartRun API now accepts networkingMode and configurationName parameters to enable VPC networking."
+        }
+    ]
+}

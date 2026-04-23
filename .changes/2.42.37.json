@@ -1,0 +1,66 @@
+{
+    "version": "2.42.37",
+    "date": "2026-04-20",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Fixed a connection leak in the CRT HTTP client that occurred when aborting a response stream before fully consuming it (e.g., calling `abort()` on a `GetObject` `ResponseInputStream`)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added `AsyncRequestBody.fromInputStream(InputStream, Long)` overload that uses an SDK-managed thread pool, removing the need for users to provide their own ExecutorService."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Supporting listingMode for AgentCore Gateway MCP server targets"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Signals",
+            "contributor": "",
+            "description": "Releasing Second phase of SLO Recommendations where you can create recommended SLOs out-of-the box using CreateSLO API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added Transit Gateway Integration into AWS Client VPN."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "Amazon EVS now allows you to create connectors to your vCenter appliances and create Windows Server entitlements for virtual machines running in your EVS environments"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Expanded support for new suppression rule fields."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "This release adds support for new Job APIs for bulk workloads. The initial job type supported is Address Validation. The new APIs added are StartJob, CancelJob, ListJobs, and GetJob."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Admin Service",
+            "contributor": "",
+            "description": "Enablement for Security Hub v2 via Observability Admin Telemetry Rule for account and organization level."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Amazon MSK Replicator now supports data migration from external Apache Kafka clusters to Amazon MSK Express brokers. This release adds SaslScram authentication with TLS encryption, enhanced consumer offset synchronization, and customer log forwarding for troubleshooting."
+        }
+    ]
+}
