@@ -1,0 +1,30 @@
+{
+    "version": "2.42.40",
+    "date": "2026-04-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Releasing For LakehouseProperties attributes in the Connections API's"
+        },
+        {
+            "type": "feature",
+            "category": "Managed integrations for AWS IoT Device Management",
+            "contributor": "",
+            "description": "Adds \"Status\" field to provisioning profile operation response types, giving users visibility into the readiness of a provisioning profile to be used for device provisioning."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Amazon OpenSearch UI applications now support cross-Region domain association, enabling you to connect OpenSearch Dashboards in one AWS Region to OpenSearch domains in other Regions within the same partition for centralized data visualization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "This release adds support for Slurm 25.11 with expedited requeue enabled by default for jobs failing due to node issues, configurable requeue delay, health checks at node startup only, and unauthenticated HTTP endpoints disabled by default for improved security."
+        }
+    ]
+}
