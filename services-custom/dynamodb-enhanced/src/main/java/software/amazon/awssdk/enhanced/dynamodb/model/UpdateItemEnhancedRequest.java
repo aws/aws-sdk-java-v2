@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -49,6 +50,8 @@ public final class UpdateItemEnhancedRequest<T> {
     private final Boolean ignoreNulls;
     private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
+    private final UpdateExpression updateExpression;
+    private final UpdateExpressionMergeStrategy updateExpressionMergeStrategy;
     private final String returnValues;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
@@ -59,6 +62,8 @@ public final class UpdateItemEnhancedRequest<T> {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.updateExpression = builder.updateExpression;
+        this.updateExpressionMergeStrategy = builder.updateExpressionMergeStrategy;
         this.ignoreNullsMode = builder.ignoreNullsMode;
         this.returnValues = builder.returnValues;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
@@ -85,6 +90,8 @@ public final class UpdateItemEnhancedRequest<T> {
                                .ignoreNulls(ignoreNulls)
                                .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
+                               .updateExpression(updateExpression)
+                               .updateExpressionMergeStrategy(updateExpressionMergeStrategy)
                                .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
@@ -119,6 +126,23 @@ public final class UpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Returns the update expression {@link UpdateExpression} set on this request object, or null if it doesn't exist.
+     */
+    public UpdateExpression updateExpression() {
+        return updateExpression;
+    }
+
+    /**
+     * Returns how POJO, extension, and request update actions are merged. Defaults to
+     * {@link UpdateExpressionMergeStrategy#LEGACY} when unset on the builder.
+     */
+    public UpdateExpressionMergeStrategy updateExpressionMergeStrategy() {
+        return updateExpressionMergeStrategy == null
+               ? UpdateExpressionMergeStrategy.LEGACY
+               : updateExpressionMergeStrategy;
     }
 
     /**
@@ -210,6 +234,8 @@ public final class UpdateItemEnhancedRequest<T> {
         return Objects.equals(item, that.item)
                && Objects.equals(ignoreNulls, that.ignoreNulls)
                && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(updateExpression, that.updateExpression)
+               && Objects.equals(updateExpressionMergeStrategy, that.updateExpressionMergeStrategy)
                && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
@@ -221,6 +247,8 @@ public final class UpdateItemEnhancedRequest<T> {
         int result = item != null ? item.hashCode() : 0;
         result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
         result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (updateExpression != null ? updateExpression.hashCode() : 0);
+        result = 31 * result + (updateExpressionMergeStrategy != null ? updateExpressionMergeStrategy.hashCode() : 0);
         result = 31 * result + (returnValues != null ? returnValues.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
@@ -239,6 +267,8 @@ public final class UpdateItemEnhancedRequest<T> {
         private Boolean ignoreNulls;
         private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
+        private UpdateExpression updateExpression;
+        private UpdateExpressionMergeStrategy updateExpressionMergeStrategy;
         private String returnValues;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
@@ -310,6 +340,39 @@ public final class UpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Specifies custom update actions using DynamoDB's native update expression syntax. This expression is combined with
+         * POJO-derived actions and extension-provided actions.
+         * <p>
+         * Use {@link #updateExpressionMergeStrategy(UpdateExpressionMergeStrategy)} to control how conflicts between these
+         * sources are resolved ({@link UpdateExpressionMergeStrategy#LEGACY concatenation} vs
+         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE document path overlap resolution}).
+         *
+         * @param updateExpression the update operations to perform
+         * @return a builder of this type
+         * @see UpdateExpressionMergeStrategy
+         */
+        public Builder<T> updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
+            return this;
+        }
+
+        /**
+         * Sets how update actions from POJO attributes, extensions, and this request's expression are combined. Defaults to
+         * {@link UpdateExpressionMergeStrategy#LEGACY} (concatenate all actions; DynamoDB may reject overlapping paths).
+         * {@link UpdateExpressionMergeStrategy#PRIORITIZE_HIGHER_SOURCE} drops lower-priority actions only when their path
+         * overlaps a higher-priority path (see {@link UpdateExpressionMergeStrategy}).
+         *
+         * @param updateExpressionMergeStrategy the merge strategy to use
+         * @return a builder of this type
+         * @see UpdateExpressionMergeStrategy
+         */
+        public Builder<T> updateExpressionMergeStrategy(
+            UpdateExpressionMergeStrategy updateExpressionMergeStrategy) {
+            this.updateExpressionMergeStrategy = updateExpressionMergeStrategy;
             return this;
         }
 
