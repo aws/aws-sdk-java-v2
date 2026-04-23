@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Url Connection Client",
     "contributor": "",
-    "description": "Handle unhandled NullPointerException wrapped in RuntimeException when underlying connection fails with URL Connection HTTP Client"
+    "description": "Wrap NullPointerException wrapped in RuntimeException as IOException to allow retry when underlying connection fails with URL Connection HTTP Client"
 }
