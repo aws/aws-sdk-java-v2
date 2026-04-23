@@ -219,7 +219,8 @@ public final class EnhancedClientUtils {
      *
      * @param parentSchema the parent schema; must not be null
      * @param attributeName the attribute name; must not be null or empty
-     * @return the nested schema, or empty if unavailable
+     * @return the nested schema, or empty if unavailable (including when the schema does not support
+     *         {@code converterForAttribute})
      */
     public static Optional<TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, String attributeName) {
         if (parentSchema == null) {
@@ -229,7 +230,15 @@ public final class EnhancedClientUtils {
             throw new IllegalArgumentException("Attribute name cannot be null or empty.");
         }
 
-        AttributeConverter<?> converter = parentSchema.converterForAttribute(attributeName);
+        AttributeConverter<?> converter;
+        try {
+            converter = parentSchema.converterForAttribute(attributeName);
+        } catch (UnsupportedOperationException e) {
+            // TableSchema implementations that do not support converterForAttribute (e.g. DocumentTableSchema,
+            // third-party or custom schema implementations) throw UnsupportedOperationException.
+            // Treat this the same as a missing converter: no nested schema is available.
+            return Optional.empty();
+        }
         if (converter == null) {
             return Optional.empty();
         }
