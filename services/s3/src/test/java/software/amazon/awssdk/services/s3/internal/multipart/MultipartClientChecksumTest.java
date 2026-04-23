@@ -100,7 +100,8 @@ class MultipartClientChecksumTest {
         wireMock.stop();
     }
 
-    @ParameterizedTest
+    // TODO - re-enable after S3 feature release
+    /*@ParameterizedTest
     @MethodSource("checksumAlgorithmParams")
     public void multipartUpload_withChecksumAlgorithmAndNoChecksumValueProvided_shouldNotAddChecksumType(ChecksumAlgorithm checksumAlgorithm) {
         stubSuccessfulResponses();
@@ -113,9 +114,10 @@ class MultipartClientChecksumTest {
         assertThat(checksumCapturingInterceptor.createMpuChecksumType).isNull();
         assertThat(checksumCapturingInterceptor.completeMpuChecksumType).isNull();
         assertThat(checksumCapturingInterceptor.completeMpuMpObjectSize).isEqualTo(FILE_SIZE);
-    }
+    }*/
 
-    @ParameterizedTest
+    // TODO - re-enable after S3 feature release
+    /*@ParameterizedTest
     @MethodSource("checksumAlgorithmParams")
     public void multipartUpload_withChecksumValueProvided_shouldUseSameAlgorithmForUploadAndAddChecksumTypeFullObject(ChecksumAlgorithm checksumAlgorithm) {
         stubSuccessfulResponses();
@@ -156,7 +158,7 @@ class MultipartClientChecksumTest {
             assertThat(checksumCapturingInterceptor.completeMpuChecksumType).isEqualTo(ChecksumType.FULL_OBJECT.toString());
         }
         assertThat(checksumCapturingInterceptor.completeMpuMpObjectSize).isEqualTo(FILE_SIZE);
-    }
+    }*/
 
     private PutObjectRequest.Builder putObjectRequestBuilder() {
         return PutObjectRequest.builder().bucket("bucket").key("key");

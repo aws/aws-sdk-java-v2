@@ -96,7 +96,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(failure);
-                responseHandlerHelper.closeStream();
+                responseHandlerHelper.closeConnection();
                 return;
             }
             responseHandlerHelper.incrementWindow(bodyBytesIn.length);
@@ -118,12 +118,11 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         responsePublisher.complete().whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(failure);
-                responseHandlerHelper.closeStream();
                 return;
             }
             completionFuture.complete(null);
         });
-        responseHandlerHelper.closeStream();
+        responseHandlerHelper.releaseConnection();
     }
 
     private void onFailedResponseComplete(HttpException error) {
@@ -131,7 +130,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         Throwable toThrow = wrapWithIoExceptionIfRetryable(error);
         responsePublisher.error(toThrow);
         failResponseHandlerAndFuture(toThrow);
-        responseHandlerHelper.closeStream();
+        responseHandlerHelper.closeConnection();
     }
 
     private void failResponseHandlerAndFuture(Throwable error) {

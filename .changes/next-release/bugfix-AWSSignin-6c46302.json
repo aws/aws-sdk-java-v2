@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS Signin",
-    "contributor": "",
-    "description": "Add defensive checks to ensure token cache file is writen with user read permissions only where possible."
-}
