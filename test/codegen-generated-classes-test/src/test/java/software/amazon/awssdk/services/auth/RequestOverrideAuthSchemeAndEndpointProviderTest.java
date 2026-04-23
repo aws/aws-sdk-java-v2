@@ -20,17 +20,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
@@ -51,19 +52,21 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointauth.EndpointAuthAsyncClient;
 import software.amazon.awssdk.services.endpointauth.EndpointAuthClient;
 import software.amazon.awssdk.services.endpointauth.auth.scheme.EndpointAuthAuthSchemeProvider;
+import software.amazon.awssdk.services.endpointauth.endpoints.EndpointAuthEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
- * Functional tests verifying that an {@code AuthSchemeProvider} set on the request-level override configuration
- * takes precedence over the client-level auth scheme provider.
+ * Functional tests verifying that {@code AuthSchemeProvider} and {@code EndpointProvider} set on the request-level
+ * override configuration take precedence over the client-level providers.
  */
-@DisplayName("Request-Override AuthSchemeProvider Tests")
-class RequestOverrideAuthSchemeProviderTest {
+class RequestOverrideAuthSchemeAndEndpointProviderTest {
 
     private static final String SIGNING_NAME_FROM_CLIENT = "client-signing-name";
     private static final String SIGNING_NAME_FROM_REQUEST = "request-signing-name";
     private static final String REGION_FROM_CLIENT = "us-west-2";
     private static final String REGION_FROM_REQUEST = "eu-west-1";
+    private static final URI ENDPOINT_FROM_CLIENT = URI.create("https://client-endpoint.us-west-2.amazonaws.com");
+    private static final URI ENDPOINT_FROM_REQUEST = URI.create("https://request-endpoint.eu-west-1.amazonaws.com");
 
     @Mock
     private SdkHttpClient mockHttpClient;
@@ -83,8 +86,7 @@ class RequestOverrideAuthSchemeProviderTest {
     }
 
     @Test
-    @DisplayName("Sync: request-level authSchemeProvider overrides client-level provider")
-    void sync_requestOverrideAuthSchemeProvider_takesPrecedence() {
+    void sync_requestOverride_takesPrecedence() {
         CapturingSigner signer = new CapturingSigner();
 
         EndpointAuthClient client = EndpointAuthClient.builder()
@@ -93,20 +95,23 @@ class RequestOverrideAuthSchemeProviderTest {
             .region(Region.US_WEST_2)
             .putAuthScheme(authScheme(AwsV4AuthScheme.SCHEME_ID, signer))
             .authSchemeProvider(clientAuthSchemeProvider())
+            .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_CLIENT))
             .build();
 
         assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r
             .stringMember("")
-            .overrideConfiguration(c -> c.authSchemeProvider(requestAuthSchemeProvider()))
+            .overrideConfiguration(c -> c
+                .authSchemeProvider(requestAuthSchemeProvider())
+                .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_REQUEST)))
         )).hasMessageContaining("stop");
 
         assertThat(signer.request.property(AwsV4HttpSigner.REGION_NAME)).isEqualTo(REGION_FROM_REQUEST);
         assertThat(signer.request.property(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME_FROM_REQUEST);
+        assertThat(signer.request.request().getUri().getHost()).isEqualTo(ENDPOINT_FROM_REQUEST.getHost());
     }
 
     @Test
-    @DisplayName("Sync: without request-level override, client-level authSchemeProvider is used")
-    void sync_noRequestOverride_usesClientAuthSchemeProvider() {
+    void sync_noRequestOverride_usesClientProviders() {
         CapturingSigner signer = new CapturingSigner();
 
         EndpointAuthClient client = EndpointAuthClient.builder()
@@ -115,6 +120,7 @@ class RequestOverrideAuthSchemeProviderTest {
             .region(Region.US_WEST_2)
             .putAuthScheme(authScheme(AwsV4AuthScheme.SCHEME_ID, signer))
             .authSchemeProvider(clientAuthSchemeProvider())
+            .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_CLIENT))
             .build();
 
         assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")))
@@ -122,11 +128,11 @@ class RequestOverrideAuthSchemeProviderTest {
 
         assertThat(signer.request.property(AwsV4HttpSigner.REGION_NAME)).isEqualTo(REGION_FROM_CLIENT);
         assertThat(signer.request.property(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME_FROM_CLIENT);
+        assertThat(signer.request.request().getUri().getHost()).isEqualTo(ENDPOINT_FROM_CLIENT.getHost());
     }
 
     @Test
-    @DisplayName("Async: request-level authSchemeProvider overrides client-level provider")
-    void async_requestOverrideAuthSchemeProvider_takesPrecedence() {
+    void async_requestOverride_takesPrecedence() {
         CapturingSigner signer = new CapturingSigner();
 
         EndpointAuthAsyncClient client = EndpointAuthAsyncClient.builder()
@@ -135,20 +141,23 @@ class RequestOverrideAuthSchemeProviderTest {
             .region(Region.US_WEST_2)
             .putAuthScheme(authScheme(AwsV4AuthScheme.SCHEME_ID, signer))
             .authSchemeProvider(clientAuthSchemeProvider())
+            .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_CLIENT))
             .build();
 
         assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r
             .stringMember("")
-            .overrideConfiguration(c -> c.authSchemeProvider(requestAuthSchemeProvider()))
+            .overrideConfiguration(c -> c
+                .authSchemeProvider(requestAuthSchemeProvider())
+                .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_REQUEST)))
         ).join()).hasMessageContaining("stop");
 
         assertThat(signer.request.property(AwsV4HttpSigner.REGION_NAME)).isEqualTo(REGION_FROM_REQUEST);
         assertThat(signer.request.property(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME_FROM_REQUEST);
+        assertThat(signer.request.request().getUri().getHost()).isEqualTo(ENDPOINT_FROM_REQUEST.getHost());
     }
 
     @Test
-    @DisplayName("Async: without request-level override, client-level authSchemeProvider is used")
-    void async_noRequestOverride_usesClientAuthSchemeProvider() {
+    void async_noRequestOverride_usesClientProviders() {
         CapturingSigner signer = new CapturingSigner();
 
         EndpointAuthAsyncClient client = EndpointAuthAsyncClient.builder()
@@ -157,6 +166,7 @@ class RequestOverrideAuthSchemeProviderTest {
             .region(Region.US_WEST_2)
             .putAuthScheme(authScheme(AwsV4AuthScheme.SCHEME_ID, signer))
             .authSchemeProvider(clientAuthSchemeProvider())
+            .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_CLIENT))
             .build();
 
         assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")).join())
@@ -164,11 +174,11 @@ class RequestOverrideAuthSchemeProviderTest {
 
         assertThat(signer.request.property(AwsV4HttpSigner.REGION_NAME)).isEqualTo(REGION_FROM_CLIENT);
         assertThat(signer.request.property(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME_FROM_CLIENT);
+        assertThat(signer.request.request().getUri().getHost()).isEqualTo(ENDPOINT_FROM_CLIENT.getHost());
     }
 
     @Test
-    @DisplayName("Sync: request-level authSchemeProvider set to null falls back to client-level")
-    void sync_requestOverrideNull_fallsBackToClientProvider() {
+    void sync_requestOverrideNull_fallsBackToClientProviders() {
         CapturingSigner signer = new CapturingSigner();
 
         EndpointAuthClient client = EndpointAuthClient.builder()
@@ -177,15 +187,19 @@ class RequestOverrideAuthSchemeProviderTest {
             .region(Region.US_WEST_2)
             .putAuthScheme(authScheme(AwsV4AuthScheme.SCHEME_ID, signer))
             .authSchemeProvider(clientAuthSchemeProvider())
+            .endpointProvider(staticEndpointProvider(ENDPOINT_FROM_CLIENT))
             .build();
 
         assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r
             .stringMember("")
-            .overrideConfiguration(c -> c.authSchemeProvider(null))
+            .overrideConfiguration(c -> c
+                .authSchemeProvider(null)
+                .endpointProvider(null))
         )).hasMessageContaining("stop");
 
         assertThat(signer.request.property(AwsV4HttpSigner.REGION_NAME)).isEqualTo(REGION_FROM_CLIENT);
         assertThat(signer.request.property(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME_FROM_CLIENT);
+        assertThat(signer.request.request().getUri().getHost()).isEqualTo(ENDPOINT_FROM_CLIENT.getHost());
     }
 
     /**
@@ -220,6 +234,13 @@ class RequestOverrideAuthSchemeProviderTest {
             );
             return Collections.unmodifiableList(options);
         };
+    }
+
+    /**
+     * Creates an endpoint provider that always returns a fixed endpoint URL.
+     */
+    private static EndpointAuthEndpointProvider staticEndpointProvider(URI endpointUrl) {
+        return params -> CompletableFuture.completedFuture(Endpoint.builder().url(endpointUrl).build());
     }
 
     private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
