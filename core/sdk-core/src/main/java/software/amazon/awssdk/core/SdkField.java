@@ -50,15 +50,6 @@ public final class SdkField<TypeT> {
     private final Map<TraitType, Trait> l1Traits;
     private final Map<Class<? extends Trait>, Trait> l2Traits;
 
-    // Single-slot marshaller cache. Two volatile fields are used instead of an AtomicReference to an immutable
-    // holder to avoid per-SdkField object allocation. The read in cachedMarshaller() is not atomic across both
-    // fields: between reading the key and reading the marshaller, another thread could overwrite both. This is
-    // safe because (1) in practice there is only one registry per protocol, so all threads converge to the same
-    // marshaller, and (2) the worst case with multiple registries is a benign cache miss or a single call using
-    // a marshaller from a different registry, which self-corrects on the next call.
-    private volatile Object cachedMarshaller;
-    private volatile Object cachedMarshallerRegistryKey;
-
     private SdkField(Builder<TypeT> builder) {
         this.memberName = builder.memberName;
         this.marshallingType = builder.marshallingType;
@@ -260,33 +251,6 @@ public final class SdkField<TypeT> {
      */
     public boolean containsTrait(Class<? extends Trait> clzz, TraitType type) {
         return getTrait(clzz, type) != null;
-    }
-
-    /**
-     * Returns the cached marshaller for the given registry key, or null if not cached.
-     * Uses reference identity ({@code ==}) for the registry key comparison.
-     *
-     * @param registryKey The registry key to match against the cached key.
-     * @param <T> The type of the cached marshaller.
-     * @return The cached marshaller if the registry key matches, or null.
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T cachedMarshaller(Object registryKey) {
-        if (cachedMarshallerRegistryKey == registryKey) {
-            return (T) cachedMarshaller;
-        }
-        return null;
-    }
-
-    /**
-     * Caches the resolved marshaller for the given registry key.
-     *
-     * @param registryKey The registry key to associate with the cached marshaller.
-     * @param marshaller The marshaller instance to cache.
-     */
-    public void cacheMarshaller(Object registryKey, Object marshaller) {
-        this.cachedMarshaller = marshaller;
-        this.cachedMarshallerRegistryKey = registryKey;
     }
 
     /**

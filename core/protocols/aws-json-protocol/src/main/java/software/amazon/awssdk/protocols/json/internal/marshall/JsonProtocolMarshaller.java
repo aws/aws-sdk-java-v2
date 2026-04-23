@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -64,6 +65,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         InstantToString.create(getDefaultTimestampFormats());
 
     private static final JsonMarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
+
+    // Caches the resolved marshaller for non-PAYLOAD fields, keyed by SdkField identity.
+    // SdkField instances are static final per generated model class, so identity-based lookup is correct.
+    // ConcurrentHashMap is used for thread safety; the one-time put per SdkField is negligible.
+    private static final ConcurrentHashMap<SdkField<?>, JsonMarshaller<Object>> MARSHALLER_CACHE =
+        new ConcurrentHashMap<>();
 
     private final URI endpoint;
     private final StructuredJsonGenerator jsonGenerator;
@@ -412,11 +419,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                                .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
             return;
         }
-        JsonMarshaller<Object> marshaller = field.cachedMarshaller(MARSHALLER_REGISTRY);
-        if (marshaller == null) {
-            marshaller = MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val);
-            field.cacheMarshaller(MARSHALLER_REGISTRY, marshaller);
-        }
+        JsonMarshaller<Object> marshaller = MARSHALLER_CACHE.computeIfAbsent(field,
+            f -> MARSHALLER_REGISTRY.getMarshaller(f.location(), f.marshallingType(), val));
         marshaller.marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
     }
 

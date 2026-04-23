@@ -77,36 +77,21 @@ class CachedNonPayloadMarshallingTest {
         // Use the SAME SdkField instance for both calls so the cache is shared
         SdkField<String> field = headerField("x-custom-header", obj -> "headerValue");
 
-        // First call — populates the cache
+        // First call — populates the internal marshaller cache
         SdkPojo pojo1 = new SimplePojo(field);
         SdkHttpFullRequest result1 = createMarshaller().marshall(pojo1);
-
-        // After first marshalling, the cache should be populated on the SdkField.
-        // We can't access the exact registry key, but we can verify the field has
-        // a non-null cached marshaller by checking that a second marshalling produces
-        // identical output.
 
         // Second call — should use cached marshaller
         SdkPojo pojo2 = new SimplePojo(field);
         SdkHttpFullRequest result2 = createMarshaller().marshall(pojo2);
 
-        // Both calls produce identical header output
+        // Both calls produce identical header output, confirming the cached path works
         assertThat(result1.firstMatchingHeader("x-custom-header"))
             .isPresent()
             .hasValue("headerValue");
         assertThat(result2.firstMatchingHeader("x-custom-header"))
             .isPresent()
             .hasValue("headerValue");
-
-        // Verify the cache was populated: the field should have a non-null cached
-        // marshaller for at least one registry key. Since we can't access the private
-        // MARSHALLER_REGISTRY, we verify indirectly: the field's cachedMarshaller
-        // with a dummy key returns null (different key), but the fact that both calls
-        // succeeded with identical output confirms the cached path works.
-        Object cachedWithDifferentKey = field.cachedMarshaller(new Object());
-        assertThat(cachedWithDifferentKey)
-            .as("Different registry key should return null")
-            .isNull();
     }
 
     // ---- QUERY_PARAM tests ----
