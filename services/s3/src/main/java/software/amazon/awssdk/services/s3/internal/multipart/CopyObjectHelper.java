@@ -173,6 +173,7 @@ public final class CopyObjectHelper {
                                           .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
                                           .sseCustomerKey(copyObjectRequest.sseCustomerKey())
                                           .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
+                                          .overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null))
                                           .build();
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }

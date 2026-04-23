@@ -164,6 +164,7 @@ public final class SdkPojoConversionUtils {
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
+        builder.overrideConfiguration(putObjectRequest.overrideConfiguration().orElse(null));
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
 
@@ -175,6 +176,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, putObjectRequest);
 
         builder.mpuObjectSize(contentLength);
+        builder.overrideConfiguration(putObjectRequest.overrideConfiguration().orElse(null));
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
             builder.checksumType(ChecksumType.FULL_OBJECT);
@@ -188,6 +190,7 @@ public final class SdkPojoConversionUtils {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        builder.overrideConfiguration(putObjectRequest.overrideConfiguration().orElse(null));
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
             builder.checksumType(ChecksumType.FULL_OBJECT);
@@ -212,6 +215,7 @@ public final class SdkPojoConversionUtils {
                                 .sseCustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
                                 .sseCustomerKey(copyObjectRequest.copySourceSSECustomerKey())
                                 .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
+                                .overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null))
                                 .build();
     }
 
@@ -238,6 +242,7 @@ public final class SdkPojoConversionUtils {
         ListPartsRequest.Builder builder = ListPartsRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        builder.overrideConfiguration(putObjectRequest.overrideConfiguration().orElse(null));
         return builder.uploadId(uploadId).build();
     }
 
@@ -247,6 +252,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
+        builder.overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null));
         return builder.build();
     }
 
@@ -275,6 +281,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
+        builder.overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null));
         return builder;
     }
 
@@ -282,6 +289,7 @@ public final class SdkPojoConversionUtils {
         AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        builder.overrideConfiguration(putObjectRequest.overrideConfiguration().orElse(null));
         return builder;
     }
 
@@ -296,6 +304,7 @@ public final class SdkPojoConversionUtils {
                       .uploadId(uploadId)
                       .bucket(copyObjectRequest.destinationBucket())
                       .key(copyObjectRequest.destinationKey())
+                      .overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null))
                       .build();
     }
 
