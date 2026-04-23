@@ -557,6 +557,16 @@ public class AwsExecutionContextBuilderTest {
         assertThat(businessMetrics.recordedMetrics()).contains("AL");
     }
 
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withLongPollingOperation_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration().build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams().withLongPolling(true);
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)).isTrue();
+    }
+
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
         return clientExecutionParams(sdkRequest);
     }
