@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.retries.internal;
 
+import java.time.Duration;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 
@@ -26,9 +28,11 @@ import software.amazon.awssdk.utils.Logger;
 public final class DefaultStandardRetryStrategy
     extends BaseRetryStrategy implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy.class);
+    private final boolean retries2026Enabled;
 
     DefaultStandardRetryStrategy(Builder builder) {
         super(LOG, builder);
+        this.retries2026Enabled = builder.retries2026Enabled;
     }
 
     @Override
@@ -40,7 +44,20 @@ public final class DefaultStandardRetryStrategy
         return new Builder();
     }
 
+    @Override
+    protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
+        if (!retries2026Enabled || !request.isLongPolling()) {
+            return super.computeAcquireFailureBackoff(request);
+        }
+
+        DefaultRetryToken attemptIncremented = asDefaultRetryToken(request.token()).toBuilder()
+                                                                                   .increaseAttempt()
+                                                                                   .build();
+        return computeBackoff(request, attemptIncremented);
+    }
+
     public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
+        private boolean retries2026Enabled;
 
         Builder() {
         }
@@ -103,6 +120,14 @@ public final class DefaultStandardRetryStrategy
         @Override
         public Builder useClientDefaults(boolean useClientDefaults) {
             setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        /**
+         * Whether retries 2.1 behavior is enabled.
+         */
+        public Builder retries2026Enabled(boolean retries2026Enabled) {
+            this.retries2026Enabled = retries2026Enabled;
             return this;
         }
 

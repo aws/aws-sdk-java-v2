@@ -166,7 +166,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before a retry using the configured backoff strategy. Extending classes can override this method to
-     * compute different a different depending on their logic.
+     * compute different a different duration depending on their logic.
      */
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         Duration backoff;
@@ -177,6 +177,17 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         }
         Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
         return maxOf(suggested, backoff);
+    }
+
+    /**
+     * Computes the backoff before exiting the retry loop using the configured backoff strategy. Extending classes can override
+     * this method to compute different a different duration depending on their logic. The default implementation returns
+     * 0 delay.
+     *
+     * @param request The refresh request that failed to acquire sufficient capacity.
+     */
+    protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
+        return Duration.ZERO;
     }
 
     /**
@@ -299,7 +310,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                      .build();
             String message = acquisitionFailedMessage(acquireResponse);
             log.debug(() -> message, failure);
-            throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
+            Duration delay = computeAcquireFailureBackoff(request);
+            throw new TokenAcquisitionFailedException(message, refreshedToken, failure, delay);
         }
     }
 

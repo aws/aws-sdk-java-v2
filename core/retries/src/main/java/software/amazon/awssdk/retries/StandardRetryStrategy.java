@@ -76,6 +76,7 @@ public interface StandardRetryStrategy extends RetryStrategy {
                                                 : exceptionCost;
         return DefaultStandardRetryStrategy
             .builder()
+            .retries2026Enabled(retries2026Enabled)
             .maxAttempts(DefaultRetryStrategy.Standard.MAX_ATTEMPTS)
             .tokenBucketStore(TokenBucketStore
                                   .builder()
