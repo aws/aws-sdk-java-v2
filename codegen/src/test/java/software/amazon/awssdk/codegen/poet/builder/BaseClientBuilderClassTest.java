@@ -69,7 +69,7 @@ public class BaseClientBuilderClassTest {
     }
 
     @Test
-    void baseClientBuilderClassWithInternalUserAgent_sra() {
+    void baseClientBuilderClassWithInternalDefaults_sra() {
         validateBaseClientBuilderClassGeneration(internalConfigModels(), "test-client-builder-internal-defaults-class.java");
     }
 

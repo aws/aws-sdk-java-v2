@@ -133,6 +133,7 @@ public enum RetryMode {
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private RetryMode defaultRetryMode;
+        private Boolean defaultNewRetries2026;
 
         private Resolver() {
         }
@@ -159,6 +160,15 @@ public enum RetryMode {
          */
         public Resolver defaultRetryMode(RetryMode defaultRetryMode) {
             this.defaultRetryMode = defaultRetryMode;
+            return this;
+        }
+
+        /**
+         * Configure whether retry 2.1 behavior is enabled by default if not specified anywhere else (i.e. via
+         * {@link SdkSystemSetting#AWS_NEW_RETRIES_2026}).
+         */
+        public Resolver defaultNewRetries2026(Boolean defaultNewRetries2026) {
+            this.defaultNewRetries2026 = defaultNewRetries2026;
             return this;
         }
 
@@ -208,8 +218,8 @@ public enum RetryMode {
         /**
          * Resolves the SDK default retry mode dynamically based on the {@code AWS_NEW_RETRIES_2026} gate.
          */
-        private static RetryMode sdkDefaultRetryMode() {
-            return SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue().orElse(false) ? STANDARD : LEGACY;
+        private RetryMode sdkDefaultRetryMode() {
+            return new NewRetries2026Resolver().defaultNewRetries2026(defaultNewRetries2026).resolve() ? STANDARD : LEGACY;
         }
     }
 }

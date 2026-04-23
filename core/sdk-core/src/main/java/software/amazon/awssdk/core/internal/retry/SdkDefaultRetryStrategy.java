@@ -139,9 +139,19 @@ public final class SdkDefaultRetryStrategy {
      * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder() {
-        StandardRetryStrategy.Builder builder = DefaultRetryStrategy.standardStrategyBuilder();
+        return standardRetryStrategyBuilder(false);
+    }
+
+    /**
+     * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     */
+    public static StandardRetryStrategy.Builder standardRetryStrategyBuilder(boolean newRetries2026Enabled) {
+        StandardRetryStrategy.Builder builder = DefaultRetryStrategy.standardStrategyBuilder(newRetries2026Enabled);
         return configure(builder);
     }
+
 
     /**
      * Returns a {@link LegacyRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
@@ -159,7 +169,16 @@ public final class SdkDefaultRetryStrategy {
      * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
-        AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder();
+        return adaptiveRetryStrategyBuilder(false);
+    }
+
+    /**
+     * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     */
+    public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder(boolean newRetries2026Enabled) {
+        AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder(newRetries2026Enabled);
         return configure(builder);
     }
 

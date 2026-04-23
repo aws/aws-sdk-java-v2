@@ -34,8 +34,8 @@ class SdkSystemSettingNewRetriesTest {
     }
 
     @Test
-    void defaultsToFalse_whenUnset() {
-        assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).hasValue(false);
+    void defaultsToEmpty_whenUnset() {
+        assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.getBooleanValue()).isEmpty();
     }
 
     @ParameterizedTest(name = "systemProperty=\"{0}\" -> {1}")
@@ -82,8 +82,8 @@ class SdkSystemSettingNewRetriesTest {
     }
 
     @Test
-    void defaultValue_isFalse() {
+    void defaultValue_isNull() {
         assertThat(SdkSystemSetting.AWS_NEW_RETRIES_2026.defaultValue())
-            .isEqualTo("false");
+            .isNull();
     }
 }
