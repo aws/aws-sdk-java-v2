@@ -22,9 +22,11 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 // TODO: Remove this when the long polling trait is formalized as a c2j trait.
@@ -48,6 +50,17 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
         SERVICE_ID_TO_OPERATIONS_MAP = Collections.unmodifiableMap(serviceIdToOperationsMap);
     }
 
+    private final Map<String, List<String>> serviceIdToOperations;
+
+    public LongPollingOperationProcessor() {
+        this(SERVICE_ID_TO_OPERATIONS_MAP);
+    }
+
+    @SdkTestInternalApi
+    LongPollingOperationProcessor(Map<String, List<String>> serviceIdToOperations) {
+        this.serviceIdToOperations = serviceIdToOperations;
+    }
+
     @Override
     public void preprocess(ServiceModel serviceModel) {
         // no-op
@@ -56,7 +69,16 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
         String serviceId = intermediateModel.getMetadata().getServiceId();
-        List<String> longPollingOperations = SERVICE_ID_TO_OPERATIONS_MAP.getOrDefault(serviceId, Collections.emptyList());
+
+        if (!serviceIdToOperations.containsKey(serviceId)) {
+            return;
+        }
+
+        if (intermediateModel.getMetadata().getProtocol() != Protocol.AWS_JSON) {
+            throw new IllegalArgumentException("Currently only AWS-JSON services can use the longPoll trait");
+        }
+
+        List<String> longPollingOperations = serviceIdToOperations.getOrDefault(serviceId, Collections.emptyList());
 
         for (String longPollingOperation : longPollingOperations) {
             OperationModel opModel = intermediateModel.getOperation(longPollingOperation);
@@ -64,7 +86,7 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
                 log.info("Setting the longPoll trait for {}#{}", serviceId, longPollingOperation);
                 opModel.setLongPolling(true);
             } else {
-                log.warn("Did not find operation {}#{}", serviceId, longPollingOperation);
+               throw new RuntimeException("Operation " + longPollingOperation + " not found for service " + serviceId);
             }
         }
     }
