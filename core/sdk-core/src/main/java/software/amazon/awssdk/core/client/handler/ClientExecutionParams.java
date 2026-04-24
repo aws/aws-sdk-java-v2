@@ -55,6 +55,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer;
     private boolean fullDuplex;
     private boolean hasInitialRequestEvent;
+    private boolean longPolling;
     private String hostPrefixExpression;
     private String operationName;
     private SdkProtocolMetadata protocolMetadata;
@@ -165,6 +166,19 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> withFullDuplex(boolean fullDuplex) {
         this.fullDuplex = fullDuplex;
+        return this;
+    }
+
+    /**
+     * Whether this is a long polling operation, i.e. a request where the service can wait extended period of time before
+     * sending a response back to the client.
+     */
+    public boolean isLongPolling() {
+        return longPolling;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withLongPolling(boolean longPolling) {
+        this.longPolling = longPolling;
         return this;
     }
 

@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
@@ -60,6 +61,7 @@ public final class RetryableStageHelper {
         new ExecutionAttribute<>("LastBackoffDuration");
 
     private final SdkHttpFullRequest request;
+    private final boolean isLongPollingOperation;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy retryStrategy;
@@ -74,6 +76,7 @@ public final class RetryableStageHelper {
                                 HttpClientDependencies dependencies) {
         this.request = request;
         this.context = context;
+        this.isLongPollingOperation = isLongPollingOperation(this.context);
         RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
         if (retryPolicy != null) {
@@ -139,6 +142,7 @@ public final class RetryableStageHelper {
             RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
                                                                               .failure(this.lastException)
                                                                               .token(retryToken)
+                                                                              .isLongPolling(isLongPollingOperation)
                                                                               .suggestedDelay(suggestedDelay)
                                                                               .build();
             refreshResponse = retryStrategy().refreshRetryToken(refreshRequest);
@@ -295,5 +299,11 @@ public final class RetryableStageHelper {
                                  .executionAttributes(context.executionAttributes())
                                  .httpStatusCode(lastResponse == null ? null : lastResponse.statusCode())
                                  .build();
+    }
+
+    private boolean isLongPollingOperation(RequestExecutionContext context) {
+        return context.executionAttributes()
+                      .getOptionalAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)
+                      .orElse(false);
     }
 }
