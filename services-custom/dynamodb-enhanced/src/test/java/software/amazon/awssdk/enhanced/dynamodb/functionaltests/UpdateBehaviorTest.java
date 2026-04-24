@@ -11,6 +11,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Up
 
 import com.google.common.collect.ImmutableList;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -819,6 +820,53 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         beanWithInvalidNestedAttrNameMappedTable.updateItem(r -> r.item(record)
                                                                   .ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
+    }
+
+    @Test
+    public void generateUpdateRequest_listWithCustomConverter_whenElementTypeNotAnnotated_doesNotThrow() {
+        TableSchema<UpdateBehaviorTestModels.BeanWithCustomConvertedList> schema =
+            BeanTableSchema.create(UpdateBehaviorTestModels.BeanWithCustomConvertedList.class);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedList record =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedList()
+                .setId("1")
+                .setWriteAlwaysField("always")
+                .setWriteOnceField("once")
+                .setCustomItems(Arrays.asList(
+                    new UpdateBehaviorTestModels.CustomConvertedPojo("a", 1),
+                    new UpdateBehaviorTestModels.CustomConvertedPojo("b", 2)));
+
+        Map<String, AttributeValue> itemMap = schema.itemToMap(record, false);
+
+        UpdateItemRequest request = generateUpdateRequest(itemMap, schema, IgnoreNullsMode.SCALAR_ONLY);
+
+        assertThat(request, is(notNullValue()));
+        // update expression should contain if_not_exists for writeOnceField
+        assertThat(request.updateExpression(), containsString("if_not_exists"));
+    }
+
+    @Test
+    public void generateUpdateRequest_mapWithCustomConverter_whenValueTypeNotAnnotated_doesNotThrow() {
+        TableSchema<UpdateBehaviorTestModels.BeanWithCustomConvertedMap> schema =
+            BeanTableSchema.create(UpdateBehaviorTestModels.BeanWithCustomConvertedMap.class);
+
+        java.util.Map<String, UpdateBehaviorTestModels.CustomConvertedPojo> pojoMap = new HashMap<>();
+        pojoMap.put("first", new UpdateBehaviorTestModels.CustomConvertedPojo("x", 10));
+        pojoMap.put("second", new UpdateBehaviorTestModels.CustomConvertedPojo("y", 20));
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedMap record =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedMap()
+                .setId("1")
+                .setWriteAlwaysField("always")
+                .setWriteOnceField("once")
+                .setCustomMap(pojoMap);
+
+        Map<String, AttributeValue> itemMap = schema.itemToMap(record, false);
+
+        UpdateItemRequest request = generateUpdateRequest(itemMap, schema, IgnoreNullsMode.SCALAR_ONLY);
+
+        assertThat(request, is(notNullValue()));
+        assertThat(request.updateExpression(), containsString("if_not_exists"));
     }
 
     @Test

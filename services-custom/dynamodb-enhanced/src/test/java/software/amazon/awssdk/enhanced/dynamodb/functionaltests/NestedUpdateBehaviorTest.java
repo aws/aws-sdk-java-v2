@@ -29,6 +29,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -466,6 +468,90 @@ public class NestedUpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
             .withMessageContaining("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb"
                                    + ".functionaltests.models.UpdateBehaviorTestModels$NestedImmutableChild)");
+    }
+
+    @Test
+    public void beanSchema_listWithCustomConverter_whenElementTypeNotAnnotated_updateBehaviorRespectedAndListUnchanged() {
+        TableSchema<UpdateBehaviorTestModels.BeanWithCustomConvertedList> schema =
+            BeanTableSchema.create(UpdateBehaviorTestModels.BeanWithCustomConvertedList.class);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedList item =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedList()
+                .setId("1")
+                .setWriteAlwaysField("initial_always")
+                .setWriteOnceField("initial_once")
+                .setCustomItems(Arrays.asList(
+                    new UpdateBehaviorTestModels.CustomConvertedPojo("a", 1),
+                    new UpdateBehaviorTestModels.CustomConvertedPojo("b", 2)));
+
+        DynamoDbTable<UpdateBehaviorTestModels.BeanWithCustomConvertedList> table =
+            createAndPut("custom-converted-list-update-behavior", schema, item);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedList result =
+            table.getItem(r -> r.key(k -> k.partitionValue("1")));
+        assertThat(result.getWriteAlwaysField()).isEqualTo("initial_always");
+        assertThat(result.getWriteOnceField()).isEqualTo("initial_once");
+        assertThat(result.getCustomItems()).hasSize(2);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedList update =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedList()
+                .setId("1")
+                .setWriteAlwaysField("updated_always")
+                .setWriteOnceField("updated_once");
+
+        table.updateItem(r -> r.item(update).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedList updated =
+            table.getItem(r -> r.key(k -> k.partitionValue("1")));
+
+        assertThat(updated.getWriteAlwaysField()).isEqualTo("updated_always");    // WRITE_ALWAYS: changed
+        assertThat(updated.getWriteOnceField()).isEqualTo("initial_once");        // WRITE_IF_NOT_EXISTS: unchanged
+        assertThat(updated.getCustomItems()).hasSize(2);                          // custom-converted list: unchanged
+
+        table.deleteTable();
+    }
+
+    @Test
+    public void beanSchema_mapWithCustomConverter_whenValueTypeNotAnnotated_updateBehaviorRespectedAndMapUnchanged() {
+        TableSchema<UpdateBehaviorTestModels.BeanWithCustomConvertedMap> schema =
+            BeanTableSchema.create(UpdateBehaviorTestModels.BeanWithCustomConvertedMap.class);
+
+        Map<String, UpdateBehaviorTestModels.CustomConvertedPojo> pojoMap = new HashMap<>();
+        pojoMap.put("first", new UpdateBehaviorTestModels.CustomConvertedPojo("x", 10));
+        pojoMap.put("second", new UpdateBehaviorTestModels.CustomConvertedPojo("y", 20));
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedMap item =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedMap()
+                .setId("1")
+                .setWriteAlwaysField("initial_always")
+                .setWriteOnceField("initial_once")
+                .setCustomMap(pojoMap);
+
+        DynamoDbTable<UpdateBehaviorTestModels.BeanWithCustomConvertedMap> table =
+            createAndPut("custom-converted-map-update-behavior", schema, item);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedMap result =
+            table.getItem(r -> r.key(k -> k.partitionValue("1")));
+        assertThat(result.getWriteAlwaysField()).isEqualTo("initial_always");
+        assertThat(result.getWriteOnceField()).isEqualTo("initial_once");
+        assertThat(result.getCustomMap()).hasSize(2);
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedMap update =
+            new UpdateBehaviorTestModels.BeanWithCustomConvertedMap()
+                .setId("1")
+                .setWriteAlwaysField("updated_always")
+                .setWriteOnceField("updated_once");
+
+        table.updateItem(r -> r.item(update).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
+
+        UpdateBehaviorTestModels.BeanWithCustomConvertedMap updated =
+            table.getItem(r -> r.key(k -> k.partitionValue("1")));
+
+        assertThat(updated.getWriteAlwaysField()).isEqualTo("updated_always");   // WRITE_ALWAYS: changed
+        assertThat(updated.getWriteOnceField()).isEqualTo("initial_once");        // WRITE_IF_NOT_EXISTS: unchanged
+        assertThat(updated.getCustomMap()).hasSize(2);                            // custom-converted map: unchanged
+
+        table.deleteTable();
     }
 
     private <T> DynamoDbTable<T> createAndPut(String tableSuffix, TableSchema<T> schema, T item) {
