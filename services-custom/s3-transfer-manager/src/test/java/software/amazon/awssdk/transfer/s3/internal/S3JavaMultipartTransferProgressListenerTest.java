@@ -367,9 +367,6 @@ public class S3JavaMultipartTransferProgressListenerTest {
     /**
      * Verifies that TransferListener callbacks fire for unknown-content-length uploads that fit in a single chunk.
      * This is the scenario where UploadWithUnknownContentLengthHelper routes to uploadInOneChunk.
-     * Before the fix, only transferInitiated fired; transferComplete never fired because endOfStreamFuture
-     * was never completed (the wrapper body was bypassed by splitCloseable and uploadInOneChunk did not
-     * signal the progress listener).
      */
     @Test
     void unknownContentLength_singleChunk_transferCompleteFires() {
@@ -410,8 +407,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     /**
      * Verifies that TransferListener callbacks fire for unknown-content-length uploads that exceed the part size
-     * and go through the multipart upload path. This path was already working before the fix because
-     * multipartClientProgressListener compensates for the wrapper body being bypassed by splitCloseable.
+     * and go through the multipart upload path. 
      */
     @Test
     void unknownContentLength_multiChunk_allCallbacksFire() {

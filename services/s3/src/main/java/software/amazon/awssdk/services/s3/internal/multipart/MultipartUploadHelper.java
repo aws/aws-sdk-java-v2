@@ -173,9 +173,9 @@ public final class MultipartUploadHelper {
                 asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
             }
             // Always signal completion so that TransferProgressUpdater's endOfStreamFuture completes
-            // and the TransferListener's transferComplete callback fires. This is critical for the
-            // unknown-content-length single-chunk path where splitCloseable() bypasses the wrapper body
-            // that would normally complete endOfStreamFuture via subscriberOnComplete.
+            // and the TransferListener's transferComplete callback fires.
+            // For unknown content length we don't know if it wil lbe one chunk or not ahead of time
+            // and so don't set REPORT_PROGRESS_IN_SINGLE_CHUNK attribute.
             progressListener.subscriberOnComplete();
             returnFuture.complete(response);
         });
