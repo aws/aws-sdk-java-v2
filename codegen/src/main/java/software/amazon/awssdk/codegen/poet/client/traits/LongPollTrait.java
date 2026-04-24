@@ -24,6 +24,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 public final class LongPollTrait {
     private LongPollTrait() {
     }
+
     public static CodeBlock executionParamSetter(OperationModel operationModel) {
         if (operationModel.isLongPolling()) {
             return CodeBlock.of(".withLongPolling(true)");
