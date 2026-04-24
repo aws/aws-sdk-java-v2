@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fix connection pool leak in AwsCrtHttpClient when threads are externally interrupted."
+}
