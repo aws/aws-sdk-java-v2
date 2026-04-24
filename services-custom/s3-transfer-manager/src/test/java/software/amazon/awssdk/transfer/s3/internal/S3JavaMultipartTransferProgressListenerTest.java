@@ -449,6 +449,48 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, atLeastOnce()).bytesTransferred(ArgumentMatchers.any());
     }
 
+    /**
+     * Verifies that when an unknown-content-length upload fails on the single-chunk path,
+     * the completionFuture completes exceptionally and transferFailed fires.
+     * This guards against regressions where the failure path in uploadInOneChunk does not
+     * propagate the exception to returnFuture, causing the upload to hang indefinitely.
+     */
+    @Test
+    void unknownContentLength_singleChunk_failurePropagates() {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        stubFor(put(urlPathEqualTo("/" + EXAMPLE_BUCKET + "/" + TEST_KEY))
+                    .willReturn(aResponse().withStatus(500).withBody(ERROR_BODY)));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+
+        Upload upload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
+                                        .requestBody(body)
+                                        .addTransferListener(transferListener)
+                                        .addTransferListener(transferListenerMock)
+                                        .build());
+
+        byte[] data = new byte[1024];
+        body.writeInputStream(new ByteArrayInputStream(data));
+
+        assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> upload.completionFuture().join());
+
+        assertTransferListenerCompletion(transferListener);
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isFalse();
+        assertThat(transferListener.getExceptionCaught()).isNotNull();
+
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferFailed(ArgumentMatchers.any());
+    }
+
     private static void assertTransferListenerCompletion(CaptureTransferListener transferListener) {
         Duration waitDuration = Duration.ofSeconds(5);
         assertTimeoutPreemptively(
