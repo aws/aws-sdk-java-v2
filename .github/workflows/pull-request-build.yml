@@ -1,7 +1,8 @@
 name: Build SDK
 on:
   merge_group:
-  pull_request:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches:
       - master
@@ -11,7 +12,7 @@ on:
       - 'docs/**'
 
 concurrency:
-  group: start-pull-request-build-${{ github.ref }}
+  group: start-pull-request-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -19,8 +20,40 @@ env:
   SCRIPT_LOCATION: 'workflows/start-pull-request-build/pull-request-build-v1.sh'
 
 jobs:
+  # Strip the safe-to-build label on every new push from a fork so that
+  # a maintainer must re-review and re-label after each update.
+  revoke-approval:
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'synchronize' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove safe-to-build label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X DELETE \
+            "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/safe-to-build" \
+            || true   # 404 if label wasn't present
+
   aws-sdk-pr-build:
-    if: github.event.pull_request.draft == false
+    needs: revoke-approval
+    if: >
+      always() &&
+      needs.revoke-approval.result != 'failure' &&
+      (
+        github.event_name != 'pull_request_target' ||
+        (
+          github.event.pull_request.draft == false &&
+          (
+            github.event.pull_request.head.repo.full_name == github.repository ||
+            contains(github.event.pull_request.labels.*.name, 'safe-to-build')
+          )
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       id-token: write
