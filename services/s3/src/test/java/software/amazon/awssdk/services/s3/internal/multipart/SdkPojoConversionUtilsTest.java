@@ -399,6 +399,18 @@ class SdkPojoConversionUtilsTest {
         assertThat(converted.overrideConfiguration()).isNotPresent();
     }
 
+    @Test
+    void toCreateMultipartUploadRequest_copyObjectWithoutOverrideConfig_shouldNotHaveOverrideConfig() {
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .destinationBucket("dst")
+                                                     .destinationKey("dstKey")
+                                                     .build();
+        CreateMultipartUploadRequest converted = SdkPojoConversionUtils.toCreateMultipartUploadRequest(request);
+        assertThat(converted.overrideConfiguration()).isNotPresent();
+    }
+
     private static void verifyFieldsAreCopied(SdkPojo requestConvertedFrom,
                                               SdkPojo requestConvertedTo,
                                               Set<String> fieldsToIgnore,
