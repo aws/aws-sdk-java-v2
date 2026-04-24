@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fix S3 Transfer Manager progress tracking overshoot when a multipart download part-get is retried after partial data delivery"
+}
