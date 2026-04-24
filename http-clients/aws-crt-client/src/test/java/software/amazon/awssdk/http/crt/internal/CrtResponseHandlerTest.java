@@ -68,7 +68,7 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
         crtResponseHandler.onResponseBody(httpStream, "{}".getBytes(StandardCharsets.UTF_8));
 
         crtResponseHandler.onResponseComplete(httpStream, 0);
-        assertThatThrownBy(() -> requestFuture.join()).isInstanceOf(CancellationException.class).hasMessageContaining(
+        assertThatThrownBy(() -> requestFuture.join()).isInstanceOf(CancellationException.class).hasStackTraceContaining(
             "subscription has been cancelled");
         verify(httpStream).close();
     }

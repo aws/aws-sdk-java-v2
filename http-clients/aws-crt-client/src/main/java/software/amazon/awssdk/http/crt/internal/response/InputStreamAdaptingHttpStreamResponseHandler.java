@@ -66,7 +66,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         // Propagate cancellation
         requestCompletionFuture.exceptionally(t -> {
-            responseHandlerHelper.closeStream();
+            responseHandlerHelper.closeConnection();
             return null;
         });
     }
@@ -76,7 +76,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         if (inputStreamSubscriber == null) {
             inputStreamSubscriber =
                 AbortableInputStreamSubscriber.builder()
-                                              .doAfterClose(() -> responseHandlerHelper.closeStream())
+                                              .doAfterClose(() -> responseHandlerHelper.closeConnection())
                                               .build();
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
@@ -97,7 +97,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
                 log.debug(() -> "The subscriber failed to receive the data, closing the connection and failing the future",
                           failure);
                 requestCompletionFuture.completeExceptionally(failure);
-                responseHandlerHelper.closeStream();
+                responseHandlerHelper.closeConnection();
                 return;
             }
             responseHandlerHelper.incrementWindow(bodyBytesIn.length);
@@ -120,7 +120,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         Throwable toThrow = wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
         simplePublisher.error(toThrow);
         requestCompletionFuture.completeExceptionally(toThrow);
-        responseHandlerHelper.closeStream();
+        responseHandlerHelper.closeConnection();
     }
 
     private void onSuccessfulResponseComplete() {
@@ -130,6 +130,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         requestCompletionFuture.complete(responseBuilder.build());
         // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        responseHandlerHelper.closeStream();
+        responseHandlerHelper.releaseConnection();
     }
 }

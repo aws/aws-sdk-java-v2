@@ -128,6 +128,15 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
+    public void getTableSchemaForListElement_whenConverterForAttributeThrowsUnsupportedOperationException_returnsNull() {
+        when(mockSchema.converterForAttribute("anyAttribute")).thenThrow(new UnsupportedOperationException());
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "anyAttribute");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     public void getTableSchemaForListElement_withEmptyRawClassParameters_throwsIllegalArgumentException() {
         when(mockSchema.converterForAttribute("emptyParamsAttribute")).thenReturn(mockAttributeConverter);
         when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
