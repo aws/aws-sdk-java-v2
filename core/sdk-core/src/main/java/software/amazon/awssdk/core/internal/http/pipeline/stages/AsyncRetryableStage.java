@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Either;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clockskew and request throttling functionality.
@@ -134,9 +135,20 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void maybeAttemptExecute(CompletableFuture<Response<OutputT>> future) {
-            Optional<Duration> delay = retryableStageHelper.tryRefreshToken(Duration.ZERO);
-            if (!delay.isPresent()) {
-                future.completeExceptionally(retryableStageHelper.retryPolicyDisallowedRetryException());
+            Either<Duration, Duration> backoffDelay = retryableStageHelper.tryRefreshToken(Duration.ZERO);
+
+            Optional<Duration> acquireFailureDelay = backoffDelay.right();
+            if (acquireFailureDelay.isPresent()) {
+                Duration delay = acquireFailureDelay.get();
+                retryableStageHelper.logAcquireFailureBackingOff(delay);
+                SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
+                // Avoid needless scheduling if we won't wait
+                if (delay.isZero()) {
+                    future.completeExceptionally(disallowedException);
+                } else {
+                    scheduledExecutor.schedule(() -> future.completeExceptionally(disallowedException),
+                                               delay.toMillis(), MILLISECONDS);
+                }
                 return;
             }
             // We failed the last attempt, but will retry. The response handler wants to know when that happens.
@@ -145,9 +157,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             // Reset the request provider to the original one before retries, in case it was modified downstream.
             context.requestProvider(originalRequestBody);
 
-            Duration backoffDelay = delay.get();
-            retryableStageHelper.logBackingOff(backoffDelay);
-            long totalDelayMillis = backoffDelay.toMillis();
+            // get() is safe, Either requires left OR right to be present
+            Duration successDelay = backoffDelay.left().get();
+            retryableStageHelper.logBackingOff(successDelay);
+            long totalDelayMillis = successDelay.toMillis();
             scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
         }
 
