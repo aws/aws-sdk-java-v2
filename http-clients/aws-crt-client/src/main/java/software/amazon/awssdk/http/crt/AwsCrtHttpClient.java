@@ -207,9 +207,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * then the connection is considered unhealthy and will be shut down.
          *
          * <p>
-         * If not explicitly configured, a default health configuration is applied with a minimum throughput of 1 byte per
-         * second and a throughput failure interval of 30 seconds. The failure interval is derived from the read/write timeout
-         * settings and will change if those are overridden by service specific defaults.
+         * Disabled by default.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
