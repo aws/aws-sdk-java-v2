@@ -49,6 +49,7 @@ public interface RefreshRetryTokenRequest extends ToCopyableBuilder<RefreshRetry
     default boolean isLongPolling() {
         return false;
     }
+
     /**
      * The cause of the last attempt failure.
      */
