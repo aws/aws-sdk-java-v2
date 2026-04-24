@@ -43,6 +43,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.LongPollTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -219,6 +220,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(hostPrefixExpression(opModel))
                      .add(discoveredEndpoint(opModel))
                      .add(credentialType(opModel, model))
+                     .add(LongPollTrait.executionParamSetter(opModel))
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
@@ -290,6 +292,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
                .add(asyncRequestBody(opModel))
                .add(fullDuplex(opModel))
+               .add(LongPollTrait.executionParamSetter(opModel))
                .add(hasInitialRequestEvent(opModel, isRestJson))
                .add(".withResponseHandler($L)\n", responseHandlerName(opModel, isRestJson))
                .add(".withErrorResponseHandler(errorResponseHandler)\n")
