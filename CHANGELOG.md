@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.40__ __2026-04-23__
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for Slurm 25.11 with expedited requeue enabled by default for jobs failing due to node issues, configurable requeue delay, health checks at node startup only, and unauthenticated HTTP endpoints disabled by default for improved security.
+
+## __Amazon DataZone__
+  - ### Features
+    - Releasing For LakehouseProperties attributes in the Connections API's
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch UI applications now support cross-Region domain association, enabling you to connect OpenSearch Dashboards in one AWS Region to OpenSearch domains in other Regions within the same partition for centralized data visualization.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adds "Status" field to provisioning profile operation response types, giving users visibility into the readiness of a provisioning profile to be used for device provisioning.
+
 # __2.42.39__ __2026-04-22__
 ## __AWS Batch__
   - ### Features
