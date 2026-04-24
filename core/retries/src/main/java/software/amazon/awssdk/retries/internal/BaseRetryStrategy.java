@@ -158,7 +158,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before the first attempt, by default {@link Duration#ZERO}. Extending classes can override this method
-     * to compute different a different depending on their logic.
+     * to compute a different duration depending on their logic.
      */
     protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
         return Duration.ZERO;
@@ -166,7 +166,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before a retry using the configured backoff strategy. Extending classes can override this method to
-     * compute different a different duration depending on their logic.
+     * compute a different duration depending on their logic.
      */
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         Duration backoff;
@@ -181,7 +181,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before exiting the retry loop using the configured backoff strategy. Extending classes can override
-     * this method to compute different a different duration depending on their logic. The default implementation returns
+     * this method to compute a different duration depending on their logic. The default implementation returns
      * 0 delay.
      *
      * @param request The refresh request that failed to acquire sufficient capacity.
