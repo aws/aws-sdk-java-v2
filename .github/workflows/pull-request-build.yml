@@ -1,8 +1,14 @@
 name: Build SDK
 on:
-  pull_request:
   merge_group:
-    types: [opened, synchronize, ready_for_review]
+  pull_request:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
 
 concurrency:
   group: start-pull-request-build-${{ github.ref }}
@@ -14,7 +20,7 @@ env:
 
 jobs:
   aws-sdk-pr-build:
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -36,11 +42,15 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          if [ -z "$PR_NUMBER" ] && [[ "$HEAD_REF" =~ ^gh-readonly-queue/.+/pr-([0-9]+)- ]]; then
+            PR_NUMBER="${BASH_REMATCH[1]}"
+          fi
           ./$DOWNLOAD_FOLDER/$SCRIPT_LOCATION \
             --repo "${{ github.repository }}" \
             --branch "$HEAD_REF" \
-            --pr-number "${{ github.event.pull_request.number }}" \
+            --pr-number "$PR_NUMBER" \
             --run-id "${{ github.run_id }}"
         timeout-minutes: 120
