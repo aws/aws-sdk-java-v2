@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.TraitType;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToStrin
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 
@@ -288,12 +290,24 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 jsonGenerator.writeEndObject();
             }
 
-            byte[] content = jsonGenerator.getBytes();
+            if (jsonGenerator instanceof SdkJsonGenerator) {
+                // Optimized path: stream directly from chunked buffers, avoiding a single
+                // contiguous byte[] allocation that can cause G1GC humongous allocations.
+                SdkJsonGenerator sdkGenerator = (SdkJsonGenerator) jsonGenerator;
+                ContentStreamProvider contentProvider = sdkGenerator.contentStreamProvider();
+                request.contentStreamProvider(contentProvider);
+                int contentSize = sdkGenerator.contentSize();
+                if (contentSize > 0) {
+                    request.putHeader(CONTENT_LENGTH, Integer.toString(contentSize));
+                }
+            } else {
+                byte[] content = jsonGenerator.getBytes();
 
-            if (content != null) {
-                request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-                if (content.length > 0) {
-                    request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+                if (content != null) {
+                    request.contentStreamProvider(() -> new ByteArrayInputStream(content));
+                    if (content.length > 0) {
+                        request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+                    }
                 }
             }
         }
