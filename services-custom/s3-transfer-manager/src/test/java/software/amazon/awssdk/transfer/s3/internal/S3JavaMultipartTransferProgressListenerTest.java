@@ -23,9 +23,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -33,6 +35,7 @@ import static org.mockito.Mockito.times;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -47,6 +50,8 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -57,6 +62,7 @@ import software.amazon.awssdk.transfer.s3.CaptureTransferListener;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
@@ -356,6 +362,133 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
         int numTimesBytesTransferred = 2;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    /**
+     * Verifies that TransferListener callbacks fire for unknown-content-length uploads that fit in a single chunk.
+     * This is the scenario where UploadWithUnknownContentLengthHelper routes to uploadInOneChunk.
+     */
+    @Test
+    void unknownContentLength_singleChunk_transferCompleteFires() {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        stubFor(put(urlPathEqualTo("/" + EXAMPLE_BUCKET + "/" + TEST_KEY))
+                    .willReturn(aResponse().withStatus(200).withBody("<body/>")));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+
+        Upload upload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
+                                        .requestBody(body)
+                                        .addTransferListener(transferListener)
+                                        .addTransferListener(transferListenerMock)
+                                        .build());
+
+        // Write small data (fits in one chunk) and close the stream
+        byte[] data = new byte[1024];
+        body.writeInputStream(new ByteArrayInputStream(data));
+
+        upload.completionFuture().join();
+
+        assertTransferListenerCompletion(transferListener);
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+        assertThat(transferListener.getExceptionCaught()).isNull();
+
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
+    }
+
+    /**
+     * Verifies that TransferListener callbacks fire for unknown-content-length uploads that exceed the part size
+     * and go through the multipart upload path. 
+     */
+    @Test
+    void unknownContentLength_multiChunk_allCallbacksFire() {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + TEST_KEY + "?uploads";
+        String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
+        stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
+        stubFor(any(anyUrl()).atPriority(6).willReturn(aResponse().withStatus(200).withBody("<body/>")));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+
+        Upload upload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
+                                        .requestBody(body)
+                                        .addTransferListener(transferListener)
+                                        .addTransferListener(transferListenerMock)
+                                        .build());
+
+        // Write data larger than the default 8 MiB part size to force multipart
+        byte[] data = new byte[OBJ_SIZE];
+        body.writeInputStream(new ByteArrayInputStream(data));
+
+        upload.completionFuture().join();
+
+        assertTransferListenerCompletion(transferListener);
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+        assertThat(transferListener.getExceptionCaught()).isNull();
+
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, atLeastOnce()).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    /**
+     * Verifies that when an unknown-content-length upload fails on the single-chunk path,
+     * the completionFuture completes exceptionally and transferFailed fires.
+     * This guards against regressions where the failure path in uploadInOneChunk does not
+     * propagate the exception to returnFuture, causing the upload to hang indefinitely.
+     */
+    @Test
+    void unknownContentLength_singleChunk_failurePropagates() {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        stubFor(put(urlPathEqualTo("/" + EXAMPLE_BUCKET + "/" + TEST_KEY))
+                    .willReturn(aResponse().withStatus(500).withBody(ERROR_BODY)));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+
+        Upload upload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
+                                        .requestBody(body)
+                                        .addTransferListener(transferListener)
+                                        .addTransferListener(transferListenerMock)
+                                        .build());
+
+        byte[] data = new byte[1024];
+        body.writeInputStream(new ByteArrayInputStream(data));
+
+        assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> upload.completionFuture().join());
+
+        assertTransferListenerCompletion(transferListener);
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isFalse();
+        assertThat(transferListener.getExceptionCaught()).isNotNull();
+
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(0)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferFailed(ArgumentMatchers.any());
     }
 
     private static void assertTransferListenerCompletion(CaptureTransferListener transferListener) {
