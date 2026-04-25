@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.42.41__ __2026-04-24__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fix connection pool leak in AwsCrtHttpClient when threads are externally interrupted.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now support configurable IP address types for Web Apps of type VPC, enabling customers to select IPv4-only or dual-stack (IPv4 and IPv6) configurations based on their network requirements.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Added support for configuring identity providers and inbound authorizers within a private VPC for AWS Bedrock AgentCore, enabling secure network connection without public internet access
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adding nextToken and maxItems to the GetQueryResults API.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect is expanding attachment capabilities to give customers greater flexibility and control. Currently limited to predefined file types, the new feature will allow contact center administrators to customize which file extensions and sizes are supported across chat, email, tasks, and cases.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - EVS now supports i7i.metal-24xl EC2 bare metal instance type, delivering high random IOPS performance with real-time latency, ideal for IO intensive and latency-sensitive workloads such as transactional databases, real-time analytics, and AI ML pre-processing.
+
+## __Connect Health__
+  - ### Features
+    - Corrected CreateWebAppConfiguration documentation. Adding slash as an allowed character for the Ambient documentation agent to allow pronoun specifications.
+
 # __2.42.40__ __2026-04-23__
 ## __AWS Parallel Computing Service__
   - ### Features
