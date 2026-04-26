@@ -789,7 +789,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateBehaviour_onItemWithRootAttributeNameContainingReservedMarker_throwsException() {
+    public void updateBehaviors_onItemWithRootAttributeNameContainingReservedMarker_throwsException() {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Attribute name 'attr_NESTED_ATTR_UPDATE_' contains reserved marker "
@@ -804,7 +804,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updateBehaviour_onItemWithNestedAttributeNameContainingReservedMarker_throwsException() {
+    public void updateBehaviors_onItemWithNestedAttributeNameContainingReservedMarker_throwsException() {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Attribute name 'childAttr_NESTED_ATTR_UPDATE_' contains reserved marker "
@@ -820,6 +820,27 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         beanWithInvalidNestedAttrNameMappedTable.updateItem(r -> r.item(record)
                                                                   .ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
+    }
+
+    @Test
+    public void generateUpdateRequest_customTableSchemaWithUpdateBehaviorMetadataButNoConverterSupport_doesNotThrow() {
+        // UpdateExpressionUtils.setActionsFor calls getNestedSchema (which has try-catch),
+        // but a schema with update behavior metadata that throws UnsupportedOperationException from
+        // converterForAttribute must not cause an exception during generateRequest.
+        MinimalUpdateTableSchemaWithUpdateBehaviorMetadata customSchema =
+            new MinimalUpdateTableSchemaWithUpdateBehaviorMetadata();
+
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("id", AttributeValue.builder().s("item-1").build());
+
+        // Provide a nested map and let SCALAR_ONLY flatten it internally.
+        Map<String, AttributeValue> nested = new HashMap<>();
+        nested.put("writeOnceField", AttributeValue.builder().s("value").build());
+        itemMap.put("child", AttributeValue.builder().m(nested).build());
+
+        UpdateItemRequest request = generateUpdateRequest(itemMap, customSchema, IgnoreNullsMode.SCALAR_ONLY);
+
+        assertThat(request, is(notNullValue()));
     }
 
     @Test
@@ -1011,6 +1032,62 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
                              DefaultOperationContext.create("test-table",
                                                             TableMetadata.primaryIndexName()),
                              null);
+    }
+
+    /**
+     * Minimal {@link TableSchema} that has {@code WRITE_IF_NOT_EXISTS} update behavior metadata registered but does NOT override
+     * {@code converterForAttribute}. Used to verify that {@code generateRequest} does not throw when the schema has update
+     * behavior metadata but the schema implementation does not support {@code converterForAttribute}.
+     */
+    @SuppressWarnings("unchecked")
+    private static class MinimalUpdateTableSchemaWithUpdateBehaviorMetadata implements TableSchema<Map<String, Object>> {
+
+        // Reuse NestedBean's metadata which has WRITE_IF_NOT_EXISTS on writeOnceField
+        private static final TableSchema<UpdateBehaviorTestModels.NestedBean> BEAN_SCHEMA =
+            BeanTableSchema.create(UpdateBehaviorTestModels.NestedBean.class);
+
+        @Override
+        public Map<String, Object> mapToItem(Map<String, AttributeValue> m) {
+            return new HashMap<>();
+        }
+
+        @Override
+        public Map<String, AttributeValue> itemToMap(Map<String, Object> item, boolean ignoreNulls) {
+            return new HashMap<>();
+        }
+
+        @Override
+        public Map<String, AttributeValue> itemToMap(Map<String, Object> item,
+                                                     java.util.Collection<String> attrs) {
+            return new HashMap<>();
+        }
+
+        @Override
+        public AttributeValue attributeValue(Map<String, Object> item, String name) {
+            return null;
+        }
+
+        @Override
+        public TableMetadata tableMetadata() {
+            return BEAN_SCHEMA.tableMetadata();
+        }
+
+        @Override
+        public EnhancedType<Map<String, Object>> itemType() {
+            return (EnhancedType<Map<String, Object>>) (EnhancedType<?>) EnhancedType.of(Map.class);
+        }
+
+        @Override
+        public java.util.List<String> attributeNames() {
+            return BEAN_SCHEMA.attributeNames();
+        }
+
+        @Override
+        public boolean isAbstract() {
+            return false;
+        }
+
+        // converterForAttribute intentionally NOT overridden — throws UnsupportedOperationException by default
     }
 
     /**
