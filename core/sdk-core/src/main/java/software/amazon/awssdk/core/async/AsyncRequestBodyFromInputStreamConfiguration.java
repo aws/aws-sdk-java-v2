@@ -40,7 +40,7 @@ public final class AsyncRequestBodyFromInputStreamConfiguration
         this.inputStream = Validate.paramNotNull(builder.inputStream, "inputStream");
         this.contentLength = Validate.isNotNegativeOrNull(builder.contentLength, "contentLength");
         this.maxReadLimit = Validate.isPositiveOrNull(builder.maxReadLimit, "maxReadLimit");
-        this.executor = Validate.paramNotNull(builder.executor, "executor");
+        this.executor = builder.executor;
     }
 
     /**
@@ -58,7 +58,7 @@ public final class AsyncRequestBodyFromInputStreamConfiguration
     }
 
     /**
-     * @return the provided {@link ExecutorService}.
+     * @return the provided {@link ExecutorService}, or {@code null} if the SDK-managed executor should be used.
      */
     public ExecutorService executor() {
         return executor;
@@ -137,8 +137,12 @@ public final class AsyncRequestBodyFromInputStreamConfiguration
         /**
          * Configures the {@link ExecutorService} to perform the blocking data reads.
          *
-         * <p>It is recommended to have a dedicated executor for SDK input stream requests and have as many threads as the
-         * number of concurrent requests sharing it. Using an undersized or shared executor may lead to unrecoverable failures.
+         * <p>If not provided, the SDK uses a shared internal cached thread pool that allocates one thread per
+         * concurrent request.
+         *
+         * <p>If providing a custom executor, it is recommended to have a dedicated executor for SDK input stream
+         * requests and have as many threads as the number of concurrent requests sharing it. Using an undersized or
+         * shared executor may lead to degraded performance or request timeouts.
          * See {@link AsyncRequestBody#fromInputStream(InputStream, Long, ExecutorService)} for details.
          *
          * @param executor the executor

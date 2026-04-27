@@ -21,10 +21,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -132,7 +134,7 @@ class ImdsUserAgentProviderTest {
     @ParameterizedTest
     @MethodSource("imdsCredentialProviders")
     void userAgentString_containsImdsBusinessMetric_WhenUsingInstanceProfileCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
         
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -141,23 +143,23 @@ class ImdsUserAgentProviderTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> imdsCredentialProviders() {
         return Stream.of(
-            Arguments.of(InstanceProfileCredentialsProvider.create(), "m/D,0"),
+            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList("D", "0")),
 
             Arguments.of(InstanceProfileCredentialsProvider.builder()
                             .endpoint("http://localhost:" + wireMockServer.getPort())
-                            .build(), "m/D,0")
+                            .build(), Arrays.asList("D", "0"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("imdsCredentialProvidersWithSessionToken")
     void userAgentString_containsImdsBusinessMetric_WhenUsingInstanceProfileCredentialsWithSessionToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         stubImdsResponsesWithSessionToken();
         
@@ -168,12 +170,12 @@ class ImdsUserAgentProviderTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> imdsCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(InstanceProfileCredentialsProvider.create(), "m/D,0")
+            Arguments.of(InstanceProfileCredentialsProvider.create(), Arrays.asList("D", "0"))
         );
     }
 
