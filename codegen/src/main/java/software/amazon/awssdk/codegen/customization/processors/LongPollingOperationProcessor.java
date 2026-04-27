@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 // TODO: Remove this when the long polling trait is formalized as a c2j trait.
+
 /**
  * Marks specific service operations as having the long polling trait.
  */
@@ -86,7 +87,7 @@ public class LongPollingOperationProcessor implements CodegenCustomizationProces
                 log.info("Setting the longPoll trait for {}#{}", serviceId, longPollingOperation);
                 opModel.setLongPolling(true);
             } else {
-               throw new RuntimeException("Operation " + longPollingOperation + " not found for service " + serviceId);
+                throw new RuntimeException("Operation " + longPollingOperation + " not found for service " + serviceId);
             }
         }
     }
