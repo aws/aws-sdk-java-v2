@@ -42,7 +42,8 @@ public final class DefaultCustomizationProcessor {
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),
                 new ExplicitStringPayloadQueryProtocolProcessor(),
-                new LowercaseShapeValidatorProcessor()
+                new LowercaseShapeValidatorProcessor(),
+                new LongPollingOperationProcessor()
                 );
     }
 }
