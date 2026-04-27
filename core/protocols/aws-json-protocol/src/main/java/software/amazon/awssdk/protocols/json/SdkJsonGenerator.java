@@ -208,6 +208,16 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
     }
 
     @Override
+    public StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
+        try {
+            generator.writeBinary(bytes);
+        } catch (IOException e) {
+            throw new JsonGenerationException(e);
+        }
+        return this;
+    }
+
+    @Override
     //TODO: This date formatting is coupled to AWS's format. Should generalize it
     public StructuredJsonGenerator writeValue(Instant instant) {
         try {

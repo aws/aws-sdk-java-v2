@@ -401,7 +401,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 break;
             case SDK_BYTES:
                 gen.writeFieldName(fieldName);
-                gen.writeValue(((SdkBytes) val).asByteBuffer());
+                gen.writeBinaryValue(((SdkBytes) val).asByteArrayUnsafe());
                 break;
             case SDK_POJO:
                 SimpleTypeJsonMarshaller.SDK_POJO.marshall((SdkPojo) val, marshallerContext,
