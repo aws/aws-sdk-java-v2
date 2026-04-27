@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service",
+    "contributor": "",
+    "description": "Adds tags parameter to the CreateAdConfiguration operation"
+}
