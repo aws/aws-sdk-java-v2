@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix TransferListener callbacks (bytesTransferred, transferComplete) not firing for unknown-content-length uploads via S3TransferManager when the data fits in a single chunk."
-}

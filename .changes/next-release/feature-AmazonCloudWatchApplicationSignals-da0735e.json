@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Application Signals",
-    "contributor": "",
-    "description": "Application Signals now supports creating composite Service Level Objectives on Service Operations. Users can now create service SLO on multiple operations."
-}

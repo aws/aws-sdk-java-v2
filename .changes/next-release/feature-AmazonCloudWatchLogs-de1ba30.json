@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "Adds support for selecting all logs sources and types in a single association."
-}

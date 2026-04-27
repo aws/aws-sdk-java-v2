@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.43.0-SNAPSHOT</version>
+        <version>2.43.0</version>
     </parent>
     <artifactId>interconnect</artifactId>
     <name>AWS Java SDK :: Services :: Interconnect</name>

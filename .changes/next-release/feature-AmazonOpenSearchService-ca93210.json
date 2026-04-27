@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon OpenSearch Service",
-    "contributor": "",
-    "description": "Amazon OpenSearch Service now supports JWKS URL configuration for JWT authentication"
-}

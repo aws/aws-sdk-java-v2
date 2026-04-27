@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add configurable `expectContinueThresholdInBytes` to S3Configuration (default 1 MB). The Expect: 100-continue header is now only added to PutObject and UploadPart requests when the content-length meets or exceeds the threshold, reducing latency overhead for small uploads."
-}
