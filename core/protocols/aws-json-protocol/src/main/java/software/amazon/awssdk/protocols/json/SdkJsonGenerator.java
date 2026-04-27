@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,7 +39,7 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
      * prevent frequent resizings but small enough to avoid wasted allocations for small requests.
      */
     private static final int DEFAULT_BUFFER_SIZE = 1024;
-    private final ExposedByteArrayOutputStream baos = new ExposedByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
+    private final SdkByteArrayOutputStream baos = new SdkByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
     private final JsonGenerator generator;
     private final String contentType;
 
@@ -293,21 +292,17 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
      */
     public int contentSize() {
         close();
-        return baos.size();
+        return baos.contentSize();
     }
 
     /**
-     * Returns a {@link ContentStreamProvider} that wraps the internal buffer directly,
-     * avoiding the contiguous copy that {@link #getBytes()} performs via
-     * {@code ByteArrayOutputStream.toByteArray()}. Each call to
-     * {@link ContentStreamProvider#newStream()} creates a fresh {@code ByteArrayInputStream}
-     * over the same buffer for retry safety.
+     * Returns a {@link ContentStreamProvider} that streams directly from the internal buffers
+     * without creating a contiguous copy. For small payloads this wraps the single base buffer;
+     * for large payloads it chains the base buffer and overflow chunks.
      */
     public ContentStreamProvider contentStreamProvider() {
         close();
-        byte[] buf = baos.buf();
-        int count = baos.size();
-        return () -> new ByteArrayInputStream(buf, 0, count);
+        return baos.contentStreamProvider();
     }
 
     @Override
