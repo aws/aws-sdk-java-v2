@@ -368,22 +368,6 @@ public class EnhancedClientUtilsTest {
     }
 
     @Test
-    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
-        Object result = EnhancedClientUtils.readAndTransformSingleItem(null, mockSchema, null, null);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
-    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
-        Map<String, AttributeValue> emptyMap = Collections.emptyMap();
-
-        Object result = EnhancedClientUtils.readAndTransformSingleItem(emptyMap, mockSchema, null, null);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
     public void getItemsFromSupplier_withNullList_returnsNull() {
         List<Object> result = EnhancedClientUtils.getItemsFromSupplier(null);
 
@@ -399,7 +383,7 @@ public class EnhancedClientUtilsTest {
 
 
     @Test
-    public void readAndTransformSingleItem_nullItemMap_returnsNull() {
+    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
         assertThat(
             EnhancedClientUtils.readAndTransformSingleItem(
                 null,
@@ -410,7 +394,7 @@ public class EnhancedClientUtilsTest {
     }
 
     @Test
-    public void readAndTransformSingleItem_emptyItemMap_returnsNull() {
+    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
         assertThat(
             EnhancedClientUtils.readAndTransformSingleItem(
                 Collections.emptyMap(),
@@ -490,19 +474,5 @@ public class EnhancedClientUtilsTest {
         assertThat(page.count()).isEqualTo(1);
         assertThat(page.scannedCount()).isEqualTo(1);
         assertThat(page.lastEvaluatedKey()).isEqualTo(response.lastKey);
-    }
-
-    @Test
-    public void createKeyFromItem_itemWithPartitionKeyOnly_returnsKeyWithoutSortKey() {
-        FakeItem item = new FakeItem();
-        item.setId("test-id");
-
-        Key key = EnhancedClientUtils.createKeyFromItem(
-            item,
-            FakeItem.getTableSchema(),
-            TableMetadata.primaryIndexName());
-
-        assertThat(key.partitionKeyValue()).isEqualTo(AttributeValue.builder().s("test-id").build());
-        assertThat(key.sortKeyValue()).isEmpty();
     }
 }
