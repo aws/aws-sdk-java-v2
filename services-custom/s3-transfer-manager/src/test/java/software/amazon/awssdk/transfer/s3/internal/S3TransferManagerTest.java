@@ -289,34 +289,53 @@ class S3TransferManagerTest {
     }
 
     @Test
-    void mrapArnProvided_shouldNotThrowException() {
+    void uploadFile_mrapArn_returnsResponse() {
         String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
-
-        PutObjectResponse putResponse = PutObjectResponse.builder().build();
+        PutObjectResponse response = PutObjectResponse.builder().build();
         when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
-            .thenReturn(CompletableFuture.completedFuture(putResponse));
+            .thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletedFileUpload completedFileUpload =
-            tm.uploadFile(b -> b.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                .source(Paths.get(".")))
-               .completionFuture().join();
-        assertThat(completedFileUpload.response()).isEqualTo(putResponse);
+        CompletedFileUpload completedFileUpload = tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
+                                                                      .source(Paths.get(".")))
+                                                    .completionFuture().join();
 
-        CompletedUpload completedUpload =
-            tm.upload(b -> b.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                            .requestBody(AsyncRequestBody.fromString("foo")))
-               .completionFuture().join();
-        assertThat(completedUpload.response()).isEqualTo(putResponse);
+        assertThat(completedFileUpload.response()).isEqualTo(response);
+    }
 
-        GetObjectResponse getResponse = GetObjectResponse.builder().build();
+    @Test
+    void upload_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        PutObjectResponse response = PutObjectResponse.builder().build();
+        when(mockS3Crt.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletedUpload completedUpload = tm.upload(u -> u.putObjectRequest(p -> p.bucket(mrapArn).key("key"))
+                                                          .requestBody(AsyncRequestBody.fromString("foo")))
+                                            .completionFuture().join();
+
+        assertThat(completedUpload.response()).isEqualTo(response);
+    }
+
+    @Test
+    void downloadFile_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        GetObjectResponse response = GetObjectResponse.builder().build();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
-            .thenReturn(CompletableFuture.completedFuture(getResponse));
+            .thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletedFileDownload completedFileDownload =
-            tm.downloadFile(b -> b.getObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                  .destination(Paths.get(".")))
-               .completionFuture().join();
-        assertThat(completedFileDownload.response()).isEqualTo(getResponse);
+        CompletedFileDownload completedFileDownload = tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket(mrapArn).key("key"))
+                                                                            .destination(Paths.get(".")))
+                                                        .completionFuture().join();
+
+        assertThat(completedFileDownload.response()).isEqualTo(response);
+    }
+
+    @Test
+    void download_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
 
         DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
             DownloadRequest.builder()
@@ -325,27 +344,50 @@ class S3TransferManagerTest {
 
         CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload =
             tm.download(downloadRequest).completionFuture().join();
+
         assertThat(completedDownload).isNotNull();
+    }
 
-        CopyObjectResponse copyResponse = CopyObjectResponse.builder().build();
+    @Test
+    void copy_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+        CopyObjectResponse response = CopyObjectResponse.builder().build();
         when(mockS3Crt.copyObject(any(CopyObjectRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(copyResponse));
+            .thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletedCopy completedCopy =
-            tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket(mrapArn)
-                                                    .sourceKey("sourceKey")
-                                                    .destinationBucket("bucket")
-                                                    .destinationKey("destKey")))
-               .completionFuture().join();
-        assertThat(completedCopy.response()).isEqualTo(copyResponse);
+        CompletedCopy completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket(mrapArn)
+                                                                             .sourceKey("sourceKey")
+                                                                             .destinationBucket("bucket")
+                                                                             .destinationKey("destKey")))
+                                        .completionFuture().join();
 
-        completedCopy =
-            tm.copy(b -> b.copyObjectRequest(p -> p.sourceBucket("bucket")
-                                                    .sourceKey("sourceKey")
-                                                    .destinationBucket(mrapArn)
-                                                    .destinationKey("destKey")))
-               .completionFuture().join();
-        assertThat(completedCopy.response()).isEqualTo(copyResponse);
+        assertThat(completedCopy.response()).isEqualTo(response);
+
+        completedCopy = tm.copy(u -> u.copyObjectRequest(p -> p.sourceBucket("bucket")
+                                                               .sourceKey("sourceKey")
+                                                               .destinationBucket(mrapArn)
+                                                               .destinationKey("destKey")))
+                          .completionFuture().join();
+
+        assertThat(completedCopy.response()).isEqualTo(response);
+    }
+
+    @Test
+    void uploadDirectory_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+
+        tm.uploadDirectory(u -> u.source(Paths.get(".")).bucket(mrapArn));
+
+        verify(uploadDirectoryHelper).uploadDirectory(any(UploadDirectoryRequest.class));
+    }
+
+    @Test
+    void downloadDirectory_mrapArn_returnsResponse() {
+        String mrapArn = "arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap";
+
+        tm.downloadDirectory(d -> d.destination(Paths.get(".")).bucket(mrapArn));
+
+        verify(downloadDirectoryHelper).downloadDirectory(any(DownloadDirectoryRequest.class));
     }
 
     @Test
