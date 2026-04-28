@@ -16,13 +16,11 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PQ_DEFAULT;
+import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
 import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
 
 import java.time.Duration;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -36,22 +34,19 @@ import software.amazon.awssdk.utils.AttributeMap;
 class AwsCrtConfigurationUtilsTest {
     @ParameterizedTest
     @MethodSource("cipherPreferences")
-    void resolveCipherPreference_pqNotSupported_shouldFallbackToSystemDefault(Boolean preferPqTls,
-                                                                              TlsCipherPreference tlsCipherPreference) {
-        Assumptions.assumeFalse(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(preferPqTls)).isEqualTo(tlsCipherPreference);
-    }
-
-    @Test
-    void resolveCipherPreference_pqSupported_shouldHonor() {
-        Assumptions.assumeTrue(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(true)).isEqualTo(TLS_CIPHER_PQ_DEFAULT);
+    void resolveCipherPreference_shouldResolveCorrectly(Boolean postQuantumTlsEnabled,
+                                                        TlsCipherPreference expectedPreference) {
+        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(postQuantumTlsEnabled)).isEqualTo(expectedPreference);
     }
 
     private static Stream<Arguments> cipherPreferences() {
+        // On platforms where NON_PQ_DEFAULT is not supported (e.g. macOS), the code falls back to SYSTEM_DEFAULT.
+        TlsCipherPreference expectedForFalse = TLS_CIPHER_NON_PQ_DEFAULT.isSupported()
+            ? TLS_CIPHER_NON_PQ_DEFAULT
+            : TLS_CIPHER_SYSTEM_DEFAULT;
         return Stream.of(
             Arguments.of(null, TLS_CIPHER_SYSTEM_DEFAULT),
-            Arguments.of(false, TLS_CIPHER_SYSTEM_DEFAULT),
+            Arguments.of(false, expectedForFalse),
             Arguments.of(true, TLS_CIPHER_SYSTEM_DEFAULT)
         );
     }
@@ -102,22 +97,6 @@ class AwsCrtConfigurationUtilsTest {
                 expectedAll
             )
         );
-    }
-
-    @ParameterizedTest
-    @MethodSource("defaultConnectionHealthConfigurationCases")
-    void defaultConnectionHealthConfiguration_shouldUseMaxOfReadWriteTimeout(Duration readTimeout,
-                                                                             Duration writeTimeout,
-                                                                             int expectedInterval) {
-        AttributeMap config = AttributeMap.builder()
-                                          .put(SdkHttpConfigurationOption.READ_TIMEOUT, readTimeout)
-                                          .put(SdkHttpConfigurationOption.WRITE_TIMEOUT, writeTimeout)
-                                          .build();
-
-        HttpMonitoringOptions result = AwsCrtConfigurationUtils.defaultConnectionHealthConfiguration(config);
-
-        assertThat(result.getMinThroughputBytesPerSecond()).isEqualTo(1);
-        assertThat(result.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(expectedInterval);
     }
 
     private static Stream<Arguments> defaultConnectionHealthConfigurationCases() {

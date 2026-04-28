@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -53,6 +54,7 @@ public abstract class RequestOverrideConfiguration {
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
     private final EndpointProvider endpointProvider;
+    private final AuthSchemeProvider authSchemeProvider;
     private final CompressionConfiguration compressionConfiguration;
     private final List<SdkPlugin> plugins;
 
@@ -66,6 +68,7 @@ public abstract class RequestOverrideConfiguration {
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
         this.endpointProvider = builder.endpointProvider();
+        this.authSchemeProvider = builder.authSchemeProvider();
         this.compressionConfiguration = builder.compressionConfiguration();
         this.plugins = Collections.unmodifiableList(new ArrayList<>(builder.plugins()));
     }
@@ -178,6 +181,14 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
+     * Returns the auth scheme provider for resolving the auth scheme for this request. This supersedes the
+     * auth scheme provider set on the client.
+     */
+    public Optional<AuthSchemeProvider> authSchemeProvider() {
+        return Optional.ofNullable(authSchemeProvider);
+    }
+
+    /**
      * Returns the compression configuration object, if present, which includes options to enable/disable compression and set
      * the minimum compression threshold. This compression config object supersedes the compression config object set on the
      * client.
@@ -204,6 +215,7 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(metricPublishers, that.metricPublishers) &&
                Objects.equals(executionAttributes, that.executionAttributes) &&
                Objects.equals(endpointProvider, that.endpointProvider) &&
+               Objects.equals(authSchemeProvider, that.authSchemeProvider) &&
                Objects.equals(compressionConfiguration, that.compressionConfiguration) &&
                Objects.equals(plugins, that.plugins);
     }
@@ -220,6 +232,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
         hashCode = 31 * hashCode + Objects.hashCode(endpointProvider);
+        hashCode = 31 * hashCode + Objects.hashCode(authSchemeProvider);
         hashCode = 31 * hashCode + Objects.hashCode(compressionConfiguration);
         hashCode = 31 * hashCode + Objects.hashCode(plugins);
         return hashCode;
@@ -456,12 +469,56 @@ public abstract class RequestOverrideConfiguration {
          * over the endpointProvider set on the client while resolving the endpoint for  the requests.
          * If this value is null, then the client level endpointProvider is used for resolving the endpoint.
          *
-         * @param endpointProvider Endpoint Provider that will override the resolving the endpoint for the request.
+         * @param endpointProvider Endpoint Provider that will override client's configured or default EndpointProvider
+         *                         for the request.
          * @return This object for method chaining
          */
         B endpointProvider(EndpointProvider endpointProvider);
 
         EndpointProvider endpointProvider();
+
+        /**
+         * Sets the auth scheme provider to use for resolving the auth scheme of the request. This auth scheme provider gets
+         * priority over the auth scheme provider set on the client while resolving the auth scheme for the requests.
+         * If this value is null, then the client level auth scheme provider is used for resolving the auth scheme.
+         *
+         * <p>Example — overriding the signing region for a single request:
+         * {@snippet :
+         *   // Create a custom auth scheme provider that overrides the signing region.
+         *   // This wraps the default provider and modifies the resolved auth scheme options.
+         *   S3AuthSchemeProvider defaultProvider = S3AuthSchemeProvider.defaultProvider();
+         *
+         *   S3AuthSchemeProvider customRegionProvider = params -> {
+         *       List<AuthSchemeOption> options = defaultProvider.resolveAuthScheme(params);
+         *       return options.stream()
+         *                     .map(option -> option.toBuilder()
+         *                                          .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "eu-west-1")
+         *                                          .build())
+         *                     .collect(Collectors.toList());
+         *   };
+         *
+         *   S3Client s3 = S3Client.builder()
+         *                         .region(Region.US_EAST_1)
+         *                         .build();
+         *
+         *   // Override the auth scheme provider for a single request
+         *   GetObjectResponse response = s3.getObject(
+         *       GetObjectRequest.builder()
+         *           .bucket("my-bucket")
+         *           .key("my-key")
+         *           .overrideConfiguration(c -> c.authSchemeProvider(customRegionProvider))
+         *           .build(),
+         *       ResponseTransformer.toBytes()
+         *   );
+         * }
+         *
+         * @param authSchemeProvider Auth scheme provider that will override the client's configured or default
+         *                           AuthSchemeProvider for the request.
+         * @return This object for method chaining
+         */
+        B authSchemeProvider(AuthSchemeProvider authSchemeProvider);
+
+        AuthSchemeProvider authSchemeProvider();
 
         /**
          * Sets the {@link CompressionConfiguration} for this request. The order of precedence, from highest to lowest,
@@ -546,6 +603,7 @@ public abstract class RequestOverrideConfiguration {
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
         private EndpointProvider endpointProvider;
+        private AuthSchemeProvider authSchemeProvider;
         private CompressionConfiguration compressionConfiguration;
         private List<SdkPlugin> plugins = new ArrayList<>();
 
@@ -563,6 +621,7 @@ public abstract class RequestOverrideConfiguration {
             metricPublishers(sdkRequestOverrideConfig.metricPublishers());
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
             endpointProvider(sdkRequestOverrideConfig.endpointProvider);
+            authSchemeProvider(sdkRequestOverrideConfig.authSchemeProvider);
             compressionConfiguration(sdkRequestOverrideConfig.compressionConfiguration);
             plugins(sdkRequestOverrideConfig.plugins);
         }
@@ -732,6 +791,21 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public EndpointProvider endpointProvider() {
             return endpointProvider;
+        }
+
+        @Override
+        public B authSchemeProvider(AuthSchemeProvider authSchemeProvider) {
+            this.authSchemeProvider = authSchemeProvider;
+            return (B) this;
+        }
+
+        public void setAuthSchemeProvider(AuthSchemeProvider authSchemeProvider) {
+            authSchemeProvider(authSchemeProvider);
+        }
+
+        @Override
+        public AuthSchemeProvider authSchemeProvider() {
+            return authSchemeProvider;
         }
 
         @Override

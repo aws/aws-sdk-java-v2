@@ -26,10 +26,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 
 /**
  * Ensure classes annotated with SdkPublicApi, SdkProtectedApi, and SdkInternalApis are in the right package.
@@ -55,6 +58,14 @@ public class PackageContainmentTest {
     private static final Set<Pattern> ALLOWED_INTERNAL_APIS_OUTSIDE_OF_INTERNAL_PACKAGE = new HashSet<>(
         Arrays.asList(TRANSFORM_PACKAGE, MODEL_PACKAGE, ENDPOINTS_CONTEXT));
 
+    /**
+     * Suppressions for APIs that are in '.internal.' packages, but are used outside of the module; i.e. they are APIs that
+     * began as internal but moved to protected at a later time.
+     */
+    private static final Set<Pattern> ALLOWED_PROTECTED_APIS_IN_INTERNAL_PACKAGE = Stream.of(
+        Pattern.compile(".*/software/amazon/awssdk/core/internal/http/loader/DefaultSdkHttpClientBuilder\\.class")
+    ).collect(Collectors.toSet());
+
     @Test
     public void internalAPIs_shouldResideInInternalPackage() {
         JavaClasses importedClasses = new ClassFileImporter()
@@ -77,7 +88,9 @@ public class PackageContainmentTest {
     @Test
     public void publicAndProtectedAPIs_mustNotResideInInternalPackage() {
         JavaClasses importedClasses = new ClassFileImporter()
-            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
+            .withImportOptions(Arrays.asList(
+                location -> ALLOWED_PROTECTED_APIS_IN_INTERNAL_PACKAGE.stream().noneMatch(location::matches),
+                new ImportOption.Predefined.DoNotIncludeTests()))
             .importPackages("software.amazon.awssdk");
 
         ArchRule rule =
