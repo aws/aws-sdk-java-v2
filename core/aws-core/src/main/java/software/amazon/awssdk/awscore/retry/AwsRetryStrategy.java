@@ -18,9 +18,11 @@ package software.amazon.awssdk.awscore.retry;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
@@ -135,7 +137,7 @@ public final class AwsRetryStrategy {
      */
     public static StandardRetryStrategy standardRetryStrategy(boolean newRetries2026Enabled) {
         StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder(newRetries2026Enabled);
-        return configure(builder).build();
+        return configure(builder, newRetries2026Enabled).build();
     }
 
     /**
@@ -167,7 +169,7 @@ public final class AwsRetryStrategy {
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy(boolean newRetries2026Enabled) {
         AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(newRetries2026Enabled);
-        return configure(builder)
+        return configure(builder, newRetries2026Enabled)
             .build();
     }
 
@@ -179,7 +181,22 @@ public final class AwsRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
+        return configure(builder, false);
+    }
+
+    /**
+     * Configures a retry strategy using its builder to add AWS-specific retry exceptions.
+     *
+     * @param builder The builder to add the AWS-specific retry exceptions
+     * @param <T>     The type of the builder extending {@link RetryStrategy.Builder}
+     * @return The given builder
+     */
+    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, boolean newRetries2026Enabled) {
         builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        if (newRetries2026Enabled) {
+            builder.retryOnException(AwsRetryStrategy::isLimitExceededErrorCode);
+            builder.treatAsThrottling(AwsRetryStrategy::treatAsThrottlingV21);
+        }
         markDefaultsAdded(builder);
         return builder;
     }
@@ -203,6 +220,25 @@ public final class AwsRetryStrategy {
             return AwsErrorCode.RETRYABLE_ERROR_CODES.contains(exception.awsErrorDetails().errorCode());
         }
         return false;
+    }
+
+    /**
+     * Additionally, check for LimitExceededException as it was not previously treated as a throttling exception.
+     */
+    private static boolean treatAsThrottlingV21(Throwable ex) {
+        if (!(ex instanceof SdkException)) {
+            return false;
+        }
+
+        SdkException sdkException = (SdkException) ex;
+
+        return RetryUtils.isThrottlingException(sdkException)
+               || isLimitExceededErrorCode(sdkException);
+    }
+
+    private static boolean isLimitExceededErrorCode(Throwable ex) {
+        return ex instanceof AwsServiceException
+               && "LimitExceededException".equals(((AwsServiceException) ex).awsErrorDetails().errorCode());
     }
 
     /**

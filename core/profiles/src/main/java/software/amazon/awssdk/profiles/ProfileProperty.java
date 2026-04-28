@@ -112,6 +112,12 @@ public final class ProfileProperty {
     public static final String RETRY_MODE = "retry_mode";
 
     /**
+     * How many HTTP requests an SDK should make for a single SDK operation invocation before giving up. See the JavaDocs for
+     * {@code SdkSystemSetting.AWS_MAX_ATTEMPTS} and {@code RetryStrategy.maxAttempts()} for more information.
+     */
+    public static final String MAX_ATTEMPTS = "max_attempts";
+
+    /**
      * The "defaults mode" to be used for clients created using the currently-configured profile. Defaults mode determins how SDK
      * default configuration should be resolved. See the {@code DefaultsMode} class JavaDoc for more
      * information.
