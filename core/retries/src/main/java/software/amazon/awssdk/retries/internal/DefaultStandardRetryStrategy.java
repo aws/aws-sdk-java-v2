@@ -16,6 +16,7 @@
 package software.amazon.awssdk.retries.internal;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class DefaultStandardRetryStrategy
     extends BaseRetryStrategy implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy.class);
+    private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
     private final boolean retries2026Enabled;
 
     DefaultStandardRetryStrategy(Builder builder) {
@@ -54,6 +56,38 @@ public final class DefaultStandardRetryStrategy
                                                                                    .increaseAttempt()
                                                                                    .build();
         return computeBackoff(request, attemptIncremented);
+    }
+
+    @Override
+    protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
+        if (!retries2026Enabled) {
+            return super.computeBackoff(request, token);
+        }
+
+        Duration strategyBackoff;
+        if (treatAsThrottling.test(request.failure())) {
+            strategyBackoff = throttlingBackoffStrategy.computeDelay(token.attempt());
+        } else {
+            strategyBackoff = backoffStrategy.computeDelay(token.attempt());
+        }
+
+        Optional<Duration> optionalSuggested = request.suggestedDelay();
+
+        if (!optionalSuggested.isPresent()) {
+            return strategyBackoff;
+        }
+
+        // the suggested delay needs to be at least what the strategy computed, OR
+        // not greater than 5s more than what the strat computed
+        Duration minBackoff = strategyBackoff;
+        Duration maxBackoff = strategyBackoff.plus(FIVE_SECONDS);
+
+        Duration backoff = optionalSuggested.get();
+
+        backoff = maxOf(minBackoff, backoff);
+        backoff = minOf(maxBackoff, backoff);
+
+        return backoff;
     }
 
     public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
