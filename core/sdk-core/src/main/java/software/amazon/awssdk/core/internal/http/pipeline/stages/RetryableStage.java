@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipel
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.Either;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clock-skew and request throttling functionality.
@@ -64,12 +65,19 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 }
                 retryableStageHelper.setLastException(throwable);
                 Duration suggestedDelay = suggestedDelay(e);
-                Optional<Duration> backoffDelay = retryableStageHelper.tryRefreshToken(suggestedDelay);
-                if (backoffDelay.isPresent()) {
-                    Duration delay = backoffDelay.get();
+                Either<Duration, Duration> backoffDelay = retryableStageHelper.tryRefreshToken(suggestedDelay);
+                Optional<Duration> successDelay = backoffDelay.left();
+                if (successDelay.isPresent()) {
+                    Duration delay = successDelay.get();
                     retryableStageHelper.logBackingOff(delay);
                     TimeUnit.MILLISECONDS.sleep(delay.toMillis());
                 } else {
+                    Optional<Duration> failureDelay = backoffDelay.right();
+                    if (failureDelay.isPresent()) {
+                        Duration delay = failureDelay.get();
+                        retryableStageHelper.logAcquireFailureBackingOff(delay);
+                        TimeUnit.MILLISECONDS.sleep(delay.toMillis());
+                    }
                     throw retryableStageHelper.retryPolicyDisallowedRetryException();
                 }
             }
