@@ -567,6 +567,19 @@ public class AwsExecutionContextBuilderTest {
         assertThat(executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)).isTrue();
     }
 
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_newRetries2026EnabledConfig_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.NEW_RETRIES_2026_ENABLED, true)
+            .build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes()
+                                   .getAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)).isTrue();
+    }
+
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
         return clientExecutionParams(sdkRequest);
     }

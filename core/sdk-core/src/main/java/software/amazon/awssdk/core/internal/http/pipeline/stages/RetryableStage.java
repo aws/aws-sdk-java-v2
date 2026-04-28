@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.utils.Either;
 @SdkInternalApi
 public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
     private static final String RETRY_AFTER_HEADER = "Retry-After";
+    private static final String X_AMZ_RETRY_AFTER_HEADER = "x-amz-retry-after";
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
     private final HttpClientDependencies dependencies;
 
@@ -87,7 +89,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
     private Duration suggestedDelay(Exception e) {
         if (e instanceof SdkExceptionWithRetryAfterHint) {
             SdkExceptionWithRetryAfterHint except = (SdkExceptionWithRetryAfterHint) e;
-            return Duration.ofSeconds(except.retryAfter());
+            return except.retryAfter();
         }
         return Duration.ZERO;
     }
@@ -102,52 +104,77 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         retryableStageHelper.setLastResponse(response.httpResponse());
         if (!response.isSuccess()) {
             retryableStageHelper.adjustClockIfClockSkew(response);
-            throw responseException(response);
+            throw responseException(response, context);
         }
         return response;
     }
 
-    private RuntimeException responseException(Response<OutputT> response) {
-        Optional<Integer> optionalRetryAfter = retryAfter(response.httpResponse());
+    private RuntimeException responseException(Response<OutputT> response, RequestExecutionContext context) {
+        Optional<Duration> optionalRetryAfter;
+        if (newRetries2026Enabled(context)) {
+            optionalRetryAfter = xAmzRetryAfter(response.httpResponse());
+        } else {
+            optionalRetryAfter = retryAfter(response.httpResponse());
+        }
+
         if (optionalRetryAfter.isPresent()) {
             return new SdkExceptionWithRetryAfterHint(optionalRetryAfter.get(), response.exception());
         }
         return response.exception();
     }
 
-    private Optional<Integer> retryAfter(SdkHttpFullResponse response) {
-        Optional<String> optionalRetryAfterHeader = response.firstMatchingHeader(RETRY_AFTER_HEADER);
-        if (optionalRetryAfterHeader.isPresent()) {
-            String retryAfterHeader = optionalRetryAfterHeader.get();
+    /**
+     * Returns the suggested backoff delay based on the 'x-amz-retry-after' header value in the response.
+     */
+    private Optional<Duration> xAmzRetryAfter(SdkHttpFullResponse response) {
+        Optional<String> optionalXAmzRetryAfter = response.firstMatchingHeader(X_AMZ_RETRY_AFTER_HEADER);
+        return optionalXAmzRetryAfter.map(xAmzRetryAfter -> {
             try {
-                return Optional.of(Integer.parseInt(retryAfterHeader));
+                return Duration.ofMillis(Integer.parseInt(xAmzRetryAfter));
             } catch (NumberFormatException e) {
                 // Ignore and fallback to returning empty.
+                return null;
             }
-        }
-        return Optional.empty();
+        });
+    }
+
+    /**
+     * Returns the suggested backoff delay based on the 'Retry-After' header value in the response.
+     */
+    private Optional<Duration> retryAfter(SdkHttpFullResponse response) {
+        Optional<String> optionalRetryAfterHeader = response.firstMatchingHeader(RETRY_AFTER_HEADER);
+        return optionalRetryAfterHeader.map(retryAfterHeader -> {
+            try {
+                return Duration.ofSeconds(Integer.parseInt(retryAfterHeader));
+            } catch (NumberFormatException e) {
+                // Ignore and fallback to returning empty.
+                return null;
+            }
+        });
+    }
+
+    private boolean newRetries2026Enabled(RequestExecutionContext executionContext) {
+        return executionContext.executionAttributes()
+                               .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
+                               .orElse(false);
     }
 
     // This probably should go directly into SdkException
     static class SdkExceptionWithRetryAfterHint extends RuntimeException {
         private final SdkException cause;
-        private final int seconds;
+        private final Duration delay;
 
-        SdkExceptionWithRetryAfterHint(int seconds, SdkException cause) {
-            this.seconds = seconds;
+        SdkExceptionWithRetryAfterHint(Duration delay, SdkException cause) {
+            this.delay = delay;
             this.cause = cause;
         }
 
-        public int retryAfter() {
-            return seconds;
+        public Duration retryAfter() {
+            return delay;
         }
 
         public SdkException cause() {
             return cause;
-        }
-
-        public int seconds() {
-            return seconds;
         }
     }
 }

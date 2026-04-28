@@ -259,6 +259,10 @@ public final class RetryableStageHelper {
         this.lastResponse = lastResponse;
     }
 
+    public SdkHttpResponse getLastResponse() {
+        return lastResponse;
+    }
+
     /**
      * Returns true if this is the first attempt.
      */

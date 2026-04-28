@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.NEW_RETRIES_2026_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 
 import java.util.stream.Stream;
@@ -60,7 +61,7 @@ public class InternalDefaultsTest {
     @ParameterizedTest(name = "system prop = {0}, env var = {1}, default cfg = {2}, expected = {3}")
     @MethodSource("newRetries2026Settings")
     void buildClient_precedenceIsCorrect(String systemProperty, String environmentVariable, Boolean defaultConfig,
-                                         Class<?> retryStrategyClass) {
+                                         Class<?> retryStrategyClass, boolean newRetries2026Enabled) {
         EnvironmentVariableHelper.run((env) -> {
             if (environmentVariable != null) {
                 env.set(SdkSystemSetting.AWS_NEW_RETRIES_2026.environmentVariable(), environmentVariable);
@@ -80,23 +81,26 @@ public class InternalDefaultsTest {
 
             assertThat(sync.clientConfiguration.option(RETRY_STRATEGY)).isInstanceOf(retryStrategyClass);
             assertThat(async.clientConfiguration.option(RETRY_STRATEGY)).isInstanceOf(retryStrategyClass);
+
+            assertThat(sync.clientConfiguration.option(NEW_RETRIES_2026_ENABLED)).isEqualTo(newRetries2026Enabled);
+            assertThat(async.clientConfiguration.option(NEW_RETRIES_2026_ENABLED)).isEqualTo(newRetries2026Enabled);
         });
     }
 
     // system property, environment variable, default config, expected retry strategy
     static Stream<Arguments> newRetries2026Settings() {
         return Stream.of(
-            Arguments.of(null, null, null, LegacyRetryStrategy.class),
+            Arguments.of(null, null, null, LegacyRetryStrategy.class, false),
 
-            Arguments.of("true", null, null, StandardRetryStrategy.class),
-            Arguments.of("false", null, null, LegacyRetryStrategy.class),
-            Arguments.of(null, "true", null, StandardRetryStrategy.class),
-            Arguments.of(null, "false", null, LegacyRetryStrategy.class),
-            Arguments.of(null, null, true, StandardRetryStrategy.class),
-            Arguments.of(null, null, false, LegacyRetryStrategy.class),
+            Arguments.of("true", null, null, StandardRetryStrategy.class, true),
+            Arguments.of("false", null, null, LegacyRetryStrategy.class, false),
+            Arguments.of(null, "true", null, StandardRetryStrategy.class, true),
+            Arguments.of(null, "false", null, LegacyRetryStrategy.class, false),
+            Arguments.of(null, null, true, StandardRetryStrategy.class, true),
+            Arguments.of(null, null, false, LegacyRetryStrategy.class, false),
 
-            Arguments.of("true", null, false, StandardRetryStrategy.class),
-            Arguments.of(null, "true", false, StandardRetryStrategy.class)
+            Arguments.of("true", null, false, StandardRetryStrategy.class, true),
+            Arguments.of(null, "true", false, StandardRetryStrategy.class, true)
             );
     }
 
