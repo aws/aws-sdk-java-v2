@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client.specs;
 
 import static software.amazon.awssdk.codegen.model.intermediate.Protocol.AWS_JSON;
+import static javax.lang.model.element.Modifier.PRIVATE;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -167,12 +168,18 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
         CodeBlock.Builder builder = CodeBlock.builder();
-        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
-            ClassName.get(Function.class),
-            ClassName.get(String.class),
-            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
 
-        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, this::exceptionMetadataMapper);",
+                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
+
+        return Optional.of(builder.build());
+    }
+
+    @Override
+    public Optional<MethodSpec> errorResponseHandlerProvider(IntermediateModel model) {
+
+        CodeBlock.Builder builder = CodeBlock.builder();
+
         builder.add("if (errorCode == null) {\n");
         builder.add("return $T.empty();\n", Optional.class);
         builder.add("}\n");
@@ -194,12 +201,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         builder.add("default: return $T.empty();\n", Optional.class);
         builder.add("}\n");
-        builder.add("};\n");
 
-        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
-                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
-
-        return Optional.of(builder.build());
+        MethodSpec.Builder method = MethodSpec.methodBuilder("exceptionMetadataMapper")
+                                    .addModifiers(PRIVATE)
+                                    .addParameter(String.class, "errorCode")
+                                    .addCode(builder.build())
+                                    .returns(ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+        return Optional.of(method.build());
     }
 
     @Override
