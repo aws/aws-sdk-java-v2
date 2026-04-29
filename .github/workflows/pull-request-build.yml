@@ -24,11 +24,8 @@ jobs:
       issues: write
       pull-requests: write
       contents: read
-    # For fork PRs, require manual approval via the "fork-ci" environment.
-    # Internal PRs and merge_group events run immediately (no environment gate).
-    # Setup: create a "fork-ci" environment in repo Settings > Environments with
-    #   - Required reviewers: your maintainer team
-    #   - Move PR_WORKFLOW_IAM_ROLE_ARN to the environment's secrets
+    # Fork PRs, require manual approval via the "fork-ci" environment.
+    # Internal PRs and merge_group events run with no environment gate.
     environment: >-
       ${{
         github.event_name == 'pull_request_target' &&
