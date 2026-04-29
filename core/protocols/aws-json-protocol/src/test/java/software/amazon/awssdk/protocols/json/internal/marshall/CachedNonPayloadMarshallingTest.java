@@ -40,9 +40,6 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
  * Tests that the cached non-payload marshalling path in
  * {@link JsonProtocolMarshaller#marshallFieldViaRegistry} produces correct output
  * and that the cache is populated after the first call.
- *
- * <p><b>Validates: Property 3 — Cached non-payload marshalling equivalence</b></p>
- * <p><b>Validates: Requirements 7.3, 7.4</b></p>
  */
 class CachedNonPayloadMarshallingTest {
 
@@ -107,8 +104,6 @@ class CachedNonPayloadMarshallingTest {
             .isNotNull()
             .containsExactly("paramValue");
     }
-
-    // ---- Helper methods ----
 
     private static SdkField<String> headerField(String headerName,
                                                  java.util.function.Function<Object, String> getter) {

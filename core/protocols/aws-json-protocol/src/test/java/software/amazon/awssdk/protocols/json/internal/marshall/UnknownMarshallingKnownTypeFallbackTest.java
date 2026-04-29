@@ -41,8 +41,6 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
 /**
  * Tests that when {@code getKnownType()} returns null, the marshaller falls back to the
  * registry-based path without throwing a {@link NullPointerException} from the switch statement.
- *
- * <p><b>Validates: Requirements 1.3, 1.4</b></p>
  */
 class UnknownMarshallingKnownTypeFallbackTest {
 
@@ -79,15 +77,6 @@ class UnknownMarshallingKnownTypeFallbackTest {
         }
     };
 
-    /**
-     * Validates Requirement 1.4: When {@code getKnownType()} returns null, the marshaller falls back
-     * to the registry-based path without throwing a NullPointerException from the switch statement.
-     *
-     * <p>Since the custom type is not registered in the static MARSHALLER_REGISTRY, the registry
-     * fallback will fail — but the failure must NOT be a NullPointerException from the switch.
-     * It should be a NullPointerException from invoking {@code .marshall()} on the null result
-     * returned by the registry lookup (since the custom type is unregistered).</p>
-     */
     @Test
     void nullKnownType_fallsBackToRegistryPath_doesNotThrowNpeFromSwitch() {
         SdkField<String> field = SdkField.<String>builder(CUSTOM_NULL_KNOWN_TYPE)
@@ -127,11 +116,6 @@ class UnknownMarshallingKnownTypeFallbackTest {
             });
     }
 
-    /**
-     * Validates Requirement 1.3: A standard MarshallingType (STRING) with a known type is handled
-     * by the switch path, confirming the switch dispatch works for recognized types.
-     * This serves as a control test — if the switch were broken, this would fail too.
-     */
     @Test
     void knownType_string_isHandledBySwitchPath() {
         SdkField<String> field = SdkField.<String>builder(MarshallingType.STRING)
@@ -150,8 +134,6 @@ class UnknownMarshallingKnownTypeFallbackTest {
         String body = bodyAsString(result);
         assertThat(body).contains("\"normalField\":\"hello\"");
     }
-
-    // ---- Helper methods ----
 
     private static ProtocolMarshaller<SdkHttpFullRequest> createMarshaller() {
         return JsonProtocolMarshallerBuilder.create()

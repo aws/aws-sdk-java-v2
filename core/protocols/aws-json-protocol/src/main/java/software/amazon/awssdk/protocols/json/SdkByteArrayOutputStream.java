@@ -24,46 +24,28 @@ import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * A {@link ByteArrayOutputStream} subclass that behaves identically to the JDK implementation for
- * small payloads, but caps internal buffer growth to avoid G1GC humongous object allocations for
+ * small payloads, but caps internal buffer growth to avoid large object allocations for
  * large payloads.
  *
- * <p><b>How it works:</b> Writes flow into the inherited {@code ByteArrayOutputStream} buffer
+ * <p>
+ * Writes flow into the inherited {@code ByteArrayOutputStream} buffer
  * normally. When a write would cause the buffer to grow beyond {@link #MAX_BUFFER_SIZE}, the
  * current buffer contents are frozen into the first "chunk" and subsequent writes go into
  * fixed-size overflow chunks ({@link #CHUNK_SIZE} bytes each). No single allocation ever exceeds
  * {@code MAX_BUFFER_SIZE}.
  *
- * <p><b>Performance characteristics:</b>
- * <ul>
- *   <li>Payloads &le; {@code MAX_BUFFER_SIZE}: Identical to {@code ByteArrayOutputStream} — the
- *       JIT can inline and optimize the write path exactly as it does for the stock class. Zero
- *       overhead.</li>
- *   <li>Payloads &gt; {@code MAX_BUFFER_SIZE}: Overflow writes go through a simple chunked path.
- *       This is slightly slower per-byte than {@code ByteArrayOutputStream}'s doubling strategy,
- *       but avoids allocations that exceed half the G1 region size.</li>
- * </ul>
- *
- * <p>This class is not thread-safe.
  */
+@NotThreadSafe
 @SdkInternalApi
 final class SdkByteArrayOutputStream extends ByteArrayOutputStream {
-
-    /**
-     * Maximum size of the primary ByteArrayOutputStream buffer before overflow kicks in.
-     * Chosen to be well below the G1 humongous threshold (region_size / 2). With a 4 GB heap
-     * the default region size is 2 MB, so humongous threshold is 1 MB. 128 KB is safely below
-     * that for any reasonable heap size (humongous threshold is 512 KB for a 256 MB heap).
-     */
-    static final int MAX_BUFFER_SIZE = 128 * 1024;
-
-    /**
-     * Size of each overflow chunk. 64 KB is well below any G1 humongous threshold.
-     */
+    // 128 KB, choosen to be well below 1 MB "humongous threshold" for most heap sizes
+    static final int MAX_BUFFER_SIZE = 128 * 1024; 
     static final int CHUNK_SIZE = 64 * 1024;
 
     private List<byte[]> overflowChunks;
