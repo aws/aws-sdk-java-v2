@@ -530,7 +530,10 @@
          whose NULL marshallers handle null validation. -->
     <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshaller"/>
-        <Method name="doMarshall"/>
+        <Or>
+            <Method name="doMarshall"/>
+            <Method name="marshallFieldViaRegistry"/>
+        </Or>
         <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
     </Match>
 </FindBugsFilter>

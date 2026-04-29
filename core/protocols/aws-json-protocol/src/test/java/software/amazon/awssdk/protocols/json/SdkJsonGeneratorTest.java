@@ -21,11 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
@@ -176,6 +178,133 @@ public class SdkJsonGeneratorTest {
 
     private JsonNode toJsonNode() throws IOException {
         return JsonNode.parser().parse(new ByteArrayInputStream(jsonGenerator.getBytes()));
+    }
+
+    @Test
+    public void contentSize_matchesGetBytesLength() {
+        SdkJsonGenerator gen = newSdkJsonGenerator();
+        gen.writeStartObject();
+        gen.writeFieldName("key").writeValue("value");
+        gen.writeFieldName("num").writeValue(42);
+        gen.writeEndObject();
+
+        byte[] bytes = gen.getBytes();
+
+        SdkJsonGenerator gen2 = newSdkJsonGenerator();
+        gen2.writeStartObject();
+        gen2.writeFieldName("key").writeValue("value");
+        gen2.writeFieldName("num").writeValue(42);
+        gen2.writeEndObject();
+
+        assertEquals(bytes.length, gen2.contentSize());
+    }
+
+    @Test
+    public void contentStreamProvider_producesSameBytesAsGetBytes() throws IOException {
+        SdkJsonGenerator gen = newSdkJsonGenerator();
+        gen.writeStartObject();
+        gen.writeFieldName("hello").writeValue("world");
+        gen.writeFieldName("count").writeValue(123);
+        gen.writeEndObject();
+
+        byte[] expected = gen.getBytes();
+
+        SdkJsonGenerator gen2 = newSdkJsonGenerator();
+        gen2.writeStartObject();
+        gen2.writeFieldName("hello").writeValue("world");
+        gen2.writeFieldName("count").writeValue(123);
+        gen2.writeEndObject();
+
+        ContentStreamProvider provider = gen2.contentStreamProvider();
+        byte[] actual = readAllBytes(provider.newStream());
+
+        assertTrue(java.util.Arrays.equals(expected, actual),
+            "contentStreamProvider should produce identical bytes to getBytes");
+    }
+
+    @Test
+    public void contentStreamProvider_isResettable() throws IOException {
+        SdkJsonGenerator gen = newSdkJsonGenerator();
+        gen.writeStartObject();
+        gen.writeFieldName("data").writeValue("test");
+        gen.writeEndObject();
+
+        ContentStreamProvider provider = gen.contentStreamProvider();
+        byte[] first = readAllBytes(provider.newStream());
+        byte[] second = readAllBytes(provider.newStream());
+
+        assertTrue(java.util.Arrays.equals(first, second),
+            "Multiple calls to newStream() should produce identical content");
+        assertTrue(first.length > 0, "Content should not be empty");
+    }
+
+    @Test
+    public void emptyGenerator_contentSizeIsZero() throws IOException {
+        SdkJsonGenerator gen = newSdkJsonGenerator();
+        assertEquals(0, gen.contentSize());
+
+        ContentStreamProvider provider = gen.contentStreamProvider();
+        assertTrue(provider != null, "Provider should not be null even for empty content");
+        byte[] content = readAllBytes(provider.newStream());
+        assertEquals(0, content.length, "Empty generator should produce empty stream");
+    }
+
+    @Test
+    public void largePayload_contentStreamProviderStreamsCorrectData() throws IOException {
+        // Generate JSON exceeding 64 KB to verify contentStreamProvider works for large payloads
+        SdkJsonGenerator gen = newSdkJsonGenerator();
+        gen.writeStartObject();
+        gen.writeFieldName("items");
+        gen.writeStartArray();
+        for (int i = 0; i < 2000; i++) {
+            gen.writeStartObject();
+            gen.writeFieldName("index").writeValue(i);
+            gen.writeFieldName("description").writeValue(
+                "This is a moderately long string value for item number " + i +
+                " that helps push the total payload size beyond the 64KB chunk boundary.");
+            gen.writeEndObject();
+        }
+        gen.writeEndArray();
+        gen.writeEndObject();
+
+        byte[] expected = gen.getBytes();
+        assertTrue(expected.length > 64 * 1024, "Payload should exceed 64 KB");
+
+        SdkJsonGenerator gen2 = newSdkJsonGenerator();
+        gen2.writeStartObject();
+        gen2.writeFieldName("items");
+        gen2.writeStartArray();
+        for (int i = 0; i < 2000; i++) {
+            gen2.writeStartObject();
+            gen2.writeFieldName("index").writeValue(i);
+            gen2.writeFieldName("description").writeValue(
+                "This is a moderately long string value for item number " + i +
+                " that helps push the total payload size beyond the 64KB chunk boundary.");
+            gen2.writeEndObject();
+        }
+        gen2.writeEndArray();
+        gen2.writeEndObject();
+
+        assertEquals(expected.length, gen2.contentSize());
+        byte[] actual = readAllBytes(gen2.contentStreamProvider().newStream());
+        assertTrue(java.util.Arrays.equals(expected, actual),
+            "Large payload should stream correctly via contentStreamProvider");
+    }
+
+    private SdkJsonGenerator newSdkJsonGenerator() {
+        return new SdkJsonGenerator(JsonFactory.builder()
+                                               .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+                                               .build(), "application/json");
+    }
+
+    private static byte[] readAllBytes(InputStream is) throws IOException {
+        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
+        int n;
+        while ((n = is.read(buf)) != -1) {
+            bos.write(buf, 0, n);
+        }
+        return bos.toByteArray();
     }
 
 }
