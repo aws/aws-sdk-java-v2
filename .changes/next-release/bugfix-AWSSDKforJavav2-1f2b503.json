@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed deserialization failure for JSON responses containing field names longer than 50,000 characters. Services like DynamoDB allow attribute names up to 65,535 bytes, which exceeded Jackson's default `maxNameLength` limit."
+}
