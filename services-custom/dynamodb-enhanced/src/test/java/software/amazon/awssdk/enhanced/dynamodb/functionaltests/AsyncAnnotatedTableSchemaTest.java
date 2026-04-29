@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
@@ -175,9 +173,9 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
         Long actualWriteCapacityUnits = tableDescription.provisionedThroughput().writeCapacityUnits();
 
-        assertThat(actualTableName, is(getConcreteTableName(tableName)));
-        assertThat(actualReadCapacityUnits, is(0L));
-        assertThat(actualWriteCapacityUnits, is(0L));
+        assertThat(actualTableName).isEqualTo(getConcreteTableName(tableName));
+        assertThat(actualReadCapacityUnits).isEqualTo(0L);
+        assertThat(actualWriteCapacityUnits).isEqualTo(0L);
 
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName(tableName))
@@ -207,9 +205,9 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Long actualReadCapacityUnits = tableDescription.provisionedThroughput().readCapacityUnits();
         Long actualWriteCapacityUnits = tableDescription.provisionedThroughput().writeCapacityUnits();
 
-        assertThat(actualTableName, is(getConcreteTableName(tableName)));
-        assertThat(actualReadCapacityUnits, is(getDefaultProvisionedThroughput().readCapacityUnits()));
-        assertThat(actualWriteCapacityUnits, is(getDefaultProvisionedThroughput().writeCapacityUnits()));
+        assertThat(actualTableName).isEqualTo(getConcreteTableName(tableName));
+        assertThat(actualReadCapacityUnits).isEqualTo(getDefaultProvisionedThroughput().readCapacityUnits());
+        assertThat(actualWriteCapacityUnits).isEqualTo(getDefaultProvisionedThroughput().writeCapacityUnits());
 
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName(tableName))
@@ -250,7 +248,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object item = fullItem.apply(factory);
 
         Object result = mappedTable.getItem(item).join();
-        assertThat(result, is(nullValue()));
+        assertThat(result).isNull();
     }
 
     @Test
@@ -258,8 +256,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         GetItemEnhancedResponse<Object> getItemEnhancedResponse =
             mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
-        assertThat(getItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(getItemEnhancedResponse.consumedCapacity(), is(nullValue()));
+        assertThat(getItemEnhancedResponse.attributes()).isNull();
+        assertThat(getItemEnhancedResponse.consumedCapacity()).isNull();
     }
 
     @Test
@@ -268,7 +266,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.putItem(item).join();
 
         Object result = mappedTable.getItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
     }
 
     @Test
@@ -277,7 +275,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.putItem(item).join();
 
         Object result = mappedTable.getItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
     }
 
     @Test
@@ -292,7 +290,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         drainPublisher(publisher, 1);
 
         Object result = mappedTable.getItem(item2).join();
-        assertThat(result, is(item2));
+        assertThat(result).isEqualTo(item2);
     }
 
     @Test
@@ -304,8 +302,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         GetItemEnhancedResponse<Object> getItemEnhancedResponse =
             mappedTable.getItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
-        assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(getItemEnhancedResponse.attributes(), is(item));
+        assertThat(putItemEnhancedResponse.attributes()).isNull();
+        assertThat(getItemEnhancedResponse.attributes()).isEqualTo(item);
     }
 
     @Test
@@ -329,7 +327,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
                                                   .build()).join();
 
         Object result = mappedTable.getItem(updated).join();
-        assertThat(result, is(updated));
+        assertThat(result).isEqualTo(updated);
     }
 
     @Test
@@ -366,7 +364,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object updated = updatedItem.apply(factory);
 
         Object result = mappedTable.updateItem(updated).join();
-        assertThat(result, is(updated));
+        assertThat(result).isEqualTo(updated);
 
         SdkPublisher<Object> publisher = mappedTable.scan().items();
         drainPublisher(publisher, 1);
@@ -377,7 +375,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object item = fullItem.apply(factory);
 
         Object result = mappedTable.updateItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
     }
 
     @Test
@@ -385,12 +383,12 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object item = partialItem.apply(factory);
 
         Object result = mappedTable.updateItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
 
         Object full = fullItem.apply(factory);
 
         result = mappedTable.updateItem(full).join();
-        assertThat(result, is(full));
+        assertThat(result).isEqualTo(full);
     }
 
     @Test
@@ -401,7 +399,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object updatedNullString = updatedItemWithNullString.apply(factory);
 
         Object result = mappedTable.updateItem(updatedNullString).join();
-        assertThat(result, is(updatedNullString));
+        assertThat(result).isEqualTo(updatedNullString);
     }
 
     @Test
@@ -417,7 +415,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
                                                                                                .build();
 
         Object result = mappedTable.updateItem(updateItemEnhancedRequest).join();
-        assertThat(result, is(item1));
+        assertThat(result).isEqualTo(item1);
     }
 
     @Test
@@ -443,7 +441,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.updateItem(updateItemEnhancedRequest).join();
 
         Object result = mappedTable.getItem(updated).join();
-        assertThat(result, is(updated));
+        assertThat(result).isEqualTo(updated);
     }
 
     @Test
@@ -484,8 +482,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse =
             mappedTable.updateItemWithResponse(r -> r.item(updated)).join();
 
-        assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(updateItemEnhancedResponse.attributes(), is(updated));
+        assertThat(putItemEnhancedResponse.attributes()).isNull();
+        assertThat(updateItemEnhancedResponse.attributes()).isEqualTo(updated);
     }
 
     @Test
@@ -500,8 +498,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse =
             mappedTable.updateItemWithResponse(r -> r.item(updated).returnValues(ReturnValue.ALL_OLD)).join();
 
-        assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(updateItemEnhancedResponse.attributes(), is(item));
+        assertThat(putItemEnhancedResponse.attributes()).isNull();
+        assertThat(updateItemEnhancedResponse.attributes()).isEqualTo(item);
     }
 
     @Test
@@ -516,8 +514,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         UpdateItemEnhancedResponse<Object> updateItemEnhancedResponse =
             mappedTable.updateItemWithResponse(r -> r.item(updated).returnValues(ReturnValue.NONE)).join();
 
-        assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(updateItemEnhancedResponse.attributes(), is(nullValue()));
+        assertThat(putItemEnhancedResponse.attributes()).isNull();
+        assertThat(updateItemEnhancedResponse.attributes()).isNull();
     }
 
     @Test
@@ -525,7 +523,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object item = fullItem.apply(factory);
 
         Object result = mappedTable.deleteItem(item).join();
-        assertThat(result, is(nullValue()));
+        assertThat(result).isNull();
     }
 
     @Test
@@ -536,8 +534,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         Object beforeDeleteResult = mappedTable.deleteItem(item).join();
         Object afterDeleteResult = mappedTable.getItem(item).join();
 
-        assertThat(beforeDeleteResult, is(item));
-        assertThat(afterDeleteResult, is(nullValue()));
+        assertThat(beforeDeleteResult).isEqualTo(item);
+        assertThat(afterDeleteResult).isNull();
     }
 
     @Test
@@ -546,7 +544,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.putItem(item).join();
 
         Object result = mappedTable.getItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -565,7 +563,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.deleteItem(deleteItemEnhancedRequest).join();
 
         result = mappedTable.getItem(item).join();
-        assertThat(result, is(nullValue()));
+        assertThat(result).isNull();
     }
 
     @Test
@@ -574,7 +572,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.putItem(item).join();
 
         Object result = mappedTable.getItem(item).join();
-        assertThat(result, is(item));
+        assertThat(result).isEqualTo(item);
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -609,8 +607,8 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         DeleteItemEnhancedResponse<Object> deleteItemEnhancedResponse =
             mappedTable.deleteItemWithResponse(r -> r.key(key)).join();
 
-        assertThat(putItemEnhancedResponse.attributes(), is(nullValue()));
-        assertThat(deleteItemEnhancedResponse.attributes(), is(item));
+        assertThat(putItemEnhancedResponse.attributes()).isNull();
+        assertThat(deleteItemEnhancedResponse.attributes()).isEqualTo(item);
     }
 
     @Test
@@ -621,7 +619,7 @@ public class AsyncAnnotatedTableSchemaTest extends LocalDynamoDbAsyncTestBase {
         DeleteItemEnhancedResponse<Object> deleteItemEnhancedResponse =
             mappedTable.deleteItemWithResponse(r -> r.key(key)).join();
 
-        assertThat(deleteItemEnhancedResponse.attributes(), is(nullValue()));
+        assertThat(deleteItemEnhancedResponse.attributes()).isNull();
     }
 
     private static final class TestItemFactory {

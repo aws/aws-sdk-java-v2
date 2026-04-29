@@ -14,11 +14,7 @@
  */
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,11 +61,11 @@ public class DefaultDynamoDbAsyncTableTest {
 
         DefaultDynamoDbAsyncIndex<FakeItemWithIndices> dynamoDbMappedIndex = dynamoDbMappedTable.index("gsi_1");
 
-        assertThat(dynamoDbMappedIndex.dynamoDbClient(), is(sameInstance(mockDynamoDbAsyncClient)));
-        assertThat(dynamoDbMappedIndex.mapperExtension(), is(sameInstance(mockDynamoDbEnhancedClientExtension)));
-        assertThat(dynamoDbMappedIndex.tableSchema(), is(sameInstance(FakeItemWithIndices.getTableSchema())));
-        assertThat(dynamoDbMappedIndex.tableName(), is(TABLE_NAME));
-        assertThat(dynamoDbMappedIndex.indexName(), is("gsi_1"));
+        assertThat(dynamoDbMappedIndex.dynamoDbClient()).isSameAs(mockDynamoDbAsyncClient);
+        assertThat(dynamoDbMappedIndex.mapperExtension()).isSameAs(mockDynamoDbEnhancedClientExtension);
+        assertThat(dynamoDbMappedIndex.tableSchema()).isSameAs(FakeItemWithIndices.getTableSchema());
+        assertThat(dynamoDbMappedIndex.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(dynamoDbMappedIndex.indexName()).isEqualTo("gsi_1");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -94,8 +90,8 @@ public class DefaultDynamoDbAsyncTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.sortKeyValue(), is(Optional.of(stringValue(item.getSort()))));
+        assertThat(key.partitionKeyValue()).isEqualTo(stringValue(item.getId()));
+        assertThat(key.sortKeyValue()).isEqualTo(Optional.of(stringValue(item.getSort())));
     }
 
     @Test
@@ -109,8 +105,8 @@ public class DefaultDynamoDbAsyncTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.sortKeyValue(), is(Optional.empty()));
+        assertThat(key.partitionKeyValue()).isEqualTo(stringValue(item.getId()));
+        assertThat(key.sortKeyValue()).isEqualTo(Optional.empty());
     }
 
     @Test
@@ -124,8 +120,8 @@ public class DefaultDynamoDbAsyncTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.sortKeyValue(), is(Optional.empty()));
+        assertThat(key.partitionKeyValue()).isEqualTo(stringValue(item.getId()));
+        assertThat(key.sortKeyValue()).isEqualTo(Optional.empty());
     }
 
     @Test
@@ -146,8 +142,8 @@ public class DefaultDynamoDbAsyncTableTest {
 
         CreateTableRequest request = requestCaptor.getValue();
 
-        assertThat(request.localSecondaryIndexes().size(), is(0));
-        assertThat(request.globalSecondaryIndexes().size(), is(0));
+        assertThat(request.localSecondaryIndexes().size()).isEqualTo(0);
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(0);
     }
 
     @Test
@@ -168,15 +164,15 @@ public class DefaultDynamoDbAsyncTableTest {
 
         CreateTableRequest request = requestCaptor.getValue();
 
-        assertThat(request.localSecondaryIndexes().size(), is(1));
+        assertThat(request.localSecondaryIndexes().size()).isEqualTo(1);
         Iterator<LocalSecondaryIndex> lsiIterator = request.localSecondaryIndexes().iterator();
-        assertThat(dynamoDbMappedIndex.tableName(), is("test_table"));
-        assertThat(lsiIterator.next().indexName(), is("lsi_1"));
+        assertThat(dynamoDbMappedIndex.tableName()).isEqualTo("test_table");
+        assertThat(lsiIterator.next().indexName()).isEqualTo("lsi_1");
 
-        assertThat(request.globalSecondaryIndexes().size(), is(2));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(2);
         List<String> globalIndicesNames = request.globalSecondaryIndexes().stream()
                                                  .map(GlobalSecondaryIndex::indexName)
                                                  .collect(Collectors.toList());
-        assertThat(globalIndicesNames, containsInAnyOrder("gsi_1", "gsi_2"));
+        assertThat(globalIndicesNames).containsExactlyInAnyOrder("gsi_1", "gsi_2");
     }
 }

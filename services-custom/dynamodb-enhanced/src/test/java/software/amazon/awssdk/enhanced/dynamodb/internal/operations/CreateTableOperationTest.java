@@ -15,12 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
@@ -34,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hamcrest.Description;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -122,7 +119,7 @@ public class CreateTableOperationTest {
         CreateTableOperation<FakeItemWithIndices> operation =
             CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
 
-        assertThat(operation.operationName().label(), is("CreateTable"));
+        assertThat(operation.operationName().label()).isEqualTo("CreateTable");
     }
 
     @Test
@@ -168,15 +165,15 @@ public class CreateTableOperationTest {
 
 
 
-        assertThat(request.tableName(), is(TABLE_NAME));
-        assertThat(request.keySchema(), containsInAnyOrder(KeySchemaElement.builder()
+        assertThat(request.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(request.keySchema()).containsExactlyInAnyOrder(KeySchemaElement.builder()
                                                                            .attributeName("id")
                                                                            .keyType(HASH)
                                                                            .build(),
                                                            KeySchemaElement.builder()
                                                                            .attributeName("sort")
                                                                            .keyType(RANGE)
-                                                                           .build()));
+                                                                           .build());
         software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex expectedGsi1 =
             software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex.builder()
                                                                 .indexName("gsi_1")
@@ -201,8 +198,8 @@ public class CreateTableOperationTest {
                                                                 .projection(projection2)
                                                                 .provisionedThroughput(provisionedThroughput2)
                                                                 .build();
-        assertThat(request.globalSecondaryIndexes(), containsInAnyOrder(matchesGsi(expectedGsi1),
-                                                                        matchesGsi(expectedGsi2)));
+        MatcherAssert.assertThat(request.globalSecondaryIndexes(), containsInAnyOrder(matchesGsi(expectedGsi1),
+                                                                                matchesGsi(expectedGsi2)));
         software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex expectedLsi =
             software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex.builder()
                                                              .indexName("lsi_1")
@@ -216,8 +213,8 @@ public class CreateTableOperationTest {
                                                                                         .build())
                                                              .projection(projection3)
                                                              .build();
-        assertThat(request.localSecondaryIndexes(), containsInAnyOrder(expectedLsi));
-        assertThat(request.attributeDefinitions(), containsInAnyOrder(
+        assertThat(request.localSecondaryIndexes()).containsExactlyInAnyOrder(expectedLsi);
+        assertThat(request.attributeDefinitions()).containsExactlyInAnyOrder(
             AttributeDefinition.builder()
                                .attributeName("id")
                                .attributeType(ScalarAttributeType.S)
@@ -237,7 +234,7 @@ public class CreateTableOperationTest {
             AttributeDefinition.builder()
                                .attributeName("gsi_sort")
                                .attributeType(ScalarAttributeType.S)
-                               .build()));
+                               .build());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -285,11 +282,11 @@ public class CreateTableOperationTest {
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(), PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex globalSecondaryIndex =
             request.globalSecondaryIndexes().get(0);
 
-        assertThat(globalSecondaryIndex.indexName(), is("lsi_1"));
+        assertThat(globalSecondaryIndex.indexName()).isEqualTo("lsi_1");
     }
 
     @Test
@@ -308,7 +305,7 @@ public class CreateTableOperationTest {
                                                                       .attributeType(ScalarAttributeType.S)
                                                                       .build();
 
-        assertThat(request.attributeDefinitions(), containsInAnyOrder(attributeDefinition1, attributeDefinition2));
+        assertThat(request.attributeDefinitions()).containsExactlyInAnyOrder(attributeDefinition1, attributeDefinition2);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -336,8 +333,8 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.billingMode(), is(BillingMode.PROVISIONED));
-        assertThat(request.provisionedThroughput(), is(provisionedThroughput));
+        assertThat(request.billingMode()).isEqualTo(BillingMode.PROVISIONED);
+        assertThat(request.provisionedThroughput()).isEqualTo(provisionedThroughput);
     }
 
     @Test
@@ -348,7 +345,7 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.billingMode(), is(BillingMode.PAY_PER_REQUEST));
+        assertThat(request.billingMode()).isEqualTo(BillingMode.PAY_PER_REQUEST);
     }
 
     @Test
@@ -365,7 +362,7 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.streamSpecification(), is(streamSpecification));
+        assertThat(request.streamSpecification()).isEqualTo(streamSpecification);
     }
 
     @Test
@@ -376,7 +373,7 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.streamSpecification(), is(nullValue()));
+        assertThat(request.streamSpecification()).isNull();
     }
 
 
@@ -389,20 +386,20 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.tableName(), is(TABLE_NAME));
-        assertThat(request.keySchema(), containsInAnyOrder(KeySchemaElement.builder()
+        assertThat(request.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(request.keySchema()).containsExactlyInAnyOrder(KeySchemaElement.builder()
                                                                            .attributeName("id")
                                                                            .keyType(HASH)
                                                                            .build(),
                                                            KeySchemaElement.builder()
                                                                            .attributeName("sort")
                                                                            .keyType(RANGE)
-                                                                           .build()));
+                                                                           .build());
 
-        assertThat(request.globalSecondaryIndexes(), is(DefaultSdkAutoConstructList.getInstance()));
-        assertThat(request.localSecondaryIndexes(), is(DefaultSdkAutoConstructList.getInstance()));
+        assertThat(request.globalSecondaryIndexes()).isEqualTo(DefaultSdkAutoConstructList.getInstance());
+        assertThat(request.localSecondaryIndexes()).isEqualTo(DefaultSdkAutoConstructList.getInstance());
 
-        assertThat(request.attributeDefinitions(), containsInAnyOrder(
+        assertThat(request.attributeDefinitions()).containsExactlyInAnyOrder(
             AttributeDefinition.builder()
                                .attributeName("id")
                                .attributeType(ScalarAttributeType.S)
@@ -410,7 +407,7 @@ public class CreateTableOperationTest {
             AttributeDefinition.builder()
                                .attributeName("sort")
                                .attributeType(ScalarAttributeType.N)
-                               .build()));
+                               .build());
     }
 
     @Test
@@ -422,20 +419,20 @@ public class CreateTableOperationTest {
                                                                PRIMARY_CONTEXT,
                                                                null);
 
-        assertThat(request.tableName(), is(TABLE_NAME));
-        assertThat(request.keySchema(), containsInAnyOrder(KeySchemaElement.builder()
+        assertThat(request.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(request.keySchema()).containsExactlyInAnyOrder(KeySchemaElement.builder()
                                                                            .attributeName("id")
                                                                            .keyType(HASH)
-                                                                           .build()));
+                                                                           .build());
 
-        assertThat(request.globalSecondaryIndexes(), is(empty()));
-        assertThat(request.localSecondaryIndexes(), is(empty()));
+        assertThat(request.globalSecondaryIndexes()).isEmpty();
+        assertThat(request.localSecondaryIndexes()).isEmpty();
 
-        assertThat(request.attributeDefinitions(), containsInAnyOrder(
+        assertThat(request.attributeDefinitions()).containsExactlyInAnyOrder(
             AttributeDefinition.builder()
                                .attributeName("id")
                                .attributeType(ScalarAttributeType.B)
-                               .build()));
+                               .build());
     }
 
     @Test
@@ -447,20 +444,20 @@ public class CreateTableOperationTest {
                 PRIMARY_CONTEXT,
                 null);
 
-        assertThat(request.tableName(), is(TABLE_NAME));
-        assertThat(request.keySchema(), containsInAnyOrder(KeySchemaElement.builder()
+        assertThat(request.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(request.keySchema()).containsExactlyInAnyOrder(KeySchemaElement.builder()
                 .attributeName("id")
                 .keyType(HASH)
-                .build()));
+                .build());
 
-        assertThat(request.globalSecondaryIndexes(), is(empty()));
-        assertThat(request.localSecondaryIndexes(), is(empty()));
+        assertThat(request.globalSecondaryIndexes()).isEmpty();
+        assertThat(request.localSecondaryIndexes()).isEmpty();
 
-        assertThat(request.attributeDefinitions(), containsInAnyOrder(
+        assertThat(request.attributeDefinitions()).containsExactlyInAnyOrder(
                 AttributeDefinition.builder()
                         .attributeName("id")
                         .attributeType(ScalarAttributeType.B)
-                        .build()));
+                        .build());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -480,7 +477,7 @@ public class CreateTableOperationTest {
 
         CreateTableResponse actualResponse = operation.serviceCall(mockDynamoDbClient).apply(createTableRequest);
 
-        assertThat(actualResponse, sameInstance(expectedResponse));
+        assertThat(actualResponse).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).createTable(same(createTableRequest));
     }
 
@@ -509,10 +506,10 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("gsi_1"));
-        assertThat(gsi.keySchema().size(), is(2));
+        assertThat(gsi.indexName()).isEqualTo("gsi_1");
+        assertThat(gsi.keySchema().size()).isEqualTo(2);
     }
 
     @Test
@@ -532,23 +529,23 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithCompositeGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
 
-        assertThat(gsi.indexName(), is("composite_gsi"));
-        assertThat(gsi.keySchema().size(), is(4));
+        assertThat(gsi.indexName()).isEqualTo("composite_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(4);
 
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("gsi_pk1", "gsi_pk2"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("gsi_pk1", "gsi_pk2");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("gsi_sk1", "gsi_sk2"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("gsi_sk1", "gsi_sk2");
     }
 
     @Test
@@ -568,12 +565,12 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("flatten_partition_gsi"));
-        assertThat(gsi.keySchema().size(), is(1));
-        assertThat(gsi.keySchema().get(0).attributeName(), is("gsiPartitionKey"));
-        assertThat(gsi.keySchema().get(0).keyType(), is(HASH));
+        assertThat(gsi.indexName()).isEqualTo("flatten_partition_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(1);
+        assertThat(gsi.keySchema().get(0).attributeName()).isEqualTo("gsiPartitionKey");
+        assertThat(gsi.keySchema().get(0).keyType()).isEqualTo(HASH);
     }
 
     @Test
@@ -593,14 +590,14 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("flatten_sort_gsi"));
-        assertThat(gsi.keySchema().size(), is(2));
-        assertThat(gsi.keySchema().get(0).attributeName(), is("id"));
-        assertThat(gsi.keySchema().get(0).keyType(), is(HASH));
-        assertThat(gsi.keySchema().get(1).attributeName(), is("gsiSortKey"));
-        assertThat(gsi.keySchema().get(1).keyType(), is(RANGE));
+        assertThat(gsi.indexName()).isEqualTo("flatten_sort_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(2);
+        assertThat(gsi.keySchema().get(0).attributeName()).isEqualTo("id");
+        assertThat(gsi.keySchema().get(0).keyType()).isEqualTo(HASH);
+        assertThat(gsi.keySchema().get(1).attributeName()).isEqualTo("gsiSortKey");
+        assertThat(gsi.keySchema().get(1).keyType()).isEqualTo(RANGE);
     }
 
     @Test
@@ -620,22 +617,22 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("flatten_mixed_gsi"));
-        assertThat(gsi.keySchema().size(), is(2));
+        assertThat(gsi.indexName()).isEqualTo("flatten_mixed_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(2);
         
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("gsiMixedPartitionKey"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("gsiMixedPartitionKey");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("gsiMixedSortKey"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("gsiMixedSortKey");
     }
 
     @Test
@@ -655,22 +652,22 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("flatten_both_gsi"));
-        assertThat(gsi.keySchema().size(), is(2));
+        assertThat(gsi.indexName()).isEqualTo("flatten_both_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(2);
         
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("gsiBothSortKey"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("gsiBothSortKey");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("gsiBothSortKey"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("gsiBothSortKey");
     }
 
     @Test
@@ -690,16 +687,16 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("mixed_partition_gsi"));
-        assertThat(gsi.keySchema().size(), is(4));
+        assertThat(gsi.indexName()).isEqualTo("mixed_partition_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(4);
         
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2");
     }
 
     @Test
@@ -719,22 +716,22 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("mixed_sort_gsi"));
-        assertThat(gsi.keySchema().size(), is(6));
+        assertThat(gsi.indexName()).isEqualTo("mixed_sort_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(6);
 
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("rootPartitionKey1", "rootPartitionKey2");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2");
     }
 
     @Test
@@ -754,22 +751,22 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("full_mixed_gsi"));
-        assertThat(gsi.keySchema().size(), is(8));
+        assertThat(gsi.indexName()).isEqualTo("full_mixed_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(8);
         
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2");
     }
 
     @Test
@@ -789,22 +786,22 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(CompositeMetadataImmutable.class),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("gsi1"));
-        assertThat(gsi.keySchema().size(), is(4));
+        assertThat(gsi.indexName()).isEqualTo("gsi1");
+        assertThat(gsi.keySchema().size()).isEqualTo(4);
 
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("gsiPk1", "gsiPk2"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("gsiPk1", "gsiPk2");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("gsiSk1", "gsiSk2"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("gsiSk1", "gsiSk2");
     }
 
     @Test
@@ -829,25 +826,25 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(CrossIndexImmutable.class),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(2));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(2);
         
         GlobalSecondaryIndex gsi1 = request.globalSecondaryIndexes().stream()
             .filter(gsi -> "gsi1".equals(gsi.indexName()))
             .findFirst().orElse(null);
-        assertThat(gsi1.keySchema().size(), is(2));
-        assertThat(gsi1.keySchema().get(0).attributeName(), is("attr1"));
-        assertThat(gsi1.keySchema().get(0).keyType(), is(HASH));
-        assertThat(gsi1.keySchema().get(1).attributeName(), is("attr2"));
-        assertThat(gsi1.keySchema().get(1).keyType(), is(HASH));
+        assertThat(gsi1.keySchema().size()).isEqualTo(2);
+        assertThat(gsi1.keySchema().get(0).attributeName()).isEqualTo("attr1");
+        assertThat(gsi1.keySchema().get(0).keyType()).isEqualTo(HASH);
+        assertThat(gsi1.keySchema().get(1).attributeName()).isEqualTo("attr2");
+        assertThat(gsi1.keySchema().get(1).keyType()).isEqualTo(HASH);
         
         GlobalSecondaryIndex gsi2 = request.globalSecondaryIndexes().stream()
             .filter(gsi -> "gsi2".equals(gsi.indexName()))
             .findFirst().orElse(null);
-        assertThat(gsi2.keySchema().size(), is(2));
-        assertThat(gsi2.keySchema().get(0).attributeName(), is("attr3"));
-        assertThat(gsi2.keySchema().get(0).keyType(), is(HASH));
-        assertThat(gsi2.keySchema().get(1).attributeName(), is("attr1"));
-        assertThat(gsi2.keySchema().get(1).keyType(), is(RANGE));
+        assertThat(gsi2.keySchema().size()).isEqualTo(2);
+        assertThat(gsi2.keySchema().get(0).attributeName()).isEqualTo("attr3");
+        assertThat(gsi2.keySchema().get(0).keyType()).isEqualTo(HASH);
+        assertThat(gsi2.keySchema().get(1).attributeName()).isEqualTo("attr1");
+        assertThat(gsi2.keySchema().get(1).keyType()).isEqualTo(RANGE);
     }
 
     @Test
@@ -867,21 +864,21 @@ public class CreateTableOperationTest {
         CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(MixedFlattenedImmutable.class),
                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        assertThat(request.globalSecondaryIndexes().size()).isEqualTo(1);
         GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
-        assertThat(gsi.indexName(), is("mixed_gsi"));
-        assertThat(gsi.keySchema().size(), is(4));
+        assertThat(gsi.indexName()).isEqualTo("mixed_gsi");
+        assertThat(gsi.keySchema().size()).isEqualTo(4);
 
         Set<String> partitionKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == HASH)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(partitionKeyNames, containsInAnyOrder("rootKey1", "flatKey1"));
+        assertThat(partitionKeyNames).containsExactlyInAnyOrder("rootKey1", "flatKey1");
 
         Set<String> sortKeyNames = gsi.keySchema().stream()
             .filter(key -> key.keyType() == RANGE)
             .map(KeySchemaElement::attributeName)
             .collect(Collectors.toSet());
-        assertThat(sortKeyNames, containsInAnyOrder("rootKey2", "flatKey2"));
+        assertThat(sortKeyNames).containsExactlyInAnyOrder("rootKey2", "flatKey2");
     }
 }

@@ -15,12 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -103,7 +99,7 @@ public class DeleteItemOperationTest {
                                                                 .returnConsumedCapacity(returnConsumedCapacity)
                                                                 .build());
 
-        assertThat(operation.operationName().label(), is("DeleteItem"));
+        assertThat(operation.operationName().label()).isEqualTo("DeleteItem");
     }
 
     @Test
@@ -117,7 +113,7 @@ public class DeleteItemOperationTest {
 
         DeleteItemResponse response = deleteItemOperation.serviceCall(mockDynamoDbClient).apply(deleteItemRequest);
 
-        assertThat(response, sameInstance(expectedResponse));
+        assertThat(response).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).deleteItem(deleteItemRequest);
     }
 
@@ -145,7 +141,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnConsumedCapacity(returnConsumedCapacity)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -172,7 +168,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnConsumedCapacity(returnConsumedCapacity)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -199,7 +195,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -226,7 +222,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnItemCollectionMetrics(returnItemCollectionMetrics)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -253,7 +249,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -280,7 +276,7 @@ public class DeleteItemOperationTest {
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -303,7 +299,7 @@ public class DeleteItemOperationTest {
                                                        .key(expectedKeyMap)
                                                        .returnValues(ReturnValue.ALL_OLD)
                                                        .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -319,9 +315,9 @@ public class DeleteItemOperationTest {
                                                                         PRIMARY_CONTEXT,
                                                                         null);
 
-        assertThat(request.conditionExpression(), is(CONDITION_EXPRESSION.expression()));
-        assertThat(request.expressionAttributeNames(), is(CONDITION_EXPRESSION.expressionNames()));
-        assertThat(request.expressionAttributeValues(), is(CONDITION_EXPRESSION.expressionValues()));
+        assertThat(request.conditionExpression()).isEqualTo(CONDITION_EXPRESSION.expression());
+        assertThat(request.expressionAttributeNames()).isEqualTo(CONDITION_EXPRESSION.expressionNames());
+        assertThat(request.expressionAttributeValues()).isEqualTo(CONDITION_EXPRESSION.expressionValues());
     }
 
     @Test
@@ -337,9 +333,9 @@ public class DeleteItemOperationTest {
                                                                         PRIMARY_CONTEXT,
                                                                         null);
 
-        assertThat(request.conditionExpression(), is(MINIMAL_CONDITION_EXPRESSION.expression()));
-        assertThat(request.expressionAttributeNames(), is(emptyMap()));
-        assertThat(request.expressionAttributeValues(), is(emptyMap()));
+        assertThat(request.conditionExpression()).isEqualTo(MINIMAL_CONDITION_EXPRESSION.expression());
+        assertThat(request.expressionAttributeNames()).isEmpty();
+        assertThat(request.expressionAttributeValues()).isEmpty();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -375,7 +371,7 @@ public class DeleteItemOperationTest {
                                                              .key(expectedKeyMap)
                                                              .returnValues(ReturnValue.ALL_OLD)
                                                              .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -396,8 +392,8 @@ public class DeleteItemOperationTest {
                                                                 null)
                                              .attributes();
 
-        assertThat(result.getId(), is(keyItem.getId()));
-        assertThat(result.getSubclassAttribute(), is("test-value"));
+        assertThat(result.getId()).isEqualTo(keyItem.getId());
+        assertThat(result.getSubclassAttribute()).isEqualTo("test-value");
     }
 
     @Test
@@ -414,7 +410,7 @@ public class DeleteItemOperationTest {
                                                                 null)
                                              .attributes();
 
-        assertThat(result, is(nullValue()));
+        assertThat(result).isNull();
     }
 
     @Test
@@ -431,7 +427,7 @@ public class DeleteItemOperationTest {
                                                                         PRIMARY_CONTEXT,
                                                                         mockDynamoDbEnhancedClientExtension);
 
-        assertThat(request.key(), is(keyMap));
+        assertThat(request.key()).isEqualTo(keyMap);
         verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
@@ -458,7 +454,7 @@ public class DeleteItemOperationTest {
                                                                     mockDynamoDbEnhancedClientExtension)
                                                  .attributes();
 
-        assertThat(resultItem, is(fakeItem));
+        assertThat(resultItem).isEqualTo(fakeItem);
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
                                                                                              .operationContext(PRIMARY_CONTEXT)
@@ -492,7 +488,7 @@ public class DeleteItemOperationTest {
                                                                           .tableName(TABLE_NAME)
                                                                           .build())
                                                             .build();
-        assertThat(actualResult, is(expectedResult));
+        assertThat(actualResult).isEqualTo(expectedResult);
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
     }
 
@@ -532,7 +528,7 @@ public class DeleteItemOperationTest {
                                                                           .expressionAttributeValues(attributeValues)
                                                                           .build())
                                                             .build();
-        assertThat(actualResult, is(expectedResult));
+        assertThat(actualResult).isEqualTo(expectedResult);
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
     }
 
@@ -566,7 +562,7 @@ public class DeleteItemOperationTest {
                                                                           .returnValuesOnConditionCheckFailure(returnValues)
                                                                           .build())
                                                             .build();
-        assertThat(actualResult, is(expectedResult));
+        assertThat(actualResult).isEqualTo(expectedResult);
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
     }
 }

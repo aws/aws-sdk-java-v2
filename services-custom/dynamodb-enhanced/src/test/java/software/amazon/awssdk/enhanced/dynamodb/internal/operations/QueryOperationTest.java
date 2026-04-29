@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -96,7 +94,7 @@ public class QueryOperationTest {
 
     @Test
     public void returnsCorrectOperationName() {
-        assertThat(queryOperation.operationName().label(), is("Query"));
+        assertThat(queryOperation.operationName().label()).isEqualTo("Query");
     }
 
     @Test
@@ -107,7 +105,7 @@ public class QueryOperationTest {
 
         SdkIterable<QueryResponse> response = queryOperation.serviceCall(mockDynamoDbClient).apply(queryRequest);
 
-        assertThat(response, is(mockQueryIterable));
+        assertThat(response).isEqualTo(mockQueryIterable);
         verify(mockDynamoDbClient).queryPaginator(queryRequest);
     }
 
@@ -120,7 +118,7 @@ public class QueryOperationTest {
         SdkPublisher<QueryResponse> response =
             queryOperation.asyncServiceCall(mockDynamoDbAsyncClient).apply(queryRequest);
 
-        assertThat(response, is(mockQueryPublisher));
+        assertThat(response).isEqualTo(mockQueryPublisher);
         verify(mockDynamoDbAsyncClient).queryPaginator(queryRequest);
     }
 
@@ -140,7 +138,7 @@ public class QueryOperationTest {
                                                         .keyConditionExpression("test-expression")
                                                         .expressionAttributeValues(keyItemMap)
                                                         .build();
-        assertThat(queryRequest, is(expectedQueryRequest));
+        assertThat(queryRequest).isEqualTo(expectedQueryRequest);
         verify(mockQueryConditional).expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
@@ -157,7 +155,7 @@ public class QueryOperationTest {
                                                     AttributeValue.builder().s(keyItem.getId()).build()))
             .expressionAttributeNames(singletonMap("#AMZN_MAPPED_id", "id"))
             .build();
-        assertThat(queryRequest, is(expectedQueryRequest));
+        assertThat(queryRequest).isEqualTo(expectedQueryRequest);
     }
 
     @Test
@@ -169,7 +167,7 @@ public class QueryOperationTest {
                                                       .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
 
-        assertThat(queryRequest.indexName(), is("gsi_1"));
+        assertThat(queryRequest.indexName()).isEqualTo("gsi_1");
     }
 
     @Test
@@ -183,7 +181,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.scanIndexForward(), is(true));
+        assertThat(queryRequest.scanIndexForward()).isEqualTo(true);
     }
 
     @Test
@@ -197,7 +195,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.scanIndexForward(), is(false));
+        assertThat(queryRequest.scanIndexForward()).isEqualTo(false);
     }
 
     @Test
@@ -211,7 +209,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.limit(), is(123));
+        assertThat(queryRequest.limit()).isEqualTo(123);
     }
 
     @Test
@@ -231,8 +229,8 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.filterExpression(), is("test-expression"));
-        assertThat(queryRequest.expressionAttributeValues(), hasEntry(":test-key", stringValue("test-value")));
+        assertThat(queryRequest.filterExpression()).isEqualTo("test-expression");
+        assertThat(queryRequest.expressionAttributeValues()).containsEntry(":test-key", stringValue("test-value"));
     }
 
     @Test
@@ -248,7 +246,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.filterExpression(), is("test-expression"));
+        assertThat(queryRequest.filterExpression()).isEqualTo("test-expression");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -279,7 +277,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.consistentRead(), is(true));
+        assertThat(queryRequest.consistentRead()).isEqualTo(true);
     }
 
     @Test
@@ -294,9 +292,9 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.projectionExpression(), is("#AMZN_MAPPED_id,#AMZN_MAPPED_version"));
-        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_id"), is ("id"));
-        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_version"), is ("version"));
+        assertThat(queryRequest.projectionExpression()).isEqualTo("#AMZN_MAPPED_id,#AMZN_MAPPED_version");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_id")).isEqualTo("id");
+        assertThat(queryRequest.expressionAttributeNames().get("#AMZN_MAPPED_version")).isEqualTo("version");
     }
 
     @Test
@@ -315,8 +313,7 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build()));
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build());
     }
 
     @Test
@@ -337,14 +334,10 @@ public class QueryOperationTest {
                                                                 GSI_1_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("sort", AttributeValue.builder().s(exclusiveStartKey.getSort()).build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsi_id", AttributeValue.builder().s(exclusiveStartKey.getGsiId()).build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsi_sort", AttributeValue.builder().s(exclusiveStartKey.getGsiSort()).build()));
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("sort", AttributeValue.builder().s(exclusiveStartKey.getSort()).build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsi_id", AttributeValue.builder().s(exclusiveStartKey.getGsiId()).build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsi_sort", AttributeValue.builder().s(exclusiveStartKey.getGsiSort()).build());
     }
 
     @Test
@@ -366,10 +359,8 @@ public class QueryOperationTest {
                                                                 PRIMARY_CONTEXT,
                                                                 null);
 
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("sort", AttributeValue.builder().s(exclusiveStartKey.getSort()).build()));
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("id", AttributeValue.builder().s(exclusiveStartKey.getId()).build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("sort", AttributeValue.builder().s(exclusiveStartKey.getSort()).build());
     }
 
     @Test
@@ -385,7 +376,7 @@ public class QueryOperationTest {
                                                                           PRIMARY_CONTEXT,
                                                                           null);
 
-        assertThat(queryResultPage.items(), is(queryResultItems));
+        assertThat(queryResultPage.items()).isEqualTo(queryResultItems);
     }
 
     @Test
@@ -403,7 +394,7 @@ public class QueryOperationTest {
                                                                           PRIMARY_CONTEXT,
                                                                           null);
 
-        assertThat(queryResultPage.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
+        assertThat(queryResultPage.lastEvaluatedKey()).isEqualTo(getAttributeValueMap(lastEvaluatedKey));
     }
 
     @Test
@@ -431,7 +422,7 @@ public class QueryOperationTest {
                                                                           PRIMARY_CONTEXT,
                                                                           mockDynamoDbEnhancedClientExtension);
 
-        assertThat(queryResultPage.items(), is(modifiedResultItems));
+        assertThat(queryResultPage.items()).isEqualTo(modifiedResultItems);
         InOrder inOrder = Mockito.inOrder(mockDynamoDbEnhancedClientExtension);
         queryResultMap.forEach(
             attributeMap -> inOrder.verify(mockDynamoDbEnhancedClientExtension)
@@ -495,7 +486,7 @@ public class QueryOperationTest {
                                                         .expressionAttributeValues(values)
                                                         .build();
 
-        assertThat(queryRequest, is(expectedQueryRequest));
+        assertThat(queryRequest).isEqualTo(expectedQueryRequest);
     }
 
     @Test
@@ -516,9 +507,8 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
-        assertThat(queryRequest.indexName(), is("gsi1"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2");
+        assertThat(queryRequest.indexName()).isEqualTo("gsi1");
     }
 
     @Test
@@ -548,8 +538,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22");
     }
 
     @Test
@@ -570,8 +559,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND begins_with(#AMZN_MAPPED_gsiSort2, :AMZN_MAPPED_gsiSort2)"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND begins_with(#AMZN_MAPPED_gsiSort2, :AMZN_MAPPED_gsiSort2)");
     }
 
     @Test
@@ -601,16 +589,11 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("id", AttributeValue.builder().s("id1").build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsiKey1", AttributeValue.builder().s("gsiKey1").build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsiKey2", AttributeValue.builder().s("gsiKey2").build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsiSort1", AttributeValue.builder().s("gsiSort1").build()));
-        assertThat(queryRequest.exclusiveStartKey(),
-                   hasEntry("gsiSort2", AttributeValue.builder().s("gsiSort2").build()));
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("id", AttributeValue.builder().s("id1").build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsiKey1", AttributeValue.builder().s("gsiKey1").build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsiKey2", AttributeValue.builder().s("gsiKey2").build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsiSort1", AttributeValue.builder().s("gsiSort1").build());
+        assertThat(queryRequest.exclusiveStartKey()).containsEntry("gsiSort2", AttributeValue.builder().s("gsiSort2").build());
     }
 
     @Test
@@ -633,7 +616,7 @@ public class QueryOperationTest {
         Page<CompositeKeyFakeItem> queryResultPage = queryOperation.transformResponse(queryResponse,
                                                                                   CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryResultPage.items(), is(queryResultItems));
+        assertThat(queryResultPage.items()).isEqualTo(queryResultItems);
     }
 
     @Test
@@ -646,8 +629,8 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
 
-        assertThat(queryRequest.indexName(), is("gsi_1"));
-        assertThat(queryRequest.keyConditionExpression(), is("#AMZN_MAPPED_gsi_id = :AMZN_MAPPED_gsi_id"));
+        assertThat(queryRequest.indexName()).isEqualTo("gsi_1");
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsi_id = :AMZN_MAPPED_gsi_id");
     }
 
     @Test
@@ -664,8 +647,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -739,9 +721,8 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
-        assertThat(queryRequest.indexName(), is("gsi1"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2");
+        assertThat(queryRequest.indexName()).isEqualTo("gsi1");
     }
 
     @Test
@@ -760,8 +741,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2");
     }
 
     @Test
@@ -778,10 +758,9 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").n(), is("123"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").n(), is("456"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").n()).isEqualTo("123");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").n()).isEqualTo("456");
     }
 
     @Test
@@ -807,8 +786,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 BETWEEN :AMZN_MAPPED_gsiSort2 AND :AMZN_MAPPED_gsiSort22");
     }
 
     @Test
@@ -828,10 +806,9 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").b(), is(bytes1));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").b(), is(bytes2));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").b()).isEqualTo(bytes1);
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").b()).isEqualTo(bytes2);
     }
 
     @Test
@@ -853,8 +830,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND begins_with(#AMZN_MAPPED_gsiSort1, :AMZN_MAPPED_gsiSort1)"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND begins_with(#AMZN_MAPPED_gsiSort1, :AMZN_MAPPED_gsiSort1)");
     }
 
     @Test
@@ -873,12 +849,11 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").s(), is("key1"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").s(), is("key2"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort1").n(), is("123"));
-        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort2").n(), is("456"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1 AND #AMZN_MAPPED_gsiSort2 = :AMZN_MAPPED_gsiSort2");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey1").s()).isEqualTo("key1");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiKey2").s()).isEqualTo("key2");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort1").n()).isEqualTo("123");
+        assertThat(queryRequest.expressionAttributeValues().get(":AMZN_MAPPED_gsiSort2").n()).isEqualTo("456");
     }
 
     @Test
@@ -893,8 +868,7 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1");
     }
 
     @Test
@@ -909,7 +883,6 @@ public class QueryOperationTest {
 
         QueryRequest queryRequest = queryToTest.generateRequest(CompositeKeyFakeItem.SCHEMA, GSI_COMPOSITE_CONTEXT, null);
 
-        assertThat(queryRequest.keyConditionExpression(),
-                   is("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1"));
+        assertThat(queryRequest.keyConditionExpression()).isEqualTo("#AMZN_MAPPED_gsiKey1 = :AMZN_MAPPED_gsiKey1 AND #AMZN_MAPPED_gsiKey2 = :AMZN_MAPPED_gsiKey2 AND #AMZN_MAPPED_gsiSort1 = :AMZN_MAPPED_gsiSort1");
     }
 }

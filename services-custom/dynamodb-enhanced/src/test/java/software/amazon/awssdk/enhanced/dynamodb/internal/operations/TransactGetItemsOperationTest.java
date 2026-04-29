@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -106,7 +103,7 @@ public class TransactGetItemsOperationTest {
     @Test
     public void returnsCorrectOperationName() {
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
-        assertThat(operation.operationName().label(), is("TransactGetItems"));
+        assertThat(operation.operationName().label()).isEqualTo("TransactGetItems");
     }
 
     @Test
@@ -133,7 +130,7 @@ public class TransactGetItemsOperationTest {
 
         TransactGetItemsRequest actualRequest = operation.generateRequest(null);
 
-        assertThat(actualRequest, is(expectedRequest));
+        assertThat(actualRequest).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -157,7 +154,7 @@ public class TransactGetItemsOperationTest {
 
         TransactGetItemsResponse response = operation.serviceCall(mockDynamoDbClient).apply(transactGetItemsRequest);
 
-        assertThat(response, sameInstance(expectedResponse));
+        assertThat(response).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).transactGetItems(transactGetItemsRequest);
     }
 
@@ -176,10 +173,10 @@ public class TransactGetItemsOperationTest {
 
         List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+        assertThat(result).containsExactly(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(FAKESORT_ITEM_MAPS.get(1)),
-                                    DefaultDocument.create(FAKE_ITEM_MAPS.get(1))));
+                                    DefaultDocument.create(FAKE_ITEM_MAPS.get(1)));
     }
 
     @Test
@@ -214,9 +211,9 @@ public class TransactGetItemsOperationTest {
 
         List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+        assertThat(result).containsExactly(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    null));
+                                    null);
     }
 
     @Test
@@ -233,9 +230,9 @@ public class TransactGetItemsOperationTest {
 
         List<Document> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
+        assertThat(result).containsExactly(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    DefaultDocument.create(emptyMap())));
+                                    DefaultDocument.create(emptyMap()));
     }
 
     private static TransactGetItemsEnhancedRequest emptyRequest() {

@@ -15,15 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
@@ -125,7 +121,7 @@ public class BatchWriteItemOperationTest {
                                          .build();
         BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
 
-        assertThat(operation.operationName().label(), is("BatchWriteItem"));
+        assertThat(operation.operationName().label()).isEqualTo("BatchWriteItem");
     }
 
     @Test
@@ -158,7 +154,7 @@ public class BatchWriteItemOperationTest {
 
         BatchWriteItemResponse response = operation.serviceCall(mockDynamoDbClient).apply(request);
 
-        assertThat(response, sameInstance(expectedResponse));
+        assertThat(response).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).batchWriteItem(request);
     }
 
@@ -187,12 +183,12 @@ public class BatchWriteItemOperationTest {
 
         List<WriteRequest> writeRequests1 = request.requestItems().get(TABLE_NAME);
         List<WriteRequest> writeRequests2 = request.requestItems().get(TABLE_NAME_2);
-        assertThat(writeRequests1, containsInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(0)),
+        assertThat(writeRequests1).containsExactlyInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(0)),
                                                       deleteRequest(FAKE_ITEM_MAPS.get(1)),
-                                                      putRequest(FAKE_ITEM_MAPS.get(2))));
-        assertThat(writeRequests2, containsInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
+                                                      putRequest(FAKE_ITEM_MAPS.get(2)));
+        assertThat(writeRequests2).containsExactlyInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
                                                       putRequest(FAKESORT_ITEM_MAPS.get(1)),
-                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2))));
+                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2)));
     }
 
     @Test
@@ -220,12 +216,12 @@ public class BatchWriteItemOperationTest {
 
         List<WriteRequest> writeRequests1 = request.requestItems().get(TABLE_NAME);
         List<WriteRequest> writeRequests2 = request.requestItems().get(TABLE_NAME_2);
-        assertThat(writeRequests1, containsInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(0)),
+        assertThat(writeRequests1).containsExactlyInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(0)),
                                                       deleteRequest(FAKE_ITEM_MAPS.get(1)),
-                                                      putRequest(FAKE_ITEM_MAPS.get(2))));
-        assertThat(writeRequests2, containsInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
+                                                      putRequest(FAKE_ITEM_MAPS.get(2)));
+        assertThat(writeRequests2).containsExactlyInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
                                                       putRequest(FAKESORT_ITEM_MAPS.get(1)),
-                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2))));
+                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2)));
     }
 
     @Test
@@ -276,12 +272,12 @@ public class BatchWriteItemOperationTest {
         List<WriteRequest> writeRequests2 = request.requestItems().get(TABLE_NAME_2);
 
         // Only PutItem requests should have their attributes transformed
-        assertThat(writeRequests1, containsInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(3)),
+        assertThat(writeRequests1).containsExactlyInAnyOrder(putRequest(FAKE_ITEM_MAPS.get(3)),
                                                       deleteRequest(FAKE_ITEM_MAPS.get(1)),
-                                                      putRequest(FAKE_ITEM_MAPS.get(5))));
-        assertThat(writeRequests2, containsInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
+                                                      putRequest(FAKE_ITEM_MAPS.get(5)));
+        assertThat(writeRequests2).containsExactlyInAnyOrder(deleteRequest(FAKESORT_ITEM_MAPS.get(0)),
                                                       putRequest(FAKESORT_ITEM_MAPS.get(4)),
-                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2))));
+                                                      deleteRequest(FAKESORT_ITEM_MAPS.get(2)));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -334,14 +330,10 @@ public class BatchWriteItemOperationTest {
 
         BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
-        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2)));
-        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEMS.get(0)));
-        assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEM_KEYS.get(0)));
-        assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEMS.get(1), FAKESORT_ITEMS.get(2)));
+        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension)).containsExactlyInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2));
+        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension)).containsExactlyInAnyOrder(FAKE_ITEMS.get(0));
+        assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension)).containsExactlyInAnyOrder(FAKESORT_ITEM_KEYS.get(0));
+        assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension)).containsExactlyInAnyOrder(FAKESORT_ITEMS.get(1), FAKESORT_ITEMS.get(2));
     }
 
     @Test
@@ -383,14 +375,10 @@ public class BatchWriteItemOperationTest {
 
         BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
-        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2)));
-        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension),
-                   containsInAnyOrder(FAKE_ITEMS.get(3)));
-        assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEM_KEYS.get(0)));
-        assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension),
-                   containsInAnyOrder(FAKESORT_ITEMS.get(4), FAKESORT_ITEMS.get(5)));
+        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension)).containsExactlyInAnyOrder(FAKE_ITEM_KEYS.get(1), FAKE_ITEM_KEYS.get(2));
+        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTableWithExtension)).containsExactlyInAnyOrder(FAKE_ITEMS.get(3));
+        assertThat(results.unprocessedDeleteItemsForTable(fakeItemWithSortMappedTableWithExtension)).containsExactlyInAnyOrder(FAKESORT_ITEM_KEYS.get(0));
+        assertThat(results.unprocessedPutItemsForTable(fakeItemWithSortMappedTableWithExtension)).containsExactlyInAnyOrder(FAKESORT_ITEMS.get(4), FAKESORT_ITEMS.get(5));
     }
 
     @Test
@@ -404,8 +392,8 @@ public class BatchWriteItemOperationTest {
 
         BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
-        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTable), is(emptyList()));
-        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTable), is(emptyList()));
+        assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTable)).isEmpty();
+        assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTable)).isEmpty();
     }
 
 
