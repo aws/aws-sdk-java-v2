@@ -369,6 +369,15 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't call HttpStreamBase.cancel() directly -->
+        <module name="Regexp">
+            <property name="id" value="NoCrtStreamCancel"/>
+            <property name="format" value="HttpStreamBase\s*(\.|::)\s*cancel"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Don't call HttpStreamBase.cancel() directly. Use ResponseHandlerHelper.closeConnection() or the response handler's closeConnection() method, which is idempotent and pairs cancel() with close() correctly."/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't implement AutoCloseable/Closeable -->
         <module name="Regexp">
             <property name="format" value="(class|interface).*(implements|extends).*[^\w](Closeable|AutoCloseable)[^\w]"/>

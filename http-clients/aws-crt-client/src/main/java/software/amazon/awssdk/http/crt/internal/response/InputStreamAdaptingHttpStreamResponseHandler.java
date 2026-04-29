@@ -132,4 +132,12 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         simplePublisher.complete();
         responseHandlerHelper.releaseConnection();
     }
+
+    public void onAcquireStream(HttpStreamBase stream) {
+        responseHandlerHelper.onAcquireStream(stream);
+    }
+
+    public void closeConnection() {
+        responseHandlerHelper.closeConnection();
+    }
 }
