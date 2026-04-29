@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -113,8 +112,8 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
     public void updateItem_returnItemCollectionMetrics_set_itemCollectionMetricsNull() {
         Record record = new Record().setId("1").setSort(10);
         UpdateItemEnhancedRequest<Record> request = UpdateItemEnhancedRequest.builder(Record.class)
-                                                                          .item(record)
-                                                                          .build();
+                                                                             .item(record)
+                                                                             .build();
 
         UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(request).join();
 
@@ -196,8 +195,8 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
 
 
         UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord)
-                                                                                                .returnValues(ReturnValue.ALL_OLD))
-                                                                                                .join();
+                                                                                               .returnValues(ReturnValue.ALL_OLD))
+                                                                 .join();
 
         assertThat(response.attributes().getId()).isEqualTo(record.getId());
         assertThat(response.attributes().getSort()).isEqualTo(record.getSort());
