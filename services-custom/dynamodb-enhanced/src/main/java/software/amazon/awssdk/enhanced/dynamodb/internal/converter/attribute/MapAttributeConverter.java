@@ -30,6 +30,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -163,7 +164,9 @@ public class MapAttributeConverter<T extends Map<?, ?>> implements AttributeConv
 
         public EnhancedAttributeValue toAttributeValue(T input) {
             Map<String, AttributeValue> result = new LinkedHashMap<>();
-            input.forEach((k, v) -> result.put(keyConverter.toString(k), valueConverter.transformFrom(v)));
+            input.forEach((k, v) -> result.put(keyConverter.toString(k),
+                                               v == null ? AttributeValues.nullAttributeValue()
+                                                         : valueConverter.transformFrom(v)));
             return EnhancedAttributeValue.fromMap(result);
         }
 
