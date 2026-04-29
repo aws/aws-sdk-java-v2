@@ -73,6 +73,13 @@ public final class CrtAsyncRequestExecutor {
         CompletableFuture<HttpStreamBase> streamFuture =
             executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
+        // Cancels the stream on failure so the pool does not reuse it.
+        requestFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                streamFuture.thenAccept(HttpStreamBase::cancel);
+            }
+        });
+
         long finalAcquireStartTime = acquireStartTime;
 
         streamFuture.whenComplete((stream, throwable) -> {

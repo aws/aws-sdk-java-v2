@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Call aws_http_stream_cancel on abort or timeout so the CRT connection pool evicts the connection instead of reusing it."
+}
