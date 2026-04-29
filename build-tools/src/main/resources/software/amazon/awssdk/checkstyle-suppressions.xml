@@ -69,7 +69,7 @@
     <suppress checks="Regexp"
               files="software.amazon.awssdk.s3benchmarks.CrtS3ClientUploadBenchmark.java"/>
 
-    <!-- ResponseHandlerHelper owns the HttpStreamBase lifecycle and is the authorized caller of cancel() -->
+    <!-- ResponseHandlerHelper has helper method closeConnection() which handles safe closing of connection -->
     <suppress id="NoCrtStreamCancel"
               files=".*ResponseHandlerHelper\.java$"/>
 </suppressions>

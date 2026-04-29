@@ -1,0 +1,96 @@
+{
+    "version": "2.43.1",
+    "date": "2026-04-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This feature adds configuration for specifying SCTE marker handling and allow greater control over generated manifest and segment URIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "Adds support for rtx-pro-server-6000 GPU accelerator for service-managed fleets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Removes support for registry policy V1"
+        },
+        {
+            "type": "feature",
+            "category": "S3TransferManager",
+            "contributor": "",
+            "description": "Support MRAP buckets in S3 TransferManager."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add custom 503 throttling detection for S3 head operations"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fixed an issue where cancelling a directory transfer did not fully stop the operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Allow admins to configure IPv6 ranges on IP Access Settings."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds configuration bundles for versioned, immutable agent configuration snapshots with branch-based lineage"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This launch will increase the limits for customers to list the contents from the remote directories from 10k to 200k."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Account",
+            "contributor": "",
+            "description": "Adds AccountState in the response for the GetAccountInformation API. Each state represents a specific phase in the account lifecycle. Use this information to manage account access, automate workflows, or trigger actions based on account state changes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Adds batch evaluation for running evaluators against multiple agent sessions with server-side orchestration, AI-powered recommendations for optimizing system prompts and tool descriptions, and AB testing with controlled traffic splitting and statistical significance reporting"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Amazon CloudFront now supports cache tag. Tag objects via response headers and invalidate all matching objects in a single request, replacing manual URL tracking and broad wildcards."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift Servers adds a new DescribeContainerGroupPortMappings API for container fleets, making it easy to discover which connection ports map to your container ports without needing to remotely access the compute."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed deserialization failure for JSON responses containing field names longer than 50,000 characters. Services like DynamoDB allow attribute names up to 65,535 bytes, which exceeded Jackson's default `maxNameLength` limit."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
