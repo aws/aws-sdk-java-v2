@@ -177,7 +177,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
      *
-     * <p>The parent directory must already exist. The SDK will not auto-create parent directories, and a
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
@@ -193,7 +193,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
      * {@link FileTransformerConfiguration}.
      *
-     * <p>The parent directory must already exist. The SDK will not auto-create parent directories, and a
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
@@ -223,7 +223,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
      *
-     * <p>The parent directory must already exist. The SDK will not auto-create parent directories, and a
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param file        File to write to.

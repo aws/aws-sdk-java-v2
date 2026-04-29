@@ -43,8 +43,8 @@ class ResponseTransformerToFileTest {
 
         assertThatThrownBy(() -> transformer.transform("response", inputStream))
             .isInstanceOf(IOException.class)
-            .hasMessageContaining("Verify that the parent directory exists")
-            .hasMessageContaining("The SDK will not auto-create it")
+            .hasMessageContaining("Verify that the file's parent directories exist")
+            .hasMessageContaining("The SDK will not auto-create them")
             .hasCauseInstanceOf(NoSuchFileException.class);
     }
 }

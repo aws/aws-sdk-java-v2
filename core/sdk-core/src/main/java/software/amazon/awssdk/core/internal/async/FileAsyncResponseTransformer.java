@@ -133,7 +133,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 throw e;
             }
             throw new NoSuchFileException(e.getFile(), e.getOtherFile(),
-                                          "Verify that the parent directory exists. The SDK will not auto-create it.");
+                                          "Verify that the file's parent directories exist. The SDK will not auto-create them.");
         }
     }
 

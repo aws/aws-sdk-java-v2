@@ -339,8 +339,8 @@ class FileAsyncResponseTransformerTest {
         assertThat(future).failsWithin(1, TimeUnit.SECONDS)
                           .withThrowableOfType(ExecutionException.class)
                           .withCauseInstanceOf(NoSuchFileException.class)
-                          .withMessageContaining("Verify that the parent directory exists")
-                          .withMessageContaining("The SDK will not auto-create it");
+                          .withMessageContaining("Verify that the file's parent directories exist")
+                          .withMessageContaining("The SDK will not auto-create them");
     }
 
     @Test
