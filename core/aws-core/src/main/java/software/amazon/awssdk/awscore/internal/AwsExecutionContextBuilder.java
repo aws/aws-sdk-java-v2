@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -161,6 +162,10 @@ public final class AwsExecutionContextBuilder {
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
+        // Snapshot the auth scheme before interceptors run so we can detect interceptor-modified signer properties later.
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_BEFORE_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+
         InterceptorContext interceptorContext = InterceptorContext.builder()
                                                                   .request(originalRequest)
                                                                   .asyncRequestBody(executionParams.getAsyncRequestBody())
@@ -183,6 +188,17 @@ public final class AwsExecutionContextBuilder {
                                          resolveSigningMethodUsed(
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
+
+        // Set a callback to recompute SIGNING_METHOD after auth scheme resolution,
+        // when derived attributes like ENABLE_CHUNKED_ENCODING have correct values.
+        // Capture credentials now — the derived attribute AWS_CREDENTIALS reads from SELECTED_AUTH_SCHEME,
+        // which will be replaced by auth scheme resolution, making the derived read return null.
+        Signer resolvedSigner = signer;
+        AwsCredentials capturedCredentials = executionAttributes.getOptionalAttribute(
+            AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER, attrs ->
+            attrs.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                               resolveSigningMethodUsed(resolvedSigner, attrs, capturedCredentials)));
 
         putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
 

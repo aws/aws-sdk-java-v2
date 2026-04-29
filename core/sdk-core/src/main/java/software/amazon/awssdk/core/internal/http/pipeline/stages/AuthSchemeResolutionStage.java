@@ -21,12 +21,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
@@ -76,9 +76,21 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         SelectedAuthScheme<? extends Identity> selectedAuthScheme =
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, metricCollector);
 
+        // Snapshot the interceptor-modified auth scheme before overwriting, so EndpointResolutionStage
+        // can re-apply interceptor-modified properties after the endpoint resolver callback runs.
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_AFTER_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+
         selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+
+        // Recompute SIGNING_METHOD now that SELECTED_AUTH_SCHEME has correct values for derived attributes
+        java.util.function.Consumer<ExecutionAttributes> signingMethodUpdater =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER);
+        if (signingMethodUpdater != null) {
+            signingMethodUpdater.accept(executionAttributes);
+        }
 
         recordBusinessMetrics(selectedAuthScheme, sdkRequest, executionAttributes);
 
@@ -108,7 +120,7 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         IdentityProviderUpdater updater =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
         if (updater != null) {
-            identityProviders = updater.update(request, identityProviders);
+            identityProviders = updater.update(request, identityProviders, executionAttributes);
         }
         return identityProviders;
     }

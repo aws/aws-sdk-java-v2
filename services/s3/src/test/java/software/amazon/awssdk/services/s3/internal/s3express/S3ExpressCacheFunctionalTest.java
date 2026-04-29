@@ -44,6 +44,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -278,21 +279,29 @@ public class S3ExpressCacheFunctionalTest {
 
         @Override
         public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-            IdentityProviders providers = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-            IdentityProvider<AwsCredentialsIdentity> awsCredentialsIdentityIdentityProvider =
-                providers.identityProvider(AwsCredentialsIdentity.class);
+
+            IdentityProvider<AwsCredentialsIdentity> credentialsProvider = context.request()
+                .overrideConfiguration()
+                .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                .map(c -> (AwsRequestOverrideConfiguration) c)
+                .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                .map(p -> (IdentityProvider<AwsCredentialsIdentity>) p)
+                .orElseGet(() -> {
+                    IdentityProviders providers = executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+                    return providers.identityProvider(AwsCredentialsIdentity.class);
+                });
 
             String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
             if (operationName.equalsIgnoreCase("createsession")) {
                 sessionRequests++;
-                sessionCredentialsProvider.add(awsCredentialsIdentityIdentityProvider);
+                sessionCredentialsProvider.add(credentialsProvider);
             } else {
-                apiCredentialsProvider.add(awsCredentialsIdentityIdentityProvider);
+                apiCredentialsProvider.add(credentialsProvider);
             }
         }
 
         @Override
-        public void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SelectedAuthScheme<?> attribute = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             CompletableFuture<?> identity = attribute.identity();
 
@@ -311,7 +320,11 @@ public class S3ExpressCacheFunctionalTest {
         public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             String host = sdkHttpRequest.host();
-            String bucket = host.substring(0, host.indexOf(".localhost"));
+            int idx = host.indexOf(".localhost");
+            if (idx < 0) {
+                return sdkHttpRequest;
+            }
+            String bucket = host.substring(0, idx);
 
             return sdkHttpRequest.toBuilder().host("localhost")
                                  .encodedPath(SdkHttpUtils.appendUri(bucket, sdkHttpRequest.encodedPath()))

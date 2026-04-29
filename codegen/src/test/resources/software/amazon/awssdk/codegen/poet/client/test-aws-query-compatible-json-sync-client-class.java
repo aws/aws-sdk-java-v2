@@ -3,11 +3,16 @@ package software.amazon.awssdk.services.querytojsoncompatible;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
@@ -15,6 +20,7 @@ import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -22,8 +28,12 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -33,6 +43,11 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.querytojsoncompatible.auth.scheme.QueryToJsonCompatibleAuthSchemeParams;
+import software.amazon.awssdk.services.querytojsoncompatible.auth.scheme.QueryToJsonCompatibleAuthSchemeProvider;
+import software.amazon.awssdk.services.querytojsoncompatible.endpoints.QueryToJsonCompatibleEndpointParams;
+import software.amazon.awssdk.services.querytojsoncompatible.endpoints.QueryToJsonCompatibleEndpointProvider;
+import software.amazon.awssdk.services.querytojsoncompatible.endpoints.internal.QueryToJsonCompatibleEndpointResolverUtils;
 import software.amazon.awssdk.services.querytojsoncompatible.internal.QueryToJsonCompatibleServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.querytojsoncompatible.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationRequest;
@@ -42,6 +57,7 @@ import software.amazon.awssdk.services.querytojsoncompatible.model.QueryToJsonCo
 import software.amazon.awssdk.services.querytojsoncompatible.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal implementation of {@link QueryToJsonCompatibleClient}.
@@ -129,6 +145,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "APostOperation", clientConfiguration))
+                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperation"))
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -153,6 +171,50 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
+                                                            SdkClientConfiguration clientConfiguration) {
+        QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
+            QueryToJsonCompatibleAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
+        QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
+            operationName);
+        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        return options;
+    }
+
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+        QueryToJsonCompatibleEndpointProvider provider = (QueryToJsonCompatibleEndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+        try {
+            QueryToJsonCompatibleEndpointParams endpointParams = QueryToJsonCompatibleEndpointResolverUtils.ruleParams(request,
+                                                                                                                       executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = QueryToJsonCompatibleEndpointResolverUtils.hostPrefix(operationName, request);
+                if (hostPrefix.isPresent()) {
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+                }
+            }
+            List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = QueryToJsonCompatibleEndpointResolverUtils.authSchemeWithEndpointSignerProperties(
+                    endpointAuthSchemes, selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            QueryToJsonCompatibleEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
+            return endpoint;
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
