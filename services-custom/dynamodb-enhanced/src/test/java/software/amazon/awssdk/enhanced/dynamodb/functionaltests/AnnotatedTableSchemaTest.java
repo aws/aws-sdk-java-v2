@@ -19,9 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.function.Function;
 
 import org.assertj.core.api.Assertions;
@@ -35,10 +33,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AbstractBean;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AbstractImmutable;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.SimpleBean;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.SimpleImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
@@ -60,32 +54,7 @@ public class AnnotatedTableSchemaTest extends LocalDynamoDbSyncTestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> parameters() {
-        return Arrays.asList(new Object[][] {
-            {
-                "@DynamoDbBean",
-                SimpleBean.class,
-                TableSchema.fromClass(SimpleBean.class),
-                (Function<TestItemFactory, Object>) TestItemFactory::bean,
-                (Function<TestItemFactory, Object>) TestItemFactory::beanPartial,
-                (Function<TestItemFactory, Object>) TestItemFactory::beanItem1,
-                (Function<TestItemFactory, Object>) TestItemFactory::beanItem2,
-                (Function<TestItemFactory, Object>) TestItemFactory::beanUpdated,
-                (Function<TestItemFactory, Object>) TestItemFactory::beanUpdatedNullString,
-                AbstractBean.class
-            },
-            {
-                "@DynamoDbImmutable",
-                SimpleImmutable.class,
-                TableSchema.fromClass(SimpleImmutable.class),
-                (Function<TestItemFactory, Object>) TestItemFactory::immutable,
-                (Function<TestItemFactory, Object>) TestItemFactory::immutablePartial,
-                (Function<TestItemFactory, Object>) TestItemFactory::immutableItem1,
-                (Function<TestItemFactory, Object>) TestItemFactory::immutableItem2,
-                (Function<TestItemFactory, Object>) TestItemFactory::immutableUpdated,
-                (Function<TestItemFactory, Object>) TestItemFactory::immutableUpdatedNullString,
-                AbstractImmutable.class
-            }
-        });
+        return AnnotatedTableSchemaTestSupport.parameters();
     }
 
     @Parameterized.Parameter(0)
@@ -98,22 +67,22 @@ public class AnnotatedTableSchemaTest extends LocalDynamoDbSyncTestBase {
     public TableSchema<Object> tableSchema;
 
     @Parameterized.Parameter(3)
-    public Function<TestItemFactory, Object> fullItem;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> fullItem;
 
     @Parameterized.Parameter(4)
-    public Function<TestItemFactory, Object> partialItem;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> partialItem;
 
     @Parameterized.Parameter(5)
-    public Function<TestItemFactory, Object> firstItem;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> firstItem;
 
     @Parameterized.Parameter(6)
-    public Function<TestItemFactory, Object> secondItem;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> secondItem;
 
     @Parameterized.Parameter(7)
-    public Function<TestItemFactory, Object> updatedItem;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> updatedItem;
 
     @Parameterized.Parameter(8)
-    public Function<TestItemFactory, Object> updatedItemWithNullString;
+    public Function<AnnotatedTableSchemaTestSupport.TestItemFactory, Object> updatedItemWithNullString;
 
     @Parameterized.Parameter(9)
     public Class<?> abstractItemClass;
@@ -123,13 +92,13 @@ public class AnnotatedTableSchemaTest extends LocalDynamoDbSyncTestBase {
                                                                                 .build();
 
     private DynamoDbTable<Object> mappedTable;
-    private TestItemFactory factory;
+    private AnnotatedTableSchemaTestSupport.TestItemFactory factory;
 
     @Before
     public void createTable() {
         mappedTable = enhancedClient.table(getConcreteTableName(TABLE_NAME), tableSchema);
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
-        factory = new TestItemFactory();
+        factory = new AnnotatedTableSchemaTestSupport.TestItemFactory();
     }
 
     @After
@@ -599,115 +568,6 @@ public class AnnotatedTableSchemaTest extends LocalDynamoDbSyncTestBase {
             mappedTable.deleteItemWithResponse(r -> r.key(key));
 
         assertThat(deleteItemEnhancedResponse.attributes()).isNull();
-    }
-
-    private static final class TestItemFactory {
-        private final String id = "id-value";
-        private final String sort = "sort-value";
-
-        Object bean() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            item.setStringAttribute("stringAttribute-value");
-            return item;
-        }
-
-        Object beanPartial() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            return item;
-        }
-
-        Object beanItem1() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            item.setStringAttribute("stringAttribute-value-item1");
-            return item;
-        }
-
-        Object beanItem2() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            item.setStringAttribute("stringAttribute-value-item2");
-            return item;
-        }
-
-        Object beanUpdated() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            item.setStringAttribute("stringAttribute-value-updated");
-            return item;
-        }
-
-        Object beanUpdatedNullString() {
-            SimpleBean item = new SimpleBean();
-            item.setId(id);
-            item.setSort(sort);
-            item.setStringAttribute(null);
-            return item;
-        }
-
-        Object immutable() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .stringAttribute("stringAttribute-value")
-                                 .build();
-        }
-
-        Object immutablePartial() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .build();
-        }
-
-        Object immutableItem1() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .stringAttribute("stringAttribute-value-item1")
-                                 .build();
-        }
-
-        Object immutableItem2() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .stringAttribute("stringAttribute-value-item2")
-                                 .build();
-        }
-
-        Object immutableUpdated() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .stringAttribute("stringAttribute-value-updated")
-                                 .build();
-        }
-
-        Object immutableUpdatedNullString() {
-            return SimpleImmutable.builder()
-                                 .id(id)
-                                 .sort(sort)
-                                 .stringAttribute(null)
-                                 .build();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return super.equals(o);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, sort);
-        }
     }
 }
 
