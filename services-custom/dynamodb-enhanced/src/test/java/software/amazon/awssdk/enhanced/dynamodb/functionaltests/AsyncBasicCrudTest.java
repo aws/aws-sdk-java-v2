@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
@@ -40,9 +41,12 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
@@ -257,6 +261,19 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void putReturnsRequestId() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        PutItemEnhancedResponse<Record> putResponse = mappedTable.putItemWithResponse(r -> r.item(record)).join();
+        assertThat(putResponse.responseMetadata().requestId(), notNullValue());
+    }
+
+    @Test
     public void putThenGetItemUsingKeyItem() {
         Record record = new Record()
                               .setId("id-value")
@@ -402,6 +419,13 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
+    public void deleteReturnsRequestId() {
+        DeleteItemEnhancedResponse<Record> deleteResponse =
+            mappedTable.deleteItemWithResponse(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
+        assertThat(deleteResponse.responseMetadata().requestId(), notNullValue());
+    }
+
+    @Test
     public void deleteNonExistentItem() {
         Record result = mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(nullValue()));
@@ -461,6 +485,20 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.deleteItem(DeleteItemEnhancedRequest.builder().key(mappedTable.keyFrom(record))
                                                         .conditionExpression(conditionExpression)
                                                         .build()).join();
+    }
+
+    @Test
+    public void updateReturnsRequestId() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        UpdateItemEnhancedResponse<Record> updateResponse =
+            mappedTable.updateItemWithResponse(r -> r.item(record)).join();
+        assertThat(updateResponse.responseMetadata().requestId(), notNullValue());
     }
 
     @Test
