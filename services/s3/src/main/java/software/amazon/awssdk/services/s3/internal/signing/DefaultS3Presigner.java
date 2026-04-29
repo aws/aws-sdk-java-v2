@@ -70,7 +70,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.http.auth.AuthSchemeResolver;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;

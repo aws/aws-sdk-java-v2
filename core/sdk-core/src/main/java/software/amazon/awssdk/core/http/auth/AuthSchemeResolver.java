@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http.auth;
+package software.amazon.awssdk.core.http.auth;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.Logger;
 /**
  * Shared utility for selecting auth schemes from a list of options.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class AuthSchemeResolver {
 
     private static final Logger LOG = Logger.loggerFor(AuthSchemeResolver.class);
