@@ -17,7 +17,9 @@ package software.amazon.awssdk.protocols.json;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -136,6 +138,38 @@ final class SdkByteArrayOutputStream extends ByteArrayOutputStream {
     }
 
     /**
+     * Resets this stream so that all currently accumulated output is discarded, including any
+     * overflow chunks. After calling this method, the stream can be reused as if freshly constructed.
+     */
+    @Override
+    public void reset() {
+        super.reset();
+        overflowing = false;
+        overflowChunks = null;
+        overflowChunkOffset = 0;
+        overflowTotalBytes = 0;
+    }
+
+    /**
+     * Writes the complete contents of this stream to the specified output stream, including
+     * any overflow chunks.
+     */
+    @Override
+    public void writeTo(OutputStream out) throws IOException {
+        if (!overflowing) {
+            super.writeTo(out);
+            return;
+        }
+        // Write base buffer
+        out.write(buf, 0, count);
+        // Write overflow chunks
+        for (int i = 0; i < overflowChunks.size(); i++) {
+            int len = (i < overflowChunks.size() - 1) ? overflowChunks.get(i).length : overflowChunkOffset;
+            out.write(overflowChunks.get(i), 0, len);
+        }
+    }
+
+    /**
      * Returns a {@link ContentStreamProvider} that streams directly from the internal buffers
      * without creating a contiguous copy. For small payloads this wraps the single base buffer;
      * for large payloads it chains the base buffer and overflow chunks via
@@ -143,7 +177,7 @@ final class SdkByteArrayOutputStream extends ByteArrayOutputStream {
      */
     ContentStreamProvider contentStreamProvider() {
         if (!overflowing) {
-            // Small payload: single buffer, wrap directly (same as ExposedByteArrayOutputStream)
+            // Small payload: single buffer, wrap directly
             byte[] b = buf;
             int c = count;
             return () -> new ByteArrayInputStream(b, 0, c);

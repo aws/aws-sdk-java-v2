@@ -53,7 +53,6 @@ import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToStrin
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 
@@ -70,6 +69,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
 
     // Caches the resolved marshaller for non-PAYLOAD fields, keyed by SdkField identity.
     // SdkField instances are static final per generated model class, so identity-based lookup is correct.
+    // The cache is effectively bounded by the total number of non-payload SdkField instances across all
+    // loaded service models — each SdkField is inserted at most once, and no eviction is needed.
     // ConcurrentHashMap is used for thread safety; the one-time put per SdkField is negligible.
     private static final ConcurrentHashMap<SdkField<?>, JsonMarshaller<Object>> MARSHALLER_CACHE =
         new ConcurrentHashMap<>();
@@ -290,24 +291,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 jsonGenerator.writeEndObject();
             }
 
-            if (jsonGenerator instanceof SdkJsonGenerator) {
-                // Optimized path: stream directly from chunked buffers, avoiding a single
-                // contiguous byte[] allocation that can cause G1GC humongous allocations.
-                SdkJsonGenerator sdkGenerator = (SdkJsonGenerator) jsonGenerator;
-                ContentStreamProvider contentProvider = sdkGenerator.contentStreamProvider();
+            ContentStreamProvider contentProvider = jsonGenerator.contentStreamProvider();
+            if (contentProvider != null) {
                 request.contentStreamProvider(contentProvider);
-                int contentSize = sdkGenerator.contentSize();
+                int contentSize = jsonGenerator.contentSize();
                 if (contentSize > 0) {
                     request.putHeader(CONTENT_LENGTH, Integer.toString(contentSize));
-                }
-            } else {
-                byte[] content = jsonGenerator.getBytes();
-
-                if (content != null) {
-                    request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-                    if (content.length > 0) {
-                        request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
-                    }
                 }
             }
         }

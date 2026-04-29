@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Optimized JSON marshalling performance for JSON RPC and REST JSON protocols."
+    "description": "Optimized JSON marshalling performance for JSON RPC, REST JSON and RPCv2 Cbor protocols."
 }

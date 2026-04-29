@@ -73,7 +73,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- STRING ----
 
     @Test
-    void string_producesCorrectJson() {
+    void marshallPayloadField_withStringValue_producesCorrectJson() {
         SdkField<String> field = payloadField("fieldName", MarshallingType.STRING, obj -> "hello world");
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":\"hello world\"");
@@ -82,7 +82,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- INTEGER ----
 
     @Test
-    void integer_producesCorrectJson() {
+    void marshallPayloadField_withIntegerValue_producesCorrectJson() {
         SdkField<Integer> field = payloadField("fieldName", MarshallingType.INTEGER, obj -> 42);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":42");
@@ -91,7 +91,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- LONG ----
 
     @Test
-    void long_producesCorrectJson() {
+    void marshallPayloadField_withLongValue_producesCorrectJson() {
         SdkField<Long> field = payloadField("fieldName", MarshallingType.LONG, obj -> 123456789L);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":123456789");
@@ -100,7 +100,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- SHORT ----
 
     @Test
-    void short_producesCorrectJson() {
+    void marshallPayloadField_withShortValue_producesCorrectJson() {
         SdkField<Short> field = payloadField("fieldName", MarshallingType.SHORT, obj -> (short) 7);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":7");
@@ -109,7 +109,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- BYTE ----
 
     @Test
-    void byte_producesCorrectJson() {
+    void marshallPayloadField_withByteValue_producesCorrectJson() {
         SdkField<Byte> field = payloadField("fieldName", MarshallingType.BYTE, obj -> (byte) 3);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":3");
@@ -118,7 +118,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- FLOAT ----
 
     @Test
-    void float_producesCorrectJson() {
+    void marshallPayloadField_withFloatValue_producesCorrectJson() {
         SdkField<Float> field = payloadField("fieldName", MarshallingType.FLOAT, obj -> 1.5f);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":1.5");
@@ -127,7 +127,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- DOUBLE ----
 
     @Test
-    void double_producesCorrectJson() {
+    void marshallPayloadField_withDoubleValue_producesCorrectJson() {
         SdkField<Double> field = payloadField("fieldName", MarshallingType.DOUBLE, obj -> 3.14);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":3.14");
@@ -136,7 +136,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- BIG_DECIMAL ----
 
     @Test
-    void bigDecimal_producesCorrectJson() {
+    void marshallPayloadField_withBigDecimalValue_producesCorrectJson() {
         SdkField<BigDecimal> field = payloadField("fieldName", MarshallingType.BIG_DECIMAL,
                                                    obj -> new BigDecimal("99.99"));
         String body = marshallAndGetBody(field);
@@ -147,7 +147,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- BOOLEAN ----
 
     @Test
-    void boolean_producesCorrectJson() {
+    void marshallPayloadField_withBooleanValue_producesCorrectJson() {
         SdkField<Boolean> field = payloadField("fieldName", MarshallingType.BOOLEAN, obj -> true);
         String body = marshallAndGetBody(field);
         assertThat(body).contains("\"fieldName\":true");
@@ -156,7 +156,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- INSTANT (default format — UNIX_TIMESTAMP for PAYLOAD) ----
 
     @Test
-    void instant_defaultFormat_producesUnixTimestamp() {
+    void marshallPayloadField_withInstantDefaultFormat_producesUnixTimestamp() {
         SdkField<Instant> field = payloadField("fieldName", MarshallingType.INSTANT,
                                                obj -> Instant.ofEpochSecond(1000));
         String body = marshallAndGetBody(field);
@@ -169,7 +169,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- INSTANT with UNIX_TIMESTAMP trait ----
 
     @Test
-    void instant_unixTimestampTrait_producesUnixTimestamp() {
+    void marshallPayloadField_withInstantUnixTimestampTrait_producesUnixTimestamp() {
         SdkField<Instant> field = SdkField.<Instant>builder(MarshallingType.INSTANT)
             .memberName("fieldName")
             .getter(obj -> Instant.ofEpochSecond(1000))
@@ -188,7 +188,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- INSTANT with RFC_822 trait ----
 
     @Test
-    void instant_rfc822Trait_producesRfc822String() {
+    void marshallPayloadField_withInstantRfc822Trait_producesRfc822String() {
         SdkField<Instant> field = SdkField.<Instant>builder(MarshallingType.INSTANT)
             .memberName("fieldName")
             .getter(obj -> Instant.ofEpochSecond(1000))
@@ -208,7 +208,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- INSTANT with ISO_8601 trait ----
 
     @Test
-    void instant_iso8601Trait_producesIso8601String() {
+    void marshallPayloadField_withInstantIso8601Trait_producesIso8601String() {
         SdkField<Instant> field = SdkField.<Instant>builder(MarshallingType.INSTANT)
             .memberName("fieldName")
             .getter(obj -> Instant.ofEpochSecond(1000))
@@ -228,7 +228,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- SDK_BYTES ----
 
     @Test
-    void sdkBytes_producesBase64EncodedJson() {
+    void marshallPayloadField_withSdkBytesValue_producesBase64EncodedJson() {
         SdkField<SdkBytes> field = payloadField("fieldName", MarshallingType.SDK_BYTES,
                                                  obj -> SdkBytes.fromUtf8String("data"));
         String body = marshallAndGetBody(field);
@@ -239,7 +239,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- SDK_POJO (nested) ----
 
     @Test
-    void sdkPojo_producesNestedObjectJson() {
+    void marshallPayloadField_withSdkPojoValue_producesNestedObjectJson() {
         // Inner pojo with a single string field
         SdkField<String> innerField = payloadField("innerField", MarshallingType.STRING, obj -> "innerValue");
         SimplePojo innerPojo = new SimplePojo(innerField);
@@ -262,7 +262,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- LIST (non-empty) ----
 
     @Test
-    void list_nonEmpty_producesArrayJson() {
+    void marshallPayloadField_withNonEmptyList_producesArrayJson() {
         List<String> listValue = Arrays.asList("a", "b", "c");
 
         SdkField<String> memberField = SdkField.<String>builder(MarshallingType.STRING)
@@ -295,7 +295,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- LIST (empty SdkAutoConstructList — should be skipped) ----
 
     @Test
-    void list_emptySdkAutoConstructList_isSkipped() {
+    void marshallPayloadField_withEmptySdkAutoConstructList_isSkipped() {
         List<String> autoList = DefaultSdkAutoConstructList.getInstance();
 
         SdkField<String> memberField = SdkField.<String>builder(MarshallingType.STRING)
@@ -328,7 +328,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- LIST (empty regular list — should emit empty array) ----
 
     @Test
-    void list_emptyRegularList_producesEmptyArray() {
+    void marshallPayloadField_withEmptyRegularList_producesEmptyArray() {
         List<String> emptyList = new ArrayList<>();
 
         SdkField<String> memberField = SdkField.<String>builder(MarshallingType.STRING)
@@ -361,7 +361,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- MAP (non-empty) ----
 
     @Test
-    void map_nonEmpty_producesObjectJson() {
+    void marshallPayloadField_withNonEmptyMap_producesObjectJson() {
         // Use LinkedHashMap for deterministic ordering
         Map<String, String> mapValue = new LinkedHashMap<>();
         mapValue.put("key1", "val1");
@@ -397,7 +397,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- MAP (empty SdkAutoConstructMap — should be skipped) ----
 
     @Test
-    void map_emptySdkAutoConstructMap_isSkipped() {
+    void marshallPayloadField_withEmptySdkAutoConstructMap_isSkipped() {
         Map<String, String> autoMap = DefaultSdkAutoConstructMap.getInstance();
 
         SdkField<String> valueField = SdkField.<String>builder(MarshallingType.STRING)
@@ -430,7 +430,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- MAP (empty regular map — should emit empty object) ----
 
     @Test
-    void map_emptyRegularMap_producesEmptyObject() {
+    void marshallPayloadField_withEmptyRegularMap_producesEmptyObject() {
         Map<String, String> emptyMap = new HashMap<>();
 
         SdkField<String> valueField = SdkField.<String>builder(MarshallingType.STRING)
@@ -463,7 +463,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- MAP with null value entry — entry is skipped ----
 
     @Test
-    void map_nullValueEntry_isSkipped() {
+    void marshallPayloadField_withMapNullValueEntry_isSkipped() {
         Map<String, String> mapValue = new LinkedHashMap<>();
         mapValue.put("key1", "val1");
         mapValue.put("key2", null);
@@ -501,7 +501,7 @@ class PayloadMarshallingEquivalenceTest {
     // ---- DOCUMENT ----
 
     @Test
-    void document_producesCorrectJson() {
+    void marshallPayloadField_withDocumentValue_producesCorrectJson() {
         SdkField<Document> field = payloadField("fieldName", MarshallingType.DOCUMENT,
                                                 obj -> Document.fromString("test"));
         String body = marshallAndGetBody(field);

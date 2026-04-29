@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.protocols.json;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * Interface for generating a JSON
@@ -99,6 +101,11 @@ public interface StructuredJsonGenerator {
 
         @Override
         public StructuredJsonGenerator writeValue(ByteBuffer bytes) {
+            return this;
+        }
+
+        @Override
+        public StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
             return this;
         }
 
@@ -193,4 +200,28 @@ public interface StructuredJsonGenerator {
      */
     @Deprecated
     String getContentType();
+
+    /**
+     * Returns the size of the generated content in bytes without copying. The default
+     * implementation falls back to {@link #getBytes()}.length.
+     */
+    default int contentSize() {
+        byte[] bytes = getBytes();
+        return bytes == null ? 0 : bytes.length;
+    }
+
+    /**
+     * Returns a {@link ContentStreamProvider} that streams the generated content. The default
+     * implementation wraps the result of {@link #getBytes()} in a {@code ByteArrayInputStream}.
+     * Implementations may override this to stream directly from internal buffers without copying.
+     *
+     * @return a content stream provider, or {@code null} if {@link #getBytes()} returns null
+     */
+    default ContentStreamProvider contentStreamProvider() {
+        byte[] bytes = getBytes();
+        if (bytes == null) {
+            return null;
+        }
+        return () -> new ByteArrayInputStream(bytes);
+    }
 }
