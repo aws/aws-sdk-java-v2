@@ -161,6 +161,10 @@ public final class AwsExecutionContextBuilder {
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
+        // Snapshot the auth scheme before interceptors run so we can detect interceptor-modified signer properties later.
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_BEFORE_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+
         InterceptorContext interceptorContext = InterceptorContext.builder()
                                                                   .request(originalRequest)
                                                                   .asyncRequestBody(executionParams.getAsyncRequestBody())
@@ -183,6 +187,15 @@ public final class AwsExecutionContextBuilder {
                                          resolveSigningMethodUsed(
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
+
+        // Set a callback to recompute SIGNING_METHOD after auth scheme resolution,
+        // when derived attributes like ENABLE_CHUNKED_ENCODING have correct values.
+        Signer resolvedSigner = signer;
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER, attrs ->
+            attrs.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                               resolveSigningMethodUsed(
+                                   resolvedSigner, attrs, attrs.getOptionalAttribute(
+                                       AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null))));
 
         putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
 

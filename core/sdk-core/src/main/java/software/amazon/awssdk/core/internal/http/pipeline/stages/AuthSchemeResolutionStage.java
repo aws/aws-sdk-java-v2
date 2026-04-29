@@ -76,9 +76,21 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         SelectedAuthScheme<? extends Identity> selectedAuthScheme =
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, metricCollector);
 
+        // Snapshot the interceptor-modified auth scheme before overwriting, so EndpointResolutionStage
+        // can re-apply interceptor-modified properties after the endpoint resolver callback runs.
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_AFTER_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+
         selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+
+        // Recompute SIGNING_METHOD now that SELECTED_AUTH_SCHEME has correct values for derived attributes
+        java.util.function.Consumer<ExecutionAttributes> signingMethodUpdater =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER);
+        if (signingMethodUpdater != null) {
+            signingMethodUpdater.accept(executionAttributes);
+        }
 
         recordBusinessMetrics(selectedAuthScheme, sdkRequest, executionAttributes);
 
