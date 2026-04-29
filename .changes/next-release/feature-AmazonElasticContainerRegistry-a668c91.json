@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Container Registry",
-    "contributor": "",
-    "description": "Removes support for registry policy V1"
-}

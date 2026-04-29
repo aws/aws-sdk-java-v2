@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Control",
-    "contributor": "",
-    "description": "Adds configuration bundles for versioned, immutable agent configuration snapshots with branch-based lineage"
-}

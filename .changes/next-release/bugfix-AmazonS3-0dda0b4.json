@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add custom 503 throttling detection for S3 head operations"
-}

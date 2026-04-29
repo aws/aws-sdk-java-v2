@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Account",
-    "contributor": "",
-    "description": "Adds AccountState in the response for the GetAccountInformation API. Each state represents a specific phase in the account lifecycle. Use this information to manage account access, automate workflows, or trigger actions based on account state changes."
-}
