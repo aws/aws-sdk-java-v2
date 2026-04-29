@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
-import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
@@ -57,17 +56,22 @@ public final class CrtRequestExecutor {
             acquireStartTime = System.nanoTime();
         }
 
-        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+        InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
+            new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
 
         HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
 
         CompletableFuture<HttpStreamBase> streamFuture =
             executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
-        // Cancels the stream on failure so the pool does not reuse it.
+        // Capture the stream as soon as it is acquired, so closeConnection() works even before
+        // onResponseHeaders fires (e.g. when the server is unresponsive).
+        streamFuture.thenAccept(crtResponseHandler::onAcquireStream);
+
+        // Evict the connection from the pool on failure so it is not reused.
         requestFuture.whenComplete((r, t) -> {
             if (t != null) {
-                streamFuture.thenAccept(HttpStreamBase::cancel);
+                crtResponseHandler.closeConnection();
             }
         });
 

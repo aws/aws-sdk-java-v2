@@ -68,4 +68,8 @@
     <!-- Ignore usage of S3MetaRequest in CrtS3ClientUploadBenchmark. !-->
     <suppress checks="Regexp"
               files="software.amazon.awssdk.s3benchmarks.CrtS3ClientUploadBenchmark.java"/>
+
+    <!-- ResponseHandlerHelper owns the HttpStreamBase lifecycle and is the authorized caller of cancel() -->
+    <suppress id="NoCrtStreamCancel"
+              files=".*ResponseHandlerHelper\.java$"/>
 </suppressions>
