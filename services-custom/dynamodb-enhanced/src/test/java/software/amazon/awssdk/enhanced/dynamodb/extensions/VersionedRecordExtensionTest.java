@@ -265,9 +265,9 @@ public class VersionedRecordExtensionTest {
     @MethodSource("customFailingStartAtAndIncrementValues")
     public void customStartingValueAndIncrement_shouldThrow(Long startAt, Long incrementBy) {
         assertThrows(IllegalArgumentException.class, () -> VersionedRecordExtension.builder()
-                                                                               .startAt(startAt)
-                                                                               .incrementBy(incrementBy)
-                                                                               .build());
+                                                                                   .startAt(startAt)
+                                                                                   .incrementBy(incrementBy)
+                                                                                   .build());
     }
 
     public static Stream<Arguments> customFailingStartAtAndIncrementValues() {
@@ -375,9 +375,9 @@ public class VersionedRecordExtensionTest {
     @Test
     public void customAnnotationValuesAndBuilderValues_annotationShouldTakePrecedence() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
-                                                        .startAt(5L)
-                                                        .incrementBy(2L)
-                                                        .build();
+                                                                           .startAt(5L)
+                                                                           .incrementBy(2L)
+                                                                           .build();
 
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
         item.setId(UUID.randomUUID().toString());
@@ -516,7 +516,7 @@ public class VersionedRecordExtensionTest {
     @ParameterizedTest
     @MethodSource("customIncrementForExistingVersionValues")
     public void customIncrementForExistingVersion_withImmutableSchema_worksAsExpected(Long startAt, Long incrementBy,
-                                                                  Long existingVersion, String expectedNextVersion) {
+                                                                                      Long existingVersion, String expectedNextVersion) {
         VersionedRecordExtension.Builder recordExtensionBuilder = VersionedRecordExtension.builder();
         if (startAt != null) {
             recordExtensionBuilder.startAt(startAt);
