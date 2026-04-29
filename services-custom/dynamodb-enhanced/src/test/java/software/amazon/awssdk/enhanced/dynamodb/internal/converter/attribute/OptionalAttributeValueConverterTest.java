@@ -18,7 +18,9 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class OptionalAttributeValueConverterTest {
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+public class OptionalAttributeValueConverterTest  {
     private static final OptionalAttributeConverter<String> CONVERTER =
             OptionalAttributeConverter.create(StringAttributeConverter.create());
     @Test
@@ -28,6 +30,6 @@ public class OptionalAttributeValueConverterTest {
                 .s("foo")
                 .build();
 
-        CONVERTER.transformTo(av);
+        assertDoesNotThrow(() -> CONVERTER.transformTo(av));
     }
 }

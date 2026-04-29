@@ -29,13 +29,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EnhancedClientUtilsTest {
@@ -86,7 +91,6 @@ public class EnhancedClientUtilsTest {
 
     @Test
     public void hasMap_forAttributeValueNull_returnsFalse() {
-
         boolean result = EnhancedClientUtils.hasMap(null);
 
         assertThat(result).isFalse();
@@ -373,22 +377,6 @@ public class EnhancedClientUtilsTest {
     }
 
     @Test
-    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
-        Object result = EnhancedClientUtils.readAndTransformSingleItem(null, mockSchema, null, null);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
-    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
-        Map<String, AttributeValue> emptyMap = Collections.emptyMap();
-
-        Object result = EnhancedClientUtils.readAndTransformSingleItem(emptyMap, mockSchema, null, null);
-
-        assertThat(result).isNull();
-    }
-
-    @Test
     public void getItemsFromSupplier_withNullList_returnsNull() {
         List<Object> result = EnhancedClientUtils.getItemsFromSupplier(null);
 
@@ -400,5 +388,100 @@ public class EnhancedClientUtilsTest {
         List<Object> result = EnhancedClientUtils.getItemsFromSupplier(Collections.emptyList());
 
         assertThat(result).isNull();
+    }
+
+
+    @Test
+    public void readAndTransformSingleItem_withNullItemMap_returnsNull() {
+        assertThat(
+            EnhancedClientUtils.readAndTransformSingleItem(
+                null,
+                FakeItem.getTableSchema(),
+                null,
+                null))
+            .isNull();
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withEmptyItemMap_returnsNull() {
+        assertThat(
+            EnhancedClientUtils.readAndTransformSingleItem(
+                Collections.emptyMap(),
+                FakeItem.getTableSchema(),
+                null,
+                null))
+            .isNull();
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withExtensionAndTransformedItem_returnsTransformedItem() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("id", PARTITION_VALUE);
+        DynamoDbEnhancedClientExtension extension = new DynamoDbEnhancedClientExtension() {
+            @Override
+            public ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
+                return ReadModification.builder().transformedItem(itemMap).build();
+            }
+        };
+
+        assertThat(
+            EnhancedClientUtils.readAndTransformSingleItem(
+                itemMap,
+                FakeItem.getTableSchema(),
+                null,
+                extension))
+            .isNotNull();
+    }
+
+    @Test
+    public void readAndTransformSingleItem_withExtensionNoTransformedItem_returnsOriginalItem() {
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("id", PARTITION_VALUE);
+        DynamoDbEnhancedClientExtension extension = new DynamoDbEnhancedClientExtension() {};
+
+        assertThat(
+            EnhancedClientUtils.readAndTransformSingleItem(
+                itemMap,
+                FakeItem.getTableSchema(),
+                null,
+                extension))
+            .isNotNull();
+    }
+
+    @Test
+    public void readAndTransformPaginatedItems_withAllFields_returnsCompletePage() {
+        class TestResponse {
+            List<Map<String, AttributeValue>> items;
+            Map<String, AttributeValue> lastKey;
+            int count;
+            int scannedCount;
+            ConsumedCapacity consumedCapacity;
+        }
+        TestResponse response = new TestResponse();
+        Map<String, AttributeValue> itemMap = new HashMap<>();
+        itemMap.put("id", PARTITION_VALUE);
+        response.items = Collections.singletonList(itemMap);
+        response.lastKey = new HashMap<>();
+        response.lastKey.put("id", PARTITION_VALUE);
+        response.count = 1;
+        response.scannedCount = 1;
+        response.consumedCapacity = null;
+
+        Page<FakeItem> page = EnhancedClientUtils.readAndTransformPaginatedItems(
+            response,
+            FakeItem.getTableSchema(),
+            null,
+            null,
+            r -> r.items,
+            r -> r.lastKey,
+            r -> r.count,
+            r -> r.scannedCount,
+            r -> r.consumedCapacity
+        );
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.count()).isEqualTo(1);
+        assertThat(page.scannedCount()).isEqualTo(1);
+        assertThat(page.lastEvaluatedKey()).isEqualTo(response.lastKey);
     }
 }
