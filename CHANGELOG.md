@@ -1,4 +1,64 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.43.1__ __2026-04-29__
+## __AWS Account__
+  - ### Features
+    - Adds AccountState in the response for the GetAccountInformation API. Each state represents a specific phase in the account lifecycle. Use this information to manage account access, automate workflows, or trigger actions based on account state changes.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This feature adds configuration for specifying SCTE marker handling and allow greater control over generated manifest and segment URIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed deserialization failure for JSON responses containing field names longer than 50,000 characters. Services like DynamoDB allow attribute names up to 65,535 bytes, which exceeded Jackson's default `maxNameLength` limit.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This launch will increase the limits for customers to list the contents from the remote directories from 10k to 200k.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for rtx-pro-server-6000 GPU accelerator for service-managed fleets.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds batch evaluation for running evaluators against multiple agent sessions with server-side orchestration, AI-powered recommendations for optimizing system prompts and tool descriptions, and AB testing with controlled traffic splitting and statistical significance reporting
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds configuration bundles for versioned, immutable agent configuration snapshots with branch-based lineage
+
+## __Amazon CloudFront__
+  - ### Features
+    - Amazon CloudFront now supports cache tag. Tag objects via response headers and invalidate all matching objects in a single request, replacing manual URL tracking and broad wildcards.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Removes support for registry policy V1
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers adds a new DescribeContainerGroupPortMappings API for container fleets, making it easy to discover which connection ports map to your container ports without needing to remotely access the compute.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add custom 503 throttling detection for S3 head operations
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Allow admins to configure IPv6 ranges on IP Access Settings.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed an issue where cancelling a directory transfer did not fully stop the operation.
+
+## __S3TransferManager__
+  - ### Features
+    - Support MRAP buckets in S3 TransferManager.
+
 # __2.43.0__ __2026-04-27__
 ## __AWS Glue__
   - ### Features
