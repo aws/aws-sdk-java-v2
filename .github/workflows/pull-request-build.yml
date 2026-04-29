@@ -2,6 +2,13 @@ name: Build SDK
 on:
   merge_group:
   pull_request_target:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
 
 concurrency:
   group: start-pull-request-build-${{ github.event.pull_request.number || github.ref }}
@@ -13,7 +20,9 @@ env:
 
 jobs:
   aws-sdk-pr-build:
-    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
+    if: >
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       id-token: write
