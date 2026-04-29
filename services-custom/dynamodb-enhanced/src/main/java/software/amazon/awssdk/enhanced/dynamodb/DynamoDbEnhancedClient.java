@@ -36,6 +36,9 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRe
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult;
+import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 
@@ -538,12 +541,33 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
     }
 
     /**
+     * Executes an enhanced query (joins, aggregations, filters) described by the given spec.
+     *
+     * @param spec the query specification
+     * @return iterable of result rows
+     */
+    default EnhancedQueryResult enhancedQuery(QueryExpressionSpec spec) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes an enhanced query and optionally reports latency.
+     *
+     * @param spec the query specification
+     * @param reportConsumer optional consumer for the latency report; may be null
+     * @return iterable of result rows
+     */
+    default EnhancedQueryResult enhancedQuery(QueryExpressionSpec spec,
+                                              Consumer<EnhancedQueryLatencyReport> reportConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Returns the underlying low-level {@link DynamoDbClient} that this enhanced client uses to make API calls.
      * <p>
      * The returned client is the same instance that was provided during construction via
-     * {@link Builder#dynamoDbClient(DynamoDbClient)}, or the internally-created one if {@link #create()} was used.
-     * It is <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this
-     * enhanced client as well.
+     * {@link Builder#dynamoDbClient(DynamoDbClient)}, or the internally-created one if {@link #create()} was used. It is
+     * <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this enhanced client as well.
      *
      * @return the underlying {@link DynamoDbClient}
      * @throws UnsupportedOperationException if the implementation does not support this operation
