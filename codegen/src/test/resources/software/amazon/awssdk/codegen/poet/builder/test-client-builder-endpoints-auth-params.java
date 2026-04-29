@@ -40,11 +40,8 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
-import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
-import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -83,9 +80,6 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new QueryAuthSchemeInterceptor());
-        endpointInterceptors.add(new QueryResolveEndpointInterceptor());
-        endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
