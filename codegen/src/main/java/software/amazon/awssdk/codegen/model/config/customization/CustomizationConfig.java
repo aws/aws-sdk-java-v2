@@ -250,6 +250,11 @@ public class CustomizationConfig {
     private String asyncClientDecorator;
 
     /**
+     * If the client has API extensions to include.
+     */
+    private ClientExtensions clientExtensions;
+
+    /**
      * Only for s3. A set of customization to related to multipart operations.
      */
     private MultipartCustomization multipartCustomization;
@@ -744,6 +749,14 @@ public class CustomizationConfig {
 
     public void setAsyncClientDecorator(String asyncClientDecorator) {
         this.asyncClientDecorator = asyncClientDecorator;
+    }
+
+    public ClientExtensions getClientExtensions() {
+        return clientExtensions;
+    }
+
+    public void setClientExtensions(ClientExtensions clientExtensions) {
+        this.clientExtensions = clientExtensions;
     }
 
     public boolean isDelegateSyncClientClass() {

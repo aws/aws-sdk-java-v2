@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.extensionInterfaceClassName;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_RESPONSE_HANDLER_PARAM_NAME;
 
@@ -35,6 +36,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
@@ -47,6 +49,8 @@ import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.config.customization.AdditionalBuilderMethod;
+import software.amazon.awssdk.codegen.model.config.customization.ClientExtensions;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -111,6 +115,8 @@ public class AsyncClientInterface implements ClassSpec {
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
         type.addSuperinterface(AwsClient.class);
+        Optional<ClassName> extensionInterface = findExtensionInterface(className, model.getCustomizationConfig());
+        extensionInterface.ifPresent(type::addSuperinterface);
     }
 
     protected void addAnnotations(TypeSpec.Builder type) {
@@ -549,6 +555,15 @@ public class AsyncClientInterface implements ClassSpec {
     protected MethodSpec.Builder batchManagerOperationBody(MethodSpec.Builder builder) {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
+    private static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
+                                                              CustomizationConfig customizationConfig) {
+        ClientExtensions clientExtensions = customizationConfig.getClientExtensions();
+        if (clientExtensions != null && clientExtensions.getAsync()) {
+            return Optional.of(extensionInterfaceClassName(clientInterfaceName));
+        }
+        return Optional.empty();
     }
 
 }

@@ -25,6 +25,7 @@ import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTI
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_INPUT_PARAM;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_OUTPUT_PARAM;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.extensionInterfaceClassName;
 import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
@@ -38,6 +39,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -49,6 +51,8 @@ import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
+import software.amazon.awssdk.codegen.model.config.customization.ClientExtensions;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -102,6 +106,8 @@ public class SyncClientInterface implements ClassSpec {
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
         type.addSuperinterface(AwsClient.class);
+        Optional<ClassName> extensionInterface = findExtensionInterface(className, model.getCustomizationConfig());
+        extensionInterface.ifPresent(type::addSuperinterface);
     }
 
     protected TypeSpec.Builder createTypeSpec() {
@@ -558,5 +564,14 @@ public class SyncClientInterface implements ClassSpec {
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
+    private static Optional<ClassName> findExtensionInterface(ClassName clientInterfaceName,
+                                                              CustomizationConfig customizationConfig) {
+        ClientExtensions clientExtensions = customizationConfig.getClientExtensions();
+        if (clientExtensions != null && clientExtensions.getSync()) {
+            return Optional.of(extensionInterfaceClassName(clientInterfaceName));
+        }
+        return Optional.empty();
     }
 }
