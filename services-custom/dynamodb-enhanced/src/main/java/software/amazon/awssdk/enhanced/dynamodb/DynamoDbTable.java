@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTimeToLiveEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateTimeToLiveEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -924,6 +926,48 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *
      */
     default DescribeTableEnhancedResponse describeTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Describes the time to live (TTL) configuration of the table with the name defined for this
+     * {@link DynamoDbTable}.
+     * <p>
+     * This operation calls the low-level DynamoDB API {@code DescribeTimeToLive} operation.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DescribeTimeToLiveEnhancedResponse response = mappedTable.describeTimeToLive();
+     * }
+     * </pre>
+     *
+     * @return The TTL description returned by DynamoDB.
+     */
+    default DescribeTimeToLiveEnhancedResponse describeTimeToLive() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates the time to live (TTL) configuration of the table with the name defined for this
+     * {@link DynamoDbTable}.
+     * <p>
+     * This operation calls the low-level DynamoDB API {@code UpdateTimeToLive} operation and uses the
+     * TTL attribute configured in this table's schema metadata.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * UpdateTimeToLiveEnhancedResponse response = mappedTable.updateTimeToLive(true);
+     * }
+     * </pre>
+     *
+     * @param enabled Whether TTL should be enabled or disabled for the table.
+     * @return The TTL specification returned by DynamoDB after the update request is accepted.
+     */
+    default UpdateTimeToLiveEnhancedResponse updateTimeToLive(boolean enabled) {
         throw new UnsupportedOperationException();
     }
 }
