@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.Retryable
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clock-skew and request throttling functionality.
@@ -39,6 +40,8 @@ import software.amazon.awssdk.utils.Either;
 public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
     private static final String RETRY_AFTER_HEADER = "Retry-After";
     private static final String X_AMZ_RETRY_AFTER_HEADER = "x-amz-retry-after";
+    private static final Logger LOG = Logger.loggerFor(RetryableStage.class);
+
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
     private final HttpClientDependencies dependencies;
 
@@ -133,6 +136,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 return Duration.ofMillis(Integer.parseInt(xAmzRetryAfter));
             } catch (NumberFormatException e) {
                 // Ignore and fallback to returning empty.
+                logIntParseException(X_AMZ_RETRY_AFTER_HEADER, xAmzRetryAfter, e);
                 return null;
             }
         });
@@ -148,6 +152,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 return Duration.ofSeconds(Integer.parseInt(retryAfterHeader));
             } catch (NumberFormatException e) {
                 // Ignore and fallback to returning empty.
+                logIntParseException(RETRY_AFTER_HEADER, retryAfterHeader, e);
                 return null;
             }
         });
@@ -157,6 +162,10 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         return executionContext.executionAttributes()
                                .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
                                .orElse(false);
+    }
+
+    private static void logIntParseException(String headerName, String headerValue, Throwable t) {
+        LOG.debug(() -> String.format("Unable to parse header '%s' value '%s' as integer", headerName, headerValue), t);
     }
 
     // This probably should go directly into SdkException

@@ -37,6 +37,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clockskew and request throttling functionality.
@@ -45,6 +46,7 @@ import software.amazon.awssdk.utils.Either;
 public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFullRequest,
     CompletableFuture<Response<OutputT>>> {
     private static final String X_AMZ_RETRY_AFTER_HEADER = "x-amz-retry-after";
+    private static final Logger LOG = Logger.loggerFor(AsyncRetryableStage.class);
 
     private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
@@ -196,6 +198,8 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 return Duration.ofMillis(Integer.parseInt(xAmzRetryAfter));
             } catch (NumberFormatException e) {
                 // Ignore and fallback to returning empty.
+                LOG.debug(() -> String.format("Unable to parse header '%s' value '%s' as integer",
+                                              X_AMZ_RETRY_AFTER_HEADER, xAmzRetryAfter), e);
                 return null;
             }
         });

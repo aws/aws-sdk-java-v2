@@ -49,6 +49,11 @@ class BaseRetryableStageTest {
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
+                .description("Ignores int overflow")
+                .retryAfter(Long.toString(Long.MAX_VALUE))
+                .expectedDelay(Duration.ZERO),
+
+            new RetryAfterTestCase()
                 .description("Ignores x-amz-retry-after")
                 .retryAfter("1")
                 .xAmzRetryAfter("50")
@@ -69,6 +74,12 @@ class BaseRetryableStageTest {
                 .newRetries2026Enabled(true)
                 .description("Ignores format error")
                 .xAmzRetryAfter("one second")
+                .expectedDelay(Duration.ZERO),
+
+            new RetryAfterTestCase()
+                .newRetries2026Enabled(true)
+                .description("Ignores int overflow")
+                .xAmzRetryAfter(Long.toString(Long.MAX_VALUE))
                 .expectedDelay(Duration.ZERO),
 
             new RetryAfterTestCase()
