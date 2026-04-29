@@ -140,6 +140,15 @@ public class EnhancedClientUtilsTest {
     }
 
     @Test
+    public void getNestedSchema_whenConverterForAttributeThrowsUnsupportedOperationException_returnsEmpty() {
+        when(mockSchema.converterForAttribute("anyAttribute")).thenThrow(new UnsupportedOperationException());
+
+        Optional<TableSchema<?>> result = EnhancedClientUtils.getNestedSchema(mockSchema, "anyAttribute");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     public void getNestedSchema_withNullParentSchema_throwsIllegalArgumentException() {
         assertThatThrownBy(() -> EnhancedClientUtils.getNestedSchema(null, "attributeName"))
             .isInstanceOf(IllegalArgumentException.class)

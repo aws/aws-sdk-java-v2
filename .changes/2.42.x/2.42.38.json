@@ -1,0 +1,60 @@
+{
+    "version": "2.42.38",
+    "date": "2026-04-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker AI now supports generative AI inference recommendations. Provide your model and workload, and SageMaker AI optimizes configurations, benchmarks them on real GPUs, and returns deployment-ready recommendations with validated metrics, accelerating the path to production from weeks to hours."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Compute Optimizer Automation",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
+        }
+    ]
+}
