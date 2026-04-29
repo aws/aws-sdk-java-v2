@@ -72,6 +72,7 @@ import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -555,6 +556,51 @@ public class AwsExecutionContextBuilderTest {
         BusinessMetricCollection businessMetrics =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         assertThat(businessMetrics.recordedMetrics()).contains("AL");
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_authSchemeProviderRequestOverride_usesRequestOverride() {
+        AuthSchemeProvider clientAuthSchemeProvider = mock(AuthSchemeProvider.class);
+        AuthSchemeProvider requestAuthSchemeProvider = mock(AuthSchemeProvider.class);
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, clientAuthSchemeProvider)
+            .build();
+
+        Optional overrideConfiguration =
+            Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                       .authSchemeProvider(requestAuthSchemeProvider)
+                                                       .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        AuthSchemeProvider actualProvider =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+
+        assertThat(actualProvider).isSameAs(requestAuthSchemeProvider);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_noAuthSchemeProviderRequestOverride_usesClientProvider() {
+        AuthSchemeProvider clientAuthSchemeProvider = mock(AuthSchemeProvider.class);
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, clientAuthSchemeProvider)
+            .build();
+
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        AuthSchemeProvider actualProvider =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+
+        assertThat(actualProvider).isSameAs(clientAuthSchemeProvider);
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

@@ -77,12 +77,19 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     private static final boolean DEFAULT_EXPECT_CONTINUE_ENABLED = true;
 
+    /**
+     * The default minimum content-length in bytes at which the {@code Expect: 100-continue} header is added.
+     * Requests with a content-length below this threshold will not include the header.
+     */
+    private static final long DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES = 1_048_576L;
+
     private final FieldWithDefault<Boolean> pathStyleAccessEnabled;
     private final FieldWithDefault<Boolean> accelerateModeEnabled;
     private final FieldWithDefault<Boolean> dualstackEnabled;
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
     private final FieldWithDefault<Boolean> expectContinueEnabled;
+    private final FieldWithDefault<Long> expectContinueThresholdInBytes;
     private final Boolean useArnRegionEnabled;
     private final Boolean multiRegionEnabled;
     private final FieldWithDefault<Supplier<ProfileFile>> profileFile;
@@ -97,6 +104,13 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
         this.expectContinueEnabled = FieldWithDefault.create(builder.expectContinueEnabled,
                                                              DEFAULT_EXPECT_CONTINUE_ENABLED);
+        this.expectContinueThresholdInBytes = FieldWithDefault.create(builder.expectContinueThresholdInBytes,
+                                                                      DEFAULT_EXPECT_CONTINUE_THRESHOLD_IN_BYTES);
+        if (this.expectContinueThresholdInBytes.value() < 0) {
+            throw new IllegalArgumentException(
+                "expectContinueThresholdInBytes must not be negative, but was: "
+                + this.expectContinueThresholdInBytes.value());
+        }
         this.profileFile = FieldWithDefault.create(builder.profileFile, ProfileFile::defaultProfileFile);
         this.profileName = FieldWithDefault.create(builder.profileName,
                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
@@ -248,6 +262,26 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     }
 
     /**
+     * Returns the minimum content-length in bytes at which the {@code Expect: 100-continue} header is added to
+     * {@link PutObjectRequest} and {@link UploadPartRequest}. Requests with a content-length below this threshold
+     * will not include the header.
+     * <p>
+     * The default value is 1048576 bytes (1 MB).
+     * <p>
+     * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
+     * {@code Expect: 100-continue} header by default without any threshold via its own {@code expectContinueEnabled}
+     * setting. To benefit from the `expectContinueThresholdInBytes` you must disable {@code expectContinueEnabled}
+     * on the Apache4 HTTP client builder using {@code ApacheHttpClient.builder().expectContinueEnabled(false)}.
+     * This does NOT apply to the {@code Apache5HttpClient} which defaults {@code expectContinueEnabled} to false.
+     *
+     * @return The threshold in bytes.
+     * @see S3Configuration.Builder#expectContinueThresholdInBytes(Long)
+     */
+    public long expectContinueThresholdInBytes() {
+        return expectContinueThresholdInBytes.value();
+    }
+
+    /**
      * Returns whether the client is allowed to make cross-region calls when an S3 Access Point ARN has a different
      * region to the one configured on the client.
      * <p>
@@ -278,6 +312,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
                 .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())
                 .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
                 .expectContinueEnabled(expectContinueEnabled.valueOrNullIfDefault())
+                .expectContinueThresholdInBytes(expectContinueThresholdInBytes.valueOrNullIfDefault())
                 .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile.valueOrNullIfDefault())
                 .profileName(profileName.valueOrNullIfDefault());
@@ -407,6 +442,32 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
+        Long expectContinueThresholdInBytes();
+
+        /**
+         * Option to configure the minimum content-length in bytes at which the {@code Expect: 100-continue} header
+         * is added to {@link PutObjectRequest} and {@link UploadPartRequest}. Requests with a content-length below
+         * this threshold will not include the header, reducing latency for small uploads where the round-trip cost
+         * of the 100-continue handshake outweighs the benefit.
+         * <p>
+         * The default value is 1048576 bytes (1 MB). Setting this to 0 restores the pre-threshold behavior where
+         * the header is added for all non-zero content-length requests.
+         * <p>
+         * This setting only takes effect when {@link #expectContinueEnabled(Boolean)} is {@code true} (the default).
+         * <p>
+         * When content length is not known, the {@code Expect: 100-continue} header will always be added
+         * when {@link #expectContinueEnabled(Boolean)} is {@code true}.
+         * <p>
+         * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
+         * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. This threshold
+         * only controls the SDK's own header addition; it does not affect the Apache client's behavior.
+         *
+         * @param expectContinueThresholdInBytes The threshold in bytes, or {@code null} to use the default (1048576).
+         * @return This builder for method chaining.
+         * @see S3Configuration#expectContinueThresholdInBytes()
+         */
+        Builder expectContinueThresholdInBytes(Long expectContinueThresholdInBytes);
+
         Boolean useArnRegionEnabled();
 
         /**
@@ -476,6 +537,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
         private Boolean expectContinueEnabled;
+        private Long expectContinueThresholdInBytes;
         private Boolean useArnRegionEnabled;
         private Boolean multiRegionEnabled;
         private Supplier<ProfileFile> profileFile;
@@ -569,6 +631,21 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public void setExpectContinueEnabled(Boolean expectContinueEnabled) {
             expectContinueEnabled(expectContinueEnabled);
+        }
+
+        @Override
+        public Long expectContinueThresholdInBytes() {
+            return expectContinueThresholdInBytes;
+        }
+
+        @Override
+        public Builder expectContinueThresholdInBytes(Long expectContinueThresholdInBytes) {
+            this.expectContinueThresholdInBytes = expectContinueThresholdInBytes;
+            return this;
+        }
+
+        public void setExpectContinueThresholdInBytes(Long expectContinueThresholdInBytes) {
+            expectContinueThresholdInBytes(expectContinueThresholdInBytes);
         }
 
         @Override
