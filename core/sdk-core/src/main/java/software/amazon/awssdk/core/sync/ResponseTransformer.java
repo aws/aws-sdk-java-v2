@@ -109,7 +109,10 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link FileAlreadyExistsException} will be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.
@@ -124,7 +127,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                     Files.copy(inputStream, path);
                     return response;
                 } catch (IOException copyException) {
-                    String copyError = "Failed to read response into file: " + path;
+                    String copyError = copyErrorMessage(path, copyException);
 
                     if (shouldThrowIOException(copyException)) {
                         throw new IOException(copyError, copyException);
@@ -167,9 +170,21 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                copyException instanceof AccessDeniedException;
     }
 
+    static String copyErrorMessage(Path path, IOException copyException) {
+        String baseMessage = "Failed to read response into file: " + path;
+        if (copyException instanceof NoSuchFileException) {
+            return baseMessage + ". Verify that the file's parent directories exist."
+                   + " The SDK will not auto-create them.";
+        }
+        return baseMessage;
+    }
+
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link FileAlreadyExistsException} will be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link NoSuchFileException} will be thrown if they are missing.
      *
      * @param file        File to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.

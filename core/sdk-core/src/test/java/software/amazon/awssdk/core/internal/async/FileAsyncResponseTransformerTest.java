@@ -318,6 +318,49 @@ class FileAsyncResponseTransformerTest {
         assertThat(future).isCompletedExceptionally();
     }
 
+    private static List<FileTransformerConfiguration> parentDirConfigurations() {
+        return java.util.Arrays.asList(
+            FileTransformerConfiguration.defaultCreateNew(),
+            FileTransformerConfiguration.defaultCreateOrReplaceExisting(),
+            FileTransformerConfiguration.defaultCreateOrAppend()
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("parentDirConfigurations")
+    void parentDirectoryDoesNotExist_throwsWithHelpfulMessage(FileTransformerConfiguration config) {
+        Path testPath = testFs.getPath("nonexistent-parent", "test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, config);
+
+        CompletableFuture<String> future = transformer.prepare();
+        transformer.onResponse("foobar");
+        transformer.onStream(testPublisher("content"));
+
+        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
+                          .withThrowableOfType(ExecutionException.class)
+                          .withCauseInstanceOf(NoSuchFileException.class)
+                          .withMessageContaining("Verify that the file's parent directories exist")
+                          .withMessageContaining("The SDK will not auto-create them");
+    }
+
+    @Test
+    void writeToPosition_fileDoesNotExist_throwsWithHelpfulMessage() {
+        Path testPath = testFs.getPath("nonexistent_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
+            FileTransformerConfiguration.builder()
+                                        .failureBehavior(DELETE)
+                                        .fileWriteOption(FileWriteOption.WRITE_TO_POSITION)
+                                        .build());
+
+        CompletableFuture<String> future = transformer.prepare();
+        transformer.onResponse("foobar");
+        transformer.onStream(testPublisher("content"));
+
+        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
+                          .withThrowableOfType(ExecutionException.class)
+                          .withCauseInstanceOf(NoSuchFileException.class);
+    }
+
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
