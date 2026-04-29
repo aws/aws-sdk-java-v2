@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.retry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.base.Supplier;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import org.junit.runners.Parameterized;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Validate;
 
@@ -49,6 +51,7 @@ public class RetryStrategyMaxRetriesTest {
             new TestData(null, null, null, null, null, 4),
             new TestData(null, null, null, null, "PropertyNotSet", 4),
 
+
             // Test precedence
             new TestData("9", "2", "standard", "standard",
                          "PropertySetToStandard", 9),
@@ -60,6 +63,9 @@ public class RetryStrategyMaxRetriesTest {
                          "PropertySetToStandard", 3),
             new TestData(null, null, null, null,
                          "PropertySetToStandard", 3),
+            // pre v2.1, we didn't look at the max_attempts profile file property
+            new TestData(null, null, null, null,
+                         "PropertySetMaxAttempts10", 4),
 
             // Test invalid values
             new TestData("wrongValue", null, null, null, null, null),
@@ -68,6 +74,31 @@ public class RetryStrategyMaxRetriesTest {
             new TestData(null, null, null, "wrongValue", null, null),
             new TestData(null, null, null, null,
                          "PropertySetToUnsupportedValue", null),
+
+            // v2.1
+
+            // defaults
+            new TestData(true, null, null, null, null, null, 3),
+            new TestData(true, null, null, null, null, "PropertyNotSet", 3),
+
+            // precedence
+            new TestData(true, "9", null, null, null,
+                         "PropertySetMaxAttempts10", 9),
+            new TestData(true, null, "8", null, null,
+                         "PropertySetMaxAttempts10", 8),
+            new TestData(true, "9", "8", null, null,
+                         "PropertySetMaxAttempts10", 9),
+            new TestData(true, null, null, null, null,
+                         "PropertySetMaxAttempts10", 10),
+
+            // invalid values
+            new TestData(true, "wrongValue", null, null, null, null, null),
+            new TestData(true, null, "wrongValue", null, null, null, null),
+            new TestData(true, null, null, "wrongValue", null, null, null),
+            new TestData(true, null, null, null, "wrongValue", null, null),
+            new TestData(true, null, null, null, null,
+                         "PropertySetToUnsupportedValue", null),
+
             });
     }
 
@@ -85,10 +116,15 @@ public class RetryStrategyMaxRetriesTest {
         System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
+        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
     }
 
     @Test
     public void differentCombinationOfConfigs_shouldResolveCorrectly() {
+        if (testData.newRetries2026Enabled != null) {
+            System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), testData.newRetries2026Enabled.toString());
+        }
+
         if (testData.attemptCountEnvVarValue != null) {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_MAX_ATTEMPTS.environmentVariable(),
                                             testData.attemptCountEnvVarValue);
@@ -113,10 +149,19 @@ public class RetryStrategyMaxRetriesTest {
             System.setProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property(), diskLocationForFile);
         }
 
-        if (testData.expected == null) {
-            assertThatThrownBy(() -> SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())).isInstanceOf(RuntimeException.class);
+        Supplier<RetryStrategy> retryStrategySupplier;
+
+        if (testData.newRetries2026Enabled != null) {
+            retryStrategySupplier = () -> SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode(),
+                                                                               testData.newRetries2026Enabled);
         } else {
-            assertThat(SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode()).maxAttempts()).isEqualTo(testData.expected);
+            retryStrategySupplier = () -> SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode());
+        }
+
+        if (testData.expected == null) {
+            assertThatThrownBy(retryStrategySupplier::get).isInstanceOf(RuntimeException.class);
+        } else {
+            assertThat(retryStrategySupplier.get().maxAttempts()).isEqualTo(testData.expected);
         }
     }
 
@@ -125,6 +170,7 @@ public class RetryStrategyMaxRetriesTest {
     }
 
     private static class TestData {
+        private final Boolean newRetries2026Enabled;
         private final String attemptCountSystemProperty;
         private final String attemptCountEnvVarValue;
         private final String envVarValue;
@@ -138,6 +184,23 @@ public class RetryStrategyMaxRetriesTest {
                  String retryModeEnvVarValue,
                  String configFile,
                  Integer expected) {
+            this(null,
+                 attemptCountSystemProperty,
+                 attemptCountEnvVarValue,
+                 retryModeSystemProperty,
+                 retryModeEnvVarValue,
+                 configFile,
+                 expected);
+        }
+
+        TestData(Boolean newRetries2026Enabled,
+                 String attemptCountSystemProperty,
+                 String attemptCountEnvVarValue,
+                 String retryModeSystemProperty,
+                 String retryModeEnvVarValue,
+                 String configFile,
+                 Integer expected) {
+            this.newRetries2026Enabled = newRetries2026Enabled;
             this.attemptCountSystemProperty = attemptCountSystemProperty;
             this.attemptCountEnvVarValue = attemptCountEnvVarValue;
             this.envVarValue = retryModeEnvVarValue;

@@ -70,9 +70,19 @@ public final class SdkDefaultRetryStrategy {
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
+        return forRetryMode(mode, false);
+    }
+
+    /**
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * @param mode The retry mode for which we want the retry strategy
+     * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     */
+    public static RetryStrategy forRetryMode(RetryMode mode, boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
-                return standardRetryStrategy();
+                return standardRetryStrategy(newRetries2026Enabled);
             case ADAPTIVE:
                 return legacyAdaptiveRetryStrategy();
             case ADAPTIVE_V2:
@@ -115,6 +125,10 @@ public final class SdkDefaultRetryStrategy {
         return standardRetryStrategyBuilder().build();
     }
 
+    public static StandardRetryStrategy standardRetryStrategy(boolean newRetries2026Enabled) {
+        return standardRetryStrategyBuilder(newRetries2026Enabled).build();
+    }
+
     /**
      * Returns a {@link LegacyRetryStrategy} with generic SDK retry conditions.
      *
@@ -149,7 +163,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder(boolean newRetries2026Enabled) {
         StandardRetryStrategy.Builder builder = DefaultRetryStrategy.standardStrategyBuilder(newRetries2026Enabled);
-        return configure(builder);
+        return configure(builder, newRetries2026Enabled);
     }
 
 
@@ -179,7 +193,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder(boolean newRetries2026Enabled) {
         AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder(newRetries2026Enabled);
-        return configure(builder);
+        return configure(builder, newRetries2026Enabled);
     }
 
     /**
@@ -190,13 +204,17 @@ public final class SdkDefaultRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
+        return configure(builder, false);
+    }
+
+    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, boolean newRetries2026Enabled) {
         builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
         builder.treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
-        Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+        Integer maxAttempts = resolveMaxAttempts(newRetries2026Enabled);
         if (maxAttempts != null) {
             builder.maxAttempts(maxAttempts);
         }
@@ -281,5 +299,13 @@ public final class SdkDefaultRetryStrategy {
         }
     }
 
+    static Integer resolveMaxAttempts(boolean newRetries2026Enabled) {
+        if (newRetries2026Enabled) {
+            return new MaxAttemptsResolver().resolve();
+        }
+
+        // pre 2.1 changes, we never looked at the profile file
+        return SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+    }
 }
 
