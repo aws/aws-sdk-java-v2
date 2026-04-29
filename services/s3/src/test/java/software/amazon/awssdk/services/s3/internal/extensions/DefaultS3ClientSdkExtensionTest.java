@@ -18,10 +18,10 @@ package software.amazon.awssdk.services.s3.internal.extensions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -35,80 +35,94 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 class DefaultS3ClientSdkExtensionTest {
 
-    private S3Client s3;
-    private DefaultS3ClientSdkExtension extension;
+    S3Client s3;
 
     @BeforeEach
     void setUp() {
-        s3 = mock(S3Client.class);
-        extension = new DefaultS3ClientSdkExtension(s3);
+        s3 = spy(S3Client.class);
     }
 
     @Test
-    void doesObjectExist_objectExists_returnsTrue() {
-        when(s3.headObject(any(Consumer.class))).thenReturn(HeadObjectResponse.builder().build());
-        assertThat(extension.doesObjectExist("bucket", "key")).isTrue();
+    void doesBucketExist_200_returnsTrue() {
+        stubHeadBucket(() -> HeadBucketResponse.builder().build());
+        assertThat(s3.doesBucketExist("foo")).isEqualTo(true);
     }
 
     @Test
-    void doesObjectExist_noSuchKey_returnsFalse() {
-        when(s3.headObject(any(Consumer.class))).thenThrow(NoSuchKeyException.builder().build());
-        assertThat(extension.doesObjectExist("bucket", "key")).isFalse();
+    void doesBucketExist_404_returnsFalse() {
+        stubHeadBucket(() -> {
+            throw NoSuchBucketException.builder().build();
+        });
+        assertThat(s3.doesBucketExist("foo")).isEqualTo(false);
     }
 
     @Test
-    void doesObjectExist_otherS3Exception_propagates() {
-        S3Exception forbidden = (S3Exception) S3Exception.builder().statusCode(403).message("Forbidden").build();
-        when(s3.headObject(any(Consumer.class))).thenThrow(forbidden);
-        assertThatThrownBy(() -> extension.doesObjectExist("bucket", "key")).isSameAs(forbidden);
+    void doesBucketExist_403_propagatesException() {
+        stubHeadBucket(() -> {
+            throw S3Exception.builder().build();
+        });
+        assertThatThrownBy(() -> s3.doesBucketExist("foo")).isInstanceOf(S3Exception.class);
     }
 
     @Test
-    void doesBucketExist_bucketExists_returnsTrue() {
-        when(s3.headBucket(any(Consumer.class))).thenReturn(HeadBucketResponse.builder().build());
-        assertThat(extension.doesBucketExist("bucket")).isTrue();
+    void doesObjectExist_200_returnsTrue() {
+        stubHeadObject(() -> HeadObjectResponse.builder().build());
+        assertThat(s3.doesObjectExist("foo", "bar")).isEqualTo(true);
     }
 
     @Test
-    void doesBucketExist_noSuchBucket_returnsFalse() {
-        when(s3.headBucket(any(Consumer.class))).thenThrow(NoSuchBucketException.builder().build());
-        assertThat(extension.doesBucketExist("bucket")).isFalse();
+    void doesObjectExist_404_returnsFalse() {
+        stubHeadObject(() -> {
+            throw NoSuchKeyException.builder().build();
+        });
+        assertThat(s3.doesObjectExist("foo", "bar")).isEqualTo(false);
     }
 
     @Test
-    void doesBucketExist_otherS3Exception_propagates() {
-        S3Exception forbidden = (S3Exception) S3Exception.builder().statusCode(403).message("Forbidden").build();
-        when(s3.headBucket(any(Consumer.class))).thenThrow(forbidden);
-        assertThatThrownBy(() -> extension.doesBucketExist("bucket")).isSameAs(forbidden);
+    void doesObjectExist_403_propagatesException() {
+        stubHeadObject(() -> {
+            throw S3Exception.builder().build();
+        });
+        assertThatThrownBy(() -> s3.doesObjectExist("foo", "bar")).isInstanceOf(S3Exception.class);
     }
+
+    // Validation tests (not in prototype)
 
     @Test
     void doesBucketExist_nullBucket_throws() {
-        assertThatThrownBy(() -> extension.doesBucketExist(null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> s3.doesBucketExist(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void doesBucketExist_emptyBucket_throws() {
-        assertThatThrownBy(() -> extension.doesBucketExist("")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> s3.doesBucketExist("")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void doesObjectExist_nullBucket_throws() {
-        assertThatThrownBy(() -> extension.doesObjectExist(null, "key")).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> s3.doesObjectExist(null, "key")).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void doesObjectExist_emptyBucket_throws() {
-        assertThatThrownBy(() -> extension.doesObjectExist("", "key")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> s3.doesObjectExist("", "key")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void doesObjectExist_nullKey_throws() {
-        assertThatThrownBy(() -> extension.doesObjectExist("bucket", null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> s3.doesObjectExist("bucket", null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void doesObjectExist_emptyKey_throws() {
-        assertThatThrownBy(() -> extension.doesObjectExist("bucket", "")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> s3.doesObjectExist("bucket", "")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private void stubHeadBucket(Supplier<HeadBucketResponse> behavior) {
+        doAnswer(i -> behavior.get()).when(s3).headBucket(any(HeadBucketRequest.class));
+    }
+
+    private void stubHeadObject(Supplier<HeadObjectResponse> behavior) {
+        doAnswer(i -> behavior.get()).when(s3).headObject(any(HeadObjectRequest.class));
     }
 }
