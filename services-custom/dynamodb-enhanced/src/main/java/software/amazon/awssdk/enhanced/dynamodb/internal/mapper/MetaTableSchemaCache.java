@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 @SuppressWarnings("unchecked")
 public class MetaTableSchemaCache {
-    private final Map<Class<?>, MetaTableSchema<?>> cacheMap = new HashMap<>();
+    private final Map<Class<?>, MetaTableSchema<?>> cacheMap = new ConcurrentHashMap<>();
 
     public <T> MetaTableSchema<T> getOrCreate(Class<T> mappedClass) {
         return (MetaTableSchema<T>) cacheMap().computeIfAbsent(
