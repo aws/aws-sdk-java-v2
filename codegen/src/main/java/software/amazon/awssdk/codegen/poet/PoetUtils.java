@@ -37,6 +37,9 @@ public final class PoetUtils {
                                                                   .addMember("value", "$S", "software.amazon.awssdk:codegen")
                                                                   .build();
 
+    private static final String EXTENSION_PACKAGE = ".extensions";
+    private static final String EXTENSION_INTERFACE_SUFFIX = "SdkExtension";
+
     private PoetUtils() {
     }
 
@@ -107,5 +110,11 @@ public final class PoetUtils {
         JavaFile.Builder builder = JavaFile.builder(spec.className().packageName(), spec.poetSpec()).skipJavaLangImports(true);
         spec.staticImports().forEach(i -> i.memberNames().forEach(m -> builder.addStaticImport(i.className(), m)));
         return builder.build();
+    }
+
+    public static ClassName extensionInterfaceClassName(ClassName clientInterfaceName) {
+        String packageName = clientInterfaceName.packageName() + EXTENSION_PACKAGE;
+        String className = clientInterfaceName.simpleName() + EXTENSION_INTERFACE_SUFFIX;
+        return ClassName.get(packageName, className);
     }
 }
