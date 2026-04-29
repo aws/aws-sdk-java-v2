@@ -43,14 +43,18 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          # For merge_group events, extract the PR number from the ref name
+          # (e.g. gh-readonly-queue/main/pr-1234-<sha>)
           if [ -z "$PR_NUMBER" ] && [[ "$HEAD_REF" =~ ^gh-readonly-queue/.+/pr-([0-9]+)- ]]; then
             PR_NUMBER="${BASH_REMATCH[1]}"
           fi
           ./$DOWNLOAD_FOLDER/$SCRIPT_LOCATION \
             --repo "${{ github.repository }}" \
             --branch "$HEAD_SHA" \
-            --pr-number "${{ github.event.pull_request.number }}" \
+            --pr-number "$PR_NUMBER" \
             --run-id "${{ github.run_id }}"
         timeout-minutes: 120
