@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
@@ -27,12 +28,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
+import org.junit.Assume;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -50,12 +53,13 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 
-public class AsyncRetryableStageTest {
+public class AsyncRetryableStageTest extends BaseRetryableStageTest {
     private RetryStrategy mockRetryStrategy;
     private AcquireInitialTokenResponse mockAcquireInitialTokenResponse;
     private RetryToken mockRetryToken;
@@ -110,6 +114,7 @@ public class AsyncRetryableStageTest {
                                                            .build();
 
         ExecutionAttributes execAttrs = ExecutionAttributes.builder()
+                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED, true)
                                                            .build();
 
         ExecutionContext execCtx = ExecutionContext.builder()
@@ -133,16 +138,16 @@ public class AsyncRetryableStageTest {
 
         when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
 
-        if (testCase.failure) {
+        if (testCase.isFailure()) {
             when(mockRetryStrategy.refreshRetryToken(any())).thenThrow(
-                new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null, testCase.failureDelay)
+                new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null, testCase.failureDelay())
             );
         } else {
             // only retry once, otherwise we'll get into an infinite loop
             AtomicBoolean first = new AtomicBoolean();
             when(mockRetryStrategy.refreshRetryToken(any())).thenAnswer(i -> {
                 if (first.compareAndSet(false, true)) {
-                    return RefreshRetryTokenResponse.create(mockRetryToken, testCase.successDelay);
+                    return RefreshRetryTokenResponse.create(mockRetryToken, testCase.successDelay());
                 }
                 throw new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null, Duration.ZERO);
             });
@@ -158,38 +163,74 @@ public class AsyncRetryableStageTest {
         assertThat(Duration.ofNanos(end - start)).isBetween(lowerBound, lowerBound.plusMillis(250));
     }
 
-    private static Stream<AcquireDelayTestCase> acquireDelayTestCases() {
-        return Stream.of(
-            new AcquireDelayTestCase(true, Duration.ofDays(1), Duration.ZERO),
-            new AcquireDelayTestCase(true, Duration.ofDays(1), Duration.ofMillis(100)),
 
+    @ParameterizedTest
+    @MethodSource("retryAfterTestCases")
+    void execute_retryableException_treatsRetryAfterCorrectly(RetryAfterTestCase testCase) throws Exception {
+        Assume.assumeTrue("Async v2.0 behavior doesn't look at Retry-After", testCase.isNewRetries2026Enabled());
 
-            new AcquireDelayTestCase(false, Duration.ZERO, Duration.ofDays(1)),
-            new AcquireDelayTestCase(false, Duration.ofMillis(100), Duration.ofDays(1))
-        );
-    }
+                          SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY, mockRetryStrategy)
+                                                                    .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE,
+                                                                            executorService)
+                                                                    .build();
 
-    private static class AcquireDelayTestCase {
-        private boolean failure;
-        private Duration successDelay;
-        private Duration failureDelay;
+        HttpClientDependencies deps = HttpClientDependencies.builder()
+                                                            .clientConfiguration(clientConfig)
+                                                            .build();
 
-        public AcquireDelayTestCase(boolean failure, Duration successDelay, Duration failureDelay) {
-            this.failure = failure;
-            this.successDelay = successDelay;
-            this.failureDelay = failureDelay;
+        AsyncRetryableStage<SdkResponse> retryableStage = new AsyncRetryableStage<>(mock(TransformingAsyncResponseHandler.class),
+                                                                                    deps, mockDelegatePipeline);
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+
+        ExecutionAttributes execAttrs = ExecutionAttributes.builder()
+                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED,
+                                                                testCase.isNewRetries2026Enabled())
+                                                           .build();
+
+        ExecutionContext execCtx = ExecutionContext.builder()
+                                                   .metricCollector(NoOpMetricCollector.create())
+                                                   .executionAttributes(execAttrs)
+                                                   .build();
+
+        RequestExecutionContext ctx = RequestExecutionContext.builder()
+                                                             .originalRequest(mock(SdkRequest.class))
+                                                             .executionContext(execCtx)
+                                                             .build();
+
+        SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
+                                                                      .statusCode(502);
+
+        if (testCase.retryAfter() != null) {
+            httpResponse.putHeader(RETRY_AFTER_HEADER, testCase.retryAfter());
         }
 
-        public Duration expectedDelay() {
-            if (failure) {
-                return failureDelay;
-            }
-            return successDelay;
+        if (testCase.xAmzRetryAfter() != null) {
+            httpResponse.putHeader(X_AMZ_RETRY_AFTER_HEADER, testCase.xAmzRetryAfter());
         }
 
-        @Override
-        public String toString() {
-            return (failure ? "Failure" : "Success") + " with delay " + expectedDelay();
-        }
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(httpResponse.build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+
+        when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletableFuture<Response<SdkResponse>> execute = retryableStage.execute(httpRequest, ctx);
+        // exception thrown doesn't matter, just results in exception because we mock just enough...
+        assertThatThrownBy(execute::join);
+
+        ArgumentCaptor<RefreshRetryTokenRequest> refreshRequestCaptor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
+
+        verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
+
+        RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
+
+        assertThat(refreshRequest.suggestedDelay().get()).isEqualTo(testCase.expectedDelay());
     }
 }
