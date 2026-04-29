@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "dbadaya1",
+    "description": "Fixed request-level override configuration not being propagated to sub-requests during multipart uploads and copies in the S3 AsyncClient."
+}

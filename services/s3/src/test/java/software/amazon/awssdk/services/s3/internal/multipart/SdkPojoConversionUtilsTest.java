@@ -33,6 +33,7 @@ import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -242,6 +243,172 @@ class SdkPojoConversionUtilsTest {
                               PutObjectRequest.builder().sdkFields(),
                               ListPartsRequest.builder().sdkFields());
         assertThat(convertedObject.uploadId()).isEqualTo("uploadId");
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_putObjectWithOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(overrideConfig)
+                                                   .build();
+        CreateMultipartUploadRequest converted = SdkPojoConversionUtils.toCreateMultipartUploadRequest(request);
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toUploadPartRequest_withOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(overrideConfig)
+                                                   .build();
+        UploadPartRequest converted = SdkPojoConversionUtils.toUploadPartRequest(request, 1, "uploadId");
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toCompleteMultipartUploadRequest_withOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(overrideConfig)
+                                                   .build();
+        CompletedPart[] parts = { CompletedPart.builder().partNumber(1).build() };
+        CompleteMultipartUploadRequest converted =
+            SdkPojoConversionUtils.toCompleteMultipartUploadRequest(request, "uploadId", parts, 100L);
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toAbortMultipartUploadRequest_putObjectWithOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(overrideConfig)
+                                                   .build();
+        AbortMultipartUploadRequest converted = SdkPojoConversionUtils.toAbortMultipartUploadRequest(request).build();
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toListPartsRequest_withOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(overrideConfig)
+                                                   .build();
+        ListPartsRequest converted = SdkPojoConversionUtils.toListPartsRequest("uploadId", request);
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_copyObjectWithOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .destinationBucket("dst")
+                                                     .destinationKey("dstKey")
+                                                     .overrideConfiguration(overrideConfig)
+                                                     .build();
+        CreateMultipartUploadRequest converted = SdkPojoConversionUtils.toCreateMultipartUploadRequest(request);
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toHeadObjectRequest_withOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .overrideConfiguration(overrideConfig)
+                                                     .build();
+        HeadObjectRequest converted = SdkPojoConversionUtils.toHeadObjectRequest(request);
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toAbortMultipartUploadRequest_copyObjectWithOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .destinationBucket("dst")
+                                                     .destinationKey("dstKey")
+                                                     .overrideConfiguration(overrideConfig)
+                                                     .build();
+        AbortMultipartUploadRequest converted = SdkPojoConversionUtils.toAbortMultipartUploadRequest(request).build();
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toUploadPartCopyRequest_withOverrideConfig_shouldPropagateOverrideConfig() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .destinationBucket("dst")
+                                                     .destinationKey("dstKey")
+                                                     .overrideConfiguration(overrideConfig)
+                                                     .build();
+        UploadPartCopyRequest converted = SdkPojoConversionUtils.toUploadPartCopyRequest(request, 1, "uploadId",
+                                                                                          "bytes=0-1024");
+        assertThat(converted.overrideConfiguration()).isPresent();
+        assertThat(converted.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_putObjectWithoutOverrideConfig_shouldNotHaveOverrideConfig() {
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .build();
+        CreateMultipartUploadRequest converted = SdkPojoConversionUtils.toCreateMultipartUploadRequest(request);
+        assertThat(converted.overrideConfiguration()).isNotPresent();
+    }
+
+    @Test
+    void toCreateMultipartUploadRequest_copyObjectWithoutOverrideConfig_shouldNotHaveOverrideConfig() {
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                                                     .sourceBucket("src")
+                                                     .sourceKey("srcKey")
+                                                     .destinationBucket("dst")
+                                                     .destinationKey("dstKey")
+                                                     .build();
+        CreateMultipartUploadRequest converted = SdkPojoConversionUtils.toCreateMultipartUploadRequest(request);
+        assertThat(converted.overrideConfiguration()).isNotPresent();
     }
 
     private static void verifyFieldsAreCopied(SdkPojo requestConvertedFrom,

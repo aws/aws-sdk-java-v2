@@ -162,8 +162,7 @@ public final class CopyObjectHelper {
             IntStream.range(0, completedParts.length())
                      .mapToObj(completedParts::get)
                      .toArray(CompletedPart[]::new);
-        CompleteMultipartUploadRequest completeMultipartUploadRequest =
-            CompleteMultipartUploadRequest.builder()
+        CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder()
                                           .bucket(copyObjectRequest.destinationBucket())
                                           .key(copyObjectRequest.destinationKey())
                                           .uploadId(uploadId)
@@ -172,8 +171,9 @@ public final class CopyObjectHelper {
                                                                                    .build())
                                           .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
                                           .sseCustomerKey(copyObjectRequest.sseCustomerKey())
-                                          .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
-                                          .build();
+                                          .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5());
+        copyObjectRequest.overrideConfiguration().ifPresent(builder::overrideConfiguration);
+        CompleteMultipartUploadRequest completeMultipartUploadRequest = builder.build();
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
