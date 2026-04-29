@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.42.42-SNAPSHOT</version>
+        <version>2.43.2-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>s3-transfer-manager</artifactId>
@@ -81,11 +81,6 @@
             <version>${awscrt.version}</version>
             <!-- Only required for CRT-based TM -->
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>arns</artifactId>
-            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

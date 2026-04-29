@@ -13,10 +13,7 @@ env:
 
 jobs:
   aws-sdk-pr-build:
-    # Skip draft PRs
-    if: >
-      github.event_name != 'pull_request_target' ||
-      github.event.pull_request.draft == false
+    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -48,6 +45,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          if [ -z "$PR_NUMBER" ] && [[ "$HEAD_REF" =~ ^gh-readonly-queue/.+/pr-([0-9]+)- ]]; then
+            PR_NUMBER="${BASH_REMATCH[1]}"
+          fi
           ./$DOWNLOAD_FOLDER/$SCRIPT_LOCATION \
             --repo "${{ github.repository }}" \
             --branch "$HEAD_SHA" \
