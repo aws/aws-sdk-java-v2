@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -45,6 +46,7 @@ import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -350,6 +352,121 @@ class TransferProgressUpdaterTest {
         // File body should have reported progress during onNext, not deferred
         assertThat(progressReportedDuringOnNext.get()).isTrue();
         assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(fileSize);
+    }
+
+    @Test
+    void wrapForNonSerialFileDownload_whenPartRetriedAfterPartialDelivery_progressShouldNotOvershoot() {
+        TransferObjectRequest transferRequest = Mockito.mock(TransferObjectRequest.class);
+        TransferProgressUpdater updater = new TransferProgressUpdater(transferRequest, null);
+
+        long objectSize = 100L;
+        long partSize = 100L;
+
+        AtomicInteger upstreamBytesReceived = new AtomicInteger(0);
+        AsyncResponseTransformer<GetObjectResponse, Void> delegate =
+            new AsyncResponseTransformer<GetObjectResponse, Void>() {
+                @Override
+                public CompletableFuture<Void> prepare() {
+                    return new CompletableFuture<>();
+                }
+
+                @Override
+                public void onResponse(GetObjectResponse response) {
+                }
+
+                @Override
+                public void onStream(SdkPublisher<ByteBuffer> publisher) {
+                    publisher.subscribe(new Subscriber<ByteBuffer>() {
+                        @Override
+                        public void onSubscribe(Subscription s) {
+                            s.request(Long.MAX_VALUE);
+                        }
+
+                        @Override
+                        public void onNext(ByteBuffer byteBuffer) {
+                            upstreamBytesReceived.addAndGet(byteBuffer.remaining());
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+                        }
+
+                        @Override
+                        public void onComplete() {
+                        }
+                    });
+                }
+
+                @Override
+                public void exceptionOccurred(Throwable error) {
+                }
+            };
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket("b").key("k").build();
+        AsyncResponseTransformer<GetObjectResponse, Void> wrapped =
+            updater.wrapForNonSerialFileDownload(delegate, getObjectRequest);
+
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, Void> splitResult =
+            wrapped.split(SplittingTransformerConfiguration.builder()
+                                                           .bufferSizeInBytes(8 * 1024 * 1024L)
+                                                           .build());
+
+        AtomicReference<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> capturedTransformer =
+            new AtomicReference<>();
+        splitResult.publisher().subscribe(new Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(1);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> t) {
+                capturedTransformer.set(t);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> partTransformer = capturedTransformer.get();
+        assertThat(partTransformer).isNotNull();
+
+        // First attempt
+        partTransformer.prepare();
+        partTransformer.onResponse(GetObjectResponse.builder()
+                                                    .contentRange("bytes 0-99/100")
+                                                    .contentLength(partSize)
+                                                    .build());
+        assertThat(updater.progress().snapshot().totalBytes()).hasValue(objectSize);
+
+        SimplePublisher<ByteBuffer> attempt1Publisher = new SimplePublisher<>();
+        partTransformer.onStream(SdkPublisher.adapt(attempt1Publisher));
+        attempt1Publisher.send(ByteBuffer.wrap(new byte[60])).join();
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(60L);
+
+        //Retry: prepare/onResponse/onStream called again on same transformer
+        partTransformer.prepare();
+        partTransformer.onResponse(GetObjectResponse.builder()
+                                                    .contentRange("bytes 0-99/100")
+                                                    .contentLength(partSize)
+                                                    .build());
+
+        SimplePublisher<ByteBuffer> attempt2Publisher = new SimplePublisher<>();
+        partTransformer.onStream(SdkPublisher.adapt(attempt2Publisher));
+
+        assertThat(updater.progress().snapshot().transferredBytes())
+            .as("transferredBytes should be reset on retry")
+            .isEqualTo(0L);
+
+        attempt2Publisher.send(ByteBuffer.wrap(new byte[(int) partSize])).join();
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(partSize);
+
+        assertThat(upstreamBytesReceived.get()).isEqualTo(60 + (int) partSize);
     }
 
     private static class ExceptionThrowingByteArrayInputStream extends ByteArrayInputStream {
