@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3TransferManager",
+    "contributor": "",
+    "description": "Support MRAP buckets in S3 TransferManager."
+}
