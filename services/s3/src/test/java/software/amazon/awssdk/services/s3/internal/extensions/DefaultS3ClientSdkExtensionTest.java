@@ -86,8 +86,6 @@ class DefaultS3ClientSdkExtensionTest {
         assertThatThrownBy(() -> s3.doesObjectExist("foo", "bar")).isInstanceOf(S3Exception.class);
     }
 
-    // Validation tests (not in prototype)
-
     @Test
     void doesBucketExist_nullBucket_throws() {
         assertThatThrownBy(() -> s3.doesBucketExist(null)).isInstanceOf(NullPointerException.class);
