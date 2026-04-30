@@ -366,6 +366,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             try {
                 return Optional.ofNullable(supplier.get());
             } catch (RuntimeException e) {
+                if (e.getCause() instanceof NullPointerException) {
+                    throw new UncheckedIOException(new IOException(
+                        "Unexpected NullPointerException when calling HttpURLConnection", e));
+                }
+
                 if (!exceptionCausedBy100HandlingBug(e)) {
                     throw e;
                 }
@@ -431,6 +436,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                 return connection.getResponseCode();
             } catch (NullPointerException e) {
                 throw new IOException("Unexpected NullPointerException when trying to read response from HttpURLConnection", e);
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof NullPointerException) {
+                    throw new IOException("Unexpected NullPointerException when trying to read response from "
+                                          + "HttpURLConnection", e);
+                }
+                throw e;
             }
         }
 
