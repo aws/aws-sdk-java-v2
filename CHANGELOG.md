@@ -1,4 +1,56 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.43.2__ __2026-04-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Improved error message when `ResponseTransformer.toFile()` or `AsyncResponseTransformer.toFile()` fails because the parent directory does not exist. The error now indicates that the parent directory must be created before calling the method.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Add InstanceArn and IdentityStoreArn in the response of CreateApplication API and IdentityStoreArn in the response of DescribeApplication API
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - AgentCore Identity now supports on-behalf-of token exchange OAuth2. AgentCore Memory now supports metadata for LongTerm Memory Records.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Identity now supports on-behalf-of token exchange OAuth2. AgentCore Memory now supports metadata for LongTerm Memory Records.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for asynchronous notebook runs
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Vended logs update param for capability vended logs feature
+
+## __Amazon Route 53 Global Resolver__
+  - ### Features
+    - Adds support for regions in the UpdateGlobalResolver input.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add InstancePools support to Endpoint for flexible provisioning across a prioritized list of instance types. Add Specifications support to InferenceComponent for per-instance-type model configurations.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Observability Admin enablement launch for AWS Kafka, Bedrock Agent Core Workload Identity and OTel metric enablement.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adds support for ZookeeperAccess field to control the Client-Zookeeper connectivity.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adds support for resource-based policies on AWS Payment Cryptography keys, enabling cross-account key sharing. Also adds Multi-Party Approval (MPA) team association APIs for protecting sensitive import root public key operations.
+
+## __Url Connection Client__
+  - ### Bugfixes
+    - Allow retry when URL Connection HTTP Client encounters a NullPointerException wrapped in a RuntimeException
+
 # __2.43.1__ __2026-04-29__
 ## __AWS Account__
   - ### Features

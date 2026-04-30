@@ -1,7 +1,7 @@
 name: Build SDK
 on:
   merge_group:
-  pull_request:
+  pull_request_target:
   push:
     branches:
       - master
@@ -11,7 +11,7 @@ on:
       - 'docs/**'
 
 concurrency:
-  group: start-pull-request-build-${{ github.ref }}
+  group: start-pull-request-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -20,18 +20,28 @@ env:
 
 jobs:
   aws-sdk-pr-build:
-    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
+    if: >
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       issues: write
       pull-requests: write
       contents: read
+    # Fork PRs, require manual approval via the "fork-ci" environment.
+    # Internal PRs and merge_group events run with no environment gate.
+    environment: >-
+      ${{
+        github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name != github.repository &&
+        'fork-ci' || ''
+      }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{secrets.PR_WORKFLOW_IAM_ROLE_ARN}}
+          role-to-assume: ${{ secrets.PR_WORKFLOW_IAM_ROLE_ARN }}
           role-session-name: PullRequestBuildGitHubAction
           aws-region: us-west-2
           role-duration-seconds: 10800 # 3 hrs
@@ -42,15 +52,18 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          # For merge_group events, extract the PR number from the ref name
+          # (e.g. gh-readonly-queue/main/pr-1234-<sha>)
           if [ -z "$PR_NUMBER" ] && [[ "$HEAD_REF" =~ ^gh-readonly-queue/.+/pr-([0-9]+)- ]]; then
             PR_NUMBER="${BASH_REMATCH[1]}"
           fi
           ./$DOWNLOAD_FOLDER/$SCRIPT_LOCATION \
             --repo "${{ github.repository }}" \
-            --branch "$HEAD_REF" \
+            --branch "$HEAD_SHA" \
             --pr-number "$PR_NUMBER" \
             --run-id "${{ github.run_id }}"
         timeout-minutes: 120
