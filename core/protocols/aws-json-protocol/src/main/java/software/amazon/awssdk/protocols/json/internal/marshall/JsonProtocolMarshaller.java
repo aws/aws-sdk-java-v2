@@ -422,8 +422,16 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                                .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
             return;
         }
-        JsonMarshaller<Object> marshaller = MARSHALLER_CACHE.computeIfAbsent(field,
-            f -> MARSHALLER_REGISTRY.getMarshaller(f.location(), f.marshallingType(), val));
+        // Use get-before-put instead of computeIfAbsent. ConcurrentHashMap.get() is a single lock-free
+        // volatile read, whereas computeIfAbsent() has additional overhead even on cache hits (bucket-level
+        // synchronization bookkeeping). The benign-race on first access is safe: SdkField instances are
+        // static final, and the registry always returns the same marshaller for a given (location, type) pair,
+        // so concurrent puts are idempotent.
+        JsonMarshaller<Object> marshaller = MARSHALLER_CACHE.get(field);
+        if (marshaller == null) {
+            marshaller = MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val);
+            MARSHALLER_CACHE.put(field, marshaller);
+        }
         marshaller.marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
     }
 
