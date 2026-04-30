@@ -103,11 +103,6 @@ public interface StructuredJsonGenerator {
         }
 
         @Override
-        public StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
-            return this;
-        }
-
-        @Override
         public StructuredJsonGenerator writeValue(Instant instant) {
             return this;
         }
@@ -173,15 +168,6 @@ public interface StructuredJsonGenerator {
     StructuredJsonGenerator writeValue(int val);
 
     StructuredJsonGenerator writeValue(ByteBuffer bytes);
-
-    /**
-     * Writes binary data directly from a byte array, avoiding the overhead of wrapping in a
-     * {@link ByteBuffer}. The default implementation wraps the array and delegates to
-     * {@link #writeValue(ByteBuffer)}.
-     */
-    default StructuredJsonGenerator writeBinaryValue(byte[] bytes) {
-        return writeValue(ByteBuffer.wrap(bytes));
-    }
 
     StructuredJsonGenerator writeValue(Instant instant);
 
