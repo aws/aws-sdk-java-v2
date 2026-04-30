@@ -82,7 +82,7 @@ public final class AwsRetryStrategy {
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return A retry strategy for the given retry mode.
      */
-    public static RetryStrategy forRetryMode(RetryMode mode, boolean newRetries2026Enabled) {
+    public static RetryStrategy forRetryMode(RetryMode mode, Boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
                 return standardRetryStrategy(newRetries2026Enabled);
@@ -135,7 +135,7 @@ public final class AwsRetryStrategy {
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
-    public static StandardRetryStrategy standardRetryStrategy(boolean newRetries2026Enabled) {
+    public static StandardRetryStrategy standardRetryStrategy(Boolean newRetries2026Enabled) {
         StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled).build();
     }
@@ -167,7 +167,7 @@ public final class AwsRetryStrategy {
      * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */
-    public static AdaptiveRetryStrategy adaptiveRetryStrategy(boolean newRetries2026Enabled) {
+    public static AdaptiveRetryStrategy adaptiveRetryStrategy(Boolean newRetries2026Enabled) {
         AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(newRetries2026Enabled);
         return configure(builder, newRetries2026Enabled)
             .build();
@@ -191,9 +191,9 @@ public final class AwsRetryStrategy {
      * @param <T>     The type of the builder extending {@link RetryStrategy.Builder}
      * @return The given builder
      */
-    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, boolean newRetries2026Enabled) {
+    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, Boolean newRetries2026Enabled) {
         builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
-        if (newRetries2026Enabled) {
+        if (Boolean.TRUE.equals(newRetries2026Enabled)) {
             builder.retryOnException(AwsRetryStrategy::isLimitExceededErrorCode);
             builder.treatAsThrottling(AwsRetryStrategy::treatAsThrottlingV21);
         }

@@ -30,7 +30,7 @@ public final class DefaultStandardRetryStrategy
     extends BaseRetryStrategy implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy.class);
     private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
-    private final boolean retries2026Enabled;
+    private final Boolean retries2026Enabled;
 
     DefaultStandardRetryStrategy(Builder builder) {
         super(LOG, builder);
@@ -48,7 +48,7 @@ public final class DefaultStandardRetryStrategy
 
     @Override
     protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
-        if (!retries2026Enabled || !request.isLongPolling()) {
+        if (!isRetries2026Enabled() || !request.isLongPolling()) {
             return super.computeAcquireFailureBackoff(request);
         }
 
@@ -60,7 +60,7 @@ public final class DefaultStandardRetryStrategy
 
     @Override
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        if (!retries2026Enabled) {
+        if (!isRetries2026Enabled()) {
             return super.computeBackoff(request, token);
         }
 
@@ -90,8 +90,12 @@ public final class DefaultStandardRetryStrategy
         return backoff;
     }
 
+    private boolean isRetries2026Enabled() {
+        return Boolean.TRUE.equals(retries2026Enabled);
+    }
+
     public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
-        private boolean retries2026Enabled;
+        private Boolean retries2026Enabled;
 
         Builder() {
         }
@@ -160,7 +164,7 @@ public final class DefaultStandardRetryStrategy
         /**
          * Whether retries 2.1 behavior is enabled.
          */
-        public Builder retries2026Enabled(boolean retries2026Enabled) {
+        public Builder retries2026Enabled(Boolean retries2026Enabled) {
             this.retries2026Enabled = retries2026Enabled;
             return this;
         }
