@@ -52,7 +52,6 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
@@ -63,7 +62,7 @@ jobs:
           fi
           ./$DOWNLOAD_FOLDER/$SCRIPT_LOCATION \
             --repo "${{ github.repository }}" \
-            --branch "$HEAD_SHA" \
+            --branch "$HEAD_REF" \
             --pr-number "$PR_NUMBER" \
             --run-id "${{ github.run_id }}"
         timeout-minutes: 120
