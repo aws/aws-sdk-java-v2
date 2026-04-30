@@ -27,8 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Shared helpers for the long-running request test suites. See
- * <a href="https://www.coe.a2z.com/coe/393623">COE 393623</a>.
+ * Shared helpers for the long-running request test suites.
  */
 public final class LongRunningRequestTestSupport {
 

@@ -28,6 +28,6 @@ public class UrlConnectionHttpClientLongRunningRequestTest extends SdkHttpClient
 
     // Empty test; UrlConnectionHttpClient does not maintain a connection pool.
     @Override
-    public void connectionAcquireTimeout_whenPoolExhausted_shouldFailWithinTimeoutBound() {
+    public void connectionAcquireTimeoutWhenPoolExhaustedShouldFailWithinTimeoutBound() {
     }
 }
