@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Improved error message when `ResponseTransformer.toFile()` or `AsyncResponseTransformer.toFile()` fails because the parent directory does not exist. The error now indicates that the parent directory must be created before calling the method."
-}
