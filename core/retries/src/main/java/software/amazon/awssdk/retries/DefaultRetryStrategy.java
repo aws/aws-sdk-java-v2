@@ -67,7 +67,7 @@ public final class DefaultRetryStrategy {
      *
      * @param retries2026Enabled Whether retries 2.1 behavior is used.
      */
-    public static StandardRetryStrategy.Builder standardStrategyBuilder(boolean retries2026Enabled) {
+    public static StandardRetryStrategy.Builder standardStrategyBuilder(Boolean retries2026Enabled) {
         return StandardRetryStrategy.builder(retries2026Enabled);
     }
 
@@ -117,7 +117,7 @@ public final class DefaultRetryStrategy {
      *
      * @param retries2026Enabled Whether retries 2.1 behavior is used.
      */
-    public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder(boolean retries2026Enabled) {
+    public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder(Boolean retries2026Enabled) {
         return AdaptiveRetryStrategy.builder(retries2026Enabled);
     }
 

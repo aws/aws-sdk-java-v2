@@ -63,17 +63,19 @@ public interface StandardRetryStrategy extends RetryStrategy {
     /**
      * Create a new {@link StandardRetryStrategy.Builder} with v2.0 or v2.1 retry constants.
      *
-     * @param retries2026Enabled when {@code true}, uses v2.1 constants (50ms base delay, differentiated token costs);
-     *                           when {@code false}, uses v2.0 constants (100ms base delay, uniform token costs)
+     * @param retries2026Enabled when {@code true}, uses v2.1 constants (50ms base delay, differentiated token costs); when
+     *                           {@code false}, uses v2.0 constants (100ms base delay, uniform token costs)
      */
-    static Builder builder(boolean retries2026Enabled) {
-        Duration baseDelay = retries2026Enabled ? DefaultRetryStrategy.Standard.BASE_DELAY_V21
-                                                : DefaultRetryStrategy.Standard.BASE_DELAY_V20;
-        int exceptionCost = retries2026Enabled ? DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V21
-                                               : DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V20;
+    static Builder builder(Boolean retries2026Enabled) {
+        boolean retries21 = Boolean.TRUE.equals(retries2026Enabled);
+
+        Duration baseDelay = retries21 ? DefaultRetryStrategy.Standard.BASE_DELAY_V21
+                                       : DefaultRetryStrategy.Standard.BASE_DELAY_V20;
+        int exceptionCost = retries21 ? DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V21
+                                      : DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V20;
         // v2.0 does not treat throttling exceptions differently from others
-        int throttlingCost = retries2026Enabled ? DefaultRetryStrategy.Standard.THROTTLING_EXCEPTION_TOKEN_COST_V21
-                                                : exceptionCost;
+        int throttlingCost = retries21 ? DefaultRetryStrategy.Standard.THROTTLING_EXCEPTION_TOKEN_COST_V21
+                                       : exceptionCost;
         return DefaultStandardRetryStrategy
             .builder()
             .retries2026Enabled(retries2026Enabled)
