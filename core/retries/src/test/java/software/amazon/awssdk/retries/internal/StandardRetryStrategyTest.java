@@ -104,12 +104,17 @@ public class StandardRetryStrategyTest {
                 case RETRY_REQUEST: {
                     ScenarioTestException scenarioTestException = new ScenarioTestException(response.statusCode,
                                                                                             response.throttling);
-                    RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
-                                                                                      .failure(scenarioTestException)
-                                                                                      .isLongPolling(given.isLongPolling)
-                                                                                      .token(token.get())
-                                                                                      .build();
-                    RefreshRetryTokenResponse refreshResponse = strategy.refreshRetryToken(refreshRequest);
+                    RefreshRetryTokenRequest.Builder refreshRequest = RefreshRetryTokenRequest.builder();
+
+                    if (response.xAmzRetryAfter != null) {
+                        refreshRequest.suggestedDelay(response.xAmzRetryAfter);
+                    }
+
+                    refreshRequest.failure(scenarioTestException)
+                                  .isLongPolling(given.isLongPolling)
+                                  .token(token.get())
+                                  .build();
+                    RefreshRetryTokenResponse refreshResponse = strategy.refreshRetryToken(refreshRequest.build());
                     DefaultRetryToken refreshedToken = (DefaultRetryToken) refreshResponse.token();
                     token.set(refreshedToken);
 
@@ -120,14 +125,18 @@ public class StandardRetryStrategyTest {
                 case RETRY_QUOTA_EXCEEDED: {
                     ScenarioTestException scenarioTestException = new ScenarioTestException(response.statusCode,
                                                                                             response.throttling);
-                    RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
-                                                                                      .failure(scenarioTestException)
-                                                                                      .isLongPolling(given.isLongPolling)
-                                                                                      .token(token.get())
-                                                                                      .build();
+                    RefreshRetryTokenRequest.Builder refreshRequest = RefreshRetryTokenRequest.builder();
 
+                    if (response.xAmzRetryAfter != null) {
+                        refreshRequest.suggestedDelay(response.xAmzRetryAfter);
+                    }
 
-                    assertThatThrownBy(() -> strategy.refreshRetryToken(refreshRequest))
+                    refreshRequest.failure(scenarioTestException)
+                                  .isLongPolling(given.isLongPolling)
+                                  .token(token.get())
+                                  .build();
+
+                    assertThatThrownBy(() -> strategy.refreshRetryToken(refreshRequest.build()))
                         .isInstanceOf(TokenAcquisitionFailedException.class)
                         .matches(e -> {
                                      TokenAcquisitionFailedException acquireException = (TokenAcquisitionFailedException) e;
@@ -149,12 +158,18 @@ public class StandardRetryStrategyTest {
                 case MAX_ATTEMPTS_EXCEEDED: {
                     ScenarioTestException scenarioTestException = new ScenarioTestException(response.statusCode,
                                                                                             response.throttling);
-                    RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
-                                                                                      .failure(scenarioTestException)
-                                                                                      .isLongPolling(given.isLongPolling)
-                                                                                      .token(token.get())
-                                                                                      .build();
-                    assertThatThrownBy(() -> strategy.refreshRetryToken(refreshRequest))
+                    RefreshRetryTokenRequest.Builder refreshRequest = RefreshRetryTokenRequest.builder();
+
+                    if (response.xAmzRetryAfter != null) {
+                        refreshRequest.suggestedDelay(response.xAmzRetryAfter);
+                    }
+
+                    refreshRequest.failure(scenarioTestException)
+                                  .isLongPolling(given.isLongPolling)
+                                  .token(token.get())
+                                  .build();
+
+                    assertThatThrownBy(() -> strategy.refreshRetryToken(refreshRequest.build()))
                         .isInstanceOf(TokenAcquisitionFailedException.class)
                         .matches(e -> {
                             TokenAcquisitionFailedException acquireException = (TokenAcquisitionFailedException) e;
@@ -673,7 +688,52 @@ public class StandardRetryStrategyTest {
                                   .expected(e ->
                                                 e.outcome(Outcome.MAX_ATTEMPTS_EXCEEDED)
                                                  .delay(Duration.ZERO)
+                                                 .retryQuota(486))),
+
+            aScenario("Honor x-amz-retry-after Header")
+                .newRetries2026(true)
+                .addResponse(r ->
+                                 r.statusCode(500)
+                                  .xAmzRetryAfter(Duration.ofMillis(1500))
+                                  .expected(e ->
+                                                e.outcome(Outcome.RETRY_REQUEST)
+                                                 .delay(Duration.ofMillis(1500))
                                                  .retryQuota(486)))
+                .addResponse(r ->
+                                 r.statusCode(200)
+                                  .expected(e ->
+                                                e.outcome(Outcome.SUCCESS)
+                                                 .retryQuota(500))),
+
+            aScenario("x-amz-retry-after minimum is exponential backoff duration")
+                .newRetries2026(true)
+                .addResponse(r ->
+                                 r.statusCode(500)
+                                  .xAmzRetryAfter(Duration.ofMillis(0))
+                                  .expected(e ->
+                                                e.outcome(Outcome.RETRY_REQUEST)
+                                                 .delay(Duration.ofMillis(50))
+                                                 .retryQuota(486)))
+                .addResponse(r ->
+                                 r.statusCode(200)
+                                  .expected(e ->
+                                                e.outcome(Outcome.SUCCESS)
+                                                 .retryQuota(500))),
+
+            aScenario("x-amz-retry-after maximum is 5+exponential backoff duration")
+                .newRetries2026(true)
+                .addResponse(r ->
+                                 r.statusCode(500)
+                                  .xAmzRetryAfter(Duration.ofMillis(10000))
+                                  .expected(e ->
+                                                e.outcome(Outcome.RETRY_REQUEST)
+                                                 .delay(Duration.ofMillis(5050))
+                                                 .retryQuota(486)))
+                .addResponse(r ->
+                                 r.statusCode(200)
+                                  .expected(e ->
+                                                e.outcome(Outcome.SUCCESS)
+                                                 .retryQuota(500)))
         );
     }
 
@@ -721,6 +781,7 @@ public class StandardRetryStrategyTest {
     private static class Response {
         private int statusCode;
         private boolean throttling;
+        private Duration xAmzRetryAfter;
         private Expected expected;
 
         public Response statusCode(int statusCode) {
@@ -730,6 +791,11 @@ public class StandardRetryStrategyTest {
 
         public Response isThrottling(boolean throttling) {
             this.throttling = throttling;
+            return this;
+        }
+
+        public Response xAmzRetryAfter(Duration xAmzRetryAfter) {
+            this.xAmzRetryAfter = xAmzRetryAfter;
             return this;
         }
 
