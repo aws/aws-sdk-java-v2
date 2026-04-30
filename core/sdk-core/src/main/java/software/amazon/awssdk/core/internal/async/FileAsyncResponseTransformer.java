@@ -126,7 +126,15 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
 
         ExecutorService executorService = configuration.executorService().orElse(null);
-        return AsynchronousFileChannel.open(path, options, executorService);
+        try {
+            return AsynchronousFileChannel.open(path, options, executorService);
+        } catch (NoSuchFileException e) {
+            if (configuration.fileWriteOption() == WRITE_TO_POSITION) {
+                throw e;
+            }
+            throw new NoSuchFileException(e.getFile(), e.getOtherFile(),
+                                          "Verify that the file's parent directories exist. The SDK will not auto-create them.");
+        }
     }
 
     @Override
