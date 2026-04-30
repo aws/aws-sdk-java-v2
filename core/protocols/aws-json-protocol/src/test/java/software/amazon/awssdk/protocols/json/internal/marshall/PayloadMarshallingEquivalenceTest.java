@@ -22,6 +22,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -203,6 +204,22 @@ class PayloadMarshallingEquivalenceTest {
         String body = marshallAndGetBody(field);
         // "data" base64 encoded is "ZGF0YQ=="
         assertThat(body).contains("\"fieldName\":\"ZGF0YQ==\"");
+    }
+
+    // ---- SDK_BYTES (large — exceeds SdkByteArrayOutputStream.MAX_BUFFER_SIZE) ----
+
+    @Test
+    void marshallPayloadField_withLargeSdkBytesValue_producesCorrectBase64() {
+        // 200 KB of random data — large enough to trigger SdkByteArrayOutputStream overflow
+        byte[] rawData = new byte[200 * 1024];
+        new java.util.Random(12345).nextBytes(rawData);
+        SdkBytes sdkBytes = SdkBytes.fromByteArray(rawData);
+        String expectedBase64 = Base64.getEncoder().encodeToString(rawData);
+
+        SdkField<SdkBytes> field = payloadField("binaryField", MarshallingType.SDK_BYTES,
+                                                 obj -> sdkBytes);
+        String body = marshallAndGetBody(field);
+        assertThat(body).contains("\"binaryField\":\"" + expectedBase64 + "\"");
     }
 
     @Test

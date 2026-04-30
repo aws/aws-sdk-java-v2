@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.TraitType;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -290,12 +291,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 jsonGenerator.writeEndObject();
             }
 
-            byte[] content = jsonGenerator.getBytes();
-
-            if (content != null) {
-                request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-                if (content.length > 0) {
-                    request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+            ContentStreamProvider contentProvider = jsonGenerator.contentStreamProvider();
+            if (contentProvider != null) {
+                request.contentStreamProvider(contentProvider);
+                int contentSize = jsonGenerator.contentSize();
+                if (contentSize > 0) {
+                    request.putHeader(CONTENT_LENGTH, Integer.toString(contentSize));
                 }
             }
         }
@@ -389,7 +390,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 break;
             case SDK_BYTES:
                 gen.writeFieldName(fieldName);
-                gen.writeValue(((SdkBytes) val).asByteBuffer());
+                gen.writeBinaryValue(((SdkBytes) val).asByteArrayUnsafe());
                 break;
             case SDK_POJO:
                 SimpleTypeJsonMarshaller.SDK_POJO.marshall((SdkPojo) val, marshallerContext,
