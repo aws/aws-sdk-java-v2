@@ -380,6 +380,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return right;
     }
 
+    static Duration minOf(Duration left, Duration right) {
+        if (left.compareTo(right) <= 0) {
+            return left;
+        }
+        return right;
+    }
+
     static DefaultRetryToken asDefaultRetryToken(RetryToken token) {
         return Validate.isInstanceOf(DefaultRetryToken.class, token,
                                      "RetryToken is of unexpected class (%s), "
