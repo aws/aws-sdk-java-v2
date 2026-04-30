@@ -18,6 +18,7 @@ package software.amazon.awssdk.retries;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
@@ -82,24 +83,33 @@ class StandardRetryStrategyV21ConstantsTest {
 
     @Test
     void v21Enabled_backoffUses50msBaseDelay() {
-        RetryStrategy strategy = StandardRetryStrategy.builder(true)
-            .retryOnException(t -> true)
-            .build();
 
-        RefreshRetryTokenResponse response = refreshToken(strategy, new RuntimeException("err"));
-        // First retry delay should be in [0, 50ms] (jittered)
-        assertThat(response.delay()).isBetween(Duration.ZERO, Duration.ofMillis(50));
+        Supplier<RetryStrategy> stratSupplier = () -> StandardRetryStrategy.builder(true)
+                                                                              .retryOnException(t -> true)
+                                                                              .build();
+
+        probabilisticAssertDelayBetween(stratSupplier, new RuntimeException("err"), Duration.ZERO, Duration.ofMillis(50));
+    }
+
+    @Test
+    void v21Enabled_throttlingBackoffUses1000msBaseDelay() {
+
+        Supplier<RetryStrategy> stratSupplier = () -> StandardRetryStrategy.builder(true)
+                                                                           .retryOnException(t -> true)
+                                                                           .treatAsThrottling(t -> true)
+                                                                           .build();
+
+        probabilisticAssertDelayBetween(stratSupplier, new RuntimeException("err"), Duration.ZERO, Duration.ofMillis(1000));
     }
 
     @Test
     void v20_backoffUses100msBaseDelay() {
-        RetryStrategy strategy = StandardRetryStrategy.builder(false)
-            .retryOnException(t -> true)
-            .build();
+        Supplier<RetryStrategy> stratSupplier = () -> StandardRetryStrategy.builder(false)
+                                                                              .retryOnException(t -> true)
+                                                                              .build();
 
-        RefreshRetryTokenResponse response = refreshToken(strategy, new RuntimeException("err"));
-        // First retry delay should be in [0, 100ms] (jittered)
-        assertThat(response.delay()).isBetween(Duration.ZERO, Duration.ofMillis(100));
+        probabilisticAssertDelayBetween(stratSupplier, new RuntimeException("err"), Duration.ZERO, Duration.ofMillis(100));
+
     }
 
     @Test
@@ -134,5 +144,16 @@ class StandardRetryStrategyV21ConstantsTest {
         AcquireInitialTokenResponse initial = strategy.acquireInitialToken(AcquireInitialTokenRequestImpl.create("test"));
         return strategy.refreshRetryToken(
             RefreshRetryTokenRequest.builder().token(initial.token()).failure(failure).build());
+    }
+
+    // Backoffs are jittered, so verify it by testing it many times
+    private void probabilisticAssertDelayBetween(Supplier<RetryStrategy> strategy,
+                                                 Exception failure,
+                                                 Duration min,
+                                                 Duration max) {
+        for (int i = 0; i < 128; ++i) {
+            RefreshRetryTokenResponse response = refreshToken(strategy.get(), failure);
+            assertThat(response.delay()).isBetween(min, max);
+        }
     }
 }
