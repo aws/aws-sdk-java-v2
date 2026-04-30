@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Url Connection Client",
-    "contributor": "",
-    "description": "Allow retry when URL Connection HTTP Client encounters a NullPointerException wrapped in a RuntimeException"
-}
