@@ -126,6 +126,15 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                 return builder.build();
             } catch (CompletionException e) {
                 Throwable cause = e.getCause();
+
+                // Complete the future exceptionally to trigger connection cleanup in the response handler.
+                // Handles thread-interrupt case where joinInterruptibly throws due to
+                // InterruptedException. Without this, the
+                // Ensures that closeConnection() is invoked to prevent leaking the connection from the pool.
+                if (responseFuture != null) {
+                    responseFuture.completeExceptionally(cause != null ? cause : e);
+                }
+
                 if (cause instanceof IOException) {
                     throw (IOException) cause;
                 }

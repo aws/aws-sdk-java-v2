@@ -84,7 +84,15 @@ public final class NestedRecordUtils {
             return staticSchema.get();
         }
 
-        AttributeConverter<?> converter = rootSchema.converterForAttribute(key);
+        AttributeConverter<?> converter;
+        try {
+            converter = rootSchema.converterForAttribute(key);
+        } catch (UnsupportedOperationException e) {
+            // TableSchema implementations that do not support converterForAttribute (e.g. DocumentTableSchema,
+            // third-party or custom schema implementations) throw UnsupportedOperationException.
+            // Return null to indicate no schema introspection is possible.
+            return null;
+        }
         if (converter == null) {
             throw new IllegalArgumentException("No converter found for attribute: " + key);
         }

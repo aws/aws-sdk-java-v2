@@ -20,6 +20,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.thirdparty.jackson.core.StreamReadConstraints;
 import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
 import software.amazon.awssdk.thirdparty.jackson.core.StreamWriteFeature;
 
@@ -37,6 +38,13 @@ public final class AwsStructuredPlainJsonFactory {
                                                                .enable(StreamReadFeature.USE_FAST_BIG_NUMBER_PARSER)
                                                                .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
                                                                .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
+                                                               // Override Jackson's default maxNameLength of 50,000 to support
+                                                               // DynamoDB attribute names, which can be up to 65,535 bytes.
+                                                               // See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
+                                                               .streamReadConstraints(
+                                                                   StreamReadConstraints.builder()
+                                                                                        .maxNameLength(65_535)
+                                                                                        .build())
                                                                .build();
 
     public static final BaseAwsStructuredJsonFactory SDK_JSON_FACTORY = new BaseAwsStructuredJsonFactory(JSON_FACTORY) {
