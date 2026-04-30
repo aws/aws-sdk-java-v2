@@ -147,7 +147,7 @@ class AuthSchemeResolutionStageTest {
         IdentityProviders updatedProviders = mock(IdentityProviders.class);
 
         IdentityProviderUpdater updater = mock(IdentityProviderUpdater.class);
-        doReturn(updatedProviders).when(updater).update(sdkRequest, baseProviders);
+        doReturn(updatedProviders).when(updater).update(sdkRequest, baseProviders, executionAttributes);
 
         // Setup so that auth scheme uses the updated providers
         @SuppressWarnings("unchecked")
@@ -162,7 +162,7 @@ class AuthSchemeResolutionStageTest {
 
         stage.execute(httpRequestBuilder, context);
 
-        verify(updater).update(sdkRequest, baseProviders);
+        verify(updater).update(sdkRequest, baseProviders, executionAttributes);
     }
 
     @Test
