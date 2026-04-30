@@ -95,7 +95,12 @@ public final class SdkPojoConversionUtils {
         "ObjectLockMode",
         "ObjectLockRetainUntilDate",
         "ObjectLockLegalHoldStatus",
-        "ExpectedBucketOwner"
+        "ExpectedBucketOwner",
+        "ChecksumXXHASH128",
+        "ChecksumSHA512",
+        "ChecksumXXHASH3",
+        "ChecksumMD5",
+        "ChecksumXXHASH64"
     ));
 
     private static final Set<String> COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS = new HashSet<>(Arrays.asList(
@@ -142,7 +147,12 @@ public final class SdkPojoConversionUtils {
         "ObjectLockRetainUntilDate",
         "ObjectLockLegalHoldStatus",
         "ExpectedBucketOwner",
-        "ExpectedSourceBucketOwner"
+        "ExpectedSourceBucketOwner",
+        "ChecksumXXHASH128",
+        "ChecksumSHA512",
+        "ChecksumXXHASH3",
+        "ChecksumMD5",
+        "ChecksumXXHASH64"
     ));
 
 
