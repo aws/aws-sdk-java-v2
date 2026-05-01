@@ -213,6 +213,16 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("ChecksumStore");
 
     /**
+     * Indicates whether this is a long polling operation.
+     */
+    public static final ExecutionAttribute<Boolean> IS_LONG_POLLING = new ExecutionAttribute<>("IsLongPolling");
+
+    /**
+     * Indicates whether retries v2.1 is enabled.
+     */
+    public static final ExecutionAttribute<Boolean> NEW_RETRIES_2026_ENABLED = new ExecutionAttribute<>("NewRetries2026Enabled");
+
+    /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.
      * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
      * in the SELECTED_AUTH_SCHEME execution attribute.

@@ -27,13 +27,17 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clockskew and request throttling functionality.
@@ -41,6 +45,8 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFullRequest,
     CompletableFuture<Response<OutputT>>> {
+    private static final String X_AMZ_RETRY_AFTER_HEADER = "x-amz-retry-after";
+    private static final Logger LOG = Logger.loggerFor(AsyncRetryableStage.class);
 
     private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
@@ -134,9 +140,20 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void maybeAttemptExecute(CompletableFuture<Response<OutputT>> future) {
-            Optional<Duration> delay = retryableStageHelper.tryRefreshToken(Duration.ZERO);
-            if (!delay.isPresent()) {
-                future.completeExceptionally(retryableStageHelper.retryPolicyDisallowedRetryException());
+            Either<Duration, Duration> backoffDelay = retryableStageHelper.tryRefreshToken(suggestedDelay());
+
+            Optional<Duration> acquireFailureDelay = backoffDelay.right();
+            if (acquireFailureDelay.isPresent()) {
+                Duration delay = acquireFailureDelay.get();
+                retryableStageHelper.logAcquireFailureBackingOff(delay);
+                SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
+                // Avoid needless scheduling if we won't wait
+                if (delay.isZero()) {
+                    future.completeExceptionally(disallowedException);
+                } else {
+                    scheduledExecutor.schedule(() -> future.completeExceptionally(disallowedException),
+                                               delay.toMillis(), MILLISECONDS);
+                }
                 return;
             }
             // We failed the last attempt, but will retry. The response handler wants to know when that happens.
@@ -145,9 +162,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             // Reset the request provider to the original one before retries, in case it was modified downstream.
             context.requestProvider(originalRequestBody);
 
-            Duration backoffDelay = delay.get();
-            retryableStageHelper.logBackingOff(backoffDelay);
-            long totalDelayMillis = backoffDelay.toMillis();
+            // get() is safe, Either requires left OR right to be present
+            Duration successDelay = backoffDelay.left().get();
+            retryableStageHelper.logBackingOff(successDelay);
+            long totalDelayMillis = successDelay.toMillis();
             scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
         }
 
@@ -159,5 +177,37 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 future.completeExceptionally(t);
             }
         }
+
+        private Duration suggestedDelay() {
+            if (newRetries2026Enabled(context)) {
+                return xAmzRetryAfter(retryableStageHelper.getLastResponse()).orElse(Duration.ZERO);
+            }
+            // Unlike in the sync RetryableStage, we never used 'Retry-After' for suggested delay in async
+            // https://github.com/aws/aws-sdk-java-v2/blob/1483d30d071716ead3dc1fa6571441658013d5c1/core/sdk-core/src/main/java/software/amazon/awssdk/core/internal/http/pipeline/stages/AsyncRetryableStage.java#L137
+            return Duration.ZERO;
+        }
+    }
+
+    /**
+     * Returns the suggested backoff delay based on the 'x-amz-retry-after' header value in the response.
+     */
+    private Optional<Duration> xAmzRetryAfter(SdkHttpResponse response) {
+        Optional<String> optionalXAmzRetryAfter = response.firstMatchingHeader(X_AMZ_RETRY_AFTER_HEADER);
+        return optionalXAmzRetryAfter.map(xAmzRetryAfter -> {
+            try {
+                return Duration.ofMillis(Integer.parseInt(xAmzRetryAfter));
+            } catch (NumberFormatException e) {
+                // Ignore and fallback to returning empty.
+                LOG.debug(() -> String.format("Unable to parse header '%s' value '%s' as integer",
+                                              X_AMZ_RETRY_AFTER_HEADER, xAmzRetryAfter), e);
+                return null;
+            }
+        });
+    }
+
+    private boolean newRetries2026Enabled(RequestExecutionContext executionContext) {
+        return executionContext.executionAttributes()
+                               .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
+                               .orElse(false);
     }
 }
