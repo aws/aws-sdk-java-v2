@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Added support for v2.1 retry behavior behind the `AWS_NEW_RETRIES_2026` feature gate. When enabled via environment variable `AWS_NEW_RETRIES_2026=true` or system property `-Daws.newRetries2026=true`, the SDK applies the following changes:\n\n- Uses `STANDARD` as the default retry mode\n- Reduces base backoff delay from 100ms to 50ms\n- Differentiates token costs between transient and throttling errors\n- Honors the `max_attempts` profile property\n- Uses the `x-amz-retry-after` response header for server-suggested delays\n- Retries on `LimitExceededException` as a throttling error\n- Retries on STS `IdpCommunicationErrorException`\n- Reduces DynamoDB default max attempts from 9 to 4\n- Backs off before failing long-polling operations (e.g., SQS `ReceiveMessage`) when the retry token bucket is exhausted, instead of failing immediately\n\nExample usage:\n```java\nSystem.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), \"true\");\nDynamoDbClient ddb = DynamoDbClient.create();\n```"
-}
