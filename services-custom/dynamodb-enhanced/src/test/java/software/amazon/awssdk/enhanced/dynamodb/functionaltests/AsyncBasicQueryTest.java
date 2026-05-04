@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -25,6 +26,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +43,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -48,6 +54,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
@@ -119,25 +126,52 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
                  .mapToObj(i -> new Record().setId("id-value").setSort(i).setValue(i))
                  .collect(Collectors.toList());
 
+    private static final List<NestedTestRecord> NESTED_TEST_RECORDS =
+        IntStream.range(0, 10)
+                 .mapToObj(i -> {
+                     NestedTestRecord nestedTestRecord = new NestedTestRecord();
+                     nestedTestRecord.setOuterAttribOne("id-value-" + i);
+                     nestedTestRecord.setSort(i);
+                     InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
+                     innerAttributeRecord.setAttribOne("attribOne-" + i);
+                     innerAttributeRecord.setAttribTwo(i);
+                     nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
+                     nestedTestRecord.setDotVariable("v" + i);
+                     return nestedTestRecord;
+                 })
+                 .collect(Collectors.toList());
+
     private DynamoDbEnhancedAsyncClient enhancedAsyncClient = DefaultDynamoDbEnhancedAsyncClient.builder()
                                                                                                 .dynamoDbClient(getDynamoDbAsyncClient())
                                                                                                 .build();
 
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbAsyncTable<NestedTestRecord> mappedNestedTable =
+        enhancedAsyncClient.table(getConcreteTableName("nested-table-name"), TableSchema.fromClass(NestedTestRecord.class));
 
     private void insertRecords() {
         RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)).join());
+        NESTED_TEST_RECORDS.forEach(record -> mappedNestedTable.putItem(r -> r.item(record)).join());
+    }
+
+    private void insertNestedRecords() {
+        NESTED_TEST_RECORDS.forEach(record -> mappedNestedTable.putItem(r -> r.item(record)).join());
     }
     
     @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
+        mappedNestedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
     }
 
     @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName("table-name"))
+                                                               .build())
+                                .join();
+        getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(getConcreteTableName("nested-table-name"))
                                                                .build())
                                 .join();
     }
@@ -180,6 +214,22 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryAllRecords_withAttributeProjection_shouldExcludeUnprojectedAttributes() {
+        insertRecords();
+        SdkPublisher<Page<Record>> publisher =
+            mappedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                    .attributesToProject("value"));
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
+        assertThat(page.items().size(), is(RECORDS.size()));
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.id, is(nullValue()));
+        assertThat(firstRecord.sort, is(nullValue()));
+        assertThat(firstRecord.value, is(0));
     }
 
     @Test
@@ -313,5 +363,73 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         Page<Record> page = results.get(0);
         assertThat(page.items(), is(RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryAllRecords_withSelectCount_shouldReturnCountNotItems() {
+        insertRecords();
+        SdkPublisher<Page<Record>> publisher =
+            mappedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                    .select(Select.COUNT));
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
+        assertThat(page.count(), is(RECORDS.size()));
+        assertThat(page.scannedCount(), is(RECORDS.size()));
+        assertThat(page.items(), is(empty()));
+    }
+
+    @Test
+    public void queryNestedRecord_withMixedNestedAndTopLevelProjections_shouldProjectMultipleAttributes() {
+        insertNestedRecords();
+        SdkPublisher<Page<NestedTestRecord>> publisher =
+            mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                                          .addNestedAttributesToProject(Arrays.asList(
+                                              NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build()))
+                                          .addNestedAttributesToProject(NestedAttributeName.create("innerAttributeRecord", "attribTwo"))
+                                          .addAttributeToProject("sort"));
+
+        List<Page<NestedTestRecord>> results = drainPublisher(publisher, 1);
+        Page<NestedTestRecord> page = results.get(0);
+        assertThat(page.items().size(), is(1));
+        NestedTestRecord firstRecord = page.items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is(nullValue()));
+        assertThat(firstRecord.getSort(), is(1));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(1));
+    }
+
+    @Test
+    public void queryRecords_withEmptyProjectionList_shouldReturnAllAttributes() {
+        insertNestedRecords();
+        SdkPublisher<Page<NestedTestRecord>> publisher =
+            mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-7")))
+                                          .attributesToProject(new ArrayList<>()));
+        List<Page<NestedTestRecord>> results = drainPublisher(publisher, 1);
+        NestedTestRecord firstRecord = results.get(0).items().get(0);
+        assertThat(firstRecord.getOuterAttribOne(), is("id-value-7"));
+        assertThat(firstRecord.getSort(), is(7));
+        assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(7));
+        assertThat(firstRecord.getDotVariable(), is("v7"));
+    }
+
+    @Test
+    public void queryRecords_withEmptyProjectionString_shouldThrowAssertionError() {
+        insertNestedRecords();
+        assertThatExceptionOfType(AssertionError.class).isThrownBy(
+            () -> drainPublisher(
+                mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                            .attributesToProject("")),
+                1));
+    }
+
+    @Test
+    public void queryRecords_withEmptyNestedProjectionName_shouldThrowAssertionError() {
+        insertNestedRecords();
+        assertThatExceptionOfType(AssertionError.class).isThrownBy(
+            () -> drainPublisher(
+                mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                            .addNestedAttributeToProject(NestedAttributeName.create(""))),
+                1));
     }
 }

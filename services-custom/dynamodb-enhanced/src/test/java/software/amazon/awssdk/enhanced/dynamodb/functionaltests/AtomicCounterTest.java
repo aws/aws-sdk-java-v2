@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -26,10 +27,12 @@ import org.junit.Test;
 import org.slf4j.event.Level;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.LogCaptor;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.AtomicCounterExtension;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.AtomicCounterRecord;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 
 public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
@@ -216,5 +219,33 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
                                                  "collisions:", "customCounter", "defaultCounter", "decreasingCounter");
             assertThat(logEventMessage.split(",")).hasSize(3);
         }
+    }
+
+    @Test
+    public void updateItem_withConditionExpression_shouldIncrementCountersAndPreserveAttribute() {
+        AtomicCounterRecord record = new AtomicCounterRecord();
+        record.setId(RECORD_ID);
+        record.setAttribute1("initial");
+        mappedTable.putItem(record);
+
+        Expression expression = Expression.builder()
+                                          .expression("#a = :v")
+                                          .putExpressionName("#a", "attribute1")
+                                          .putExpressionValue(":v", stringValue("initial"))
+                                          .build();
+        AtomicCounterRecord update = new AtomicCounterRecord();
+        update.setId(RECORD_ID);
+        update.setAttribute1("updated");
+
+        mappedTable.updateItem(UpdateItemEnhancedRequest.builder(AtomicCounterRecord.class)
+                                                        .item(update)
+                                                        .conditionExpression(expression)
+                                                        .build());
+
+        AtomicCounterRecord persisted = mappedTable.getItem(update);
+        assertThat(persisted.getAttribute1()).isEqualTo("updated");
+        assertThat(persisted.getDefaultCounter()).isEqualTo(1L);
+        assertThat(persisted.getCustomCounter()).isEqualTo(15L);
+        assertThat(persisted.getDecreasingCounter()).isEqualTo(-21L);
     }
 }
