@@ -1,63 +1,55 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.43.0__ __2026-04-27__
-## __AWS Glue__
+# __2.44.0__ __2026-05-01__
+## __AWS EntityResolution__
   - ### Features
-    - Addition of AdditionalAuditContext to GetPartition, GetPartitions, GetTableVersion, and GetTableVersions
+    - Add support for transitive matching in AWS Entity Resolution rule-based matching workflows. When enabled, records that match through different rules are grouped together into the same match group, allowing related records to be connected across rule levels.
 
-## __AWS Key Management Service__
+## __AWS Identity and Access Management__
   - ### Features
-    - KMS GetKeyLastUsage API provides information on the last successful cryptographic operation performed on KMS keys. This new API provides KMS customers with the last timestamp, CloudTrail eventId, and the cryptographic operation that was performed on the key.
+    - Added guidance for CreateOpenIDConnectProvider to include multiple thumbprints when OIDC discovery and JWKS endpoints use different hosts or certificates
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT HTTP rule actions now support cross-topic batching, combining messages from different MQTT topics into single HTTP requests.
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Add support for overriding authSchemeProvider per request.
-    - Optimize ExecutionAttributes to reduce resizes and reduce hash computation cost.
+    - Added support for v2.1 retry behavior behind the `AWS_NEW_RETRIES_2026` feature gate. When enabled via environment variable `AWS_NEW_RETRIES_2026=true` or system property `-Daws.newRetries2026=true`, the SDK applies the following changes:
 
-## __AWSBillingConductor__
-  - ### Features
-    - Add support for Passthrough pricing plan
+      - Uses `STANDARD` as the default retry mode
+      - Reduces base backoff delay from 100ms to 50ms
+      - Differentiates token costs between transient and throttling errors
+      - Honors the `max_attempts` profile property
+      - Uses the `x-amz-retry-after` response header for server-suggested delays
+      - Retries on `LimitExceededException` as a throttling error
+      - Retries on STS `IdpCommunicationErrorException`
+      - Reduces DynamoDB default max attempts from 9 to 4
+      - Backs off before failing long-polling operations (e.g., SQS `ReceiveMessage`) when the retry token bucket is exhausted, instead of failing immediately
 
-## __Amazon CloudWatch Application Signals__
+      Example usage:
+      ```java
+      System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), "true");
+      DynamoDbClient ddb = DynamoDbClient.create();
+      ```
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
   - ### Features
-    - Application Signals now supports creating composite Service Level Objectives on Service Operations. Users can now create service SLO on multiple operations.
+    - Amazon WorkSpaces Applications now enables AI agents to securely operate desktop applications. Administrators configure stacks to provide agents access to WorkSpaces. Agents can click, type, and take screenshots. Agents authenticate with AWS IAM credentials with activity logged in AWS CloudTrail.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds tag support for CloudWatch Dashboards. The PutDashboard API now accepts a Tags parameter, allowing you to tag dashboards at creation time. Additionally, the TagResource, UntagResource, and ListTagsForResource APIs now support dashboard ARNs as resources.
 
 ## __Amazon CloudWatch Logs__
   - ### Features
-    - Adds support for selecting all logs sources and types in a single association.
+    - Adds support for filtering log groups by tags in the ListLogGroups API via the new logGroupTags parameter.
 
-## __Amazon GameLift Streams__
+## __Amazon Q Connect__
   - ### Features
-    - Adds Proton 10.0-4 to the list of runtime environment options available when creating an Amazon GameLift Streams application
+    - Added reasoning details, statusDescription, and timeToFirstTokenMs fields to the ListSpans response in Amazon Q in Connect to provide visibility into model thinking, error diagnostics, and inference latency metrics.
 
-## __Amazon Interactive Video Service__
+## __Amazon QuickSight__
   - ### Features
-    - Adds tags parameter to the CreateAdConfiguration operation
-
-## __Amazon Omics__
-  - ### Features
-    - Enable Public Internet or VPC configuration to BatchRun
-
-## __Amazon OpenSearch Service__
-  - ### Features
-    - Amazon OpenSearch Service now supports JWKS URL configuration for JWT authentication
-
-## __Amazon S3__
-  - ### Features
-    - Add configurable `expectContinueThresholdInBytes` to S3Configuration (default 1 MB). The Expect: 100-continue header is now only added to PutObject and UploadPart requests when the content-length meets or exceeds the threshold, reducing latency overhead for small uploads.
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Updated API documentation for endpoint MetricsConfig. Added details on supported metric publish frequencies and clarified how EnableEnhancedMetrics controls utilization and invocation metric behavior.
-
-## __Amazon WorkSpaces__
-  - ### Features
-    - Added support for Protocol as modified resource and added update failure as modification state
-
-## __Application Migration Service__
-  - ### Features
-    - Added network modernization support, enabling customers to edit, resize, merge, and split VPCs and subnets during migration while retaining functional, non-conflicting IP addresses.
-
-## __S3 Transfer Manager__
-  - ### Bugfixes
-    - Fix TransferListener callbacks (bytesTransferred, transferComplete) not firing for unknown-content-length uploads via S3TransferManager when the data fits in a single chunk.
+    - Add IdentityProviderCACertificatesBundleS3Uri for private CA certs with OAuth datasources. 256-char limit for FontFamily in themes. ControlTitleFormatText on all 13 filters. ControlTitleFontConfiguration. ContextRegion for cross-region identity context. Story,scenario in CreateCustomCapability API.
 

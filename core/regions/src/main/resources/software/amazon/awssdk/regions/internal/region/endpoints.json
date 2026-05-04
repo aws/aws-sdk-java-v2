@@ -20173,6 +20173,7 @@
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
+          "ap-southeast-4" : { },
           "ap-southeast-5" : { },
           "ap-southeast-6" : { },
           "ap-southeast-7" : { },
@@ -20182,6 +20183,7 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -27778,6 +27780,7 @@
           "eu-west-3" : { },
           "me-central-1" : { },
           "me-south-1" : { },
+          "mx-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : { },
           "us-east-2" : { },
@@ -37336,6 +37339,11 @@
           "us-iso-west-1" : { }
         }
       },
+      "mq" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        }
+      },
       "network-firewall" : {
         "endpoints" : {
           "us-iso-east-1" : { }
@@ -38297,7 +38305,8 @@
       },
       "firehose" : {
         "endpoints" : {
-          "us-isob-east-1" : { }
+          "us-isob-east-1" : { },
+          "us-isob-west-1" : { }
         }
       },
       "fsx" : {
