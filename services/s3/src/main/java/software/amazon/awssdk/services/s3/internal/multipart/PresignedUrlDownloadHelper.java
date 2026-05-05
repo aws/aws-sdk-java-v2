@@ -30,6 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class PresignedUrlDownloadHelper {
     private static final Logger log = Logger.loggerFor(PresignedUrlDownloadHelper.class);
+    private static final int DEFAULT_MAX_IN_FLIGHT_PARTS = 10;
 
     private final S3AsyncClient s3AsyncClient;
     private final AsyncPresignedUrlExtension asyncPresignedUrlExtension;
@@ -64,12 +65,38 @@ public class PresignedUrlDownloadHelper {
                                                                                              .build();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
             asyncResponseTransformer.split(splittingConfig);
+
+        if (split.parallelSplitSupported()) {
+            return downloadPartsInParallel(presignedRequest, split);
+        }
+        return downloadPartsSerially(presignedRequest, split);
+    }
+
+    private <T> CompletableFuture<T> downloadPartsInParallel(
+        PresignedUrlDownloadRequest presignedRequest,
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+        log.debug(() -> "Using parallel multipart download for presigned URL");
+        ParallelPresignedUrlMultipartDownloaderSubscriber subscriber =
+            new ParallelPresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                presignedRequest,
+                configuredPartSizeInBytes,
+                (CompletableFuture<GetObjectResponse>) split.resultFuture(),
+                DEFAULT_MAX_IN_FLIGHT_PARTS);
+        split.publisher().subscribe(subscriber);
+        return split.resultFuture();
+    }
+
+    private <T> CompletableFuture<T> downloadPartsSerially(
+        PresignedUrlDownloadRequest presignedRequest,
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+        log.debug(() -> "Using serial multipart download for presigned URL");
         PresignedUrlMultipartDownloaderSubscriber subscriber =
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
                 presignedRequest,
-                configuredPartSizeInBytes);
-
+                configuredPartSizeInBytes,
+                split.resultFuture());
         split.publisher().subscribe(subscriber);
         return split.resultFuture();
     }

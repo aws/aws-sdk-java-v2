@@ -33,68 +33,49 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 
-public class PresignedUrlMultipartDownloaderSubscriberTckTest
+public class ParallelPresignedUrlMultipartDownloaderSubscriberTckTest
     extends SubscriberWhiteboxVerification<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
-    
-    private S3AsyncClient s3mock;
 
-    public PresignedUrlMultipartDownloaderSubscriberTckTest() {
+    private final S3AsyncClient s3mock;
+
+    public ParallelPresignedUrlMultipartDownloaderSubscriberTckTest() {
         super(new TestEnvironment());
         this.s3mock = Mockito.mock(S3AsyncClient.class);
-    }
-
-    @Override
-    public Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-    createSubscriber(WhiteboxSubscriberProbe<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> probe) {
         AsyncPresignedUrlExtension presignedUrlExtension = Mockito.mock(AsyncPresignedUrlExtension.class);
         when(s3mock.presignedUrlExtension()).thenReturn(presignedUrlExtension);
 
-        CompletableFuture<GetObjectResponse> firstPartResponse = CompletableFuture.completedFuture(
-            GetObjectResponse.builder()
-                .contentRange("bytes 0-8388607/33554432")
-                .contentLength(8388608L) // 8MB
-                .eTag("\"test-etag-12345\"")
-                .build()
-        );
-
-        CompletableFuture<GetObjectResponse> subsequentPartResponse = CompletableFuture.completedFuture(
-            GetObjectResponse.builder()
-                .contentRange("bytes 8388608-16777215/33554432")
-                .contentLength(8388608L) // 8MB
-                .eTag("\"test-etag-12345\"")
-                .build()
-        );
-        
         when(presignedUrlExtension.getObject(any(PresignedUrlDownloadRequest.class), any(AsyncResponseTransformer.class)))
-            .thenReturn(firstPartResponse)
-            .thenReturn(subsequentPartResponse)
-            .thenReturn(subsequentPartResponse)
-            .thenReturn(subsequentPartResponse);
-        
-        return new PresignedUrlMultipartDownloaderSubscriber(
+            .thenReturn(CompletableFuture.completedFuture(
+                GetObjectResponse.builder()
+                                 .contentRange("bytes 0-8388607/33554432")
+                                 .contentLength(8388608L)
+                                 .eTag("\"test-etag\"")
+                                 .build()));
+    }
+
+    @Override
+    public Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> createSubscriber(
+        WhiteboxSubscriberProbe<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> probe) {
+
+        return new ParallelPresignedUrlMultipartDownloaderSubscriber(
             s3mock,
             createTestPresignedUrlRequest(),
             8 * 1024 * 1024L,
-            new CompletableFuture<>()
+            new CompletableFuture<>(),
+            10
         ) {
             @Override
-            public void onError(Throwable throwable) {
-                super.onError(throwable);
-                probe.registerOnError(throwable);
-            }
-
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                super.onSubscribe(subscription);
+            public void onSubscribe(Subscription s) {
+                super.onSubscribe(s);
                 probe.registerOnSubscribe(new SubscriberPuppet() {
                     @Override
                     public void triggerRequest(long elements) {
-                        subscription.request(elements);
+                        s.request(elements);
                     }
 
                     @Override
                     public void signalCancel() {
-                        subscription.cancel();
+                        s.cancel();
                     }
                 });
             }
@@ -103,6 +84,12 @@ public class PresignedUrlMultipartDownloaderSubscriberTckTest
             public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> item) {
                 super.onNext(item);
                 probe.registerOnNext(item);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                super.onError(t);
+                probe.registerOnError(t);
             }
 
             @Override
@@ -115,7 +102,24 @@ public class PresignedUrlMultipartDownloaderSubscriberTckTest
 
     @Override
     public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> createElement(int element) {
-        return new TestAsyncResponseTransformer();
+        return new AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>() {
+            @Override
+            public CompletableFuture<GetObjectResponse> prepare() {
+                return new CompletableFuture<>();
+            }
+
+            @Override
+            public void onResponse(GetObjectResponse response) {
+            }
+
+            @Override
+            public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            }
+
+            @Override
+            public void exceptionOccurred(Throwable error) {
+            }
+        };
     }
 
     private PresignedUrlDownloadRequest createTestPresignedUrlRequest() {
@@ -124,31 +128,7 @@ public class PresignedUrlMultipartDownloaderSubscriberTckTest
                 .presignedUrl(java.net.URI.create("https://test-bucket.s3.amazonaws.com/test-key").toURL())
                 .build();
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Failed to create test URL", e);
-        }
-    }
-
-    private static class TestAsyncResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> {
-        private CompletableFuture<GetObjectResponse> future;
-
-        @Override
-        public CompletableFuture<GetObjectResponse> prepare() {
-            this.future = new CompletableFuture<>();
-            return this.future;
-        }
-
-        @Override
-        public void onResponse(GetObjectResponse response) {
-            this.future.complete(response);
-        }
-
-        @Override
-        public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        }
-
-        @Override
-        public void exceptionOccurred(Throwable error) {
-            future.completeExceptionally(error);
+            throw new RuntimeException(e);
         }
     }
 }

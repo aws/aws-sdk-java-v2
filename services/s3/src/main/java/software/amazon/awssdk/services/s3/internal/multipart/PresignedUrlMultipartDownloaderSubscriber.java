@@ -54,6 +54,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
     private final PresignedUrlDownloadRequest presignedUrlDownloadRequest;
     private final Long configuredPartSizeInBytes;
     private final CompletableFuture<Void> future;
+    private final CompletableFuture<?> resultFuture;
     private final Object lock = new Object();
     private final AtomicInteger completedParts;
     private final AtomicInteger requestsSent;
@@ -66,13 +67,15 @@ public class PresignedUrlMultipartDownloaderSubscriber
     public PresignedUrlMultipartDownloaderSubscriber(
         S3AsyncClient s3AsyncClient,
         PresignedUrlDownloadRequest presignedUrlDownloadRequest,
-        long configuredPartSizeInBytes) {
+        long configuredPartSizeInBytes,
+        CompletableFuture<?> resultFuture) {
         this.s3AsyncClient = s3AsyncClient;
         this.presignedUrlDownloadRequest = presignedUrlDownloadRequest;
         this.configuredPartSizeInBytes = configuredPartSizeInBytes;
         this.completedParts = new AtomicInteger(0);
         this.requestsSent = new AtomicInteger(0);
         this.future = new CompletableFuture<>();
+        this.resultFuture = resultFuture;
     }
 
     @Override
@@ -109,20 +112,20 @@ public class PresignedUrlMultipartDownloaderSubscriber
                                       GetObjectResponse> asyncResponseTransformer) {
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(partIndex);
         log.debug(() -> "Sending range request for part " + partIndex + " with range=" + partRequest.range());
-        
+
         requestsSent.incrementAndGet();
         s3AsyncClient.presignedUrlExtension()
-            .getObject(partRequest, asyncResponseTransformer)
-            .whenComplete((response, error) -> {
-                if (error != null) {
-                    log.debug(() -> "Error encountered during part request for part " + partIndex);
-                    handleError(error);
-                    return;
-                }
-                if (validatePart(response, partIndex, asyncResponseTransformer)) {
-                    requestMoreIfNeeded(completedParts.get());
-                }
-            });
+                     .getObject(partRequest, asyncResponseTransformer)
+                     .whenComplete((response, error) -> {
+                         if (error != null) {
+                             log.debug(() -> "Error encountered during part request for part " + partIndex);
+                             handleError(error);
+                             return;
+                         }
+                         if (validatePart(response, partIndex, asyncResponseTransformer)) {
+                             requestMoreIfNeeded(completedParts.get());
+                         }
+                     });
     }
 
     private boolean validatePart(GetObjectResponse response, int partIndex,
@@ -137,14 +140,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
             log.debug(() -> String.format("Multipart object ETag: %s", this.eTag));
         }
 
-        Optional<SdkClientException> validationError = validateResponse(response, partIndex);
-        if (validationError.isPresent()) {
-            log.debug(() -> "Response validation failed", validationError.get());
-            asyncResponseTransformer.exceptionOccurred(validationError.get());
-            handleError(validationError.get());
-            return false;
-        }
-        
         if (totalContentLength == null && responseContentRange != null) {
             Optional<Long> parsedContentLength = MultipartDownloadUtils.parseContentRangeForTotalSize(responseContentRange);
             if (!parsedContentLength.isPresent()) {
@@ -159,6 +154,15 @@ public class PresignedUrlMultipartDownloaderSubscriber
             this.totalParts = calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
         }
+
+        Optional<SdkClientException> validationError = validateResponse(response, partIndex);
+        if (validationError.isPresent()) {
+            log.debug(() -> "Response validation failed", validationError.get());
+            asyncResponseTransformer.exceptionOccurred(validationError.get());
+            handleError(validationError.get());
+            return false;
+        }
+
         return true;
     }
 
@@ -186,7 +190,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         if (contentRange == null) {
             return Optional.of(PresignedUrlDownloadHelper.missingContentRangeHeader());
         }
-        
+
         Long contentLength = response.contentLength();
         if (contentLength == null || contentLength < 0) {
             return Optional.of(PresignedUrlDownloadHelper.invalidContentLength());
@@ -202,7 +206,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         String expectedRange = "bytes " + expectedStartByte + "-" + expectedEndByte + "/";
         if (!contentRange.startsWith(expectedRange)) {
             return Optional.of(SdkClientException.create(
-                "Content-Range mismatch. Expected range starting with: " + expectedRange + 
+                "Content-Range mismatch. Expected range starting with: " + expectedRange +
                 ", but got: " + contentRange));
         }
 
@@ -215,19 +219,19 @@ public class PresignedUrlMultipartDownloaderSubscriber
         if (!contentLength.equals(expectedPartSize)) {
             return Optional.of(SdkClientException.create(
                 String.format("Part content length validation failed for part %d. Expected: %d, but got: %d",
-                             partIndex, expectedPartSize, contentLength)));
+                              partIndex, expectedPartSize, contentLength)));
         }
 
         long actualStartByte = MultipartDownloadUtils.parseStartByteFromContentRange(contentRange);
         if (actualStartByte != expectedStartByte) {
             return Optional.of(SdkClientException.create(
-                "Content range offset mismatch for part " + partIndex + 
+                "Content range offset mismatch for part " + partIndex +
                 ". Expected start: " + expectedStartByte + ", but got: " + actualStartByte));
         }
-        
+
         return Optional.empty();
     }
-    
+
     private int calculateTotalParts(long contentLength, long partSize) {
         return (int) Math.ceil((double) contentLength / partSize);
     }
@@ -246,7 +250,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         }
         String rangeHeader = BYTES_RANGE_PREFIX + startByte + "-" + endByte;
         PresignedUrlDownloadRequest.Builder builder = presignedUrlDownloadRequest.toBuilder()
-                                                                                  .range(rangeHeader);
+                                                                                 .range(rangeHeader);
         if (partIndex > 0 && eTag != null) {
             builder.ifMatch(eTag);
         }
@@ -254,18 +258,24 @@ public class PresignedUrlMultipartDownloaderSubscriber
     }
 
     private void handleError(Throwable t) {
+        future.completeExceptionally(t);
+        if (resultFuture != null) {
+            resultFuture.completeExceptionally(t);
+        }
         synchronized (lock) {
             if (subscription != null) {
                 subscription.cancel();
             }
         }
-        onError(t);
     }
 
     @Override
     public void onError(Throwable t) {
         log.debug(() -> "Error in multipart download", t);
         future.completeExceptionally(t);
+        if (resultFuture != null) {
+            resultFuture.completeExceptionally(t);
+        }
     }
 
     @Override
