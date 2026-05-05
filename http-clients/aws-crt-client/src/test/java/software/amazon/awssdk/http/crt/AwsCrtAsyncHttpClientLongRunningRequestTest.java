@@ -37,12 +37,12 @@ public class AwsCrtAsyncHttpClientLongRunningRequestTest extends SdkAsyncHttpCli
     // Empty test; the CRT async client does not currently enforce READ_TIMEOUT. Delete this
     // override when connection health monitoring is re-added.
     @Override
-    public void readTimeoutWithLongPollingShouldFailWithinTimeoutBound() {
+    public void execute_whenReadTimeoutAndServerDelaysResponse_failsWithinTimeoutBound() {
     }
 
     // Empty test; the CRT async client does not currently enforce READ_TIMEOUT. Delete this
     // override when connection health monitoring is re-added.
     @Override
-    public void readTimeoutWithStreamingPausesShouldFailWithinTimeoutBound() {
+    public void execute_whenReadTimeoutAndStreamingResponsePauses_failsWithinTimeoutBound() {
     }
 }
