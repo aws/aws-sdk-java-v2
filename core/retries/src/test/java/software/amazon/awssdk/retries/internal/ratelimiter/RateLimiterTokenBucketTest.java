@@ -40,7 +40,7 @@ class RateLimiterTokenBucketTest {
     void testCase(TestCase testCase) {
         clock.setCurrent(testCase.givenTimestamp);
         RateLimiterUpdateResponse res;
-        tokenBucket.tryAcquire();
+        tokenBucket.acquireAsync().join();
         if (testCase.throttleResponse) {
             res = tokenBucket.updateRateAfterThrottling();
         } else {
@@ -51,7 +51,6 @@ class RateLimiterTokenBucketTest {
         double fillRate = res.fillRate();
         assertThat(fillRate).isCloseTo(testCase.expectFillRate, within(EPSILON));
     }
-
 
     static Collection<TestCase> parameters() {
         return Arrays.asList(

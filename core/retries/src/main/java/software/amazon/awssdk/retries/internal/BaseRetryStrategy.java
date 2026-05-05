@@ -86,7 +86,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#acquireInitialToken(AcquireInitialTokenRequest)
      */
     @Override
-    public final AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+    public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
         logAcquireInitialToken(request);
         DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
         return AcquireInitialTokenResponse.create(token, computeInitialBackoff(request));
@@ -98,7 +98,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)
      */
     @Override
-    public final RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+    public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
 
         // Check if we meet the preconditions needed for retrying. These will throw if the expected condition is not meet.
@@ -230,7 +230,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return retryPredicates;
     }
 
-    private DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
+    protected DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
         return token.toBuilder()
                     .increaseAttempt()
@@ -241,7 +241,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                     .build();
     }
 
-    private AcquireResponse requestAcquireCapacity(RefreshRetryTokenRequest request, DefaultRetryToken token) {
+    protected AcquireResponse requestAcquireCapacity(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(token.scope());
         return tokenBucket.tryAcquire(exceptionCost(request));
     }
@@ -261,7 +261,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                     .build();
     }
 
-    private void throwOnMaxAttemptsReached(RefreshRetryTokenRequest request) {
+    protected void throwOnMaxAttemptsReached(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
         if (maxAttemptsReached(token)) {
             Throwable failure = request.failure();
@@ -278,7 +278,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         }
     }
 
-    private void throwOnNonRetryableException(RefreshRetryTokenRequest request) {
+    protected void throwOnNonRetryableException(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
         Throwable failure = request.failure();
         if (isNonRetryableException(request)) {
@@ -297,7 +297,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         log.debug(() -> String.format("Request attempt %d encountered retryable failure.", attempt), failure);
     }
 
-    private void throwOnAcquisitionFailure(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
+    protected void throwOnAcquisitionFailure(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
         if (acquireResponse.acquisitionFailed()) {
             Throwable failure = request.failure();
@@ -343,7 +343,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                                       tokenBucket.currentCapacity(), tokenBucket.maxCapacity()));
     }
 
-    private void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
+    protected void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
         log.debug(() -> String.format("Request attempt %d token acquired "
                                       + "(backoff: %dms, cost: %d, capacity: %d/%d)",
                                       token.attempt(), delay.toMillis(),

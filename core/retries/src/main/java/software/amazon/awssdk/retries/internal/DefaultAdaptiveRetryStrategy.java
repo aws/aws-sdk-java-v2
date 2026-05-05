@@ -16,15 +16,20 @@
 package software.amazon.awssdk.retries.internal;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
+import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
+import software.amazon.awssdk.retries.internal.circuitbreaker.AcquireResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucket;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucketStore;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -42,16 +47,57 @@ public final class DefaultAdaptiveRetryStrategy
     }
 
     @Override
-    protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
-        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(request.scope());
-        return bucket.tryAcquire().delay();
+    public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+        return CompletableFutureUtils.joinLikeSync(acquireInitialTokenAsync(request));
     }
 
     @Override
-    protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        Duration backoff = super.computeBackoff(request, token);
+    public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+        return CompletableFutureUtils.joinLikeSync(refreshRetryTokenAsync(request));
+    }
+
+    @Override
+    public CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(request.scope());
+        CompletableFuture<Void> acquireResult = bucket.acquireAsync();
+
+        return acquireResult.thenApply(r -> {
+            DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
+            return AcquireInitialTokenResponse.create(token, Duration.ZERO);
+        });
+    }
+
+    @Override
+    public CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
+        DefaultRetryToken token = (DefaultRetryToken) request.token();
+        setupTokenForAcquire(request);
+
         RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
-        return backoff.plus(bucket.tryAcquire().delay());
+        CompletableFuture<Void> acquireResult = bucket.acquireAsync();
+        return acquireResult.thenApply(r -> {
+            Duration backoff = computeBackoff(request, token);
+            return RefreshRetryTokenResponse.create(token, backoff);
+        });
+    }
+
+    private DefaultRetryToken setupTokenForAcquire(RefreshRetryTokenRequest request) {
+        DefaultRetryToken token = (DefaultRetryToken) request.token();
+
+        // Check if we meet the preconditions needed for retrying. These will throw if the expected condition is not meet.
+        // 1) is retryable?
+        throwOnNonRetryableException(request);
+
+        // 2) max attempts reached?
+        throwOnMaxAttemptsReached(request);
+
+        // 3) can we acquire a token?
+        AcquireResponse acquireResponse = requestAcquireCapacity(request, token);
+        throwOnAcquisitionFailure(request, acquireResponse);
+
+        // All the conditions required to retry were meet, update the internal state before retrying.
+        updateStateForRetry(request);
+
+        return token;
     }
 
     @Override

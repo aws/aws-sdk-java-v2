@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * the calling code to test and generate meaningful logs using its current state.
  */
 @SdkInternalApi
-public final class DefaultRetryToken implements RetryToken, ToCopyableBuilder<DefaultRetryToken.Builder, DefaultRetryToken> {
+public class DefaultRetryToken implements RetryToken, ToCopyableBuilder<DefaultRetryToken.Builder, DefaultRetryToken> {
     private final String scope;
     private final TokenState state;
     private final int attempt;
@@ -38,7 +38,7 @@ public final class DefaultRetryToken implements RetryToken, ToCopyableBuilder<De
     private final int capacityRemaining;
     private final List<Throwable> failures;
 
-    private DefaultRetryToken(Builder builder) {
+    protected DefaultRetryToken(Builder builder) {
         this.scope = Validate.paramNotNull(builder.scope, "scope");
         this.state = Validate.paramNotNull(builder.state, "status");
         this.attempt = Validate.isPositive(builder.attempt, "attempt");

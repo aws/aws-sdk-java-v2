@@ -16,13 +16,19 @@
 package software.amazon.awssdk.retries.internal.ratelimiter;
 
 import java.time.Duration;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * The {@link RateLimiterTokenBucket} keeps track of past throttling responses and adapts to slow down the send rate to adapt to
+ * The {@link RateLimiterTokenBucket2} keeps track of past throttling responses and adapts to slow down the send rate to adapt to
  * the service. It does this by suggesting a delay amount as result of a {@link #tryAcquire()} call. Callers must update its
  * internal state by calling {@link #updateRateAfterThrottling()} when getting a throttling response or
  * {@link #updateRateAfterSuccess()} when getting successful response.
@@ -36,8 +42,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class RateLimiterTokenBucket {
+    // Thread used for capacity waiting and notifying.
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    // the collection of futures returned to threads currently waiting for capacity. Futures are completed in FIFO order.
+    private final Deque<CompletableFuture<Void>> waiting = new ArrayDeque<>();
     private final AtomicReference<PersistentState> stateReference;
     private final RateLimiterClock clock;
+    private final Object lock = new Object();
+
+    private boolean notifierRunning = false;
 
     RateLimiterTokenBucket(RateLimiterClock clock) {
         this.clock = clock;
@@ -45,13 +58,46 @@ public class RateLimiterTokenBucket {
     }
 
     /**
-     * Acquire tokens from the bucket. If the bucket contains enough capacity to satisfy the request, this method will return in
-     * {@link RateLimiterAcquireResponse#delay()} a {@link Duration#ZERO} value, otherwise it will return the amount of time the
-     * callers need to wait until enough tokens are refilled.
+     * Acquire a token from the bucket.
+     * @return A future that is completed when the requested amount is acquired from this bucket.
      */
-    public RateLimiterAcquireResponse tryAcquire() {
-        StateUpdate<Duration> update = updateState(ts -> ts.tokenBucketAcquire(clock, 1.0));
-        return RateLimiterAcquireResponse.create(update.result);
+    public CompletableFuture<Void> acquireAsync() {
+        synchronized (lock) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            waiting.add(future);
+            if (!notifierRunning) {
+                notifierRunning = true;
+                scheduler.schedule(this::doNotify, 0L, TimeUnit.NANOSECONDS);
+            }
+            return future;
+        }
+    }
+
+    public void doNotify() {
+        synchronized (lock) {
+            while (true) {
+                CompletableFuture<Void> w = waiting.poll();
+                if (w == null) {
+                    notifierRunning = false;
+                    return;
+                }
+
+                PersistentState persistentState = stateReference.get();
+                TransientState ts = persistentState.toTransient();
+                TransientState.AcquireResult acquireResult = ts.tokenBucketAcquire(clock, 1.0);
+                stateReference.set(ts.toPersistent());
+
+                // Not enough capacity. Try again later when enough time has passed to refill the bucket at the current rate.
+                if (!acquireResult.isSuccessful()) {
+                    waiting.push(w);
+                    scheduler.schedule(this::doNotify, acquireResult.refillWait().toMillis(), TimeUnit.MILLISECONDS);
+                    return;
+                }
+
+                // Acquire was successful, signal the waiting thread.
+                w.complete(null);
+            }
+        }
     }
 
     /**
@@ -95,17 +141,20 @@ public class RateLimiterTokenBucket {
      * retried until succeeded.
      */
     private <T> StateUpdate<T> updateState(Function<TransientState, T> mutator) {
-        PersistentState current;
-        PersistentState updated;
-        T result;
-        do {
-            current = stateReference.get();
-            TransientState transientState = current.toTransient();
-            result = mutator.apply(transientState);
-            updated = transientState.toPersistent();
-        } while (!stateReference.compareAndSet(current, updated));
+        synchronized (lock) {
+            PersistentState current;
+            PersistentState updated;
+            T result;
+            do {
+                current = stateReference.get();
+                TransientState transientState = current.toTransient();
+                result = mutator.apply(transientState);
+                updated = transientState.toPersistent();
+            } while (!stateReference.compareAndSet(current, updated));
 
-        return new StateUpdate<>(updated, result);
+
+            return new StateUpdate<>(updated, result);
+        }
     }
 
     static class StateUpdate<T> {
@@ -163,17 +212,39 @@ public class RateLimiterTokenBucket {
          * a {@link Duration#ZERO} value, otherwise it will return the amount of time the callers need to wait until enough tokens
          * are refilled.
          */
-        Duration tokenBucketAcquire(RateLimiterClock clock, double amount) {
+        AcquireResult tokenBucketAcquire(RateLimiterClock clock, double amount) {
             if (!this.enabled) {
-                return Duration.ZERO;
+                return new AcquireResult(true, Duration.ZERO);
             }
             refill(clock);
-            double waitTime = 0.0;
             if (this.currentCapacity < amount) {
-                waitTime = (amount - this.currentCapacity) / this.fillRate;
+                double diff = amount - currentCapacity;
+                this.currentCapacity = 0;
+                double waitTime = (amount - this.currentCapacity) / this.fillRate;
+                double waitTimeMs = waitTime * 1_000.0;
+                Duration duration = Duration.ofMillis((long) Math.ceil(waitTimeMs));
+                return new AcquireResult(false, duration);
             }
             this.currentCapacity -= amount;
-            return Duration.ofNanos((long) (waitTime * 1_000_000_000.0));
+            return new AcquireResult(true, Duration.ZERO);
+        }
+
+        private static class AcquireResult {
+            final boolean successful;
+            final Duration refillWait;
+
+            public AcquireResult(boolean successful, Duration refillWait) {
+                this.successful = successful;
+                this.refillWait = refillWait;
+            }
+
+            public boolean isSuccessful() {
+                return successful;
+            }
+
+            public Duration refillWait() {
+                return refillWait;
+            }
         }
 
         /**

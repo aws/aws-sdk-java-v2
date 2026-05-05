@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.retries.api;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -52,7 +53,16 @@ public interface RetryStrategy {
      * @throws NullPointerException            if a required parameter is not specified
      * @throws TokenAcquisitionFailedException if a token cannot be acquired
      */
+    @Deprecated
     AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request);
+
+    /**
+     * By default, behaves identically to {@link #acquireInitialToken(AcquireInitialTokenRequest)}.
+     */
+    default CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        AcquireInitialTokenResponse response = acquireInitialToken(request);
+        return CompletableFuture.completedFuture(response);
+    }
 
     /**
      * Invoked before each subsequent (non-first) request attempt.
@@ -68,7 +78,13 @@ public interface RetryStrategy {
      *                                         already used for a previous refresh or success call.
      * @throws TokenAcquisitionFailedException if a token cannot be acquired
      */
+    @Deprecated
     RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request);
+
+    default CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
+        RefreshRetryTokenResponse response = refreshRetryToken(request);
+        return CompletableFuture.completedFuture(response);
+    }
 
     /**
      * Invoked after an attempt succeeds.

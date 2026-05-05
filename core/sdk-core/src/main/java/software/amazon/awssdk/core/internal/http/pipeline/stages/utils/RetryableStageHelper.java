@@ -23,7 +23,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
@@ -60,17 +62,20 @@ public final class RetryableStageHelper {
     public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
     public static final ExecutionAttribute<Duration> LAST_BACKOFF_DELAY_DURATION =
         new ExecutionAttribute<>("LastBackoffDuration");
+    private static final String RETRY_TOKEN_SCOPE = "GLOBAL";
 
     private final SdkHttpFullRequest request;
     private final boolean isLongPollingOperation;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy retryStrategy;
+    private final ScheduledExecutorService scheduledExecutor;
     private final HttpClientDependencies dependencies;
     private final List<String> exceptionMessageHistory = new ArrayList<>();
     private int attemptNumber = 0;
     private SdkHttpResponse lastResponse;
     private SdkException lastException;
+
 
     public RetryableStageHelper(SdkHttpFullRequest request,
                                 RequestExecutionContext context,
@@ -88,6 +93,7 @@ public final class RetryableStageHelper {
             retryPolicyAdapter = (RetryPolicyAdapter) retryStrategy;
         }
         this.retryStrategy = retryStrategy;
+        this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
         this.dependencies = dependencies;
     }
 
@@ -106,14 +112,31 @@ public final class RetryableStageHelper {
      * value is {@link AdaptiveRetryStrategy}.
      */
     public Duration acquireInitialToken() {
-        String scope = "GLOBAL";
-        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(scope);
-        AcquireInitialTokenResponse acquireResponse = retryStrategy().acquireInitialToken(acquireRequest);
-        RetryToken retryToken = acquireResponse.token();
-        Duration delay = acquireResponse.delay();
-        context.executionAttributes().putAttribute(RETRY_TOKEN, retryToken);
-        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, delay);
-        return delay;
+        AcquireInitialTokenResponse result = doBlockAcquireInitialToken();
+        context.executionAttributes().putAttribute(RETRY_TOKEN, result.token());
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result.delay());
+        return result.delay();
+    }
+
+    private AcquireInitialTokenResponse doBlockAcquireInitialToken() {
+        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(RETRY_TOKEN_SCOPE);
+
+        return retryStrategy().acquireInitialTokenAsync(acquireRequest).join();
+    }
+
+    public CompletableFuture<Duration> acquireInitialTokenAsync() {
+        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(RETRY_TOKEN_SCOPE);
+
+        return retryStrategy().acquireInitialTokenAsync(acquireRequest).whenComplete(
+                                  (result, t) -> {
+                                      if (t != null) {
+                                          return;
+                                      }
+
+                                      context.executionAttributes().putAttribute(RETRY_TOKEN, result.token());
+                                      context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result.delay());
+                                  })
+                              .thenApply(AcquireInitialTokenResponse::delay);
     }
 
     /**
@@ -138,16 +161,12 @@ public final class RetryableStageHelper {
      * code should not retry.
      */
     public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
-        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
-        RefreshRetryTokenResponse refreshResponse;
+        RetryToken retryToken;
+        Duration attemptDelay;
         try {
-            RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
-                                                                              .failure(this.lastException)
-                                                                              .token(retryToken)
-                                                                              .isLongPolling(isLongPollingOperation)
-                                                                              .suggestedDelay(suggestedDelay)
-                                                                              .build();
-            refreshResponse = retryStrategy().refreshRetryToken(refreshRequest);
+            RefreshRetryTokenResponse tryRefreshResult = doBlockingRefreshRetryToken(suggestedDelay);
+            attemptDelay = tryRefreshResult.delay();
+            retryToken = tryRefreshResult.token();
         } catch (TokenAcquisitionFailedException e) {
             context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
             Optional<Duration> acquireFailureDelay = e.delay();
@@ -158,10 +177,62 @@ public final class RetryableStageHelper {
             }
             return Either.right(Duration.ZERO);
         }
-        Duration acquireSuccessDelay = refreshResponse.delay();
-        context.executionAttributes().putAttribute(RETRY_TOKEN, refreshResponse.token());
+        Duration acquireSuccessDelay = attemptDelay;
+        context.executionAttributes().putAttribute(RETRY_TOKEN, retryToken);
         context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireSuccessDelay);
         return Either.left(acquireSuccessDelay);
+    }
+
+    private RefreshRetryTokenResponse doBlockingRefreshRetryToken(Duration suggestedDelay) {
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+
+        RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
+                                                                          .failure(this.lastException)
+                                                                          .token(retryToken)
+                                                                          .isLongPolling(isLongPollingOperation)
+                                                                          .suggestedDelay(suggestedDelay)
+                                                                          .build();
+
+        return retryStrategy().refreshRetryTokenAsync(refreshRequest).join();
+    }
+
+    public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
+        CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
+
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+
+        RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
+                                                                          .failure(this.lastException)
+                                                                          .token(retryToken)
+                                                                          .isLongPolling(isLongPollingOperation)
+                                                                          .suggestedDelay(suggestedDelay)
+                                                                          .build();
+
+        retryStrategy().refreshRetryTokenAsync(refreshRequest).whenComplete((r, t) -> {
+            if (t != null) {
+                if (t instanceof TokenAcquisitionFailedException) {
+                    TokenAcquisitionFailedException e = (TokenAcquisitionFailedException) t;
+                    context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
+                    Optional<Duration> acquireFailureDelay = e.delay();
+                    if (acquireFailureDelay.isPresent()) {
+                        Duration acquireDelay = acquireFailureDelay.get();
+                        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireDelay);
+                        cf.complete(Either.right(acquireDelay));
+                    }
+                    cf.complete(Either.right(Duration.ZERO));
+                } else {
+                    cf.completeExceptionally(t);
+                }
+                return;
+            }
+
+            Duration acquireSuccessDelay = r.delay();
+            context.executionAttributes().putAttribute(RETRY_TOKEN, r.token());
+            context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireSuccessDelay);
+            cf.complete(Either.left(acquireSuccessDelay));
+        });
+
+        return cf;
     }
 
     /**
