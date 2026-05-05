@@ -192,6 +192,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
      * Returns the suggested backoff delay based on the 'x-amz-retry-after' header value in the response.
      */
     private Optional<Duration> xAmzRetryAfter(SdkHttpResponse response) {
+        if (response == null) {
+            return Optional.empty();
+        }
+
         Optional<String> optionalXAmzRetryAfter = response.firstMatchingHeader(X_AMZ_RETRY_AFTER_HEADER);
         return optionalXAmzRetryAfter.map(xAmzRetryAfter -> {
             try {
