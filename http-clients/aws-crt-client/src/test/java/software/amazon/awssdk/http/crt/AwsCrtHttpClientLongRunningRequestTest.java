@@ -37,12 +37,12 @@ public class AwsCrtHttpClientLongRunningRequestTest extends SdkHttpClientLongRun
     // Empty test; the CRT sync client does not currently enforce READ_TIMEOUT. Delete this
     // override when connection health monitoring is re-added.
     @Override
-    public void execute_whenReadTimeoutAndServerDelaysResponse_failsWithinTimeoutBound() {
+    public void executeWhenReadTimeoutAndServerDelaysResponseFailsWithinTimeoutBound() {
     }
 
     // Empty test; the CRT sync client does not currently enforce READ_TIMEOUT. Delete this
     // override when connection health monitoring is re-added.
     @Override
-    public void execute_whenReadTimeoutAndStreamingResponsePauses_failsWithinTimeoutBound() {
+    public void executeWhenReadTimeoutAndStreamingResponsePausesFailsWithinTimeoutBound() {
     }
 }

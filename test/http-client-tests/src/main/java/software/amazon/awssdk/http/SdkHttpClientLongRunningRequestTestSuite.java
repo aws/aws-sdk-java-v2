@@ -48,7 +48,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
     protected abstract SdkHttpClient createSdkHttpClient(AttributeMap config);
 
     @Test
-    public void execute_whenReadTimeoutAndServerDelaysResponse_failsWithinTimeoutBound() {
+    public void executeWhenReadTimeoutAndServerDelaysResponseFailsWithinTimeoutBound() {
         stubLongPolling(mockServer);
 
         SdkHttpClient client = createSdkHttpClient(AttributeMap.builder()
@@ -63,7 +63,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
     }
 
     @Test
-    public void execute_whenReadTimeoutAndStreamingResponsePauses_failsWithinTimeoutBound() {
+    public void executeWhenReadTimeoutAndStreamingResponsePausesFailsWithinTimeoutBound() {
         stubStreamingWithPauses(mockServer);
 
         SdkHttpClient client = createSdkHttpClient(AttributeMap.builder()
@@ -78,7 +78,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
     }
 
     @Test
-    public void execute_whenConnectionAcquireTimeoutAndPoolExhausted_failsWithinTimeoutBound() throws Exception {
+    public void executeWhenConnectionAcquireTimeoutAndPoolExhaustedFailsWithinTimeoutBound() throws Exception {
         stubHanging(mockServer);
 
         SdkHttpClient client = createSdkHttpClient(AttributeMap.builder()
