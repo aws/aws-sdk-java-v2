@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.3__ __2026-05-06__
+## __AWS Glue__
+  - ### Features
+    - Adds support for a CustomLogGroupPrefix parameter in StartDataQualityRulesetEvaluationRun to specify custom CloudWatch log group paths, and a RulesetName filter in ListDataQualityRulesetEvaluationRuns to filter evaluation runs by ruleset name.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Netty to 4.1.133
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release GenerateRecommendedPolicyV2 and GetRecommendedPolicyV2 APIs. This supports generating and retrieving policy recommendations to remediate unused permissions findings that are now being supported on Security Hub.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for bring-your-own file system in AgentCore Runtime. Developers can mount Amazon S3 Files and Amazon EFS access points directly into agent sessions using filesystemConfigurations.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Amazon Lex V2 introduces audio filler support for speech-to-speech bots. Configure melody or typing sounds that play during backend processing to reduce perceived latency and maintain a natural conversational experience for callers.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker HyperPod now returns ImageVersionStatus in DescribeCluster, DescribeClusterNode, and ListClusterNodes responses, indicating whether cluster instances are running the latest available image version.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Validate outpost access point resource name
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA now supports a PublicAndPrivate webserver access mode. The Airflow web server is accessible over both public and private endpoints, enabling workers in VPCs without internet access to reach the Task API privately while retaining public access to the Airflow UI.
+
+## __EC2 Image Builder__
+  - ### Features
+    - The ImportDiskImage API now enforces a maximum character limit of 128 characters on the image name field.
+
 # __2.44.2__ __2026-05-05__
 ## __AWS Clean Rooms ML__
   - ### Features
