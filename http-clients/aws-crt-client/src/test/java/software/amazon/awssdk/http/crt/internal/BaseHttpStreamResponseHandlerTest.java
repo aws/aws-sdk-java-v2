@@ -91,7 +91,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void failedToGetResponse_shouldCancelAndCloseStream() {
+    void failedToGetResponse_shouldCloseStreamWithoutCancel() {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
@@ -99,7 +99,10 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseComplete(httpStream, 1);
         assertThatThrownBy(() -> requestFuture.join()).hasRootCauseInstanceOf(HttpException.class);
         InOrder inOrder = Mockito.inOrder(httpStream);
-        inOrder.verify(httpStream).cancel();
+        // cancel() is skipped when CRT has already completed the stream (streamCompleted=true).
+        // Per HttpStreamBase.cancel() javadoc: "if the stream is already completing, this call will have no effect."
+        // For HTTP/2, calling cancel() on an already-completed stream triggers premature native resource cleanup.
+        verify(httpStream, never()).cancel();
         inOrder.verify(httpStream).close();
     }
 

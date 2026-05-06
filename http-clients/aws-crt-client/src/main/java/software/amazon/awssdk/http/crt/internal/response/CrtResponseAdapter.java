@@ -107,6 +107,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
 
     @Override
     public void onResponseComplete(HttpStreamBase stream, int errorCode) {
+        responseHandlerHelper.onResponseComplete();
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
             onSuccessfulResponseComplete();
         } else {

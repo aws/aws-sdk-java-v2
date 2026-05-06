@@ -32,6 +32,7 @@ public class ResponseHandlerHelper {
     private final SdkHttpResponse.Builder responseBuilder;
     private HttpStreamBase stream;
     private boolean streamClosed;
+    private boolean streamCompleted;
     private final Object streamLock = new Object();
 
     public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder) {
@@ -82,15 +83,32 @@ public class ResponseHandlerHelper {
     }
 
     /**
+     * Called when CRT fires onResponseComplete. After this, {@link #closeConnection()} skips
+     * {@code cancel()} to avoid a use-after-free in the native layer: on the GOAWAY path,
+     * {@code thread_data.state} is {@code HALF_CLOSED_LOCAL} (not {@code CLOSED}), so the
+     * cancel cross-thread task's state check passes and dereferences a freed connection → SIGSEGV.
+     */
+    public void onResponseComplete() {
+        synchronized (streamLock) {
+            streamCompleted = true;
+        }
+    }
+
+    /**
      * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
      * connection pool. This should be called on error paths or when the stream is aborted before the response is
      * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
+     * <p>
+     * If CRT has already completed the stream via {@link #onResponseComplete()}, {@code cancel()} is skipped
+     * to avoid a native use-after-free, but {@code close()} is still called to release the Java-side handle.
      */
     public void closeConnection() {
         synchronized (streamLock) {
             if (!streamClosed && stream != null) {
                 streamClosed = true;
-                stream.cancel();
+                if (!streamCompleted) {
+                    stream.cancel();
+                }
                 stream.close();
             }
         }
