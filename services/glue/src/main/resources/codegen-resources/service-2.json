@@ -5600,7 +5600,9 @@
         "PartitionsToGet":{
           "shape":"BatchGetPartitionValueList",
           "documentation":"<p>A list of partition values identifying the partitions to retrieve.</p>"
-        }
+        },
+        "AuditContext":{"shape":"AuditContext"},
+        "QuerySessionContext":{"shape":"QuerySessionContext"}
       }
     },
     "BatchGetPartitionResponse":{
@@ -6559,6 +6561,10 @@
         "AllowFullTableExternalDataAccess":{
           "shape":"AllowFullTableExternalDataAccessEnum",
           "documentation":"<p> Allows third-party engines to access data in Amazon S3 locations that are registered with Lake Formation. </p>"
+        },
+        "OverwriteChildResourcePermissionsWithDefault":{
+          "shape":"OverwriteChildResourcePermissionsWithDefaultEnum",
+          "documentation":"<p> Overwrites existing Amazon Web Services Lake Formation permissions with <code>CatalogInput$CreateTableDefaultPermissions</code> and <code>CatalogInput$CreateDatabaseDefaultPermissions</code> for all child resources. </p>"
         }
       },
       "documentation":"<p>A structure that describes catalog properties.</p>"
@@ -9935,7 +9941,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 0.9.</p>"
+          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 5.1.</p>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
@@ -16033,7 +16039,8 @@
         "PartitionValues":{
           "shape":"ValueStringList",
           "documentation":"<p>The values that define the partition.</p>"
-        }
+        },
+        "AuditContext":{"shape":"AuditContext"}
       }
     },
     "GetPartitionResponse":{
@@ -16091,7 +16098,8 @@
         "QueryAsOfTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time as of when to read the partition contents. If not set, the most recent transaction commit time will be used. Cannot be specified along with <code>TransactionId</code>.</p>"
-        }
+        },
+        "AuditContext":{"shape":"AuditContext"}
       }
     },
     "GetPartitionsResponse":{
@@ -16661,7 +16669,8 @@
         "VersionId":{
           "shape":"VersionString",
           "documentation":"<p>The ID value of the table version to be retrieved. A <code>VersionID</code> is a string representation of an integer. Each version is incremented by 1. </p>"
-        }
+        },
+        "AuditContext":{"shape":"AuditContext"}
       }
     },
     "GetTableVersionResponse":{
@@ -16703,7 +16712,8 @@
         "MaxResults":{
           "shape":"CatalogGetterPageSize",
           "documentation":"<p>The maximum number of table versions to return in one response.</p>"
-        }
+        },
+        "AuditContext":{"shape":"AuditContext"}
       }
     },
     "GetTableVersionsResponse":{
@@ -18999,7 +19009,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 0.9.</p>"
+          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 5.1.</p>"
         },
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
@@ -19227,7 +19237,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 0.9.</p>"
+          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 5.1.</p>"
         },
         "DPUSeconds":{
           "shape":"NullableDouble",
@@ -19354,7 +19364,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>Jobs that are created without specifying a Glue version default to Glue 0.9.</p>"
+          "documentation":"<p>In Spark jobs, <code>GlueVersion</code> determines the versions of Apache Spark and Python that Glue available in a job. The Python version indicates the version supported for jobs of type Spark. </p> <p>Ray jobs should set <code>GlueVersion</code> to <code>4.0</code> or greater. However, the versions of Ray, Python and additional libraries available in your Ray job are determined by the <code>Runtime</code> parameter of the Job command.</p> <p>For more information about the available Glue versions and corresponding Spark and Python versions, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-job.html\">Glue version</a> in the developer guide.</p> <p>If not provided in the update request, the Glue version retains the value from the existing job definition.</p>"
         },
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
@@ -22033,6 +22043,13 @@
         }
       },
       "documentation":"<p>A structure containing other metadata for a schema version belonging to the same metadata key.</p>"
+    },
+    "OverwriteChildResourcePermissionsWithDefaultEnum":{
+      "type":"string",
+      "enum":[
+        "Accept",
+        "Deny"
+      ]
     },
     "PIIDetection":{
       "type":"structure",

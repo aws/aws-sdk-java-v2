@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,7 +90,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         subscription = mock(Subscription.class);
 
         when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(CompletedPart.builder().build()));
+                .thenReturn(CompletableFuture.completedFuture(CompletedPart.builder().build()));
 
         subscriber = createSubscriber(createDefaultMpuRequestContext());
         subscriber.onSubscribe(subscription);
@@ -112,7 +113,8 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         long expectedLastPartSize = MPU_CONTENT_SIZE % PART_SIZE;
         long incorrectLastPartSize = expectedLastPartSize + 1;
 
-        KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(createDefaultMpuRequestContext());
+        KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(
+                createDefaultMpuRequestContext());
         lastPartSubscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
@@ -128,18 +130,19 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     void validateTotalPartNum_receivedMoreParts_shouldFail() {
         long expectedLastPartSize = MPU_CONTENT_SIZE % PART_SIZE;
 
-        KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(createDefaultMpuRequestContext());
+        KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(
+                createDefaultMpuRequestContext());
         lastPartSubscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
             CloseableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                    .thenReturn(CompletableFuture.completedFuture(null));
             lastPartSubscriber.onNext(regularPart);
         }
 
         when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(CompletableFuture.completedFuture(null));
         lastPartSubscriber.onNext(createMockAsyncRequestBody(expectedLastPartSize));
         lastPartSubscriber.onNext(createMockAsyncRequestBody(expectedLastPartSize));
 
@@ -156,12 +159,12 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
             CloseableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                    .thenReturn(CompletableFuture.completedFuture(null));
             subscriber.onNext(regularPart);
         }
 
         when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
-            .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(CompletableFuture.completedFuture(null));
         subscriber.onNext(createMockAsyncRequestBody(expectedLastPartSize));
         subscriber.onComplete();
 
@@ -181,8 +184,8 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
 
     @Test
     void pause_withCompletedCompleteMpuFuture_shouldReturnNullToken() {
-        CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture =
-            CompletableFuture.completedFuture(CompleteMultipartUploadResponse.builder().build());
+        CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture = CompletableFuture
+                .completedFuture(CompleteMultipartUploadResponse.builder().build());
         int numExistingParts = 2;
 
         S3ResumeToken resumeToken = testPauseScenario(numExistingParts, completeMpuFuture);
@@ -200,14 +203,14 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     private S3ResumeToken testPauseScenario(int numExistingParts,
-                                           CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
-        KnownContentLengthAsyncRequestBodySubscriber subscriber =
-            createSubscriber(createMpuRequestContextWithExistingParts(numExistingParts));
+            CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
+        KnownContentLengthAsyncRequestBodySubscriber subscriber = createSubscriber(
+                createMpuRequestContextWithExistingParts(numExistingParts));
 
         when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
-                                                         any(CompletedPart[].class), any(PutObjectRequest.class),
-                                                         any(Long.class)))
-            .thenReturn(completeMpuFuture);
+                any(CompletedPart[].class), any(PutObjectRequest.class),
+                any(Long.class)))
+                .thenReturn(completeMpuFuture);
 
         simulateOnNextForAllParts(subscriber);
         subscriber.onComplete();
@@ -215,32 +218,82 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         return subscriber.pause();
     }
 
+    @Test
+    void maxInFlightPutObjectParts_shouldLimitConcurrentUploads() {
+        int maxInFlight = 2;
+        long contentSize = 5 * PART_SIZE;
+        int totalParts = 5;
+
+        MpuRequestContext context = MpuRequestContext.builder()
+                .request(Pair.of(putObjectRequest, asyncRequestBody))
+                .contentLength(contentSize)
+                .partSize(PART_SIZE)
+                .uploadId(UPLOAD_ID)
+                .numPartsCompleted(0L)
+                .expectedNumParts(totalParts)
+                .build();
+
+        // Use non-completing futures to simulate slow uploads so parts stay in-flight
+        CompletableFuture<CompletedPart> pendingFuture1 = new CompletableFuture<>();
+        CompletableFuture<CompletedPart> pendingFuture2 = new CompletableFuture<>();
+        CompletableFuture<CompletedPart> pendingFuture3 = new CompletableFuture<>();
+
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+                .thenReturn(pendingFuture1)
+                .thenReturn(pendingFuture2)
+                .thenReturn(pendingFuture3);
+
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriber(context, maxInFlight);
+        Subscription mockSubscription = mock(Subscription.class);
+        sub.onSubscribe(mockSubscription);
+
+        // onSubscribe requests maxInFlightParts(2) upfront
+        verify(mockSubscription, times(1)).request(maxInFlight);
+
+        // First onNext: in-flight goes to 1. Demand driven by completion callbacks.
+        sub.onNext(createMockAsyncRequestBody(PART_SIZE));
+
+        // Second onNext: in-flight goes to 2
+        sub.onNext(createMockAsyncRequestBody(PART_SIZE));
+
+        // Complete the first part — callback decrements to 1, sees 1 < 2, calls request(1)
+        pendingFuture1.complete(CompletedPart.builder().partNumber(1).build());
+        verify(mockSubscription, times(1)).request(1);
+    }
+
     private MpuRequestContext createDefaultMpuRequestContext() {
         return MpuRequestContext.builder()
-                                .request(Pair.of(putObjectRequest, AsyncRequestBody.fromFile(testFile)))
-                                .contentLength(MPU_CONTENT_SIZE)
-                                .partSize(PART_SIZE)
-                                .uploadId(UPLOAD_ID)
-                                .numPartsCompleted(0L)
-                                .expectedNumParts(TOTAL_NUM_PARTS)
-                                .build();
+                .request(Pair.of(putObjectRequest, AsyncRequestBody.fromFile(testFile)))
+                .contentLength(MPU_CONTENT_SIZE)
+                .partSize(PART_SIZE)
+                .uploadId(UPLOAD_ID)
+                .numPartsCompleted(0L)
+                .expectedNumParts(TOTAL_NUM_PARTS)
+                .build();
     }
 
     private MpuRequestContext createMpuRequestContextWithExistingParts(int numExistingParts) {
         Map<Integer, CompletedPart> existingParts = createExistingParts(numExistingParts);
         return MpuRequestContext.builder()
-                                .request(Pair.of(putObjectRequest, asyncRequestBody))
-                                .contentLength(MPU_CONTENT_SIZE)
-                                .partSize(PART_SIZE)
-                                .uploadId(UPLOAD_ID)
-                                .existingParts(existingParts)
-                                .expectedNumParts(TOTAL_NUM_PARTS)
-                                .numPartsCompleted((long) existingParts.size())
-                                .build();
+                .request(Pair.of(putObjectRequest, asyncRequestBody))
+                .contentLength(MPU_CONTENT_SIZE)
+                .partSize(PART_SIZE)
+                .uploadId(UPLOAD_ID)
+                .existingParts(existingParts)
+                .expectedNumParts(TOTAL_NUM_PARTS)
+                .numPartsCompleted((long) existingParts.size())
+                .build();
     }
 
     private KnownContentLengthAsyncRequestBodySubscriber createSubscriber(MpuRequestContext mpuRequestContext) {
-        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
+        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper,
+                50);
+    }
+
+    private KnownContentLengthAsyncRequestBodySubscriber createSubscriber(MpuRequestContext mpuRequestContext,
+            int maxInFlightPutObjectParts) {
+        return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper,
+                maxInFlightPutObjectParts);
     }
 
     private CloseableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
@@ -257,7 +310,8 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
 
     private void verifyFailRequestsElegantly(String expectedErrorMessage) {
         ArgumentCaptor<Throwable> exceptionCaptor = ArgumentCaptor.forClass(Throwable.class);
-        verify(multipartUploadHelper).failRequestsElegantly(any(), exceptionCaptor.capture(), eq(UPLOAD_ID), eq(returnFuture), eq(putObjectRequest));
+        verify(multipartUploadHelper).failRequestsElegantly(any(), exceptionCaptor.capture(), eq(UPLOAD_ID),
+                eq(returnFuture), eq(putObjectRequest));
 
         Throwable exception = exceptionCaptor.getValue();
         assertThat(exception).isInstanceOf(SdkClientException.class);
@@ -266,10 +320,9 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     }
 
     private Map<Integer, CompletedPart> createExistingParts(int numExistingParts) {
-        Map<Integer, CompletedPart> existingParts =
-            IntStream.range(0, numExistingParts)
-                     .boxed().collect(Collectors.toMap(Function.identity(),
-                                                       i -> CompletedPart.builder().partNumber(i).build(), (a, b) -> b));
+        Map<Integer, CompletedPart> existingParts = IntStream.range(0, numExistingParts)
+                .boxed().collect(Collectors.toMap(Function.identity(),
+                        i -> CompletedPart.builder().partNumber(i).build(), (a, b) -> b));
         return existingParts;
     }
 

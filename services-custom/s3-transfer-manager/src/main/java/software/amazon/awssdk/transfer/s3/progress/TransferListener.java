@@ -72,10 +72,14 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
  *     <li>Be mindful that {@link #bytesTransferred(Context.BytesTransferred)} may be called extremely often (subject to I/O
  *     buffer sizes). Be careful in implementing expensive operations as a side effect. Consider rate-limiting your side
  *     effect operations, if needed.</li>
- *     <li>In the case of uploads, there may be some delay between the bytes being fully transferred and the transfer
+ *     <li>In the case of multipart uploads, there may be some delay between the bytes being fully transferred and the transfer
  *     successfully completing. Internally, {@link S3TransferManager} uses the Amazon S3
  *     <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">multipart upload API</a>
  *     and must finalize uploads with a {@link CompleteMultipartUploadRequest}.</li>
+ *     <li>For single part in-memory uploads, 100% of the bytes are read immediately into memory and progress is only
+ *     reported once, after all bytes are sent and the HTTP response is received.</li>
+ *     <li>For single part file uploads, progress is reported when bytes are read from the file rather than when bytes are sent
+ *     so there will be some delay between when progress reaching 100% and the transfer successfully completing.</li>
  *     <li>{@link TransferListener}s may be invoked by different threads. If your {@link TransferListener} is stateful,
  *     ensure that it is also thread-safe.</li>
  *     <li>{@link TransferListener}s are not intended to be used for control flow, and therefore your implementation

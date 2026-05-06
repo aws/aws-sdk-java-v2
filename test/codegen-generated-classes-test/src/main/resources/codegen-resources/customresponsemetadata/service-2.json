@@ -1014,6 +1014,11 @@
           "shape":"ChecksumAlgorithm",
           "location":"header",
           "locationName":"x-amz-sdk-checksum-algorithm"
+        },
+        "ChecksumCrc32":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-checksum-crc32"
         }
       },
       "payload":"Body"

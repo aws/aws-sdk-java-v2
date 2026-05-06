@@ -541,14 +541,17 @@ public class EnhancedType<T> {
 
     private StringBuilder innerToString() {
         StringBuilder result = new StringBuilder();
-        result.append(rawClass.getTypeName());
+        if (isWildcard) {
+            result.append("?");
+        } else {
+            result.append(rawClass.getTypeName());
 
-        if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
-            result.append("<");
-            result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
-            result.append(">");
+            if (null != rawClassParameters && !rawClassParameters.isEmpty()) {
+                result.append("<");
+                result.append(rawClassParameters.stream().map(EnhancedType::innerToString).collect(Collectors.joining(", ")));
+                result.append(">");
+            }
         }
-
         return result;
     }
 
@@ -566,7 +569,7 @@ public class EnhancedType<T> {
         if (isWildcard != enhancedType.isWildcard) {
             return false;
         }
-        if (!rawClass.equals(enhancedType.rawClass)) {
+        if (rawClass != null ? !rawClass.equals(enhancedType.rawClass) : enhancedType.rawClass != null) {
             return false;
         }
         if (rawClassParameters != null ? !rawClassParameters.equals(enhancedType.rawClassParameters) :
@@ -584,7 +587,7 @@ public class EnhancedType<T> {
     @Override
     public int hashCode() {
         int result = (isWildcard ? 1 : 0);
-        result = 31 * result + rawClass.hashCode();
+        result = 31 * result + (rawClass != null ? rawClass.hashCode() : 0);
         result = 31 * result + (rawClassParameters != null ? rawClassParameters.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         result = 31 * result + (documentConfiguration != null ? documentConfiguration.hashCode() : 0);
