@@ -84,9 +84,8 @@ public class ResponseHandlerHelper {
 
     /**
      * Called when CRT fires onResponseComplete. After this, {@link #closeConnection()} skips
-     * {@code cancel()} to avoid a use-after-free in the native layer: on the GOAWAY path,
-     * {@code thread_data.state} is {@code HALF_CLOSED_LOCAL} (not {@code CLOSED}), so the
-     * cancel cross-thread task's state check passes and dereferences a freed connection → SIGSEGV.
+     * {@code cancel()} because per {@link software.amazon.awssdk.crt.http.HttpStreamBase#cancel()}
+     * javadoc: "if the stream is already completing for other reasons, this call will have no effect."
      */
     public void onResponseComplete() {
         synchronized (streamLock) {

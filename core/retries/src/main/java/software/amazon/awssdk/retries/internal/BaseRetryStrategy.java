@@ -57,6 +57,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
     protected final BackoffStrategy throttlingBackoffStrategy;
     protected final Predicate<Throwable> treatAsThrottling;
     protected final int exceptionCost;
+    protected final int throttlingExceptionCost;
     protected final TokenBucketStore tokenBucketStore;
     protected final Set<String> defaultsAdded;
     protected final boolean useClientDefaults;
@@ -71,6 +72,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
+        this.throttlingExceptionCost = builder.throttlingExceptionCost != null
+            ? builder.throttlingExceptionCost : this.exceptionCost;
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
         this.defaultsAdded = Collections.unmodifiableSet(
             Validate.paramNotNull(new HashSet<>(builder.defaultsAdded), "defaultsAdded"));
@@ -155,7 +158,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before the first attempt, by default {@link Duration#ZERO}. Extending classes can override this method
-     * to compute different a different depending on their logic.
+     * to compute a different duration depending on their logic.
      */
     protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
         return Duration.ZERO;
@@ -163,7 +166,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     /**
      * Computes the backoff before a retry using the configured backoff strategy. Extending classes can override this method to
-     * compute different a different depending on their logic.
+     * compute a different duration depending on their logic.
      */
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         Duration backoff;
@@ -174,6 +177,17 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         }
         Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
         return maxOf(suggested, backoff);
+    }
+
+    /**
+     * Computes the backoff before exiting the retry loop using the configured backoff strategy. Extending classes can override
+     * this method to compute a different duration depending on their logic. The default implementation returns
+     * 0 delay.
+     *
+     * @param request The refresh request that failed to acquire sufficient capacity.
+     */
+    protected Duration computeAcquireFailureBackoff(RefreshRetryTokenRequest request) {
+        return Duration.ZERO;
     }
 
     /**
@@ -194,10 +208,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * amount for the specific kind of failure.
      */
     protected int exceptionCost(RefreshRetryTokenRequest request) {
-        if (circuitBreakerEnabled) {
-            return exceptionCost;
+        if (!circuitBreakerEnabled) {
+            return 0;
         }
-        return 0;
+        if (treatAsThrottling.test(request.failure())) {
+            return throttlingExceptionCost;
+        }
+        return exceptionCost;
     }
 
     /**
@@ -293,7 +310,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                      .build();
             String message = acquisitionFailedMessage(acquireResponse);
             log.debug(() -> message, failure);
-            throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
+            Duration delay = computeAcquireFailureBackoff(request);
+            throw new TokenAcquisitionFailedException(message, refreshedToken, failure, delay);
         }
     }
 
@@ -362,6 +380,13 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         return right;
     }
 
+    static Duration minOf(Duration left, Duration right) {
+        if (left.compareTo(right) <= 0) {
+            return left;
+        }
+        return right;
+    }
+
     static DefaultRetryToken asDefaultRetryToken(RetryToken token) {
         return Validate.isInstanceOf(DefaultRetryToken.class, token,
                                      "RetryToken is of unexpected class (%s), "
@@ -397,6 +422,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                        .add("tokenBucketStore", tokenBucketStore)
                        .add("defaultsAdded", defaultsAdded)
                        .add("useClientDefaults", useClientDefaults)
+                       .add("throttlingExceptionCost", throttlingExceptionCost)
                        .build();
     }
 
@@ -408,6 +434,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         private Boolean circuitBreakerEnabled;
         private Boolean useClientDefaults;
         private Integer exceptionCost;
+        private Integer throttlingExceptionCost;
         private BackoffStrategy backoffStrategy;
         private BackoffStrategy throttlingBackoffStrategy;
         private Predicate<Throwable> treatAsThrottling = throwable -> false;
@@ -423,6 +450,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
             this.exceptionCost = strategy.exceptionCost;
+            this.throttlingExceptionCost = strategy.throttlingExceptionCost;
             this.backoffStrategy = strategy.backoffStrategy;
             this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.treatAsThrottling = strategy.treatAsThrottling;
@@ -461,6 +489,10 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
         void setTokenBucketExceptionCost(int exceptionCost) {
             this.exceptionCost = exceptionCost;
+        }
+
+        void setThrottlingTokenBucketExceptionCost(int throttlingExceptionCost) {
+            this.throttlingExceptionCost = throttlingExceptionCost;
         }
 
         void setUseClientDefaults(Boolean useClientDefaults) {

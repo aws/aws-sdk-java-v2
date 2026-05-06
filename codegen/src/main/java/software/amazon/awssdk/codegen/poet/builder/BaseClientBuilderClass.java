@@ -328,9 +328,10 @@ public class BaseClientBuilderClass implements ClassSpec {
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {
         String userAgent = model.getCustomizationConfig().getUserAgent();
         RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
+        Boolean defaultNewRetries2026 = model.getCustomizationConfig().getDefaultNewRetries2026();
 
         // If none of the options are customized, then we do not need to bother overriding the method
-        if (userAgent == null && defaultRetryMode == null) {
+        if (userAgent == null && defaultRetryMode == null && defaultNewRetries2026 == null) {
             return Optional.empty();
         }
 
@@ -347,6 +348,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         if (defaultRetryMode != null) {
             builder.addCode("c.option($T.DEFAULT_RETRY_MODE, $T.$L);\n",
                             SdkClientOption.class, RetryMode.class, defaultRetryMode.name());
+        }
+        if (defaultNewRetries2026 != null) {
+            builder.addCode("c.option($T.DEFAULT_NEW_RETRIES_2026, $L);\n",
+                            SdkClientOption.class, defaultNewRetries2026);
         }
         builder.addCode("});\n");
         return Optional.of(builder.build());

@@ -72,8 +72,6 @@ public final class CrtAsyncRequestExecutor {
         CompletableFuture<HttpStreamBase> streamFuture =
             executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
-        // Capture the stream as soon as it is acquired, so closeConnection() works even before
-        // onResponseHeaders fires (e.g. when the server is unresponsive).
         streamFuture.thenAccept(crtResponseHandler::onAcquireStream);
 
         // Evict the connection from the pool on failure so it is not reused.
