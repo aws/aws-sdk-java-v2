@@ -1,4 +1,114 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.4__ __2026-05-07__
+## __AWS Billing and Cost Management Data Exports__
+  - ### Features
+    - With this release, customers can configure their data exports to generate additional integration artifacts for Athena and Redshift.
+
+## __AWS Invoicing__
+  - ### Features
+    - Updated ListInvoiceSummaries API to add new ReceiverRole filter in Request and Response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Launching AgentCore payments - a capability that provides secure, instant microtransaction payments for AI agents to access paid APIs, MCP servers, and content. It handles payment processing for x402 protocol, payment limits, and 3P wallet integrations with Coinbase CDP and Stripe (Privy).
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Launching AgentCore payments - a capability that provides secure, instant microtransaction payments for AI agents to access paid APIs, MCP servers, and content. It handles payment processing for x402 protocol, payment limits, and 3P wallet integrations with Coinbase CDP and Stripe (Privy).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstanceTypes now accepts an IncludeUnsupportedInRegion parameter. When set, the response also lists instance types that are not available in the current Region. Each instance type includes a SupportedInRegion field indicating its regional availability.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - This is a documentation update
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adds supports for DNS64 on inbound endpoints and IPv6 forwarding through the internet gateway (IGW) on outbound endpoints, making it easier to manage hybrid DNS across IPv4 and IPv6 networks.
+
+# __2.44.3__ __2026-05-06__
+## __AWS Glue__
+  - ### Features
+    - Adds support for a CustomLogGroupPrefix parameter in StartDataQualityRulesetEvaluationRun to specify custom CloudWatch log group paths, and a RulesetName filter in ListDataQualityRulesetEvaluationRuns to filter evaluation runs by ruleset name.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Netty to 4.1.133
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release GenerateRecommendedPolicyV2 and GetRecommendedPolicyV2 APIs. This supports generating and retrieving policy recommendations to remediate unused permissions findings that are now being supported on Security Hub.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for bring-your-own file system in AgentCore Runtime. Developers can mount Amazon S3 Files and Amazon EFS access points directly into agent sessions using filesystemConfigurations.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Amazon Lex V2 introduces audio filler support for speech-to-speech bots. Configure melody or typing sounds that play during backend processing to reduce perceived latency and maintain a natural conversational experience for callers.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker HyperPod now returns ImageVersionStatus in DescribeCluster, DescribeClusterNode, and ListClusterNodes responses, indicating whether cluster instances are running the latest available image version.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Validate outpost access point resource name
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA now supports a PublicAndPrivate webserver access mode. The Airflow web server is accessible over both public and private endpoints, enabling workers in VPCs without internet access to reach the Task API privately while retaining public access to the Airflow UI.
+
+## __EC2 Image Builder__
+  - ### Features
+    - The ImportDiskImage API now enforces a maximum character limit of 128 characters on the image name field.
+
+# __2.44.2__ __2026-05-05__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Increase max configurable output limits in the Clean Rooms ML configured model algorithm association resource.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Add support for DICOM Json Metadata Override features in startDICOMImportJob API
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - With this release, Agreements API provides a programmatic way to generate quotes, accept offers, track charges and entitlements, manage renewals and cancellations, and streamline operations entirely through APIs without navigating to the AWS Marketplace website or AWS Management Console.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for Monetization Functions. Monetization Functions let you enrich ad requests with external data and transform session parameters using JSONata expressions, without deploying custom infrastructure.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue in the async SDK clients where a retry can lead to a `NullPointerException` if the exception that the SDK encountered did not originate from the service, such as a connection exception.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for tagging CloudFront Functions and KeyValueStores resources.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service now supports VPC egress, enabling outbound traffic from your OpenSearch domain to route privately through your VPC instead of the public internet.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - This release adds the TLDInMaintenance exception.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for ml.p5.4xlarge instance type for SageMaker Studio JupyterLab and CodeEditor apps for IAD (us-east-1), NRT (ap-northeast-1), BOM (ap-south-1), CGK (ap-southeast-3), GRU (sa-east-1), PDX (us-west-2), CMH (us-east-2).
+
 # __2.44.1__ __2026-05-04__
 ## __AWS Elemental MediaLive__
   - ### Features

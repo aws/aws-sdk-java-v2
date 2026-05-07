@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.Response;
@@ -232,5 +234,68 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
 
         assertThat(refreshRequest.suggestedDelay().get()).isEqualTo(testCase.expectedDelay());
+    }
+
+    @ParameterizedTest(name = "New Retries = {0}")
+    @CsvSource({"true", "false"})
+    void execute_delegateThrows_noHttpResponse_uses0SuggestedDelay(boolean newRetries2026) throws Exception {
+        SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
+                                                                    .option(SdkClientOption.RETRY_STRATEGY, mockRetryStrategy)
+                                                                    .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE,
+                                                                            executorService)
+                                                                    .build();
+
+        HttpClientDependencies deps = HttpClientDependencies.builder()
+                                                            .clientConfiguration(clientConfig)
+                                                            .build();
+
+        AsyncRetryableStage<SdkResponse> retryableStage = new AsyncRetryableStage<>(mock(TransformingAsyncResponseHandler.class),
+                                                                                    deps, mockDelegatePipeline);
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+
+        ExecutionAttributes execAttrs = ExecutionAttributes.builder()
+                                                           .put(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED,
+                                                                newRetries2026)
+                                                           .build();
+
+        ExecutionContext execCtx = ExecutionContext.builder()
+                                                   .metricCollector(NoOpMetricCollector.create())
+                                                   .executionAttributes(execAttrs)
+                                                   .build();
+
+        RequestExecutionContext ctx = RequestExecutionContext.builder()
+                                                             .originalRequest(mock(SdkRequest.class))
+                                                             .executionContext(execCtx)
+                                                             .build();
+
+        SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
+                                                                      .statusCode(502);
+
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(httpResponse.build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+
+
+        CompletableFuture<Response<SdkResponse>> future = new CompletableFuture<>();
+        future.completeExceptionally(new IOException("connection"));
+        when(mockDelegatePipeline.execute(any(), any())).thenReturn(future);
+
+        CompletableFuture<Response<SdkResponse>> execute = retryableStage.execute(httpRequest, ctx);
+        // exception thrown doesn't matter, just results in exception because we mock just enough...
+        assertThatThrownBy(execute::join);
+
+        ArgumentCaptor<RefreshRetryTokenRequest> refreshRequestCaptor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
+
+        verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
+
+        RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
+
+        assertThat(refreshRequest.suggestedDelay().get()).isEqualTo(Duration.ZERO);
     }
 }
