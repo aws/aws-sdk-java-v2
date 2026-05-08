@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http.auth;
+package software.amazon.awssdk.core.http.auth;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,13 +22,16 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
+import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -45,12 +48,40 @@ import software.amazon.awssdk.utils.Logger;
 /**
  * Shared utility for selecting auth schemes from a list of options.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class AuthSchemeResolver {
 
     private static final Logger LOG = Logger.loggerFor(AuthSchemeResolver.class);
 
     private AuthSchemeResolver() {
+    }
+
+    /**
+     * Resolve an auth scheme from execution attributes, applying any identity provider overrides.
+     * This is a convenience method for use by interceptors that need to resolve an auth scheme
+     * outside of the normal pipeline flow (e.g., presign interceptors).
+     *
+     * @param request The SDK request (may contain credential overrides)
+     * @param executionAttributes The execution attributes containing auth scheme resolution inputs
+     * @return The selected auth scheme
+     */
+    public static SelectedAuthScheme<? extends Identity> resolveAuthScheme(
+            SdkRequest request, ExecutionAttributes executionAttributes) {
+        AuthSchemeOptionsResolver optionsResolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
+        Map<String, AuthScheme<?>> authSchemes =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
+        IdentityProviders identityProviders =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        IdentityProviderUpdater updater =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
+        if (updater != null) {
+            identityProviders = updater.update(request, identityProviders, executionAttributes);
+        }
+
+        List<AuthSchemeOption> authOptions = optionsResolver.resolve(request);
+        return selectAuthScheme(authOptions, authSchemes, identityProviders, null);
     }
 
     /**
