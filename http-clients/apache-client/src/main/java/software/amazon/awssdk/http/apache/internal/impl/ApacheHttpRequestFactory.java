@@ -48,7 +48,7 @@ import software.amazon.awssdk.utils.uri.SdkUri;
  * Responsible for creating Apache HttpClient 4 request objects.
  */
 @SdkInternalApi
-public class ApacheHttpRequestFactory {
+public class I ApacheHttpRequestFactory {
 
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST,
                                                                      HttpHeaders.TRANSFER_ENCODING);
