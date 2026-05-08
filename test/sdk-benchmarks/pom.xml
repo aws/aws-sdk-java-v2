@@ -322,9 +322,7 @@
                     <version>3.8.0</version>
                     <!-- Override the configuration in the parent-->
                     <configuration combine.self="override">
-                        <compilerVersion>${javac.target}</compilerVersion>
-                        <source>${javac.target}</source>
-                        <target>${javac.target}</target>
+                        <release>25</release>
                         <annotationProcessors>
                             <annotationProcessor>org.openjdk.jmh.generators.BenchmarkProcessor</annotationProcessor>
                         </annotationProcessors>
