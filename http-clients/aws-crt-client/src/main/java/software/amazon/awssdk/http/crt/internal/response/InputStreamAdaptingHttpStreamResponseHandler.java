@@ -109,7 +109,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
     @Override
     public void onResponseComplete(HttpStreamBase stream, int errorCode) {
-        responseHandlerHelper.onResponseComplete();
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
             onSuccessfulResponseComplete();
         } else {

@@ -83,23 +83,10 @@ public class ResponseHandlerHelper {
     }
 
     /**
-     * Called when CRT fires onResponseComplete. After this, {@link #closeConnection()} skips
-     * {@code cancel()} because per {@link software.amazon.awssdk.crt.http.HttpStreamBase#cancel()}
-     * javadoc: "if the stream is already completing for other reasons, this call will have no effect."
-     */
-    public void onResponseComplete() {
-        synchronized (streamLock) {
-            streamCompleted = true;
-        }
-    }
-
-    /**
      * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
      * connection pool. This should be called on error paths or when the stream is aborted before the response is
      * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
      * <p>
-     * If CRT has already completed the stream via {@link #onResponseComplete()}, {@code cancel()} is skipped
-     * to avoid a native use-after-free, but {@code close()} is still called to release the Java-side handle.
      */
     public void closeConnection() {
         synchronized (streamLock) {
