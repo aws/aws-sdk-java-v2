@@ -53,7 +53,19 @@ public class PresignedUrlMultipartDownloaderSubscriber
     private final S3AsyncClient s3AsyncClient;
     private final PresignedUrlDownloadRequest presignedUrlDownloadRequest;
     private final Long configuredPartSizeInBytes;
+
+    /**
+     * Internal lifecycle future for this subscriber. Completed when all parts are downloaded
+     * or when an error occurs.
+     */
     private final CompletableFuture<Void> future;
+
+    /**
+     * The split transformer's completion future (from {@code SplitResult.resultFuture()}).
+     * Completing this signals the download result to the caller. Must be completed exceptionally
+     * before cancelling the subscription to prevent ByteArraySplittingTransformer from assembling
+     * invalid data.
+     */
     private final CompletableFuture<?> resultFuture;
     private final Object lock = new Object();
     private final AtomicInteger completedParts;
@@ -118,7 +130,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
                      .getObject(partRequest, asyncResponseTransformer)
                      .whenComplete((response, error) -> {
                          if (error != null) {
-                             log.debug(() -> "Error encountered during part request for part " + partIndex);
                              handleError(error);
                              return;
                          }

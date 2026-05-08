@@ -54,6 +54,11 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     private final S3AsyncClient s3AsyncClient;
     private final PresignedUrlDownloadRequest presignedUrlDownloadRequest;
     private final long configuredPartSizeInBytes;
+    /**
+     * The future returned by the SplitResult, representing the overall download completion.
+     * Completed exceptionally on error (before cancel) to prevent ByteArraySplittingTransformer
+     * from assembling invalid data.
+     */
     private final CompletableFuture<GetObjectResponse> resultFuture;
     private final int maxInFlightParts;
 
@@ -140,7 +145,6 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             inFlightRequestsNum.decrementAndGet();
             completedParts.incrementAndGet();
 
-            // Discover size and ETag from first response
             this.eTag = res.eTag();
             this.firstResponse = res;
 
@@ -161,10 +165,10 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
 
             if (totalParts <= 1) {
+                resultFuture.complete(firstResponse);
                 synchronized (subscriptionLock) {
                     subscription.cancel();
                 }
-                resultFuture.complete(firstResponse);
                 return;
             }
 
@@ -226,11 +230,11 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             inFlightRequestsNum.decrementAndGet();
             int totalComplete = completedParts.incrementAndGet();
 
-            if (totalComplete >= totalParts) {
+            if (totalComplete == totalParts) {
+                resultFuture.complete(firstResponse);
                 synchronized (subscriptionLock) {
                     subscription.cancel();
                 }
-                resultFuture.complete(firstResponse);
             } else {
                 processPendingTransformers();
                 synchronized (subscriptionLock) {
@@ -247,10 +251,10 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             }
             try {
                 while (!pendingTransformers.isEmpty() && inFlightRequestsNum.get() < maxInFlightParts) {
-                    Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pair =
+                    Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingPart =
                         pendingTransformers.poll();
-                    if (pair != null && pair.left() < totalParts) {
-                        sendPartRequest(pair.right(), pair.left());
+                    if (pendingPart != null && pendingPart.left() < totalParts) {
+                        sendPartRequest(pendingPart.right(), pendingPart.left());
                     }
                 }
             } finally {
