@@ -130,7 +130,16 @@ public class PresignedUrlMultipartDownloaderSubscriber
                      .getObject(partRequest, asyncResponseTransformer)
                      .whenComplete((response, error) -> {
                          if (error != null) {
-                             handleError(error);
+                             if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                                 log.debug(() -> "Received 416 on first range request, object is empty");
+                                 resultFuture.completeExceptionally(
+                                     new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                                 synchronized (lock) {
+                                     subscription.cancel();
+                                 }
+                             } else {
+                                 handleError(error);
+                             }
                              return;
                          }
                          if (validatePart(response, partIndex, asyncResponseTransformer)) {

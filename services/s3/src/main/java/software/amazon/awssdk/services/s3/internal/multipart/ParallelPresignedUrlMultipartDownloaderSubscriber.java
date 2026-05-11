@@ -133,11 +133,18 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
         inFlightRequests.put(0, response);
         inFlightRequestsNum.incrementAndGet();
-        CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
-            if (error != null || isCompletedExceptionally.get()) {
-                handlePartError(error, 0);
+            if (error != null) {
+                if (PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                    resultFuture.completeExceptionally(
+                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                    synchronized (subscriptionLock) {
+                        subscription.cancel();
+                    }
+                } else {
+                    handlePartError(error, 0);
+                }
                 return;
             }
 

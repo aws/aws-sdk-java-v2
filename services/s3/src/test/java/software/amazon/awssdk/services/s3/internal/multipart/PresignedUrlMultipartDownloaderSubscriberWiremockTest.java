@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -258,6 +259,84 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         assertThatThrownBy(() -> subscriber.onNext(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("onNext must not be called with null asyncResponseTransformer");
+    }
+
+    @ParameterizedTest(name = "presignedUrlDownload_emptyObject_shouldFallbackToNonRangeGet [{0}]")
+    @MethodSource("transformerTypes")
+    @SuppressWarnings("unchecked")
+    void presignedUrlDownload_emptyObject_shouldFallbackToNonRangeGet(String transformerType) throws IOException {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=.*"))
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", absent())
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Length", "0")
+                                    .withHeader("ETag", "\"empty-etag\"")
+                                    .withBody(new byte[0])));
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+        Object result = executeDownload(request, transformerType).join();
+        if ("toBytes".equals(transformerType)) {
+            ResponseBytes<GetObjectResponse> bytes = (ResponseBytes<GetObjectResponse>) result;
+            assertThat(bytes.asByteArray()).isEmpty();
+        } else {
+            assertThat(tempFile.toFile()).exists();
+            assertThat(Files.size(tempFile)).isEqualTo(0L);
+        }
+    }
+
+    @ParameterizedTest(name = "presignedUrlDownload_416OnSecondRequest_shouldFailWithError [{0}]")
+    @MethodSource("transformerTypes")
+    void presignedUrlDownload_416OnSecondRequest_shouldFailWithError(String transformerType) {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .inScenario("416-on-second")
+                    .whenScenarioStateIs("Started")
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
+                    .willSetStateTo("first-done"));
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .inScenario("416-on-second")
+                    .whenScenarioStateIs("first-done")
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+        assertThatThrownBy(() -> executeDownload(request, transformerType).join())
+            .hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+    @ParameterizedTest(name = "presignedUrlDownload_withRangeHeader_emptyObject_shouldThrow416 [{0}]")
+    @MethodSource("transformerTypes")
+    void presignedUrlDownload_withRangeHeader_emptyObject_shouldThrow416(String transformerType) {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .range("bytes=0-1024")
+                                                                         .build();
+        assertThatThrownBy(() -> executeDownload(request, transformerType).join())
+            .hasRootCauseInstanceOf(S3Exception.class);
     }
 
     @AfterEach

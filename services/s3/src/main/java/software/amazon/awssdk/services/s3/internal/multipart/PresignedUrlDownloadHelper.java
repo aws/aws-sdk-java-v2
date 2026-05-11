@@ -16,12 +16,14 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.utils.Logger;
@@ -59,6 +61,33 @@ public class PresignedUrlDownloadHelper {
                             + presignedRequest.range());
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
+
+        CompletableFuture<T> resultFuture = new CompletableFuture<>();
+        doMultipartDownload(presignedRequest, asyncResponseTransformer)
+            .whenComplete((result, error) -> {
+                Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                if (cause instanceof EmptyObjectRangeNotSatisfiableException) {
+                    log.debug(() -> "Received 416 on first request, falling back to non-range GET for empty object");
+                    asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer)
+                                              .whenComplete((r, e) -> {
+                                                  if (e != null) {
+                                                      resultFuture.completeExceptionally(e);
+                                                  } else {
+                                                      resultFuture.complete(r);
+                                                  }
+                                              });
+                } else if (error != null) {
+                    resultFuture.completeExceptionally(error);
+                } else {
+                    resultFuture.complete(result);
+                }
+            });
+        return resultFuture;
+    }
+
+    private <T> CompletableFuture<T> doMultipartDownload(
+        PresignedUrlDownloadRequest presignedRequest,
+        AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer) {
 
         SplittingTransformerConfiguration splittingConfig = SplittingTransformerConfiguration.builder()
                                                                                              .bufferSizeInBytes(bufferSizeInBytes)
@@ -111,5 +140,24 @@ public class PresignedUrlDownloadHelper {
 
     static SdkClientException invalidContentLength() {
         return SdkClientException.create("Invalid or missing Content-Length in response");
+    }
+
+    /**
+     * Returns true if the error is a 416 Range Not Satisfiable response from S3.
+     * Used by subscribers to detect empty object responses on the first range request.
+     */
+    static boolean isRangeNotSatisfiable(Throwable error) {
+        Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+        return cause instanceof S3Exception && ((S3Exception) cause).statusCode() == 416;
+    }
+
+    /**
+     * Marker exception wrapping a 416 on the first range request, signaling an empty object.
+     * Used to distinguish from 416 errors on subsequent requests which should propagate as failures.
+     */
+    static class EmptyObjectRangeNotSatisfiableException extends RuntimeException {
+        EmptyObjectRangeNotSatisfiableException(Throwable cause) {
+            super("Object is empty (416 on first range request)", cause);
+        }
     }
 }
