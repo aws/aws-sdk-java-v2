@@ -274,67 +274,11 @@ def update_brazil_json(root_dir, module_name, is_test):
     with open(brazil_json, 'w') as f:
         f.write(modified_content)
 def update_buildspecs(root_dir, module_name):
-    """Update buildspec files for test modules."""
-    release_maven = os.path.join(root_dir, 'buildspecs/release-to-maven.yml')
-    release_javadoc = os.path.join(root_dir, 'buildspecs/release-javadoc.yml')
-    
-    # Update release-to-maven.yml
-    if os.path.isfile(release_maven):
-        with open(release_maven, 'r') as f:
-            content = f.read()
-        
-        # Look for MODULES_TO_SKIP variable
-        modules_pattern = r'MODULES_TO_SKIP="([^"]*)"'
-        match = re.search(modules_pattern, content)
-        
-        if match:
-            current_modules = match.group(1)
-            new_modules = f"{current_modules},{module_name}" if current_modules else module_name
-            
-            # Update the file
-            modified_content = re.sub(
-                modules_pattern,
-                f'MODULES_TO_SKIP="{new_modules}"',
-                content
-            )
-            
-            with open(release_maven, 'w') as f:
-                f.write(modified_content)
-            
-            print(f"Updated MODULES_TO_SKIP in {release_maven} to include {module_name}")
-        else:
-            print(f"MODULES_TO_SKIP variable not found in {release_maven}. Please manually update.")
-    else:
-        print(f"Warning: {release_maven} does not exist. Skipping.")
-    
-    # Update release-javadoc.yml
-    if os.path.isfile(release_javadoc):
-        with open(release_javadoc, 'r') as f:
-            content = f.read()
-        
-        # Look for MODULES_TO_SKIP variable
-        modules_pattern = r'MODULES_TO_SKIP="([^"]*)"'
-        match = re.search(modules_pattern, content)
-        
-        if match:
-            current_modules = match.group(1)
-            new_modules = f"{current_modules},{module_name}" if current_modules else module_name
-            
-            # Update the file
-            modified_content = re.sub(
-                modules_pattern,
-                f'MODULES_TO_SKIP="{new_modules}"',
-                content
-            )
-            
-            with open(release_javadoc, 'w') as f:
-                f.write(modified_content)
-            
-            print(f"Updated MODULES_TO_SKIP in {release_javadoc} to include {module_name}")
-        else:
-            print(f"MODULES_TO_SKIP variable not found in {release_javadoc}. Please manually update.")
-    else:
-        print(f"Warning: {release_javadoc} does not exist. Skipping.")
+    """Update module skip lists for test modules."""
+    path = os.path.join(root_dir, 'buildspecs/resources/modules-to-skip.txt')
+    with open(path, 'a') as f:
+        f.write(f"{module_name}\n")
+    print(f"Added {module_name} to {path}")
 def main():
     """Main function to set up a new module."""
     args = parse_arguments()

@@ -1,0 +1,4 @@
+http-client-tests
+ruleset-testing-core
+test-utils
+v2-migration

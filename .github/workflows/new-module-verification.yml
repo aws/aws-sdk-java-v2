@@ -89,28 +89,12 @@ jobs:
               
               echo "Verifying test module requirements..."
               
-              # 1. Check if excluded from maven deploy command
-              if ! grep -q "$MODULE_NAME" buildspecs/release-to-maven.yml 2>/dev/null; then
-                echo "::error::Module $MODULE_NAME is not excluded from maven deploy command in buildspecs/release-to-maven.yml"
+              # 1. Check if excluded from maven publishing and javadoc generation
+              if ! grep -qx "$MODULE_NAME" buildspecs/resources/modules-to-skip.txt 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not excluded from maven publishing and javadoc generation in buildspecs/resources/modules-to-skip.txt"
                 HAS_ERRORS=1
               else
-                echo "✅ Module is excluded from maven deploy command"
-              fi
-
-              # 2. Check if excluded from maven deploy command
-              if ! grep -q "$MODULE_NAME" buildspecs/release-to-maven-central.yml 2>/dev/null; then
-                echo "::error::Module $MODULE_NAME is not excluded from maven deploy command in buildspecs/release-to-maven-central.yml"
-                HAS_ERRORS=1
-              else
-                echo "✅ Module is excluded from maven deploy command"
-              fi
-              
-              # 3. Check if excluded from javadoc generation
-              if ! grep -q "$MODULE_NAME" buildspecs/release-javadoc.yml 2>/dev/null; then
-                echo "::error::Module $MODULE_NAME is not excluded from javadoc generation in buildspecs/release-javadoc.yml"
-                HAS_ERRORS=1
-              else
-                echo "✅ Module is excluded from javadoc generation"
+                echo "✅ Module is excluded from maven publishing and javadoc generation"
               fi
               
               # 4. Check if Brazil import is skipped
