@@ -21,6 +21,7 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
@@ -64,7 +65,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
     private final AtomicInteger partNumber = new AtomicInteger(0);
     private final AtomicInteger completedParts = new AtomicInteger(0);
-    private final AtomicInteger inFlightRequestsNum = new AtomicInteger(0);
+    private final Semaphore inFlightPermits;
     private final AtomicBoolean isCompletedExceptionally = new AtomicBoolean(false);
     private final AtomicBoolean processingPending = new AtomicBoolean(false);
     private final Map<Integer, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
@@ -90,6 +91,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         this.configuredPartSizeInBytes = configuredPartSizeInBytes;
         this.resultFuture = resultFuture;
         this.maxInFlightParts = maxInFlightParts;
+        this.inFlightPermits = new Semaphore(maxInFlightParts);
     }
 
     @Override
@@ -132,17 +134,18 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);
 
         inFlightRequests.put(0, response);
-        inFlightRequestsNum.incrementAndGet();
+        inFlightPermits.tryAcquire();
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
             if (error != null || isCompletedExceptionally.get()) {
+                inFlightPermits.release();
                 handlePartError(error, 0);
                 return;
             }
 
             inFlightRequests.remove(0);
-            inFlightRequestsNum.decrementAndGet();
+            inFlightPermits.release();
             completedParts.incrementAndGet();
 
             this.eTag = res.eTag();
@@ -188,7 +191,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             return;
         }
 
-        if (inFlightRequestsNum.get() >= maxInFlightParts) {
+        if (!inFlightPermits.tryAcquire()) {
             pendingTransformers.offer(Pair.of(currentPart, transformer));
             return;
         }
@@ -200,6 +203,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     private void sendPartRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer,
                                  int partIndex) {
         if (isCompletedExceptionally.get()) {
+            inFlightPermits.release();
             return;
         }
 
@@ -210,24 +214,25 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);
 
         inFlightRequests.put(partIndex, response);
-        inFlightRequestsNum.incrementAndGet();
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
             if (error != null || isCompletedExceptionally.get()) {
+                inFlightPermits.release();
                 handlePartError(error, partIndex);
                 return;
             }
 
             Optional<SdkClientException> validationError = validatePartResponse(res, partIndex);
             if (validationError.isPresent()) {
+                inFlightPermits.release();
                 handlePartError(validationError.get(), partIndex);
                 return;
             }
 
             log.debug(() -> "Completed part: " + partIndex);
             inFlightRequests.remove(partIndex);
-            inFlightRequestsNum.decrementAndGet();
+            inFlightPermits.release();
             int totalComplete = completedParts.incrementAndGet();
 
             if (totalComplete == totalParts) {
@@ -250,17 +255,19 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
                 return;
             }
             try {
-                while (!pendingTransformers.isEmpty() && inFlightRequestsNum.get() < maxInFlightParts) {
+                while (!pendingTransformers.isEmpty() && inFlightPermits.tryAcquire()) {
                     Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingPart =
                         pendingTransformers.poll();
                     if (pendingPart != null && pendingPart.left() < totalParts) {
                         sendPartRequest(pendingPart.right(), pendingPart.left());
+                    } else {
+                        inFlightPermits.release();
                     }
                 }
             } finally {
                 processingPending.set(false);
             }
-        } while (!pendingTransformers.isEmpty() && inFlightRequestsNum.get() < maxInFlightParts);
+        } while (!pendingTransformers.isEmpty() && inFlightPermits.availablePermits() > 0);
     }
 
     private Optional<SdkClientException> validatePartResponse(GetObjectResponse response, int partIndex) {
