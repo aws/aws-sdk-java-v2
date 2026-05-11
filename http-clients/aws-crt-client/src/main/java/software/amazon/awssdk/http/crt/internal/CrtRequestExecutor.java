@@ -32,37 +32,40 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 @SdkInternalApi
 public final class CrtRequestExecutor {
 
-    public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
-        CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
+    public ExecutionResult execute(CrtRequestContext executionContext) {
+        CompletableFuture<SdkHttpFullResponse> responseFuture = new CompletableFuture<>();
+        CompletableFuture<HttpStreamBase> streamFuture;
 
         try {
-            doExecute(executionContext, requestFuture);
+            streamFuture = doExecute(executionContext, responseFuture);
         } catch (Throwable t) {
-            requestFuture.completeExceptionally(t);
+            responseFuture.completeExceptionally(t);
+            streamFuture = new CompletableFuture<>();
+            streamFuture.completeExceptionally(t);
         }
 
-        return requestFuture;
+        return new ExecutionResult(streamFuture, responseFuture);
     }
 
-    private void doExecute(CrtRequestContext executionContext, CompletableFuture<SdkHttpFullResponse> requestFuture) {
+    private CompletableFuture<HttpStreamBase> doExecute(CrtRequestContext executionContext,
+                                                        CompletableFuture<SdkHttpFullResponse> responseFuture) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
         long acquireStartTime = 0;
 
         if (shouldPublishMetrics) {
-            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
-            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
-            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
             acquireStartTime = System.nanoTime();
         }
 
-        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(responseFuture);
 
         HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
 
+        boolean hasBody = executionContext.sdkRequest().contentStreamProvider().isPresent();
+
         CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
+            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler, hasBody);
 
         long finalAcquireStartTime = acquireStartTime;
 
@@ -73,8 +76,33 @@ public final class CrtRequestExecutor {
 
             if (throwable != null) {
                 Throwable toThrow = wrapCrtException(throwable);
-                requestFuture.completeExceptionally(toThrow);
+                responseFuture.completeExceptionally(toThrow);
             }
         });
+
+        return streamFuture;
+    }
+
+    /**
+     * Holds the result of submitting a request to CRT: the stream (for writing body data via
+     * {@code writeData}) and the response future (for reading the response).
+     */
+    public static final class ExecutionResult {
+        private final CompletableFuture<HttpStreamBase> streamFuture;
+        private final CompletableFuture<SdkHttpFullResponse> responseFuture;
+
+        ExecutionResult(CompletableFuture<HttpStreamBase> streamFuture,
+                        CompletableFuture<SdkHttpFullResponse> responseFuture) {
+            this.streamFuture = streamFuture;
+            this.responseFuture = responseFuture;
+        }
+
+        public CompletableFuture<HttpStreamBase> streamFuture() {
+            return streamFuture;
+        }
+
+        public CompletableFuture<SdkHttpFullResponse> responseFuture() {
+            return responseFuture;
+        }
     }
 }

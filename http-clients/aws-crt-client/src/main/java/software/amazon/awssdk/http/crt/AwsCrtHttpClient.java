@@ -18,13 +18,17 @@ package software.amazon.awssdk.http.crt;
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -35,6 +39,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.http.crt.internal.CrtUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -107,6 +112,8 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     }
 
     private static final class CrtHttpRequest implements ExecutableHttpRequest {
+        private static final int WRITE_BUFFER_SIZE = 16 * 1024;
+
         private final CrtRequestContext context;
         private volatile CompletableFuture<SdkHttpFullResponse> responseFuture;
 
@@ -119,7 +126,14 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
 
             try {
-                responseFuture = new CrtRequestExecutor().execute(context);
+                CrtRequestExecutor.ExecutionResult execution = new CrtRequestExecutor().execute(context);
+                responseFuture = execution.responseFuture();
+
+                // Wait for the stream to be acquired, then write the request body from the caller thread.
+                // This avoids blocking the CRT event loop thread in InputStream.read().
+                HttpStreamBase stream = CompletableFutureUtils.joinInterruptibly(execution.streamFuture());
+                writeRequestBody(stream);
+
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
                 builder.response(response);
                 builder.responseBody(response.content().orElse(null));
@@ -140,6 +154,10 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                 }
 
                 if (cause instanceof HttpException) {
+                    Throwable wrapped = CrtUtils.wrapCrtException(cause);
+                    if (wrapped instanceof IOException) {
+                        throw (IOException) wrapped;
+                    }
                     throw (HttpException) cause;
                 }
 
@@ -148,6 +166,24 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                     throw new IOException("Request was cancelled", cause);
                 }
                 throw new RuntimeException(e.getCause());
+            }
+        }
+
+        private void writeRequestBody(HttpStreamBase stream) throws IOException {
+            ContentStreamProvider provider = context.sdkRequest().contentStreamProvider().orElse(null);
+            if (provider == null) {
+                return;
+            }
+
+            try (InputStream inputStream = provider.newStream()) {
+                byte[] buf = new byte[WRITE_BUFFER_SIZE];
+                int read;
+
+                while ((read = inputStream.read(buf, 0, buf.length)) >= 0) {
+                    byte[] chunk = read == buf.length ? buf : Arrays.copyOf(buf, read);
+                    CompletableFutureUtils.joinInterruptibly(stream.writeData(chunk, false));
+                }
+                CompletableFutureUtils.joinInterruptibly(stream.writeData(null, true));
             }
         }
 

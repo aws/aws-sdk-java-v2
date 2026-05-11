@@ -78,14 +78,7 @@ public final class CrtRequestAdapter {
         HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
 
         String finalEncodedPath = encodedPath + encodedQueryString;
-        return sdkExecuteRequest.contentStreamProvider()
-                                .map(provider -> new HttpRequest(method,
-                                                                 finalEncodedPath,
-                                                                 crtHeaderArray,
-                                                                 new CrtRequestInputStreamAdapter(provider)))
-                                .orElse(new HttpRequest(method,
-                                                        finalEncodedPath,
-                                                        crtHeaderArray, null));
+        return new HttpRequest(method, finalEncodedPath, crtHeaderArray, null);
     }
 
     private static HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {
