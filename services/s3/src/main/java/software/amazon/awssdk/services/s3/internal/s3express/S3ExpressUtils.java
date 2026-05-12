@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 public final class S3ExpressUtils {
 
     public static final String S3_EXPRESS = "S3Express";
+    private static final String S3_EXPRESS_BUCKET_SUFFIX = "--x-s3";
 
     private S3ExpressUtils() {
     }
@@ -43,7 +44,7 @@ public final class S3ExpressUtils {
      */
     public static boolean isS3ExpressBucket(SdkRequest request) {
         return request.getValueForField("Bucket", String.class)
-                      .map(b -> b.endsWith("--x-s3"))
+                      .map(b -> b.endsWith(S3_EXPRESS_BUCKET_SUFFIX))
                       .orElse(false);
     }
 
