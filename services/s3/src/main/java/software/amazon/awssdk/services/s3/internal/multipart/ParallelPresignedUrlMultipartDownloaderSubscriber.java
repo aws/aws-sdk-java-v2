@@ -130,22 +130,25 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(0);
         log.debug(() -> "Sending first range request with range=" + partRequest.range());
 
+        if (!inFlightPermits.tryAcquire()) {
+            throw new IllegalStateException("Failed to acquire permit for first request");
+        }
+
         CompletableFuture<GetObjectResponse> response =
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);
 
         inFlightRequests.put(0, response);
-        inFlightPermits.tryAcquire();
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
+            inFlightRequests.remove(0);
+            inFlightPermits.release();
+
             if (error != null || isCompletedExceptionally.get()) {
-                inFlightPermits.release();
                 handlePartError(error, 0);
                 return;
             }
 
-            inFlightRequests.remove(0);
-            inFlightPermits.release();
             completedParts.incrementAndGet();
 
             this.eTag = res.eTag();
@@ -217,22 +220,21 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
+            inFlightRequests.remove(partIndex);
+            inFlightPermits.release();
+
             if (error != null || isCompletedExceptionally.get()) {
-                inFlightPermits.release();
                 handlePartError(error, partIndex);
                 return;
             }
 
             Optional<SdkClientException> validationError = validatePartResponse(res, partIndex);
             if (validationError.isPresent()) {
-                inFlightPermits.release();
                 handlePartError(validationError.get(), partIndex);
                 return;
             }
 
             log.debug(() -> "Completed part: " + partIndex);
-            inFlightRequests.remove(partIndex);
-            inFlightPermits.release();
             int totalComplete = completedParts.incrementAndGet();
 
             if (totalComplete == totalParts) {
@@ -250,11 +252,14 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     }
 
     private void processPendingTransformers() {
+        // Re-check after releasing the gate to catch permits that arrived
+        // while exiting — prevents "missed signal" where no thread drains the queue.
         do {
             if (!processingPending.compareAndSet(false, true)) {
                 return;
             }
             try {
+                // Drain pending queue while permits are available
                 while (!pendingTransformers.isEmpty() && inFlightPermits.tryAcquire()) {
                     Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingPart =
                         pendingTransformers.poll();
