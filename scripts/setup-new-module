@@ -274,11 +274,15 @@ def update_brazil_json(root_dir, module_name, is_test):
     with open(brazil_json, 'w') as f:
         f.write(modified_content)
 def update_buildspecs(root_dir, module_name):
-    """Update module skip lists for test modules."""
-    path = os.path.join(root_dir, 'buildspecs/resources/modules-to-skip.txt')
-    with open(path, 'a') as f:
-        f.write(f"{module_name}\n")
-    print(f"Added {module_name} to {path}")
+    """Update module publish allowlist for test modules."""
+    answer = input(f"Should {module_name} be published to Maven Central? (y/N): ").strip().lower()
+    if answer == 'y':
+        path = os.path.join(root_dir, 'buildspecs/resources/test-modules-publish-allowlist.txt')
+        with open(path, 'a') as f:
+            f.write(f"{module_name}\n")
+        print(f"Added {module_name} to {path}")
+    else:
+        print(f"{module_name} will be excluded from Maven publishing")
 def main():
     """Main function to set up a new module."""
     args = parse_arguments()

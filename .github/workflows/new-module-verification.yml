@@ -89,12 +89,11 @@ jobs:
               
               echo "Verifying test module requirements..."
               
-              # 1. Check if excluded from maven publishing and javadoc generation
-              if ! grep -qx "$MODULE_NAME" buildspecs/resources/modules-to-skip.txt 2>/dev/null; then
-                echo "::error::Module $MODULE_NAME is not excluded from maven publishing and javadoc generation in buildspecs/resources/modules-to-skip.txt"
-                HAS_ERRORS=1
+              # 1. Check if excluded from Maven publishing
+              if grep -qx "$MODULE_NAME" buildspecs/resources/test-modules-publish-allowlist.txt 2>/dev/null; then
+                echo "Module is in test-modules-publish-allowlist.txt - will be published to Maven"
               else
-                echo "✅ Module is excluded from maven publishing and javadoc generation"
+                echo "Module is not in test-modules-publish-allowlist.txt - will be excluded from Maven publishing"
               fi
               
               # 4. Check if Brazil import is skipped
