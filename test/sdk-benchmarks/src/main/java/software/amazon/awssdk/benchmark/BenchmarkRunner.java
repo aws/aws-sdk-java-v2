@@ -110,6 +110,16 @@ public class BenchmarkRunner {
 
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
+    private final List<String> benchmarksToRun;
+    private final BenchmarkResultProcessor resultProcessor;
+    private final BenchmarkRunnerOptions options;
+
+    private BenchmarkRunner(List<String> benchmarksToRun, BenchmarkRunnerOptions options) {
+        this.benchmarksToRun = benchmarksToRun;
+        this.resultProcessor = new BenchmarkResultProcessor();
+        this.options = options;
+    }
+
     static List<String> getShardClasses(String shard) {
         switch (shard) {
             case "sync": return SYNC_BENCHMARKS;
@@ -125,19 +135,11 @@ public class BenchmarkRunner {
         }
     }
 
-    private final List<String> benchmarksToRun;
-    private final BenchmarkResultProcessor resultProcessor;
-    private final BenchmarkRunnerOptions options;
-
-    private BenchmarkRunner(List<String> benchmarksToRun, BenchmarkRunnerOptions options) {
-        this.benchmarksToRun = benchmarksToRun;
-        this.resultProcessor = new BenchmarkResultProcessor();
-        this.options = options;
-    }
-
     public static void main(String... args) throws Exception {
         if (args.length >= 2 && args[0].equals("--list")) {
+            // CHECKSTYLE:OFF
             System.out.println(String.join("|", getShardClasses(args[1])));
+            // CHECKSTYLE:ON
             return;
         }
 
