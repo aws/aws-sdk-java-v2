@@ -3,8 +3,7 @@
   {
     "description": "Operation with no path params, sets URI and HTTP method correctly",
     "given": {
-      "input": {
-      }
+      "input": {}
     },
     "when": {
       "action": "marshall",
@@ -26,7 +25,9 @@
     "then": {
       "serializedAs": {
         "headers": {
-          "doesNotContain": [ "X-Amz-Target" ]
+          "doesNotContain": [
+            "X-Amz-Target"
+          ]
         }
       }
     }
@@ -92,7 +93,9 @@
     "then": {
       "serializedAs": {
         "headers": {
-          "doesNotContain": ["StringMember"]
+          "doesNotContain": [
+            "StringMember"
+          ]
         }
       }
     }
@@ -256,7 +259,9 @@
     "then": {
       "serializedAs": {
         "params": {
-          "doesNotContain": ["item"]
+          "doesNotContain": [
+            "item"
+          ]
         }
       }
     }
@@ -265,7 +270,9 @@
     "description": "Singleton list with empty string in query params, adds param with empty value",
     "given": {
       "input": {
-        "ListOfStrings": [""]
+        "ListOfStrings": [
+          ""
+        ]
       }
     },
     "when": {
@@ -456,8 +463,7 @@
   {
     "description": "Operation that has a static query parameter with no value.",
     "given": {
-      "input": {
-      }
+      "input": {}
     },
     "when": {
       "action": "marshall",
@@ -468,7 +474,9 @@
         "uri": "/2016-03-11/queryParamWithoutValue",
         "params": {
           "contains": {
-            "param": [null]
+            "param": [
+              null
+            ]
           }
         }
       }
@@ -477,8 +485,7 @@
   {
     "description": "GET operation does not have content-type header",
     "given": {
-      "input": {
-      }
+      "input": {}
     },
     "when": {
       "action": "marshall",
@@ -487,28 +494,30 @@
     "then": {
       "serializedAs": {
         "headers": {
-          "doesNotContain": [ "content-type" ]
+          "doesNotContain": [
+            "content-type"
+          ]
         }
       }
     }
   },
   {
-      "description": "Input with greedy label in path",
-      "given": {
-	  "input": {
-	      "NonGreedyPathParam": "pathParamValue",
-	      "GreedyPathParam": "foo/bar/baz"
-	  }
-      },
-      "when": {
-	  "action": "marshall",
-	  "operation": "OperationWithGreedyLabel"
-      },
-      "then": {
-	  "serializedAs": {
-	      "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
-	  }
+    "description": "Input with greedy label in path",
+    "given": {
+      "input": {
+        "NonGreedyPathParam": "pathParamValue",
+        "GreedyPathParam": "foo/bar/baz"
       }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithGreedyLabel"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
+      }
+    }
   },
   {
     "description": "Operation with null members that have the idempotent trait are autofilled.",
@@ -536,9 +545,9 @@
     "description": "Operation with non-null members that have the idempotent trait are not autofilled.",
     "given": {
       "input": {
-          "PathIdempotentToken": "foo",
-          "QueryIdempotentToken": "bar",
-          "HeaderIdempotentToken": "baz"
+        "PathIdempotentToken": "foo",
+        "QueryIdempotentToken": "bar",
+        "HeaderIdempotentToken": "baz"
       }
     },
     "when": {
@@ -565,7 +574,7 @@
     "description": "Operation with modeled content-type, respects modeled content-type over protocol default.",
     "given": {
       "input": {
-          "ContentType": "application/foo"
+        "ContentType": "application/foo"
       }
     },
     "when": {
@@ -578,6 +587,52 @@
           "contains": {
             "Content-Type": "application/foo"
           }
+        }
+      }
+    }
+  },
+  {
+    "description": "Map bound to headers with prefix produces prefixed headers for each entry",
+    "given": {
+      "input": {
+        "MetadataMember": {
+          "key1": "value1",
+          "key2": "value2"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MapInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-meta-key1": "value1",
+            "x-amz-meta-key2": "value2"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty map bound to headers with prefix does not produce any prefixed headers",
+    "given": {
+      "input": {
+        "MetadataMember": {}
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MapInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "doesNotContain": [
+            "x-amz-meta-"
+          ]
         }
       }
     }

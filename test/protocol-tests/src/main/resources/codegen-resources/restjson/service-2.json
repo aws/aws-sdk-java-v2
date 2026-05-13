@@ -1,226 +1,308 @@
 {
-  "version":"2.0",
-  "metadata":{
-    "apiVersion":"2016-03-11",
-    "endpointPrefix":"restjson",
-    "jsonVersion":"1.1",
-    "protocol":"rest-json",
-    "serviceAbbreviation":"RestJsonProtocolTests",
-    "serviceFullName":"AWS DR Tools Rest JSON Protocol Tests",
-    "serviceId":"ProtocolRestJson",
-    "signatureVersion":"v4",
-    "targetPrefix":"ProtocolTestsService",
-    "uid":"restjson-2016-03-11"
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2016-03-11",
+    "endpointPrefix": "restjson",
+    "jsonVersion": "1.1",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "RestJsonProtocolTests",
+    "serviceFullName": "AWS DR Tools Rest JSON Protocol Tests",
+    "serviceId": "ProtocolRestJson",
+    "signatureVersion": "v4",
+    "targetPrefix": "ProtocolTestsService",
+    "uid": "restjson-2016-03-11"
   },
-  "operations":{
-    "AllTypes":{
-      "name":"AllTypes",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/allTypes"
+  "operations": {
+    "AllTypes": {
+      "name": "AllTypes",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/allTypes"
       },
-      "input":{"shape":"AllTypesStructure"},
-      "output":{"shape":"AllTypesStructure"},
-      "errors":[
-        {"shape":"EmptyModeledException"},
-        {"shape":"ExplicitPayloadAndHeadersException"},
-        {"shape":"ImplicitPayloadException"}
+      "input": {
+        "shape": "AllTypesStructure"
+      },
+      "output": {
+        "shape": "AllTypesStructure"
+      },
+      "errors": [
+        {
+          "shape": "EmptyModeledException"
+        },
+        {
+          "shape": "ExplicitPayloadAndHeadersException"
+        },
+        {
+          "shape": "ImplicitPayloadException"
+        }
       ]
     },
-    "DeleteOperation":{
-      "name":"DeleteOperation",
-      "http":{
-        "method":"DELETE",
-        "requestUri":"/2016-03-11/deleteOperation"
+    "DeleteOperation": {
+      "name": "DeleteOperation",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/2016-03-11/deleteOperation"
       }
     },
-    "FurtherNestedContainers":{
-      "name":"FurtherNestedContainers",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/furtherNestedContainers"
+    "FurtherNestedContainers": {
+      "name": "FurtherNestedContainers",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/furtherNestedContainers"
       },
-      "input":{"shape":"FurtherNestedContainersStructure"},
-      "output":{"shape":"FurtherNestedContainersStructure"}
-    },
-    "GetOperationWithBody":{
-      "name":"GetOperationWithBody",
-      "http":{
-        "method":"GET",
-        "requestUri":"/2016-03-11/getOperationWithBody"
+      "input": {
+        "shape": "FurtherNestedContainersStructure"
       },
-      "input":{"shape":"GetOperationWithBodyInput"}
-    },
-    "HeadOperation":{
-      "name":"HeadOperation",
-      "http":{
-        "method":"HEAD",
-        "requestUri":"/2016-03-11/headOperation"
+      "output": {
+        "shape": "FurtherNestedContainersStructure"
       }
     },
-    "IdempotentOperation":{
-      "name":"IdempotentOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/idempotentOperation/{PathParam}"
+    "GetOperationWithBody": {
+      "name": "GetOperationWithBody",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2016-03-11/getOperationWithBody"
       },
-      "input":{"shape":"IdempotentOperationStructure"}
+      "input": {
+        "shape": "GetOperationWithBodyInput"
+      }
     },
-    "JsonValuesOperation":{
-      "name":"JsonValuesOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/JsonValuesStructure"
+    "HeadOperation": {
+      "name": "HeadOperation",
+      "http": {
+        "method": "HEAD",
+        "requestUri": "/2016-03-11/headOperation"
+      }
+    },
+    "IdempotentOperation": {
+      "name": "IdempotentOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/idempotentOperation/{PathParam}"
       },
-      "input":{"shape":"JsonValuesStructure"},
-      "output":{"shape":"JsonValuesStructure"},
-      "errors":[
-        {"shape":"EmptyModeledException"}
+      "input": {
+        "shape": "IdempotentOperationStructure"
+      }
+    },
+    "JsonValuesOperation": {
+      "name": "JsonValuesOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/JsonValuesStructure"
+      },
+      "input": {
+        "shape": "JsonValuesStructure"
+      },
+      "output": {
+        "shape": "JsonValuesStructure"
+      },
+      "errors": [
+        {
+          "shape": "EmptyModeledException"
+        }
       ]
     },
-    "MapOfStringToListOfStringInQueryParams":{
-      "name":"MapOfStringToListOfStringInQueryParams",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/mapOfStringToListOfStringInQueryParams"
+    "MapOfStringToListOfStringInQueryParams": {
+      "name": "MapOfStringToListOfStringInQueryParams",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/mapOfStringToListOfStringInQueryParams"
       },
-      "input":{"shape":"MapOfStringToListOfStringInQueryParamsInput"}
-    },
-    "MembersInHeaders":{
-      "name":"MembersInHeaders",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/membersInHeaders"
-      },
-      "input":{"shape":"MembersInHeadersStructure"},
-      "output":{"shape":"MembersInHeadersStructure"}
-    },
-    "MembersInQueryParams":{
-      "name":"MembersInQueryParams",
-      "http":{
-        "method":"GET",
-        "requestUri":"/2016-03-11/membersInQueryParams?StaticQueryParam=foo"
-      },
-      "input":{"shape":"MembersInQueryParamsInput"},
-      "output":{"shape":"MembersInQueryParamsInput"}
-    },
-    "MultiLocationOperation":{
-      "name":"MultiLocationOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/multiLocationOperation/{PathParam}"
-      },
-      "input":{"shape":"MultiLocationOperationInput"},
-      "output":{"shape":"MultiLocationOperationInput"}
-    },
-    "NestedContainers":{
-      "name":"NestedContainers",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/nestedContainers"
-      },
-      "input":{"shape":"NestedContainersStructure"},
-      "output":{"shape":"NestedContainersStructure"}
-    },
-    "OperationWithExplicitPayloadBlob":{
-      "name":"OperationWithExplicitPayloadBlob",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithExplicitPayloadBlob"
-      },
-      "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
-      "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
-    },
-    "OperationWithExplicitPayloadString":{
-      "name":"OperationWithExplicitPayloadString",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
-      },
-      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
-      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
-    },
-    "OperationWithExplicitPayloadStructure":{
-      "name":"OperationWithExplicitPayloadStructure",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithExplicitPayloadStructure"
-      },
-      "input":{"shape":"OperationWithExplicitPayloadStructureInput"},
-      "output":{"shape":"OperationWithExplicitPayloadStructureInput"}
-    },
-    "OperationWithGreedyLabel":{
-      "name":"OperationWithGreedyLabel",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithGreedyLabel/{NonGreedyPathParam}/{GreedyPathParam+}"
-      },
-      "input":{"shape":"OperationWithGreedyLabelInput"}
-    },
-    "OperationWithModeledContentType":{
-      "name":"OperationWithModeledContentType",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithModeledContentType"
-      },
-      "input":{"shape":"OperationWithModeledContentTypeInput"}
-    },
-    "OperationWithNoInputOrOutput":{
-      "name":"OperationWithNoInputOrOutput",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/operationWithNoInputOrOutput"
+      "input": {
+        "shape": "MapOfStringToListOfStringInQueryParamsInput"
       }
     },
-    "QueryParamWithoutValue":{
-      "name":"QueryParamWithoutValue",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/queryParamWithoutValue?param"
+    "MembersInHeaders": {
+      "name": "MembersInHeaders",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/membersInHeaders"
       },
-      "input":{"shape":"QueryParamWithoutValueInput"}
+      "input": {
+        "shape": "MembersInHeadersStructure"
+      },
+      "output": {
+        "shape": "MembersInHeadersStructure"
+      }
     },
-    "StatusCodeInOutputOperation":{
-      "name":"StatusCodeInOutputOperation",
-      "http":{
-        "method":"GET",
-        "requestUri":"/2016-03-11/statusCodeInOutput"
+    "MapInHeaders": {
+      "name": "MapInHeaders",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/mapInHeaders"
       },
-      "output":{"shape":"StatusCodeInOutputStructure"}
+      "input": {
+        "shape": "MapInHeadersInput"
+      }
     },
-    "MixedLocationOperation":{
-      "name":"MixedLocationOperation",
-      "http":{
-        "method":"GET",
-        "requestUri":"/2016-03-11/mixedLocationOperation"
+    "MembersInQueryParams": {
+      "name": "MembersInQueryParams",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2016-03-11/membersInQueryParams?StaticQueryParam=foo"
       },
-      "output":{"shape":"MixedLocationOperationOutput"},
-      "input":{"shape":"MixedLocationOperationInput"}
+      "input": {
+        "shape": "MembersInQueryParamsInput"
+      },
+      "output": {
+        "shape": "MembersInQueryParamsInput"
+      }
     },
-    "StreamingInputOperation":{
-      "name":"StreamingInputOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/streamingInputOperation"
+    "MultiLocationOperation": {
+      "name": "MultiLocationOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/multiLocationOperation/{PathParam}"
       },
-      "input":{"shape":"StructureWithStreamingMember"}
+      "input": {
+        "shape": "MultiLocationOperationInput"
+      },
+      "output": {
+        "shape": "MultiLocationOperationInput"
+      }
     },
-    "StreamingInputOperationChunkedEncoding":{
-      "name":"StreamingInputOperationChunkedEncoding",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/streamingInputOperationChunkedEncoding"
+    "NestedContainers": {
+      "name": "NestedContainers",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/nestedContainers"
       },
-      "input":{"shape":"StructureWithStreamingMemberChunkedEncoding"},
-      "authtype":"v4-unsigned-body"
+      "input": {
+        "shape": "NestedContainersStructure"
+      },
+      "output": {
+        "shape": "NestedContainersStructure"
+      }
     },
-    "StreamingOutputOperation":{
-      "name":"StreamingOutputOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/streamingOutputOperation"
+    "OperationWithExplicitPayloadBlob": {
+      "name": "OperationWithExplicitPayloadBlob",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithExplicitPayloadBlob"
       },
-      "output":{"shape":"StructureWithStreamingMember"}
+      "input": {
+        "shape": "OperationWithExplicitPayloadBlobInput"
+      },
+      "output": {
+        "shape": "OperationWithExplicitPayloadBlobInput"
+      }
+    },
+    "OperationWithExplicitPayloadString": {
+      "name": "OperationWithExplicitPayloadString",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input": {
+        "shape": "OperationWithExplicitPayloadStringInput"
+      },
+      "output": {
+        "shape": "OperationWithExplicitPayloadStringInput"
+      }
+    },
+    "OperationWithExplicitPayloadStructure": {
+      "name": "OperationWithExplicitPayloadStructure",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithExplicitPayloadStructure"
+      },
+      "input": {
+        "shape": "OperationWithExplicitPayloadStructureInput"
+      },
+      "output": {
+        "shape": "OperationWithExplicitPayloadStructureInput"
+      }
+    },
+    "OperationWithGreedyLabel": {
+      "name": "OperationWithGreedyLabel",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithGreedyLabel/{NonGreedyPathParam}/{GreedyPathParam+}"
+      },
+      "input": {
+        "shape": "OperationWithGreedyLabelInput"
+      }
+    },
+    "OperationWithModeledContentType": {
+      "name": "OperationWithModeledContentType",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithModeledContentType"
+      },
+      "input": {
+        "shape": "OperationWithModeledContentTypeInput"
+      }
+    },
+    "OperationWithNoInputOrOutput": {
+      "name": "OperationWithNoInputOrOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/operationWithNoInputOrOutput"
+      }
+    },
+    "QueryParamWithoutValue": {
+      "name": "QueryParamWithoutValue",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/queryParamWithoutValue?param"
+      },
+      "input": {
+        "shape": "QueryParamWithoutValueInput"
+      }
+    },
+    "StatusCodeInOutputOperation": {
+      "name": "StatusCodeInOutputOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2016-03-11/statusCodeInOutput"
+      },
+      "output": {
+        "shape": "StatusCodeInOutputStructure"
+      }
+    },
+    "MixedLocationOperation": {
+      "name": "MixedLocationOperation",
+      "http": {
+        "method": "GET",
+        "requestUri": "/2016-03-11/mixedLocationOperation"
+      },
+      "output": {
+        "shape": "MixedLocationOperationOutput"
+      },
+      "input": {
+        "shape": "MixedLocationOperationInput"
+      }
+    },
+    "StreamingInputOperation": {
+      "name": "StreamingInputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      }
+    },
+    "StreamingInputOperationChunkedEncoding": {
+      "name": "StreamingInputOperationChunkedEncoding",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOperationChunkedEncoding"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMemberChunkedEncoding"
+      },
+      "authtype": "v4-unsigned-body"
+    },
+    "StreamingOutputOperation": {
+      "name": "StreamingOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingOutputOperation"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      }
     },
     "EventStreamOperation": {
       "name": "EventStreamOperation",
@@ -248,685 +330,950 @@
         "shape": "EventStreamOutput"
       }
     },
-    "DocumentInputOperation":{
-      "name":"DocumentInputOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/documentInputOperation"
+    "DocumentInputOperation": {
+      "name": "DocumentInputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/documentInputOperation"
       },
-      "input":{"shape":"StructureWithDocumentMember"}
+      "input": {
+        "shape": "StructureWithDocumentMember"
+      }
     },
-    "NestedLocationOperation":{
-      "name":"NestedLocationOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/nestedLocationOperation"
+    "NestedLocationOperation": {
+      "name": "NestedLocationOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/nestedLocationOperation"
       },
-      "input":{"shape":"NestedLocationOperationInput"},
-      "output":{"shape":"NestedLocationOperationOutput"}
+      "input": {
+        "shape": "NestedLocationOperationInput"
+      },
+      "output": {
+        "shape": "NestedLocationOperationOutput"
+      }
     }
   },
-  "shapes":{
-    "AllTypesStructure":{
-      "type":"structure",
-      "members":{
-        "StringMember":{"shape":"String"},
-        "IntegerMember":{"shape":"Integer"},
-        "BooleanMember":{"shape":"Boolean"},
-        "FloatMember":{"shape":"Float"},
-        "DoubleMember":{"shape":"Double"},
-        "LongMember":{"shape":"Long"},
-        "ShortMember":{"shape":"Short"},
-        "ByteMember":{"shape":"Byte"},
-        "BigDecimalMember":{"shape":"NumericValue"},
-        "SimpleList":{"shape":"ListOfStrings"},
-        "ListOfMaps":{"shape":"ListOfMapStringToString"},
-        "ListOfStructs":{"shape":"ListOfSimpleStructs"},
-        "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
-        "MapOfStringToString":{"shape":"MapOfStringToString"},
-        "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
-        "TimestampMember":{"shape":"Timestamp"},
-        "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
-        "TimestampFormatMember":{"shape":"IsoTimestamp"},
-        "BlobArg":{"shape":"BlobType"},
-        "StructWithNestedBlob":{"shape":"StructWithNestedBlobType"},
-        "BlobMap":{"shape":"BlobMapType"},
-        "ListOfBlobs":{"shape":"ListOfBlobsType"},
-        "RecursiveStruct":{"shape":"RecursiveStructType"},
-        "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
-        "EnumMember":{"shape":"EnumType"},
-        "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
-        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
-        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
-        "MyDocument":{"shape":"MyDocument"},
-        "UnionMember":{"shape":"AllTypesUnionStructure"}
+  "shapes": {
+    "AllTypesStructure": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "ByteMember": {
+          "shape": "Byte"
+        },
+        "BigDecimalMember": {
+          "shape": "NumericValue"
+        },
+        "SimpleList": {
+          "shape": "ListOfStrings"
+        },
+        "ListOfMaps": {
+          "shape": "ListOfMapStringToString"
+        },
+        "ListOfStructs": {
+          "shape": "ListOfSimpleStructs"
+        },
+        "MapOfStringToIntegerList": {
+          "shape": "MapOfStringToIntegerList"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString"
+        },
+        "MapOfStringToStruct": {
+          "shape": "MapOfStringToSimpleStruct"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "StructWithNestedTimestampMember": {
+          "shape": "StructWithTimestamp"
+        },
+        "TimestampFormatMember": {
+          "shape": "IsoTimestamp"
+        },
+        "BlobArg": {
+          "shape": "BlobType"
+        },
+        "StructWithNestedBlob": {
+          "shape": "StructWithNestedBlobType"
+        },
+        "BlobMap": {
+          "shape": "BlobMapType"
+        },
+        "ListOfBlobs": {
+          "shape": "ListOfBlobsType"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "PolymorphicTypeWithSubTypes": {
+          "shape": "BaseType"
+        },
+        "PolymorphicTypeWithoutSubTypes": {
+          "shape": "SubTypeOne"
+        },
+        "EnumMember": {
+          "shape": "EnumType"
+        },
+        "ListOfEnums": {
+          "shape": "ListOfEnums"
+        },
+        "MapOfEnumToEnum": {
+          "shape": "MapOfEnumToEnum"
+        },
+        "ListOfTimeStamp": {
+          "shape": "ListOfTimeStamp"
+        },
+        "MapOfTimeStamp": {
+          "shape": "MapOfTimeStamp"
+        },
+        "MyDocument": {
+          "shape": "MyDocument"
+        },
+        "UnionMember": {
+          "shape": "AllTypesUnionStructure"
+        }
       }
     },
-    "BaseType":{
-      "type":"structure",
-      "members":{
-        "BaseMember":{"shape":"String"}
+    "BaseType": {
+      "type": "structure",
+      "members": {
+        "BaseMember": {
+          "shape": "String"
+        }
       }
     },
-    "BlobMapType":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"BlobType"}
-    },
-    "BlobType":{"type":"blob"},
-    "Boolean":{"type":"boolean"},
-    "Double":{"type":"double"},
-    "EmptyModeledException":{
-      "type":"structure",
-      "members":{
+    "BlobMapType": {
+      "type": "map",
+      "key": {
+        "shape": "String"
       },
-      "exception":true
+      "value": {
+        "shape": "BlobType"
+      }
     },
-    "EnumType":{
-      "type":"string",
-      "enum":[
+    "BlobType": {
+      "type": "blob"
+    },
+    "Boolean": {
+      "type": "boolean"
+    },
+    "Double": {
+      "type": "double"
+    },
+    "EmptyModeledException": {
+      "type": "structure",
+      "members": {},
+      "exception": true
+    },
+    "EnumType": {
+      "type": "string",
+      "enum": [
         "EnumValue1",
         "EnumValue2"
       ]
     },
-    "ExplicitPayloadAndHeadersException":{
-      "type":"structure",
-      "members":{
-        "StringHeader":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-string"
+    "ExplicitPayloadAndHeadersException": {
+      "type": "structure",
+      "members": {
+        "StringHeader": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-string"
         },
-        "IntegerHeader":{
-          "shape":"Integer",
-          "location":"header",
-          "locationName":"x-amz-integer"
+        "IntegerHeader": {
+          "shape": "Integer",
+          "location": "header",
+          "locationName": "x-amz-integer"
         },
-        "LongHeader":{
-          "shape":"Long",
-          "location":"header",
-          "locationName":"x-amz-long"
+        "LongHeader": {
+          "shape": "Long",
+          "location": "header",
+          "locationName": "x-amz-long"
         },
-        "ShortHeader":{
-          "shape":"Short",
-          "location":"header",
-          "locationName":"x-amz-short"
+        "ShortHeader": {
+          "shape": "Short",
+          "location": "header",
+          "locationName": "x-amz-short"
         },
-        "DoubleHeader":{
-          "shape":"Double",
-          "location":"header",
-          "locationName":"x-amz-double"
+        "DoubleHeader": {
+          "shape": "Double",
+          "location": "header",
+          "locationName": "x-amz-double"
         },
-        "FloatHeader":{
-          "shape":"Float",
-          "location":"header",
-          "locationName":"x-amz-float"
+        "FloatHeader": {
+          "shape": "Float",
+          "location": "header",
+          "locationName": "x-amz-float"
         },
-        "TimestampHeader":{
-          "shape":"Timestamp",
-          "location":"header",
-          "locationName":"x-amz-timestamp"
+        "TimestampHeader": {
+          "shape": "Timestamp",
+          "location": "header",
+          "locationName": "x-amz-timestamp"
         },
-        "BooleanHeader":{
-          "shape":"Boolean",
-          "location":"header",
-          "locationName":"x-amz-boolean"
+        "BooleanHeader": {
+          "shape": "Boolean",
+          "location": "header",
+          "locationName": "x-amz-boolean"
         },
-        "PayloadMember":{"shape":"SimpleStruct"}
+        "PayloadMember": {
+          "shape": "SimpleStruct"
+        }
       },
-      "exception":true,
-      "payload":"PayloadMember"
+      "exception": true,
+      "payload": "PayloadMember"
     },
-    "Float":{"type":"float"},
-    "FurtherNestedContainersStructure":{
-      "type":"structure",
-      "members":{
-        "ListOfNested":{"shape":"ListOfNested"}
-      }
+    "Float": {
+      "type": "float"
     },
-    "GetOperationWithBodyInput":{
-      "type":"structure",
-      "members":{
-        "StringMember":{"shape":"String"}
-      }
-    },
-    "IdempotentOperationStructure":{
-      "type":"structure",
-      "required":["PathIdempotentToken"],
-      "members":{
-        "PathIdempotentToken":{
-          "shape":"String",
-          "idempotencyToken":true,
-          "location":"uri",
-          "locationName":"PathParam"
-        },
-        "QueryIdempotentToken":{
-          "shape":"String",
-          "idempotencyToken":true,
-          "location":"querystring",
-          "locationName":"QueryParam"
-        },
-        "HeaderIdempotentToken":{
-          "shape":"String",
-          "idempotencyToken":true,
-          "location":"header",
-          "locationName":"x-amz-idempotent-header"
+    "FurtherNestedContainersStructure": {
+      "type": "structure",
+      "members": {
+        "ListOfNested": {
+          "shape": "ListOfNested"
         }
       }
     },
-    "ImplicitPayloadException":{
-      "type":"structure",
-      "members":{
-        "StringMember":{"shape":"String"},
-        "IntegerMember":{"shape":"Integer"},
-        "LongMember":{"shape":"Long"},
-        "ShortMember":{"shape":"Short"},
-        "DoubleMember":{"shape":"Double"},
-        "FloatMember":{"shape":"Float"},
-        "TimestampMember":{"shape":"Timestamp"},
-        "BooleanMember":{"shape":"Boolean"},
-        "BlobMember":{"shape":"BlobType"},
-        "ListMember":{"shape":"ListOfStrings"},
-        "MapMember":{"shape":"MapOfStringToString"},
-        "SimpleStructMember":{"shape":"SimpleStruct"}
-      },
-      "exception":true
+    "GetOperationWithBodyInput": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
     },
-    "Integer":{"type":"integer"},
+    "IdempotentOperationStructure": {
+      "type": "structure",
+      "required": [
+        "PathIdempotentToken"
+      ],
+      "members": {
+        "PathIdempotentToken": {
+          "shape": "String",
+          "idempotencyToken": true,
+          "location": "uri",
+          "locationName": "PathParam"
+        },
+        "QueryIdempotentToken": {
+          "shape": "String",
+          "idempotencyToken": true,
+          "location": "querystring",
+          "locationName": "QueryParam"
+        },
+        "HeaderIdempotentToken": {
+          "shape": "String",
+          "idempotencyToken": true,
+          "location": "header",
+          "locationName": "x-amz-idempotent-header"
+        }
+      }
+    },
+    "ImplicitPayloadException": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "BlobMember": {
+          "shape": "BlobType"
+        },
+        "ListMember": {
+          "shape": "ListOfStrings"
+        },
+        "MapMember": {
+          "shape": "MapOfStringToString"
+        },
+        "SimpleStructMember": {
+          "shape": "SimpleStruct"
+        }
+      },
+      "exception": true
+    },
+    "Integer": {
+      "type": "integer"
+    },
     // Shape is customized to BigDecimal in customization.config
     "NumericValue": {
       "type": "string",
-      "pattern":"([0-9]*\\.)?[0-9]+"
+      "pattern": "([0-9]*\\.)?[0-9]+"
     },
-    "IsoTimestamp":{
-      "type":"timestamp",
-      "timestampFormat":"iso8601"
+    "IsoTimestamp": {
+      "type": "timestamp",
+      "timestampFormat": "iso8601"
     },
-    "UnixTimestamp":{
-      "type":"timestamp",
-      "timestampFormat":"unixTimestamp"
+    "UnixTimestamp": {
+      "type": "timestamp",
+      "timestampFormat": "unixTimestamp"
     },
-    "JsonValuesStructure":{
-      "type":"structure",
-      "members":{
-        "JsonValueHeaderMember":{
-          "shape":"String",
-          "jsonvalue":true,
-          "location":"header",
-          "locationName":"Encoded-Header"
+    "JsonValuesStructure": {
+      "type": "structure",
+      "members": {
+        "JsonValueHeaderMember": {
+          "shape": "String",
+          "jsonvalue": true,
+          "location": "header",
+          "locationName": "Encoded-Header"
         },
-        "JsonValueMember":{
-          "shape":"String",
-          "jsonvalue":true
+        "JsonValueMember": {
+          "shape": "String",
+          "jsonvalue": true
         }
       }
     },
-    "ListOfAllTypesStructs":{
-      "type":"list",
-      "member":{"shape":"AllTypesStructure"}
-    },
-    "ListOfBlobsType":{
-      "type":"list",
-      "member":{"shape":"BlobType"}
-    },
-    "ListOfEnums":{
-      "type":"list",
-      "member":{"shape":"EnumType"}
-    },
-    "ListOfIntegers":{
-      "type":"list",
-      "member":{"shape":"Integer"}
-    },
-    "ListOfListOfListsOfStrings":{
-      "type":"list",
-      "member":{"shape":"ListOfListsOfStrings"}
-    },
-    "ListOfListsOfAllTypesStructs":{
-      "type":"list",
-      "member":{"shape":"ListOfAllTypesStructs"}
-    },
-    "ListOfListsOfStrings":{
-      "type":"list",
-      "member":{"shape":"ListOfStrings"}
-    },
-    "ListOfListsOfStructs":{
-      "type":"list",
-      "member":{"shape":"ListOfSimpleStructs"}
-    },
-    "ListOfMapStringToString":{
-      "type":"list",
-      "member":{"shape":"MapOfStringToString"}
-    },
-    "ListOfNested":{
-      "type":"list",
-      "member":{"shape":"NestedContainersStructure"}
-    },
-    "ListOfSimpleStructs":{
-      "type":"list",
-      "member":{"shape":"SimpleStruct"}
-    },
-    "ListOfStrings":{
-      "type":"list",
-      "member":{"shape":"String"}
-    },
-    "Long":{"type":"long"},
-    "Short":{"type":"short"},
-    "Byte":{"type":"byte"},
-    "MapOfEnumToEnum":{
-      "type":"map",
-      "key":{"shape":"EnumType"},
-      "value":{"shape":"EnumType"}
-    },
-    "MapOfStringToIntegerList":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"ListOfIntegers"}
-    },
-    "MapOfStringToListOfListsOfStrings":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"ListOfListsOfStrings"}
-    },
-    "MapOfStringToListOfStringInQueryParamsInput":{
-      "type":"structure",
-      "members":{
-        "MapOfStringToListOfStrings":{
-          "shape":"MapOfStringToListOfStrings",
-          "location":"querystring"
-        }
+    "ListOfAllTypesStructs": {
+      "type": "list",
+      "member": {
+        "shape": "AllTypesStructure"
       }
     },
-    "MapOfStringToListOfStrings":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"ListOfStrings"}
-    },
-    "MapOfStringToSimpleStruct":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"SimpleStruct"}
-    },
-    "MapOfStringToString":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"String"}
-    },
-    "MembersInHeadersStructure":{
-      "type":"structure",
-      "members":{
-        "StringMember":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-string"
-        },
-        "ListOfStringsMember":{
-          "shape":"ListOfStrings",
-          "location":"header",
-          "locationName":"x-amz-string-list"
-        },
-        "BooleanMember":{
-          "shape":"Boolean",
-          "location":"header",
-          "locationName":"x-amz-boolean"
-        },
-        "IntegerMember":{
-          "shape":"Integer",
-          "location":"header",
-          "locationName":"x-amz-integer"
-        },
-        "LongMember":{
-          "shape":"Long",
-          "location":"header",
-          "locationName":"x-amz-long"
-        },
-        "ShortMember":{
-          "shape":"Short",
-          "location":"header",
-          "locationName":"x-amz-short"
-        },
-        "FloatMember":{
-          "shape":"Float",
-          "location":"header",
-          "locationName":"x-amz-float"
-        },
-        "DoubleMember":{
-          "shape":"Double",
-          "location":"header",
-          "locationName":"x-amz-double"
-        },
-        "TimestampMember":{
-          "shape":"Timestamp",
-          "location":"header",
-          "locationName":"x-amz-timestamp"
-        },
-        "IsoTimestampMember":{
-          "shape":"IsoTimestamp",
-          "location":"header",
-          "locationName":"x-amz-iso-timestamp"
-        }
+    "ListOfBlobsType": {
+      "type": "list",
+      "member": {
+        "shape": "BlobType"
       }
     },
-    "MembersInQueryParamsInput":{
-      "type":"structure",
-      "members":{
-        "StringQueryParam":{
-          "shape":"String",
-          "location":"querystring",
-          "locationName":"String"
-        },
-        "BooleanQueryParam":{
-          "shape":"Boolean",
-          "location":"querystring",
-          "locationName":"Boolean"
-        },
-        "IntegerQueryParam":{
-          "shape":"Integer",
-          "location":"querystring",
-          "locationName":"Integer"
-        },
-        "LongQueryParam":{
-          "shape":"Long",
-          "location":"querystring",
-          "locationName":"Long"
-        },
-        "ShortQueryParam":{
-          "shape":"Short",
-          "location":"querystring",
-          "locationName":"Short"
-        },
-        "FloatQueryParam":{
-          "shape":"Float",
-          "location":"querystring",
-          "locationName":"Float"
-        },
-        "DoubleQueryParam":{
-          "shape":"Double",
-          "location":"querystring",
-          "locationName":"Double"
-        },
-        "TimestampQueryParam":{
-          "shape":"Timestamp",
-          "location":"querystring",
-          "locationName":"Timestamp"
-        },
-        "ListOfStrings":{
-          "shape":"ListOfStrings",
-          "location":"querystring",
-          "locationName":"item"
-        },
-        "MapOfStringToString":{
-          "shape":"MapOfStringToString",
-          "location":"querystring"
-        }
+    "ListOfEnums": {
+      "type": "list",
+      "member": {
+        "shape": "EnumType"
       }
     },
-    "MultiLocationOperationInput":{
-      "type":"structure",
-      "required":["PathParam"],
-      "members":{
-        "PathParam":{
-          "shape":"String",
-          "location":"uri",
-          "locationName":"PathParam"
-        },
-        "QueryParamOne":{
-          "shape":"String",
-          "location":"querystring",
-          "locationName":"QueryParamOne"
-        },
-        "QueryParamTwo":{
-          "shape":"String",
-          "location":"querystring",
-          "locationName":"QueryParamTwo"
-        },
-        "StringHeaderMember":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-header-string"
-        },
-        "TimestampHeaderMember":{
-          "shape":"Timestamp",
-          "location":"header",
-          "locationName":"x-amz-timearg"
-        },
-        "PayloadStructParam":{"shape":"PayloadStructType"}
+    "ListOfIntegers": {
+      "type": "list",
+      "member": {
+        "shape": "Integer"
       }
     },
-    "NestedContainersStructure":{
-      "type":"structure",
-      "members":{
-        "ListOfListsOfStrings":{"shape":"ListOfListsOfStrings"},
-        "ListOfListsOfStructs":{"shape":"ListOfListsOfStructs"},
-        "ListOfListsOfAllTypesStructs":{"shape":"ListOfListsOfAllTypesStructs"},
-        "ListOfListOfListsOfStrings":{"shape":"ListOfListOfListsOfStrings"},
-        "MapOfStringToListOfListsOfStrings":{"shape":"MapOfStringToListOfListsOfStrings"},
-        "StringMember":{"shape":"String"}
+    "ListOfListOfListsOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfListsOfStrings"
       }
     },
-    "OperationWithExplicitPayloadBlobInput":{
-      "type":"structure",
-      "members":{
-        "PayloadMember":{"shape":"BlobType"}
+    "ListOfListsOfAllTypesStructs": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfAllTypesStructs"
+      }
+    },
+    "ListOfListsOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfStrings"
+      }
+    },
+    "ListOfListsOfStructs": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfSimpleStructs"
+      }
+    },
+    "ListOfMapStringToString": {
+      "type": "list",
+      "member": {
+        "shape": "MapOfStringToString"
+      }
+    },
+    "ListOfNested": {
+      "type": "list",
+      "member": {
+        "shape": "NestedContainersStructure"
+      }
+    },
+    "ListOfSimpleStructs": {
+      "type": "list",
+      "member": {
+        "shape": "SimpleStruct"
+      }
+    },
+    "ListOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "String"
+      }
+    },
+    "Long": {
+      "type": "long"
+    },
+    "Short": {
+      "type": "short"
+    },
+    "Byte": {
+      "type": "byte"
+    },
+    "MapOfEnumToEnum": {
+      "type": "map",
+      "key": {
+        "shape": "EnumType"
       },
-      "payload":"PayloadMember"
+      "value": {
+        "shape": "EnumType"
+      }
     },
-    "OperationWithExplicitPayloadStringInput":{
-      "type":"structure",
-      "members":{
-        "PayloadMember":{"shape":"String"}
+    "MapOfStringToIntegerList": {
+      "type": "map",
+      "key": {
+        "shape": "String"
       },
-      "payload":"PayloadMember"
+      "value": {
+        "shape": "ListOfIntegers"
+      }
     },
-    "OperationWithExplicitPayloadStructureInput":{
-      "type":"structure",
-      "members":{
-        "PayloadMember":{"shape":"SimpleStruct"}
+    "MapOfStringToListOfListsOfStrings": {
+      "type": "map",
+      "key": {
+        "shape": "String"
       },
-      "payload":"PayloadMember"
+      "value": {
+        "shape": "ListOfListsOfStrings"
+      }
     },
-    "OperationWithGreedyLabelInput":{
-      "type":"structure",
-      "required":[
+    "MapOfStringToListOfStringInQueryParamsInput": {
+      "type": "structure",
+      "members": {
+        "MapOfStringToListOfStrings": {
+          "shape": "MapOfStringToListOfStrings",
+          "location": "querystring"
+        }
+      }
+    },
+    "MapOfStringToListOfStrings": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "ListOfStrings"
+      }
+    },
+    "MapOfStringToSimpleStruct": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "SimpleStruct"
+      }
+    },
+    "MapOfStringToString": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "String"
+      }
+    },
+    "Metadata": {
+      "type": "map",
+      "key": {
+        "shape": "MetadataKey"
+      },
+      "value": {
+        "shape": "MetadataValue"
+      }
+    },
+    "MetadataKey": {
+      "type": "string"
+    },
+    "MetadataValue": {
+      "type": "string"
+    },
+    "MapInHeadersInput": {
+      "type": "structure",
+      "members": {
+        "MetadataMember": {
+          "shape": "Metadata",
+          "location": "header",
+          "locationName": "x-amz-meta-"
+        }
+      }
+    },
+    "MembersInHeadersStructure": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-string"
+        },
+        "ListOfStringsMember": {
+          "shape": "ListOfStrings",
+          "location": "header",
+          "locationName": "x-amz-string-list"
+        },
+        "BooleanMember": {
+          "shape": "Boolean",
+          "location": "header",
+          "locationName": "x-amz-boolean"
+        },
+        "IntegerMember": {
+          "shape": "Integer",
+          "location": "header",
+          "locationName": "x-amz-integer"
+        },
+        "LongMember": {
+          "shape": "Long",
+          "location": "header",
+          "locationName": "x-amz-long"
+        },
+        "ShortMember": {
+          "shape": "Short",
+          "location": "header",
+          "locationName": "x-amz-short"
+        },
+        "FloatMember": {
+          "shape": "Float",
+          "location": "header",
+          "locationName": "x-amz-float"
+        },
+        "DoubleMember": {
+          "shape": "Double",
+          "location": "header",
+          "locationName": "x-amz-double"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp",
+          "location": "header",
+          "locationName": "x-amz-timestamp"
+        },
+        "IsoTimestampMember": {
+          "shape": "IsoTimestamp",
+          "location": "header",
+          "locationName": "x-amz-iso-timestamp"
+        }
+      }
+    },
+    "MembersInQueryParamsInput": {
+      "type": "structure",
+      "members": {
+        "StringQueryParam": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "String"
+        },
+        "BooleanQueryParam": {
+          "shape": "Boolean",
+          "location": "querystring",
+          "locationName": "Boolean"
+        },
+        "IntegerQueryParam": {
+          "shape": "Integer",
+          "location": "querystring",
+          "locationName": "Integer"
+        },
+        "LongQueryParam": {
+          "shape": "Long",
+          "location": "querystring",
+          "locationName": "Long"
+        },
+        "ShortQueryParam": {
+          "shape": "Short",
+          "location": "querystring",
+          "locationName": "Short"
+        },
+        "FloatQueryParam": {
+          "shape": "Float",
+          "location": "querystring",
+          "locationName": "Float"
+        },
+        "DoubleQueryParam": {
+          "shape": "Double",
+          "location": "querystring",
+          "locationName": "Double"
+        },
+        "TimestampQueryParam": {
+          "shape": "Timestamp",
+          "location": "querystring",
+          "locationName": "Timestamp"
+        },
+        "ListOfStrings": {
+          "shape": "ListOfStrings",
+          "location": "querystring",
+          "locationName": "item"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString",
+          "location": "querystring"
+        }
+      }
+    },
+    "MultiLocationOperationInput": {
+      "type": "structure",
+      "required": [
+        "PathParam"
+      ],
+      "members": {
+        "PathParam": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "PathParam"
+        },
+        "QueryParamOne": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "QueryParamOne"
+        },
+        "QueryParamTwo": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "QueryParamTwo"
+        },
+        "StringHeaderMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-header-string"
+        },
+        "TimestampHeaderMember": {
+          "shape": "Timestamp",
+          "location": "header",
+          "locationName": "x-amz-timearg"
+        },
+        "PayloadStructParam": {
+          "shape": "PayloadStructType"
+        }
+      }
+    },
+    "NestedContainersStructure": {
+      "type": "structure",
+      "members": {
+        "ListOfListsOfStrings": {
+          "shape": "ListOfListsOfStrings"
+        },
+        "ListOfListsOfStructs": {
+          "shape": "ListOfListsOfStructs"
+        },
+        "ListOfListsOfAllTypesStructs": {
+          "shape": "ListOfListsOfAllTypesStructs"
+        },
+        "ListOfListOfListsOfStrings": {
+          "shape": "ListOfListOfListsOfStrings"
+        },
+        "MapOfStringToListOfListsOfStrings": {
+          "shape": "MapOfStringToListOfListsOfStrings"
+        },
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "OperationWithExplicitPayloadBlobInput": {
+      "type": "structure",
+      "members": {
+        "PayloadMember": {
+          "shape": "BlobType"
+        }
+      },
+      "payload": "PayloadMember"
+    },
+    "OperationWithExplicitPayloadStringInput": {
+      "type": "structure",
+      "members": {
+        "PayloadMember": {
+          "shape": "String"
+        }
+      },
+      "payload": "PayloadMember"
+    },
+    "OperationWithExplicitPayloadStructureInput": {
+      "type": "structure",
+      "members": {
+        "PayloadMember": {
+          "shape": "SimpleStruct"
+        }
+      },
+      "payload": "PayloadMember"
+    },
+    "OperationWithGreedyLabelInput": {
+      "type": "structure",
+      "required": [
         "NonGreedyPathParam",
         "GreedyPathParam"
       ],
-      "members":{
-        "NonGreedyPathParam":{
-          "shape":"String",
-          "location":"uri",
-          "locationName":"NonGreedyPathParam"
+      "members": {
+        "NonGreedyPathParam": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "NonGreedyPathParam"
         },
-        "GreedyPathParam":{
-          "shape":"String",
-          "location":"uri",
-          "locationName":"GreedyPathParam"
+        "GreedyPathParam": {
+          "shape": "String",
+          "location": "uri",
+          "locationName": "GreedyPathParam"
         }
       }
     },
-    "OperationWithModeledContentTypeInput":{
-      "type":"structure",
-      "members":{
-        "ContentType":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"Content-Type"
+    "OperationWithModeledContentTypeInput": {
+      "type": "structure",
+      "members": {
+        "ContentType": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "Content-Type"
         }
       }
     },
-    "PayloadStructType":{
-      "type":"structure",
-      "members":{
-        "PayloadMemberOne":{"shape":"String"},
-        "PayloadMemberTwo":{"shape":"String"}
-      }
-    },
-    "QueryParamWithoutValueInput":{
-      "type":"structure",
-      "members":{
-      }
-    },
-    "RecursiveListType":{
-      "type":"list",
-      "member":{"shape":"RecursiveStructType"}
-    },
-    "RecursiveMapType":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"RecursiveStructType"}
-    },
-    "RecursiveStructType":{
-      "type":"structure",
-      "members":{
-        "NoRecurse":{"shape":"String"},
-        "RecursiveStruct":{"shape":"RecursiveStructType"},
-        "RecursiveList":{"shape":"RecursiveListType"},
-        "RecursiveMap":{"shape":"RecursiveMapType"}
-      }
-    },
-    "SimpleStruct":{
-      "type":"structure",
-      "members":{
-        "StringMember":{"shape":"String"}
-      }
-    },
-    "NestedLocationOperationInput":{
-      "type":"structure",
-      "members":{
-        "TopLevelQueryParam":{
-          "shape":"String",
-          "location":"querystring",
-          "locationName":"topLevel"
+    "PayloadStructType": {
+      "type": "structure",
+      "members": {
+        "PayloadMemberOne": {
+          "shape": "String"
         },
-        "Nested":{"shape":"NestedShapeWithLocations"}
-      }
-    },
-    "NestedShapeWithLocations":{
-      "type":"structure",
-      "members":{
-        "NestedQueryParam":{
-          "shape":"String",
-          "location":"querystring",
-          "locationName":"shouldBeIgnored"
-        },
-        "StringMember":{"shape":"String"}
-      }
-    },
-    "NestedLocationOperationOutput":{
-      "type":"structure",
-      "members":{
-        "TopLevelHeader":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-top-level"
-        },
-        "NestedResult":{"shape":"NestedResponseData"}
-      }
-    },
-    "NestedResponseData":{
-      "type":"structure",
-      "members":{
-        "NestedHeader":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-should-be-ignored"
-        },
-        "Value":{"shape":"String"}
-      }
-    },
-    "StatusCodeInOutputStructure":{
-      "type":"structure",
-      "members":{
-        "StatusCodeMember":{
-          "shape":"Integer",
-          "location":"statusCode"
+        "PayloadMemberTwo": {
+          "shape": "String"
         }
       }
     },
-    "MixedLocationOperationInput":{
-      "type":"structure",
-      "members":{
-        "StringMember":{
-          "shape":"String"
-        },
-        "IntegerMember":{
-          "shape":"Integer"
-        }
+    "QueryParamWithoutValueInput": {
+      "type": "structure",
+      "members": {}
+    },
+    "RecursiveListType": {
+      "type": "list",
+      "member": {
+        "shape": "RecursiveStructType"
       }
     },
-    "MixedLocationOperationOutput":{
-      "type":"structure",
-      "members":{
-        "StringMember":{
-          "shape":"String"
-        },
-        "IntegerMember":{
-          "shape":"Integer"
-        },
-        "StatusCodeMember":{
-          "shape":"Integer",
-          "location":"statusCode"
-        },
-        "StringHeaderMember":{
-          "shape":"String",
-          "location":"header",
-          "locationName":"x-amz-string"
-        }
-      }
-    },
-    "StreamType":{
-      "type":"blob",
-      "streaming":true,
-      "requiresLength":true
-    },
-    "StreamTypeChunkedEncoding":{
-      "type":"blob",
-      "streaming":true,
-      "requiresLength":false
-    },
-    "String":{"type":"string"},
-    "StructWithNestedBlobType":{
-      "type":"structure",
-      "members":{
-        "NestedBlob":{"shape":"BlobType"}
-      }
-    },
-    "StructWithTimestamp":{
-      "type":"structure",
-      "members":{
-        "NestedTimestamp":{"shape":"Timestamp"}
-      }
-    },
-    "StructureWithStreamingMember":{
-      "type":"structure",
-      "members":{
-        "StreamingMember":{"shape":"StreamType"}
+    "RecursiveMapType": {
+      "type": "map",
+      "key": {
+        "shape": "String"
       },
-      "payload":"StreamingMember"
-    },
-    "StructureWithStreamingMemberChunkedEncoding":{
-      "type":"structure",
-      "members":{
-        "StreamingMember":{"shape":"StreamTypeChunkedEncoding"}
-      },
-      "payload":"StreamingMember"
-    },
-    "SubTypeOne":{
-      "type":"structure",
-      "members":{
-        "SubTypeOneMember":{"shape":"String"}
+      "value": {
+        "shape": "RecursiveStructType"
       }
     },
-    "Timestamp":{"type":"timestamp"},
-    "ListOfTimeStamp":{
-      "type":"list",
-      "member":{"shape":"UnixTimestamp"}
+    "RecursiveStructType": {
+      "type": "structure",
+      "members": {
+        "NoRecurse": {
+          "shape": "String"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "RecursiveList": {
+          "shape": "RecursiveListType"
+        },
+        "RecursiveMap": {
+          "shape": "RecursiveMapType"
+        }
+      }
     },
-    "MapOfTimeStamp":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"UnixTimestamp"}
+    "SimpleStruct": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "NestedLocationOperationInput": {
+      "type": "structure",
+      "members": {
+        "TopLevelQueryParam": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "topLevel"
+        },
+        "Nested": {
+          "shape": "NestedShapeWithLocations"
+        }
+      }
+    },
+    "NestedShapeWithLocations": {
+      "type": "structure",
+      "members": {
+        "NestedQueryParam": {
+          "shape": "String",
+          "location": "querystring",
+          "locationName": "shouldBeIgnored"
+        },
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "NestedLocationOperationOutput": {
+      "type": "structure",
+      "members": {
+        "TopLevelHeader": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-top-level"
+        },
+        "NestedResult": {
+          "shape": "NestedResponseData"
+        }
+      }
+    },
+    "NestedResponseData": {
+      "type": "structure",
+      "members": {
+        "NestedHeader": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-should-be-ignored"
+        },
+        "Value": {
+          "shape": "String"
+        }
+      }
+    },
+    "StatusCodeInOutputStructure": {
+      "type": "structure",
+      "members": {
+        "StatusCodeMember": {
+          "shape": "Integer",
+          "location": "statusCode"
+        }
+      }
+    },
+    "MixedLocationOperationInput": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        }
+      }
+    },
+    "MixedLocationOperationOutput": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "StatusCodeMember": {
+          "shape": "Integer",
+          "location": "statusCode"
+        },
+        "StringHeaderMember": {
+          "shape": "String",
+          "location": "header",
+          "locationName": "x-amz-string"
+        }
+      }
+    },
+    "StreamType": {
+      "type": "blob",
+      "streaming": true,
+      "requiresLength": true
+    },
+    "StreamTypeChunkedEncoding": {
+      "type": "blob",
+      "streaming": true,
+      "requiresLength": false
+    },
+    "String": {
+      "type": "string"
+    },
+    "StructWithNestedBlobType": {
+      "type": "structure",
+      "members": {
+        "NestedBlob": {
+          "shape": "BlobType"
+        }
+      }
+    },
+    "StructWithTimestamp": {
+      "type": "structure",
+      "members": {
+        "NestedTimestamp": {
+          "shape": "Timestamp"
+        }
+      }
+    },
+    "StructureWithStreamingMember": {
+      "type": "structure",
+      "members": {
+        "StreamingMember": {
+          "shape": "StreamType"
+        }
+      },
+      "payload": "StreamingMember"
+    },
+    "StructureWithStreamingMemberChunkedEncoding": {
+      "type": "structure",
+      "members": {
+        "StreamingMember": {
+          "shape": "StreamTypeChunkedEncoding"
+        }
+      },
+      "payload": "StreamingMember"
+    },
+    "SubTypeOne": {
+      "type": "structure",
+      "members": {
+        "SubTypeOneMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "Timestamp": {
+      "type": "timestamp"
+    },
+    "ListOfTimeStamp": {
+      "type": "list",
+      "member": {
+        "shape": "UnixTimestamp"
+      }
+    },
+    "MapOfTimeStamp": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "UnixTimestamp"
+      }
     },
     "EventStreamOperationRequest": {
       "type": "structure",
@@ -938,7 +1285,7 @@
           "shape": "InputEventStream"
         }
       },
-      "payload":"InputEventStream"
+      "payload": "InputEventStream"
     },
     "EventStreamStringPayloadOperationRequest": {
       "type": "structure",
@@ -950,7 +1297,7 @@
           "shape": "InputEventStreamStringPayload"
         }
       },
-      "payload":"InputEventStreamStringPayload"
+      "payload": "InputEventStreamStringPayload"
     },
     "EventStreamOutput": {
       "type": "structure",
@@ -985,8 +1332,8 @@
       "type": "structure",
       "members": {
         "ExplicitPayloadMember": {
-          "shape":"ExplicitPayloadMember",
-          "eventpayload":true
+          "shape": "ExplicitPayloadMember",
+          "eventpayload": true
         },
         "HeaderMember": {
           "shape": "String",
@@ -999,8 +1346,8 @@
       "type": "structure",
       "members": {
         "ExplicitPayloadStringMember": {
-          "shape":"String",
-          "eventpayload":true
+          "shape": "String",
+          "eventpayload": true
         },
         "HeaderMember": {
           "shape": "String",
@@ -1009,7 +1356,9 @@
       },
       "event": true
     },
-    "ExplicitPayloadMember":{"type":"blob"},
+    "ExplicitPayloadMember": {
+      "type": "blob"
+    },
     "EventStream": {
       "type": "structure",
       "members": {
@@ -1047,10 +1396,12 @@
       "type": "structure",
       "document": true
     },
-    "StructureWithDocumentMember":{
-      "type":"structure",
-      "members":{
-        "DocumentMember":{"shape":"MyDocument"}
+    "StructureWithDocumentMember": {
+      "type": "structure",
+      "members": {
+        "DocumentMember": {
+          "shape": "MyDocument"
+        }
       }
     },
     "AllTypesUnionStructure": {
