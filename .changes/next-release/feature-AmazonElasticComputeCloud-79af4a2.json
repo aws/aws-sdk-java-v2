@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Include length limits in the SDK and documentation for text fields in Image (AMI) APIs such as the image name and description"
-}

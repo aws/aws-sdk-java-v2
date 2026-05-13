@@ -1,4 +1,109 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.5__ __2026-05-13__
+## __ARC - Region switch__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Batch__
+  - ### Features
+    - Adds a billing callout to docs regarding using the CE Scale Down Delay feature
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adds parameters to call the GetWhatsAppMessageTemplate and UpdateWhatsAppMessageTemplate APIs with a template name and language code in place of the template ID. Linked WhatsApp accounts also describe whether the WABA is onboarded to Meta's Marketing Messages API.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now defaults the job timeout to 480 minutes for Glue version 5.0 and later when no timeout value is specified. The default remains 2,880 minutes for Glue version 4.0 and earlier.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Add support for Amazon EC2 Interruptible-ODCR
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Upgrade Jackson to 2.21.3
+
+## __AWS Security Agent__
+  - ### Features
+    - Add support for code reviews, a new resource type that enables automated security-focused static analysis of source code repositories.
+
+## __AWS Step Functions__
+  - ### Features
+    - Service Release Notes
+
+## __AWSBillingConductor__
+  - ### Features
+    - Add ConflictException to UpdateCustomLineItem operation.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Added support for Amazon Aurora DSQL change data capture (CDC) streams that deliver row-level database changes to Amazon Kinesis in JSON format. Includes CreateStream, GetStream, ListStreams, and DeleteStream operations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This change added three new EventSourceName for schedule notification feature
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Include length limits in the SDK and documentation for text fields in Image (AMI) APIs such as the image name and description
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Lightsail__
+  - ### Features
+    - Added OriginIpAddressTypeEnum (ipv4, ipv6, dualstack) and ipAddressType field to Origin and InputOrigin structures for Lightsail CDN distributions. Allows customers to specify how the distribution connects to origins, using IPv4, IPv6, or dualstack networking
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds support for AutomatedSnapshotPauseOptions.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds five new custom permission option for Quick Apps so that these capabilities can be controlled by public SDK and CLI.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added rg.xlarge and rg.4xlarge to valid NodeType values and updated documentation for CreateCluster, ModifyCluster, ResizeCluster, and RestoreFromClusterSnapshot APIs to reflect RG node type support.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed request-level override configuration not being propagated to sub-requests during multipart uploads and copies in the S3 AsyncClient.
+        - Contributed by: [@dbadaya1](https://github.com/dbadaya1)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds execution role session name mode to reflect user identity in Studio. Adds Flexible Training Plans on Studio apps. Adds restricted model packages to control access to proprietary model artifacts via IAM. Fixed instance type parity between inference endpoints and managed shadow tests.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - This release added support for Outbound Campaign timezone detection using all available contact methods
+
+## __Partner Central Account API__
+  - ### Features
+    - Service Release Notes
+
+## __RTBFabric__
+  - ### Features
+    - Customers can now configure custom domain names for their RTB Fabric gateways. This enables partners to use their own branded domain for RTB traffic instead of the default rtbfabric endpoint
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@dbadaya1](https://github.com/dbadaya1)
 # __2.44.4__ __2026-05-07__
 ## __AWS Billing and Cost Management Data Exports__
   - ### Features
