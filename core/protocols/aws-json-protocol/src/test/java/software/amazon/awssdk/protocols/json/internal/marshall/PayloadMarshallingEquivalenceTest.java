@@ -17,11 +17,14 @@ package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -203,6 +207,84 @@ class PayloadMarshallingEquivalenceTest {
         String body = marshallAndGetBody(field);
         // "data" base64 encoded is "ZGF0YQ=="
         assertThat(body).contains("\"fieldName\":\"ZGF0YQ==\"");
+    }
+
+    @Test
+    void marshallPayloadField_withLargeSdkBytesValue_producesCorrectBase64() {
+        // 200 KB of random data — large enough to trigger SdkByteArrayOutputStream overflow
+        byte[] rawData = new byte[200 * 1024];
+        new java.util.Random(12345).nextBytes(rawData);
+        SdkBytes sdkBytes = SdkBytes.fromByteArray(rawData);
+        String expectedBase64 = Base64.getEncoder().encodeToString(rawData);
+
+        SdkField<SdkBytes> field = payloadField("binaryField", MarshallingType.SDK_BYTES,
+                                                 obj -> sdkBytes);
+        String body = marshallAndGetBody(field);
+        assertThat(body).contains("\"binaryField\":\"" + expectedBase64 + "\"");
+    }
+
+    @Test
+    void marshallPayload_smallPayload_partialReadThenNewStream_producesFullContent() throws IOException {
+        // Small payload (below MAX_BUFFER_SIZE) — exercises the single-buffer ContentStreamProvider path
+        SdkField<String> field = payloadField("msg", MarshallingType.STRING, obj -> "hello world");
+        SdkPojo pojo = new SimplePojo(field);
+        SdkHttpFullRequest result = createMarshaller().marshall(pojo);
+
+        ContentStreamProvider provider = result.contentStreamProvider().orElseThrow(
+            () -> new AssertionError("Expected content stream provider"));
+
+        String expectedBody = bodyAsString(result);
+
+        // Simulate a partial read (connection drop after reading only a few bytes)
+        InputStream firstAttempt = provider.newStream();
+        byte[] partialBuf = new byte[3];
+        int bytesRead = firstAttempt.read(partialBuf);
+        assertThat(bytesRead).isGreaterThan(0);
+        // Do NOT fully consume — simulates connection drop
+
+        // Retry: call newStream() again and verify full content is produced
+        InputStream retryStream = provider.newStream();
+        String retryBody = software.amazon.awssdk.utils.IoUtils.toUtf8String(retryStream);
+        assertThat(retryBody).isEqualTo(expectedBody);
+    }
+
+    @Test
+    void marshallPayload_largePayload_partialReadThenNewStream_producesFullContent() throws IOException {
+        // Large payload (exceeds MAX_BUFFER_SIZE) — exercises the chunked ContentStreamProvider path
+        byte[] rawData = new byte[200 * 1024];
+        new java.util.Random(99999).nextBytes(rawData);
+        SdkBytes sdkBytes = SdkBytes.fromByteArray(rawData);
+        String expectedBase64 = Base64.getEncoder().encodeToString(rawData);
+
+        SdkField<SdkBytes> field = payloadField("binaryField", MarshallingType.SDK_BYTES, obj -> sdkBytes);
+        SdkPojo pojo = new SimplePojo(field);
+        SdkHttpFullRequest result = createMarshaller().marshall(pojo);
+
+        ContentStreamProvider provider = result.contentStreamProvider().orElseThrow(
+            () -> new AssertionError("Expected content stream provider"));
+
+        String expectedBody = bodyAsString(result);
+
+        // Simulate a partial read — read roughly half the content then abandon
+        InputStream firstAttempt = provider.newStream();
+        int halfSize = expectedBody.length() / 2;
+        byte[] partialBuf = new byte[halfSize];
+        int totalRead = 0;
+        while (totalRead < halfSize) {
+            int n = firstAttempt.read(partialBuf, totalRead, halfSize - totalRead);
+            if (n == -1) {
+                break;
+            }
+            totalRead += n;
+        }
+        assertThat(totalRead).isGreaterThan(0);
+        // Do NOT fully consume — simulates connection drop mid-transfer
+
+        // Retry: call newStream() again and verify full content is produced correctly
+        InputStream retryStream = provider.newStream();
+        String retryBody = software.amazon.awssdk.utils.IoUtils.toUtf8String(retryStream);
+        assertThat(retryBody).isEqualTo(expectedBody);
+        assertThat(retryBody).contains("\"binaryField\":\"" + expectedBase64 + "\"");
     }
 
     @Test
