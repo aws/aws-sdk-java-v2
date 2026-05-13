@@ -76,6 +76,9 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         SelectedAuthScheme<? extends Identity> selectedAuthScheme =
             AuthSchemeResolver.selectAuthScheme(authOptions, authSchemes, identityProviders, metricCollector);
 
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_AFTER_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+
         selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
