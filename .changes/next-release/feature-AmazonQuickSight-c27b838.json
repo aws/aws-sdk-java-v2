@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "Adds five new custom permission option for Quick Apps so that these capabilities can be controlled by public SDK and CLI."
+}
