@@ -64,6 +64,7 @@ class S3ExpressUtilsTest {
     @Test
     void isS3ExpressBucket_suffixMatchesEndpointRuleset() throws IOException {
         String rulesetSuffix = extractBucketSuffixFromRuleset();
+        assertThat(rulesetSuffix).isEqualTo("--x-s3");
         GetObjectRequest request = GetObjectRequest.builder()
                                                    .bucket("test-bucket" + rulesetSuffix)
                                                    .key("key")
