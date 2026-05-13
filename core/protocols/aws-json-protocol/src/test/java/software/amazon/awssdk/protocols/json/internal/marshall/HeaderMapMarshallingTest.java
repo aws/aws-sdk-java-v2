@@ -39,12 +39,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
 
-/**
- * Tests that Map fields with {@link MarshallLocation#HEADER} (prefix headers) are marshalled
- * correctly in the JSON protocol. This covers the bug where the JSON protocol was missing a
- * headerMarshaller for {@link MarshallingType#MAP}, causing a NullPointerException in
- * {@link JsonProtocolMarshaller#marshallFieldViaRegistry}.
- */
+
 class HeaderMapMarshallingTest {
 
     private static final URI ENDPOINT = URI.create("http://localhost");
