@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "Add support for code reviews, a new resource type that enables automated security-focused static analysis of source code repositories."
+}
