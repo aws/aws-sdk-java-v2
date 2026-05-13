@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -35,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.AfterEach;
@@ -232,6 +235,45 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
 
         assertThatThrownBy(() -> subscriber.onNext(null))
             .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void multiPartDownload_manyParts_shouldCompleteSuccessfully() throws Exception {
+        // 13 parts to exceed maxInFlightParts (10)
+        byte[] data = new byte[208]; // 13 × 16 bytes
+        Arrays.fill(data, (byte) 'X');
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse().withStatus(206)
+                                           .withHeader("Content-Length", "16")
+                                           .withHeader("Content-Range", "bytes 0-15/208")
+                                           .withHeader("ETag", "\"etag\"")
+                                           .withBody(Arrays.copyOfRange(data, 0, 16))));
+
+        for (int i = 1; i < 13; i++) {
+            int start = i * 16;
+            int end = start + 15;
+            stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                        .withHeader("Range", matching("bytes=" + start + "-" + end))
+                        .willReturn(aResponse().withStatus(206)
+                                               .withHeader("Content-Length", "16")
+                                               .withHeader("Content-Range", "bytes " + start + "-" + end + "/208")
+                                               .withHeader("ETag", "\"etag\"")
+                                               .withBody(Arrays.copyOfRange(data, start, end + 1))));
+        }
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        s3AsyncClient.presignedUrlExtension()
+                     .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+                     .join();
+
+        assertThat(Files.readAllBytes(tempFile)).isEqualTo(data);
+        verify(13, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
     }
 
     private static Path createTempFile() throws IOException {
