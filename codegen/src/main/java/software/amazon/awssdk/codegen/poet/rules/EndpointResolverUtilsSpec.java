@@ -676,7 +676,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         b.endControlFlow();
 
         if (endpointRulesSpecUtils.isS3()) {
-            b.addStatement("$T.addS3ExpressBusinessMetricIfApplicable(executionAttributes)",
+            b.addStatement("$T.addS3ExpressBusinessMetricIfApplicable(endpoint, executionAttributes)",
                            ClassName.get("software.amazon.awssdk.services.s3.internal.s3express", "S3ExpressUtils"));
         }
 
