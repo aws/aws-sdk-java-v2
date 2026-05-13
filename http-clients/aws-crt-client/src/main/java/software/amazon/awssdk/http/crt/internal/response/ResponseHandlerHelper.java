@@ -30,61 +30,17 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 public class ResponseHandlerHelper {
 
     private final SdkHttpResponse.Builder responseBuilder;
-    private HttpStreamBase stream;
-    private boolean streamClosed;
-    private final Object streamLock = new Object();
 
     public ResponseHandlerHelper(SdkHttpResponse.Builder responseBuilder) {
         this.responseBuilder = responseBuilder;
     }
 
     public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
-        synchronized (streamLock) {
-            if (this.stream == null) {
-                this.stream = stream;
-            }
-        }
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
             }
             responseBuilder.statusCode(responseStatusCode);
-        }
-    }
-
-    public void incrementWindow(int windowSize) {
-        synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
-                stream.incrementWindow(windowSize);
-            }
-        }
-    }
-
-    /**
-     * Release the connection back to the pool so that it may be reused. This should be called when the request
-     * completes successfully and the response has been fully consumed.
-     */
-    public void releaseConnection() {
-        synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
-                streamClosed = true;
-                stream.close();
-            }
-        }
-    }
-
-    /**
-     * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
-     * connection pool. This should be called on error paths or when the stream is aborted before the response is
-     * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
-     */
-    public void closeConnection() {
-        synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
-                streamClosed = true;
-                stream.cancel();
-                stream.close();
-            }
         }
     }
 }

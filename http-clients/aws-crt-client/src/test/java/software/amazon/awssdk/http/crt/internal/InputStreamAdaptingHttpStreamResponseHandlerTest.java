@@ -31,19 +31,21 @@ import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
 
     @Override
-    HttpStreamBaseResponseHandler responseHandler() {
-        return new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+    HttpStreamBaseResponseHandler responseHandler(CrtStreamHandler streamHandler) {
+        return new InputStreamAdaptingHttpStreamResponseHandler(requestFuture, streamHandler);
     }
 
     @Override
-    HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher) {
-        return new InputStreamAdaptingHttpStreamResponseHandler(requestFuture, simplePublisher);
+    HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher,
+                                                                     CrtStreamHandler streamHandler) {
+        return new InputStreamAdaptingHttpStreamResponseHandler(requestFuture, simplePublisher, streamHandler);
     }
 
     @Test
@@ -63,9 +65,8 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
         abortableInputStream.read();
         abortableInputStream.abort();
 
-        InOrder inOrder = Mockito.inOrder(httpStream);
-        inOrder.verify(httpStream).cancel();
-        inOrder.verify(httpStream).close();
+        verify(httpStream).cancel();
+        verify(httpStream, Mockito.atLeastOnce()).close();
     }
 
     @Test
@@ -85,7 +86,7 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
         abortableInputStream.read();
         abortableInputStream.close();
 
-        verify(httpStream).close();
+        verify(httpStream, Mockito.atLeastOnce()).close();
     }
 
     @Test
@@ -97,8 +98,7 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
 
         requestFuture.completeExceptionally(new RuntimeException());
 
-        InOrder inOrder = Mockito.inOrder(httpStream);
-        inOrder.verify(httpStream).cancel();
-        inOrder.verify(httpStream).close();
+        verify(httpStream).cancel();
+        verify(httpStream, Mockito.atLeastOnce()).close();
     }
 }

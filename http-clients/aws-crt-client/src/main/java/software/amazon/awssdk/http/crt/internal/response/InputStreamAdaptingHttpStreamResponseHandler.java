@@ -31,6 +31,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
+import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -45,17 +46,21 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
     private final SdkHttpFullResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
+    private final CrtStreamHandler streamHandler;
 
-    public InputStreamAdaptingHttpStreamResponseHandler(CompletableFuture<SdkHttpFullResponse> requestCompletionFuture) {
-        this(requestCompletionFuture, new SimplePublisher<>());
+    public InputStreamAdaptingHttpStreamResponseHandler(CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
+                                                        CrtStreamHandler streamHandler) {
+        this(requestCompletionFuture, new SimplePublisher<>(), streamHandler);
     }
 
     @SdkTestInternalApi
     public InputStreamAdaptingHttpStreamResponseHandler(CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
-                                                        SimplePublisher<ByteBuffer> simplePublisher) {
+                                                        SimplePublisher<ByteBuffer> simplePublisher,
+                                                        CrtStreamHandler streamHandler) {
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
         this.simplePublisher = simplePublisher;
+        this.streamHandler = streamHandler;
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder);
     }
 
@@ -66,7 +71,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
 
         // Propagate cancellation
         requestCompletionFuture.exceptionally(t -> {
-            responseHandlerHelper.closeConnection();
+            streamHandler.closeConnection();
             return null;
         });
     }
@@ -76,7 +81,7 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         if (inputStreamSubscriber == null) {
             inputStreamSubscriber =
                 AbortableInputStreamSubscriber.builder()
-                                              .doAfterClose(() -> responseHandlerHelper.closeConnection())
+                                              .doAfterClose(() -> streamHandler.closeConnection())
                                               .build();
             simplePublisher.subscribe(inputStreamSubscriber);
             // For response with a payload, we need to complete the future here to allow downstream to retrieve the data from
@@ -97,10 +102,10 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
                 log.debug(() -> "The subscriber failed to receive the data, closing the connection and failing the future",
                           failure);
                 requestCompletionFuture.completeExceptionally(failure);
-                responseHandlerHelper.closeConnection();
+                streamHandler.closeConnection();
                 return;
             }
-            responseHandlerHelper.incrementWindow(bodyBytesIn.length);
+            streamHandler.incrementWindow(bodyBytesIn.length);
         });
 
         // Window will be incremented after the subscriber consumes the data, returning 0 here to disable it.
@@ -120,16 +125,15 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
         Throwable toThrow = wrapWithIoExceptionIfRetryable(new HttpException(errorCode));
         simplePublisher.error(toThrow);
         requestCompletionFuture.completeExceptionally(toThrow);
-        responseHandlerHelper.closeConnection();
+        streamHandler.closeConnection();
     }
 
     private void onSuccessfulResponseComplete() {
         // For response without a payload, for example, S3 PutObjectResponse, we need to complete the future
         // in onResponseComplete callback since onResponseBody will never be invoked.
-
         requestCompletionFuture.complete(responseBuilder.build());
         // requestCompletionFuture has been completed at this point, no need to notify the future
         simplePublisher.complete();
-        responseHandlerHelper.releaseConnection();
+        streamHandler.releaseConnection();
     }
 }

@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
-import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
@@ -32,23 +31,22 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 @SdkInternalApi
 public final class CrtRequestExecutor {
 
-    public ExecutionResult execute(CrtRequestContext executionContext) {
+    public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext,
+                                                          CrtStreamHandler streamHandler) {
         CompletableFuture<SdkHttpFullResponse> responseFuture = new CompletableFuture<>();
-        CompletableFuture<HttpStreamBase> streamFuture;
 
         try {
-            streamFuture = doExecute(executionContext, responseFuture);
+            doExecute(executionContext, responseFuture, streamHandler);
         } catch (Throwable t) {
             responseFuture.completeExceptionally(t);
-            streamFuture = new CompletableFuture<>();
-            streamFuture.completeExceptionally(t);
         }
 
-        return new ExecutionResult(streamFuture, responseFuture);
+        return responseFuture;
     }
 
-    private CompletableFuture<HttpStreamBase> doExecute(CrtRequestContext executionContext,
-                                                        CompletableFuture<SdkHttpFullResponse> responseFuture) {
+    private void doExecute(CrtRequestContext executionContext,
+                           CompletableFuture<SdkHttpFullResponse> responseFuture,
+                           CrtStreamHandler streamHandler) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
@@ -58,7 +56,8 @@ public final class CrtRequestExecutor {
             acquireStartTime = System.nanoTime();
         }
 
-        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(responseFuture);
+        InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
+            new InputStreamAdaptingHttpStreamResponseHandler(responseFuture, streamHandler);
 
         HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
 
@@ -77,32 +76,9 @@ public final class CrtRequestExecutor {
             if (throwable != null) {
                 Throwable toThrow = wrapCrtException(throwable);
                 responseFuture.completeExceptionally(toThrow);
+            } else {
+                streamHandler.setStream(streamBase);
             }
         });
-
-        return streamFuture;
-    }
-
-    /**
-     * Holds the result of submitting a request to CRT: the stream (for writing body data via
-     * {@code writeData}) and the response future (for reading the response).
-     */
-    public static final class ExecutionResult {
-        private final CompletableFuture<HttpStreamBase> streamFuture;
-        private final CompletableFuture<SdkHttpFullResponse> responseFuture;
-
-        ExecutionResult(CompletableFuture<HttpStreamBase> streamFuture,
-                        CompletableFuture<SdkHttpFullResponse> responseFuture) {
-            this.streamFuture = streamFuture;
-            this.responseFuture = responseFuture;
-        }
-
-        public CompletableFuture<HttpStreamBase> streamFuture() {
-            return streamFuture;
-        }
-
-        public CompletableFuture<SdkHttpFullResponse> responseFuture() {
-            return responseFuture;
-        }
     }
 }

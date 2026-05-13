@@ -33,34 +33,36 @@ import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
 
     @Override
-    HttpStreamBaseResponseHandler responseHandler() {
+    HttpStreamBaseResponseHandler responseHandler(CrtStreamHandler streamHandler) {
         AsyncResponseHandler<Void> responseHandler = new AsyncResponseHandler<>((response,
                                                                                           executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler);
+        return CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler);
     }
 
     @Override
-    HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher) {
+    HttpStreamBaseResponseHandler responseHandlerWithMockedPublisher(SimplePublisher<ByteBuffer> simplePublisher,
+                                                                     CrtStreamHandler streamHandler) {
         AsyncResponseHandler<Void> responseHandler = new AsyncResponseHandler<>((response,
                                                                                  executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return new CrtResponseAdapter(requestFuture, responseHandler, simplePublisher);
+        return new CrtResponseAdapter(requestFuture, responseHandler, simplePublisher, streamHandler);
     }
 
     @Test
     void onResponseComplete_publisherCancelled_closesStream() {
         SdkAsyncHttpResponseHandler responseHandler = new TestAsyncHttpResponseHandler();
 
-        HttpStreamBaseResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler);
+        HttpStreamBaseResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler);
         HttpHeader[] httpHeaders = getHttpHeaders();
         crtResponseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);

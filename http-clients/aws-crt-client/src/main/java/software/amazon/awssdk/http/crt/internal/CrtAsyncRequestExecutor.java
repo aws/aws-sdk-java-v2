@@ -67,8 +67,10 @@ public final class CrtAsyncRequestExecutor {
 
         HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
 
+        CrtStreamHandler streamHandler = new CrtStreamHandler();
+
         HttpStreamBaseResponseHandler crtResponseHandler =
-            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
+            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler(), streamHandler);
 
         CompletableFuture<HttpStreamBase> streamFuture =
             executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
@@ -83,6 +85,8 @@ public final class CrtAsyncRequestExecutor {
             if (throwable != null) {
                 Throwable toThrow = wrapCrtException(throwable);
                 reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
+            } else {
+                streamHandler.setStream(stream);
             }
         });
     }

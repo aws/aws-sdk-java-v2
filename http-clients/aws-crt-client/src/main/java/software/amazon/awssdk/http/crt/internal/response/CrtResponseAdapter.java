@@ -30,6 +30,7 @@ import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -48,27 +49,39 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
     private final SimplePublisher<ByteBuffer> responsePublisher;
     private final SdkHttpResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
+    private final CrtStreamHandler streamHandler;
 
     private CrtResponseAdapter(CompletableFuture<Void> completionFuture,
-                               SdkAsyncHttpResponseHandler responseHandler) {
-        this(completionFuture, responseHandler, new SimplePublisher<>());
+                               SdkAsyncHttpResponseHandler responseHandler,
+                               CrtStreamHandler streamHandler) {
+        this(completionFuture, responseHandler, new SimplePublisher<>(), streamHandler);
     }
 
     @SdkTestInternalApi
     public CrtResponseAdapter(CompletableFuture<Void> completionFuture,
                               SdkAsyncHttpResponseHandler responseHandler,
                               SimplePublisher<ByteBuffer> simplePublisher) {
+        this(completionFuture, responseHandler, simplePublisher, new CrtStreamHandler());
+    }
+
+    @SdkTestInternalApi
+    public CrtResponseAdapter(CompletableFuture<Void> completionFuture,
+                              SdkAsyncHttpResponseHandler responseHandler,
+                              SimplePublisher<ByteBuffer> simplePublisher,
+                              CrtStreamHandler streamHandler) {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.responseHandler = Validate.paramNotNull(responseHandler, "responseHandler");
         this.responseBuilder = SdkHttpResponse.builder();
         this.responsePublisher = simplePublisher;
+        this.streamHandler = streamHandler;
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder);
     }
 
     public static HttpStreamBaseResponseHandler toCrtResponseHandler(
         CompletableFuture<Void> requestFuture,
-        SdkAsyncHttpResponseHandler responseHandler) {
-        return new CrtResponseAdapter(requestFuture, responseHandler);
+        SdkAsyncHttpResponseHandler responseHandler,
+        CrtStreamHandler streamHandler) {
+        return new CrtResponseAdapter(requestFuture, responseHandler, streamHandler);
     }
 
     @Override
@@ -89,17 +102,16 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         CompletableFuture<Void> writeFuture = responsePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
         if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
-            // Optimization: If write succeeded immediately, return non-zero to avoid the extra call back into the CRT.
             return bodyBytesIn.length;
         }
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
                 failResponseHandlerAndFuture(failure);
-                responseHandlerHelper.closeConnection();
+                streamHandler.closeConnection();
                 return;
             }
-            responseHandlerHelper.incrementWindow(bodyBytesIn.length);
+            streamHandler.incrementWindow(bodyBytesIn.length);
         });
 
         return 0;
@@ -122,7 +134,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
             }
             completionFuture.complete(null);
         });
-        responseHandlerHelper.releaseConnection();
+        streamHandler.releaseConnection();
     }
 
     private void onFailedResponseComplete(HttpException error) {
@@ -130,7 +142,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         Throwable toThrow = wrapWithIoExceptionIfRetryable(error);
         responsePublisher.error(toThrow);
         failResponseHandlerAndFuture(toThrow);
-        responseHandlerHelper.closeConnection();
+        streamHandler.closeConnection();
     }
 
     private void failResponseHandlerAndFuture(Throwable error) {

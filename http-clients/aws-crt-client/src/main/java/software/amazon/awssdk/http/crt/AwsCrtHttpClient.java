@@ -26,7 +26,6 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.http.HttpException;
-import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
 import software.amazon.awssdk.http.crt.internal.CrtUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -126,13 +126,13 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
 
             try {
-                CrtRequestExecutor.ExecutionResult execution = new CrtRequestExecutor().execute(context);
-                responseFuture = execution.responseFuture();
+                CrtStreamHandler streamHandler = new CrtStreamHandler();
+                responseFuture = new CrtRequestExecutor().execute(context, streamHandler);
 
-                // Wait for the stream to be acquired, then write the request body from the caller thread.
+                // Write the request body from the caller thread via the stream handler,
+                // which guards against concurrent stream close with a synchronized block.
                 // This avoids blocking the CRT event loop thread in InputStream.read().
-                HttpStreamBase stream = CompletableFutureUtils.joinInterruptibly(execution.streamFuture());
-                writeRequestBody(stream);
+                writeRequestBody(streamHandler);
 
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
                 builder.response(response);
@@ -169,21 +169,21 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             }
         }
 
-        private void writeRequestBody(HttpStreamBase stream) throws IOException {
+        private void writeRequestBody(CrtStreamHandler streamHandler) throws IOException {
             ContentStreamProvider provider = context.sdkRequest().contentStreamProvider().orElse(null);
             if (provider == null) {
                 return;
             }
 
+            streamHandler.waitForStream();
             try (InputStream inputStream = provider.newStream()) {
                 byte[] buf = new byte[WRITE_BUFFER_SIZE];
                 int read;
-
                 while ((read = inputStream.read(buf, 0, buf.length)) >= 0) {
                     byte[] chunk = read == buf.length ? buf : Arrays.copyOf(buf, read);
-                    CompletableFutureUtils.joinInterruptibly(stream.writeData(chunk, false));
+                    CompletableFutureUtils.joinInterruptibly(streamHandler.writeData(chunk, false));
                 }
-                CompletableFutureUtils.joinInterruptibly(stream.writeData(null, true));
+                CompletableFutureUtils.joinInterruptibly(streamHandler.writeData(null, true));
             }
         }
 
