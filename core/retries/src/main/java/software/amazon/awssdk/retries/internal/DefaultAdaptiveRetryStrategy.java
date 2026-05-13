@@ -129,6 +129,11 @@ public final class DefaultAdaptiveRetryStrategy
             return this;
         }
 
+        public Builder throttlingTokenBucketExceptionCost(int throttlingExceptionCost) {
+            setThrottlingTokenBucketExceptionCost(throttlingExceptionCost);
+            return this;
+        }
+
         public Builder rateLimiterTokenBucketStore(RateLimiterTokenBucketStore rateLimiterTokenBucketStore) {
             this.rateLimiterTokenBucketStore = rateLimiterTokenBucketStore;
             return this;

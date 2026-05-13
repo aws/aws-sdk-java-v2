@@ -20,6 +20,10 @@ updates:
       - dependency-name: "org.slf4j:*"
         update-types: ["version-update:semver-major"]
 
+      # Only allow patch updates for Netty.
+      - dependency-name: "io.netty:*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+
       # Ignore test dependencies to reduce PR noisiness. We don't need to stay
       # on top of them as much as compile/runtime dependencies
       - dependency-name: "com.amazonaws:aws-java-sdk*"

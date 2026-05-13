@@ -346,6 +346,8 @@
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.ContainerCredentialsProvider" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
 
+            <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
+
             <!-- test modules are allowed to make blocking call as parts of their testing -->
             <Class name="~.*testutils.*" />
             <Class name="~.*s3benchmarks.*" />
@@ -528,7 +530,21 @@
          whose NULL marshallers handle null validation. -->
     <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshaller"/>
-        <Method name="doMarshall"/>
+        <Or>
+            <Method name="doMarshall"/>
+            <Method name="marshallFieldViaRegistry"/>
+        </Or>
         <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+
+    <!-- Intentional benign-race get-then-put on ConcurrentHashMap. SdkField instances are
+         static final, and the registry always returns the same marshaller for a given
+         (location, marshallingType) pair, so concurrent puts are idempotent. Using get()
+         instead of computeIfAbsent() avoids the latter's bucket-level synchronization
+         overhead on every call. -->
+    <Match>
+        <Class name="software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshaller"/>
+        <Method name="marshallFieldViaRegistry"/>
+        <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
     </Match>
 </FindBugsFilter>

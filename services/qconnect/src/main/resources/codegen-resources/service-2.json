@@ -10623,8 +10623,17 @@
         "metadata":{
           "shape":"MessageMetadata",
           "documentation":"<p>Additional metadata for the message.</p>"
+        },
+        "originRequestId":{
+          "shape":"SendMessageRequestOriginRequestIdString",
+          "documentation":"<p>Request identifier from the origin system, used for end-to-end tracing across spans.</p>"
         }
       }
+    },
+    "SendMessageRequestOriginRequestIdString":{
+      "type":"string",
+      "max":256,
+      "min":1
     },
     "SendMessageResponse":{
       "type":"structure",
@@ -10877,9 +10886,17 @@
           "shape":"SpanStatus",
           "documentation":"<p>Span completion status</p>"
         },
+        "statusDescription":{
+          "shape":"SpanStatusDescriptionString",
+          "documentation":"<p>Human-readable error description when status is ERROR or TIMEOUT</p>"
+        },
         "requestId":{
           "shape":"Uuid",
           "documentation":"<p>The service request ID that initiated the operation</p>"
+        },
+        "originRequestId":{
+          "shape":"SpanOriginRequestIdString",
+          "documentation":"<p>The origin request identifier for end-to-end tracing.</p>"
         },
         "attributes":{
           "shape":"SpanAttributes",
@@ -11026,6 +11043,10 @@
         "promptVersion":{
           "shape":"Integer",
           "documentation":"<p>AI prompt version number</p>"
+        },
+        "timeToFirstTokenMs":{
+          "shape":"Integer",
+          "documentation":"<p>Time to first token in milliseconds, measured from when Amazon Bedrock was invoked to when the first token was returned</p>"
         }
       },
       "documentation":"<p>Contextual attributes capturing operation details, LLM configuration, usage metrics, and conversation data</p>"
@@ -11103,7 +11124,7 @@
         },
         "values":{
           "shape":"SpanMessageValueList",
-          "documentation":"<p>Message content values (text, tool use, tool result)</p>"
+          "documentation":"<p>Message content values (text, tool use, tool result, reasoning)</p>"
         }
       },
       "documentation":"<p>A message in the conversation history with participant role and content values</p>"
@@ -11128,9 +11149,10 @@
         "toolResult":{
           "shape":"SpanToolResultValue",
           "documentation":"<p>Tool result message content</p>"
-        }
+        },
+        "reasoning":{"shape":"SpanReasoningValue"}
       },
-      "documentation":"<p>Message content value - can be text, tool invocation, or tool result</p>",
+      "documentation":"<p>Message content value - can be text, tool invocation, tool result, or reasoning</p>",
       "union":true
     },
     "SpanMessageValueList":{
@@ -11139,6 +11161,22 @@
       "max":10,
       "min":1
     },
+    "SpanOriginRequestIdString":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "SpanReasoningValue":{
+      "type":"structure",
+      "required":["value"],
+      "members":{
+        "value":{
+          "shape":"NonEmptySensitiveString",
+          "documentation":"<p>The reasoning text content</p>"
+        }
+      },
+      "documentation":"<p>Model reasoning and it's internal decision making process</p>"
+    },
     "SpanStatus":{
       "type":"string",
       "enum":[
@@ -11146,6 +11184,11 @@
         "ERROR",
         "TIMEOUT"
       ]
+    },
+    "SpanStatusDescriptionString":{
+      "type":"string",
+      "max":1024,
+      "min":1
     },
     "SpanTextValue":{
       "type":"structure",

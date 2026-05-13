@@ -43,12 +43,17 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import javax.net.ssl.SSLEngine;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 public class NettyUtilsTest {
@@ -274,108 +279,96 @@ public class NettyUtilsTest {
             .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
     }
 
-    @Test
-    public void decorateException_with_TimeoutException() {
+    private static Stream<Arguments> decorateExceptionWrappedCases() {
+        return Stream.of(
+            Arguments.of(new TimeoutException("...Acquire operation took longer..."),
+                         Throwable.class, TimeoutException.class),
+            Arguments.of(new IllegalStateException("...Too many outstanding acquire operations..."),
+                         Throwable.class, IllegalStateException.class),
+            Arguments.of(new ReadTimeoutException(),
+                         IOException.class, ReadTimeoutException.class),
+            Arguments.of(new WriteTimeoutException(),
+                         IOException.class, WriteTimeoutException.class),
+            Arguments.of(new ClosedChannelException(),
+                         IOException.class, ClosedChannelException.class),
+            Arguments.of(new IOException("...Connection reset by peer..."),
+                         IOException.class, IOException.class)
+        );
+    }
 
+    @ParameterizedTest
+    @MethodSource("decorateExceptionWrappedCases")
+    public void decorateException_wrapsException(Throwable input,
+                                                 Class<? extends Throwable> expectedType,
+                                                 Class<? extends Throwable> expectedCauseType) {
         Channel channel = mock(Channel.class);
-        Throwable timeoutException = new TimeoutException("...Acquire operation took longer...");
-        Throwable output = NettyUtils.decorateException(channel, timeoutException);
+        Throwable output = NettyUtils.decorateException(channel, input);
 
-        assertThat(output).isInstanceOf(Throwable.class);
-        assertThat(output.getCause()).isInstanceOf(TimeoutException.class);
+        assertThat(output).isInstanceOf(expectedType);
+        assertThat(output.getCause()).isInstanceOf(expectedCauseType);
         assertThat(output.getMessage()).isNotNull();
     }
 
-    @Test
-    public void decorateException_with_TimeoutException_noMsg() {
-
-        Channel channel = mock(Channel.class);
-        Throwable timeoutException = new TimeoutException();
-        Throwable output = NettyUtils.decorateException(channel, timeoutException);
-
-        assertThat(output).isInstanceOf(TimeoutException.class);
-        assertThat(output.getCause()).isNull();
+    private static Stream<Arguments> decorateExceptionPassthroughCases() {
+        return Stream.of(
+            Arguments.of(new TimeoutException()),
+            Arguments.of(new IllegalStateException()),
+            Arguments.of(new IOException())
+        );
     }
 
-    @Test
-    public void decorateException_with_IllegalStateException() {
-
+    @ParameterizedTest
+    @MethodSource("decorateExceptionPassthroughCases")
+    public void decorateException_noMatchingMessage_returnsOriginal(Throwable input) {
         Channel channel = mock(Channel.class);
-        Throwable illegalStateException = new IllegalStateException("...Too many outstanding acquire operations...");
-        Throwable output = NettyUtils.decorateException(channel, illegalStateException);
+        Throwable output = NettyUtils.decorateException(channel, input);
 
-        assertThat(output).isInstanceOf(Throwable.class);
-        assertThat(output.getCause()).isInstanceOf(IllegalStateException.class);
-        assertThat(output.getMessage()).isNotNull();
+        assertThat(output).isSameAs(input);
     }
 
-    @Test
-    public void decorateException_with_IllegalStateException_noMsg() {
-
-        Channel channel = mock(Channel.class);
-        Throwable illegalStateException = new IllegalStateException();
-        Throwable output = NettyUtils.decorateException(channel, illegalStateException);
-
-        assertThat(output).isInstanceOf(IllegalStateException.class);
-        assertThat(output.getCause()).isNull();
+    private static Stream<Arguments> channelDiagnosticsExceptionCases() {
+        return Stream.of(
+            Arguments.of(new ReadTimeoutException(), "Read timed out"),
+            Arguments.of(new WriteTimeoutException(), "Write timed out")
+        );
     }
 
-    @Test
-    public void decorateException_with_ReadTimeoutException() {
-
+    @ParameterizedTest
+    @MethodSource("channelDiagnosticsExceptionCases")
+    public void decorateException_includesChannelDiagnostics(Throwable input, String expectedPrefix) {
         Channel channel = mock(Channel.class);
-        Throwable readTimeoutException = new ReadTimeoutException();
-        Throwable output = NettyUtils.decorateException(channel, readTimeoutException);
+        Attribute attribute = mock(Attribute.class);
+        ChannelDiagnostics diagnostics = new ChannelDiagnostics(channel);
+        when(channel.attr(any())).thenReturn(attribute);
+        when(attribute.get()).thenReturn(diagnostics);
+        when(channel.parent()).thenReturn(null);
+
+        Throwable output = NettyUtils.decorateException(channel, input);
 
         assertThat(output).isInstanceOf(IOException.class);
-        assertThat(output.getCause()).isInstanceOf(ReadTimeoutException.class);
-        assertThat(output.getMessage()).isNotNull();
+        assertThat(output.getMessage()).startsWith(expectedPrefix);
+        assertThat(output.getMessage()).contains("Channel Information:");
     }
 
     @Test
-    public void decorateException_with_WriteTimeoutException() {
-
-        Channel channel = mock(Channel.class);
-        Throwable writeTimeoutException = new WriteTimeoutException();
-        Throwable output = NettyUtils.decorateException(channel, writeTimeoutException);
-
-        assertThat(output).isInstanceOf(IOException.class);
-        assertThat(output.getCause()).isInstanceOf(WriteTimeoutException.class);
-        assertThat(output.getMessage()).isNotNull();
+    public void errorMessageWithChannelDiagnostics_nullChannel_returnsBaseMessage() {
+        assertThat(NettyUtils.errorMessageWithChannelDiagnostics(null, "test message"))
+            .isEqualTo("test message");
     }
 
     @Test
-    public void decorateException_with_ClosedChannelException() {
-
+    public void errorMessageWithChannelDiagnostics_withDiagnostics_appendsChannelInfo() {
         Channel channel = mock(Channel.class);
-        Throwable closedChannelException = new ClosedChannelException();
-        Throwable output = NettyUtils.decorateException(channel, closedChannelException);
+        Attribute attribute = mock(Attribute.class);
+        ChannelDiagnostics diagnostics = new ChannelDiagnostics(channel);
+        when(channel.attr(any())).thenReturn(attribute);
+        when(attribute.get()).thenReturn(diagnostics);
+        when(channel.parent()).thenReturn(null);
 
-        assertThat(output).isInstanceOf(IOException.class);
-        assertThat(output.getCause()).isInstanceOf(ClosedChannelException.class);
-        assertThat(output.getMessage()).isNotNull();
+        String result = NettyUtils.errorMessageWithChannelDiagnostics(channel, "custom error");
+
+        assertThat(result).startsWith("custom error");
+        assertThat(result).contains("Channel Information:");
     }
 
-    @Test
-    public void decorateException_with_IOException_reset() {
-
-        Channel channel = mock(Channel.class);
-        Throwable closedChannelException = new IOException("...Connection reset by peer...");
-        Throwable output = NettyUtils.decorateException(channel, closedChannelException);
-
-        assertThat(output).isInstanceOf(IOException.class);
-        assertThat(output.getCause()).isInstanceOf(IOException.class);
-        assertThat(output.getMessage()).isNotNull();
-    }
-
-    @Test
-    public void decorateException_with_IOException_noMsg() {
-
-        Channel channel = mock(Channel.class);
-        Throwable closedChannelException = new IOException();
-        Throwable output = NettyUtils.decorateException(channel, closedChannelException);
-
-        assertThat(output).isInstanceOf(IOException.class);
-        assertThat(output.getCause()).isNull();
-    }
 }

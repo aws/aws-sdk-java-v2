@@ -50,6 +50,7 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.EncryptionType;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -71,6 +72,14 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
+
+        s3.putBucketEncryption(r -> r.bucket(BUCKET)
+                                     .serverSideEncryptionConfiguration(c -> c.rules(
+                                         rule -> rule.applyServerSideEncryptionByDefault(
+                                                         d -> d.sseAlgorithm(AES256))
+                                                     .blockedEncryptionTypes(
+                                                         b -> b.encryptionType(EncryptionType.NONE)))));
+
         s3CrtAsyncClient = S3CrtAsyncClient.builder()
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)

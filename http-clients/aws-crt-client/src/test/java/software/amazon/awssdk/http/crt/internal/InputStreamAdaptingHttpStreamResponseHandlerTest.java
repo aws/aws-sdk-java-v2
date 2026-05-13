@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
@@ -45,7 +47,7 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
     }
 
     @Test
-    void abortStream_shouldCloseStream() throws IOException {
+    void abortStream_shouldCancelAndCloseStream() throws IOException {
         HttpHeader[] httpHeaders = getHttpHeaders();
 
         responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
@@ -61,11 +63,13 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
         abortableInputStream.read();
         abortableInputStream.abort();
 
-        verify(httpStream).close();
+        InOrder inOrder = Mockito.inOrder(httpStream);
+        inOrder.verify(httpStream).cancel();
+        inOrder.verify(httpStream).close();
     }
 
     @Test
-    void closeStream_shouldCloseStream() throws IOException {
+    void closeStream_shouldCloseStreamWithoutCancel() throws IOException {
         HttpHeader[] httpHeaders = getHttpHeaders();
 
         responseHandler.onResponseHeaders(httpStream, 500, HttpHeaderBlock.MAIN.getValue(),
@@ -85,13 +89,16 @@ public class InputStreamAdaptingHttpStreamResponseHandlerTest extends BaseHttpSt
     }
 
     @Test
-    void cancelFuture_shouldCloseStream() {
+    void cancelFuture_shouldCancelAndCloseStream() {
         HttpHeader[] httpHeaders = getHttpHeaders();
 
         responseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
 
         requestFuture.completeExceptionally(new RuntimeException());
-        verify(httpStream).close();
+
+        InOrder inOrder = Mockito.inOrder(httpStream);
+        inOrder.verify(httpStream).cancel();
+        inOrder.verify(httpStream).close();
     }
 }

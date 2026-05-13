@@ -239,10 +239,12 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * not supported on the platform, the SDK will use the default TLS cipher suites.
          *
          * <p>
-         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum TLS with AWS KMS</a>
+         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum
+         * TLS with AWS KMS</a>
          *
          * <p>
-         * It's disabled by default.
+         * It's enabled by default. If set to {@code false}, the SDK will use the latest recommended non-post-quantum
+         * TLS cipher policy, which may change over time as the underlying CRT library is updated.
          *
          * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.

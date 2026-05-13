@@ -83,7 +83,7 @@ jobs:
             echo "New module detected: $MODULE_DIR"
             
             # Check if it's a test module
-            if [[ "$MODULE_DIR" == *"/test/"* || "$MODULE_DIR" == *"/it/"* || "$MODULE_DIR" == *"-test"* || "$MODULE_DIR" == *"-tests"* ]]; then
+            if [[ "$MODULE_DIR" == *"/test/"* || "$MODULE_DIR" == *"/it/"* || "$MODULE_DIR" == *"-test"* || "$MODULE_DIR" == *"-tests"* || "$MODULE_DIR" == *"-benchmarks"* ]]; then
               echo "::group::Test module: $MODULE_DIR"
               TEST_MODULES=$((TEST_MODULES + 1))
               
@@ -96,8 +96,16 @@ jobs:
               else
                 echo "✅ Module is excluded from maven deploy command"
               fi
+
+              # 2. Check if excluded from maven deploy command
+              if ! grep -q "$MODULE_NAME" buildspecs/release-to-maven-central.yml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not excluded from maven deploy command in buildspecs/release-to-maven-central.yml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is excluded from maven deploy command"
+              fi
               
-              # 2. Check if excluded from javadoc generation
+              # 3. Check if excluded from javadoc generation
               if ! grep -q "$MODULE_NAME" buildspecs/release-javadoc.yml 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not excluded from javadoc generation in buildspecs/release-javadoc.yml"
                 HAS_ERRORS=1
@@ -105,8 +113,8 @@ jobs:
                 echo "✅ Module is excluded from javadoc generation"
               fi
               
-              # 3. Check if Brazil import is skipped
-              if ! grep -q "\"$MODULE_NAME\".*\"skip\".*true" .brazil.json 2>/dev/null; then
+              # 4. Check if Brazil import is skipped
+              if ! grep -q "\"$MODULE_NAME\".*\"skipImport\".*true" .brazil.json 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not configured to skip Brazil import in .brazil.json"
                 HAS_ERRORS=1
               else

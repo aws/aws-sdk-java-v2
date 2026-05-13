@@ -60,10 +60,29 @@ public class ResponseHandlerHelper {
         }
     }
 
-    public void closeStream() {
+    /**
+     * Release the connection back to the pool so that it may be reused. This should be called when the request
+     * completes successfully and the response has been fully consumed.
+     */
+    public void releaseConnection() {
         synchronized (streamLock) {
             if (!streamClosed && stream != null) {
                 streamClosed = true;
+                stream.close();
+            }
+        }
+    }
+
+    /**
+     * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
+     * connection pool. This should be called on error paths or when the stream is aborted before the response is
+     * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
+     */
+    public void closeConnection() {
+        synchronized (streamLock) {
+            if (!streamClosed && stream != null) {
+                streamClosed = true;
+                stream.cancel();
                 stream.close();
             }
         }

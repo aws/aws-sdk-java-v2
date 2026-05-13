@@ -69,6 +69,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return config.merge(c -> {
             c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
             c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
+            c.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026, true);
         });
     }
 

@@ -128,7 +128,26 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
-        verify(mockSubscription, times(1)).cancel();
+        /*
+        subscription.cancel() now exists in two codepaths:
+        - in onNext() catch block.
+        - in future.whenComplete()
+         */
+        verify(mockSubscription, times(2)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
+    }
+
+    @Test
+    void returnFutureCancelled_shouldCancelUpstreamSubscription() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            s -> new CompletableFuture<>(), future, 10);
+
+        Subscription mockSubscription = mock(Subscription.class);
+        subscriber.onSubscribe(mockSubscription);
+        subscriber.onNext("item");
+
+        future.cancel(true);
+        verify(mockSubscription, times(1)).cancel();
     }
 }
