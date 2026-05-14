@@ -38,8 +38,8 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
-import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -518,7 +518,7 @@ public final class S3Utilities {
         ClientEndpointProvider clientEndpointProvider =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
         SdkHttpRequest result = AwsEndpointProviderUtils.setUri(httpRequest,
-            clientEndpointProvider.clientEndpoint(), endpoint.url());
+                                                                clientEndpointProvider.clientEndpoint(), endpoint.url());
 
         if (!endpoint.headers().isEmpty()) {
             SdkHttpRequest.Builder builder = result.toBuilder();

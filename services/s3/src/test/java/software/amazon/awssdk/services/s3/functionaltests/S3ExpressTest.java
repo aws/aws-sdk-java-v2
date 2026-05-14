@@ -411,7 +411,11 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             String host = sdkHttpRequest.host();
-            String bucket = host.substring(0, host.indexOf(".localhost"));
+            int idx = host.indexOf(".localhost");
+            if (idx < 0) {
+                return sdkHttpRequest;
+            }
+            String bucket = host.substring(0, idx);
 
             return sdkHttpRequest.toBuilder().host("localhost")
                                  .encodedPath(SdkHttpUtils.appendUri(bucket, sdkHttpRequest.encodedPath()))
