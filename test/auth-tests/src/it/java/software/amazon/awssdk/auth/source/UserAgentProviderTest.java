@@ -16,8 +16,9 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
-import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +62,7 @@ class UserAgentProviderTest {
     @ParameterizedTest
     @MethodSource("credentialProviders")
     void userAgentString_containsCredentialProviderNames_IfPresent(IdentityProvider<? extends AwsCredentialsIdentity> provider,
-                                                                   String expected) throws Exception {
+                                                                   List<String> expectedIds) throws Exception {
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -69,13 +70,13 @@ class UserAgentProviderTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> credentialProviders() {
         return Stream.of(
-            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "m/D,e"),
-            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "m/D,e")
+            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), Arrays.asList("D", "e")),
+            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), Arrays.asList("D", "e"))
         );
     }
 

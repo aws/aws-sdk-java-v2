@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
  * A {@link AsyncRequestBody} that allows reading data off of an {@link InputStream} using a background
@@ -53,10 +55,18 @@ public class InputStreamWithExecutorAsyncRequestBody implements AsyncRequestBody
 
     private Future<?> writeFuture;
 
+    private static final class SharedExecutor {
+        private static final ExecutorService INSTANCE = Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().threadNamePrefix("sdk-async-input-stream").daemonThreads(true).build()
+        );
+    }
+
     public InputStreamWithExecutorAsyncRequestBody(AsyncRequestBodyFromInputStreamConfiguration configuration) {
         this.inputStream = configuration.inputStream();
         this.contentLength = configuration.contentLength();
-        this.executor = configuration.executor();
+        this.executor = configuration.executor() != null
+            ? configuration.executor()
+            : SharedExecutor.INSTANCE;
         IoUtils.markStreamWithMaxReadLimit(inputStream, configuration.maxReadLimit());
     }
 

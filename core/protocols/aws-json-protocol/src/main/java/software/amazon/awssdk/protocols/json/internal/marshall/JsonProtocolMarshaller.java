@@ -22,17 +22,22 @@ import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingKnownType;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
@@ -60,6 +65,14 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         InstantToString.create(getDefaultTimestampFormats());
 
     private static final JsonMarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
+
+    // Caches the resolved marshaller for non-PAYLOAD fields, keyed by SdkField identity.
+    // SdkField instances are static final per generated model class, so identity-based lookup is correct.
+    // The cache is effectively bounded by the total number of non-payload SdkField instances across all
+    // loaded service models — each SdkField is inserted at most once, and no eviction is needed.
+    // ConcurrentHashMap is used for thread safety; the one-time put per SdkField is negligible.
+    private static final ConcurrentHashMap<SdkField<?>, JsonMarshaller<Object>> MARSHALLER_CACHE =
+        new ConcurrentHashMap<>();
 
     private final URI endpoint;
     private final StructuredJsonGenerator jsonGenerator;
@@ -214,17 +227,21 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             } else if (isExplicitPayloadMember(field)) {
                 marshallExplicitJsonPayload(field, val);
             } else if (val != null) {
-                marshallField(field, val);
+                if (field.location() == MarshallLocation.PAYLOAD) {
+                    // HOT PATH: switch-based dispatch, no registry, no interface dispatch
+                    marshallPayloadField(field, val);
+                } else {
+                    // WARM PATH: cached registry lookup + interface dispatch
+                    marshallFieldViaRegistry(field, val);
+                }
             } else if (field.location() != MarshallLocation.PAYLOAD) {
-                // Null payload fields that aren't required are no-op in the marshaller registry.
-                // We short circuit to avoid the registry lookup and dispatch overhead.
-                // Non payload locations (path, header, query) have null marshallers with
-                // different behavior, so they must still go through marshallField.
-                marshallField(field, val);
+                // Null non-payload: must go through registry (null marshallers vary by location)
+                marshallFieldViaRegistry(field, val);
             } else if (field.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
                 throw new IllegalArgumentException(
                     String.format("Parameter '%s' must not be null", field.locationName()));
             }
+            // else: null payload field, not required → no-op
         }
     }
 
@@ -310,6 +327,111 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         }
 
         return request.build();
+    }
+
+    /**
+     * Marshalls a PAYLOAD-location field using a switch on {@link MarshallingKnownType} instead of
+     * registry lookup and interface dispatch. Each case is a monomorphic call site that the JIT can inline.
+     */
+    @SuppressWarnings("unchecked")
+    private void marshallPayloadField(SdkField<?> field, Object val) {
+        MarshallingKnownType knownType = field.marshallingType().getKnownType();
+        if (knownType == null) {
+            marshallFieldViaRegistry(field, val);
+            return;
+        }
+
+        StructuredJsonGenerator gen = marshallerContext.jsonGenerator();
+        String fieldName = field.locationName();
+
+        switch (knownType) {
+            case STRING:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((String) val);
+                break;
+            case INTEGER:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((int) (Integer) val);
+                break;
+            case LONG:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((long) (Long) val);
+                break;
+            case SHORT:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((short) (Short) val);
+                break;
+            case BYTE:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((byte) (Byte) val);
+                break;
+            case FLOAT:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((float) (Float) val);
+                break;
+            case DOUBLE:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((double) (Double) val);
+                break;
+            case BIG_DECIMAL:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((BigDecimal) val);
+                break;
+            case BOOLEAN:
+                gen.writeFieldName(fieldName);
+                gen.writeValue((boolean) (Boolean) val);
+                break;
+            case INSTANT:
+                // Delegate to existing INSTANT marshaller to preserve TimestampFormatTrait handling.
+                // Note: INSTANT marshaller writes the field name itself.
+                SimpleTypeJsonMarshaller.INSTANT.marshall((Instant) val, marshallerContext,
+                    fieldName, (SdkField<Instant>) field);
+                break;
+            case SDK_BYTES:
+                gen.writeFieldName(fieldName);
+                gen.writeValue(((SdkBytes) val).asByteBuffer());
+                break;
+            case SDK_POJO:
+                SimpleTypeJsonMarshaller.SDK_POJO.marshall((SdkPojo) val, marshallerContext,
+                    fieldName, (SdkField<SdkPojo>) field);
+                break;
+            case LIST:
+                SimpleTypeJsonMarshaller.LIST.marshall((List<?>) val, marshallerContext,
+                    fieldName, (SdkField<List<?>>) field);
+                break;
+            case MAP:
+                SimpleTypeJsonMarshaller.MAP.marshall((Map<String, ?>) val, marshallerContext,
+                    fieldName, (SdkField<Map<String, ?>>) field);
+                break;
+            case DOCUMENT:
+                SimpleTypeJsonMarshaller.DOCUMENT.marshall((Document) val, marshallerContext,
+                    fieldName, (SdkField<Document>) field);
+                break;
+            default:
+                // Unknown type — fall back to registry lookup
+                marshallFieldViaRegistry(field, val);
+                break;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void marshallFieldViaRegistry(SdkField<?> field, Object val) {
+        if (val == null) {
+            MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                               .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+            return;
+        }
+        // Use get-before-put instead of computeIfAbsent. ConcurrentHashMap.get() is a single lock-free
+        // volatile read, whereas computeIfAbsent() has additional overhead even on cache hits (bucket-level
+        // synchronization bookkeeping). The benign-race on first access is safe: SdkField instances are
+        // static final, and the registry always returns the same marshaller for a given (location, type) pair,
+        // so concurrent puts are idempotent.
+        JsonMarshaller<Object> marshaller = MARSHALLER_CACHE.get(field);
+        if (marshaller == null) {
+            marshaller = MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val);
+            MARSHALLER_CACHE.put(field, marshaller);
+        }
+        marshaller.marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
     }
 
     private void marshallField(SdkField<?> field, Object val) {

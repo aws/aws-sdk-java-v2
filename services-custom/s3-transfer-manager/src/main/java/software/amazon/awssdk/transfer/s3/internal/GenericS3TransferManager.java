@@ -29,7 +29,6 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -40,9 +39,6 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
-import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
-import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -622,27 +618,9 @@ class GenericS3TransferManager implements S3TransferManager {
             String error = String.format("%s does not support S3 Object Lambda resources", operation);
             throw new IllegalArgumentException(error);
         }
-
-        Arn arn = Arn.fromString(bucket);
-
-        if (isMrapArn(arn)) {
-            String error = String.format("%s does not support S3 multi-region access point ARN", operation);
-            throw new IllegalArgumentException(error);
-        }
     }
 
     private static boolean isObjectLambdaArn(String arn) {
         return arn.contains(":s3-object-lambda");
-    }
-
-    private static boolean isMrapArn(Arn arn) {
-        S3Resource s3Resource = S3ArnConverter.create().convertArn(arn);
-
-        S3AccessPointResource s3EndpointResource =
-            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
-                                  "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
-                                  + "appear to be a valid S3 access point ARN.");
-
-        return !s3EndpointResource.region().isPresent();
     }
 }

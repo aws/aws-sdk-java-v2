@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -95,7 +96,12 @@ public final class SdkPojoConversionUtils {
         "ObjectLockMode",
         "ObjectLockRetainUntilDate",
         "ObjectLockLegalHoldStatus",
-        "ExpectedBucketOwner"
+        "ExpectedBucketOwner",
+        "ChecksumXXHASH128",
+        "ChecksumSHA512",
+        "ChecksumXXHASH3",
+        "ChecksumMD5",
+        "ChecksumXXHASH64"
     ));
 
     private static final Set<String> COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS = new HashSet<>(Arrays.asList(
@@ -142,7 +148,12 @@ public final class SdkPojoConversionUtils {
         "ObjectLockRetainUntilDate",
         "ObjectLockLegalHoldStatus",
         "ExpectedBucketOwner",
-        "ExpectedSourceBucketOwner"
+        "ExpectedSourceBucketOwner",
+        "ChecksumXXHASH128",
+        "ChecksumSHA512",
+        "ChecksumXXHASH3",
+        "ChecksumMD5",
+        "ChecksumXXHASH64"
     ));
 
 
@@ -154,6 +165,7 @@ public final class SdkPojoConversionUtils {
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
+        propagateOverrideConfig(builder, putObjectRequest);
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
 
@@ -165,6 +177,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, putObjectRequest);
 
         builder.mpuObjectSize(contentLength);
+        propagateOverrideConfig(builder, putObjectRequest);
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
             builder.checksumType(ChecksumType.FULL_OBJECT);
@@ -178,6 +191,7 @@ public final class SdkPojoConversionUtils {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        propagateOverrideConfig(builder, putObjectRequest);
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
             builder.checksumType(ChecksumType.FULL_OBJECT);
@@ -190,7 +204,7 @@ public final class SdkPojoConversionUtils {
 
         // We can't set SdkFields directly because the fields in CopyObjectRequest do not match 100% with the ones in
         // HeadObjectRequest
-        return HeadObjectRequest.builder()
+        HeadObjectRequest.Builder builder = HeadObjectRequest.builder()
                                 .bucket(copyObjectRequest.sourceBucket())
                                 .key(copyObjectRequest.sourceKey())
                                 .versionId(copyObjectRequest.sourceVersionId())
@@ -201,8 +215,9 @@ public final class SdkPojoConversionUtils {
                                 .expectedBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
                                 .sseCustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
                                 .sseCustomerKey(copyObjectRequest.copySourceSSECustomerKey())
-                                .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
-                                .build();
+                                .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5());
+        propagateOverrideConfig(builder, copyObjectRequest);
+        return builder.build();
     }
 
     public static CompletedPart toCompletedPart(CopyPartResult copyPartResult, int partNumber) {
@@ -228,6 +243,7 @@ public final class SdkPojoConversionUtils {
         ListPartsRequest.Builder builder = ListPartsRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        propagateOverrideConfig(builder, putObjectRequest);
         return builder.uploadId(uploadId).build();
     }
 
@@ -237,6 +253,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
+        propagateOverrideConfig(builder, copyObjectRequest);
         return builder.build();
     }
 
@@ -265,6 +282,7 @@ public final class SdkPojoConversionUtils {
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
+        propagateOverrideConfig(builder, copyObjectRequest);
         return builder;
     }
 
@@ -272,6 +290,7 @@ public final class SdkPojoConversionUtils {
         AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
         validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
+        propagateOverrideConfig(builder, putObjectRequest);
         return builder;
     }
 
@@ -286,6 +305,7 @@ public final class SdkPojoConversionUtils {
                       .uploadId(uploadId)
                       .bucket(copyObjectRequest.destinationBucket())
                       .key(copyObjectRequest.destinationKey())
+                      .overrideConfiguration(copyObjectRequest.overrideConfiguration().orElse(null))
                       .build();
     }
 
@@ -299,6 +319,10 @@ public final class SdkPojoConversionUtils {
         builder.sdkHttpResponse(response.sdkHttpResponse());
 
         return builder.build();
+    }
+
+    private static void propagateOverrideConfig(AwsRequest.Builder builder, AwsRequest source) {
+        source.overrideConfiguration().ifPresent(builder::overrideConfiguration);
     }
 
     private static Map<String, Object> retrieveSdkFields(SdkPojo sourceObject, List<SdkField<?>> sdkFields) {
