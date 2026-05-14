@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Application Migration Service",
+    "contributor": "",
+    "description": "Introducing new option for security groups mapping - with MAP-DHCP the service translates security rules from your source environment with DHCP compatibility."
+}
