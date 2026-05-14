@@ -142,6 +142,11 @@ public final class AuthSchemeResolver {
         SelectedAuthScheme<?> beforeInterceptors =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_BEFORE_INTERCEPTORS);
 
+        if (beforeInterceptors != null &&
+            beforeInterceptors.authSchemeOption() == existingAuthScheme.authSchemeOption()) {
+            return selectedAuthScheme;
+        }
+
         AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
 
         existingAuthScheme.authSchemeOption().forEachSignerProperty(new AuthSchemeOption.SignerPropertyConsumer() {

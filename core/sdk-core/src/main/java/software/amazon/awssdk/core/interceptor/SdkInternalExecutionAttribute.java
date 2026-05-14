@@ -178,7 +178,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("IdentityProviderUpdater");
 
     /**
-    /**
      * Callback to resolve auth scheme options from the (possibly modified) request.
      * Called by AuthSchemeResolutionStage after interceptors have run.
      */
