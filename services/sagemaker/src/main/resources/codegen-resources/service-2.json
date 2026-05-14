@@ -6539,7 +6539,8 @@
         "ml.r6id.12xlarge",
         "ml.r6id.16xlarge",
         "ml.r6id.24xlarge",
-        "ml.r6id.32xlarge"
+        "ml.r6id.32xlarge",
+        "ml.p5.4xlarge"
       ]
     },
     "AppLifecycleManagement":{
@@ -9982,9 +9983,22 @@
         "Description":{
           "shape":"String",
           "documentation":"<p>A human-readable description of the event.</p>"
+        },
+        "EventLevel":{
+          "shape":"ClusterEventLevel",
+          "documentation":"<p>The severity level of the event. Valid values are <code>Info</code>, <code>Warn</code>, and <code>Error</code>.</p>"
         }
       },
       "documentation":"<p>Detailed information about a specific event in a HyperPod cluster.</p>"
+    },
+    "ClusterEventLevel":{
+      "type":"string",
+      "documentation":"<p>The severity level for a HyperPod cluster event.</p>",
+      "enum":[
+        "Info",
+        "Warn",
+        "Error"
+      ]
     },
     "ClusterEventMaxResults":{
       "type":"integer",
@@ -10047,6 +10061,10 @@
         "Description":{
           "shape":"String",
           "documentation":"<p>A brief, human-readable description of the event.</p>"
+        },
+        "EventLevel":{
+          "shape":"ClusterEventLevel",
+          "documentation":"<p>The severity level of the event. Valid values are <code>Info</code>, <code>Warn</code>, and <code>Error</code>.</p>"
         }
       },
       "documentation":"<p>A summary of an event in a HyperPod cluster.</p>"
@@ -10093,6 +10111,14 @@
         }
       },
       "documentation":"<p>Defines the configuration for attaching an Amazon FSx for OpenZFS file system to instances in a SageMaker HyperPod cluster instance group.</p>"
+    },
+    "ClusterImageVersionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of the Amazon Machine Image (AMI) version for the HyperPod cluster instance group, node, or cluster. The AMI version is determined at the instance group level, and all nodes within an instance group run the same AMI. The cluster-level status is aggregated across all instance groups.</p> <ul> <li> <p> <code>UpToDate</code>: The resource is running the latest available AMI version.</p> </li> <li> <p> <code>UpdateAvailable</code>: A newer AMI version is available for the resource.</p> </li> </ul>",
+      "enum":[
+        "UpToDate",
+        "UpdateAvailable"
+      ]
     },
     "ClusterInstanceCount":{
       "type":"integer",
@@ -10178,6 +10204,10 @@
         "DesiredImageId":{
           "shape":"ImageId",
           "documentation":"<p>The ID of the Amazon Machine Image (AMI) desired for the instance group.</p>"
+        },
+        "ImageVersionStatus":{
+          "shape":"ClusterImageVersionStatus",
+          "documentation":"<p>The status of the image version for the instance group. Indicates whether the instance group is running the latest image version or if an update is available.</p>"
         },
         "ActiveOperations":{
           "shape":"ActiveOperations",
@@ -10854,6 +10884,10 @@
           "shape":"ImageId",
           "documentation":"<p>The ID of the Amazon Machine Image (AMI) desired for the node.</p>"
         },
+        "ImageVersionStatus":{
+          "shape":"ClusterImageVersionStatus",
+          "documentation":"<p>The status of the image version for the cluster node.</p>"
+        },
         "UltraServerInfo":{
           "shape":"UltraServerInfo",
           "documentation":"<p>Contains information about the UltraServer.</p>"
@@ -10957,6 +10991,10 @@
         "PrivateDnsHostname":{
           "shape":"ClusterPrivateDnsHostname",
           "documentation":"<p>The private DNS hostname of the SageMaker HyperPod cluster node.</p>"
+        },
+        "ImageVersionStatus":{
+          "shape":"ClusterImageVersionStatus",
+          "documentation":"<p>The status of the image version for the cluster node.</p>"
         }
       },
       "documentation":"<p>Lists a summary of the properties of an instance (also called a <i>node</i> interchangeably) of a SageMaker HyperPod cluster.</p>"
@@ -11093,8 +11131,7 @@
         "InstanceCount",
         "InstanceGroupName",
         "InstanceType",
-        "ExecutionRole",
-        "EnvironmentConfig"
+        "ExecutionRole"
       ],
       "members":{
         "InstanceCount":{
@@ -13776,6 +13813,10 @@
           "shape":"InferenceComponentSpecification",
           "documentation":"<p>Details about the resources to deploy with this inference component, including the model, container, and compute resources.</p>"
         },
+        "Specifications":{
+          "shape":"InferenceComponentSpecificationList",
+          "documentation":"<p>A list of specification objects for the inference component, one per instance type. Use this parameter when you want to deploy a different model or resource configuration for the inference component on each instance type. You can use either this parameter or the singular <code>Specification</code> parameter, but not both.</p>"
+        },
         "RuntimeConfig":{
           "shape":"InferenceComponentRuntimeConfig",
           "documentation":"<p>Runtime settings for a model that is deployed with an inference component.</p>"
@@ -14340,6 +14381,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of key value pairs associated with the model group. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services resources</a> in the <i>Amazon Web Services General Reference Guide</i>.</p>"
+        },
+        "ManagedConfiguration":{
+          "shape":"ManagedConfiguration",
+          "documentation":"<p>The managed configuration of the model package group.</p>"
         }
       }
     },
@@ -14450,6 +14495,10 @@
         "ModelLifeCycle":{
           "shape":"ModelLifeCycle",
           "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
+        },
+        "ManagedStorageType":{
+          "shape":"ManagedStorageType",
+          "documentation":"<p>The storage type of the model package.</p>"
         }
       }
     },
@@ -19977,6 +20026,10 @@
           "shape":"InferenceComponentSpecificationSummary",
           "documentation":"<p>Details about the resources that are deployed with this inference component.</p>"
         },
+        "Specifications":{
+          "shape":"InferenceComponentSpecificationSummaryList",
+          "documentation":"<p>A list of specification summaries for the inference component, one per instance type. This parameter is populated when the inference component was created with multiple specifications. When this parameter is populated, the singular <code>Specification</code> parameter is not returned.</p>"
+        },
         "RuntimeConfig":{
           "shape":"InferenceComponentRuntimeConfigSummary",
           "documentation":"<p>Details about the runtime settings for the model that is deployed with the inference component.</p>"
@@ -20815,6 +20868,10 @@
         "ModelPackageGroupStatus":{
           "shape":"ModelPackageGroupStatus",
           "documentation":"<p>The status of the model group.</p>"
+        },
+        "ManagedConfiguration":{
+          "shape":"ManagedConfiguration",
+          "documentation":"<p>The managed configuration of the model package group.</p>"
         }
       }
     },
@@ -20953,6 +21010,10 @@
         "ModelLifeCycle":{
           "shape":"ModelLifeCycle",
           "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
+        },
+        "ManagedStorageType":{
+          "shape":"ManagedStorageType",
+          "documentation":"<p>The storage type of the model package.</p>"
         }
       }
     },
@@ -22286,7 +22347,7 @@
         },
         "TargetResources":{
           "shape":"SageMakerResourceNames",
-          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints) that can use this training plan.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> </ul>"
+          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints, Studio apps) that can use this training plan.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> <li> <p>A training plan for Studio apps can be used to launch JupyterLab and Code Editor apps on reserved training plan capacity.</p> </li> </ul>"
         },
         "ReservedCapacitySummaries":{
           "shape":"ReservedCapacitySummaries",
@@ -24506,6 +24567,13 @@
       "enum":[
         "USER_PROFILE_NAME",
         "DISABLED"
+      ]
+    },
+    "ExecutionRoleSessionNameMode":{
+      "type":"string",
+      "enum":[
+        "STATIC",
+        "USER_IDENTITY"
       ]
     },
     "ExecutionStatus":{
@@ -27601,6 +27669,29 @@
       "min":0,
       "pattern":"[a-zA-Z0-9-]+"
     },
+    "InferenceComponentPlacementStatus":{
+      "type":"structure",
+      "required":[
+        "InstanceType",
+        "CurrentCopyCount"
+      ],
+      "members":{
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The ML compute instance type where the inference component copies are placed.</p>"
+        },
+        "CurrentCopyCount":{
+          "shape":"InferenceComponentCopyCount",
+          "documentation":"<p>The number of inference component copies currently placed on instances of this type.</p>"
+        }
+      },
+      "documentation":"<p>The placement status of an inference component on a specific instance type. Shows the number of inference component copies currently placed on instances of a given type.</p>"
+    },
+    "InferenceComponentPlacementStatusList":{
+      "type":"list",
+      "member":{"shape":"InferenceComponentPlacementStatus"},
+      "min":1
+    },
     "InferenceComponentPlacementStrategy":{
       "type":"string",
       "enum":[
@@ -27655,6 +27746,10 @@
         "CurrentCopyCount":{
           "shape":"InferenceComponentCopyCount",
           "documentation":"<p>The number of runtime copies of the model container that are currently deployed.</p>"
+        },
+        "PlacementStatus":{
+          "shape":"InferenceComponentPlacementStatusList",
+          "documentation":"<p>The placement status of the inference component across instance types. Shows how the inference component copies are distributed across instance types.</p>"
         }
       },
       "documentation":"<p>Details about the runtime settings for the model that is deployed with the inference component.</p>"
@@ -27685,6 +27780,10 @@
     "InferenceComponentSpecification":{
       "type":"structure",
       "members":{
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The ML compute instance type for the inference component specification. Specifies which instance type this specification applies to. Required when using the <code>Specifications</code> parameter with multiple entries.</p>"
+        },
         "ModelName":{
           "shape":"ModelName",
           "documentation":"<p>The name of an existing SageMaker AI model object in your account that you want to deploy with the inference component.</p>"
@@ -27716,9 +27815,19 @@
       },
       "documentation":"<p>Details about the resources to deploy with this inference component, including the model, container, and compute resources.</p>"
     },
+    "InferenceComponentSpecificationList":{
+      "type":"list",
+      "member":{"shape":"InferenceComponentSpecification"},
+      "max":5,
+      "min":1
+    },
     "InferenceComponentSpecificationSummary":{
       "type":"structure",
       "members":{
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The ML compute instance type associated with this inference component specification.</p>"
+        },
         "ModelName":{
           "shape":"ModelName",
           "documentation":"<p>The name of the SageMaker AI model object that is deployed with the inference component.</p>"
@@ -27749,6 +27858,11 @@
         }
       },
       "documentation":"<p>Details about the resources that are deployed with this inference component.</p>"
+    },
+    "InferenceComponentSpecificationSummaryList":{
+      "type":"list",
+      "member":{"shape":"InferenceComponentSpecificationSummary"},
+      "min":1
     },
     "InferenceComponentStartupParameters":{
       "type":"structure",
@@ -28415,6 +28529,10 @@
           "shape":"AdditionalEnis",
           "documentation":"<p>Information about additional Elastic Network Interfaces (ENIs) associated with the instance.</p>"
         },
+        "InstanceRequirementsEniConfigurations":{
+          "shape":"InstanceRequirementsEniConfigurations",
+          "documentation":"<p>The ENI configurations for the instance types in the instance requirements, grouped by network interface category (for example, ENI-only or EFA with ENIs). At most one configuration per category.</p>"
+        },
         "CapacityReservation":{
           "shape":"CapacityReservation",
           "documentation":"<p>Information about the Capacity Reservation used by the instance.</p>"
@@ -28459,6 +28577,81 @@
         }
       },
       "documentation":"<p>Configuration for how instances are placed and allocated within UltraServers. This is only applicable for UltraServer capacity.</p>"
+    },
+    "InstancePool":{
+      "type":"structure",
+      "required":[
+        "InstanceType",
+        "Priority"
+      ],
+      "members":{
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The ML compute instance type for the instance pool.</p>"
+        },
+        "ModelNameOverride":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of a SageMaker model to use for this instance pool instead of the model specified for the production variant. Use this to deploy a different model optimized for the instance type in this pool.</p>"
+        },
+        "Priority":{
+          "shape":"InstancePoolPriority",
+          "documentation":"<p>The priority for the instance pool. SageMaker attempts to provision instances in order of priority, starting with the lowest value. If instances for a higher-priority pool are unavailable, SageMaker attempts to provision from the next pool.</p> <p>Valid values: 1 to 5, where 1 is the highest priority.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an instance type and its priority for a heterogeneous endpoint. Use instance pools to configure a production variant with multiple instance types, enabling the endpoint to provision instances across different types based on priority.</p>"
+    },
+    "InstancePoolList":{
+      "type":"list",
+      "member":{"shape":"InstancePool"},
+      "max":5,
+      "min":1
+    },
+    "InstancePoolPriority":{
+      "type":"integer",
+      "box":true,
+      "max":5,
+      "min":1
+    },
+    "InstancePoolSummary":{
+      "type":"structure",
+      "required":[
+        "InstanceType",
+        "CurrentInstanceCount"
+      ],
+      "members":{
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The ML compute instance type for the instance pool.</p>"
+        },
+        "CurrentInstanceCount":{
+          "shape":"TaskCount",
+          "documentation":"<p>The current number of instances of this type in the instance pool.</p>"
+        }
+      },
+      "documentation":"<p>A summary of an instance pool for a production variant, including the instance type and the current number of instances.</p>"
+    },
+    "InstancePoolSummaryList":{
+      "type":"list",
+      "member":{"shape":"InstancePoolSummary"},
+      "min":1
+    },
+    "InstanceRequirementsEniConfiguration":{
+      "type":"structure",
+      "members":{
+        "CustomerEni":{
+          "shape":"String",
+          "documentation":"<p>The ID of the customer-managed Elastic Network Interface (ENI) associated with the instance type category.</p>"
+        },
+        "AdditionalEnis":{
+          "shape":"AdditionalEnis",
+          "documentation":"<p>Information about additional Elastic Network Interfaces (ENIs) associated with the instance type category.</p>"
+        }
+      },
+      "documentation":"<p>The customer ENI and additional ENIs associated with a network interface category.</p>"
+    },
+    "InstanceRequirementsEniConfigurations":{
+      "type":"list",
+      "member":{"shape":"InstanceRequirementsEniConfiguration"}
     },
     "InstanceType":{
       "type":"string",
@@ -34046,6 +34239,16 @@
       "min":0,
       "pattern":"\\d+\\.\\d+"
     },
+    "ManagedConfiguration":{
+      "type":"structure",
+      "members":{
+        "ManagedStorageType":{
+          "shape":"ManagedStorageType",
+          "documentation":"<p>The storage type of the model package.</p>"
+        }
+      },
+      "documentation":"<p>The managed configuration of a model package group.</p>"
+    },
     "ManagedInstanceScalingCooldownInMinutes":{
       "type":"integer",
       "box":true,
@@ -34081,6 +34284,10 @@
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "ManagedStorageType":{
+      "type":"string",
+      "enum":["Restricted"]
     },
     "MapString2048":{
       "type":"map",
@@ -35874,6 +36081,10 @@
         "ModelPackageGroupStatus":{
           "shape":"ModelPackageGroupStatus",
           "documentation":"<p>The status of the model group.</p>"
+        },
+        "ManagedConfiguration":{
+          "shape":"ManagedConfiguration",
+          "documentation":"<p>The managed configuration of the model package group.</p>"
         }
       },
       "documentation":"<p>Summary information about a model group.</p>"
@@ -38547,6 +38758,10 @@
           "shape":"ProductionVariantInstanceType",
           "documentation":"<p>The type of instances associated with the variant.</p>"
         },
+        "InstancePools":{
+          "shape":"InstancePoolSummaryList",
+          "documentation":"<p>A list of instance pools for the production variant. Each pool indicates the instance type and the current number of instances of that type.</p>"
+        },
         "AcceleratorType":{
           "shape":"ProductionVariantAcceleratorType",
           "documentation":"<p>This parameter is no longer supported. Elastic Inference (EI) is no longer available.</p> <p>This parameter was used to specify the size of the EI instance to use for the production variant.</p>"
@@ -39863,6 +40078,14 @@
           "shape":"ProductionVariantInstanceType",
           "documentation":"<p>The ML compute instance type.</p>"
         },
+        "InstancePools":{
+          "shape":"InstancePoolList",
+          "documentation":"<p>A list of instance pools for the production variant. Each instance pool specifies an instance type and its priority for provisioning. Use instance pools to configure heterogeneous endpoints that deploy models across multiple instance types.</p>"
+        },
+        "VariantInstanceProvisionTimeoutInSeconds":{
+          "shape":"VariantInstanceProvisionTimeoutInSeconds",
+          "documentation":"<p>The timeout value, in seconds, for provisioning instances for the production variant. When SageMaker encounters an insufficient capacity error while provisioning instances, it retries with the next instance pool (if configured) or waits until the timeout expires. This timeout applies only to capacity provisioning and does not include the time for model download or container startup.</p> <p>Valid values: 300 to 3600.</p>"
+        },
         "InitialVariantWeight":{
           "shape":"VariantWeight",
           "documentation":"<p>Determines initial traffic distribution among all of the models that you specify in the endpoint configuration. The traffic to a production variant is determined by the ratio of the <code>VariantWeight</code> to the sum of all <code>VariantWeight</code> values across all ProductionVariants. If unspecified, it defaults to 1.0. </p>"
@@ -40432,6 +40655,10 @@
         "DesiredInstanceCount":{
           "shape":"TaskCount",
           "documentation":"<p>The number of instances requested in the <code>UpdateEndpointWeightsAndCapacities</code> request. </p>"
+        },
+        "InstancePools":{
+          "shape":"InstancePoolSummaryList",
+          "documentation":"<p>A list of instance pools for the production variant. Each pool indicates the instance type and the current number of instances of that type.</p>"
         },
         "VariantStatus":{
           "shape":"ProductionVariantStatusList",
@@ -41121,7 +41348,7 @@
       ],
       "members":{
         "InstanceType":{
-          "shape":"InstanceType",
+          "shape":"ProductionVariantInstanceType",
           "documentation":"<p>The instance type the model is deployed to.</p>"
         },
         "InstanceCount":{
@@ -42244,6 +42471,10 @@
         "LifecycleConfigArn":{
           "shape":"StudioLifecycleConfigArn",
           "documentation":"<p> The Amazon Resource Name (ARN) of the Lifecycle Configuration attached to the Resource.</p>"
+        },
+        "TrainingPlanArn":{
+          "shape":"StudioResourceSpecTrainingPlanArn",
+          "documentation":"<p>The ARN of the SageMaker AI Training Plan to use for this app. When you specify a training plan, the app launches on reserved GPU capacity. This field is supported for JupyterLab and CodeEditor app types.</p> <p>For more information about how to reserve GPU capacity with SageMaker AI Training Plans, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/training-plan-utilization-for-studio-apps.html\">Using training plans in Studio applications</a>.</p>"
         }
       },
       "documentation":"<p>Specifies the ARN's of a SageMaker AI image and SageMaker AI image version, and the instance type that the version runs on.</p> <note> <p>When both <code>SageMakerImageVersionArn</code> and <code>SageMakerImageArn</code> are passed, <code>SageMakerImageVersionArn</code> is used. Any updates to <code>SageMakerImageArn</code> will not take effect if <code>SageMakerImageVersionArn</code> already exists in the <code>ResourceSpec</code> because <code>SageMakerImageVersionArn</code> always takes precedence. To clear the value set for <code>SageMakerImageVersionArn</code>, pass <code>None</code> as the value.</p> </note>"
@@ -42655,7 +42886,8 @@
       "enum":[
         "training-job",
         "hyperpod-cluster",
-        "endpoint"
+        "endpoint",
+        "studio-apps"
       ]
     },
     "SageMakerResourceNames":{
@@ -43003,7 +43235,7 @@
         },
         "TargetResources":{
           "shape":"SageMakerResourceNames",
-          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints) to search for in the offerings.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> </ul>"
+          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints, Studio apps) to search for in the offerings.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> <li> <p>A training plan for Studio apps can be used to launch JupyterLab and Code Editor apps on reserved training plan capacity.</p> </li> </ul>"
         },
         "TrainingPlanArn":{
           "shape":"String",
@@ -44556,6 +44788,13 @@
       "type":"list",
       "member":{"shape":"StudioLifecycleConfigDetails"}
     },
+    "StudioResourceSpecTrainingPlanArn":{
+      "type":"string",
+      "documentation":"<p>TrainingPlanArn variant for ResourceSpec that allows &quot;None&quot; to detach a training plan. Based on TrainingPlanArn (min:50, max:2048) but with min:0 and &quot;None&quot; in pattern.</p>",
+      "max":2048,
+      "min":0,
+      "pattern":"(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:training-plan/.*|None)"
+    },
     "StudioWebPortal":{
       "type":"string",
       "enum":[
@@ -44581,6 +44820,10 @@
         "HiddenSageMakerImageVersionAliases":{
           "shape":"HiddenSageMakerImageVersionAliasesList",
           "documentation":"<p> The version aliases you are hiding from the Studio user interface. </p>"
+        },
+        "ExecutionRoleSessionNameMode":{
+          "shape":"ExecutionRoleSessionNameMode",
+          "documentation":"<p>The execution role session name mode. If this value is set to <code>USER_IDENTITY</code>, the session name of the execution role corresponds to the user's identity. For IAM domains, the session name is the IAM session name used to generate the presigned URL. For IAM Identity Center domains, the session name is the username of the associated IAM Identity Center user. If this value is set to <code>STATIC</code> or is not set, the session name defaults to <code>SageMaker</code>.</p>"
         }
       },
       "documentation":"<p>Studio settings. If these settings are applied on a user level, they take priority over the settings applied on a domain level.</p>"
@@ -45714,6 +45957,10 @@
           "shape":"ResourceConfig",
           "documentation":"<p>Resources, including ML compute instances and ML storage volumes, that are configured for model training.</p>"
         },
+        "WarmPoolStatus":{
+          "shape":"WarmPoolStatus",
+          "documentation":"<p>The status of the warm pool associated with the training job.</p>"
+        },
         "VpcConfig":{
           "shape":"VpcConfig",
           "documentation":"<p>A <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_VpcConfig.html\">VpcConfig</a> object that specifies the VPC that this training job has access to. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/train-vpc.html\">Protect Training Jobs by Using an Amazon Virtual Private Cloud</a>.</p>"
@@ -46153,7 +46400,7 @@
         },
         "TargetResources":{
           "shape":"SageMakerResourceNames",
-          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints) for this training plan offering.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> </ul>"
+          "documentation":"<p>The target resources (e.g., SageMaker Training Jobs, SageMaker HyperPod, SageMaker Endpoints, Studio apps) for this training plan offering.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> <li> <p>A training plan for Studio apps can be used to launch JupyterLab and Code Editor apps on reserved training plan capacity.</p> </li> </ul>"
         },
         "RequestedStartTimeAfter":{
           "shape":"Timestamp",
@@ -46297,7 +46544,7 @@
         },
         "TargetResources":{
           "shape":"SageMakerResourceNames",
-          "documentation":"<p>The target resources (e.g., training jobs, HyperPod clusters, Endpoints) that can use this training plan.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> </ul>"
+          "documentation":"<p>The target resources (e.g., training jobs, HyperPod clusters, Endpoints, Studio apps) that can use this training plan.</p> <p>Training plans are specific to their target resource.</p> <ul> <li> <p>A training plan designed for SageMaker training jobs can only be used to schedule and run training jobs.</p> </li> <li> <p>A training plan for HyperPod clusters can be used exclusively to provide compute resources to a cluster's instance group.</p> </li> <li> <p>A training plan for SageMaker endpoints can be used exclusively to provide compute resources to SageMaker endpoints for model deployment.</p> </li> <li> <p>A training plan for Studio apps can be used to launch JupyterLab and Code Editor apps on reserved training plan capacity.</p> </li> </ul>"
         },
         "ReservedCapacitySummaries":{
           "shape":"ReservedCapacitySummaries",
@@ -48476,6 +48723,10 @@
           "shape":"InferenceComponentSpecification",
           "documentation":"<p>Details about the resources to deploy with this inference component, including the model, container, and compute resources.</p>"
         },
+        "Specifications":{
+          "shape":"InferenceComponentSpecificationList",
+          "documentation":"<p>A list of specification objects for the inference component, one per instance type. Use this parameter when you want to specify different model or resource configurations for the inference component on each instance type. You can use either this parameter or the singular <code>Specification</code> parameter, but not both.</p>"
+        },
         "RuntimeConfig":{
           "shape":"InferenceComponentRuntimeConfig",
           "documentation":"<p>Runtime settings for a model that is deployed with an inference component.</p>"
@@ -49582,6 +49833,12 @@
       "box":true,
       "max":1,
       "min":0
+    },
+    "VariantInstanceProvisionTimeoutInSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":3600,
+      "min":300
     },
     "VariantName":{
       "type":"string",

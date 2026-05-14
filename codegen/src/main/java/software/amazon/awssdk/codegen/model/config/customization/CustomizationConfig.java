@@ -226,6 +226,11 @@ public class CustomizationConfig {
     private RetryMode defaultRetryMode;
 
     /**
+     * Whether the client will use retry 2.1 behavior by default.
+     */
+    private Boolean defaultNewRetries2026;
+
+    /**
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
     private boolean delegateAsyncClientClass;
@@ -712,6 +717,14 @@ public class CustomizationConfig {
 
     public void setDefaultRetryMode(RetryMode defaultRetryMode) {
         this.defaultRetryMode = defaultRetryMode;
+    }
+
+    public Boolean getDefaultNewRetries2026() {
+        return defaultNewRetries2026;
+    }
+
+    public void setDefaultNewRetries2026(Boolean defaultNewRetries2026) {
+        this.defaultNewRetries2026 = defaultNewRetries2026;
     }
 
     public ServiceConfig getServiceConfig() {
