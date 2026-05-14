@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.6__ __2026-05-14__
+## __AWS Data Exchange__
+  - ### Features
+    - Add support for SendApiAsset operation.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Glue__
+  - ### Features
+    - Release --has-databases parameter for AWS Glue get-catalogs API, which filters catalog responses to include only those capable of containing databases, excluding parent catalogs that hold only other catalogs. Remove model-level validation on partition index list size for AWS Glue tables.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support prefix headers (header maps) in Rest-Json
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Optimized GC usage (specifically G1GC humongous allocations) in JSON marshalling
+
+## __Amazon Bedrock__
+  - ### Features
+    - Advanced Prompt Optimization (AdvPO) allows you to optimize and migrate your prompts for any model on Bedrock by automatically evaluating responses and rewriting prompts to improve performance. This release provides a programmatic way to create, get, list, stop, and delete AdvPO jobs.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adding a new boolean for OCSP Revocations in Viewer mTLS Create and Update APIs, and adding a new 'Passthrough' option for TrustStore modes
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for SageMaker Unified Studio notebook operations, including notebook import and export
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Adds support for dual-stack (IPv4 and IPv6) connectivity to Amazon Managed Grafana workspaces. Customers can configure the ipAddressType parameter when creating or updating a workspace to choose between IPv4-only or dual-stack (IPv4 and IPv6) access.
+
+## __Amazon Q Connect__
+  - ### Features
+    - ListModels is an API that returns the available AI models for a Connect Assistant based on its region and AI prompt type.
+
+## __Application Migration Service__
+  - ### Features
+    - Introducing new option for security groups mapping - with MAP-DHCP the service translates security rules from your source environment with DHCP compatibility.
+
 # __2.44.5__ __2026-05-13__
 ## __ARC - Region switch__
   - ### Features
