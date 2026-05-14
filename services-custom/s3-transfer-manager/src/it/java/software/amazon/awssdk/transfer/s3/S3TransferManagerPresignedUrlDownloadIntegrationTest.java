@@ -80,17 +80,15 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
     }
 
     static Stream<Arguments> testCases() {
-        return Stream.of(
-            Arguments.of(tmNonMultipartJava, "nonMultipart", SMALL_KEY, smallFile, SMALL_OBJ_SIZE),
-            Arguments.of(tmNonMultipartJava, "nonMultipart", LARGE_KEY, largeFile, LARGE_OBJ_SIZE),
-            Arguments.of(tmJava, "multipart", SMALL_KEY, smallFile, SMALL_OBJ_SIZE),
-            Arguments.of(tmJava, "multipart", LARGE_KEY, largeFile, LARGE_OBJ_SIZE)
-        );
+        return presignedUrlTransferManagers().flatMap(tmArg -> Stream.of(
+            Arguments.of(tmArg.get()[0], SMALL_KEY, smallFile, SMALL_OBJ_SIZE),
+            Arguments.of(tmArg.get()[0], LARGE_KEY, largeFile, LARGE_OBJ_SIZE)
+        ));
     }
 
-    @ParameterizedTest(name = "downloadFileWithPresignedUrl_{1}_{2}")
+    @ParameterizedTest(name = "downloadFileWithPresignedUrl_{1}")
     @MethodSource("testCases")
-    void downloadFileWithPresignedUrl_shouldDownloadCorrectly(S3TransferManager tm, String tmType, String key,
+    void downloadFileWithPresignedUrl_shouldDownloadCorrectly(S3TransferManager tm, String key,
                                                               File sourceFile, int objSize) throws Exception {
         Path downloadPath = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download = tm.downloadFileWithPresignedUrl(createFileDownloadRequest(key, downloadPath));
@@ -101,9 +99,9 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
         assertThat(completed.response().responseMetadata().requestId()).isNotNull();
     }
 
-    @ParameterizedTest(name = "downloadWithPresignedUrl_toBytes_{1}_{2}")
+    @ParameterizedTest(name = "downloadWithPresignedUrl_toBytes_{1}")
     @MethodSource("testCases")
-    void downloadWithPresignedUrl_toBytes_shouldReturnCorrectData(S3TransferManager tm, String tmType, String key,
+    void downloadWithPresignedUrl_toBytes_shouldReturnCorrectData(S3TransferManager tm, String key,
                                                                    File sourceFile, int objSize) {
         CompletedDownload<ResponseBytes<GetObjectResponse>> completed =
             tm.downloadWithPresignedUrl(createBytesDownloadRequest(key)).completionFuture().join();

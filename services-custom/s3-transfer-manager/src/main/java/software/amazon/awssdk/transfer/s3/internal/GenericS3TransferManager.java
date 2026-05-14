@@ -631,7 +631,11 @@ class GenericS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> null, null);
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(),
+                                       () -> {
+                                           throw new UnsupportedOperationException(
+                                               "Pause is not supported for presigned URL downloads");
+                                       }, null);
     }
 
     @Override

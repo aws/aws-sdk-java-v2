@@ -54,7 +54,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     protected static S3Client s3;
 
-    protected static S3AsyncClient s3Async;;
+    protected static S3AsyncClient s3Async;
     protected static S3AsyncClient s3NonMultipartAsync;
 
     protected static S3AsyncClient s3CrtAsync;
