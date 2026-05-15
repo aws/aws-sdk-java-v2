@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -119,7 +120,29 @@ public class BenchmarkRunner {
         this.options = options;
     }
 
+    static List<String> getShardClasses(String shard) {
+        switch (shard) {
+            case "sync": return SYNC_BENCHMARKS;
+            case "async": return ASYNC_BENCHMARKS;
+            case "protocol": return PROTOCOL_BENCHMARKS;
+            case "coldStart": return COLD_START_BENCHMARKS;
+            case "metrics": return Stream.concat(METRIC_BENCHMARKS.stream(), METRIC_PUBLISHER_BENCHMARKS.stream())
+                                         .collect(Collectors.toList());
+            case "all": return Stream.of(SYNC_BENCHMARKS, ASYNC_BENCHMARKS, PROTOCOL_BENCHMARKS,
+                                         COLD_START_BENCHMARKS, METRIC_BENCHMARKS, METRIC_PUBLISHER_BENCHMARKS)
+                                     .flatMap(List::stream).collect(Collectors.toList());
+            default: throw new IllegalArgumentException("Unknown shard: " + shard);
+        }
+    }
+
     public static void main(String... args) throws Exception {
+        if (args.length >= 2 && args[0].equals("--list")) {
+            // CHECKSTYLE:OFF
+            System.out.println(String.join("|", getShardClasses(args[1])));
+            // CHECKSTYLE:ON
+            return;
+        }
+
         List<String> benchmarksToRun = new ArrayList<>();
         benchmarksToRun.addAll(SYNC_BENCHMARKS);
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
