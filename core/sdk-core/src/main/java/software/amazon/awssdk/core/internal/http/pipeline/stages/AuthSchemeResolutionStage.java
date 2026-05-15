@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -79,6 +80,12 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         selectedAuthScheme = AuthSchemeResolver.mergePreExistingAuthSchemeProperties(selectedAuthScheme, executionAttributes);
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+
+        Consumer<ExecutionAttributes> signingMethodUpdater =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER);
+        if (signingMethodUpdater != null) {
+            signingMethodUpdater.accept(executionAttributes);
+        }
 
         recordBusinessMetrics(selectedAuthScheme, sdkRequest, executionAttributes);
 
