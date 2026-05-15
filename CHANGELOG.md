@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.7__ __2026-05-15__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for AvailabilityStartTimeConfiguration in MediaPackageV2 DASH manifests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Service Release Notes
+
+## __Partner Central Selling API__
+  - ### Features
+    - Service Release Notes
+
 # __2.44.6__ __2026-05-14__
 ## __AWS Data Exchange__
   - ### Features
