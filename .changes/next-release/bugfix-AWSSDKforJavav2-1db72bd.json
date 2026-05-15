@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Optimized GC usage (specifically G1GC humongous allocations) in JSON marshalling"
-}
