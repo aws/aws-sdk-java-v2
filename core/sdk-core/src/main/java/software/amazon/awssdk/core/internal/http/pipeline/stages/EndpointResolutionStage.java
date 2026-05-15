@@ -151,10 +151,10 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
             return;
         }
         SelectedAuthScheme<?> beforeInterceptors =
-            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_BEFORE_INTERCEPTORS);
+            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS);
 
         SelectedAuthScheme<?> afterInterceptors =
-            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_AFTER_INTERCEPTORS);
+            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_POST_INTERCEPTORS);
         if (afterInterceptors == null) {
             return;
         }

@@ -161,7 +161,7 @@ public final class AwsExecutionContextBuilder {
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_BEFORE_INTERCEPTORS,
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS,
                                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
 
         InterceptorContext interceptorContext = InterceptorContext.builder()
