@@ -37,13 +37,16 @@ import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.Flowable;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
@@ -120,8 +123,6 @@ public class PublisherAdapterTest {
                                                                                     HttpResponseStatus.ACCEPTED,
                                                                                     testPublisher);
 
-
-
         ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedHttpResponse,
                                                                                                  ctx,
                                                                                                  requestContext,
@@ -148,8 +149,6 @@ public class PublisherAdapterTest {
                                                                                     HttpResponseStatus.ACCEPTED,
                                                                                     testPublisher);
 
-
-
         ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedHttpResponse,
                                                                                                  ctx,
                                                                                                  requestContext,
@@ -165,6 +164,33 @@ public class PublisherAdapterTest {
         verify(channelPool).release(channel);
         assertThat(executeFuture).isCompletedExceptionally();
         verify(responseHandler).onError(exception);
+    }
+
+    @Test
+    public void streamingReadTimeout_shouldDecorateExceptionBeforeNotifyingHandlers() {
+        Flowable<HttpContent> testPublisher = Flowable.error(ReadTimeoutException.INSTANCE);
+
+        StreamedHttpResponse streamedHttpResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
+                                                                                    HttpResponseStatus.ACCEPTED,
+                                                                                    testPublisher);
+
+
+
+        ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedHttpResponse,
+                                                                                                 ctx,
+                                                                                                 requestContext,
+                                                                                                 executeFuture
+        );
+        TestSubscriber subscriber = new TestSubscriber();
+
+        publisherAdapter.subscribe(subscriber);
+
+        ArgumentCaptor<Throwable> errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+        verify(responseHandler).onError(errorCaptor.capture());
+        assertThat(errorCaptor.getValue()).isInstanceOf(IOException.class)
+                                          .hasCauseInstanceOf(ReadTimeoutException.class);
+        assertThat(subscriber.error).isSameAs(errorCaptor.getValue());
+        assertThat(executeFuture).isCompletedExceptionally();
     }
 
     @Test
@@ -290,6 +316,7 @@ public class PublisherAdapterTest {
         private Subscription subscription;
         private boolean isCompleted = false;
         private boolean errorOccurred = false;
+        private Throwable error;
 
         @Override
         public void onSubscribe(Subscription s) {
@@ -305,6 +332,7 @@ public class PublisherAdapterTest {
         @Override
         public void onError(Throwable t) {
             errorOccurred = true;
+            error = t;
         }
 
         @Override
