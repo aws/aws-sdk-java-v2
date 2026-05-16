@@ -21,7 +21,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.io.IOException;
 import java.time.Duration;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -74,8 +74,8 @@ public class ResponseInputStreamTimeoutIntegrationTest extends S3IntegrationTest
         s3Client.getObject(getObjectRequest);
 
         assertThatThrownBy(() -> s3Client.getObject(getObjectRequest))
-            .hasRootCauseInstanceOf(ConnectionPoolTimeoutException.class)
-            .hasMessageContaining("Timeout waiting for connection from pool");
+            .hasRootCauseInstanceOf(ConnectionRequestTimeoutException.class)
+            .hasMessageContaining("Timeout deadline");
     }
 
     @Test
