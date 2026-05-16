@@ -55,22 +55,24 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
             return false;
         }
 
-        if (isExpect100ContinueDisabled(executionAttributes)) {
+        S3Configuration s3Config = getS3Configuration(executionAttributes);
+
+        if (s3Config != null && !s3Config.expectContinueEnabled()) {
             return false;
         }
 
+        long threshold = s3Config != null ? s3Config.expectContinueThresholdInBytes()
+                                          : 0L;
+
         return getContentLengthHeader(context.httpRequest())
             .map(Long::parseLong)
-            .map(length -> length != 0L)
+            .map(length -> length >= threshold && length != 0L)
             .orElse(true);
     }
 
-    private boolean isExpect100ContinueDisabled(ExecutionAttributes executionAttributes) {
+    private S3Configuration getS3Configuration(ExecutionAttributes executionAttributes) {
         ServiceConfiguration serviceConfig = executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
-        if (serviceConfig instanceof S3Configuration) {
-            return !((S3Configuration) serviceConfig).expectContinueEnabled();
-        }
-        return false;
+        return serviceConfig instanceof S3Configuration ? (S3Configuration) serviceConfig : null;
     }
 
     /**

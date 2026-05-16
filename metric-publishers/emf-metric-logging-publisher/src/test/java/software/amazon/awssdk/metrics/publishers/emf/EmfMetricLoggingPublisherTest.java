@@ -18,6 +18,11 @@ package software.amazon.awssdk.metrics.publishers.emf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpMetric;
@@ -97,4 +102,96 @@ public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
         assertThat(loggedEvents()).hasSize(2);
     }
 
+    @Test
+    void publish_propertiesFactoryThrowsException_publishesWithoutCustomProperties() {
+        EmfMetricLoggingPublisher publisher = publisherBuilder
+            .logGroupName("/aws/lambda/emfMetricTest")
+            .propertiesFactory(mc -> { throw new RuntimeException("factory failed"); })
+            .build();
+
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        publisher.publish(metricCollector.collect());
+
+        // Should have: 1 warning about factory + 1 EMF info log
+        boolean hasWarning = loggedEvents().stream()
+            .anyMatch(e -> e.getLevel() == Level.WARN
+                && e.getMessage().getFormattedMessage().contains("Properties factory threw an exception"));
+        assertThat(hasWarning).isTrue();
+
+        boolean hasEmfOutput = loggedEvents().stream()
+            .anyMatch(e -> e.getLevel() == Level.INFO
+                && e.getMessage().getFormattedMessage().contains("\"_aws\":{"));
+        assertThat(hasEmfOutput).isTrue();
+
+        // EMF output should not contain any custom properties
+        String emfLog = loggedEvents().stream()
+            .filter(e -> e.getLevel() == Level.INFO
+                && e.getMessage().getFormattedMessage().contains("\"_aws\":{"))
+            .findFirst().get().getMessage().getFormattedMessage();
+        assertThat(emfLog).contains("\"AvailableConcurrency\":5");
+    }
+
+    @Test
+    void publish_propertiesFactoryReturnsNull_publishesWithoutCustomProperties() {
+        EmfMetricLoggingPublisher publisher = publisherBuilder
+            .logGroupName("/aws/lambda/emfMetricTest")
+            .propertiesFactory(mc -> null)
+            .build();
+
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        publisher.publish(metricCollector.collect());
+
+        // Should have EMF output without custom properties
+        boolean hasEmfOutput = loggedEvents().stream()
+            .anyMatch(e -> e.getLevel() == Level.INFO
+                && e.getMessage().getFormattedMessage().contains("\"_aws\":{"));
+        assertThat(hasEmfOutput).isTrue();
+
+        String emfLog = loggedEvents().stream()
+            .filter(e -> e.getLevel() == Level.INFO
+                && e.getMessage().getFormattedMessage().contains("\"_aws\":{"))
+            .findFirst().get().getMessage().getFormattedMessage();
+        assertThat(emfLog).contains("\"AvailableConcurrency\":5");
+        // No warning should be logged for null return
+        boolean hasWarning = loggedEvents().stream()
+            .anyMatch(e -> e.getLevel() == Level.WARN);
+        assertThat(hasWarning).isFalse();
+    }
+
+    @Test
+    void publish_statefulFactory_eachPublishUsesCurrentMap() {
+        AtomicInteger counter = new AtomicInteger(0);
+        EmfMetricLoggingPublisher publisher = publisherBuilder
+            .logGroupName("/aws/lambda/emfMetricTest")
+            .propertiesFactory(mc -> {
+                int count = counter.incrementAndGet();
+                Map<String, String> map = new HashMap<String, String>();
+                map.put("InvocationCount", String.valueOf(count));
+                return map;
+            })
+            .build();
+
+        // First publish
+        MetricCollector mc1 = MetricCollector.create("test1");
+        mc1.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        publisher.publish(mc1.collect());
+
+        // Second publish
+        MetricCollector mc2 = MetricCollector.create("test2");
+        mc2.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 10);
+        publisher.publish(mc2.collect());
+
+        // Collect all EMF info logs
+        List<String> emfLogs = loggedEvents().stream()
+            .filter(e -> e.getLevel() == Level.INFO
+                && e.getMessage().getFormattedMessage().contains("\"_aws\":{"))
+            .map(e -> e.getMessage().getFormattedMessage())
+            .collect(java.util.stream.Collectors.toList());
+
+        assertThat(emfLogs).hasSize(2);
+        assertThat(emfLogs.get(0)).contains("\"InvocationCount\":\"1\"");
+        assertThat(emfLogs.get(1)).contains("\"InvocationCount\":\"2\"");
+    }
 }

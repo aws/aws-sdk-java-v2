@@ -1,0 +1,42 @@
+{
+    "version": "2.42.32",
+    "date": "2026-04-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Dashboards",
+            "contributor": "",
+            "description": "Scheduled email reports of Billing and Cost Management Dashboards"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "Adds support for MediaLive Channel-type Router Inputs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Introducing support for SearchRegistryRecords API on AgentCoreRegistry"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Initial release for CRUDL in AgentCore Registry Service"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Release support for g7e instance types for SageMaker HyperPod"
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Data API Service",
+            "contributor": "",
+            "description": "The BatchExecuteStatement API now supports named SQL parameters, enabling secure batch queries with parameterized values. This enhancement helps prevent SQL injection vulnerabilities and improves query reusability."
+        }
+    ]
+}
