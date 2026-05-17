@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -186,6 +187,13 @@ public final class AwsExecutionContextBuilder {
                                          resolveSigningMethodUsed(
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
+
+        Signer resolvedSigner = signer;
+        AwsCredentials capturedCredentials = executionAttributes.getOptionalAttribute(
+            AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER, attrs ->
+            attrs.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                               resolveSigningMethodUsed(resolvedSigner, attrs, capturedCredentials)));
 
         putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
 
