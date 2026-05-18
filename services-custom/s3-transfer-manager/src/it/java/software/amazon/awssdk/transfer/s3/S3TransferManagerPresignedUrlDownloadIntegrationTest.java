@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
@@ -107,6 +108,75 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
             tm.downloadWithPresignedUrl(createBytesDownloadRequest(key)).completionFuture().join();
 
         assertThat(completed.result().asByteArray()).hasSize(objSize);
+    }
+
+    static Stream<Arguments> progressTestCases() {
+        return Stream.of(
+            Arguments.of("multipart", tmJava, LARGE_KEY, null, LARGE_OBJ_SIZE),
+            Arguments.of("multipart", tmJava, LARGE_KEY, "bytes=0-1048575", 1048576),
+            Arguments.of("nonMultipart", tmNonMultipartJava, LARGE_KEY, null, LARGE_OBJ_SIZE),
+            Arguments.of("nonMultipart", tmNonMultipartJava, LARGE_KEY, "bytes=0-1048575", 1048576)
+        );
+    }
+
+    @ParameterizedTest(name = "downloadFileWithPresignedUrl_progress_{0}_range={3}")
+    @MethodSource("progressTestCases")
+    void downloadFileWithPresignedUrl_progressTracking(String tmType, S3TransferManager tm, String key,
+                                                       String range, int expectedSize) throws Exception {
+        Path downloadPath = RandomTempFile.randomUncreatedFile().toPath();
+
+        PresignedUrlDownloadRequest.Builder requestBuilder = PresignedUrlDownloadRequest.builder()
+                                                                                        .presignedUrl(createPresignedRequest(key).url());
+        if (range != null) {
+            requestBuilder.range(range);
+        }
+
+        FileDownload download = tm.downloadFileWithPresignedUrl(
+            PresignedDownloadFileRequest.builder()
+                                        .presignedUrlDownloadRequest(requestBuilder.build())
+                                        .destination(downloadPath)
+                                        .addTransferListener(LoggingTransferListener.create())
+                                        .build());
+
+        download.completionFuture().join();
+
+        // Verify progress tracking worked - totalBytes is set correctly
+        assertThat(download.progress().snapshot().totalBytes()).isPresent();
+        assertThat(download.progress().snapshot().totalBytes().getAsLong()).isEqualTo(expectedSize);
+
+        // Verify transferredBytes reached expectedSize
+        assertThat(download.progress().snapshot().transferredBytes()).isEqualTo(expectedSize);
+
+        // Verify file size matches expected
+        assertThat(downloadPath.toFile().length()).isEqualTo(expectedSize);
+    }
+
+    @ParameterizedTest(name = "downloadWithPresignedUrl_toBytes_progress_{0}_range={3}")
+    @MethodSource("progressTestCases")
+    void downloadWithPresignedUrl_toBytes_progressTracking(String tmType, S3TransferManager tm, String key,
+                                                           String range, int expectedSize) throws Exception {
+
+        PresignedUrlDownloadRequest.Builder requestBuilder = PresignedUrlDownloadRequest.builder()
+                                                                                        .presignedUrl(createPresignedRequest(key).url());
+        if (range != null) {
+            requestBuilder.range(range);
+        }
+
+        Download<ResponseBytes<GetObjectResponse>> download = tm.downloadWithPresignedUrl(
+            PresignedDownloadRequest.<ResponseBytes<GetObjectResponse>>builder()
+                                    .presignedUrlDownloadRequest(requestBuilder.build())
+                                    .responseTransformer(AsyncResponseTransformer.toBytes())
+                                    .addTransferListener(LoggingTransferListener.create())
+                                    .build());
+
+        CompletedDownload<ResponseBytes<GetObjectResponse>> completed = download.completionFuture().join();
+
+        assertThat(download.progress().snapshot().totalBytes()).isPresent();
+        assertThat(download.progress().snapshot().totalBytes().getAsLong()).isEqualTo(expectedSize);
+
+        assertThat(download.progress().snapshot().transferredBytes()).isEqualTo(expectedSize);
+
+        assertThat(completed.result().asByteArray()).hasSize(expectedSize);
     }
 
     private static PresignedDownloadFileRequest createFileDownloadRequest(String key, Path destination) {
