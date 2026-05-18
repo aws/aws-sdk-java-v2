@@ -41,6 +41,8 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -694,6 +696,107 @@ public interface S3TransferManager extends SdkAutoCloseable {
      */
     default Copy copy(Consumer<CopyRequest.Builder> copyRequestBuilder) {
         return copy(CopyRequest.builder().applyMutation(copyRequestBuilder).build());
+    }
+
+    /**
+     * Downloads an object using a pre-signed URL to a local file. For non-file-based downloads, you may use
+     * {@link #downloadWithPresignedUrl(PresignedDownloadRequest)} instead.
+     * <p>
+     * This method supports multipart downloads when using a CRT-based or multipart-enabled S3 client,
+     * providing enhanced throughput and reliability for large objects. Progress can be monitored
+     * through {@link TransferListener}s attached to the request.
+     * <p>
+     * The SDK will create a new file if the provided destination doesn't exist. If the file already exists,
+     * it will be replaced. In the event of an error, the SDK will <b>NOT</b> attempt to delete
+     * the file, leaving it as-is.
+     * <p>
+     * Note: The result of the operation doesn't support pause and resume functionality.
+     * </p>
+     * <p>
+     * <b>Usage Example:</b>
+     * {@snippet :
+     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         
+     *         // Create presigned URL (typically done by another service)
+     *         PresignedUrlDownloadRequest presignedRequest = PresignedUrlDownloadRequest.builder()
+     *                                                                                  .presignedUrl(presignedUrl)
+     *                                                                                  .build();
+     *         
+     *         PresignedDownloadFileRequest request = PresignedDownloadFileRequest.builder()
+     *                                                                            .presignedUrlDownloadRequest(presignedRequest)
+     *                                                                            .destination(Paths.get("downloaded-file.txt"))
+     *                                                                            .addTransferListener(
+     *                                                                                    LoggingTransferListener.create())
+     *                                                                            .build();
+     *         
+     *         FileDownload download = transferManager.downloadFileWithPresignedUrl(request);
+     *         download.completionFuture().join();
+     * }
+     *
+     * @param presignedDownloadFileRequest the presigned download file request
+     * @return A {@link FileDownload} that can be used to track the ongoing transfer
+     * @see #downloadFileWithPresignedUrl(Consumer)
+     * @see #downloadWithPresignedUrl(PresignedDownloadRequest)
+     */
+    default FileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link PresignedDownloadFileRequest} builder,
+     * avoiding the need to create one manually via {@link PresignedDownloadFileRequest#builder()}.
+     * <p>
+     * Note: The result of the operation doesn't support pause and resume functionality.
+     * </p>
+     *
+     * @see #downloadFileWithPresignedUrl(PresignedDownloadFileRequest)
+     */
+    default FileDownload downloadFileWithPresignedUrl(
+            Consumer<PresignedDownloadFileRequest.Builder> presignedDownloadFileRequest) {
+        return downloadFileWithPresignedUrl(
+                PresignedDownloadFileRequest.builder().applyMutation(presignedDownloadFileRequest).build());
+    }
+
+    /**
+     * Downloads an object using a pre-signed URL through the given {@link AsyncResponseTransformer}. For downloading
+     * to a file, you may use {@link #downloadFileWithPresignedUrl(PresignedDownloadFileRequest)} instead.
+     * <p>
+     * This method supports multipart downloads when using a CRT-based or multipart-enabled S3 client,
+     * providing enhanced throughput and reliability for large objects. Progress can be monitored
+     * through {@link TransferListener}s attached to the request.
+     * <p>
+     * Note: The result of the operation doesn't support pause and resume functionality.
+     * </p>
+     * <p>
+     * <b>Usage Example (downloading to memory - not suitable for large objects):</b>
+     * {@snippet :
+     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         
+     *         // Create presigned URL (typically done by another service)
+     *         PresignedUrlDownloadRequest presignedRequest = PresignedUrlDownloadRequest.builder()
+     *                                                                                  .presignedUrl(presignedUrl)
+     *                                                                                  .build();
+     *         
+     *         PresignedDownloadRequest<ResponseBytes<GetObjectResponse>> request = 
+     *             PresignedDownloadRequest.builder()
+     *                                    .presignedUrlDownloadRequest(presignedRequest)
+     *                                    .responseTransformer(AsyncResponseTransformer.toBytes())
+     *                                    .addTransferListener(LoggingTransferListener.create())
+     *                                    .build();
+     *         
+     *         Download<ResponseBytes<GetObjectResponse>> download = transferManager.downloadWithPresignedUrl(request);
+     *         ResponseBytes<GetObjectResponse> result = download.completionFuture().join().result();
+     * }
+     *
+     * @param presignedDownloadRequest the presigned download request
+     * @param <ResultT> The type of data the {@link AsyncResponseTransformer} produces
+     * @return A {@link Download} that can be used to track the ongoing transfer
+     * @see #downloadFileWithPresignedUrl(PresignedDownloadFileRequest)
+     * @see AsyncResponseTransformer
+     */
+    default <ResultT> Download<ResultT> downloadWithPresignedUrl(
+            PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        throw new UnsupportedOperationException();
     }
 
     /**

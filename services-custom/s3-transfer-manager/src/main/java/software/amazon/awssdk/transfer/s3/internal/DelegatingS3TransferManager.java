@@ -27,6 +27,8 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
@@ -83,6 +85,16 @@ abstract class DelegatingS3TransferManager implements S3TransferManager {
     @Override
     public Copy copy(CopyRequest copyRequest) {
         return delegate.copy(copyRequest);
+    }
+
+    @Override
+    public FileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        return delegate.downloadFileWithPresignedUrl(presignedDownloadFileRequest);
+    }
+
+    @Override
+    public <ResultT> Download<ResultT> downloadWithPresignedUrl(PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        return delegate.downloadWithPresignedUrl(presignedDownloadRequest);
     }
 
     @Override
