@@ -70,19 +70,24 @@ public class HttpTestUtils {
     }
 
     public static CompletableFuture<byte[]> sendGetRequest(int serverPort, SdkAsyncHttpClient client) {
-        return sendRequest(serverPort, client, SdkHttpMethod.GET);
+        return sendRequest(serverPort, client, SdkHttpMethod.GET, true);
+    }
+
+    public static CompletableFuture<byte[]> sendGetRequest(int serverPort, SdkAsyncHttpClient client, boolean https) {
+        return sendRequest(serverPort, client, SdkHttpMethod.GET, https);
     }
 
     public static CompletableFuture<byte[]> sendHeadRequest(int serverPort, SdkAsyncHttpClient client) {
-        return sendRequest(serverPort, client, SdkHttpMethod.HEAD);
+        return sendRequest(serverPort, client, SdkHttpMethod.HEAD, true);
     }
 
     private static CompletableFuture<byte[]> sendRequest(int serverPort,
                                                          SdkAsyncHttpClient client,
-                                                         SdkHttpMethod httpMethod) {
+                                                         SdkHttpMethod httpMethod,
+                                                         boolean https) {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
                                                        .method(httpMethod)
-                                                       .protocol("https")
+                                                       .protocol(https ? "https" : "http")
                                                        .host("127.0.0.1")
                                                        .port(serverPort)
                                                        .build();

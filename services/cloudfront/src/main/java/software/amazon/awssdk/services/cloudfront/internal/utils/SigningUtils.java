@@ -62,25 +62,26 @@ public final class SigningUtils {
         Validate.notNull(expirationDate, "expirationDate must not be null");
         validateInput(resourceUrl, "resourceUrl");
 
-        JsonWriter writer = JsonWriter.create();
-        writer.writeStartObject()
-              .writeFieldName("Statement")
-              .writeStartArray()
-              .writeStartObject()
-              .writeFieldName("Resource")
-              .writeValue(resourceUrl)
-              .writeFieldName("Condition")
-              .writeStartObject()
-              .writeFieldName("DateLessThan")
-              .writeStartObject()
-              .writeFieldName("AWS:EpochTime")
-              .writeValue(expirationDate.getEpochSecond())
-              .writeEndObject()
-              .writeEndObject()
-              .writeEndObject()
-              .writeEndArray()
-              .writeEndObject();
-        return new String(writer.getBytes(), UTF_8);
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
+                  .writeStartObject()
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
+                  .writeStartObject()
+                  .writeFieldName("AWS:EpochTime")
+                  .writeValue(expirationDate.getEpochSecond())
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+            return new String(writer.getBytes(), UTF_8);
+        }
     }
 
     /**
@@ -102,43 +103,44 @@ public final class SigningUtils {
             validateInput(ipAddress, "ipAddress");
         }
 
-        JsonWriter writer = JsonWriter.create();
-        writer.writeStartObject()
-              .writeFieldName("Statement")
-              .writeStartArray()
-              .writeStartObject()
-              .writeFieldName("Resource")
-              .writeValue(resourceUrl)
-              .writeFieldName("Condition")
-              .writeStartObject()
-              .writeFieldName("DateLessThan")
-              .writeStartObject()
-              .writeFieldName("AWS:EpochTime")
-              .writeValue(expirationDate.getEpochSecond())
-              .writeEndObject();
-
-        if (ipAddress != null) {
-            writer.writeFieldName("IpAddress")
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
                   .writeStartObject()
-                  .writeFieldName("AWS:SourceIp")
-                  .writeValue(ipAddress)
-                  .writeEndObject();
-        }
-
-        if (activeDate != null) {
-            writer.writeFieldName("DateGreaterThan")
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
                   .writeStartObject()
                   .writeFieldName("AWS:EpochTime")
-                  .writeValue(activeDate.getEpochSecond())
+                  .writeValue(expirationDate.getEpochSecond())
                   .writeEndObject();
+
+            if (ipAddress != null) {
+                writer.writeFieldName("IpAddress")
+                      .writeStartObject()
+                      .writeFieldName("AWS:SourceIp")
+                      .writeValue(ipAddress)
+                      .writeEndObject();
+            }
+
+            if (activeDate != null) {
+                writer.writeFieldName("DateGreaterThan")
+                      .writeStartObject()
+                      .writeFieldName("AWS:EpochTime")
+                      .writeValue(activeDate.getEpochSecond())
+                      .writeEndObject();
+            }
+
+            writer.writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+
+            return new String(writer.getBytes(), UTF_8);
         }
-
-        writer.writeEndObject()
-              .writeEndObject()
-              .writeEndArray()
-              .writeEndObject();
-
-        return new String(writer.getBytes(), UTF_8);
     }
 
     /**

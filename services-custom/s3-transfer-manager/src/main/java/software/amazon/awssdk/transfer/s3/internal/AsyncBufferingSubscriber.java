@@ -56,6 +56,11 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         returnFuture.whenComplete((r, t) -> {
             if (t != null) {
                 requestsInFlight.forEach(f -> f.cancel(true));
+                synchronized (this) {
+                    if (subscription != null) {
+                        subscription.cancel();
+                    }
+                }
             }
         });
     }

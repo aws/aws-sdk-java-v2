@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -64,7 +65,7 @@ class ProcessCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("processCredentialProviders")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -73,7 +74,7 @@ class ProcessCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> processCredentialProviders() {
@@ -83,18 +84,18 @@ class ProcessCredentialsProviderUserAgentTest {
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
-                            .build(), "m/D,w"),
+                            .build(), Arrays.asList("D", "w")),
 
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommandList)
-                            .build(), "m/D,w")
+                            .build(), Arrays.asList("D", "w"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("processCredentialProvidersWithSessionToken")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentialsWithSessionToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -103,7 +104,7 @@ class ProcessCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> processCredentialProvidersWithSessionToken() {
@@ -112,7 +113,7 @@ class ProcessCredentialsProviderUserAgentTest {
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
-                            .build(), "m/D,w")
+                            .build(), Arrays.asList("D", "w"))
         );
     }
 

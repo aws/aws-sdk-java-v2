@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -81,6 +82,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         }
     }
 
+    @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_onResponseInvokedWithResponse(S3AsyncClient client) {
@@ -90,6 +92,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(handler.response).isNotNull();
     }
 
+    @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_recordsEventUnmarshalledCorrectly(S3AsyncClient client) {
@@ -104,6 +107,7 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
         assertThat(recordsEvent.payload().asUtf8String()).contains("A\nC");
     }
 
+    @Disabled("S3 Select not supported for new accounts")
     @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("s3AsyncClients")
     public void selectObjectContent_invalidQuery_unmarshallsErrorResponse(S3AsyncClient client) {

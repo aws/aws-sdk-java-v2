@@ -31,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
@@ -280,6 +281,31 @@ class CopyObjectHelperTest {
         }
     }
 
+
+    @Test
+    public void multiPartCopy_overrideConfigSetInOriginalRequest_includedInCompleteMultipart() {
+        AwsRequestOverrideConfiguration overrideConfig = AwsRequestOverrideConfiguration.builder()
+                                                                                        .putHeader("x-custom", "value")
+                                                                                        .build();
+        CopyObjectRequest copyRequest = copyObjectRequest().copy(r -> r.overrideConfiguration(overrideConfig));
+
+        stubSuccessfulHeadObjectCall(3 * PART_SIZE_BYTES);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyRequest).join();
+
+        ArgumentCaptor<CompleteMultipartUploadRequest> completeMultipartCaptor =
+            ArgumentCaptor.forClass(CompleteMultipartUploadRequest.class);
+
+        verify(s3AsyncClient).completeMultipartUpload(completeMultipartCaptor.capture());
+
+        CompleteMultipartUploadRequest completeRequest = completeMultipartCaptor.getValue();
+
+        assertThat(completeRequest.overrideConfiguration()).isPresent();
+        assertThat(completeRequest.overrideConfiguration().get()).isEqualTo(overrideConfig);
+    }
 
     @Test
     public void multiPartCopy_sseCHeadersSetInOriginalRequest_includedInCompleteMultipart() {

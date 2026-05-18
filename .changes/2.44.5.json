@@ -1,0 +1,156 @@
+{
+    "version": "2.44.5",
+    "date": "2026-05-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "Adds support for AutomatedSnapshotPauseOptions."
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "Add ConflictException to UpdateCustomLineItem operation."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "dbadaya1",
+            "description": "Fixed request-level override configuration not being propagated to sub-requests during multipart uploads and copies in the S3 AsyncClient."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Added OriginIpAddressTypeEnum (ipv4, ipv6, dualstack) and ipAddressType field to Origin and InputOrigin structures for Lightsail CDN distributions. Allows customers to specify how the distribution connects to origins, using IPv4, IPv6, or dualstack networking"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "This release added support for Outbound Campaign timezone detection using all available contact methods"
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Account API",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This change added three new EventSourceName for schedule notification feature"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Upgrade Jackson to 2.21.3"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue now defaults the job timeout to 480 minutes for Glue version 5.0 and later when no timeout value is specified. The default remains 2,880 minutes for Glue version 4.0 and earlier."
+        },
+        {
+            "type": "feature",
+            "category": "ARC - Region switch",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Adds a billing callout to docs regarding using the CE Scale Down Delay feature"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Add support for Amazon EC2 Interruptible-ODCR"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Added support for Amazon Aurora DSQL change data capture (CDC) streams that deliver row-level database changes to Amazon Kinesis in JSON format. Includes CreateStream, GetStream, ListStreams, and DeleteStream operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Include length limits in the SDK and documentation for text fields in Image (AMI) APIs such as the image name and description"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adds execution role session name mode to reflect user identity in Studio. Adds Flexible Training Plans on Studio apps. Adds restricted model packages to control access to proprietary model artifacts via IAM. Fixed instance type parity between inference endpoints and managed shadow tests."
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "Adds parameters to call the GetWhatsAppMessageTemplate and UpdateWhatsAppMessageTemplate APIs with a template name and language code in place of the template ID. Linked WhatsApp accounts also describe whether the WABA is onboarded to Meta's Marketing Messages API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Agent",
+            "contributor": "",
+            "description": "Add support for code reviews, a new resource type that enables automated security-focused static analysis of source code repositories."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Added rg.xlarge and rg.4xlarge to valid NodeType values and updated documentation for CreateCluster, ModifyCluster, ResizeCluster, and RestoreFromClusterSnapshot APIs to reflect RG node type support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "RTBFabric",
+            "contributor": "",
+            "description": "Customers can now configure custom domain names for their RTB Fabric gateways. This enables partners to use their own branded domain for RTB traffic instead of the default rtbfabric endpoint"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Adds five new custom permission option for Quick Apps so that these capabilities can be controlled by public SDK and CLI."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

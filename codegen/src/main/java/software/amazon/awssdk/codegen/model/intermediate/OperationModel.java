@@ -90,6 +90,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean unsignedPayload;
 
+    private boolean longPolling;
+
     public String getOperationName() {
         return operationName;
     }
@@ -381,6 +383,14 @@ public class OperationModel extends DocumentationModel {
         this.unsignedPayload = unsignedPayload;
     }
 
+    public boolean isLongPolling() {
+        return longPolling;
+    }
+
+    public void setLongPolling(boolean longPolling) {
+        this.longPolling = longPolling;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -395,7 +405,8 @@ public class OperationModel extends DocumentationModel {
                && hasStringMemberAsPayload == that.hasStringMemberAsPayload && isAuthenticated == that.isAuthenticated
                && isPaginated == that.isPaginated && endpointOperation == that.endpointOperation
                && endpointCacheRequired == that.endpointCacheRequired && httpChecksumRequired == that.httpChecksumRequired
-               && unsignedPayload == that.unsignedPayload && Objects.equals(operationName, that.operationName)
+               && unsignedPayload == that.unsignedPayload && longPolling == that.longPolling
+               && Objects.equals(operationName, that.operationName)
                && Objects.equals(serviceProtocol, that.serviceProtocol)
                && Objects.equals(deprecatedMessage, that.deprecatedMessage) && Objects.equals(input, that.input)
                && Objects.equals(returnType, that.returnType) && Objects.equals(exceptions, that.exceptions)
@@ -437,6 +448,7 @@ public class OperationModel extends DocumentationModel {
         result = 31 * result + Objects.hashCode(staticContextParams);
         result = 31 * result + Objects.hashCode(operationContextParams);
         result = 31 * result + Boolean.hashCode(unsignedPayload);
+        result = 31 * result + Boolean.hashCode(longPolling);
         return result;
     }
 }

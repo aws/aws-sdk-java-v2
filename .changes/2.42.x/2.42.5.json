@@ -1,0 +1,42 @@
+{
+    "version": "2.42.5",
+    "date": "2026-03-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Support for AgentCore Policy GA"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "CloudWatch Logs updates- Added support for the PutBearerTokenAuthentication API to enable or disable bearer token authentication on a log group. For more information, see CloudWatch Logs API documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Adding QueryGraph operation to DataZone SDK"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds b300 and g7e instance types for SageMaker inference endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Channel API",
+            "contributor": "",
+            "description": "Adds the Resold Unified Operations support plan and removes the Resold Business support plan in the CreateRelationship and UpdateRelationship APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

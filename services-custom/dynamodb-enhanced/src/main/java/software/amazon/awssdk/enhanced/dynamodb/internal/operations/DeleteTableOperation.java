@@ -38,7 +38,7 @@ public class DeleteTableOperation<T> implements TableOperation<T, DeleteTableReq
 
     @Override
     public OperationName operationName() {
-        return OperationName.DELETE_ITEM;
+        return OperationName.DELETE_TABLE;
     }
 
     @Override

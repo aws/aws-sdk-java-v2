@@ -208,7 +208,6 @@ public class S3CrtClientWiremockTest {
         stubFor(get(anyUrl())
                     .inScenario("SucceedThenFail")
                     .whenScenarioStateIs("first request")
-                    .willSetStateTo("second request")
                     .willReturn(aResponse()
                                     .withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
         ResponseInputStream<GetObjectResponse> stream = s3AsyncClient.getObject(

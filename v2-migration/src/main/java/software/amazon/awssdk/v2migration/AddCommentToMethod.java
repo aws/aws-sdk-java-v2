@@ -70,6 +70,9 @@ public class AddCommentToMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
+        if (methodPattern == null) {
+            return TreeVisitor.noop();
+        }
         return new Visitor(methodPattern, comment);
     }
 

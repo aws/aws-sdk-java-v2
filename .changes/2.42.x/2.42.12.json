@@ -1,0 +1,54 @@
+{
+    "version": "2.42.12",
+    "date": "2026-03-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "akhilyendluri",
+            "description": "Updating Lakefromation Access Grants Plugin version to 1.4.1"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix inaccurate progress tracking for in-memory uploads in the Java-based S3TransferManager."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "DataSync's 3 location types, Hadoop Distributed File System (HDFS), FSx for Windows File Server (FSx Windows), and FSx for NetApp ONTAP (FSx ONTAP) now have credentials managed via Secrets Manager, which may be encrypted with service keys or be configured to use customer-managed keys or secret."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cloudfront",
+            "contributor": "",
+            "description": "Add support for resourceUrlPattern to `CloudFrontUtilities.getCookiesForCustomPolicy`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Added dynamoDbClient() and dynamoDbAsyncClient() default methods to DynamoDbEnhancedClient and DynamoDbEnhancedAsyncClient interfaces to allow access to the underlying low-level client. Fixes [#6654](https://github.com/aws/aws-sdk-java-v2/issues/6654)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Add Chainguard to PTC upstreamRegistry enum"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Adds support for account regional namespaces for general purpose buckets. The account regional namespace is a reserved subdivision of the global bucket namespace where only your account can create general purpose buckets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

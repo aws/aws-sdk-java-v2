@@ -31,3 +31,16 @@ jobs:
         else
           gh issue edit ${{ github.event.issue.number }} --remove-label "potential-regression" -R ${{ github.repository }}
         fi
+    - name: Notify Slack
+      if: steps.check_regression.outputs.is_regression == 'true' && github.event.action == 'opened'
+      run: |
+        curl -sfS -X POST "$SLACK_WEBHOOK_URL" \
+          -H 'Content-type: application/json' \
+          --data "$(jq -n \
+            --arg text "🚨 Potential regression reported: <$ISSUE_URL|#$ISSUE_NUM: $ISSUE_TITLE>" \
+            '{text: $text}')"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+        ISSUE_URL: ${{ github.event.issue.html_url }}
+        ISSUE_NUM: ${{ github.event.issue.number }}
+        ISSUE_TITLE: ${{ github.event.issue.title }}

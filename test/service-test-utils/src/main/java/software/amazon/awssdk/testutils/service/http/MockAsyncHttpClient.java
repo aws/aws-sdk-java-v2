@@ -17,6 +17,7 @@ package software.amazon.awssdk.testutils.service.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Pair;
 
@@ -51,7 +52,6 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
     private final ExecutorService executor;
-    private Integer asyncRequestBodyLength;
     private byte[] streamingPayload;
 
     public MockAsyncHttpClient() {
@@ -60,6 +60,7 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         capturedRequests.add(request.request());
 
         int index = responseIndex.getAndIncrement() % responses.size();
@@ -67,14 +68,14 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
         byte[] content = nextResponse.responseBody().map(p -> invokeSafely(() -> IoUtils.toByteArray(p)))
                                      .orElseGet(() -> new byte[0]);
 
-        request.responseHandler().onHeaders(nextResponse.httpResponse());
-        CompletableFuture.runAsync(() -> request.responseHandler().onStream(new ResponsePublisher(content, index)), executor);
-
-        if (asyncRequestBodyLength != null && asyncRequestBodyLength > 0) {
+        CompletableFuture.runAsync(() -> {
             captureStreamingPayload(request.requestContentPublisher());
-        }
+            request.responseHandler().onHeaders(nextResponse.httpResponse());
+            request.responseHandler().onStream(new ResponsePublisher(content, index));
+            future.complete(null);
+        }, executor);
 
-        return CompletableFuture.completedFuture(null);
+        return future;
     }
 
     @Override
@@ -130,23 +131,14 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
         this.responseIndex.set(0);
     }
 
-    /**
-     * Enable capturing the streaming payload by setting the length of the AsyncRequestBody.
-     */
-    public void setAsyncRequestBodyLength(int asyncRequestBodyLength) {
-        this.asyncRequestBodyLength = asyncRequestBodyLength;
-    }
-
     private void captureStreamingPayload(SdkHttpContentPublisher publisher) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(asyncRequestBodyLength);
-        Subscriber<ByteBuffer> subscriber = new CapturingSubscriber(byteBuffer);
-        publisher.subscribe(subscriber);
-        streamingPayload = byteBuffer.array();
+        CapturingSubscriber capturingSubscriber = new CapturingSubscriber();
+        publisher.subscribe(capturingSubscriber);
+        streamingPayload = invokeSafely(() -> capturingSubscriber.future.join());
     }
 
     /**
-     * Returns the streaming payload byte array, if the asyncRequestBodyLength was set correctly. Otherwise, returns empty
-     * Optional.
+     * Returns the streaming payload byte array if present
      */
     public Optional<byte[]> getStreamingPayload() {
         return streamingPayload != null ? Optional.of(streamingPayload.clone()) : Optional.empty();
@@ -197,12 +189,8 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     }
 
     private static class CapturingSubscriber implements Subscriber<ByteBuffer> {
-        private ByteBuffer byteBuffer;
-        private CountDownLatch done = new CountDownLatch(1);
-
-        CapturingSubscriber(ByteBuffer byteBuffer) {
-            this.byteBuffer = byteBuffer;
-        }
+        private final CompletableFuture<byte[]> future = new CompletableFuture<>();
+        private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         @Override
         public void onSubscribe(Subscription subscription) {
@@ -211,19 +199,17 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
 
         @Override
         public void onNext(ByteBuffer buffer) {
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-            byteBuffer.put(bytes);
+            invokeSafely(() -> baos.write(BinaryUtils.copyBytesFrom(buffer)));
         }
 
         @Override
         public void onError(Throwable t) {
-            done.countDown();
+            future.completeExceptionally(t);
         }
 
         @Override
         public void onComplete() {
-            done.countDown();
+            future.complete(baos.toByteArray());
         }
     }
 }

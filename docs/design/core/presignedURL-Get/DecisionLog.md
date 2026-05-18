@@ -60,3 +60,12 @@ The team has decided to implement functionality only for S3 async client and def
 
 ### Decision Addressed
 Initially considered separate discovery request (bytes=0-0) followed by download, but decided to follow AWS Transfer Manager SEP specification using Range: bytes=0-{partSizeInBytes-1} to download first part AND discover total object size simultaneously from Content-Range header response.
+
+## Transfer Manager Integration Review: 08/19/2025
+**Attendees**: John Viegas, Zoe Wang, Dongie Agnir, Alex Woods, Bole Yi, Olivier Lepage Applin, Ran Vaknin, David Ho, Saranya Somepalli
+
+### Decisions Addressed
+
+1. **API Names**: Finalize `downloadWithPresignedUrl` and `downloadFileWithPresignedUrl` for Transfer Manager methods during Surface API Review later.
+
+2. **Pause/Resume Support**: Decided not to support pause/resume capability for presigned URL downloads, maintaining consistency with AWS SDK for Java v1 which also lacks this feature for presigned URLs.

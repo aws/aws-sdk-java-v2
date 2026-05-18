@@ -409,13 +409,15 @@ public final class CloudFrontUtilities {
      *     PrivateKey privateKey = myPrivateKey;
      *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
+     *     String resourceUrlPattern = "https://d111111abcdef8.cloudfront.net/*"; // If not supplied, defaults to the value of resourceUrl.
      *
      *     CookiesForCustomPolicy cookies = utilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
      *                                                                                .privateKey(privateKey)
      *                                                                                .keyPairId(keyPairId)
      *                                                                                .expirationDate(expirationDate)
      *                                                                                .activeDate(activeDate)
-     *                                                                                .ipRange(ipRange));
+     *                                                                                .ipRange(ipRange)
+     *                                                                                .resourceUrlPattern(resourceUrlPattern));
      *     // Generates Set-Cookie header values to send to the viewer to allow access
      *     String signatureHeaderValue = cookies.signatureHeaderValue();
      *     String keyPairIdHeaderValue = cookies.keyPairIdHeaderValue();
@@ -434,7 +436,13 @@ public final class CloudFrontUtilities {
      *
      * @param request
      *            A {@link CustomSignerRequest} configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
+     *            resourceUrl,
+     *            privateKey,
+     *            keyPairId,
+     *            expirationDate,
+     *            activeDate (optional),
+     *            ipRange (optional),
+     *            resourceUrlPattern (optional)
      * @return The signed cookies with custom policy.
      *
      * <p><b>Example Usage</b>
@@ -450,14 +458,16 @@ public final class CloudFrontUtilities {
      *     Path keyFile = myKeyFile;
      *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
+     *     String resourceUrlPattern = "https://d111111abcdef8.cloudfront.net/*"; // If not supplied, defaults to the value of resourceUrl.
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
      *                                                            .privateKey(keyFile)
-     *                                                            .keyPairId(keyFile)
+     *                                                            .keyPairId(keyPairId)
      *                                                            .expirationDate(expirationDate)
      *                                                            .activeDate(activeDate)
      *                                                            .ipRange(ipRange)
+     *                                                            .resourceUrlPattern(resourceUrlPattern)
      *                                                            .build();
      *     CookiesForCustomPolicy cookies = utilities.getCookiesForCustomPolicy(customRequest);
      *     // Generates Set-Cookie header values to send to the viewer to allow access
@@ -468,7 +478,11 @@ public final class CloudFrontUtilities {
      */
     public CookiesForCustomPolicy getCookiesForCustomPolicy(CustomSignerRequest request) {
         try {
-            String policy = SigningUtils.buildCustomPolicy(request.resourceUrl(), request.activeDate(), request.expirationDate(),
+            String resourceUrlPattern = request.resourceUrlPattern() == null
+                                        ? request.resourceUrl()
+                                        : request.resourceUrlPattern();
+
+            String policy = SigningUtils.buildCustomPolicy(resourceUrlPattern, request.activeDate(), request.expirationDate(),
                                                            request.ipRange());
             byte[] signatureBytes = signPolicy(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
