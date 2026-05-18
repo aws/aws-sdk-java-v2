@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkClient;
@@ -183,6 +184,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<AuthSchemeOptionsResolver> AUTH_SCHEME_OPTIONS_RESOLVER =
         new ExecutionAttribute<>("AuthSchemeOptionsResolver");
+
+    /**
+     * Callback to recompute {@code SIGNING_METHOD} after auth scheme resolution.
+     * Set by {@code AwsExecutionContextBuilder}
+     */
+    public static final ExecutionAttribute<Consumer<ExecutionAttributes>> SIGNING_METHOD_UPDATER =
+        new ExecutionAttribute<>("SigningMethodUpdater");
 
     /**
      * Callback for resolving the endpoint. Generated per-service as a lambda in the client class.
