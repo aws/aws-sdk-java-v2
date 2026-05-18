@@ -1,4 +1,213 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.8__ __2026-05-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - Services manage service-linked analyzers through dedicated APIs - CreateServiceLinkedAnalyzer and DeleteServiceLinkedAnalyzer that separate service-linked specific operations from customer-managed operations. It also shows up in ListAnalyzers and GetAnalyzer responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports Pause lifecycle hooks for service deployments, allowing customers to automatically pause deployments at specified stages and use the new ContinueServiceDeployment API to continue or roll back with confidence.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC IP Address Manager (IPAM) now supports tags on IPAM pool allocations, enabling all standard tagging features for allocations including tag-on-create.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now supports up to 32 hosts per EVS environment, increasing the previous host limit to allow a larger scale of VMware workload deployments and reduce operational overhead.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Adds support for up to 3 mediaTailorPlaybackConfiguration objects in an ad configuration resource
+
+## __Amazon QuickSight__
+  - ### Features
+    - Support for dataset enrichment and geo spatial in new data preparation experience
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Don't force Netty's unpooled ByteBuffer allocator when using the JDK SSL provider. The underlying Netty issue (netty/netty#9768) has been fixed in later versions.
+        - Contributed by: [@olivergillespie](https://github.com/olivergillespie)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@olivergillespie](https://github.com/olivergillespie)
+# __2.44.7__ __2026-05-15__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for AvailabilityStartTimeConfiguration in MediaPackageV2 DASH manifests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Service Release Notes
+
+## __Partner Central Selling API__
+  - ### Features
+    - Service Release Notes
+
+# __2.44.6__ __2026-05-14__
+## __AWS Data Exchange__
+  - ### Features
+    - Add support for SendApiAsset operation.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Glue__
+  - ### Features
+    - Release --has-databases parameter for AWS Glue get-catalogs API, which filters catalog responses to include only those capable of containing databases, excluding parent catalogs that hold only other catalogs. Remove model-level validation on partition index list size for AWS Glue tables.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support prefix headers (header maps) in Rest-Json
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Optimized GC usage (specifically G1GC humongous allocations) in JSON marshalling
+
+## __Amazon Bedrock__
+  - ### Features
+    - Advanced Prompt Optimization (AdvPO) allows you to optimize and migrate your prompts for any model on Bedrock by automatically evaluating responses and rewriting prompts to improve performance. This release provides a programmatic way to create, get, list, stop, and delete AdvPO jobs.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adding a new boolean for OCSP Revocations in Viewer mTLS Create and Update APIs, and adding a new 'Passthrough' option for TrustStore modes
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for SageMaker Unified Studio notebook operations, including notebook import and export
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Adds support for dual-stack (IPv4 and IPv6) connectivity to Amazon Managed Grafana workspaces. Customers can configure the ipAddressType parameter when creating or updating a workspace to choose between IPv4-only or dual-stack (IPv4 and IPv6) access.
+
+## __Amazon Q Connect__
+  - ### Features
+    - ListModels is an API that returns the available AI models for a Connect Assistant based on its region and AI prompt type.
+
+## __Application Migration Service__
+  - ### Features
+    - Introducing new option for security groups mapping - with MAP-DHCP the service translates security rules from your source environment with DHCP compatibility.
+
+# __2.44.5__ __2026-05-13__
+## __ARC - Region switch__
+  - ### Features
+    - Service Release Notes
+
+## __AWS Batch__
+  - ### Features
+    - Adds a billing callout to docs regarding using the CE Scale Down Delay feature
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adds parameters to call the GetWhatsAppMessageTemplate and UpdateWhatsAppMessageTemplate APIs with a template name and language code in place of the template ID. Linked WhatsApp accounts also describe whether the WABA is onboarded to Meta's Marketing Messages API.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now defaults the job timeout to 480 minutes for Glue version 5.0 and later when no timeout value is specified. The default remains 2,880 minutes for Glue version 4.0 and earlier.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Add support for Amazon EC2 Interruptible-ODCR
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Upgrade Jackson to 2.21.3
+
+## __AWS Security Agent__
+  - ### Features
+    - Add support for code reviews, a new resource type that enables automated security-focused static analysis of source code repositories.
+
+## __AWS Step Functions__
+  - ### Features
+    - Service Release Notes
+
+## __AWSBillingConductor__
+  - ### Features
+    - Add ConflictException to UpdateCustomLineItem operation.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Added support for Amazon Aurora DSQL change data capture (CDC) streams that deliver row-level database changes to Amazon Kinesis in JSON format. Includes CreateStream, GetStream, ListStreams, and DeleteStream operations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This change added three new EventSourceName for schedule notification feature
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Include length limits in the SDK and documentation for text fields in Image (AMI) APIs such as the image name and description
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Lightsail__
+  - ### Features
+    - Added OriginIpAddressTypeEnum (ipv4, ipv6, dualstack) and ipAddressType field to Origin and InputOrigin structures for Lightsail CDN distributions. Allows customers to specify how the distribution connects to origins, using IPv4, IPv6, or dualstack networking
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds support for AutomatedSnapshotPauseOptions.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds five new custom permission option for Quick Apps so that these capabilities can be controlled by public SDK and CLI.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added rg.xlarge and rg.4xlarge to valid NodeType values and updated documentation for CreateCluster, ModifyCluster, ResizeCluster, and RestoreFromClusterSnapshot APIs to reflect RG node type support.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed request-level override configuration not being propagated to sub-requests during multipart uploads and copies in the S3 AsyncClient.
+        - Contributed by: [@dbadaya1](https://github.com/dbadaya1)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds execution role session name mode to reflect user identity in Studio. Adds Flexible Training Plans on Studio apps. Adds restricted model packages to control access to proprietary model artifacts via IAM. Fixed instance type parity between inference endpoints and managed shadow tests.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - This release added support for Outbound Campaign timezone detection using all available contact methods
+
+## __Partner Central Account API__
+  - ### Features
+    - Service Release Notes
+
+## __RTBFabric__
+  - ### Features
+    - Customers can now configure custom domain names for their RTB Fabric gateways. This enables partners to use their own branded domain for RTB traffic instead of the default rtbfabric endpoint
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@dbadaya1](https://github.com/dbadaya1)
 # __2.44.4__ __2026-05-07__
 ## __AWS Billing and Cost Management Data Exports__
   - ### Features
