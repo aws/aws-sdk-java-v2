@@ -236,6 +236,45 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
     }
 
     @Test
+    void multiPartDownload_manyParts_shouldCompleteSuccessfully() throws Exception {
+        // 13 parts to exceed maxInFlightParts (10)
+        byte[] data = new byte[208]; // 13 × 16 bytes
+        Arrays.fill(data, (byte) 'X');
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse().withStatus(206)
+                                           .withHeader("Content-Length", "16")
+                                           .withHeader("Content-Range", "bytes 0-15/208")
+                                           .withHeader("ETag", "\"etag\"")
+                                           .withBody(Arrays.copyOfRange(data, 0, 16))));
+
+        for (int i = 1; i < 13; i++) {
+            int start = i * 16;
+            int end = start + 15;
+            stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                        .withHeader("Range", matching("bytes=" + start + "-" + end))
+                        .willReturn(aResponse().withStatus(206)
+                                               .withHeader("Content-Length", "16")
+                                               .withHeader("Content-Range", "bytes " + start + "-" + end + "/208")
+                                               .withHeader("ETag", "\"etag\"")
+                                               .withBody(Arrays.copyOfRange(data, start, end + 1))));
+        }
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        s3AsyncClient.presignedUrlExtension()
+                     .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+                     .join();
+
+        assertThat(Files.readAllBytes(tempFile)).isEqualTo(data);
+        verify(13, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
+    }
+
+    @Test
     void emptyObject_416OnFirstRequest_shouldFallbackToNonRangeGet() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
                     .withHeader("Range", matching("bytes=.*"))

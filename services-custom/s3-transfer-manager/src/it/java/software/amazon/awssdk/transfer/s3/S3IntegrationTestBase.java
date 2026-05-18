@@ -55,11 +55,13 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static S3Client s3;
 
     protected static S3AsyncClient s3Async;
+    protected static S3AsyncClient s3NonMultipartAsync;
 
     protected static S3AsyncClient s3CrtAsync;
 
     protected static S3TransferManager tmCrt;
     protected static S3TransferManager tmJava;
+    protected static S3TransferManager tmNonMultipartJava;
 
     /**
      * Loads the AWS account info for the integration tests and creates an S3
@@ -71,6 +73,11 @@ public class S3IntegrationTestBase extends AwsTestBase {
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
+        s3NonMultipartAsync = S3AsyncClient.builder()
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                           .region(DEFAULT_REGION)
+                                           .build();
+
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
@@ -82,6 +89,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
         tmJava = S3TransferManager.builder()
                                   .s3Client(s3Async)
                                   .build();
+        tmNonMultipartJava = S3TransferManager.builder()
+                                              .s3Client(s3NonMultipartAsync)
+                                              .build();
 
     }
 
@@ -89,8 +99,11 @@ public class S3IntegrationTestBase extends AwsTestBase {
     public static void cleanUpForAllIntegTests() {
         s3.close();
         s3Async.close();
+        s3NonMultipartAsync.close();
         s3CrtAsync.close();
         tmCrt.close();
+        tmJava.close();
+        tmNonMultipartJava.close();
         CrtResource.waitForNoResources();
     }
 
@@ -182,4 +195,11 @@ public class S3IntegrationTestBase extends AwsTestBase {
             Arguments.of(tmJava));
     }
 
+    static Stream<Arguments> presignedUrlTransferManagers() {
+        return Stream.of(
+            // TODO: uncomment when CRT for presigned URL is supported
+            // Arguments.of(tmCrt),
+            Arguments.of(tmNonMultipartJava),
+            Arguments.of(tmJava));
+    }
 }
