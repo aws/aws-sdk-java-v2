@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.8__ __2026-05-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - Services manage service-linked analyzers through dedicated APIs - CreateServiceLinkedAnalyzer and DeleteServiceLinkedAnalyzer that separate service-linked specific operations from customer-managed operations. It also shows up in ListAnalyzers and GetAnalyzer responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports Pause lifecycle hooks for service deployments, allowing customers to automatically pause deployments at specified stages and use the new ContinueServiceDeployment API to continue or roll back with confidence.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC IP Address Manager (IPAM) now supports tags on IPAM pool allocations, enabling all standard tagging features for allocations including tag-on-create.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now supports up to 32 hosts per EVS environment, increasing the previous host limit to allow a larger scale of VMware workload deployments and reduce operational overhead.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Adds support for up to 3 mediaTailorPlaybackConfiguration objects in an ad configuration resource
+
+## __Amazon QuickSight__
+  - ### Features
+    - Support for dataset enrichment and geo spatial in new data preparation experience
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Don't force Netty's unpooled ByteBuffer allocator when using the JDK SSL provider. The underlying Netty issue (netty/netty#9768) has been fixed in later versions.
+        - Contributed by: [@olivergillespie](https://github.com/olivergillespie)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@olivergillespie](https://github.com/olivergillespie)
 # __2.44.7__ __2026-05-15__
 ## __AWS Elemental MediaPackage v2__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "olivergillespie",
-    "description": "Don't force Netty's unpooled ByteBuffer allocator when using the JDK SSL provider. The underlying Netty issue (netty/netty#9768) has been fixed in later versions."
-}

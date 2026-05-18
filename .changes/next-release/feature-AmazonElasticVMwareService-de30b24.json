@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic VMware Service",
-    "contributor": "",
-    "description": "Amazon EVS now supports up to 32 hosts per EVS environment, increasing the previous host limit to allow a larger scale of VMware workload deployments and reduce operational overhead."
-}
