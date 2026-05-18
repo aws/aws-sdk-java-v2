@@ -138,13 +138,25 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);
 
         inFlightRequests.put(0, response);
-        CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
             inFlightRequests.remove(0);
             inFlightPermits.release();
 
-            if (error != null || isCompletedExceptionally.get()) {
+            if (error != null) {
+                if (PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                    resultFuture.completeExceptionally(
+                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                    synchronized (subscriptionLock) {
+                        subscription.cancel();
+                    }
+                } else {
+                    handlePartError(error, 0);
+                }
+                return;
+            }
+
+            if (isCompletedExceptionally.get()) {
                 handlePartError(error, 0);
                 return;
             }

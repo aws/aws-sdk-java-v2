@@ -16,6 +16,7 @@ package software.amazon.awssdk.services.s3.presignedurl;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
@@ -238,6 +240,44 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
             assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
             assertThat(collectedMetrics).isNotEmpty();
         }
+    }
+
+    @Test
+    void getObject_emptyObject_toBytes_shouldSucceed() throws Exception {
+        String emptyKey = uploadTestObject("empty-object-bytes", "");
+
+        PresignedUrlDownloadRequest request = createRequestForKey(emptyKey);
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(response.asByteArray()).isEmpty();
+        assertThat(response.response().contentLength()).isEqualTo(0L);
+    }
+
+    @Test
+    void getObject_emptyObject_toFile_shouldSucceed() throws Exception {
+        String emptyKey = uploadTestObject("empty-object-file", "");
+
+        PresignedUrlDownloadRequest request = createRequestForKey(emptyKey);
+        Path downloadFile = temporaryFolder.resolve("empty-download-" + UUID.randomUUID() + ".bin");
+        GetObjectResponse response =
+            presignedUrlExtension.getObject(request, downloadFile)
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(downloadFile).exists();
+        assertThat(downloadFile.toFile().length()).isEqualTo(0L);
+    }
+
+    @Test
+    void getObject_emptyObject_withRange_shouldThrow416() throws Exception {
+        String emptyKey = uploadTestObject("empty-object-range", "");
+
+        PresignedUrlDownloadRequest request = createRequestForKey(emptyKey, "bytes=0-1024");
+
+        assertThatThrownBy(() -> presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                                      .get(30, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(S3Exception.class);
     }
 
     static Stream<Arguments> basicFunctionalityTestData() {

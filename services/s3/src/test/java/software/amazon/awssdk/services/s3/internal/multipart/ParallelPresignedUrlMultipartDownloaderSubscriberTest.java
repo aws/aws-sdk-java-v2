@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -28,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -37,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.AfterEach;
@@ -274,6 +272,68 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
 
         assertThat(Files.readAllBytes(tempFile)).isEqualTo(data);
         verify(13, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
+    }
+
+    @Test
+    void emptyObject_416OnFirstRequest_shouldFallbackToNonRangeGet() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=.*"))
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", absent())
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Length", "0")
+                                    .withHeader("ETag", "\"empty-etag\"")
+                                    .withBody(new byte[0])));
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        s3AsyncClient.presignedUrlExtension()
+                     .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+                     .join();
+
+        assertThat(tempFile.toFile()).exists();
+        assertThat(tempFile.toFile().length()).isEqualTo(0L);
+    }
+
+    @Test
+    void multipartObject_416OnSecondRequest_shouldFailWithError() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .inScenario("416-on-second")
+                    .whenScenarioStateIs("Started")
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
+                    .willSetStateTo("first-done"));
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .inScenario("416-on-second")
+                    .whenScenarioStateIs("first-done")
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+                                              .join())
+            .isInstanceOf(CompletionException.class);
     }
 
     private static Path createTempFile() throws IOException {
