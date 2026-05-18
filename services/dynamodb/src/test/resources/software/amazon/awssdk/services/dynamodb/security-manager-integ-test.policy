@@ -6,7 +6,7 @@ grant {
     permission "javax.net.ssl.SSLPermission" "setDefaultSSLContext";
     permission "java.net.SocketPermission" "*", "connect,resolve";
 
-    // Needed for Apache HTTP Client 5 TCP keep-alive socket options
+    // Needed for Apache5 HTTP Client TCP keep-alive socket options
     permission jdk.net.NetworkPermission "setOption.TCP_KEEPIDLE";
     permission jdk.net.NetworkPermission "setOption.TCP_KEEPINTERVAL";
     permission jdk.net.NetworkPermission "setOption.TCP_KEEPCOUNT";
