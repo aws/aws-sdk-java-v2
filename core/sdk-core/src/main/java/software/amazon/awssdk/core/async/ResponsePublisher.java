@@ -18,9 +18,9 @@ package software.amazon.awssdk.core.async;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -50,6 +50,7 @@ public final class ResponsePublisher<ResponseT extends SdkResponse> implements S
 
     private static final Logger log = Logger.loggerFor(ResponsePublisher.class);
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+    private static final long THREAD_IDLE_TIMEOUT_SECONDS = 60;
     private final ResponseT response;
     private final SdkPublisher<ByteBuffer> publisher;
     private ScheduledFuture<?> timeoutTask;
@@ -101,12 +102,18 @@ public final class ResponsePublisher<ResponseT extends SdkResponse> implements S
     }
 
     private static final class TimeoutScheduler {
-        static final ScheduledExecutorService INSTANCE =
-            Executors.newScheduledThreadPool(1, r -> {
+        static final ScheduledExecutorService INSTANCE;
+
+        static {
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, r -> {
                 Thread t = new Thread(r, "response-publisher-timeout-scheduler");
                 t.setDaemon(true);
                 return t;
             });
+            executor.setKeepAliveTime(THREAD_IDLE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            executor.allowCoreThreadTimeOut(true);
+            INSTANCE = executor;
+        }
     }
 
     private static class CancellingSubscriber implements Subscriber<ByteBuffer> {

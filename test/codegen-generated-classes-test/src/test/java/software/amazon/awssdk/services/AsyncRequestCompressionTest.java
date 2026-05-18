@@ -120,7 +120,6 @@ public class AsyncRequestCompressionTest {
     public void asyncStreamingOperation_compressionEnabled_compressesCorrectly() {
         mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
 
-        mockAsyncHttpClient.setAsyncRequestBodyLength(compressedBody.length());
         PutOperationWithStreamingRequestCompressionRequest request =
             PutOperationWithStreamingRequestCompressionRequest.builder().build();
         asyncClient.putOperationWithStreamingRequestCompression(request, customAsyncRequestBodyWithoutContentLength(),
@@ -166,7 +165,6 @@ public class AsyncRequestCompressionTest {
         mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
         mockAsyncHttpClient.stubNextResponse(mockResponse(), Duration.ofMillis(500));
 
-        mockAsyncHttpClient.setAsyncRequestBodyLength(compressedBody.length());
         PutOperationWithStreamingRequestCompressionRequest request =
             PutOperationWithStreamingRequestCompressionRequest.builder().build();
         asyncClient.putOperationWithStreamingRequestCompression(request, customAsyncRequestBodyWithoutContentLength(),

@@ -39,6 +39,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_RETRY_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.IDENTITY_PROVIDERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
@@ -96,6 +97,7 @@ import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperti
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
 import software.amazon.awssdk.core.internal.useragent.UserAgentConstant;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -310,9 +312,20 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration finalizeSyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
+                     .option(HTTP_CLIENT_CONFIG_TYPE, resolveSyncHttpClientConfigType(config))
                      .lazyOption(SdkClientOption.SYNC_HTTP_CLIENT, c -> resolveSyncHttpClient(c, config))
                      .option(SdkClientOption.CLIENT_TYPE, SYNC)
                      .build();
+    }
+
+    private BusinessMetricFeatureId resolveSyncHttpClientConfigType(SdkClientConfiguration config) {
+        if (config.option(CONFIGURED_SYNC_HTTP_CLIENT) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE;
+        }
+        if (config.option(CONFIGURED_SYNC_HTTP_CLIENT_BUILDER) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY;
+        }
+        return BusinessMetricFeatureId.HTTP_CLIENT_AUTO;
     }
 
     /**
@@ -321,23 +334,35 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .lazyOptionIfAbsent(FUTURE_COMPLETION_EXECUTOR, this::resolveAsyncFutureCompletionExecutor)
+                     .option(HTTP_CLIENT_CONFIG_TYPE, resolveAsyncHttpClientConfigType(config))
                      .lazyOption(ASYNC_HTTP_CLIENT, c -> resolveAsyncHttpClient(c, config))
                      .option(SdkClientOption.CLIENT_TYPE, ASYNC)
                      .build();
+    }
+
+    private BusinessMetricFeatureId resolveAsyncHttpClientConfigType(SdkClientConfiguration config) {
+        if (config.option(CONFIGURED_ASYNC_HTTP_CLIENT) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE;
+        }
+        if (config.option(CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER) != null) {
+            return BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY;
+        }
+        return BusinessMetricFeatureId.HTTP_CLIENT_AUTO;
     }
 
     /**
      * Finalize global configuration from the default-applied configuration.
      */
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
-        return config.toBuilder()
+        SdkClientConfiguration.Builder builder = config.toBuilder()
                      .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
                      .lazyOptionIfAbsent(RETRY_STRATEGY, this::resolveRetryStrategy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
-                     .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build())
-                     .build();
+                     .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build());
+        builder.computeOptionIfAbsent(HTTP_CLIENT_CONFIG_TYPE, () -> BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+        return builder.build();
     }
 
     private CompressionConfiguration resolveCompressionConfiguration(LazyValueSource config) {

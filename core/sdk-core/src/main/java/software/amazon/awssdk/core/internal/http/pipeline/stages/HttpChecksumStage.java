@@ -86,7 +86,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             result = legacyChecksum(request, context);
         }
 
-        recordChecksumBusinessMetrics(context.executionAttributes());
+        recordChecksumBusinessMetrics(request, context.executionAttributes());
 
         return result;
     }
@@ -343,7 +343,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         return executionAttributes.getAttribute(CHECKSUM_STORE);
     }
 
-    private void recordChecksumBusinessMetrics(ExecutionAttributes executionAttributes) {
+    private void recordChecksumBusinessMetrics(SdkHttpFullRequest.Builder request, ExecutionAttributes executionAttributes) {
         BusinessMetricCollection businessMetrics = 
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         
@@ -360,10 +360,16 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             .ifPresent(businessMetrics::addMetric);
 
         ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+        ChecksumAlgorithm algorithm = resolveChecksumAlgorithm(checksumSpecs);
+        BusinessMetricsUtils.resolveChecksumAlgorithmFeatureIds(algorithm, request)
+                            .forEach(businessMetrics::addMetric);
+    }
+
+    private static ChecksumAlgorithm resolveChecksumAlgorithm(ChecksumSpecs checksumSpecs) {
         if (checksumSpecs != null && checksumSpecs.algorithmV2() != null) {
-            BusinessMetricsUtils.resolveChecksumAlgorithmMetric(checksumSpecs.algorithmV2())
-                .ifPresent(businessMetrics::addMetric);
+            return checksumSpecs.algorithmV2();
         }
+        return null;
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {

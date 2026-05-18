@@ -43,6 +43,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
@@ -186,6 +187,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             requestOptions = requestOptions.withResponseFileOption(responseFileOption);
         }
 
+        CrtCredentialsProviderAdapter requestCredentialsAdapter =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
+
         try {
             S3MetaRequestWrapper requestWrapper = new S3MetaRequestWrapper(crtS3Client.makeMetaRequest(requestOptions));
             s3MetaRequestFuture.complete(requestWrapper);
@@ -196,16 +200,30 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             if (observable != null) {
                 observable.subscribe(requestWrapper);
             }
+        } catch (Throwable t) {
+            if (requestCredentialsAdapter != null) {
+                requestCredentialsAdapter.close();
+            }
+            throw t;
         } finally {
             signingConfig.close();
+        }
+
+        if (requestCredentialsAdapter != null) {
+            executeFuture.whenComplete((result, error) -> requestCredentialsAdapter.close());
         }
 
         return executeFuture;
     }
 
     private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {
+        CrtCredentialsProviderAdapter requestAdapter =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
+        CredentialsProvider effectiveCredentials =
+            requestAdapter != null ? requestAdapter.crtCredentials() : s3ClientOptions.getCredentialsProvider();
+
         AwsSigningConfig defaultS3SigningConfig =
-            AwsSigningConfig.getDefaultS3SigningConfig(s3ClientOptions.getRegion(), s3ClientOptions.getCredentialsProvider());
+            AwsSigningConfig.getDefaultS3SigningConfig(s3ClientOptions.getRegion(), effectiveCredentials);
 
         // Override the region only if the signing region has changed from the previously configured region.
         if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {

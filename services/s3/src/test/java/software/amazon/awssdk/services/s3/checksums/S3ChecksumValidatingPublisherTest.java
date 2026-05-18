@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.checksums;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -91,6 +92,7 @@ public class S3ChecksumValidatingPublisherTest {
 
     assertFalse(s.hasCompleted());
     assertTrue(s.isOnErrorCalled());
+    assertThat(s.getError().getMessage()).contains("Data read has a different checksum than expected");
   }
 
   @Test
@@ -195,6 +197,7 @@ public class S3ChecksumValidatingPublisherTest {
     final List<ByteBuffer> received;
     boolean completed;
     boolean onErrorCalled;
+    Throwable error;
 
     TestSubscriber() {
       this.received = new ArrayList<>();
@@ -216,6 +219,7 @@ public class S3ChecksumValidatingPublisherTest {
     @Override
     public void onError(Throwable t) {
       onErrorCalled = true;
+      error = t;
     }
 
     @Override
@@ -241,6 +245,10 @@ public class S3ChecksumValidatingPublisherTest {
 
     public boolean isOnErrorCalled() {
       return onErrorCalled;
+    }
+
+    public Throwable getError() {
+      return error;
     }
   }
 

@@ -72,6 +72,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator;
+import software.amazon.awssdk.services.s3.internal.crt.CrtCredentialsProviderAdapter;
 import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -423,24 +424,37 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                                          existingHttpAttributes.toBuilder() :
                                                          SdkHttpExecutionAttributes.builder();
 
-            SdkHttpExecutionAttributes attributes =
-                builder.put(OPERATION_NAME,
-                            executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
-                       .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
-                       .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                       .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
-                            executionAttributes.getAttribute(OBJECT_FILE_PATH))
-                       .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.isS3ExpressAuthRequest(context.request(), executionAttributes))
-                       .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
-                       .put(REQUEST_CHECKSUM_CALCULATION,
-                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
-                       .put(RESPONSE_CHECKSUM_VALIDATION,
-                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
-                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
-                            executionAttributes.getAttribute(RESPONSE_FILE_PATH))
-                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
-                            executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
-                       .build();
+            builder.put(OPERATION_NAME,
+                        executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                   .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
+                   .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                   .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
+                        executionAttributes.getAttribute(OBJECT_FILE_PATH))
+                   .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.isS3ExpressAuthRequest(context.request(), executionAttributes))
+                   .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+                   .put(REQUEST_CHECKSUM_CALCULATION,
+                        executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
+                   .put(RESPONSE_CHECKSUM_VALIDATION,
+                        executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
+                        executionAttributes.getAttribute(RESPONSE_FILE_PATH))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
+                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION));
+
+            SdkRequest request = context.request();
+            if (request instanceof AwsRequest) {
+                ((AwsRequest) request).overrideConfiguration().ifPresent(config -> {
+                    AwsRequestOverrideConfiguration awsConfig = (AwsRequestOverrideConfiguration) config;
+                    awsConfig.credentialsIdentityProvider().ifPresent(credentialsProvider -> {
+                        CrtCredentialsProviderAdapter adapter =
+                            new CrtCredentialsProviderAdapter(credentialsProvider);
+                        builder.put(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER,
+                                    adapter);
+                    });
+                });
+            }
+
+            SdkHttpExecutionAttributes attributes = builder.build();
 
             // We rely on CRT to perform checksum validation, disable SDK flexible checksum implementation
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
@@ -466,11 +480,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     (AwsRequestOverrideConfiguration) request.overrideConfiguration().get();
                 if (overrideConfiguration.signer().isPresent()) {
                     throw new UnsupportedOperationException("Request-level signer override is not supported");
-                }
-
-                // TODO: support request-level credential override
-                if (overrideConfiguration.credentialsIdentityProvider().isPresent()) {
-                    throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 
                 if (!CollectionUtils.isNullOrEmpty(overrideConfiguration.metricPublishers())) {

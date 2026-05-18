@@ -14,7 +14,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: aws-actions/stale-issue-cleanup@v4
+    - uses: aws-actions/stale-issue-cleanup@v7.1.1
       with:
         # Setting messages to an empty string will cause the automation to skip
         # that category

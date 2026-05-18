@@ -1,0 +1,48 @@
+{
+    "version": "2.42.22",
+    "date": "2026-03-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Data Exports",
+            "contributor": "",
+            "description": "With this release we are providing an option to accounts to have their export delivered to an S3 bucket that is not owned by the account."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch EMF Metric Publisher",
+            "contributor": "humanzz",
+            "description": "Add `PropertiesFactory` and `propertiesFactory` to `EmfMetricLoggingPublisher.Builder`, enabling users to enrich EMF records with custom key-value properties derived from the metric collection or ambient context, searchable in CloudWatch Logs Insights. See [#6595](https://github.com/aws/aws-sdk-java-v2/issues/6595)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "This release adds parameter support to saved queries in CloudWatch Logs Insights. Define reusable query templates with named placeholders, invoke them using start query. Available in Console, CLI and SDK"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Add StepExecutionRoleArn to RunJobFlow API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Release support for ml.r5d.16xlarge instance types for SageMaker HyperPod"
+        },
+        {
+            "type": "feature",
+            "category": "Timestream InfluxDB",
+            "contributor": "",
+            "description": "Timestream for InfluxDB adds support for customer defined maintenance windows. This allows customers to define maintenance schedule during resource creation and updates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
