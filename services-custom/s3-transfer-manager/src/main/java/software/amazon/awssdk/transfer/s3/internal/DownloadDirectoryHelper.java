@@ -106,7 +106,7 @@ public class DownloadDirectoryHelper {
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
         AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadSingleFile(downloadDirectoryRequest, request,
+            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
                                            transferConfiguration.option(
@@ -129,11 +129,13 @@ public class DownloadDirectoryHelper {
     }
 
     private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
+        CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
         ListObjectsV2Request listRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
 
-        return s3Object -> doDownloadSingleFile(downloadDirectoryRequest,
+        return s3Object -> doDownloadSingleFile(returnFuture,
+                                            downloadDirectoryRequest,
                                             failedFileDownloads,
                                             listRequest,
                                             s3Object);
@@ -158,10 +160,17 @@ public class DownloadDirectoryHelper {
         }
     }
 
-    private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                                          Collection<FailedFileDownload> failedFileDownloads,
-                                                                          ListObjectsV2Request listRequest,
-                                                                          S3Object s3Object) {
+    private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(
+        CompletableFuture<CompletedDirectoryDownload> returnFuture,
+        DownloadDirectoryRequest downloadDirectoryRequest,
+        Collection<FailedFileDownload> failedFileDownloads,
+        ListObjectsV2Request listRequest,
+        S3Object s3Object) {
+
+        if (returnFuture.isDone()) {
+            return CompletableFutureUtils.failedFuture(
+                SdkClientException.create("Download was cancelled before file could be started"));
+        }
 
         Path destinationPath = determineDestinationPath(downloadDirectoryRequest, listRequest, s3Object);
 
