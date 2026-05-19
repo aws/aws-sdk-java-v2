@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -30,7 +31,6 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
@@ -98,7 +98,7 @@ public class AwsJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                          .withStatus(200)
@@ -112,7 +112,8 @@ public class AwsJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        jsonRpc.simple(SimpleRequest.builder().build());
+        assertThatThrownBy(() -> jsonRpc.simple(SimpleRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
     @Test
@@ -134,7 +135,7 @@ public class AwsJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                          .withStatus(200)
@@ -148,7 +149,8 @@ public class AwsJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        jsonRpc.allTypes(AllTypesRequest.builder().build());
+        assertThatThrownBy(() -> jsonRpc.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
     @Test
@@ -169,7 +171,7 @@ public class AwsJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                          .withStatus(200)
@@ -182,10 +184,11 @@ public class AwsJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        jsonRpc.allTypes(AllTypesRequest.builder().build());
+        assertThatThrownBy(() -> jsonRpc.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
-    @Test(expected = Crc32MismatchException.class)
+    @Test
     public void emptyBody_WhenCrc32HeaderIsNonZero_ThrowsCrc32Mismatch() {
         stubFor(post(urlEqualTo("/")).willReturn(aResponse()
                                                          .withStatus(200)
@@ -198,6 +201,7 @@ public class AwsJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        jsonRpc.allTypes(AllTypesRequest.builder().build());
+        assertThatThrownBy(() -> jsonRpc.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 }
