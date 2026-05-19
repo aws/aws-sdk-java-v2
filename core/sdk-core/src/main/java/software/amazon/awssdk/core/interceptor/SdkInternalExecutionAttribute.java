@@ -213,6 +213,22 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("SelectedAuthScheme");
 
     /**
+     * Snapshot of {@link #SELECTED_AUTH_SCHEME} taken before execution interceptors run.
+     * Used by {@code AuthSchemeResolver#mergePreExistingAuthSchemeProperties} to detect which signer properties
+     * were explicitly modified by interceptors (and should therefore override the freshly-resolved values).
+     */
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS =
+        new ExecutionAttribute<>("AuthSchemeSnapshotPreInterceptors");
+
+    /**
+     * Snapshot of {@link #SELECTED_AUTH_SCHEME} taken after interceptors run but before auth scheme resolution.
+     * Together with {@link #AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS}, this allows detecting which signer properties
+     * were explicitly modified by interceptors so they can be re-applied after endpoint resolution.
+     */
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> AUTH_SCHEME_SNAPSHOT_POST_INTERCEPTORS =
+        new ExecutionAttribute<>("AuthSchemeSnapshotPostInterceptors");
+
+    /**
      * The supported compression algorithms for an operation, and whether the operation is streaming or not.
      */
     public static final ExecutionAttribute<RequestCompression> REQUEST_COMPRESSION =

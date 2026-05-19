@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -125,11 +127,15 @@ public final class AuthSchemeResolver {
 
     /**
      * Merge properties from any pre-existing auth scheme into the selected one.
+     *
+     * After auth scheme resolution produces a fresh selectedAuthScheme, this method ensures that any signer properties
+     * explicitly set by interceptors (e.g., signing region override) take priority over the resolved values.
      */
     public static <T extends Identity> SelectedAuthScheme<T> mergePreExistingAuthSchemeProperties(
             SelectedAuthScheme<T> selectedAuthScheme,
             ExecutionAttributes executionAttributes) {
 
+        // The "existing" auth scheme is what's currently on SELECTED_AUTH_SCHEME - potentially modified by interceptors.
         SelectedAuthScheme<?> existingAuthScheme =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
@@ -137,15 +143,108 @@ public final class AuthSchemeResolver {
             return selectedAuthScheme;
         }
 
+        // Snapshot taken before interceptors ran — used to detect what interceptors changed.
+        SelectedAuthScheme<?> authSchemeBeforeInterceptors =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS);
+
+        // If no interceptor modified the auth scheme option, skip the diff logic. Still merge existing properties with
+        // putIfAbsent so that properties from the initial placeholder (e.g., REGION_NAME) carry over to the
+        // freshly resolved scheme.
+        if (authSchemeBeforeInterceptors != null &&
+            authSchemeBeforeInterceptors.authSchemeOption() == existingAuthScheme.authSchemeOption()) {
+            AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+            existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
+            existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
+            return new SelectedAuthScheme<>(
+                selectedAuthScheme.identity(),
+                selectedAuthScheme.signer(),
+                mergedOption.build()
+            );
+        }
+
+        // Start with the freshly resolved auth scheme as the base.
         AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+
+        // For each signer property on the interceptor-modified scheme:
+        // If the interceptor changed it (differs from pre-interceptor snapshot), apply interceptor override
+        // If unchanged (same as before interceptors) only add if not already on the resolved scheme
+        existingAuthScheme.authSchemeOption().forEachSignerProperty(new AuthSchemeOption.SignerPropertyConsumer() {
+            @Override
+            public <S> void accept(SignerProperty<S> key, S value) {
+                if (wasModifiedByInterceptor(authSchemeBeforeInterceptors, key, value)) {
+                    mergedOption.putSignerProperty(key, value);
+                } else {
+                    mergedOption.putSignerPropertyIfAbsent(key, value);
+                }
+            }
+        });
+
         existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
-        existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
 
         return new SelectedAuthScheme<>(
             selectedAuthScheme.identity(),
             selectedAuthScheme.signer(),
             mergedOption.build()
         );
+    }
+
+    /**
+     * Returns true if the given property value differs from what it was before interceptors ran,
+     * meaning an interceptor explicitly changed it.
+     */
+    private static <T> boolean wasModifiedByInterceptor(SelectedAuthScheme<?> authSchemeBeforeInterceptors,
+                                                         SignerProperty<T> key, T currentValue) {
+        if (authSchemeBeforeInterceptors == null) {
+            return false;
+        }
+        T originalValue = authSchemeBeforeInterceptors.authSchemeOption().signerProperty(key);
+        return !Objects.equals(originalValue, currentValue);
+    }
+
+    /**
+     * Re-applies interceptor-modified signer properties onto the current auth scheme.
+     * Called after endpoint resolution, which may have overwritten properties that interceptors set.
+     */
+    public static void applyInterceptorModifiedProperties(SelectedAuthScheme<?> currentScheme,
+                                                          SelectedAuthScheme<?> authSchemeBeforeInterceptors,
+                                                          SelectedAuthScheme<?> afterInterceptors,
+                                                          ExecutionAttributes attrs) {
+        if (afterInterceptors == null) {
+            return;
+        }
+        doApplyInterceptorModifiedProperties(currentScheme, authSchemeBeforeInterceptors, afterInterceptors, attrs);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Identity> void doApplyInterceptorModifiedProperties(
+            SelectedAuthScheme<T> currentScheme,
+            SelectedAuthScheme<?> authSchemeBeforeInterceptors,
+            SelectedAuthScheme<?> afterInterceptors,
+            ExecutionAttributes attrs) {
+
+        // Start with the current endpoint resolved auth scheme as the base.
+        AuthSchemeOption.Builder mergedOption = currentScheme.authSchemeOption().toBuilder();
+        boolean[] changed = {false};
+
+        // For each property on the post-interceptor scheme, check if the interceptor changed it.
+        // If yes, apply it onto the current scheme.
+        afterInterceptors.authSchemeOption().forEachSignerProperty(new AuthSchemeOption.SignerPropertyConsumer() {
+            @Override
+            public <S> void accept(SignerProperty<S> key, S value) {
+                if (wasModifiedByInterceptor(authSchemeBeforeInterceptors, key, value)) {
+                    mergedOption.putSignerProperty(key, value);
+                    changed[0] = true;
+                }
+            }
+        });
+
+        // Only update SELECTED_AUTH_SCHEME if at least one property was re-applied.
+        if (changed[0]) {
+            attrs.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                               new SelectedAuthScheme<>(currentScheme.identity(),
+                                                        currentScheme.signer(),
+                                                        mergedOption.build()));
+        }
     }
 
     private static <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(

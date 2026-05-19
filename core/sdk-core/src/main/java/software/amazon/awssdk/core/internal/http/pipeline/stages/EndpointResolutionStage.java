@@ -22,6 +22,8 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -69,6 +71,8 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         long resolveEndpointStart = System.nanoTime();
         Endpoint endpoint = resolver.resolve(sdkRequest, attrs);
         Duration resolveEndpointDuration = Duration.ofNanos(System.nanoTime() - resolveEndpointStart);
+
+        reapplyInterceptorModifiedAuthProperties(attrs);
 
         MetricCollector metricCollector = attrs.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
         if (metricCollector != null) {
@@ -139,5 +143,22 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
     private static String combinePath(String clientEndpointPath, String requestPath, String resolvedUriPath) {
         String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
         return SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
+    }
+
+    private static void reapplyInterceptorModifiedAuthProperties(ExecutionAttributes attrs) {
+        SelectedAuthScheme<?> currentScheme = attrs.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (currentScheme == null) {
+            return;
+        }
+        SelectedAuthScheme<?> beforeInterceptors =
+            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS);
+
+        SelectedAuthScheme<?> afterInterceptors =
+            attrs.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_POST_INTERCEPTORS);
+        if (afterInterceptors == null) {
+            return;
+        }
+
+        AuthSchemeResolver.applyInterceptorModifiedProperties(currentScheme, beforeInterceptors, afterInterceptors, attrs);
     }
 }
