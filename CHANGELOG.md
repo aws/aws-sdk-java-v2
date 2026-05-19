@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.9__ __2026-05-19__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Service Release Notes
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for exposure and vulnerability context from AWS Security Hub in GuardDuty Extended Threat Detection attack sequence findings.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Introduce degraded workspace status as a possible Amazon Managed Grafana workspace status, and a new field named degraded workspace reason which informs customers why the workspace is degraded in the DescribeWorkspace API response.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for ml.p5.4xlarge and ml.p5en.48xlarge instances on SageMaker Notebook Instances Platform.
+
+## __RTBFabric__
+  - ### Features
+    - This release is to deprecate 'inboundLinksCount' field in GetResponderGateway response and introduce the new field 'linksRequestedCount' to replace it.
+
 # __2.44.8__ __2026-05-18__
 ## __AWS SDK for Java v2__
   - ### Features
