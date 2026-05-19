@@ -197,8 +197,11 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        FooBarAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
-                                                                    .filter(p -> p instanceof FooBarAuthSchemeProvider).map(p -> (FooBarAuthSchemeProvider) p).orElse(null);
+        FooBarAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(FooBarAuthSchemeProvider.class, p,
+                                            "Expected an instance of FooBarAuthSchemeProvider")).orElse(null);
         FooBarAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(FooBarAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
                           "Expected an instance of FooBarAuthSchemeProvider");

@@ -374,10 +374,10 @@ public final class ClientClassUtils {
         // Check for request-level authSchemeProvider override
         builder.addStatement("$T requestAuthSchemeProvider = request.overrideConfiguration()"
                              + ".flatMap(c -> c.authSchemeProvider())"
-                             + ".filter(p -> p instanceof $T)"
-                             + ".map(p -> ($T) p)"
+                             + ".map(p -> $T.isInstanceOf($T.class, p, $S))"
                              + ".orElse(null)",
-                             providerInterface, providerInterface, providerInterface);
+                             providerInterface, Validate.class, providerInterface,
+                             "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
         builder.addStatement("$T authSchemeProvider = requestAuthSchemeProvider != null "
                              + "? requestAuthSchemeProvider "
                              + ": $T.isInstanceOf($T.class, "

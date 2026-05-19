@@ -1095,8 +1095,11 @@ final class DefaultQueryClient implements QueryClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        QueryAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
-                                                                   .filter(p -> p instanceof QueryAuthSchemeProvider).map(p -> (QueryAuthSchemeProvider) p).orElse(null);
+        QueryAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(QueryAuthSchemeProvider.class, p,
+                                            "Expected an instance of QueryAuthSchemeProvider")).orElse(null);
         QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(QueryAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
                           "Expected an instance of QueryAuthSchemeProvider");
