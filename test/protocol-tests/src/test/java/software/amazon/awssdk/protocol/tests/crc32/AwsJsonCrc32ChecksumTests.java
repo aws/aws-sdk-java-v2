@@ -29,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
@@ -174,6 +175,22 @@ public class AwsJsonCrc32ChecksumTests {
                                                          .withStatus(200)
                                                          .withHeader("x-amz-crc32", JSON_BODY_GZIP_Crc32_CHECKSUM)
                                                          .withBody(JSON_BODY)));
+
+        ProtocolJsonRpcClient jsonRpc = ProtocolJsonRpcClient.builder()
+                .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
+                .region(Region.US_EAST_1)
+                .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
+                .build();
+
+        jsonRpc.allTypes(AllTypesRequest.builder().build());
+    }
+
+    @Test(expected = Crc32MismatchException.class)
+    public void emptyBody_WhenCrc32HeaderIsNonZero_ThrowsCrc32Mismatch() {
+        stubFor(post(urlEqualTo("/")).willReturn(aResponse()
+                                                         .withStatus(200)
+                                                         .withHeader("x-amz-crc32", JSON_BODY_Crc32_CHECKSUM)
+                                                         .withHeader("Content-Length", "0")));
 
         ProtocolJsonRpcClient jsonRpc = ProtocolJsonRpcClient.builder()
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
