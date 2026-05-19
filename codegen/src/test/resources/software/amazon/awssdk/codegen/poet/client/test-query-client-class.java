@@ -1095,9 +1095,11 @@ final class DefaultQueryClient implements QueryClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        QueryAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(QueryAuthSchemeProvider.class,
-                                                                           clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                           "Expected an instance of QueryAuthSchemeProvider");
+        QueryAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
+                                                                   .filter(p -> p instanceof QueryAuthSchemeProvider).map(p -> (QueryAuthSchemeProvider) p).orElse(null);
+        QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(QueryAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of QueryAuthSchemeProvider");
         QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());

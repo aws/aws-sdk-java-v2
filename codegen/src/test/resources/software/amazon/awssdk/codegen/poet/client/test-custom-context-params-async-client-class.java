@@ -197,9 +197,11 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        FooBarAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(FooBarAuthSchemeProvider.class,
-                                                                            clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                            "Expected an instance of FooBarAuthSchemeProvider");
+        FooBarAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
+                                                                    .filter(p -> p instanceof FooBarAuthSchemeProvider).map(p -> (FooBarAuthSchemeProvider) p).orElse(null);
+        FooBarAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(FooBarAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of FooBarAuthSchemeProvider");
         FooBarAuthSchemeParams.Builder paramsBuilder = FooBarAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
