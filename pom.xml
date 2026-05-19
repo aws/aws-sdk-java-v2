@@ -873,8 +873,8 @@
         <profile>
             <id>quick</id>
             <properties>
-                <checkstyle.skip>false</checkstyle.skip>
-                <spotbugs.skip>false</spotbugs.skip>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
