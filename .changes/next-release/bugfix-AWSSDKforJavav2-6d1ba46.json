@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where responses with a non-zero x-amz-crc32 header but no response body were silently returned to the caller as empty results. The SDK now throws Crc32MismatchException that is retryable when a non-zero CRC32 is claimed but no body is delivered, matching v1 SDK behavior."
+}
