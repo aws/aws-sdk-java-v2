@@ -503,9 +503,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        EndpointDiscoveryTestAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
-            EndpointDiscoveryTestAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-            "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider");
+        EndpointDiscoveryTestAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(EndpointDiscoveryTestAuthSchemeProvider.class, p,
+                                            "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider")).orElse(null);
+        EndpointDiscoveryTestAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                       : Validate.isInstanceOf(EndpointDiscoveryTestAuthSchemeProvider.class,
+                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider");
         EndpointDiscoveryTestAuthSchemeParams.Builder paramsBuilder = EndpointDiscoveryTestAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));

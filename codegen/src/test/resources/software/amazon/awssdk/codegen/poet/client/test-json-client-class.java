@@ -1136,9 +1136,15 @@ final class DefaultJsonClient implements JsonClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        JsonAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(JsonAuthSchemeProvider.class,
-                                                                          clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                          "Expected an instance of JsonAuthSchemeProvider");
+        JsonAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate
+                .isInstanceOf(JsonAuthSchemeProvider.class, p, "Expected an instance of JsonAuthSchemeProvider"))
+            .orElse(null);
+        JsonAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(JsonAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of JsonAuthSchemeProvider");
         JsonAuthSchemeParams.Builder paramsBuilder = JsonAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());

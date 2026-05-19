@@ -1028,9 +1028,15 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        SmithyRpcV2ProtocolAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
-            SmithyRpcV2ProtocolAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-            "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
+        SmithyRpcV2ProtocolAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class, p,
+                                            "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider")).orElse(null);
+        SmithyRpcV2ProtocolAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                     : Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class,
+                                                                                                                             clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                             "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
         SmithyRpcV2ProtocolAuthSchemeParams.Builder paramsBuilder = SmithyRpcV2ProtocolAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));

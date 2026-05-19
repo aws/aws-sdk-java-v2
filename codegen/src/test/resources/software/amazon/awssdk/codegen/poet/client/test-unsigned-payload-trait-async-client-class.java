@@ -1038,9 +1038,14 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        DatabaseAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(DatabaseAuthSchemeProvider.class,
-                                                                              clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                              "Expected an instance of DatabaseAuthSchemeProvider");
+        DatabaseAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(DatabaseAuthSchemeProvider.class, p,
+                                            "Expected an instance of DatabaseAuthSchemeProvider")).orElse(null);
+        DatabaseAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(DatabaseAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of DatabaseAuthSchemeProvider");
         DatabaseAuthSchemeParams.Builder paramsBuilder = DatabaseAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         Set<String> sigv4aRegionSet = clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET);

@@ -1286,9 +1286,14 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        QueryAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(QueryAuthSchemeProvider.class,
-                                                                           clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                           "Expected an instance of QueryAuthSchemeProvider");
+        QueryAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(QueryAuthSchemeProvider.class, p,
+                                            "Expected an instance of QueryAuthSchemeProvider")).orElse(null);
+        QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(QueryAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of QueryAuthSchemeProvider");
         QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
