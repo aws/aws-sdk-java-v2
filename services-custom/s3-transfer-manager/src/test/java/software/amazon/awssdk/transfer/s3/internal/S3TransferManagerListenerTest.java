@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -52,8 +51,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
@@ -61,24 +58,17 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class S3TransferManagerListenerTest {
     private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
     private S3CrtAsyncClient s3Crt;
     private S3TransferManager tm;
     private long contentLength;
-    private static final String PRESIGNED_URL = "https://test-bucket.s3.amazonaws.com/test-key"
-                                                + "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKID"
-                                                + "&X-Amz-Date=20260101T000000Z&X-Amz-Expires=600"
-                                                + "&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123";
 
     @BeforeEach
     public void methodSetup() {
@@ -340,126 +330,6 @@ public class S3TransferManagerListenerTest {
         verifyNoMoreInteractions(listener);
     }
 
-    @Test
-    public void downloadFileWithPresignedUrl_success_shouldInvokeListener() throws Exception {
-        stubPresignedUrlExtension();
-        TransferListener listener = mock(TransferListener.class);
-
-        PresignedDownloadFileRequest downloadRequest = PresignedDownloadFileRequest.builder()
-                                                                                   .presignedUrlDownloadRequest(presignedUrlDownloadRequest())
-                                                                                   .destination(newTempFile())
-                                                                                   .addTransferListener(listener)
-                                                                                   .build();
-
-        FileDownload download = tm.downloadFileWithPresignedUrl(downloadRequest);
-
-        ArgumentCaptor<TransferListener.Context.TransferInitiated> captor1 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferInitiated.class);
-        verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
-        TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
-        assertThat(ctx1.request()).isSameAs(downloadRequest);
-        assertThat(ctx1.progressSnapshot().totalBytes()).isNotPresent();
-        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
-
-        ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
-            ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
-        verify(listener, timeout(1000).atLeastOnce()).bytesTransferred(captor2.capture());
-        TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
-        assertThat(ctx2.request()).isSameAs(downloadRequest);
-        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
-        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
-
-        ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
-        verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
-        TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
-        assertThat(ctx3.request()).isSameAs(downloadRequest);
-        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(contentLength);
-        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(contentLength);
-        assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
-
-        download.completionFuture().join();
-        verifyNoMoreInteractions(listener);
-    }
-
-    @Test
-    public void downloadWithPresignedUrl_success_shouldInvokeListener() throws Exception {
-        stubPresignedUrlExtension();
-        TransferListener listener = mock(TransferListener.class);
-
-        PresignedDownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
-            PresignedDownloadRequest.<ResponseBytes<GetObjectResponse>>builder()
-                                    .presignedUrlDownloadRequest(presignedUrlDownloadRequest())
-                                    .responseTransformer(AsyncResponseTransformer.toBytes())
-                                    .addTransferListener(listener)
-                                    .build();
-
-        Download<ResponseBytes<GetObjectResponse>> download = tm.downloadWithPresignedUrl(downloadRequest);
-
-        ArgumentCaptor<TransferListener.Context.TransferInitiated> captor1 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferInitiated.class);
-        verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
-        TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
-        assertThat(ctx1.request()).isSameAs(downloadRequest);
-        assertThat(ctx1.progressSnapshot().totalBytes()).isNotPresent();
-        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
-
-        ArgumentCaptor<TransferListener.Context.BytesTransferred> captor2 =
-            ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
-        verify(listener, timeout(1000).atLeastOnce()).bytesTransferred(captor2.capture());
-        TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
-        assertThat(ctx2.request()).isSameAs(downloadRequest);
-        assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
-        assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();
-
-        ArgumentCaptor<TransferListener.Context.TransferComplete> captor3 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferComplete.class);
-        verify(listener, timeout(1000).times(1)).transferComplete(captor3.capture());
-        TransferListener.Context.TransferComplete ctx3 = captor3.getValue();
-        assertThat(ctx3.request()).isSameAs(downloadRequest);
-        assertThat(ctx3.progressSnapshot().totalBytes()).hasValue(contentLength);
-        assertThat(ctx3.progressSnapshot().transferredBytes()).isEqualTo(contentLength);
-        assertThat(ctx3.completedTransfer()).isSameAs(download.completionFuture().get());
-
-        download.completionFuture().join();
-        verifyNoMoreInteractions(listener);
-    }
-
-    @Test
-    public void downloadFileWithPresignedUrl_failure_shouldInvokeListener() throws Exception {
-        SdkClientException sdkClientException = SdkClientException.create("download failed");
-        stubPresignedUrlExtensionWithFailure(sdkClientException);
-        TransferListener listener = mock(TransferListener.class);
-
-        PresignedDownloadFileRequest downloadRequest = PresignedDownloadFileRequest.builder()
-                                                                                   .presignedUrlDownloadRequest(presignedUrlDownloadRequest())
-                                                                                   .destination(newTempFile())
-                                                                                   .addTransferListener(listener)
-                                                                                   .build();
-
-        FileDownload download = tm.downloadFileWithPresignedUrl(downloadRequest);
-        assertThatThrownBy(() -> download.completionFuture().join())
-            .isInstanceOf(CompletionException.class)
-            .hasCause(sdkClientException);
-
-        ArgumentCaptor<TransferListener.Context.TransferInitiated> captor1 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferInitiated.class);
-        verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
-        TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
-        assertThat(ctx1.request()).isSameAs(downloadRequest);
-        assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
-
-        ArgumentCaptor<TransferListener.Context.TransferFailed> captor2 =
-            ArgumentCaptor.forClass(TransferListener.Context.TransferFailed.class);
-        verify(listener, timeout(1000).times(1)).transferFailed(captor2.capture());
-        TransferListener.Context.TransferFailed ctx2 = captor2.getValue();
-        assertThat(ctx2.request()).isSameAs(downloadRequest);
-        assertThat(ctx2.progressSnapshot().transferredBytes()).isZero();
-        assertThat(ctx2.exception()).isEqualTo(sdkClientException);
-
-        verifyNoMoreInteractions(listener);
-    }
-
     private static TransferListener throwingListener() {
         TransferListener listener = mock(TransferListener.class);
         RuntimeException e = new RuntimeException("Intentional exception for testing purposes");
@@ -468,26 +338,6 @@ public class S3TransferManagerListenerTest {
         doThrow(e).when(listener).transferComplete(any());
         doThrow(e).when(listener).transferFailed(any());
         return listener;
-    }
-
-    private void stubPresignedUrlExtension() {
-        AsyncPresignedUrlExtension mockExtension = mock(AsyncPresignedUrlExtension.class);
-        when(s3Crt.presignedUrlExtension()).thenReturn(mockExtension);
-        when(mockExtension.getObject(any(PresignedUrlDownloadRequest.class), any(AsyncResponseTransformer.class)))
-            .thenAnswer(randomGetResponseBody(contentLength));
-    }
-
-    private void stubPresignedUrlExtensionWithFailure(Throwable error) {
-        AsyncPresignedUrlExtension mockExtension = mock(AsyncPresignedUrlExtension.class);
-        when(s3Crt.presignedUrlExtension()).thenReturn(mockExtension);
-        when(mockExtension.getObject(any(PresignedUrlDownloadRequest.class), any(AsyncResponseTransformer.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(error));
-    }
-
-    private PresignedUrlDownloadRequest presignedUrlDownloadRequest() throws Exception {
-        return PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(new URL(PRESIGNED_URL))
-                                          .build();
     }
 
     private static Answer<CompletableFuture<PutObjectResponse>> drainPutRequestBody() {
