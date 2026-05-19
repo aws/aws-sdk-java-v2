@@ -209,6 +209,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.almworks.sqlite4java</groupId>
             <artifactId>sqlite4java</artifactId>
             <scope>test</scope>
