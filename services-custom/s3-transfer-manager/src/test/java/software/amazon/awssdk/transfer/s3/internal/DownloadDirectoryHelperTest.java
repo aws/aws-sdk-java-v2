@@ -213,7 +213,6 @@ public class DownloadDirectoryHelperTest {
                                                                               .bucket("bucket")
                                                                               .build());
 
-        // Wait for both downloads to have started before cancelling
         assertThat(bothStarted.await(5, TimeUnit.SECONDS)).isTrue();
 
         downloadDirectory.completionFuture().cancel(true);
@@ -579,12 +578,6 @@ public class DownloadDirectoryHelperTest {
         return fileDownload2;
     }
 
-    /**
-     * Verifies that after a directory download is cancelled, subsequent S3 objects do not cause
-     * directories to be created on the filesystem. This reproduces the bug where a late-arriving
-     * S3Object would call createParentDirectoriesIfNeeded() and recreate a directory that was
-     * already cleaned up.
-     */
     @Test
     void downloadDirectory_cancelledFuture_shouldNotCreateDirectories() throws Exception {
         SimplePublisher<S3Object> publisher = new SimplePublisher<>();
@@ -602,16 +595,13 @@ public class DownloadDirectoryHelperTest {
                                     .bucket("bucket")
                                     .build());
 
-        // Cancel before any items are delivered
         directoryDownload.completionFuture().cancel(true);
 
-        // Now deliver an item — this simulates a late-arriving S3Object after cancel
         publisher.send(S3Object.builder().key("subdir/file.txt").size(100L).build());
         publisher.complete();
 
         Thread.sleep(200);
 
-        // The subdirectory should NOT have been created
         Path subdir = directory.resolve("subdir");
         assertThat(Files.exists(subdir)).isFalse();
     }
