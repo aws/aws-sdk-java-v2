@@ -147,11 +147,19 @@ public final class AuthSchemeResolver {
         SelectedAuthScheme<?> authSchemeBeforeInterceptors =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS);
 
-        // If the auth scheme option is the same object reference before and after
-        // interceptors, no interceptor modified it — skip the merge entirely.
+        // If no interceptor modified the auth scheme option, skip the diff logic. Still merge existing properties with
+        // putIfAbsent so that properties from the initial placeholder (e.g., REGION_NAME) carry over to the
+        // freshly resolved scheme.
         if (authSchemeBeforeInterceptors != null &&
             authSchemeBeforeInterceptors.authSchemeOption() == existingAuthScheme.authSchemeOption()) {
-            return selectedAuthScheme;
+            AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
+            existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
+            existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
+            return new SelectedAuthScheme<>(
+                selectedAuthScheme.identity(),
+                selectedAuthScheme.signer(),
+                mergedOption.build()
+            );
         }
 
         // Start with the freshly resolved auth scheme as the base.
@@ -186,6 +194,9 @@ public final class AuthSchemeResolver {
      */
     private static <T> boolean wasModifiedByInterceptor(SelectedAuthScheme<?> authSchemeBeforeInterceptors,
                                                          SignerProperty<T> key, T currentValue) {
+        if (authSchemeBeforeInterceptors == null) {
+            return false;
+        }
         T originalValue = authSchemeBeforeInterceptors.authSchemeOption().signerProperty(key);
         return !Objects.equals(originalValue, currentValue);
     }
