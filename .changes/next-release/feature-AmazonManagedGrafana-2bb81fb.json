@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Grafana",
-    "contributor": "",
-    "description": "Introduce degraded workspace status as a possible Amazon Managed Grafana workspace status, and a new field named degraded workspace reason which informs customers why the workspace is degraded in the DescribeWorkspace API response."
-}
