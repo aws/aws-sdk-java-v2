@@ -1,4 +1,32 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.10__ __2026-05-20__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS now supports creating grants for AWS service principals using new GranteeServicePrincipal and RetiringServicePrincipal parameters. This release adds SourceArn grant constraint and three condition keys for controlling CreateGrant access. For more information, see Grants in AWS KMS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where responses with a non-zero x-amz-crc32 header but no response body were silently returned to the caller as empty results. The SDK now throws Crc32MismatchException that is retryable when a non-zero CRC32 is claimed but no body is delivered, matching v1 SDK behavior.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Service Release Notes
+
+## __AmazonMWAA__
+  - ### Features
+    - Updated API documentation to describe the PublicAndPrivate webserver access mode.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Service Release Notes
+
 # __2.44.9__ __2026-05-19__
 ## __AWS DevOps Agent Service__
   - ### Features
