@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix concurrency bug where downloading multipart objects with `MultipartS3AsyncClient` could enter infinite loop"
+}
