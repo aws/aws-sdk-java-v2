@@ -19,9 +19,6 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -29,13 +26,8 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 
 @SdkInternalApi
@@ -79,61 +71,6 @@ public final class S3ExpressUtils {
             return S3ExpressAuthScheme.SCHEME_ID.equals(authSchemeOption.schemeId());
         }
         return false;
-    }
-
-    /**
-     * Resolves the signing service name from the auth scheme options. This is needed because the endpoint rules may
-     * specify a different signing name (e.g., "s3express" for S3Express control plane APIs) than the client-level
-     * default ("s3"). Returns the fallback value if the signing name cannot be resolved from auth scheme options.
-     */
-    public static String resolveSigningName(SdkRequest request, ExecutionAttributes executionAttributes, String fallback) {
-        Endpoint endpoint = resolveEndpoint(request, executionAttributes);
-        if (endpoint != null) {
-            List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
-            if (authSchemes != null && !authSchemes.isEmpty()) {
-                EndpointAuthScheme authScheme = authSchemes.get(0);
-                if (authScheme instanceof SigV4AuthScheme) {
-                    return ((SigV4AuthScheme) authScheme).signingName();
-                }
-            }
-        }
-        return fallback;
-    }
-
-    /**
-     * Resolves the signing region from the endpoint resolution. This is needed because the endpoint rules may
-     * specify a different region (e.g., for cross-region access) than the client-level default.
-     * Returns the fallback value if the region cannot be resolved.
-     */
-    public static Region resolveSigningRegion(SdkRequest request, ExecutionAttributes executionAttributes, Region fallback) {
-        Endpoint endpoint = resolveEndpoint(request, executionAttributes);
-        if (endpoint != null) {
-            List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
-            if (authSchemes != null && !authSchemes.isEmpty()) {
-                EndpointAuthScheme authScheme = authSchemes.get(0);
-                if (authScheme instanceof SigV4AuthScheme) {
-                    String region = ((SigV4AuthScheme) authScheme).signingRegion();
-                    if (region != null) {
-                        return Region.of(region);
-                    }
-                }
-            }
-        }
-        return fallback;
-    }
-
-    private static Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
-        EndpointProvider endpointProvider =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
-        if (endpointProvider instanceof S3EndpointProvider) {
-            try {
-                S3EndpointParams endpointParams = S3EndpointResolverUtils.ruleParams(request, executionAttributes);
-                return ((S3EndpointProvider) endpointProvider).resolveEndpoint(endpointParams).join();
-            } catch (Exception e) {
-                // If resolution fails, fall back to defaults
-            }
-        }
-        return null;
     }
 
     /**
