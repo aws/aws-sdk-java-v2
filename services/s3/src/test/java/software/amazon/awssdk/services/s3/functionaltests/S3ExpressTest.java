@@ -76,8 +76,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressTest extends BaseRuleSetClientTest {
     private static final Logger log = Logger.loggerFor(S3ExpressTest.class);
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT =
+        wm -> URI.create("http://127.0.0.1:" + wm.getHttpPort());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT =
+        wm -> URI.create("https://127.0.0.1:" + wm.getHttpsPort());
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     private static final PathStyleEnforcingInterceptor PATH_STYLE_INTERCEPTOR = new PathStyleEnforcingInterceptor();
