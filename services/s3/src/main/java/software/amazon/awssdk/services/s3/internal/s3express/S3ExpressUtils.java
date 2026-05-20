@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
@@ -71,6 +72,26 @@ public final class S3ExpressUtils {
             return S3ExpressAuthScheme.SCHEME_ID.equals(authSchemeOption.schemeId());
         }
         return false;
+    }
+
+    /**
+     * Resolves the signing service name from the auth scheme options. This is needed because the endpoint rules may
+     * specify a different signing name (e.g., "s3express" for S3Express control plane APIs) than the client-level
+     * default ("s3"). Returns the fallback value if the signing name cannot be resolved from auth scheme options.
+     */
+    public static String resolveSigningName(SdkRequest request, ExecutionAttributes executionAttributes, String fallback) {
+        AuthSchemeOptionsResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
+        if (resolver != null) {
+            List<AuthSchemeOption> options = resolver.resolve(request);
+            if (!options.isEmpty()) {
+                String name = options.get(0).signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME);
+                if (name != null) {
+                    return name;
+                }
+            }
+        }
+        return fallback;
     }
 
     /**
