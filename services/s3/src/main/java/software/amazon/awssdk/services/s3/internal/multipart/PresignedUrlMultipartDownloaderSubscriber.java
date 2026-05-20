@@ -16,7 +16,9 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -70,6 +72,11 @@ public class PresignedUrlMultipartDownloaderSubscriber
     private final Object lock = new Object();
     private final AtomicInteger completedParts;
     private final AtomicInteger requestsSent;
+
+    /**
+     * Store the GetObject futures so we can cancel them if onError() is invoked.
+     */
+    private final Queue<CompletableFuture<GetObjectResponse>> getObjectFutures = new ConcurrentLinkedQueue<>();
 
     private volatile Long totalContentLength;
     private volatile Integer totalParts;
@@ -126,26 +133,27 @@ public class PresignedUrlMultipartDownloaderSubscriber
         log.debug(() -> "Sending range request for part " + partIndex + " with range=" + partRequest.range());
 
         requestsSent.incrementAndGet();
-        s3AsyncClient.presignedUrlExtension()
-                     .getObject(partRequest, asyncResponseTransformer)
-                     .whenComplete((response, error) -> {
-                         if (error != null) {
-                             if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
-                                 log.debug(() -> "Received 416 on first range request, object is empty");
-                                 resultFuture.completeExceptionally(
-                                     new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
-                                 synchronized (lock) {
-                                     subscription.cancel();
-                                 }
-                             } else {
-                                 handleError(error);
-                             }
-                             return;
-                         }
-                         if (validatePart(response, partIndex, asyncResponseTransformer)) {
-                             requestMoreIfNeeded(completedParts.get());
-                         }
-                     });
+        CompletableFuture<GetObjectResponse> responseFuture = s3AsyncClient.presignedUrlExtension()
+                                                                           .getObject(partRequest, asyncResponseTransformer);
+        getObjectFutures.add(responseFuture);
+        responseFuture.whenComplete((response, error) -> {
+            if (error != null) {
+                if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                    log.debug(() -> "Received 416 on first range request, object is empty");
+                    resultFuture.completeExceptionally(
+                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                    synchronized (lock) {
+                        subscription.cancel();
+                    }
+                } else {
+                    handleError(error);
+                }
+                return;
+            }
+            if (validatePart(response, partIndex, asyncResponseTransformer)) {
+                requestMoreIfNeeded(completedParts.get());
+            }
+        });
     }
 
     private boolean validatePart(GetObjectResponse response, int partIndex,
@@ -292,6 +300,10 @@ public class PresignedUrlMultipartDownloaderSubscriber
     @Override
     public void onError(Throwable t) {
         log.debug(() -> "Error in multipart download", t);
+        CompletableFuture<GetObjectResponse> partFuture;
+        while ((partFuture = getObjectFutures.poll()) != null) {
+            partFuture.cancel(true);
+        }
         future.completeExceptionally(t);
         if (resultFuture != null) {
             resultFuture.completeExceptionally(t);
