@@ -45,12 +45,12 @@ public class MultipartDownloadResumeContext {
     /**
      * The total number of parts of the multipart download.
      */
-    private Integer totalParts;
+    private volatile Integer totalParts;
 
     /**
      * The GetObjectResponse to return to the user.
      */
-    private GetObjectResponse response;
+    private volatile GetObjectResponse response;
 
     public MultipartDownloadResumeContext() {
         this(new ConcurrentSkipListSet<>(), 0L);
