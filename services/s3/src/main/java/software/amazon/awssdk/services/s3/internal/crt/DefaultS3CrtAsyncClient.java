@@ -423,15 +423,19 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                                          existingHttpAttributes.toBuilder() :
                                                          SdkHttpExecutionAttributes.builder();
 
+            Region signingRegion = S3ExpressUtils.resolveSigningRegion(context.request(), executionAttributes,
+                                       executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION));
+            String signingName = S3ExpressUtils.resolveSigningName(context.request(), executionAttributes,
+                                     executionAttributes.getAttribute(SERVICE_SIGNING_NAME));
+
             builder.put(OPERATION_NAME,
                         executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
                    .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
-                   .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                   .put(SIGNING_REGION, signingRegion)
                    .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
                         executionAttributes.getAttribute(OBJECT_FILE_PATH))
                    .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.isS3ExpressAuthRequest(context.request(), executionAttributes))
-                   .put(SIGNING_NAME, S3ExpressUtils.resolveSigningName(context.request(), executionAttributes,
-                                                                        executionAttributes.getAttribute(SERVICE_SIGNING_NAME)))
+                   .put(SIGNING_NAME, signingName)
                    .put(REQUEST_CHECKSUM_CALCULATION,
                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
                    .put(RESPONSE_CHECKSUM_VALIDATION,
