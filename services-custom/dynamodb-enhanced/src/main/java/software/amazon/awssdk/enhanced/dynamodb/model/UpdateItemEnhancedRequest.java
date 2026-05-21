@@ -100,7 +100,9 @@ public final class UpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
-     * This is deprecated in favour of ignoreNullsMode()
+     *
+     * @deprecated Use {@link #ignoreNullsMode()} instead, which provides more granular control
+     * over null handling behavior.
      */
     @Deprecated
     public Boolean ignoreNulls() {
@@ -248,14 +250,19 @@ public final class UpdateItemEnhancedRequest<T> {
         }
 
         /**
-         *  Sets if the update operation should ignore attributes with null values. By default, the value is false.
-         *  <p>
-         *  If set to true, any null values in the Java object will be ignored and not be updated on the persisted
-         *  record. This is commonly referred to as a 'partial update'.
-         *  If set to false, null values in the Java object will cause those attributes to be removed from the persisted
-         *  record on update.
+         * Sets if the update operation should ignore attributes with null values. By default, the value is false.
+         * <p>
+         * If set to true, any null values in the Java object will be ignored and not be updated on the persisted
+         * record. This is commonly referred to as a 'partial update'.
+         * If set to false, null values in the Java object will cause those attributes to be removed from the persisted
+         * record on update.
+         *
          * @param ignoreNulls the boolean value
          * @return a builder of this type
+         * @deprecated Use {@link #ignoreNullsMode(IgnoreNullsMode)} instead, which provides more granular control
+         * over null handling behavior.
+         * {@code ignoreNulls(true)} is equivalent to {@link IgnoreNullsMode#MAPS_ONLY};
+         * {@code ignoreNulls(false)} is equivalent to {@link IgnoreNullsMode#DEFAULT}.
          */
         @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
@@ -263,6 +270,12 @@ public final class UpdateItemEnhancedRequest<T> {
             return this;
         }
 
+        /**
+         * Sets the mode that determines how null-valued attributes are handled during the update operation.
+         *
+         * @param ignoreNullsMode the {@link IgnoreNullsMode} to use
+         * @return a builder of this type
+         */
         public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
             this.ignoreNullsMode = ignoreNullsMode;
             return this;
