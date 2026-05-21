@@ -250,6 +250,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
         @Override
         public void onError(Throwable t) {
             log.debug(() -> "Received onError()", t);
+            currentBody.error(t);
             downstreamPublisher.error(t);
         }
 

@@ -3337,7 +3337,7 @@
       },
       "input":{"shape":"DescribeInstanceTypesRequest"},
       "output":{"shape":"DescribeInstanceTypesResult"},
-      "documentation":"<p>Describes the specified instance types. By default, all instance types for the current Region are described. Alternatively, you can filter the results.</p>"
+      "documentation":"<p>Describes the specified instance types. By default, all instance types for the current Region are described. Alternatively, you can filter the results. To include instance types that are not supported in the current Region, set <code>IncludeUnsupportedInRegion</code> to <code>true</code>.</p>"
     },
     "DescribeInstances":{
       "name":"DescribeInstances",
@@ -3388,6 +3388,16 @@
       "input":{"shape":"DescribeIpamPoliciesRequest"},
       "output":{"shape":"DescribeIpamPoliciesResult"},
       "documentation":"<p>Describes one or more IPAM policies.</p> <p>An IPAM policy is a set of rules that define how public IPv4 addresses from IPAM pools are allocated to Amazon Web Services resources. Each rule maps an Amazon Web Services service to IPAM pools that the service will use to get IP addresses. A single policy can have multiple rules and be applied to multiple Amazon Web Services Regions. If the IPAM pool run out of addresses then the services fallback to Amazon-provided IP addresses. A policy can be applied to an individual Amazon Web Services account or an entity within Amazon Web Services Organizations.</p>"
+    },
+    "DescribeIpamPoolAllocations":{
+      "name":"DescribeIpamPoolAllocations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeIpamPoolAllocationsRequest"},
+      "output":{"shape":"DescribeIpamPoolAllocationsResult"},
+      "documentation":"<p>Describes IPAM pool allocations. You can describe all allocations owned by you across all pools, or you can describe specific allocations by ID.</p> <p>If you specify <code>IpamPoolAllocationIds</code>, the results include only the specified allocations. If you do not specify <code>IpamPoolAllocationIds</code>, the results include all allocations owned by you. You can use <code>Filters</code> to narrow the results.</p> <note> <p>This action returns only allocations directly owned by you. To view all allocations in a pool you own or that has been shared with you, including allocations owned by other accounts, use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetIpamPoolAllocations.html\">GetIpamPoolAllocations</a>.</p> </note>"
     },
     "DescribeIpamPools":{
       "name":"DescribeIpamPools",
@@ -6307,6 +6317,16 @@
       "output":{"shape":"ModifyIpamPoolResult"},
       "documentation":"<p>Modify the configurations of an IPAM pool.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/mod-pool-ipam.html\">Modify a pool</a> in the <i>Amazon VPC IPAM User Guide</i>. </p>"
     },
+    "ModifyIpamPoolAllocation":{
+      "name":"ModifyIpamPoolAllocation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyIpamPoolAllocationRequest"},
+      "output":{"shape":"ModifyIpamPoolAllocationResult"},
+      "documentation":"<p>Modifies the description of an IPAM pool allocation. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/modify-alloc-ipam.html\">Modify an IPAM pool allocation</a> in the <i>Amazon VPC IPAM User Guide</i>.</p>"
+    },
     "ModifyIpamPrefixListResolver":{
       "name":"ModifyIpamPrefixListResolver",
       "http":{
@@ -8773,6 +8793,11 @@
           "shape":"IpamPoolAllocationDisallowedCidrs",
           "documentation":"<p>Exclude a particular CIDR range from being returned by the pool. Disallowed CIDRs are only allowed if using netmask length for allocation.</p>",
           "locationName":"DisallowedCidr"
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p>The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> <p>If you specify tags, the request is authorized against the allocation resource in addition to the pool resource.</p>",
+          "locationName":"TagSpecification"
         }
       }
     },
@@ -14880,6 +14905,11 @@
         }
       }
     },
+    "CopyImageClientToken":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
     "CopyImageRequest":{
       "type":"structure",
       "required":[
@@ -14889,12 +14919,12 @@
       ],
       "members":{
         "ClientToken":{
-          "shape":"String",
+          "shape":"CopyImageClientToken",
           "documentation":"<p>Unique, case-sensitive identifier you provide to ensure idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency in Amazon EC2 API requests</a> in the <i>Amazon EC2 API Reference</i>.</p>",
           "idempotencyToken":true
         },
         "Description":{
-          "shape":"String",
+          "shape":"ImageDescriptionRequest",
           "documentation":"<p>A description for the new AMI.</p>"
         },
         "Encrypted":{
@@ -14908,7 +14938,7 @@
           "locationName":"kmsKeyId"
         },
         "Name":{
-          "shape":"String",
+          "shape":"ImageNameRequest",
           "documentation":"<p>The name of the new AMI.</p>"
         },
         "SourceImageId":{
@@ -16310,12 +16340,12 @@
           "locationName":"instanceId"
         },
         "Name":{
-          "shape":"String",
+          "shape":"ImageNameRequest",
           "documentation":"<p>A name for the new image.</p> <p>Constraints: 3-128 alphanumeric characters, parentheses (()), square brackets ([]), spaces ( ), periods (.), slashes (/), dashes (-), single quotes ('), at-signs (@), or underscores(_)</p>",
           "locationName":"name"
         },
         "Description":{
-          "shape":"String",
+          "shape":"ImageDescriptionRequest",
           "documentation":"<p>A description for the new image.</p>",
           "locationName":"description"
         },
@@ -16340,6 +16370,11 @@
           "locationName":"imageId"
         }
       }
+    },
+    "CreateImageUsageReportClientToken":{
+      "type":"string",
+      "max":128,
+      "min":0
     },
     "CreateImageUsageReportRequest":{
       "type":"structure",
@@ -16367,7 +16402,7 @@
           "locationName":"AccountId"
         },
         "ClientToken":{
-          "shape":"String",
+          "shape":"CreateImageUsageReportClientToken",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
           "idempotencyToken":true
         },
@@ -18103,7 +18138,7 @@
           "documentation":"<p>The name of the stored AMI object in the bucket.</p>"
         },
         "Name":{
-          "shape":"String",
+          "shape":"ImageNameRequest",
           "documentation":"<p>The name for the restored AMI. The name must be unique for AMIs in the Region for this account. If you do not provide a name, the new AMI gets the same name as the original AMI.</p>"
         },
         "TagSpecifications":{
@@ -26988,6 +27023,10 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "IncludeUnsupportedInRegion":{
+          "shape":"IncludeUnsupportedInRegion",
+          "documentation":"<p>If <code>true</code>, the response includes instance types that are not supported in the current Region, in addition to the supported types. Default: <code>false</code>.</p>"
         }
       }
     },
@@ -27224,6 +27263,53 @@
         }
       }
     },
+    "DescribeIpamPoolAllocationsMaxResults":{
+      "type":"integer",
+      "max":100000,
+      "min":1000
+    },
+    "DescribeIpamPoolAllocationsRequest":{
+      "type":"structure",
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>A check for whether you have the required permissions for the action without actually making the request and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "IpamPoolAllocationIds":{
+          "shape":"ValueStringList",
+          "documentation":"<p>The IDs of the IPAM pool allocations you want to describe.</p>",
+          "locationName":"IpamPoolAllocationId"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters for the request. For more information about filtering, see <a href=\"https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html\">Filtering CLI output</a>.</p>",
+          "locationName":"Filter"
+        },
+        "MaxResults":{
+          "shape":"DescribeIpamPoolAllocationsMaxResults",
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next page of results.</p>"
+        }
+      }
+    },
+    "DescribeIpamPoolAllocationsResult":{
+      "type":"structure",
+      "members":{
+        "IpamPoolAllocations":{
+          "shape":"IpamPoolAllocationSet",
+          "documentation":"<p>Information about the IPAM pool allocations.</p>",
+          "locationName":"ipamPoolAllocationSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeIpamPoolsRequest":{
       "type":"structure",
       "members":{
@@ -27238,7 +27324,7 @@
         },
         "MaxResults":{
           "shape":"IpamMaxResults",
-          "documentation":"<p>The maximum number of results to return in the request.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -27452,7 +27538,7 @@
         },
         "MaxResults":{
           "shape":"IpamMaxResults",
-          "documentation":"<p>The maximum number of results to return in the request.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -27494,7 +27580,7 @@
         },
         "MaxResults":{
           "shape":"IpamMaxResults",
-          "documentation":"<p>The maximum number of results to return in the request.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -39383,7 +39469,7 @@
         },
         "MaxResults":{
           "shape":"IpamMaxResults",
-          "documentation":"<p>The maximum number of results to return in the request.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -39554,7 +39640,7 @@
         },
         "MaxResults":{
           "shape":"IpamMaxResults",
-          "documentation":"<p>The maximum number of results to return in the request.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -41982,7 +42068,7 @@
           "locationName":"MarketplaceProductCode"
         },
         "ImageNames":{
-          "shape":"ImageNameRequestList",
+          "shape":"ImageNameCriteriaRequestList",
           "documentation":"<p>The names of allowed images. Names can include wildcards (<code>?</code> and <code>*</code>).</p> <p>Length: 1–128 characters. With <code>?</code>, the minimum is 3 characters.</p> <p>Valid characters:</p> <ul> <li> <p>Letters: <code>A–Z, a–z</code> </p> </li> <li> <p>Numbers: <code>0–9</code> </p> </li> <li> <p>Special characters: <code>( ) [ ] . / - ' @ _ * ?</code> </p> </li> <li> <p>Spaces</p> </li> </ul> <p>Maximum: 50 values</p>",
           "locationName":"ImageName"
         },
@@ -42003,6 +42089,11 @@
         "shape":"ImageCriterionRequest",
         "locationName":"ImageCriterion"
       }
+    },
+    "ImageDescriptionRequest":{
+      "type":"string",
+      "max":255,
+      "min":0
     },
     "ImageDiskContainer":{
       "type":"structure",
@@ -42115,6 +42206,18 @@
       "documentation":"<p>Information about the AMI.</p>"
     },
     "ImageName":{"type":"string"},
+    "ImageNameCriteriaRequest":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
+    "ImageNameCriteriaRequestList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageNameCriteriaRequest",
+        "locationName":"item"
+      }
+    },
     "ImageNameList":{
       "type":"list",
       "member":{
@@ -42122,13 +42225,10 @@
         "locationName":"item"
       }
     },
-    "ImageNameRequest":{"type":"string"},
-    "ImageNameRequestList":{
-      "type":"list",
-      "member":{
-        "shape":"ImageNameRequest",
-        "locationName":"item"
-      }
+    "ImageNameRequest":{
+      "type":"string",
+      "max":128,
+      "min":3
     },
     "ImageProvider":{"type":"string"},
     "ImageProviderList":{
@@ -42249,6 +42349,11 @@
         "kernel",
         "ramdisk"
       ]
+    },
+    "ImageUefiDataRequest":{
+      "type":"string",
+      "max":64000,
+      "min":0
     },
     "ImageUsageReport":{
       "type":"structure",
@@ -43226,6 +43331,7 @@
       },
       "documentation":"<p>Describes an import volume task.</p>"
     },
+    "IncludeUnsupportedInRegion":{"type":"boolean"},
     "InferenceAcceleratorInfo":{
       "type":"structure",
       "members":{
@@ -47202,6 +47308,11 @@
           "shape":"RebootMigrationSupport",
           "documentation":"<p>Indicates whether reboot migration during a user-initiated reboot is supported for instances that have a scheduled <code>system-reboot</code> event. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/schedevents_actions_reboot.html#reboot-migration\">Enable or disable reboot migration</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"rebootMigrationSupport"
+        },
+        "SupportedInRegion":{
+          "shape":"SupportedInRegion",
+          "documentation":"<p>Indicates whether the instance type is supported in the current Region.</p>",
+          "locationName":"supportedInRegion"
         }
       },
       "documentation":"<p>Describes the instance type.</p>"
@@ -48551,6 +48662,11 @@
           "shape":"String",
           "documentation":"<p>The owner of the resource.</p>",
           "locationName":"resourceOwner"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags for the IPAM pool allocation.</p>",
+          "locationName":"tagSet"
         }
       },
       "documentation":"<p>In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM pool or to a resource.</p>"
@@ -54403,6 +54519,34 @@
         }
       }
     },
+    "ModifyIpamPoolAllocationRequest":{
+      "type":"structure",
+      "required":["IpamPoolAllocationId"],
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>A check for whether you have the required permissions for the action without actually making the request and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "IpamPoolAllocationId":{
+          "shape":"IpamPoolAllocationId",
+          "documentation":"<p>The ID of the IPAM pool allocation you want to modify.</p>"
+        },
+        "Description":{
+          "shape":"String",
+          "documentation":"<p>The new description for the IPAM pool allocation. If you submit a <code>null</code> value, the description is removed from the allocation.</p>"
+        }
+      }
+    },
+    "ModifyIpamPoolAllocationResult":{
+      "type":"structure",
+      "members":{
+        "IpamPoolAllocation":{
+          "shape":"IpamPoolAllocation",
+          "documentation":"<p>The modified IPAM pool allocation.</p>",
+          "locationName":"ipamPoolAllocation"
+        }
+      }
+    },
     "ModifyIpamPoolRequest":{
       "type":"structure",
       "required":["IpamPoolId"],
@@ -54844,6 +54988,7 @@
     },
     "ModifyManagedResourceVisibilityRequest":{
       "type":"structure",
+      "required":["DefaultVisibility"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -56674,6 +56819,10 @@
         "RemoteIpv6NetworkCidr":{
           "shape":"String",
           "documentation":"<p>The IPv6 CIDR on the Amazon Web Services side of the VPN connection.</p> <p>Default: <code>::/0</code> </p>"
+        },
+        "TunnelBandwidth":{
+          "shape":"VpnTunnelBandwidth",
+          "documentation":"<p>The desired bandwidth specification for the VPN connection. <code>standard</code> supports up to 1.25 Gbps per tunnel, while <code>large</code> supports up to 5 Gbps per tunnel. Large bandwidth is only available for VPN connections attached to a transit gateway or to Cloud WAN. The default value is <code>standard</code>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -61358,7 +61507,7 @@
           "documentation":"<p>Set to <code>v2.0</code> to enable Trusted Platform Module (TPM) support. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/nitrotpm.html\">NitroTPM</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         },
         "UefiData":{
-          "shape":"StringType",
+          "shape":"ImageUefiDataRequest",
           "documentation":"<p>Base64 representation of the non-volatile UEFI variable store. To retrieve the UEFI data, use the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetInstanceUefiData\">GetInstanceUefiData</a> command. You can inspect and modify the UEFI data by using the <a href=\"https://github.com/awslabs/python-uefivars\">python-uefivars tool</a> on GitHub. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/uefi-secure-boot.html\">UEFI Secure Boot for Amazon EC2 instances</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         },
         "ImdsSupport":{
@@ -61376,12 +61525,12 @@
           "locationName":"dryRun"
         },
         "Name":{
-          "shape":"String",
+          "shape":"ImageNameRequest",
           "documentation":"<p>A name for your AMI.</p> <p>Constraints: 3-128 alphanumeric characters, parentheses (()), square brackets ([]), spaces ( ), periods (.), slashes (/), dashes (-), single quotes ('), at-signs (@), or underscores(_)</p>",
           "locationName":"name"
         },
         "Description":{
-          "shape":"String",
+          "shape":"ImageDescriptionRequest",
           "documentation":"<p>A description for your AMI.</p>",
           "locationName":"description"
         },
@@ -63831,7 +63980,8 @@
         "secondary-network",
         "secondary-subnet",
         "capacity-manager-data-export",
-        "vpn-concentrator"
+        "vpn-concentrator",
+        "ipam-pool-allocation"
       ]
     },
     "ResourceTypeOption":{
@@ -69495,11 +69645,6 @@
         "locationName":"item"
       }
     },
-    "StringType":{
-      "type":"string",
-      "max":64000,
-      "min":0
-    },
     "Subnet":{
       "type":"structure",
       "members":{
@@ -69944,6 +70089,7 @@
         "locationName":"item"
       }
     },
+    "SupportedInRegion":{"type":"boolean"},
     "SupportedIpAddressTypes":{
       "type":"list",
       "member":{
