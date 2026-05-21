@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.11__ __2026-05-21__
+## __AWS Batch__
+  - ### Features
+    - Clarified CreateComputeEnvironment parameter requirements - serviceRole is required for UNMANAGED compute environments, allocationStrategy is required for EKS compute environments, and compute environments must be created in the ENABLED state.
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Collaboration creators can update payment configurations without recreating the collaboration. When multiple payer candidates are configured for a cost type, analysis runners can specify the actual payer at submission time, providing granular control over billing.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Collaboration creators can update payment configurations without recreating the collaboration. When multiple payer candidates are configured for a cost type, analysis runners can specify the actual payer at submission time, providing granular control over billing.
+
+## __AWS MediaConnect__
+  - ### Features
+    - Adds support for controlling the timecode source of NDI flow outputs.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where `AsyncRequestBody.split()` did not propagate upstream errors to the in-progress chunk subscriber
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - A new GetDepotUrl API has been added to retrieve a URL for accessing Amazon EVS custom addon packages. Customers can use this URL to configure vSphere Lifecycle Manager (vLCM) as an online depot source, enabling upgrades of addon components across ESXi hosts.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix concurrency bug where downloading multipart objects with `MultipartS3AsyncClient` could enter infinite loop
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for disabling home EFS file system creation on SageMaker domains.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Support hard deleting policy store aliases. Users can now delete an alias and immediately reassign it to a different policy store without waiting for the soft-delete retention period.
+
 # __2.44.10__ __2026-05-20__
 ## __AWS Key Management Service__
   - ### Features
