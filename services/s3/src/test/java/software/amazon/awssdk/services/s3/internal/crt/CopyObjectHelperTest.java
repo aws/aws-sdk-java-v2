@@ -29,8 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -385,9 +389,18 @@ class CopyObjectHelperTest {
             .thenReturn(completeMultipartUploadFuture);
     }
 
-    @Test
-    void multiPartCopy_metadataDirectiveUnset_shouldForwardSourceMetadata() {
-        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+    @ParameterizedTest
+    @MethodSource("metadataDirectiveCopyProvider")
+    void multiPartCopy_metadataDirectiveCopyOrUnset_shouldForwardSourceMetadata(MetadataDirective directive) {
+        CopyObjectRequest.Builder requestBuilder = CopyObjectRequest.builder()
+                                                                    .sourceBucket(SOURCE_BUCKET)
+                                                                    .sourceKey(SOURCE_KEY)
+                                                                    .destinationBucket(DESTINATION_BUCKET)
+                                                                    .destinationKey(DESTINATION_KEY);
+        if (directive != null) {
+            requestBuilder.metadataDirective(directive);
+        }
+        CopyObjectRequest copyObjectRequest = requestBuilder.build();
 
         stubSuccessfulHeadObjectCallWithMetadata(4000L);
         stubSuccessfulCreateMulipartCall();
@@ -407,6 +420,13 @@ class CopyObjectHelperTest {
         assertThat(actualRequest.contentEncoding()).isEqualTo("gzip");
         assertThat(actualRequest.contentLanguage()).isEqualTo("en-US");
         assertThat(actualRequest.expires()).isEqualTo(Instant.ofEpochSecond(1700000000L));
+    }
+
+    private static Stream<Arguments> metadataDirectiveCopyProvider() {
+        return Stream.of(
+            Arguments.of((MetadataDirective) null),
+            Arguments.of(MetadataDirective.COPY)
+        );
     }
 
     @Test

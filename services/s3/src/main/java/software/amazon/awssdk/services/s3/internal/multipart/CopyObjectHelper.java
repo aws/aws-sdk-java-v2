@@ -100,6 +100,10 @@ public final class CopyObjectHelper {
         }
     }
 
+    /**
+     * Performs a multipart copy, forwarding source object metadata by default to match
+     * {@code CopyObject} with {@code MetadataDirective: COPY} semantics.
+     */
     private void copyInParts(CopyObjectRequest copyObjectRequest,
                              Long contentLength,
                              CompletableFuture<CopyObjectResponse> returnFuture,
