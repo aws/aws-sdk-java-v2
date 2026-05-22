@@ -209,11 +209,12 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
 
             List<LogEvent> logEvents = logCaptor.loggedEvents();
             assertThat(logEvents).hasSize(1);
-            assertThat(logEvents.get(0).getLevel().name()).isEqualTo(Level.DEBUG.name());
-            assertThat(logEvents.get(0).getMessage().getFormattedMessage()).contains("Filtered atomic counter attributes from "
-                                                                                    + "existing update item to avoid "
-                                                                                    + "collisions: customCounter,"
-                                                                                    + "defaultCounter,decreasingCounter");
+            LogEvent logEvent = logEvents.get(0);
+            assertThat(logEvent.getLevel().name()).isEqualTo(Level.DEBUG.name());
+            String logEventMessage = logEvent.getMessage().getFormattedMessage();
+            assertThat(logEventMessage).contains("Filtered atomic counter attributes from existing update item to avoid " +
+                                                 "collisions:", "customCounter", "defaultCounter", "decreasingCounter");
+            assertThat(logEventMessage.split(",")).hasSize(3);
         }
     }
 }
