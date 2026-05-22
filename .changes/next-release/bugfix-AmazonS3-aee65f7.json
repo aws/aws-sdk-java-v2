@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fixed an issue where copying large objects using the multipart S3 client silently dropped source object metadata on the destination."
+}

@@ -46,6 +46,7 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
@@ -378,6 +379,78 @@ class CopyObjectHelperTest {
 
         when(s3AsyncClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
             .thenReturn(completeMultipartUploadFuture);
+    }
+
+    @Test
+    void multiPartCopy_metadataDirectiveUnset_shouldForwardSourceMetadata() {
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        assertThat(actualRequest.metadata()).containsEntry("customKey", "customValue");
+        assertThat(actualRequest.contentType()).isEqualTo("application/zip");
+        assertThat(actualRequest.cacheControl()).isEqualTo("max-age=86400");
+        assertThat(actualRequest.contentDisposition()).isEqualTo("attachment");
+        assertThat(actualRequest.contentEncoding()).isEqualTo("gzip");
+        assertThat(actualRequest.contentLanguage()).isEqualTo("en-US");
+        assertThat(actualRequest.expires()).isEqualTo(java.time.Instant.ofEpochSecond(1700000000L));
+    }
+
+    @Test
+    void multiPartCopy_metadataDirectiveReplace_shouldNotForwardSourceMetadata() {
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .sourceBucket(SOURCE_BUCKET)
+                                                               .sourceKey(SOURCE_KEY)
+                                                               .destinationBucket(DESTINATION_BUCKET)
+                                                               .destinationKey(DESTINATION_KEY)
+                                                               .metadataDirective(MetadataDirective.REPLACE)
+                                                               .metadata(java.util.Collections.singletonMap("newKey", "newValue"))
+                                                               .contentType("text/plain")
+                                                               .build();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        assertThat(actualRequest.metadata()).containsEntry("newKey", "newValue");
+        assertThat(actualRequest.metadata()).doesNotContainKey("customKey");
+        assertThat(actualRequest.contentType()).isEqualTo("text/plain");
+    }
+
+    private void stubSuccessfulHeadObjectCallWithMetadata(long contentLength) {
+        java.util.Map<String, String> metadata = new java.util.HashMap<>();
+        metadata.put("customKey", "customValue");
+
+        CompletableFuture<HeadObjectResponse> headFuture =
+            CompletableFuture.completedFuture(HeadObjectResponse.builder()
+                                                                .contentLength(contentLength)
+                                                                .metadata(metadata)
+                                                                .contentType("application/zip")
+                                                                .cacheControl("max-age=86400")
+                                                                .contentDisposition("attachment")
+                                                                .contentEncoding("gzip")
+                                                                .contentLanguage("en-US")
+                                                                .expires(java.time.Instant.ofEpochSecond(1700000000L))
+                                                                .build());
+
+        when(s3AsyncClient.headObject(any(HeadObjectRequest.class)))
+            .thenReturn(headFuture);
     }
 
     private void stubSuccessfulHeadObjectCall(long contentLength) {
