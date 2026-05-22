@@ -637,9 +637,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Depending on the underlying S3Client, {@link S3TransferManager} may intelligently use plain {@link CopyObjectRequest}s
      * for smaller objects, and multiple parallel {@link UploadPartCopyRequest}s for larger objects. If multipart copy is
      * supported by the underlying S3Client, this behavior can be configured via
-     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy request, existing metadata
-     * stored in the source object is NOT copied to the destination object; if required, you can retrieve the metadata from the
-     * source object and set it explicitly in the @link CopyObjectRequest.Builder#metadata(Map)}.
+     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. For multipart copy requests, source object metadata
+     * (user-defined metadata, Content-Type, Cache-Control, Content-Disposition, Content-Encoding, Content-Language, and
+     * Expires) is copied to the destination by default, matching {@code CopyObject} with
+     * {@code MetadataDirective: COPY} semantics. To provide your own metadata instead, set
+     * {@link CopyObjectRequest.Builder#metadataDirective(MetadataDirective)} to {@code REPLACE}.
      *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
