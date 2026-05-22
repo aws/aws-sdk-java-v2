@@ -108,7 +108,8 @@ public final class CopyObjectHelper {
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
 
         // Preserve source metadata for multipart copy since CreateMultipartUpload has no MetadataDirective support.
-        if (copyObjectRequest.metadataDirective() != MetadataDirective.REPLACE) {
+        if (copyObjectRequest.metadataDirective() == null
+            || copyObjectRequest.metadataDirective() == MetadataDirective.COPY) {
             request = request.toBuilder()
                              .metadata(headObjectResponse.metadata())
                              .contentType(headObjectResponse.contentType())
