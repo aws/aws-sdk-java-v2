@@ -23,7 +23,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -402,7 +406,7 @@ class CopyObjectHelperTest {
         assertThat(actualRequest.contentDisposition()).isEqualTo("attachment");
         assertThat(actualRequest.contentEncoding()).isEqualTo("gzip");
         assertThat(actualRequest.contentLanguage()).isEqualTo("en-US");
-        assertThat(actualRequest.expires()).isEqualTo(java.time.Instant.ofEpochSecond(1700000000L));
+        assertThat(actualRequest.expires()).isEqualTo(Instant.ofEpochSecond(1700000000L));
     }
 
     @Test
@@ -413,7 +417,7 @@ class CopyObjectHelperTest {
                                                                .destinationBucket(DESTINATION_BUCKET)
                                                                .destinationKey(DESTINATION_KEY)
                                                                .metadataDirective(MetadataDirective.REPLACE)
-                                                               .metadata(java.util.Collections.singletonMap("newKey", "newValue"))
+                                                               .metadata(Collections.singletonMap("newKey", "newValue"))
                                                                .contentType("text/plain")
                                                                .build();
 
@@ -433,8 +437,37 @@ class CopyObjectHelperTest {
         assertThat(actualRequest.contentType()).isEqualTo("text/plain");
     }
 
+    @Test
+    void multiPartCopy_metadataDirectiveCopyWithCustomerMetadata_sourceMetadataShouldWin() {
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .sourceBucket(SOURCE_BUCKET)
+                                                               .sourceKey(SOURCE_KEY)
+                                                               .destinationBucket(DESTINATION_BUCKET)
+                                                               .destinationKey(DESTINATION_KEY)
+                                                               .metadataDirective(MetadataDirective.COPY)
+                                                               .metadata(Collections.singletonMap("ignored", "value"))
+                                                               .contentType("text/html")
+                                                               .build();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        // Source metadata wins when directive is COPY, matching S3 CopyObject API behavior
+        assertThat(actualRequest.metadata()).containsEntry("customKey", "customValue");
+        assertThat(actualRequest.metadata()).doesNotContainKey("ignored");
+        assertThat(actualRequest.contentType()).isEqualTo("application/zip");
+    }
+
     private void stubSuccessfulHeadObjectCallWithMetadata(long contentLength) {
-        java.util.Map<String, String> metadata = new java.util.HashMap<>();
+        Map<String, String> metadata = new HashMap<>();
         metadata.put("customKey", "customValue");
 
         CompletableFuture<HeadObjectResponse> headFuture =
@@ -446,7 +479,7 @@ class CopyObjectHelperTest {
                                                                 .contentDisposition("attachment")
                                                                 .contentEncoding("gzip")
                                                                 .contentLanguage("en-US")
-                                                                .expires(java.time.Instant.ofEpochSecond(1700000000L))
+                                                                .expires(Instant.ofEpochSecond(1700000000L))
                                                                 .build());
 
         when(s3AsyncClient.headObject(any(HeadObjectRequest.class)))
