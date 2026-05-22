@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Invoicing",
-    "contributor": "",
-    "description": "Adds support for idempotency with a new ClientToken field for the CreateInvoiceUnit, DeleteInvoiceUnit, UpdateInvoiceUnit, DeleteProcurementPortalPreference, PutProcurementPortalPreference, and UpdateProcurementPortalPreferenceStatus APIs."
-}

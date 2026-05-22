@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "The ModifyInstanceAttribute API now supports modification of EnclaveOptions for the instance as a typed parameter."
-}

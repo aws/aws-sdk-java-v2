@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.12__ __2026-05-22__
+## __AWS Invoicing__
+  - ### Features
+    - Adds support for idempotency with a new ClientToken field for the CreateInvoiceUnit, DeleteInvoiceUnit, UpdateInvoiceUnit, DeleteProcurementPortalPreference, PutProcurementPortalPreference, and UpdateProcurementPortalPreferenceStatus APIs.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Added ListPerformanceAnalysisReportRecommendations API to retrieve recommendations for a performance analysis report. Added analysis configuration support to CreatePerformanceAnalysisReport for enhanced analysis types such as vacuum analysis.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for verification scripts on penetration test findings. Customers can now download executable scripts to independently reproduce confirmed vulnerabilities, with instructions and required environment variables provided for each finding.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support for VPC connection
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The ModifyInstanceAttribute API now supports modification of EnclaveOptions for the instance as a typed parameter.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new Gen6 stream classes based on the EC2 G6e instance family. These classes are designed for streaming high-fidelity, graphically demanding games and applications that benefit from additional GPU memory and performance.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Added guardrail assessment results to inference spans in the ListSpans API. You can now see which AI Guardrail policies were evaluated, whether content was blocked or masked, and per-policy details for each Bedrock Converse call
+
 # __2.44.11__ __2026-05-21__
 ## __AWS Batch__
   - ### Features
