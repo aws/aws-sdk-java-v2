@@ -559,6 +559,29 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withLongPollingOperation_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration().build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams().withLongPolling(true);
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)).isTrue();
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_newRetries2026EnabledConfig_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.NEW_RETRIES_2026_ENABLED, true)
+            .build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes()
+                                   .getAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)).isTrue();
+    }
+
+    @Test
     public void invokeInterceptorsAndCreateExecutionContext_authSchemeProviderRequestOverride_usesRequestOverride() {
         AuthSchemeProvider clientAuthSchemeProvider = mock(AuthSchemeProvider.class);
         AuthSchemeProvider requestAuthSchemeProvider = mock(AuthSchemeProvider.class);

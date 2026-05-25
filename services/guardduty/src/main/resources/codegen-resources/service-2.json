@@ -181,7 +181,7 @@
         {"shape":"BadRequestException"},
         {"shape":"InternalServerErrorException"}
       ],
-      "documentation":"<p>Creates a new threat entity set. In a threat entity set, you can provide known malicious IP addresses and domains for your Amazon Web Services environment. GuardDuty generates findings based on the entries in the threat entity sets. Only users of the administrator account can manage entity sets, which automatically apply to member accounts.</p>"
+      "documentation":"<p>Creates a new threat entity set. In a threat entity set, you can provide known malicious threat entities for your Amazon Web Services environment. GuardDuty generates findings based on the entries in the threat entity sets. Only users of the administrator account can manage entity sets, which automatically apply to member accounts.</p>"
     },
     "CreateThreatIntelSet":{
       "name":"CreateThreatIntelSet",
@@ -1496,7 +1496,7 @@
       "members":{
         "Uid":{
           "shape":"String",
-          "documentation":"<p>ID of the member's Amazon Web Services account</p>",
+          "documentation":"<p>The Amazon Web Services account ID within which the activity took place. This may differ from the account that owns the user identity.</p>",
           "locationName":"uid"
         },
         "Name":{
@@ -1505,7 +1505,7 @@
           "locationName":"account"
         }
       },
-      "documentation":"<p>Contains information about the account.</p>"
+      "documentation":"<p>Contains information about the Amazon Web Services account within which the activity took place.</p>"
     },
     "AccountDetail":{
       "type":"structure",
@@ -6333,7 +6333,12 @@
         "CRYPTOMINING_IP",
         "CRYPTOMINING_DOMAIN",
         "CRYPTOMINING_PROCESS",
-        "MALICIOUS_FILE"
+        "MALICIOUS_FILE",
+        "VULNERABILITY",
+        "MALICIOUS_PACKAGE",
+        "MISCONFIGURATION",
+        "REACHABILITY",
+        "SENSITIVE_DATA"
       ]
     },
     "IndicatorValueString":{
@@ -12256,7 +12261,7 @@
         },
         "Account":{
           "shape":"Account",
-          "documentation":"<p>Contains information about the Amazon Web Services account.</p>",
+          "documentation":"<p>Contains information about the Amazon Web Services account within which the activity took place. This is not necessarily the account that owns the user identity.</p>",
           "locationName":"account"
         }
       },
