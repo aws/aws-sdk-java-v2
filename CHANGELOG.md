@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.13__ __2026-05-26__
+## __AWS Backup__
+  - ### Features
+    - Launching S3 PITR malware scanning support for AWS Backup
+
+## __AWS Batch__
+  - ### Features
+    - Increase the maximum value of jobExecutionTimeoutMinutes to support longer job timeouts during compute environment infrastructure updates.
+
+## __AWS Budgets__
+  - ### Features
+    - AWS Budget Name Validation Documentation Updates.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon DataZone__
+  - ### Features
+    - Added resourceConfigurations and allowUserProvidedConfigurations fields to environment blueprint configuration APIs, enabling customers who migrated from V1 to V2 domains to update resource configurations (such as lineage schedules) programmatically via the SDK.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add malware scan support for Continuous Backups, also known as Point-In-Time Recovery Points (PITR).
+
 # __2.44.12__ __2026-05-22__
 ## __AWS Invoicing__
   - ### Features

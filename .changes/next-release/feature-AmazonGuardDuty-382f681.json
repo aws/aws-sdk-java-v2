@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Add malware scan support for Continuous Backups, also known as Point-In-Time Recovery Points (PITR)."
-}
