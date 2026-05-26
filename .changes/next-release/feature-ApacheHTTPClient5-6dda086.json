@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client 5",
+    "contributor": "",
+    "description": "Fail fast at Apache5HttpClient construction when SecurityManager is active and jdk.net.NetworkPermission setOption.TCP_KEEPIDLE, setOption.TCP_KEEPINTERVAL, setOption.TCP_KEEPCOUNT are not granted."
+}

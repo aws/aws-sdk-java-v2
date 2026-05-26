@@ -101,6 +101,7 @@ import software.amazon.awssdk.http.apache5.internal.utils.Apache5Utils;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -543,6 +544,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
     }
 
     private static final class DefaultBuilder implements Builder {
+        private static final String[] REQUIRED_TCP_KEEPALIVE_PERMISSIONS = {
+            "setOption.TCP_KEEPIDLE",
+            "setOption.TCP_KEEPINTERVAL",
+            "setOption.TCP_KEEPCOUNT"
+        };
+
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private Registry<AuthSchemeFactory> authSchemeRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
@@ -744,7 +751,36 @@ public final class Apache5HttpClient implements SdkHttpClient {
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(
                 SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
+            checkTcpKeepAlivePermissions();
             return new Apache5HttpClient(this, resolvedOptions);
+        }
+
+        /**
+         * Fails fast if a SecurityManager is active but denies the {@code jdk.net.NetworkPermission} entries
+         * that Apache HC5 requires for its default TCP keepalive socket options.
+         * No-op when no SecurityManager is installed (including Java 24+).
+         */
+        private static void checkTcpKeepAlivePermissions() {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm == null) {
+                return;
+            }
+
+            try {
+                Class<?> permClass = ClassLoaderHelper.loadClass("jdk.net.NetworkPermission", Apache5HttpClient.class);
+                for (String permName : REQUIRED_TCP_KEEPALIVE_PERMISSIONS) {
+                    java.security.Permission perm =
+                        (java.security.Permission) permClass.getConstructor(String.class).newInstance(permName);
+                    sm.checkPermission(perm);
+                }
+            } catch (SecurityException e) {
+                throw new IllegalStateException(
+                    "Apache5HttpClient requires jdk.net.NetworkPermission for \""
+                    + String.join("\", \"", REQUIRED_TCP_KEEPALIVE_PERMISSIONS)
+                    + "\" when a SecurityManager is active.", e);
+            } catch (Exception e) {
+                log.warn(() -> "Unable to verify TCP keepalive permissions: " + e.getMessage(), e);
+            }
         }
     }
 
