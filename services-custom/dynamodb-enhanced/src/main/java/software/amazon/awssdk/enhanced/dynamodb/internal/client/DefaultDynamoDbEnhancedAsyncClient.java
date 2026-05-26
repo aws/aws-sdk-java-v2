@@ -145,6 +145,14 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
+    public SdkPublisher<EnhancedQueryRow> enhancedQuery(QueryExpressionSpec spec,
+                                                        java.util.function.Consumer<
+                                                            software.amazon.awssdk.enhanced.dynamodb.query.result
+                                                                .EnhancedQueryLatencyReport> reportConsumer) {
+        return queryExpressionAsyncEngine.execute(spec, reportConsumer);
+    }
+
+    @Override
     public DynamoDbAsyncClient dynamoDbAsyncClient() {
         return dynamoDbClient;
     }

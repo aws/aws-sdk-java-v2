@@ -37,6 +37,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRe
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -536,6 +537,18 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * @return a publisher of result rows
      */
     default SdkPublisher<EnhancedQueryRow> enhancedQuery(QueryExpressionSpec spec) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Executes an enhanced query asynchronously and reports latency on publisher completion.
+     *
+     * @param spec the query specification
+     * @param reportConsumer optional consumer for the latency report; may be null
+     * @return a publisher of result rows
+     */
+    default SdkPublisher<EnhancedQueryRow> enhancedQuery(QueryExpressionSpec spec,
+                                                         Consumer<EnhancedQueryLatencyReport> reportConsumer) {
         throw new UnsupportedOperationException();
     }
 

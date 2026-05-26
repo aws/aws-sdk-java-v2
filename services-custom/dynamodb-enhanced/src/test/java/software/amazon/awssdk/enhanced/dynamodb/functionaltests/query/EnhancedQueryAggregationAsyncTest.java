@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.enums.AggregationFunction;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.SortDirection;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.MissingKeyConditionException;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
@@ -613,11 +615,10 @@ public class EnhancedQueryAggregationAsyncTest extends LocalDynamoDbLargeDataset
     }
 
     /**
-     * STRICT_KEY_ONLY without base key condition: no scan; aggregation returns empty. Expected response: Empty list of rows.
-     * DynamoDB operation: none (returns empty)
+     * STRICT_KEY_ONLY without base key condition: throws MissingKeyConditionException.
      */
     @Test
-    public void executionMode_strictKeyOnly_withoutKey_returnsEmptyOrNoScan() {
+    public void executionMode_strictKeyOnly_withoutKey_throwsMissingKeyConditionException() {
         QueryExpressionSpec spec = QueryExpressionBuilder.from(customersTable)
                                                          .join(ordersTable, JoinType.INNER, "customerId", "customerId")
                                                          .groupBy("customerId")
@@ -625,8 +626,9 @@ public class EnhancedQueryAggregationAsyncTest extends LocalDynamoDbLargeDataset
                                                          .executionMode(ExecutionMode.STRICT_KEY_ONLY)
                                                          .limit(10)
                                                          .build();
-        List<EnhancedQueryRow> rows = runAndMeasure(spec);
-        assertThat(rows).isEmpty();
+        assertThatThrownBy(() -> runAndMeasure(spec))
+            .isInstanceOf(MissingKeyConditionException.class)
+            .hasMessageContaining("STRICT_KEY_ONLY");
     }
 
     /**

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
+package software.amazon.awssdk.enhanced.dynamodb.functionaltests.query;
 
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
@@ -28,6 +28,8 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LargeDatasetInitializer;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
@@ -214,12 +216,9 @@ public final class EnhancedQueryBenchmarkRunner {
         int warmup = parseIntEnv(BENCHMARK_WARMUP_ENV, DEFAULT_WARMUP);
         String outputFile = System.getenv(BENCHMARK_OUTPUT_FILE_ENV);
 
-        LocalDynamoDb localDynamoDb = null;
         DynamoDbClient dynamoDbClient;
         if (useLocalDynamoDb) {
-            localDynamoDb = new LocalDynamoDb();
-            localDynamoDb.start();
-            dynamoDbClient = localDynamoDb.createClient();
+            dynamoDbClient = LocalDynamoDbTestBase.createLocalDynamoDbClient();
             System.out.println("Using in-process DynamoDB Local.");
         } else if (regionStr != null && !regionStr.isEmpty()) {
             dynamoDbClient = DynamoDbClient.builder().region(Region.of(regionStr)).build();
@@ -229,13 +228,16 @@ public final class EnhancedQueryBenchmarkRunner {
 
         try {
             if (createAndSeed) {
-                System.out.println("Creating tables and seeding data (1000 customers x 1000 orders)...");
+                int customerCount = parseIntEnv("CUSTOMER_COUNT", LargeDatasetInitializer.DEFAULT_CUSTOMER_COUNT);
+                int ordersPerCustomer = parseIntEnv("ORDERS_PER_CUSTOMER", LargeDatasetInitializer.DEFAULT_ORDERS_PER_CUSTOMER);
+                System.out.printf("Creating tables and seeding data (%,d customers x %,d orders)...%n",
+                                  customerCount, ordersPerCustomer);
                 LargeDatasetInitializer.initializeCustomersAndOrdersDataset(
                     dynamoDbClient,
                     customersTable,
                     ordersTable,
-                    1000,
-                    1000,
+                    customerCount,
+                    ordersPerCustomer,
                     PROVISIONED_THROUGHPUT);
                 System.out.println("Seed complete.");
             }
@@ -246,10 +248,10 @@ public final class EnhancedQueryBenchmarkRunner {
 
             List<Scenario> scenarios = Arrays.asList(
 
-                // --- Base-only (no join, no aggregation) ---
+                // --- Group 1: Baselines ---
 
-                new Scenario("baseOnly_keyCondition",
-                             "Get one customer by ID (c1). Uses partition key only; no join. DynamoDB: query() on Customers.",
+                new Scenario("single_customer_by_key",
+                             "Retrieve one customer by partition key. Establishes minimum DynamoDB round-trip latency.",
                              "query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
@@ -257,8 +259,8 @@ public final class EnhancedQueryBenchmarkRunner {
                                                          .limit(10)
                                                          .build()),
 
-                new Scenario("baseOnly_scan_limit100",
-                             "Read up to 100 customers without key condition (full table read). DynamoDB: scan() on Customers.",
+                new Scenario("scan_100_customers",
+                             "Read first 100 customers without key condition. Establishes scan baseline.",
                              "scan()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .executionMode(ExecutionMode.ALLOW_SCAN)
@@ -266,179 +268,200 @@ public final class EnhancedQueryBenchmarkRunner {
                                                          .limit(100)
                                                          .build()),
 
-                new Scenario("baseOnly_scan_filterRegionEU",
-                             "Scan Customers and filter in-memory to region=EU (~500 rows). DynamoDB: scan() on Customers.",
-                             "scan()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .where(Condition.eq("region", "EU"))
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .project("customerId", "name", "region")
-                                                         .limit(600)
-                                                         .build()),
+                // --- Group 2: Individual aggregation functions (key-scoped) ---
 
-                // --- Join (no aggregation) ---
-
-                new Scenario("joinInner_c1",
-                             "Customer c1 with all their orders (INNER join). Base by key, then orders by customerId. DynamoDB:"
-                             + " query() + query().",
+                new Scenario("count_orders_one_customer",
+                             "COUNT all orders for customer c1. Returns 1 row with order count.",
                              "base=query(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
                                                          .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(1100)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                         .limit(10)
                                                          .build()),
 
-                new Scenario("joinLeft_c1_limit50",
-                             "Customer c1 LEFT-joined to orders, return first 50 rows (c1 plus up to 49 orders). DynamoDB: "
-                             + "query() + query().",
+                new Scenario("sum_amount_one_customer",
+                             "SUM of order amounts for customer c1. Returns 1 row with total revenue.",
                              "base=query(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.LEFT, "customerId", "customerId")
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
                                                          .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(50)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .limit(10)
                                                          .build()),
 
-                new Scenario("joinRight_c1",
-                             "All orders for customer c1, each with customer info (RIGHT join; 1000 rows). DynamoDB: query() + "
-                             + "query().",
+                new Scenario("avg_amount_one_customer",
+                             "AVG of order amounts for customer c1. Returns 1 row with average order value.",
                              "base=query(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.RIGHT, "customerId", "customerId")
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
                                                          .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(1100)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
+                                                         .limit(10)
                                                          .build()),
 
-                new Scenario("joinInner_c1_filterAmount50",
-                             "Customer c1 INNER join orders, keep only orders with amount>=50. DynamoDB: query() + query(), "
-                             + "filter in-memory.",
+                new Scenario("min_amount_one_customer",
+                             "MIN order amount for customer c1. Returns 1 row with smallest order.",
+                             "base=query(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
+                                                         .limit(10)
+                                                         .build()),
+
+                new Scenario("max_amount_one_customer",
+                             "MAX order amount for customer c1. Returns 1 row with largest order.",
+                             "base=query(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
+                                                         .limit(10)
+                                                         .build()),
+
+                // --- Group 3: Combined and complex aggregations ---
+
+                new Scenario("all_five_functions_one_customer",
+                             "COUNT, SUM, AVG, MIN, MAX combined in one query for c1. Proves zero overhead for multiple functions.",
+                             "base=query(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
+                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
+                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
+                                                         .limit(10)
+                                                         .build()),
+
+                new Scenario("count_and_sum_with_amount_filter",
+                             "COUNT + SUM only for orders where amount >= 50. Pre-aggregation filter reduces input rows.",
                              "base=query(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
                                                          .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
                                                          .filterJoined(Condition.gte("amount", 50))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(1000)
-                                                         .build()),
-
-                // --- Aggregation (join + GROUP BY) ---
-
-                new Scenario("agg_count_c1",
-                             "One row: customer c1 with COUNT(orders). Group by customerId. DynamoDB: query() on Customers + "
-                             + "query() on Orders.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("agg_sum_c1",
-                             "One row: customer c1 with SUM(order amount). Group by customerId. DynamoDB: query() + query().",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("agg_minMax_c1",
-                             "One row: customer c1 with MIN(amount) and MAX(amount). Group by customerId. DynamoDB: query() + "
-                             + "query().",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
-                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("agg_avg_c1",
-                             "One row: customer c1 with AVG(order amount). Group by customerId. DynamoDB: query() + query().",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("agg_allFunctions_c1_filterAmount50",
-                             "c1: COUNT/SUM/MIN/MAX/AVG on orders with amount>=50, base filter region=EU. DynamoDB: query() + "
-                             + "query().",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .filterBase(Condition.eq("region", "EU"))
-                                                         .filterJoined(Condition.gte("amount", 50))
                                                          .groupBy("customerId")
                                                          .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
                                                          .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
-                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
-                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
-                                                         .executionMode(ExecutionMode.STRICT_KEY_ONLY)
-                                                         .project("customerId", "name", "region", "orderId", "amount")
                                                          .limit(10)
                                                          .build()),
 
-                // --- Aggregation with scan ---
-
-                new Scenario("agg_count_scanAll_limit20",
-                             "COUNT(orders) per customer for first 20 customers. Base table read without key. DynamoDB: scan() "
-                             + "+ query() per customer.",
+                new Scenario("count_per_customer_having_gt500",
+                             "COUNT per customer across all customers, keep only groups with count > 500. Post-aggregation HAVING.",
                              "base=scan(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
                                                          .groupBy("customerId")
                                                          .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .project("customerId", "name", "region", "orderId", "amount")
+                                                         .having(Condition.gt("orderCount", 500))
                                                          .limit(20)
                                                          .build()),
 
-                new Scenario("agg_count_scanFilterEU",
-                             "COUNT(orders) per customer, only for customers with region=EU. Base read by scan + filter. "
-                             + "DynamoDB: scan() + query().",
-                             "base=scan(), join=query()",
+                new Scenario("count_and_sum_grouped_by_two_fields",
+                             "COUNT + SUM grouped by (customerId, region). Multi-field composite GROUP BY key.",
+                             "base=query(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .filterBase(Condition.eq("region", "EU"))
-                                                         .groupBy("customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .groupBy("customerId", "region")
                                                          .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(500)
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .limit(10)
                                                          .build()),
 
-                // --- Aggregation with ordering ---
-
-                new Scenario("agg_count_orderByDesc_limit20",
-                             "COUNT(orders) per customer, sort by count DESC, return top 20. Base by scan. DynamoDB: scan() + "
-                             + "query(), sort in-memory.",
+                new Scenario("top10_customers_by_order_count",
+                             "COUNT per customer, sorted by count descending, return only top 10. ORDER BY aggregate + limit.",
                              "base=scan(), join=query()",
                              () -> QueryExpressionBuilder.from(customersTableRef)
                                                          .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
                                                          .groupBy("customerId")
                                                          .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
                                                          .orderByAggregate("orderCount", SortDirection.DESC)
+                                                         .limit(10)
+                                                         .build()),
+
+                new Scenario("global_sum_and_count_no_groupby",
+                             "Global SUM + COUNT over all orders for c1 without GROUP BY. Single-bucket global aggregation.",
+                             "query()",
+                             () -> QueryExpressionBuilder.from(ordersTableRef)
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "totalOrders")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalRevenue")
+                                                         .limit(10)
+                                                         .build()),
+
+                // --- Group 4: Scan-backed aggregations (ALLOW_SCAN) ---
+
+                new Scenario("scan_count_all_customers",
+                             "COUNT orders per customer, scanning the entire customers table. Shows full-table aggregation cost.",
+                             "base=scan(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
                                                          .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .project("customerId", "name", "region", "orderId", "amount")
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
                                                          .limit(20)
+                                                         .build()),
+
+                new Scenario("scan_sum_only_eu_customers",
+                             "SUM(amount) per customer, scan with region=EU filter. Shows filtered scan + aggregation cost.",
+                             "base=scan(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .filterBase(Condition.eq("region", "EU"))
+                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .limit(500)
+                                                         .build()),
+
+                new Scenario("scan_having_orderby_full_combo",
+                             "COUNT + SUM per customer, HAVING count > 500, ORDER BY total DESC, limit 10. All features on scan.",
+                             "base=scan(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .having(Condition.gt("orderCount", 500))
+                                                         .orderByAggregate("totalAmount", SortDirection.DESC)
+                                                         .limit(10)
+                                                         .build()),
+
+                // --- Group 5: Join preview (Phase 2) ---
+
+                new Scenario("join_all_orders_one_customer",
+                             "INNER join customer c1 with all orders. Raw join without aggregation (Phase 2 preview).",
+                             "base=query(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .project("customerId", "name", "region", "orderId", "amount")
+                                                         .limit(1100)
+                                                         .build()),
+
+                new Scenario("join_then_count_and_sum",
+                             "INNER join c1 + COUNT + SUM. Shows aggregation collapsing 1,000 joined rows into 1 result.",
+                             "base=query(), join=query()",
+                             () -> QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .limit(10)
                                                          .build())
             );
 
@@ -522,8 +545,8 @@ public final class EnhancedQueryBenchmarkRunner {
             }
         } finally {
             dynamoDbClient.close();
-            if (localDynamoDb != null) {
-                localDynamoDb.stop();
+            if (useLocalDynamoDb) {
+                LocalDynamoDbTestBase.stopLocalDynamoDb();
             }
         }
     }

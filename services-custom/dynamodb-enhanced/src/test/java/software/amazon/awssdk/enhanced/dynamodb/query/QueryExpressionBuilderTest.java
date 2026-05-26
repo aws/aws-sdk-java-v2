@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import java.util.Collections;
+import java.util.Map;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.AggregationFunction;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.OrderBySpec;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Unit tests for {@link QueryExpressionBuilder}. Verifies that the fluent builder produces a {@link QueryExpressionSpec} with the
@@ -189,6 +192,35 @@ public class QueryExpressionBuilderTest {
     public void limit_setsLimit() {
         QueryExpressionSpec spec = QueryExpressionBuilder.from(baseTable).limit(100).build();
         assertThat(spec.limit()).isEqualTo(100);
+    }
+
+    /**
+     * Asserts that {@link QueryExpressionBuilder#having(Condition)} sets the having condition on the spec.
+     */
+    @Test
+    public void having_setsHavingCondition() {
+        Condition havingCond = Condition.gt("totalAmount", 1000);
+        QueryExpressionSpec spec = QueryExpressionBuilder.from(baseTable)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .having(havingCond)
+                                                         .build();
+
+        assertThat(spec.having()).isSameAs(havingCond);
+    }
+
+    /**
+     * Asserts that {@link QueryExpressionBuilder#exclusiveStart(Map)} sets the exclusive start key on the spec.
+     */
+    @Test
+    public void exclusiveStart_setsExclusiveStartKey() {
+        Map<String, AttributeValue> startKey = Collections.singletonMap(
+            "id", AttributeValue.builder().s("abc").build());
+        QueryExpressionSpec spec = QueryExpressionBuilder.from(baseTable)
+                                                         .exclusiveStart(startKey)
+                                                         .build();
+
+        assertThat(spec.exclusiveStartKey()).isEqualTo(startKey);
     }
 
     /**

@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.AggregationFunction;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.InvalidQueryExpressionException;
 
 /**
  * Functional tests for build-time validation in {@link QueryExpressionBuilder#build()}. Verifies that incompatible option
@@ -75,7 +76,7 @@ public class BuildValidationTest extends LocalDynamoDbTestBase {
                                QueryExpressionBuilder.from(tableA)
                                                      .groupBy("id")
                                                      .build()
-        ).isInstanceOf(IllegalStateException.class)
+        ).isInstanceOf(InvalidQueryExpressionException.class)
          .hasMessageContaining("groupBy() requires at least one aggregate()");
     }
 
@@ -85,7 +86,7 @@ public class BuildValidationTest extends LocalDynamoDbTestBase {
                                QueryExpressionBuilder.from(tableA)
                                                      .filterBase(Condition.eq("status", "ACTIVE"))
                                                      .build()
-        ).isInstanceOf(IllegalStateException.class)
+        ).isInstanceOf(InvalidQueryExpressionException.class)
          .hasMessageContaining("filterBase() is only applicable when a join is configured");
     }
 
@@ -95,8 +96,27 @@ public class BuildValidationTest extends LocalDynamoDbTestBase {
                                QueryExpressionBuilder.from(tableA)
                                                      .filterJoined(Condition.eq("amount", 100))
                                                      .build()
-        ).isInstanceOf(IllegalStateException.class)
+        ).isInstanceOf(InvalidQueryExpressionException.class)
          .hasMessageContaining("filterJoined() is only applicable when a join is configured");
+    }
+
+    @Test
+    public void havingWithoutAggregate_throwsWithMessage() {
+        assertThatThrownBy(() ->
+                               QueryExpressionBuilder.from(tableA)
+                                                     .having(Condition.gt("total", 100))
+                                                     .build()
+        ).isInstanceOf(InvalidQueryExpressionException.class)
+         .hasMessageContaining("having() requires at least one aggregate()");
+    }
+
+    @Test
+    public void havingWithAggregate_doesNotThrow() {
+        QueryExpressionBuilder.from(tableA)
+                              .groupBy("id")
+                              .aggregate(AggregationFunction.SUM, "amount", "total")
+                              .having(Condition.gt("total", 100))
+                              .build();
     }
 
     @Test

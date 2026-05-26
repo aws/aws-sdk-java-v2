@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -45,6 +46,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.ConditionEvaluator;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.MissingKeyConditionException;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.AggregateSpec;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
@@ -100,11 +103,27 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         });
     }
 
+    @Override
+    public SdkPublisher<EnhancedQueryRow> execute(QueryExpressionSpec spec,
+                                                  Consumer<EnhancedQueryLatencyReport> reportConsumer) {
+        long startNanos = System.nanoTime();
+        EnhancedQueryExecutionStats stats = new EnhancedQueryExecutionStats();
+        SdkPublisher<EnhancedQueryRow> inner = executeInternal(spec, stats);
+        return inner.doAfterOnComplete(() -> {
+            long totalMs = (System.nanoTime() - startNanos) / 1_000_000;
+            if (reportConsumer != null) {
+                reportConsumer.accept(stats.toLatencyReport(totalMs));
+            }
+            logDebugStats(stats, totalMs);
+            EnhancedQueryTelemetry.logExecutionComplete(stats, totalMs, true);
+        });
+    }
+
     private SdkPublisher<EnhancedQueryRow> executeInternal(QueryExpressionSpec spec, EnhancedQueryExecutionStats stats) {
         if (spec.hasJoin()) {
             return executeJoinAsync(spec, stats);
         }
-        if (!spec.aggregates().isEmpty() && !spec.groupByAttributes().isEmpty()) {
+        if (!spec.aggregates().isEmpty()) {
             return executeAggregationAsync(spec, stats);
         }
         return executeBaseOnlyAsync(spec, stats);
@@ -154,8 +173,24 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
             }
             baseItems = baseTableItems(baseTable, null, scanBuilder.build(), stats);
         } else {
-            return SdkPublisher.fromIterable(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
+
+        if (!spec.orderBy().isEmpty()) {
+            List<Object> allItems = drainPublisherToList(baseItems);
+            List<EnhancedQueryRow> rows = new ArrayList<>();
+            for (Object item : allItems) {
+                rows.addAll(toBaseRows(item, baseSchema, spec));
+            }
+            QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
+            if (limit != null && rows.size() > limit) {
+                rows = new ArrayList<>(rows.subList(0, limit));
+            }
+            return SdkPublisher.fromIterable(rows);
+        }
+
         return baseItems.flatMapIterable(item -> toBaseRows(item, baseSchema, spec))
                         .limit(maxItems);
     }
@@ -230,7 +265,9 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         Integer limit = spec.limit();
 
         if (spec.keyCondition() == null && spec.executionMode() != ExecutionMode.ALLOW_SCAN) {
-            return SdkPublisher.fromIterable(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
 
         QueryEnhancedRequest queryReq;
@@ -520,7 +557,9 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         List<AggregateSpec> aggregateSpecs = spec.aggregates();
 
         if (spec.keyCondition() == null && spec.executionMode() != ExecutionMode.ALLOW_SCAN) {
-            return SdkPublisher.fromIterable(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
 
         // Phase 1: collect base items
@@ -573,23 +612,20 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         }
 
         List<EnhancedQueryRow> rows = new ArrayList<>();
-        if (spec.orderBy().isEmpty()) {
-            for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
-                if (limit != null && rows.size() >= limit) {
-                    break;
-                }
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    e.getValue(), aggregateSpecs, spec.projectAttributes()));
+        for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
+            EnhancedQueryRow row = QueryEngineSupport.aggregationRowFromBucket(
+                e.getValue(), aggregateSpecs, spec.projectAttributes());
+            if (spec.having() != null && !ConditionEvaluator.evaluate(spec.having(), row.aggregates())) {
+                continue;
             }
-        } else {
-            for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    e.getValue(), aggregateSpecs, spec.projectAttributes()));
-            }
+            rows.add(row);
+        }
+
+        if (!spec.orderBy().isEmpty()) {
             QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
-            if (limit != null && rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-            }
+        }
+        if (limit != null && rows.size() > limit) {
+            rows = new ArrayList<>(rows.subList(0, limit));
         }
         return SdkPublisher.fromIterable(rows);
     }
@@ -777,7 +813,6 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
     @SuppressWarnings("unchecked")
     private SdkPublisher<EnhancedQueryRow> executeAggregationAsync(QueryExpressionSpec spec,
                                                                    EnhancedQueryExecutionStats stats) {
-        List<EnhancedQueryRow> rows = new ArrayList<>();
         MappedTableResource<?> baseTable = spec.baseTable();
         TableSchema<Object> baseSchema = (TableSchema<Object>) baseTable.tableSchema();
 
@@ -786,6 +821,9 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
                                                                           .queryConditional(spec.keyCondition())
                                                                           .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
+            if (spec.exclusiveStartKey() != null) {
+                reqBuilder.exclusiveStartKey(spec.exclusiveStartKey());
+            }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
@@ -793,13 +831,21 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         } else if (spec.executionMode() == ExecutionMode.ALLOW_SCAN) {
             ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
+            if (spec.exclusiveStartKey() != null) {
+                scanBuilder.exclusiveStartKey(spec.exclusiveStartKey());
+            }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
             baseItems = baseTableItems(baseTable, null, scanBuilder.build(), stats);
         } else {
-            return SdkPublisher.fromIterable(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
+
+        boolean isGlobalAggregation = spec.groupByAttributes().isEmpty();
+        List<Object> globalKey = isGlobalAggregation ? Collections.singletonList("__global__") : null;
 
         Map<List<Object>, Map<String, Object>> buckets = new LinkedHashMap<>();
         CompletableFuture<Void> done = baseItems.subscribe(item -> {
@@ -807,8 +853,9 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
             if (!ConditionEvaluator.evaluate(spec.where(), objectMap)) {
                 return;
             }
-            List<Object> groupKey = QueryEngineSupport.buildGroupKey(
-                spec.groupByAttributes(), objectMap, Collections.emptyMap());
+            List<Object> groupKey = isGlobalAggregation ? globalKey
+                                                        : QueryEngineSupport.buildGroupKey(
+                                                            spec.groupByAttributes(), objectMap, Collections.emptyMap());
             Map<String, Object> bucket = buckets.computeIfAbsent(
                 groupKey,
                 k -> QueryEngineSupport.createEmptyBucket(spec.aggregates()));
@@ -822,25 +869,27 @@ public final class DefaultQueryExpressionAsyncEngine implements QueryExpressionA
         } catch (ExecutionException e) {
             throw new RuntimeException(e.getCause() != null ? e.getCause() : e);
         }
-        if (spec.orderBy().isEmpty()) {
-            for (Map<String, Object> bucket : buckets.values()) {
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    bucket, spec.aggregates(), spec.projectAttributes()));
+
+        if (isGlobalAggregation && buckets.isEmpty()) {
+            buckets.put(globalKey, QueryEngineSupport.createEmptyBucket(spec.aggregates()));
+        }
+
+        List<EnhancedQueryRow> rows = new ArrayList<>();
+        for (Map<String, Object> bucket : buckets.values()) {
+            EnhancedQueryRow row = QueryEngineSupport.aggregationRowFromBucket(
+                bucket, spec.aggregates(), spec.projectAttributes());
+            if (spec.having() != null && !ConditionEvaluator.evaluate(spec.having(), row.aggregates())) {
+                continue;
             }
-            Integer limit = spec.limit();
-            if (limit != null && rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-            }
-        } else {
-            for (Map<String, Object> bucket : buckets.values()) {
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    bucket, spec.aggregates(), spec.projectAttributes()));
-            }
+            rows.add(row);
+        }
+
+        if (!spec.orderBy().isEmpty()) {
             QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
-            Integer limit = spec.limit();
-            if (limit != null && rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-            }
+        }
+        Integer limit = spec.limit();
+        if (limit != null && rows.size() > limit) {
+            rows = new ArrayList<>(rows.subList(0, limit));
         }
         return SdkPublisher.fromIterable(rows);
     }

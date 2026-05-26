@@ -18,12 +18,13 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
-import java.util.ArrayList;
-import java.util.List;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -62,9 +63,29 @@ public final class LargeDatasetInitializer {
     public static final String LARGE_ORDERS_TABLE = "orders_large";
 
     /**
+     * Default customer count for EC2 benchmarks (10,000 customers).
+     */
+    public static final int DEFAULT_CUSTOMER_COUNT = 10_000;
+
+    /**
+     * Default orders per customer for EC2 benchmarks (10,000 orders per customer = 100M total orders).
+     */
+    public static final int DEFAULT_ORDERS_PER_CUSTOMER = 10_000;
+
+    /**
      * DynamoDB BatchWriteItem limit per request.
      */
     private static final int BATCH_SIZE = 25;
+
+    /**
+     * Number of batches to accumulate before submitting in parallel. Controls memory usage for large datasets.
+     */
+    private static final int PARALLEL_CHUNK_SIZE = 200;
+
+    /**
+     * Maximum retries for throttled BatchWriteItem requests.
+     */
+    private static final int MAX_RETRIES = 5;
 
     private static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT =
         ProvisionedThroughput.builder()
@@ -127,36 +148,68 @@ public final class LargeDatasetInitializer {
     }
 
     /**
-     * Optional entry point that runs an in-memory seed for verification. Starts an in-process {@link LocalDynamoDb}, creates the
-     * Customers and Orders tables, seeds 1_000 customers and 1_000×1_000 orders by default, then stops the server. Data is not
-     * persisted. For running the EnhancedQuery* tests, this is not required — the test base seeds in-process in
-     * {@code @BeforeClass}.
+     * Entry point for seeding. When run with {@code USE_LOCAL_DYNAMODB=true}, starts an in-process DynamoDB Local and seeds
+     * into memory (useful for quick verification). Otherwise, seeds against real DynamoDB tables.
      * <p>
-     * Optional arguments: [customersTableName ordersTableName customerCount ordersPerCustomer]. Defaults:
-     * {@value #LARGE_CUSTOMERS_TABLE}, {@value #LARGE_ORDERS_TABLE}, 1000, 1000.
+     * Environment variables (override CLI args):
+     * <ul>
+     *   <li>{@code CUSTOMER_COUNT} – number of customers to seed (default: 10000)</li>
+     *   <li>{@code ORDERS_PER_CUSTOMER} – orders per customer (default: 10000)</li>
+     *   <li>{@code CUSTOMERS_TABLE} – table name (default: customers_large)</li>
+     *   <li>{@code ORDERS_TABLE} – table name (default: orders_large)</li>
+     *   <li>{@code USE_LOCAL_DYNAMODB} – if "true", use in-process DynamoDB Local</li>
+     *   <li>{@code AWS_REGION} – region for real DynamoDB (default: SDK default)</li>
+     * </ul>
+     * <p>
+     * CLI arguments (lower priority): [customersTableName ordersTableName customerCount ordersPerCustomer].
      *
      * @param args optional: customersTableName, ordersTableName, customerCount, ordersPerCustomer
      */
     public static void main(String[] args) {
-        String customersTableName = args.length >= 1 ? args[0] : LARGE_CUSTOMERS_TABLE;
-        String ordersTableName = args.length >= 2 ? args[1] : LARGE_ORDERS_TABLE;
-        int customerCount = args.length >= 3 ? Integer.parseInt(args[2]) : 1000;
-        int ordersPerCustomer = args.length >= 4 ? Integer.parseInt(args[3]) : 1000;
+        String customersTableName = envOrDefault("CUSTOMERS_TABLE",
+            args.length >= 1 ? args[0] : LARGE_CUSTOMERS_TABLE);
+        String ordersTableName = envOrDefault("ORDERS_TABLE",
+            args.length >= 2 ? args[1] : LARGE_ORDERS_TABLE);
+        int customerCount = parseIntEnv("CUSTOMER_COUNT",
+            args.length >= 3 ? Integer.parseInt(args[2]) : DEFAULT_CUSTOMER_COUNT);
+        int ordersPerCustomer = parseIntEnv("ORDERS_PER_CUSTOMER",
+            args.length >= 4 ? Integer.parseInt(args[3]) : DEFAULT_ORDERS_PER_CUSTOMER);
 
-        LocalDynamoDb local = new LocalDynamoDb();
-        local.start();
-        try {
-            try (DynamoDbClient client = local.createClient()) {
-                initializeCustomersAndOrdersDataset(
-                    client,
-                    customersTableName,
-                    ordersTableName,
-                    customerCount,
-                    ordersPerCustomer,
-                    DEFAULT_PROVISIONED_THROUGHPUT);
+        boolean useLocal = "true".equalsIgnoreCase(System.getenv("USE_LOCAL_DYNAMODB"));
+
+        long totalItems = (long) customerCount + (long) customerCount * ordersPerCustomer;
+        System.out.printf("LargeDatasetInitializer: target %,d customers x %,d orders = %,d total items%n",
+                          customerCount, ordersPerCustomer, totalItems);
+        System.out.println("Mode: " + (useLocal ? "DynamoDB Local (in-process)" : "Real DynamoDB"));
+
+        if (useLocal) {
+            LocalDynamoDb local = new LocalDynamoDb();
+            local.start();
+            try {
+                try (DynamoDbClient client = local.createClient()) {
+                    initializeCustomersAndOrdersDataset(
+                        client, customersTableName, ordersTableName,
+                        customerCount, ordersPerCustomer, DEFAULT_PROVISIONED_THROUGHPUT);
+                }
+            } finally {
+                local.stop();
             }
-        } finally {
-            local.stop();
+        } else {
+            String regionStr = System.getenv("AWS_REGION");
+            DynamoDbClient client;
+            if (regionStr != null && !regionStr.isEmpty()) {
+                client = DynamoDbClient.builder()
+                    .region(software.amazon.awssdk.regions.Region.of(regionStr)).build();
+            } else {
+                client = DynamoDbClient.create();
+            }
+            try {
+                initializeCustomersAndOrdersDataset(
+                    client, customersTableName, ordersTableName,
+                    customerCount, ordersPerCustomer, DEFAULT_PROVISIONED_THROUGHPUT);
+            } finally {
+                client.close();
+            }
         }
     }
 
@@ -174,12 +227,14 @@ public final class LargeDatasetInitializer {
 
     /**
      * Writes customer items with IDs c1, c2, ... up to customerCount. Overwrites if already present. Builds batches of 25 and
-     * runs BatchWriteItem in parallel for speed.
+     * runs BatchWriteItem in parallel (chunked for large counts).
      */
     private static void seedCustomers(DynamoDbEnhancedClient enhancedClient,
                                       DynamoDbTable<CustomerPojo> table,
                                       int customerCount) {
-        List<BatchWriteItemEnhancedRequest> batches = new ArrayList<>();
+        System.out.printf("  Seeding %,d customers...%n", customerCount);
+        AtomicLong written = new AtomicLong(0);
+        List<BatchWriteItemEnhancedRequest> chunk = new ArrayList<>(PARALLEL_CHUNK_SIZE);
         for (int start = 1; start <= customerCount; start += BATCH_SIZE) {
             int end = Math.min(start + BATCH_SIZE, customerCount + 1);
             WriteBatch.Builder<CustomerPojo> batchBuilder =
@@ -191,22 +246,36 @@ public final class LargeDatasetInitializer {
                 c.setRegion(i % 2 == 1 ? "EU" : "NA");
                 batchBuilder.addPutItem(r -> r.item(c));
             }
-            batches.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
+            chunk.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
+            if (chunk.size() >= PARALLEL_CHUNK_SIZE) {
+                submitChunkWithRetry(enhancedClient, chunk, written);
+                chunk = new ArrayList<>(PARALLEL_CHUNK_SIZE);
+            }
         }
-        batches.parallelStream().forEach(enhancedClient::batchWriteItem);
+        if (!chunk.isEmpty()) {
+            submitChunkWithRetry(enhancedClient, chunk, written);
+        }
+        System.out.printf("  Customers seeding complete: %,d items written.%n", written.get());
     }
 
     /**
      * Writes order items for each customer: c1-o1, c1-o2, ... so that each customer has ordersPerCustomer orders. Overwrites if
-     * already present. Builds batches of 25 and runs BatchWriteItem in parallel for speed.
+     * already present. Processes in chunks of {@link #PARALLEL_CHUNK_SIZE} batches to avoid OOM on large datasets (e.g. 100M items).
+     * Logs progress every 100,000 items.
      */
     private static void seedOrders(DynamoDbEnhancedClient enhancedClient,
                                    DynamoDbTable<OrderPojo> table,
                                    int customerCount,
                                    int ordersPerCustomer) {
-        List<BatchWriteItemEnhancedRequest> batches = new ArrayList<>();
+        long totalOrders = (long) customerCount * ordersPerCustomer;
+        AtomicLong written = new AtomicLong(0);
+        long lastLogAt = 0;
+        long logInterval = 100_000;
+
+        List<BatchWriteItemEnhancedRequest> chunk = new ArrayList<>(PARALLEL_CHUNK_SIZE);
         WriteBatch.Builder<OrderPojo> batchBuilder = WriteBatch.builder(OrderPojo.class).mappedTableResource(table);
         int inBatch = 0;
+
         for (int c = 1; c <= customerCount; c++) {
             for (int o = 1; o <= ordersPerCustomer; o++) {
                 OrderPojo ord = new OrderPojo();
@@ -216,16 +285,93 @@ public final class LargeDatasetInitializer {
                 batchBuilder.addPutItem(r -> r.item(ord));
                 inBatch++;
                 if (inBatch >= BATCH_SIZE) {
-                    batches.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
+                    chunk.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
                     batchBuilder = WriteBatch.builder(OrderPojo.class).mappedTableResource(table);
                     inBatch = 0;
+
+                    if (chunk.size() >= PARALLEL_CHUNK_SIZE) {
+                        submitChunkWithRetry(enhancedClient, chunk, written);
+                        chunk = new ArrayList<>(PARALLEL_CHUNK_SIZE);
+                        long currentWritten = written.get();
+                        if (currentWritten - lastLogAt >= logInterval) {
+                            System.out.printf("  Orders progress: %,d / %,d (%.1f%%)%n",
+                                              currentWritten, totalOrders, 100.0 * currentWritten / totalOrders);
+                            lastLogAt = currentWritten;
+                        }
+                    }
                 }
             }
         }
         if (inBatch > 0) {
-            batches.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
+            chunk.add(BatchWriteItemEnhancedRequest.builder().writeBatches(batchBuilder.build()).build());
         }
-        batches.parallelStream().forEach(enhancedClient::batchWriteItem);
+        if (!chunk.isEmpty()) {
+            submitChunkWithRetry(enhancedClient, chunk, written);
+        }
+        System.out.printf("  Orders seeding complete: %,d items written.%n", written.get());
+    }
+
+    /**
+     * Submits a chunk of BatchWriteItem requests in parallel with exponential backoff retry on throttling.
+     */
+    private static void submitChunkWithRetry(DynamoDbEnhancedClient enhancedClient,
+                                             List<BatchWriteItemEnhancedRequest> chunk,
+                                             AtomicLong writtenCounter) {
+        for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                final int batchSize = BATCH_SIZE;
+                chunk.parallelStream().forEach(req -> {
+                    enhancedClient.batchWriteItem(req);
+                    writtenCounter.addAndGet(batchSize);
+                });
+                return;
+            } catch (Exception e) {
+                if (attempt < MAX_RETRIES && isThrottlingException(e)) {
+                    long sleepMs = (long) Math.pow(2, attempt) * 100;
+                    System.out.printf("  Throttled, retrying in %d ms (attempt %d/%d)...%n",
+                                      sleepMs, attempt + 1, MAX_RETRIES);
+                    try {
+                        Thread.sleep(sleepMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Interrupted during retry backoff", ie);
+                    }
+                } else {
+                    throw new RuntimeException("Failed to write batch after " + (attempt + 1) + " attempts", e);
+                }
+            }
+        }
+    }
+
+    private static boolean isThrottlingException(Exception e) {
+        String msg = e.getMessage();
+        if (msg != null && (msg.contains("ProvisionedThroughputExceeded") || msg.contains("ThrottlingException"))) {
+            return true;
+        }
+        Throwable cause = e.getCause();
+        if (cause != null) {
+            String causeMsg = cause.getMessage();
+            return causeMsg != null
+                   && (causeMsg.contains("ProvisionedThroughputExceeded") || causeMsg.contains("ThrottlingException"));
+        }
+        return false;
+    }
+
+    private static String envOrDefault(String key, String defaultValue) {
+        String v = System.getenv(key);
+        return (v != null && !v.isEmpty()) ? v : defaultValue;
+    }
+
+    private static int parseIntEnv(String key, int defaultValue) {
+        String v = System.getenv(key);
+        if (v == null || v.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(v.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     /**

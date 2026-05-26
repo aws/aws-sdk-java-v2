@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.query.engine;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -28,10 +29,12 @@ import software.amazon.awssdk.enhanced.dynamodb.query.enums.AggregationFunction;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.SortDirection;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.InvalidQueryExpressionException;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.AggregateSpec;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.OrderBySpec;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Fluent builder for {@link QueryExpressionSpec}. Provides a declarative API for constructing enhanced queries that support
@@ -116,6 +119,8 @@ public final class QueryExpressionBuilder {
     private final List<String> projectAttributes;
     private ExecutionMode executionMode;
     private Integer limit;
+    private Condition having;
+    private Map<String, AttributeValue> exclusiveStartKey;
 
     private QueryExpressionBuilder(MappedTableResource<?> baseTable) {
         this.baseTable = baseTable;
@@ -372,6 +377,35 @@ public final class QueryExpressionBuilder {
     }
 
     /**
+     * Post-aggregation filter applied to aggregation buckets. Only meaningful when at least one {@link #aggregate} and
+     * {@link #groupBy} are defined. Filters groups after aggregation, analogous to SQL {@code HAVING}.
+     *
+     * <p>The condition references aggregate output names (aliases), not source attributes. For example:
+     * <pre>{@code
+     * .having(Condition.gt("totalSpend", 1000))
+     * }</pre>
+     *
+     * @param having the post-aggregation filter condition
+     * @return this builder
+     */
+    public QueryExpressionBuilder having(Condition having) {
+        this.having = having;
+        return this;
+    }
+
+    /**
+     * Sets the exclusive start key for cursor-based pagination of aggregate results. Each page re-reads and re-aggregates the
+     * underlying data from this key forward. Document the recompute cost to callers.
+     *
+     * @param exclusiveStartKey the DynamoDB exclusive start key for resuming pagination
+     * @return this builder
+     */
+    public QueryExpressionBuilder exclusiveStart(Map<String, AttributeValue> exclusiveStartKey) {
+        this.exclusiveStartKey = exclusiveStartKey;
+        return this;
+    }
+
+    /**
      * Build the immutable spec. Validates that options are consistent:
      * <ul>
      *   <li>{@code groupBy} requires at least one {@code aggregate}</li>
@@ -381,7 +415,7 @@ public final class QueryExpressionBuilder {
      *   <li>{@code baseTable} is required</li>
      * </ul>
      *
-     * @throws IllegalStateException if incompatible options are specified
+     * @throws InvalidQueryExpressionException if incompatible options are specified
      */
     public QueryExpressionSpec build() {
         validate();
@@ -401,49 +435,58 @@ public final class QueryExpressionBuilder {
                                   .projectAttributes(new ArrayList<>(projectAttributes))
                                   .executionMode(executionMode)
                                   .limit(limit)
+                                  .having(having)
+                                  .exclusiveStartKey(exclusiveStartKey)
                                   .build();
     }
 
     private void validate() {
         if (baseTable == null) {
-            throw new IllegalStateException("baseTable is required. Use QueryExpressionBuilder.from(table) to set it.");
+            throw new InvalidQueryExpressionException(
+                "baseTable is required. Use QueryExpressionBuilder.from(table) to set it.");
         }
 
         boolean hasJoin = joinedTable != null;
 
         if (!hasJoin && joinType != null) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "joinType is set but no joinedTable was provided. Call .join(table, joinType, leftKey, rightKey).");
         }
         if (!hasJoin && (leftJoinKey != null || rightJoinKey != null)) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "leftJoinKey/rightJoinKey are set but no joinedTable was provided. "
                 + "Call .join(table, joinType, leftKey, rightKey).");
         }
         if (hasJoin && joinType == null) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "joinedTable is set but joinType is missing. Call .join(table, joinType, leftKey, rightKey).");
         }
         if (hasJoin && (leftJoinKey == null || rightJoinKey == null)) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "joinedTable is set but leftJoinKey or rightJoinKey is missing. "
                 + "Call .join(table, joinType, leftKey, rightKey).");
         }
 
         if (!hasJoin && baseTableCondition != null) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "filterBase() is only applicable when a join is configured. "
                 + "For single-table filtering, use where() instead.");
         }
         if (!hasJoin && joinedTableCondition != null) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "filterJoined() is only applicable when a join is configured.");
         }
 
         if (!groupByAttributes.isEmpty() && aggregates.isEmpty()) {
-            throw new IllegalStateException(
+            throw new InvalidQueryExpressionException(
                 "groupBy() requires at least one aggregate(). "
                 + "Add .aggregate(function, attribute, outputName) to define an aggregation.");
+        }
+
+        if (having != null && aggregates.isEmpty()) {
+            throw new InvalidQueryExpressionException(
+                "having() requires at least one aggregate(). "
+                + "Add .aggregate(function, attribute, outputName) before using having().");
         }
     }
 }

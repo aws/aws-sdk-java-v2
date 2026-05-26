@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
 public class LocalDynamoDbTestBase {
@@ -55,6 +56,14 @@ public class LocalDynamoDbTestBase {
 
     protected static LocalDynamoDb localDynamoDb() {
         return localDynamoDb;
+    }
+
+    /**
+     * Returns a sync client for the shared in-process DynamoDB Local instance, starting the server if needed.
+     */
+    public static DynamoDbClient createLocalDynamoDbClient() {
+        initializeLocalDynamoDb();
+        return localDynamoDb.createClient();
     }
     
     protected String getConcreteTableName(String logicalTableName) {

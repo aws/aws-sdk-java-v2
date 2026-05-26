@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.MissingKeyConditionException;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
@@ -503,18 +505,18 @@ public class EnhancedQueryJoinSyncTest extends LocalDynamoDbLargeDatasetTestBase
     }
 
     /**
-     * STRICT_KEY_ONLY without base key condition: no scan allowed. Expected response: Empty list of rows. DynamoDB operation:
-     * none (returns empty)
+     * STRICT_KEY_ONLY without base key condition: throws MissingKeyConditionException.
      */
     @Test
-    public void executionMode_strictKeyOnly_withoutKey_returnsEmptyOrNoScan() {
+    public void executionMode_strictKeyOnly_withoutKey_throwsMissingKeyConditionException() {
         QueryExpressionSpec spec = QueryExpressionBuilder.from(customersTable)
                                                          .executionMode(ExecutionMode.STRICT_KEY_ONLY)
                                                          .project("customerId", "name", "region", "orderId", "amount")
                                                          .limit(10)
                                                          .build();
-        List<EnhancedQueryRow> rows = runAndMeasure(spec);
-        assertThat(rows).isEmpty();
+        assertThatThrownBy(() -> runAndMeasure(spec))
+            .isInstanceOf(MissingKeyConditionException.class)
+            .hasMessageContaining("STRICT_KEY_ONLY");
     }
 
     /**

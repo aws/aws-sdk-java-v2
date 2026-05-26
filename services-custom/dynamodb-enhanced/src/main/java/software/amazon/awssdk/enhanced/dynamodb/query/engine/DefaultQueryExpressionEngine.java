@@ -42,6 +42,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.ConditionEvaluator;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
+import software.amazon.awssdk.enhanced.dynamodb.query.exception.MissingKeyConditionException;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.DefaultEnhancedQueryResult;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult;
@@ -117,7 +118,7 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         if (spec.hasJoin()) {
             return executeJoin(spec, stats);
         }
-        if (!spec.aggregates().isEmpty() && !spec.groupByAttributes().isEmpty()) {
+        if (!spec.aggregates().isEmpty()) {
             return executeAggregation(spec, stats);
         }
         return executeBaseOnly(spec, stats);
@@ -142,35 +143,58 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         DynamoDbTable<Object> baseTable = (DynamoDbTable<Object>) spec.baseTable();
         TableSchema<Object> baseSchema = (TableSchema<Object>) baseTable.tableSchema();
         Integer limit = spec.limit();
+        boolean hasOrderBy = !spec.orderBy().isEmpty();
+        Integer collectLimit = hasOrderBy ? null : limit;
 
         if (spec.keyCondition() != null) {
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
                                                                           .queryConditional(spec.keyCondition())
                                                                           .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
-            if (limit != null) {
-                reqBuilder.limit(limit);
+            if (collectLimit != null) {
+                reqBuilder.limit(collectLimit);
+            }
+            if (spec.exclusiveStartKey() != null) {
+                reqBuilder.exclusiveStartKey(spec.exclusiveStartKey());
             }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
-            List<EnhancedQueryRow> rows = collectBaseRows(baseTable, baseSchema, reqBuilder.build(), spec, limit, stats);
+            List<EnhancedQueryRow> rows = collectBaseRows(baseTable, baseSchema, reqBuilder.build(), spec, collectLimit, stats);
+            if (hasOrderBy) {
+                QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
+                if (limit != null && rows.size() > limit) {
+                    rows = new ArrayList<>(rows.subList(0, limit));
+                }
+            }
             return new DefaultEnhancedQueryResult(rows);
         }
 
         if (spec.executionMode() == ExecutionMode.ALLOW_SCAN) {
             ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
-            if (limit != null) {
-                scanBuilder.limit(limit);
+            if (collectLimit != null) {
+                scanBuilder.limit(collectLimit);
+            }
+            if (spec.exclusiveStartKey() != null) {
+                scanBuilder.exclusiveStartKey(spec.exclusiveStartKey());
             }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
-            List<EnhancedQueryRow> rows = collectBaseRowsFromScan(baseTable, baseSchema, scanBuilder.build(), spec, limit, stats);
+            List<EnhancedQueryRow> rows = collectBaseRowsFromScan(baseTable, baseSchema, scanBuilder.build(), spec,
+                                                                   collectLimit, stats);
+            if (hasOrderBy) {
+                QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
+                if (limit != null && rows.size() > limit) {
+                    rows = new ArrayList<>(rows.subList(0, limit));
+                }
+            }
             return new DefaultEnhancedQueryResult(rows);
         }
 
-        return new DefaultEnhancedQueryResult(Collections.emptyList());
+        throw new MissingKeyConditionException(
+            "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+            + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
     }
 
     @SuppressWarnings("unchecked")
@@ -238,7 +262,9 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         Integer limit = spec.limit();
 
         if (spec.keyCondition() == null && spec.executionMode() != ExecutionMode.ALLOW_SCAN) {
-            return new DefaultEnhancedQueryResult(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
 
         List<EnhancedQueryRow> rows = new ArrayList<>();
@@ -545,7 +571,9 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         List<AggregateSpec> aggregateSpecs = spec.aggregates();
 
         if (spec.keyCondition() == null && spec.executionMode() != ExecutionMode.ALLOW_SCAN) {
-            return new DefaultEnhancedQueryResult(Collections.emptyList());
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
 
         // Phase 1: collect all qualifying base rows and their join keys
@@ -624,23 +652,20 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         }
 
         List<EnhancedQueryRow> rows = new ArrayList<>();
-        if (spec.orderBy().isEmpty()) {
-            for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
-                if (limit != null && rows.size() >= limit) {
-                    break;
-                }
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    e.getValue(), aggregateSpecs, spec.projectAttributes()));
+        for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
+            EnhancedQueryRow row = QueryEngineSupport.aggregationRowFromBucket(
+                e.getValue(), aggregateSpecs, spec.projectAttributes());
+            if (spec.having() != null && !ConditionEvaluator.evaluate(spec.having(), row.aggregates())) {
+                continue;
             }
-        } else {
-            for (Map.Entry<List<Object>, Map<String, Object>> e : buckets.entrySet()) {
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    e.getValue(), aggregateSpecs, spec.projectAttributes()));
-            }
+            rows.add(row);
+        }
+
+        if (!spec.orderBy().isEmpty()) {
             QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
-            if (limit != null && rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-            }
+        }
+        if (limit != null && rows.size() > limit) {
+            rows = new ArrayList<>(rows.subList(0, limit));
         }
         return new DefaultEnhancedQueryResult(rows);
     }
@@ -796,6 +821,9 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
             QueryEnhancedRequest.Builder reqBuilder = QueryEnhancedRequest.builder()
                                                                           .queryConditional(spec.keyCondition())
                                                                           .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
+            if (spec.exclusiveStartKey() != null) {
+                reqBuilder.exclusiveStartKey(spec.exclusiveStartKey());
+            }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 reqBuilder.attributesToProject(spec.projectAttributes().toArray(new String[0]));
             }
@@ -807,6 +835,9 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
         } else if (spec.executionMode() == ExecutionMode.ALLOW_SCAN) {
             ScanEnhancedRequest.Builder scanBuilder = ScanEnhancedRequest.builder()
                                                                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL);
+            if (spec.exclusiveStartKey() != null) {
+                scanBuilder.exclusiveStartKey(spec.exclusiveStartKey());
+            }
             if (spec.projectAttributes() != null && !spec.projectAttributes().isEmpty()) {
                 scanBuilder.attributesToProject(spec.projectAttributes());
             }
@@ -815,40 +846,48 @@ public final class DefaultQueryExpressionEngine implements QueryExpressionEngine
                 stats.addConsumedCapacity(page.consumedCapacity(), true, false);
                 items.addAll(page.items());
             }
+        } else {
+            throw new MissingKeyConditionException(
+                "No keyCondition provided and ExecutionMode is STRICT_KEY_ONLY. "
+                + "Either provide a keyCondition or set executionMode to ALLOW_SCAN.");
         }
 
         Map<List<Object>, Map<String, Object>> buckets = new LinkedHashMap<>();
+        boolean isGlobalAggregation = groupByAttrs.isEmpty();
+        List<Object> globalKey = isGlobalAggregation ? Collections.singletonList("__global__") : null;
+
         for (Object item : items) {
             Map<String, Object> objectMap = AttributeValueConversion.toObjectMap(baseSchema.itemToMap(item, false));
             if (!ConditionEvaluator.evaluate(spec.where(), objectMap)) {
                 continue;
             }
-            List<Object> groupKey = QueryEngineSupport.buildGroupKey(
-                groupByAttrs, objectMap, Collections.emptyMap());
+            List<Object> groupKey = isGlobalAggregation ? globalKey
+                                    : QueryEngineSupport.buildGroupKey(groupByAttrs, objectMap, Collections.emptyMap());
             Function<List<Object>, Map<String, Object>> bucketFactory =
                 k -> QueryEngineSupport.createEmptyBucket(aggregateSpecs);
             Map<String, Object> bucket = buckets.computeIfAbsent(groupKey, bucketFactory);
             QueryEngineSupport.updateBucket(bucket, objectMap, aggregateSpecs);
         }
 
+        if (isGlobalAggregation && buckets.isEmpty()) {
+            buckets.put(globalKey, QueryEngineSupport.createEmptyBucket(aggregateSpecs));
+        }
+
         List<EnhancedQueryRow> rows = new ArrayList<>();
-        if (spec.orderBy().isEmpty()) {
-            for (Map<String, Object> bucket : buckets.values()) {
-                if (limit != null && rows.size() >= limit) {
-                    break;
-                }
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    bucket, aggregateSpecs, spec.projectAttributes()));
+        for (Map.Entry<List<Object>, Map<String, Object>> entry : buckets.entrySet()) {
+            EnhancedQueryRow row = QueryEngineSupport.aggregationRowFromBucket(
+                entry.getValue(), aggregateSpecs, spec.projectAttributes());
+            if (spec.having() != null && !ConditionEvaluator.evaluate(spec.having(), row.aggregates())) {
+                continue;
             }
-        } else {
-            for (Map<String, Object> bucket : buckets.values()) {
-                rows.add(QueryEngineSupport.aggregationRowFromBucket(
-                    bucket, aggregateSpecs, spec.projectAttributes()));
-            }
+            rows.add(row);
+        }
+
+        if (!spec.orderBy().isEmpty()) {
             QueryEngineSupport.sortEnhancedQueryRows(rows, spec.orderBy());
-            if (limit != null && rows.size() > limit) {
-                rows = new ArrayList<>(rows.subList(0, limit));
-            }
+        }
+        if (limit != null && rows.size() > limit) {
+            rows = new ArrayList<>(rows.subList(0, limit));
         }
         return new DefaultEnhancedQueryResult(rows);
     }

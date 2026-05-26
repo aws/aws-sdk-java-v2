@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.query.engine;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
 import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryRow;
 import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 
@@ -31,4 +33,14 @@ public interface QueryExpressionAsyncEngine {
      * Execute the given spec and return a publisher of result rows.
      */
     SdkPublisher<EnhancedQueryRow> execute(QueryExpressionSpec spec);
+
+    /**
+     * Execute the given spec and optionally report latency and DynamoDB request counts on publisher completion.
+     *
+     * @param spec           the query specification
+     * @param reportConsumer optional consumer for the latency report; may be null
+     * @return publisher of result rows
+     */
+    SdkPublisher<EnhancedQueryRow> execute(QueryExpressionSpec spec,
+                                           Consumer<EnhancedQueryLatencyReport> reportConsumer);
 }

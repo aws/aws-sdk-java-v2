@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.query.spec;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.ExecutionMode;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.JoinType;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Immutable specification for an enhanced query. Contains all parameters the query engine needs to execute a single-table scan,
@@ -86,6 +88,8 @@ public final class QueryExpressionSpec {
     private final List<String> projectAttributes;
     private final ExecutionMode executionMode;
     private final Integer limit;
+    private final Condition having;
+    private final Map<String, AttributeValue> exclusiveStartKey;
 
     private QueryExpressionSpec(Builder b) {
         this.baseTable = b.baseTable;
@@ -105,6 +109,8 @@ public final class QueryExpressionSpec {
                                  Collections.unmodifiableList(b.projectAttributes);
         this.executionMode = b.executionMode != null ? b.executionMode : ExecutionMode.STRICT_KEY_ONLY;
         this.limit = b.limit;
+        this.having = b.having;
+        this.exclusiveStartKey = b.exclusiveStartKey;
     }
 
     public static Builder builder() {
@@ -274,6 +280,22 @@ public final class QueryExpressionSpec {
         return limit;
     }
 
+    /**
+     * Post-aggregation filter (HAVING clause). Applied to aggregation buckets after GROUP BY + aggregates.
+     * Only meaningful when aggregates are defined.
+     */
+    public Condition having() {
+        return having;
+    }
+
+    /**
+     * Exclusive start key for cursor-based pagination of aggregate results. Each page re-reads and re-aggregates
+     * the underlying data from this position forward.
+     */
+    public Map<String, AttributeValue> exclusiveStartKey() {
+        return exclusiveStartKey;
+    }
+
     public static final class Builder {
         private MappedTableResource<?> baseTable;
         private MappedTableResource<?> joinedTable;
@@ -290,6 +312,8 @@ public final class QueryExpressionSpec {
         private List<String> projectAttributes;
         private ExecutionMode executionMode;
         private Integer limit;
+        private Condition having;
+        private Map<String, AttributeValue> exclusiveStartKey;
 
         private Builder() {
         }
@@ -429,6 +453,16 @@ public final class QueryExpressionSpec {
 
         public Builder limit(Integer limit) {
             this.limit = limit;
+            return this;
+        }
+
+        public Builder having(Condition having) {
+            this.having = having;
+            return this;
+        }
+
+        public Builder exclusiveStartKey(Map<String, AttributeValue> exclusiveStartKey) {
+            this.exclusiveStartKey = exclusiveStartKey;
             return this;
         }
 
