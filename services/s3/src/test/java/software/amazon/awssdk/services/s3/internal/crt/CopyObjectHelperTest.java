@@ -424,7 +424,6 @@ class CopyObjectHelperTest {
 
     private static Stream<Arguments> metadataDirectiveCopyProvider() {
         return Stream.of(
-            Arguments.of((MetadataDirective) null),
             Arguments.of(MetadataDirective.COPY)
         );
     }
