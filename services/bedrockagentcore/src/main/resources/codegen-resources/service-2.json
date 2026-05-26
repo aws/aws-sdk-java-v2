@@ -132,6 +132,46 @@
       "documentation":"<p>Creates an event in an AgentCore Memory resource. Events represent interactions or activities that occur within a session and are associated with specific actors.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:CreateEvent</code> permission.</p> <p>This operation is subject to request rate limiting.</p>",
       "idempotent":true
     },
+    "CreatePaymentInstrument":{
+      "name":"CreatePaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/createPaymentInstrument",
+        "responseCode":201
+      },
+      "input":{"shape":"CreatePaymentInstrumentRequest"},
+      "output":{"shape":"CreatePaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Create a new payment instrument for a connector.</p>",
+      "idempotent":true
+    },
+    "CreatePaymentSession":{
+      "name":"CreatePaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/createPaymentSession",
+        "responseCode":201
+      },
+      "input":{"shape":"CreatePaymentSessionRequest"},
+      "output":{"shape":"CreatePaymentSessionResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Create a new payment session.</p>",
+      "idempotent":true
+    },
     "DeleteABTest":{
       "name":"DeleteABTest",
       "http":{
@@ -213,6 +253,44 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Deletes a memory record from an AgentCore Memory resource. When you delete a memory record, it is permanently removed.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:DeleteMemoryRecord</code> permission.</p>"
+    },
+    "DeletePaymentInstrument":{
+      "name":"DeletePaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/deletePaymentInstrument",
+        "responseCode":200
+      },
+      "input":{"shape":"DeletePaymentInstrumentRequest"},
+      "output":{"shape":"DeletePaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a payment instrument. This is a soft delete operation that preserves the record for audit and compliance purposes.</p>",
+      "idempotent":true
+    },
+    "DeletePaymentSession":{
+      "name":"DeletePaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/deletePaymentSession",
+        "responseCode":200
+      },
+      "input":{"shape":"DeletePaymentSessionRequest"},
+      "output":{"shape":"DeletePaymentSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a payment session. This permanently removes the payment session record.</p>",
+      "idempotent":true
     },
     "DeleteRecommendation":{
       "name":"DeleteRecommendation",
@@ -396,6 +474,63 @@
       "documentation":"<p>Retrieves a specific memory record from an AgentCore Memory resource.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:GetMemoryRecord</code> permission.</p>",
       "readonly":true
     },
+    "GetPaymentInstrument":{
+      "name":"GetPaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentInstrument",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentInstrumentRequest"},
+      "output":{"shape":"GetPaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get a payment instrument by ID.</p>",
+      "readonly":true
+    },
+    "GetPaymentInstrumentBalance":{
+      "name":"GetPaymentInstrumentBalance",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentInstrumentBalance",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentInstrumentBalanceRequest"},
+      "output":{"shape":"GetPaymentInstrumentBalanceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get the balance of a payment instrument.</p>",
+      "readonly":true
+    },
+    "GetPaymentSession":{
+      "name":"GetPaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentSession",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentSessionRequest"},
+      "output":{"shape":"GetPaymentSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get a payment session.</p>",
+      "readonly":true
+    },
     "GetRecommendation":{
       "name":"GetRecommendation",
       "http":{
@@ -453,6 +588,26 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns the OAuth 2.0 token of the provided resource.</p>",
+      "readonly":true
+    },
+    "GetResourcePaymentToken":{
+      "name":"GetResourcePaymentToken",
+      "http":{
+        "method":"POST",
+        "requestUri":"/identities/payment/token",
+        "responseCode":200
+      },
+      "input":{"shape":"GetResourcePaymentTokenRequest"},
+      "output":{"shape":"GetResourcePaymentTokenResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Generates authentication tokens for payment providers that use vendor-specific authentication mechanisms.</p>",
       "readonly":true
     },
     "GetWorkloadAccessToken":{
@@ -523,6 +678,7 @@
       "output":{"shape":"InvokeAgentRuntimeResponse"},
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"RuntimeClientError"},
@@ -767,6 +923,42 @@
       "documentation":"<p>Lists memory records in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListMemoryRecords</code> permission.</p>",
       "readonly":true
     },
+    "ListPaymentInstruments":{
+      "name":"ListPaymentInstruments",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/listPaymentInstruments",
+        "responseCode":200
+      },
+      "input":{"shape":"ListPaymentInstrumentsRequest"},
+      "output":{"shape":"ListPaymentInstrumentsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>List payment instruments for a manager.</p>",
+      "readonly":true
+    },
+    "ListPaymentSessions":{
+      "name":"ListPaymentSessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/listPaymentSessions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListPaymentSessionsRequest"},
+      "output":{"shape":"ListPaymentSessionsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>List payment sessions.</p>",
+      "readonly":true
+    },
     "ListRecommendations":{
       "name":"ListRecommendations",
       "http":{
@@ -805,6 +997,26 @@
       ],
       "documentation":"<p>Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>Empty sessions are automatically deleted after one day.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListSessions</code> permission.</p>",
       "readonly":true
+    },
+    "ProcessPayment":{
+      "name":"ProcessPayment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/processPayment",
+        "responseCode":200
+      },
+      "input":{"shape":"ProcessPaymentRequest"},
+      "output":{"shape":"ProcessPaymentResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Processes a payment using a payment instrument within a payment session.</p>",
+      "idempotent":true
     },
     "RetrieveMemoryRecords":{
       "name":"RetrieveMemoryRecords",
@@ -1041,6 +1253,7 @@
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"UnauthorizedException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ConflictException"},
@@ -1320,6 +1533,24 @@
       "documentation":"<p>The configuration specifying where to read agent traces from for recommendation analysis.</p>",
       "union":true
     },
+    "Amount":{
+      "type":"structure",
+      "required":[
+        "value",
+        "currency"
+      ],
+      "members":{
+        "value":{
+          "shape":"String",
+          "documentation":"<p>The numeric value of the amount.</p>"
+        },
+        "currency":{
+          "shape":"Currency",
+          "documentation":"<p>The currency code for the amount.</p>"
+        }
+      },
+      "documentation":"<p>Represents a monetary amount with a currency.</p>"
+    },
     "ApiKeyArn":{
       "type":"string",
       "pattern":"arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:token-vault/[a-zA-Z0-9-.]+/apikeycredentialprovider/[a-zA-Z0-9-.]+"
@@ -1378,6 +1609,20 @@
         }
       },
       "documentation":"<p>Contains information about an update to an automation stream.</p>"
+    },
+    "AvailableLimits":{
+      "type":"structure",
+      "members":{
+        "availableSpendAmount":{
+          "shape":"Amount",
+          "documentation":"<p>The remaining available amount that can be spent.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the available limits were last updated.</p>"
+        }
+      },
+      "documentation":"<p>The available spending limits for a payment session.</p>"
     },
     "BasicAuth":{
       "type":"structure",
@@ -1550,7 +1795,7 @@
           "documentation":"<p>The timestamp when the batch evaluation was last updated.</p>"
         }
       },
-      "documentation":"<p>Summary representation for list responses</p>"
+      "documentation":"<p>Summary representation for list responses.</p>"
     },
     "BatchEvaluationSummaryList":{
       "type":"list",
@@ -1593,6 +1838,17 @@
       }
     },
     "Blob":{"type":"blob"},
+    "BlockchainChainId":{
+      "type":"string",
+      "documentation":"<p>Supported blockchain chain identifiers for balance queries. Each value maps to a specific chain supported by the underlying providers (Privy, Coinbase).</p>",
+      "enum":[
+        "BASE",
+        "BASE_SEPOLIA",
+        "ETHEREUM",
+        "SOLANA",
+        "SOLANA_DEVNET"
+      ]
+    },
     "Body":{
       "type":"blob",
       "max":100000000,
@@ -2065,7 +2321,7 @@
           "documentation":"<p>The name of the CloudWatch log stream where evaluation results will be written.</p>"
         }
       },
-      "documentation":"<p>CloudWatch Logs destination for batch evaluation results</p>"
+      "documentation":"<p>CloudWatch Logs destination for batch evaluation results.</p>"
     },
     "CodeInterpreterArn":{
       "type":"string",
@@ -2162,6 +2418,63 @@
       },
       "documentation":"<p>Contains output from a code interpreter stream.</p>",
       "eventstream":true
+    },
+    "CoinbaseCdpPaymentJwtTokenType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "CoinbaseCdpPaymentRequestBodyType":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\u0009\\u000A\\u000D\\u0020-\\u007E]+"
+    },
+    "CoinbaseCdpTokenRequestInput":{
+      "type":"structure",
+      "required":[
+        "requestMethod",
+        "requestPath"
+      ],
+      "members":{
+        "requestMethod":{
+          "shape":"PaymentHttpMethodType",
+          "documentation":"<p>The HTTP method for the payment API request.</p>"
+        },
+        "requestHost":{
+          "shape":"PaymentRequestHostType",
+          "documentation":"<p>The host for the payment API request. Defaults to \"api.cdp.coinbase.com\".</p>"
+        },
+        "requestPath":{
+          "shape":"PaymentRequestPathType",
+          "documentation":"<p>The path of the payment API request.</p>"
+        },
+        "includeWalletAuthToken":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to true for wallet write operations (requires walletSecret configured).</p>"
+        },
+        "requestBody":{
+          "shape":"CoinbaseCdpPaymentRequestBodyType",
+          "documentation":"<p>Request body JSON — used to generate wallet auth JWT.</p>"
+        }
+      },
+      "documentation":"<p>Coinbase CDP token request parameters.</p>"
+    },
+    "CoinbaseCdpTokenResponseOutput":{
+      "type":"structure",
+      "required":["bearerToken"],
+      "members":{
+        "bearerToken":{
+          "shape":"CoinbaseCdpPaymentJwtTokenType",
+          "documentation":"<p>Bearer Token for Authorization header.</p>"
+        },
+        "walletAuthToken":{
+          "shape":"CoinbaseCdpPaymentJwtTokenType",
+          "documentation":"<p>Wallet Auth Token for X-Wallet-Auth header.</p>"
+        }
+      },
+      "documentation":"<p>Coinbase CDP token response.</p>"
     },
     "CommandExecutionStatus":{
       "type":"string",
@@ -2569,11 +2882,172 @@
         }
       }
     },
+    "CreatePaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentType",
+        "paymentInstrumentDetails"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector to use for this instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument being created.</p>"
+        },
+        "paymentInstrumentDetails":{
+          "shape":"PaymentInstrumentDetails",
+          "documentation":"<p>The details of the payment instrument.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for creating a payment instrument.</p>"
+    },
+    "CreatePaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["paymentInstrument"],
+      "members":{
+        "paymentInstrument":{
+          "shape":"PaymentInstrument",
+          "documentation":"<p>The created payment instrument.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for creating a payment instrument.</p>"
+    },
+    "CreatePaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "expiryTimeInMinutes"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment session.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "limits":{
+          "shape":"SessionLimits",
+          "documentation":"<p>The spending limits for this payment session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"CreatePaymentSessionRequestExpiryTimeInMinutesInteger",
+          "documentation":"<p>The session expiry time in minutes. Must be between 15 and 480 minutes.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for creating a payment session.</p>"
+    },
+    "CreatePaymentSessionRequestExpiryTimeInMinutesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":480,
+      "min":15
+    },
+    "CreatePaymentSessionResponse":{
+      "type":"structure",
+      "required":["paymentSession"],
+      "members":{
+        "paymentSession":{
+          "shape":"PaymentSession",
+          "documentation":"<p>The created payment session.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for creating a payment session.</p>"
+    },
     "CredentialProviderName":{
       "type":"string",
       "max":128,
       "min":1,
       "pattern":"[a-zA-Z0-9\\-_]+"
+    },
+    "CryptoWalletNetwork":{
+      "type":"string",
+      "documentation":"<p>Supported blockchain networks for crypto wallets.</p>",
+      "enum":[
+        "ETHEREUM",
+        "SOLANA"
+      ]
+    },
+    "CryptoX402PaymentInput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "payload"
+      ],
+      "members":{
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the X402 protocol.</p>"
+        },
+        "payload":{
+          "shape":"PaymentDocument",
+          "documentation":"<p>The X402 payment payload.</p>"
+        }
+      },
+      "documentation":"<p>The input for a crypto X402 payment.</p>"
+    },
+    "CryptoX402PaymentOutput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "payload"
+      ],
+      "members":{
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the X402 protocol.</p>"
+        },
+        "payload":{
+          "shape":"PaymentDocument",
+          "documentation":"<p>The X402 payment response payload.</p>"
+        }
+      },
+      "documentation":"<p>The output from a crypto X402 payment.</p>"
+    },
+    "Currency":{
+      "type":"string",
+      "documentation":"<p>Supported currency codes.</p>",
+      "enum":["USD"]
     },
     "CustomDescriptor":{
       "type":"structure",
@@ -2610,7 +3084,7 @@
           "documentation":"<p>Pull session spans from CloudWatch</p>"
         }
       },
-      "documentation":"<p>Where to pull session spans from</p>",
+      "documentation":"<p>Configuration for the data source used in evaluation.</p>",
       "union":true
     },
     "DateTimestamp":{
@@ -2761,6 +3235,81 @@
         }
       }
     },
+    "DeletePaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID making the delete request. Must match the instrument's userId.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The payment manager ARN. Must match the instrument's paymentManagerArn.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The payment connector ID. Must match the instrument's paymentConnectorId.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The payment instrument ID to delete.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for deleting a payment instrument.</p>"
+    },
+    "DeletePaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The status of the instrument after deletion. Always DELETED for successful soft delete.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for deleting a payment instrument.</p>"
+    },
+    "DeletePaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID making the delete request. Must match the session's userId.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The payment manager ARN. Must match the session's paymentManagerArn.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The payment session ID to delete.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for deleting a payment session.</p>"
+    },
+    "DeletePaymentSessionResponse":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"PaymentSessionStatus",
+          "documentation":"<p>The status of the deletion. Always DELETED for successful hard delete.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for deleting a payment session.</p>"
+    },
     "DeleteRecommendationRequest":{
       "type":"structure",
       "required":["recommendationId"],
@@ -2861,6 +3410,45 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "Email":{
+      "type":"string",
+      "documentation":"<p>Email address with validation for standard email format.</p>",
+      "max":254,
+      "min":1,
+      "pattern":"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "sensitive":true
+    },
+    "EmbeddedCryptoWallet":{
+      "type":"structure",
+      "required":[
+        "network",
+        "linkedAccounts"
+      ],
+      "members":{
+        "network":{
+          "shape":"CryptoWalletNetwork",
+          "documentation":"<p>The blockchain network for this embedded crypto wallet. Supported networks: ETHEREUM, SOLANA.</p>"
+        },
+        "linkedAccounts":{
+          "shape":"LinkedAccountList",
+          "documentation":"<p>List of linked accounts linked to this wallet. Each represents a way the end user can authenticate to this wallet.</p>"
+        },
+        "walletAddress":{
+          "shape":"String",
+          "documentation":"<p>The wallet address on the specified blockchain network.</p>"
+        },
+        "redirectUrl":{
+          "shape":"EmbeddedCryptoWalletRedirectUrlString",
+          "documentation":"<p>URL for the end user to complete a provider-specific action such as wallet linking or onboarding.</p>"
+        }
+      },
+      "documentation":"<p>Embedded crypto wallet instrument details.</p>"
+    },
+    "EmbeddedCryptoWalletRedirectUrlString":{
+      "type":"string",
+      "max":2048,
+      "min":0
     },
     "ErrorDetailsList":{
       "type":"list",
@@ -3132,7 +3720,7 @@
           "documentation":"<p>The unique identifier of the evaluator. Can reference built-in evaluators (e.g., <code>Builtin.Helpfulness</code>) or custom evaluators.</p>"
         }
       },
-      "documentation":"<p>An evaluator to run against sessions</p>"
+      "documentation":"<p>An evaluator to run against sessions.</p>"
     },
     "EvaluatorArn":{
       "type":"string",
@@ -3921,6 +4509,155 @@
         }
       }
     },
+    "GetPaymentInstrumentBalanceRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentId",
+        "chain",
+        "token"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to query balance for.</p>"
+        },
+        "chain":{
+          "shape":"BlockchainChainId",
+          "documentation":"<p>The specific blockchain chain to query balance on. Required because balances are chain-specific.</p>"
+        },
+        "token":{
+          "shape":"InstrumentBalanceToken",
+          "documentation":"<p>The token to query balance for. Only tokens supported for X402 payments are returned.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting payment instrument balance.</p>"
+    },
+    "GetPaymentInstrumentBalanceResponse":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "tokenBalance"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument.</p>"
+        },
+        "tokenBalance":{
+          "shape":"TokenBalance",
+          "documentation":"<p>The balance of the supported token on the requested chain.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting payment instrument balance.</p>"
+    },
+    "GetPaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentInstrumentId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to retrieve.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting a payment instrument.</p>"
+    },
+    "GetPaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["paymentInstrument"],
+      "members":{
+        "paymentInstrument":{
+          "shape":"PaymentInstrument",
+          "documentation":"<p>The payment instrument details.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting a payment instrument.</p>"
+    },
+    "GetPaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment session.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session to retrieve.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting a payment session.</p>"
+    },
+    "GetPaymentSessionResponse":{
+      "type":"structure",
+      "required":["paymentSession"],
+      "members":{
+        "paymentSession":{
+          "shape":"PaymentSession",
+          "documentation":"<p>The payment session details.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting a payment session.</p>"
+    },
     "GetRecommendationRequest":{
       "type":"structure",
       "required":["recommendationId"],
@@ -4091,6 +4828,38 @@
         }
       }
     },
+    "GetResourcePaymentTokenRequest":{
+      "type":"structure",
+      "required":[
+        "workloadIdentityToken",
+        "resourceCredentialProviderName",
+        "paymentTokenRequest"
+      ],
+      "members":{
+        "workloadIdentityToken":{
+          "shape":"WorkloadIdentityTokenType",
+          "documentation":"<p>Workload access token for authorization.</p>"
+        },
+        "resourceCredentialProviderName":{
+          "shape":"CredentialProviderName",
+          "documentation":"<p>Name of the payment credential provider to use.</p>"
+        },
+        "paymentTokenRequest":{
+          "shape":"PaymentTokenRequestInput",
+          "documentation":"<p>Vendor-specific token request input. Contains all request parameters in a type-safe, vendor-specific structure.</p>"
+        }
+      }
+    },
+    "GetResourcePaymentTokenResponse":{
+      "type":"structure",
+      "required":["paymentTokenResponse"],
+      "members":{
+        "paymentTokenResponse":{
+          "shape":"PaymentTokenResponseOutput",
+          "documentation":"<p>Vendor-specific token response output. Contains all response data in a type-safe, vendor-specific structure.</p>"
+        }
+      }
+    },
     "GetWorkloadAccessTokenForJWTRequest":{
       "type":"structure",
       "required":[
@@ -4173,7 +4942,7 @@
           "documentation":"<p>Provide ground truth inline</p>"
         }
       },
-      "documentation":"<p>Where to pull ground truth from</p>",
+      "documentation":"<p>Where to pull ground truth from.</p>",
       "union":true
     },
     "GroundTruthTurn":{
@@ -5068,7 +5837,7 @@
       "members":{
         "assertions":{
           "shape":"EvaluationContentList",
-          "documentation":"<p>assertions for evaluation, reuses common model EvaluationContentList</p>"
+          "documentation":"<p>Assertions for evaluation, reuses common model EvaluationContentList.</p>"
         },
         "expectedTrajectory":{
           "shape":"EvaluationExpectedTrajectory",
@@ -5108,6 +5877,11 @@
     "InputContentBlockList":{
       "type":"list",
       "member":{"shape":"InputContentBlock"}
+    },
+    "InstrumentBalanceToken":{
+      "type":"string",
+      "documentation":"<p>Supported tokens for instrument balance queries. Only tokens supported for X402 payments are returned.</p>",
+      "enum":["USDC"]
     },
     "Integer":{
       "type":"integer",
@@ -5736,6 +6510,13 @@
       "documentation":"<p>The streaming events returned by a harness invocation.</p>",
       "eventstream":true
     },
+    "JwtKeyId":{
+      "type":"string",
+      "documentation":"<p>JWT Key ID (kid) from the JWT header.</p>",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_-]{1,255}"
+    },
     "KeyList":{
       "type":"list",
       "member":{"shape":"String"},
@@ -5854,6 +6635,111 @@
       },
       "documentation":"<p>Left expression of the event metadata filter.</p>",
       "union":true
+    },
+    "LinkedAccount":{
+      "type":"structure",
+      "members":{
+        "email":{
+          "shape":"LinkedAccountEmail",
+          "documentation":"<p>Email-based linked account.</p>"
+        },
+        "sms":{
+          "shape":"LinkedAccountSms",
+          "documentation":"<p>SMS-based linked account using phone number.</p>"
+        },
+        "developerJwt":{
+          "shape":"LinkedAccountDeveloperJwt",
+          "documentation":"<p>Developer JWT linked account with key ID and subject.</p>"
+        },
+        "oAuth2":{
+          "shape":"LinkedAccountOAuth2",
+          "documentation":"<p>OAuth2 provider linked account (Google, Apple, X, Telegram, GitHub).</p>"
+        }
+      },
+      "documentation":"<p>Represents different linked accounts that can be linked to an embedded wallet. Supports email, SMS, JWT, and OAuth2 approaches.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "LinkedAccountDeveloperJwt":{
+      "type":"structure",
+      "required":[
+        "kid",
+        "sub"
+      ],
+      "members":{
+        "kid":{
+          "shape":"JwtKeyId",
+          "documentation":"<p>The key ID (kid) from the JWT header. Identifies which key was used to sign the JWT.</p>"
+        },
+        "sub":{
+          "shape":"LinkedAccountDeveloperJwtSubString",
+          "documentation":"<p>The subject (sub) claim from the JWT payload. Identifies the principal that is the subject of the JWT.</p>"
+        }
+      },
+      "documentation":"<p>Authentication method using JWT with key ID and subject claims.</p>"
+    },
+    "LinkedAccountDeveloperJwtSubString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "LinkedAccountEmail":{
+      "type":"structure",
+      "required":["emailAddress"],
+      "members":{
+        "emailAddress":{
+          "shape":"Email",
+          "documentation":"<p>The email address used for the linked account. Must be a valid email format.</p>"
+        }
+      },
+      "documentation":"<p>Linked account using an email address.</p>",
+      "sensitive":true
+    },
+    "LinkedAccountList":{
+      "type":"list",
+      "member":{"shape":"LinkedAccount"},
+      "documentation":"<p>A list of linkedAccount methods linked to an embedded wallet.</p>",
+      "max":1,
+      "min":0
+    },
+    "LinkedAccountOAuth2":{
+      "type":"structure",
+      "members":{
+        "google":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Google OAuth2 authentication.</p>"
+        },
+        "apple":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Apple OAuth2 authentication.</p>"
+        },
+        "x":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>X (formerly Twitter) OAuth2 authentication.</p>"
+        },
+        "telegram":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Telegram OAuth2 authentication.</p>"
+        },
+        "github":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>GitHub OAuth2 authentication.</p>"
+        }
+      },
+      "documentation":"<p>Authentication method using OAuth2 providers. Supports Google, Apple, X, Telegram, and GitHub providers.</p>",
+      "union":true
+    },
+    "LinkedAccountSms":{
+      "type":"structure",
+      "required":["phoneNumber"],
+      "members":{
+        "phoneNumber":{
+          "shape":"PhoneNumber",
+          "documentation":"<p>The phone number in E.164 format (e.g., +1234567890).</p>"
+        }
+      },
+      "documentation":"<p>Linked account using a phone number in E.164 format.</p>",
+      "sensitive":true
     },
     "ListABTestsRequest":{
       "type":"structure",
@@ -6153,11 +7039,11 @@
         },
         "namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace prefix to filter memory records by. Returns all memory records in namespaces that start with the provided prefix.</p>"
+          "documentation":"<p>The namespace prefix to filter memory records by. Returns all memory records in namespaces that start with the provided prefix. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "namespacePath":{
           "shape":"Namespace",
-          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "memoryStrategyId":{
           "shape":"MemoryStrategyId",
@@ -6190,6 +7076,102 @@
           "documentation":"<p>The token to use in a subsequent request to get the next set of results. This value is null when there are no more results to return.</p>"
         }
       }
+    },
+    "ListPaymentInstrumentsRequest":{
+      "type":"structure",
+      "required":["paymentManagerArn"],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with the payment instruments.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns the payment instruments.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector to filter by.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>Maximum number of results to return in a single response.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for listing payment instruments.</p>"
+    },
+    "ListPaymentInstrumentsResponse":{
+      "type":"structure",
+      "required":["paymentInstruments"],
+      "members":{
+        "paymentInstruments":{
+          "shape":"PaymentInstrumentSummaryList",
+          "documentation":"<p>List of payment instrument summaries matching the request criteria.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for listing payment instruments.</p>"
+    },
+    "ListPaymentSessionsRequest":{
+      "type":"structure",
+      "required":["paymentManagerArn"],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with the payment sessions.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns the sessions.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>Maximum number of results to return in a single response.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for listing payment sessions.</p>"
+    },
+    "ListPaymentSessionsResponse":{
+      "type":"structure",
+      "required":["paymentSessions"],
+      "members":{
+        "paymentSessions":{
+          "shape":"PaymentSessionSummaryList",
+          "documentation":"<p>List of payment session summaries matching the request criteria.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for listing payment sessions.</p>"
     },
     "ListRecommendationsRequest":{
       "type":"structure",
@@ -6960,6 +7942,45 @@
       "type":"string",
       "pattern":"[\\s\\S]+"
     },
+    "OAuth2Authentication":{
+      "type":"structure",
+      "required":["sub"],
+      "members":{
+        "sub":{
+          "shape":"OAuth2AuthenticationSubString",
+          "documentation":"<p>The subject (sub) claim from the OAuth2 provider. Uniquely identifies the user at the provider.</p>"
+        },
+        "emailAddress":{
+          "shape":"Email",
+          "documentation":"<p>The email address from the OAuth2 provider.</p>"
+        },
+        "name":{
+          "shape":"OAuth2AuthenticationNameString",
+          "documentation":"<p>The user's name from the OAuth2 provider.</p>"
+        },
+        "username":{
+          "shape":"OAuth2AuthenticationUsernameString",
+          "documentation":"<p>The username from the OAuth2 provider.</p>"
+        }
+      },
+      "documentation":"<p>OAuth2 authentication information for third-party providers.</p>",
+      "sensitive":true
+    },
+    "OAuth2AuthenticationNameString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "OAuth2AuthenticationSubString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "OAuth2AuthenticationUsernameString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
     "OAuthCredentialProvider":{
       "type":"structure",
       "required":[
@@ -7022,7 +8043,8 @@
       "type":"string",
       "enum":[
         "CLIENT_CREDENTIALS",
-        "AUTHORIZATION_CODE"
+        "AUTHORIZATION_CODE",
+        "TOKEN_EXCHANGE"
       ]
     },
     "OAuthScope":{
@@ -7064,7 +8086,7 @@
           "documentation":"<p>The CloudWatch Logs configuration for writing evaluation results.</p>"
         }
       },
-      "documentation":"<p>Output destination configuration</p>",
+      "documentation":"<p>Output destination configuration.</p>",
       "union":true
     },
     "PaginationToken":{"type":"string"},
@@ -7094,6 +8116,355 @@
       "max":100,
       "min":0
     },
+    "PaymentAgentName":{
+      "type":"string",
+      "documentation":"<p>The agent name associated with the payment request.</p>",
+      "max":256,
+      "min":0
+    },
+    "PaymentConnectorId":{
+      "type":"string",
+      "max":211,
+      "min":12,
+      "pattern":"([0-9a-z][-]?){1,100}-[0-9a-z]{10}"
+    },
+    "PaymentDocument":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Custom document type for payment payloads.</p>",
+      "document":true,
+      "sensitive":true
+    },
+    "PaymentHttpMethodType":{
+      "type":"string",
+      "enum":[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ]
+    },
+    "PaymentInput":{
+      "type":"structure",
+      "members":{
+        "cryptoX402":{
+          "shape":"CryptoX402PaymentInput",
+          "documentation":"<p>Input for a crypto X402 payment.</p>"
+        }
+      },
+      "documentation":"<p>The payment input details, which vary by payment type.</p>",
+      "union":true
+    },
+    "PaymentInstrument":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "userId",
+        "paymentInstrumentType",
+        "paymentInstrumentDetails",
+        "createdAt",
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The unique identifier for this payment instrument.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument (e.g., EMBEDDED_CRYPTO_WALLET).</p>"
+        },
+        "paymentInstrumentDetails":{
+          "shape":"PaymentInstrumentDetails",
+          "documentation":"<p>The details specific to the payment instrument type.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was created.</p>"
+        },
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The current status of this payment instrument.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Represents a payment instrument.</p>"
+    },
+    "PaymentInstrumentDetails":{
+      "type":"structure",
+      "members":{
+        "embeddedCryptoWallet":{
+          "shape":"EmbeddedCryptoWallet",
+          "documentation":"<p>Embedded crypto wallet managed directly by end user.</p>"
+        }
+      },
+      "documentation":"<p>Details specific to the instrument type.</p>",
+      "union":true
+    },
+    "PaymentInstrumentId":{
+      "type":"string",
+      "max":34,
+      "min":34,
+      "pattern":"payment-instrument-[0-9a-zA-Z-]{15}"
+    },
+    "PaymentInstrumentStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a payment instrument.</p>",
+      "enum":[
+        "INITIATED",
+        "ACTIVE",
+        "FAILED",
+        "DELETED"
+      ]
+    },
+    "PaymentInstrumentSummary":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "userId",
+        "paymentInstrumentType",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The unique identifier for this payment instrument.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument (e.g., EMBEDDED_CRYPTO_WALLET).</p>"
+        },
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The current status of this payment instrument.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Summary of a payment instrument for list operations.</p>"
+    },
+    "PaymentInstrumentSummaryList":{
+      "type":"list",
+      "member":{"shape":"PaymentInstrumentSummary"}
+    },
+    "PaymentInstrumentType":{
+      "type":"string",
+      "documentation":"<p>The type of payment instrument.</p>",
+      "enum":["EMBEDDED_CRYPTO_WALLET"]
+    },
+    "PaymentManagerArn":{
+      "type":"string",
+      "max":2048,
+      "min":66,
+      "pattern":"arn:(aws|aws-[a-z0-9-]+):bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:payment-manager/[a-z0-9]([a-z0-9-]{0,47}[a-z0-9])?-[a-z0-9]{10}"
+    },
+    "PaymentOutput":{
+      "type":"structure",
+      "members":{
+        "cryptoX402":{
+          "shape":"CryptoX402PaymentOutput",
+          "documentation":"<p>Output from a crypto X402 payment.</p>"
+        }
+      },
+      "documentation":"<p>The payment output details, which vary by payment type.</p>",
+      "union":true
+    },
+    "PaymentRequestHostType":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-\\.]+"
+    },
+    "PaymentRequestPathType":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"/[a-zA-Z0-9/_\\-\\.~%?=&]+"
+    },
+    "PaymentSession":{
+      "type":"structure",
+      "required":[
+        "paymentSessionId",
+        "paymentManagerArn",
+        "userId",
+        "expiryTimeInMinutes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The unique identifier of the payment session.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "limits":{
+          "shape":"SessionLimits",
+          "documentation":"<p>The spending limits for the payment session.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"Integer",
+          "documentation":"<p>The session expiry time in minutes.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was created.</p>"
+        },
+        "availableLimits":{
+          "shape":"AvailableLimits",
+          "documentation":"<p>The current available spending limits.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was last updated.</p>"
+        }
+      },
+      "documentation":"<p>A payment session for managing payment transactions.</p>"
+    },
+    "PaymentSessionId":{
+      "type":"string",
+      "max":31,
+      "min":31,
+      "pattern":"payment-session-[0-9a-zA-Z-]{15}"
+    },
+    "PaymentSessionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a payment session.</p>",
+      "enum":[
+        "ACTIVE",
+        "EXPIRED",
+        "DELETED"
+      ]
+    },
+    "PaymentSessionSummary":{
+      "type":"structure",
+      "required":[
+        "paymentSessionId",
+        "paymentManagerArn",
+        "userId",
+        "expiryTimeInMinutes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The unique identifier of the payment session.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"Integer",
+          "documentation":"<p>The session expiry time in minutes.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Summary information about a payment session.</p>"
+    },
+    "PaymentSessionSummaryList":{
+      "type":"list",
+      "member":{"shape":"PaymentSessionSummary"}
+    },
+    "PaymentStatus":{
+      "type":"string",
+      "documentation":"<p>Transaction status enum.</p>",
+      "enum":["PROOF_GENERATED"]
+    },
+    "PaymentTokenRequestInput":{
+      "type":"structure",
+      "members":{
+        "coinbaseCdpTokenRequest":{
+          "shape":"CoinbaseCdpTokenRequestInput",
+          "documentation":"<p>The Coinbase CDP token request.</p>"
+        },
+        "stripePrivyTokenRequest":{
+          "shape":"StripePrivyTokenRequestInput",
+          "documentation":"<p>The Stripe Privy token request.</p>"
+        }
+      },
+      "documentation":"<p>Vendor-specific token request configuration.</p>",
+      "union":true
+    },
+    "PaymentTokenResponseOutput":{
+      "type":"structure",
+      "members":{
+        "coinbaseCdpTokenResponse":{
+          "shape":"CoinbaseCdpTokenResponseOutput",
+          "documentation":"<p>The Coinbase CDP token response.</p>"
+        },
+        "stripePrivyTokenResponse":{
+          "shape":"StripePrivyTokenResponseOutput",
+          "documentation":"<p>The Stripe Privy token response.</p>"
+        }
+      },
+      "documentation":"<p>Vendor-specific token response configuration.</p>",
+      "union":true
+    },
+    "PaymentType":{
+      "type":"string",
+      "documentation":"<p>Payment type enum.</p>",
+      "enum":["CRYPTO_X402"]
+    },
     "PerVariantOnlineEvaluationConfig":{
       "type":"structure",
       "required":[
@@ -7117,6 +8488,123 @@
       "member":{"shape":"PerVariantOnlineEvaluationConfig"},
       "max":2,
       "min":2
+    },
+    "PhoneNumber":{
+      "type":"string",
+      "documentation":"<p>Phone number in E.164 format (e.g., +1234567890).</p>",
+      "max":16,
+      "min":3,
+      "pattern":"\\+[1-9]\\d{1,14}",
+      "sensitive":true
+    },
+    "ProcessPaymentId":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    },
+    "ProcessPaymentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId",
+        "paymentInstrumentId",
+        "paymentType",
+        "paymentInput"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to use.</p>"
+        },
+        "paymentType":{
+          "shape":"PaymentType",
+          "documentation":"<p>The type of payment to process.</p>"
+        },
+        "paymentInput":{
+          "shape":"PaymentInput",
+          "documentation":"<p>The payment input details specific to the payment type.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for processing a payment.</p>"
+    },
+    "ProcessPaymentResponse":{
+      "type":"structure",
+      "required":[
+        "processPaymentId",
+        "paymentManagerArn",
+        "paymentSessionId",
+        "paymentInstrumentId",
+        "paymentType",
+        "status",
+        "paymentOutput",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "processPaymentId":{
+          "shape":"ProcessPaymentId",
+          "documentation":"<p>The unique identifier of the processed payment.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session used.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument used.</p>"
+        },
+        "paymentType":{
+          "shape":"PaymentType",
+          "documentation":"<p>The type of payment processed.</p>"
+        },
+        "status":{
+          "shape":"PaymentStatus",
+          "documentation":"<p>The status of the payment.</p>"
+        },
+        "paymentOutput":{
+          "shape":"PaymentOutput",
+          "documentation":"<p>The payment output details specific to the payment type.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the payment was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the payment was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for processing a payment.</p>"
     },
     "ProgrammingLanguage":{
       "type":"string",
@@ -7594,11 +9082,11 @@
         },
         "namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace prefix to filter memory records by. Searches for memory records in namespaces that start with the provided prefix.</p>"
+          "documentation":"<p>The namespace prefix to filter memory records by. Searches for memory records in namespaces that start with the provided prefix. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "namespacePath":{
           "shape":"Namespace",
-          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "searchCriteria":{
           "shape":"SearchCriteria",
@@ -8033,6 +9521,17 @@
       "max":100,
       "min":1,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
+    },
+    "SessionLimits":{
+      "type":"structure",
+      "required":["maxSpendAmount"],
+      "members":{
+        "maxSpendAmount":{
+          "shape":"Amount",
+          "documentation":"<p>The maximum amount that can be spent in the session.</p>"
+        }
+      },
+      "documentation":"<p>The spending limits configuration for a payment session.</p>"
     },
     "SessionMetadataList":{
       "type":"list",
@@ -8814,6 +10313,95 @@
       "max":5,
       "min":1
     },
+    "StripePrivyAppIdType":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-_]+"
+    },
+    "StripePrivyAuthorizationSignatureType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "StripePrivyBasicAuthTokenType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "StripePrivyRequestBodyType":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\u0009\\u000A\\u000D\\u0020-\\u007E]+",
+      "sensitive":true
+    },
+    "StripePrivyRequestHostType":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-\\.]+"
+    },
+    "StripePrivyRequestPathType":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"/[a-zA-Z0-9/_\\-\\.~%?=&]+"
+    },
+    "StripePrivyTokenRequestInput":{
+      "type":"structure",
+      "required":[
+        "requestPath",
+        "requestBody"
+      ],
+      "members":{
+        "requestHost":{
+          "shape":"StripePrivyRequestHostType",
+          "documentation":"<p>The host for the Privy API request. Defaults to \"api.privy.io\".</p>"
+        },
+        "requestPath":{
+          "shape":"StripePrivyRequestPathType",
+          "documentation":"<p>The path of the Stripe Privy API request.</p>"
+        },
+        "requestBody":{
+          "shape":"StripePrivyRequestBodyType",
+          "documentation":"<p>Request body JSON for the Privy API call.</p>"
+        },
+        "includeAuthorizationSignature":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to true to generate privy-authorization-signature.</p>"
+        }
+      },
+      "documentation":"<p>Stripe Privy token request parameters.</p>"
+    },
+    "StripePrivyTokenResponseOutput":{
+      "type":"structure",
+      "required":[
+        "appId",
+        "basicAuthToken"
+      ],
+      "members":{
+        "authorizationSignature":{
+          "shape":"StripePrivyAuthorizationSignatureType",
+          "documentation":"<p>Base64-encoded ECDSA P-256 authorization signature (only present when includeAuthorizationSignature is true).</p>"
+        },
+        "requestExpiry":{
+          "shape":"Long",
+          "documentation":"<p>Unix timestamp in milliseconds when the authorization signature expires.</p>"
+        },
+        "appId":{
+          "shape":"StripePrivyAppIdType",
+          "documentation":"<p>The Privy app ID for the privy-app-id header.</p>"
+        },
+        "basicAuthToken":{
+          "shape":"StripePrivyBasicAuthTokenType",
+          "documentation":"<p>Base64-encoded Basic Auth token (appId:appSecret) for the Authorization header.</p>"
+        }
+      },
+      "documentation":"<p>Stripe Privy token response containing appId, basicAuthToken, and optionally authorizationSignature.</p>"
+    },
     "SyntheticTimestamp_date_time":{
       "type":"timestamp",
       "timestampFormat":"iso8601"
@@ -8971,6 +10559,39 @@
       "exception":true
     },
     "Timestamp":{"type":"timestamp"},
+    "TokenBalance":{
+      "type":"structure",
+      "required":[
+        "amount",
+        "decimals",
+        "token",
+        "network",
+        "chain"
+      ],
+      "members":{
+        "amount":{
+          "shape":"String",
+          "documentation":"<p>Raw balance in the smallest denomination (e.g., USDC base units where 1 USDC = 1000000).</p>"
+        },
+        "decimals":{
+          "shape":"Integer",
+          "documentation":"<p>Number of decimal places for the token (e.g., 6 for USDC).</p>"
+        },
+        "token":{
+          "shape":"InstrumentBalanceToken",
+          "documentation":"<p>The supported token for this balance.</p>"
+        },
+        "network":{
+          "shape":"CryptoWalletNetwork",
+          "documentation":"<p>The blockchain network family (ETHEREUM or SOLANA).</p>"
+        },
+        "chain":{
+          "shape":"BlockchainChainId",
+          "documentation":"<p>The specific blockchain chain.</p>"
+        }
+      },
+      "documentation":"<p>A single token balance entry.</p>"
+    },
     "TokenUsage":{
       "type":"structure",
       "members":{
@@ -9410,6 +11031,11 @@
           "documentation":"<p>The time at which the browser stream was updated.</p>"
         }
       }
+    },
+    "UserId":{
+      "type":"string",
+      "max":120,
+      "min":0
     },
     "UserIdType":{
       "type":"string",
