@@ -1,4 +1,177 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.12__ __2026-05-22__
+## __AWS Invoicing__
+  - ### Features
+    - Adds support for idempotency with a new ClientToken field for the CreateInvoiceUnit, DeleteInvoiceUnit, UpdateInvoiceUnit, DeleteProcurementPortalPreference, PutProcurementPortalPreference, and UpdateProcurementPortalPreferenceStatus APIs.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Added ListPerformanceAnalysisReportRecommendations API to retrieve recommendations for a performance analysis report. Added analysis configuration support to CreatePerformanceAnalysisReport for enhanced analysis types such as vacuum analysis.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for verification scripts on penetration test findings. Customers can now download executable scripts to independently reproduce confirmed vulnerabilities, with instructions and required environment variables provided for each finding.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support for VPC connection
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The ModifyInstanceAttribute API now supports modification of EnclaveOptions for the instance as a typed parameter.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new Gen6 stream classes based on the EC2 G6e instance family. These classes are designed for streaming high-fidelity, graphically demanding games and applications that benefit from additional GPU memory and performance.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Added guardrail assessment results to inference spans in the ListSpans API. You can now see which AI Guardrail policies were evaluated, whether content was blocked or masked, and per-policy details for each Bedrock Converse call
+
+# __2.44.11__ __2026-05-21__
+## __AWS Batch__
+  - ### Features
+    - Clarified CreateComputeEnvironment parameter requirements - serviceRole is required for UNMANAGED compute environments, allocationStrategy is required for EKS compute environments, and compute environments must be created in the ENABLED state.
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Collaboration creators can update payment configurations without recreating the collaboration. When multiple payer candidates are configured for a cost type, analysis runners can specify the actual payer at submission time, providing granular control over billing.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Collaboration creators can update payment configurations without recreating the collaboration. When multiple payer candidates are configured for a cost type, analysis runners can specify the actual payer at submission time, providing granular control over billing.
+
+## __AWS MediaConnect__
+  - ### Features
+    - Adds support for controlling the timecode source of NDI flow outputs.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where `AsyncRequestBody.split()` did not propagate upstream errors to the in-progress chunk subscriber
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - A new GetDepotUrl API has been added to retrieve a URL for accessing Amazon EVS custom addon packages. Customers can use this URL to configure vSphere Lifecycle Manager (vLCM) as an online depot source, enabling upgrades of addon components across ESXi hosts.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix concurrency bug where downloading multipart objects with `MultipartS3AsyncClient` could enter infinite loop
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for disabling home EFS file system creation on SageMaker domains.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Support hard deleting policy store aliases. Users can now delete an alias and immediately reassign it to a different policy store without waiting for the soft-delete retention period.
+
+# __2.44.10__ __2026-05-20__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS now supports creating grants for AWS service principals using new GranteeServicePrincipal and RetiringServicePrincipal parameters. This release adds SourceArn grant constraint and three condition keys for controlling CreateGrant access. For more information, see Grants in AWS KMS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where responses with a non-zero x-amz-crc32 header but no response body were silently returned to the caller as empty results. The SDK now throws Crc32MismatchException that is retryable when a non-zero CRC32 is claimed but no body is delivered, matching v1 SDK behavior.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Service Release Notes
+
+## __AmazonMWAA__
+  - ### Features
+    - Updated API documentation to describe the PublicAndPrivate webserver access mode.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Service Release Notes
+
+# __2.44.9__ __2026-05-19__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Service Release Notes
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Service Release Notes
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for exposure and vulnerability context from AWS Security Hub in GuardDuty Extended Threat Detection attack sequence findings.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Introduce degraded workspace status as a possible Amazon Managed Grafana workspace status, and a new field named degraded workspace reason which informs customers why the workspace is degraded in the DescribeWorkspace API response.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for ml.p5.4xlarge and ml.p5en.48xlarge instances on SageMaker Notebook Instances Platform.
+
+## __RTBFabric__
+  - ### Features
+    - This release is to deprecate 'inboundLinksCount' field in GetResponderGateway response and introduce the new field 'linksRequestedCount' to replace it.
+
+# __2.44.8__ __2026-05-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - Services manage service-linked analyzers through dedicated APIs - CreateServiceLinkedAnalyzer and DeleteServiceLinkedAnalyzer that separate service-linked specific operations from customer-managed operations. It also shows up in ListAnalyzers and GetAnalyzer responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports Pause lifecycle hooks for service deployments, allowing customers to automatically pause deployments at specified stages and use the new ContinueServiceDeployment API to continue or roll back with confidence.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC IP Address Manager (IPAM) now supports tags on IPAM pool allocations, enabling all standard tagging features for allocations including tag-on-create.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now supports up to 32 hosts per EVS environment, increasing the previous host limit to allow a larger scale of VMware workload deployments and reduce operational overhead.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Adds support for up to 3 mediaTailorPlaybackConfiguration objects in an ad configuration resource
+
+## __Amazon QuickSight__
+  - ### Features
+    - Support for dataset enrichment and geo spatial in new data preparation experience
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Don't force Netty's unpooled ByteBuffer allocator when using the JDK SSL provider. The underlying Netty issue (netty/netty#9768) has been fixed in later versions.
+        - Contributed by: [@olivergillespie](https://github.com/olivergillespie)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@olivergillespie](https://github.com/olivergillespie)
 # __2.44.7__ __2026-05-15__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
