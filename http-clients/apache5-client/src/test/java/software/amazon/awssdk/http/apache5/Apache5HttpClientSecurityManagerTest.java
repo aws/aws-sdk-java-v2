@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.apache5;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests that Apache5HttpClient fails fast at construction time when a SecurityManager
@@ -47,7 +50,7 @@ class Apache5HttpClientSecurityManagerTest {
 
     @Test
     void buildWithDefaults_whenStandardPermissionsGrantedButNetworkPermissionMissing_shouldThrowIllegalStateException() {
-        System.setProperty("java.security.policy", "=" + getPolicyUrl());
+        System.setProperty("java.security.policy", "=" + getPolicyUrl("security-manager-test.policy"));
         java.security.Policy.getPolicy().refresh();
         System.setSecurityManager(new SecurityManager());
 
@@ -56,8 +59,42 @@ class Apache5HttpClientSecurityManagerTest {
             .hasMessageContaining("jdk.net.NetworkPermission");
     }
 
-    private String getPolicyUrl() {
-        return getClass().getResource("security-manager-test.policy").toExternalForm();
+    @Test
+    void buildWithDefaults_whenPolicyGrantsNetworkPermissions_shouldSucceed() {
+        System.setProperty("java.security.policy", "=" + getPolicyUrl("security-manager-test-with-network-permissions.policy"));
+        java.security.Policy.getPolicy().refresh();
+        System.setSecurityManager(new SecurityManager());
+
+        assertThatNoException().isThrownBy(() -> {
+            Apache5HttpClient.builder().build().close();
+        });
+    }
+
+    private String getPolicyUrl(String policyFileName) {
+        return getClass().getResource(policyFileName).toExternalForm();
+    }
+
+    @Test
+    void buildWithDefaults_whenUnrelatedSecurityExceptionThrown_shouldNotThrow() {
+        System.setSecurityManager(new SecurityManager() {
+            @Override
+            public void checkPermission(Permission perm) {
+                if ("jdk.net.NetworkPermission".equals(perm.getClass().getName())) {
+                    throw new SecurityException("access denied: some.unrelated.permission");
+                }
+            }
+        });
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            assertThatNoException().isThrownBy(() -> {
+                Apache5HttpClient.builder().build().close();
+            });
+            assertThat(logCaptor.loggedEvents()).anySatisfy(logEvent -> {
+                assertThat(logEvent.getLevel()).isEqualTo(Level.DEBUG);
+                assertThat(logEvent.getMessage().getFormattedMessage())
+                    .contains("SecurityManager denied a non-TCP socket option permission");
+            });
+        }
     }
 
     @ParameterizedTest
@@ -120,4 +157,5 @@ class Apache5HttpClientSecurityManagerTest {
             }
         }
     }
+
 }

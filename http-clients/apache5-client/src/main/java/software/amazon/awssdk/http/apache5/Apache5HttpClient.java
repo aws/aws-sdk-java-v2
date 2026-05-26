@@ -544,7 +544,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
     }
 
     private static final class DefaultBuilder implements Builder {
-        private static final String[] REQUIRED_TCP_KEEPALIVE_PERMISSIONS = {
+        private static final String[] REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS = {
             "setOption.TCP_KEEPIDLE",
             "setOption.TCP_KEEPINTERVAL",
             "setOption.TCP_KEEPCOUNT"
@@ -751,7 +751,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(
                 SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
-            checkTcpKeepAlivePermissions();
+            checkTcpSocketOptionPermissions();
             return new Apache5HttpClient(this, resolvedOptions);
         }
 
@@ -760,7 +760,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * that Apache HC5 requires for its default TCP keepalive socket options.
          * No-op when no SecurityManager is installed (including Java 24+).
          */
-        private static void checkTcpKeepAlivePermissions() {
+        private static void checkTcpSocketOptionPermissions() {
             SecurityManager sm = System.getSecurityManager();
             if (sm == null) {
                 return;
@@ -768,20 +768,38 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
             try {
                 Class<?> permClass = ClassLoaderHelper.loadClass("jdk.net.NetworkPermission", Apache5HttpClient.class);
-                for (String permName : REQUIRED_TCP_KEEPALIVE_PERMISSIONS) {
+                for (String permName : REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS) {
                     java.security.Permission perm =
                         (java.security.Permission) permClass.getConstructor(String.class).newInstance(permName);
                     sm.checkPermission(perm);
                 }
             } catch (SecurityException e) {
-                throw new IllegalStateException(
-                    "Apache5HttpClient requires jdk.net.NetworkPermission for \""
-                    + String.join("\", \"", REQUIRED_TCP_KEEPALIVE_PERMISSIONS)
-                    + "\" when a SecurityManager is active.", e);
+                if (isTcpSocketOptionPermissionDenied(e)) {
+                    throw new IllegalStateException(
+                        "Apache5HttpClient requires jdk.net.NetworkPermission for \""
+                        + String.join("\", \"", REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS)
+                        + "\" when a SecurityManager is active.", e);
+                }
+                log.debug(() -> "SecurityManager denied a non-TCP socket option permission during "
+                               + "verification: " + e.getMessage(), e);
             } catch (Exception e) {
-                log.warn(() -> "Unable to verify TCP keepalive permissions: " + e.getMessage(), e);
+                log.debug(() -> "Could not verify jdk.net.NetworkPermission for TCP socket options: " + e.getMessage(), e);
             }
         }
+
+        private static boolean isTcpSocketOptionPermissionDenied(SecurityException e) {
+            String message = e.getMessage();
+            if (message == null) {
+                return false;
+            }
+            for (String perm : REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS) {
+                if (message.contains(perm)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 
     private static class ApacheConnectionManagerFactory {
