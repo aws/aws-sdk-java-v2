@@ -26,25 +26,23 @@ import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.internal.request.CrtRequestBodyPublisherSubscriber;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class CrtAsyncRequestExecutor {
 
-    private static final Logger log = Logger.loggerFor(CrtAsyncRequestExecutor.class);
-
     public CompletableFuture<Void> execute(CrtAsyncRequestContext executionContext) {
         AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
         CompletableFuture<Void> requestFuture = createAsyncExecutionFuture(asyncRequest);
+        ResponseHandlerErrorNotifier errorNotifier = new ResponseHandlerErrorNotifier(asyncRequest.responseHandler());
 
         try {
-            doExecute(executionContext, asyncRequest, requestFuture);
+            doExecute(executionContext, asyncRequest, requestFuture, errorNotifier);
         } catch (Throwable t) {
-            reportAsyncFailure(t, requestFuture, asyncRequest.responseHandler());
+            reportAsyncFailure(t, requestFuture, errorNotifier);
         }
 
         return requestFuture;
@@ -52,7 +50,8 @@ public final class CrtAsyncRequestExecutor {
 
     private void doExecute(CrtAsyncRequestContext executionContext,
                            AsyncExecuteRequest asyncRequest,
-                           CompletableFuture<Void> requestFuture) {
+                           CompletableFuture<Void> requestFuture,
+                           ResponseHandlerErrorNotifier errorNotifier) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
@@ -67,28 +66,48 @@ public final class CrtAsyncRequestExecutor {
 
         HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
 
-        CrtStreamHandler streamHandler = new CrtStreamHandler();
+        CompletableFuture<HttpStreamBase> streamFuture = new CompletableFuture<>();
+        CrtStreamHandler streamHandler = new CrtStreamHandler(streamFuture);
 
         HttpStreamBaseResponseHandler crtResponseHandler =
-            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler(), streamHandler);
+            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler(), streamHandler, errorNotifier);
 
-        CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
+        CrtRequestBodyPublisherSubscriber bodySubscriber =
+            new CrtRequestBodyPublisherSubscriber(streamHandler, requestFuture, errorNotifier);
 
         long finalAcquireStartTime = acquireStartTime;
 
-        streamFuture.whenComplete((stream, throwable) -> {
-            if (shouldPublishMetrics) {
-                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
-            }
+        executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler, true)
+                        .handle((stream, throwable) -> {
+                            if (shouldPublishMetrics) {
+                                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
+                            }
 
-            if (throwable != null) {
-                Throwable toThrow = wrapCrtException(throwable);
-                reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
-            } else {
-                streamHandler.setStream(stream);
-            }
-        });
+                            if (throwable != null) {
+                                handleAcquireFailure(throwable, streamFuture, requestFuture, errorNotifier);
+                                return null;
+                            }
+                            try {
+                                stream.activate();
+                                streamFuture.complete(stream);
+                                asyncRequest.requestContentPublisher().subscribe(bodySubscriber);
+                            } catch (Throwable t) {
+                                handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
+                            }
+                            return null;
+                        }).exceptionally(t -> {
+                            handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
+                            return null;
+                        });
+    }
+
+    private void handleAcquireFailure(Throwable t,
+                                      CompletableFuture<HttpStreamBase> streamFuture,
+                                      CompletableFuture<Void> requestFuture,
+                                      ResponseHandlerErrorNotifier errorNotifier) {
+        Throwable toThrow = wrapCrtException(t);
+        streamFuture.completeExceptionally(toThrow);
+        reportAsyncFailure(toThrow, requestFuture, errorNotifier);
     }
 
     /**
@@ -113,18 +132,10 @@ public final class CrtAsyncRequestExecutor {
         return future;
     }
 
-    /**
-     * Notify the provided response handler and future of the failure.
-     */
     private void reportAsyncFailure(Throwable cause,
                                     CompletableFuture<Void> executeFuture,
-                                    SdkAsyncHttpResponseHandler responseHandler) {
-        try {
-            responseHandler.onError(cause);
-        } catch (Exception e) {
-            log.error(() -> "SdkAsyncHttpResponseHandler " + responseHandler + " threw an exception in onError. It will be "
-                            + "ignored.", e);
-        }
+                                    ResponseHandlerErrorNotifier errorNotifier) {
+        errorNotifier.tryNotifyError(cause);
         executeFuture.completeExceptionally(cause);
     }
 }

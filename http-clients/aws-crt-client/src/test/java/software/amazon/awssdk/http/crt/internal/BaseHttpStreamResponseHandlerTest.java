@@ -75,8 +75,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
             return null;
         }).when(httpStream).close();
 
-        streamHandler = new CrtStreamHandler();
-        streamHandler.setStream(httpStream);
+        streamHandler = new CrtStreamHandler(CompletableFuture.completedFuture(httpStream));
         responseHandler = responseHandler(streamHandler);
     }
 

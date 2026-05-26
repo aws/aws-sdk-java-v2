@@ -15,9 +15,15 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +32,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @ExtendWith(MockitoExtension.class)
 class CrtStreamHandlerTest {
@@ -45,8 +53,7 @@ class CrtStreamHandlerTest {
             return null;
         }).when(stream).close();
 
-        streamHandler = new CrtStreamHandler();
-        streamHandler.setStream(stream);
+        streamHandler = new CrtStreamHandler(CompletableFuture.completedFuture(stream));
     }
 
     @Test
@@ -86,5 +93,77 @@ class CrtStreamHandlerTest {
         streamHandler.incrementWindow(1024);
 
         verify(stream).incrementWindow(1024);
+    }
+
+    @Test
+    void incrementWindow_beforeStreamReady_shouldBeNoOp() {
+        CrtStreamHandler handler = new CrtStreamHandler(new CompletableFuture<>());
+
+        handler.incrementWindow(1024);
+
+        verify(stream, never()).incrementWindow(1024);
+    }
+
+    @Test
+    void waitForStream_afterStreamFutureFailed_throwsCompletionExceptionWrappingCause() {
+        IOException cause = new IOException("acquire failed");
+        CrtStreamHandler handler = new CrtStreamHandler(CompletableFutureUtils.failedFuture(cause));
+
+        assertThatThrownBy(handler::waitForStream)
+            .isInstanceOf(CompletionException.class)
+            .hasCause(cause);
+    }
+
+    @Test
+    void writeData_underlyingWriteFails_propagatesOriginalCauseUnwrapped() {
+        RuntimeException writeError = new RuntimeException("write failure");
+        Mockito.when(stream.writeData(Mockito.any(byte[].class), Mockito.eq(false)))
+               .thenReturn(CompletableFutureUtils.failedFuture(writeError));
+
+        CompletableFuture<Void> writeFuture = streamHandler.writeData(new byte[] {1, 2, 3}, false);
+
+        assertThatThrownBy(writeFuture::get)
+            .isInstanceOf(ExecutionException.class)
+            .hasCauseReference(writeError);
+    }
+
+    @Test
+    void writeData_streamAcquisitionFailed_propagatesOriginalCauseUnwrapped() {
+        IOException acquireFailure = new IOException("acquire failed");
+        CrtStreamHandler handler = new CrtStreamHandler(CompletableFutureUtils.failedFuture(acquireFailure));
+
+        CompletableFuture<Void> writeFuture = handler.writeData(new byte[] {1, 2, 3}, false);
+
+        assertThatThrownBy(writeFuture::get)
+            .isInstanceOf(ExecutionException.class)
+            .hasCauseReference(acquireFailure);
+    }
+
+    @Test
+    void writeData_afterCloseConnection_failsWithIoException() {
+        streamHandler.closeConnection();
+
+        CompletableFuture<Void> writeFuture = streamHandler.writeData(new byte[] {1, 2, 3}, false);
+
+        assertThat(writeFuture).isCompletedExceptionally();
+        assertThatThrownBy(writeFuture::get)
+            .isInstanceOf(ExecutionException.class)
+            .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    void writeData_underlyingWriteThrowsSynchronously_failsFutureAndClosesConnection() {
+        CrtRuntimeException syncError = new CrtRuntimeException("AWS_ERROR_HTTP_STREAM_NOT_ACTIVATED");
+        Mockito.when(stream.writeData(Mockito.any(byte[].class), Mockito.eq(false)))
+               .thenThrow(syncError);
+
+        CompletableFuture<Void> writeFuture = streamHandler.writeData(new byte[] {1, 2, 3}, false);
+
+        assertThat(writeFuture).isCompletedExceptionally();
+        assertThatThrownBy(writeFuture::get)
+            .isInstanceOf(ExecutionException.class)
+            .hasCauseReference(syncError);
+        verify(stream).cancel();
+        verify(stream).close();
     }
 }

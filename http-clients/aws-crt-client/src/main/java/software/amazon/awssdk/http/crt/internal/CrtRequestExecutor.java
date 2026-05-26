@@ -31,22 +31,26 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 @SdkInternalApi
 public final class CrtRequestExecutor {
 
-    public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext,
-                                                          CrtStreamHandler streamHandler) {
+    public Result execute(CrtRequestContext executionContext) {
         CompletableFuture<SdkHttpFullResponse> responseFuture = new CompletableFuture<>();
+        CompletableFuture<HttpStreamBase> streamFuture = new CompletableFuture<>();
+        CrtStreamHandler streamHandler = new CrtStreamHandler(streamFuture);
 
         try {
-            doExecute(executionContext, responseFuture, streamHandler);
+            doExecute(executionContext, responseFuture, streamHandler, streamFuture);
         } catch (Throwable t) {
+            // Fail streamFuture too so any caller blocked in waitForStream() unblocks.
+            streamFuture.completeExceptionally(t);
             responseFuture.completeExceptionally(t);
         }
 
-        return responseFuture;
+        return new Result(responseFuture, streamHandler);
     }
 
     private void doExecute(CrtRequestContext executionContext,
                            CompletableFuture<SdkHttpFullResponse> responseFuture,
-                           CrtStreamHandler streamHandler) {
+                           CrtStreamHandler streamHandler,
+                           CompletableFuture<HttpStreamBase> streamFuture) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
@@ -63,22 +67,55 @@ public final class CrtRequestExecutor {
 
         boolean hasBody = executionContext.sdkRequest().contentStreamProvider().isPresent();
 
-        CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler, hasBody);
-
         long finalAcquireStartTime = acquireStartTime;
 
-        streamFuture.whenComplete((streamBase, throwable) -> {
-            if (shouldPublishMetrics) {
-                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
-            }
+        executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler, hasBody)
+                        .handle((streamBase, throwable) -> {
+                            if (shouldPublishMetrics) {
+                                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
+                            }
 
-            if (throwable != null) {
-                Throwable toThrow = wrapCrtException(throwable);
-                responseFuture.completeExceptionally(toThrow);
-            } else {
-                streamHandler.setStream(streamBase);
-            }
-        });
+                            if (throwable != null) {
+                                handleAcquireFailure(throwable, streamFuture, responseFuture);
+                                return null;
+                            }
+                            try {
+                                streamBase.activate();
+                                streamFuture.complete(streamBase);
+                            } catch (Throwable t) {
+                                handleAcquireFailure(t, streamFuture, responseFuture);
+                            }
+                            return null;
+                        }).exceptionally(t -> {
+                            handleAcquireFailure(t, streamFuture, responseFuture);
+                            return null;
+                        });
+    }
+
+    private void handleAcquireFailure(Throwable t,
+                                      CompletableFuture<HttpStreamBase> streamFuture,
+                                      CompletableFuture<SdkHttpFullResponse> responseFuture) {
+        Throwable toThrow = wrapCrtException(t);
+        streamFuture.completeExceptionally(toThrow);
+        responseFuture.completeExceptionally(toThrow);
+    }
+
+    @SdkInternalApi
+    public static final class Result {
+        private final CompletableFuture<SdkHttpFullResponse> responseFuture;
+        private final CrtStreamHandler streamHandler;
+
+        private Result(CompletableFuture<SdkHttpFullResponse> responseFuture, CrtStreamHandler streamHandler) {
+            this.responseFuture = responseFuture;
+            this.streamHandler = streamHandler;
+        }
+
+        public CompletableFuture<SdkHttpFullResponse> responseFuture() {
+            return responseFuture;
+        }
+
+        public CrtStreamHandler streamHandler() {
+            return streamHandler;
+        }
     }
 }

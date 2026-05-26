@@ -126,13 +126,9 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
 
             try {
-                CrtStreamHandler streamHandler = new CrtStreamHandler();
-                responseFuture = new CrtRequestExecutor().execute(context, streamHandler);
-
-                // Write the request body from the caller thread via the stream handler,
-                // which guards against concurrent stream close with a synchronized block.
-                // This avoids blocking the CRT event loop thread in InputStream.read().
-                writeRequestBody(streamHandler);
+                CrtRequestExecutor.Result result = new CrtRequestExecutor().execute(context);
+                responseFuture = result.responseFuture();
+                writeRequestBody(result.streamHandler());
 
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
                 builder.response(response);

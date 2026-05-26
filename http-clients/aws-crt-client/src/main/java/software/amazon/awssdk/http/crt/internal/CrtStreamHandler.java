@@ -17,72 +17,98 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Manages the lifecycle of a CRT HTTP stream, providing thread-safe access to stream operations.
  * Shared between the request executor (for writing body data) and the response handler (for
  * incrementing the window and releasing/closing the connection).
+ *
+ * <p>The handler is constructed with a {@link CompletableFuture} representing stream acquisition.
+ * The caller (request executor) completes that future once the underlying CRT stream manager has
+ * either acquired the stream or failed. All operations on this handler chain off that future, so
+ * writes issued before acquisition completes are queued.
  */
 @SdkInternalApi
 public final class CrtStreamHandler {
 
     private final Object streamLock = new Object();
-    private final CountDownLatch streamLatch = new CountDownLatch(1);
-    private HttpStreamBase stream;
+    private final CompletableFuture<HttpStreamBase> streamFuture;
     private boolean streamClosed;
 
-    /**
-     * Sets the stream. Called once when the stream is acquired from the connection pool.
-     */
-    public void setStream(HttpStreamBase stream) {
-        this.stream = stream;
-        streamLatch.countDown();
+    public CrtStreamHandler(CompletableFuture<HttpStreamBase> streamFuture) {
+        this.streamFuture = streamFuture;
     }
 
     /**
-     * Blocks until the stream has been acquired.
+     * Blocks until the stream has been acquired or acquisition has failed. Returns the acquired
+     * stream on success. If acquisition failed, the failure cause is rethrown wrapped in a
+     * {@link CompletionException} so callers can use the same handling as for response futures.
      */
-    public void waitForStream() {
-        try {
-            streamLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while waiting for stream", e);
-        }
+    public HttpStreamBase waitForStream() {
+        return CompletableFutureUtils.joinInterruptibly(streamFuture);
     }
 
     /**
-     * Write data to the stream. The caller must ensure the stream is ready (via {@link #waitForStream()})
-     * before calling this method.
+     * Write data to the stream. The returned future chains on stream acquisition: if the stream
+     * is not yet ready, the write is queued until the {@code streamFuture} passed to the
+     * constructor completes. Failures from either stream acquisition or the underlying CRT write
+     * are propagated as the original cause (not wrapped in {@link CompletionException}) so callers
+     * see the same exception type whether the failure happens before or after {@code thenCompose}-
+     * style chaining.
      */
     public CompletableFuture<Void> writeData(byte[] data, boolean endStream) {
-        if (streamLatch.getCount() != 0) {
-            CompletableFuture<Void> future = new CompletableFuture<>();
-            future.completeExceptionally(
-                new IllegalStateException("writeData called before stream is ready. Call waitForStream() first."));
-            return future;
-        }
-        synchronized (streamLock) {
-            if (streamClosed) {
-                CompletableFuture<Void> future = new CompletableFuture<>();
-                future.completeExceptionally(
-                    new IOException("Stream is already closed, cannot write data."));
-                return future;
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        streamFuture.handle((s, t) -> {
+            if (t != null) {
+                result.completeExceptionally(unwrap(t));
+                return null;
             }
-            return stream.writeData(data, endStream);
+            doWrite(s, data, endStream, result);
+            return null;
+        }).exceptionally(t -> {
+            result.completeExceptionally(t);
+            closeConnection();
+            return null;
+        });
+        return result;
+    }
+
+    private void doWrite(HttpStreamBase s, byte[] data, boolean endStream, CompletableFuture<Void> result) {
+        try {
+            CompletableFuture<Void> writeFuture;
+            synchronized (streamLock) {
+                if (streamClosed) {
+                    result.completeExceptionally(new IOException("Stream is already closed, cannot write data."));
+                    return;
+                }
+                writeFuture = s.writeData(data, endStream);
+            }
+            writeFuture.whenComplete((v, err) -> {
+                if (err != null) {
+                    result.completeExceptionally(unwrap(err));
+                } else {
+                    result.complete(null);
+                }
+            });
+        } catch (Throwable th) {
+            result.completeExceptionally(th);
+            closeConnection();
         }
+    }
+
+    private static Throwable unwrap(Throwable t) {
+        return t instanceof CompletionException && t.getCause() != null ? t.getCause() : t;
     }
 
     public void incrementWindow(int windowSize) {
-        if (streamLatch.getCount() != 0) {
-            throw new IllegalStateException("incrementWindow called before stream is ready.");
-        }
         synchronized (streamLock) {
-            if (!streamClosed) {
-                stream.incrementWindow(windowSize);
+            HttpStreamBase s = streamFuture.getNow(null);
+            if (!streamClosed && s != null) {
+                s.incrementWindow(windowSize);
             }
         }
     }
@@ -93,9 +119,10 @@ public final class CrtStreamHandler {
      */
     public void releaseConnection() {
         synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
+            HttpStreamBase s = streamFuture.getNow(null);
+            if (!streamClosed && s != null) {
                 streamClosed = true;
-                stream.close();
+                s.close();
             }
         }
     }
@@ -107,10 +134,11 @@ public final class CrtStreamHandler {
      */
     public void closeConnection() {
         synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
+            HttpStreamBase s = streamFuture.getNow(null);
+            if (!streamClosed && s != null) {
                 streamClosed = true;
-                stream.cancel();
-                stream.close();
+                s.cancel();
+                s.close();
             }
         }
     }
