@@ -165,10 +165,15 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        ProtocolRestJsonWithCustomPackageAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
-            ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
-            clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-            "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
+        ProtocolRestJsonWithCustomPackageAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class, p,
+                                            "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider")).orElse(null);
+        ProtocolRestJsonWithCustomPackageAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                                   : Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
+                                                                                                                                           clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                                           "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
         ProtocolRestJsonWithCustomPackageAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomPackageAuthSchemeParams
             .builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));

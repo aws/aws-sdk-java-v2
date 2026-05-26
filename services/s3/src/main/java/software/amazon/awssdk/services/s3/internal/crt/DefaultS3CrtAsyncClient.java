@@ -462,6 +462,20 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
                                              attributes);
         }
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context,
+                                       ExecutionAttributes executionAttributes) {
+            SdkHttpExecutionAttributes httpAttributes = executionAttributes.getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
+            if (httpAttributes != null) {
+                executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
+                    httpAttributes.toBuilder()
+                                  .put(SIGNING_REGION, executionAttributes.getAttribute(
+                                      AwsSignerExecutionAttribute.SIGNING_REGION))
+                                  .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+                                  .build());
+            }
+        }
     }
 
     private static final class ValidateRequestInterceptor implements ExecutionInterceptor {

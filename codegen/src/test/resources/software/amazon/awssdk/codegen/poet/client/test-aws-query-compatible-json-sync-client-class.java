@@ -175,9 +175,15 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
-            QueryToJsonCompatibleAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-            "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
+        QueryToJsonCompatibleAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class, p,
+                                            "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider")).orElse(null);
+        QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                       : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
+                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
         QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));

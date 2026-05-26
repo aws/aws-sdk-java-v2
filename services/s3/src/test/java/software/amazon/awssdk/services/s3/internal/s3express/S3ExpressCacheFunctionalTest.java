@@ -69,7 +69,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressCacheFunctionalTest {
 
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT =
+        wm -> URI.create("https://127.0.0.1:" + wm.getHttpsPort());
     private static final PathStyleEnforcingInterceptor PATH_STYLE_INTERCEPTOR = new PathStyleEnforcingInterceptor();
     private static final String S3EXPRESS_BUCKET_1 = "s3express-cache-1--use1-az1--x-s3";
     private static final String S3EXPRESS_BUCKET_2 = "s3express-cache-2--use1-az1--x-s3";

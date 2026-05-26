@@ -197,9 +197,15 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        BatchManagerTestAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(BatchManagerTestAuthSchemeProvider.class,
-                                                                                      clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                                      "Expected an instance of BatchManagerTestAuthSchemeProvider");
+        BatchManagerTestAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(BatchManagerTestAuthSchemeProvider.class, p,
+                                            "Expected an instance of BatchManagerTestAuthSchemeProvider")).orElse(null);
+        BatchManagerTestAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                  : Validate.isInstanceOf(BatchManagerTestAuthSchemeProvider.class,
+                                                                                                                          clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                          "Expected an instance of BatchManagerTestAuthSchemeProvider");
         BatchManagerTestAuthSchemeParams.Builder paramsBuilder = BatchManagerTestAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));

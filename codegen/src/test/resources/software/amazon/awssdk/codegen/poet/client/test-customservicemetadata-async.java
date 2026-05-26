@@ -191,10 +191,15 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
                                                             SdkClientConfiguration clientConfiguration) {
-        ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(
-            ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider.class,
-            clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-            "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider");
+        ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider.class, p,
+                                            "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider")).orElse(null);
+        ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                                       : Validate.isInstanceOf(ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider.class,
+                                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                                               "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider");
         ProtocolRestJsonWithCustomContentTypeAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomContentTypeAuthSchemeParams
             .builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
