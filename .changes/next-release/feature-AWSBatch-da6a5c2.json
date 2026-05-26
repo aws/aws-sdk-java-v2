@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "Increase the maximum value of jobExecutionTimeoutMinutes to support longer job timeouts during compute environment infrastructure updates."
+}
