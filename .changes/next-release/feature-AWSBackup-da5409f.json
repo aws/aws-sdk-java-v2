@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "Launching S3 PITR malware scanning support for AWS Backup"
+}
