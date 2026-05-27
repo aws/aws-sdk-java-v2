@@ -31,6 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -780,24 +781,16 @@ public final class Apache5HttpClient implements SdkHttpClient {
                         + String.join("\", \"", REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS)
                         + "\" when a SecurityManager is active.", e);
                 }
-                log.debug(() -> "SecurityManager denied a non-TCP socket option permission during "
-                               + "verification: " + e.getMessage(), e);
+                log.debug(() -> "SecurityManager denied a non-TCP socket option permission during verification: "
+                                + e.getMessage(), e);
             } catch (Exception e) {
                 log.debug(() -> "Could not verify jdk.net.NetworkPermission for TCP socket options: " + e.getMessage(), e);
             }
         }
 
-        private static boolean isTcpSocketOptionPermissionDenied(SecurityException e) {
-            String message = e.getMessage();
-            if (message == null) {
-                return false;
-            }
-            for (String perm : REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS) {
-                if (message.contains(perm)) {
-                    return true;
-                }
-            }
-            return false;
+        private static boolean isTcpSocketOptionPermissionDenied(SecurityException securityException) {
+            String message = securityException.getMessage();
+            return message != null && Arrays.stream(REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS).anyMatch(message::contains);
         }
 
     }
