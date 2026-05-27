@@ -93,6 +93,9 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         }
 
         requestsInFlight.add(currentRequest);
+        if (returnFuture.isCompletedExceptionally()) {
+            currentRequest.cancel(true);
+        }
         currentRequest.whenComplete((r, t) -> {
             checkForCompletion(numRequestsInFlight.decrementAndGet());
             requestsInFlight.remove(currentRequest);
