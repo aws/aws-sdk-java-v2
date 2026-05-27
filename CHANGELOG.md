@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.44.14__ __2026-05-27__
+## __AWS Elemental Inference__
+  - ### Features
+    - Added support for smart subtitles in Elemental Inference, enabling automatic generation of subtitles for media content. Available in English, Spanish, French, German, Italian, and Portuguese.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports Smart Subtitles, a new caption source that uses AWS Elemental Inference to automatically generate WebVTT and TTML captions from source audio. Available in English, Spanish, French, German, Italian, and Portuguese.
+
+## __AWS Organizations__
+  - ### Features
+    - AWS Organizations now emits CloudTrail events (AccountJoinedOrganization, AccountDepartedOrganization) to the management account for membership changes, including join and departure method and timestamp.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add support for Neuron device resource requirements for Amazon ECS
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - OpenSearch will now support multi-segment paths in JWKS URLs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds shared environment support for Restricted Instance Groups (RIGs) on SageMaker HyperPod, enabling cross-RIG workload scheduling and FSx sharing. This unlocks shared CPU-GPU environments needed for cost-efficient RL training (e.g., Nova Forge). Adds p6 instance support for recommendation jobs
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Service Release Notes
+
 # __2.44.13__ __2026-05-26__
 ## __AWS Backup__
   - ### Features
