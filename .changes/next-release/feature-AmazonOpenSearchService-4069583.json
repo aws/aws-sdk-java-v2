@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "OpenSearch will now support multi-segment paths in JWKS URLs."
+}
