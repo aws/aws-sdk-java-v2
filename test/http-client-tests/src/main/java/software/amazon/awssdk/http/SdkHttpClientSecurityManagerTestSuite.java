@@ -69,7 +69,7 @@ public abstract class SdkHttpClientSecurityManagerTestSuite {
     protected abstract String getPolicyFileUrl();
 
     @Test
-    void httpCall_whenSecurityManagerActiveWithCorrectPermissions_shouldSucceed() throws Exception {
+    void httpCallSucceedsWhenSecurityManagerActiveWithCorrectPermissions() throws Exception {
         System.setProperty("java.security.policy", "=" + getPolicyFileUrl());
         java.security.Policy.getPolicy().refresh();
         System.setSecurityManager(new SecurityManager());
