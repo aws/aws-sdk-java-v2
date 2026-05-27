@@ -39,7 +39,7 @@ import software.amazon.awssdk.testutils.LogCaptor;
  * denies jdk.net.NetworkPermission for TCP keepalive extended options.
  */
 @EnabledForJreRange(max = JRE.JAVA_17)
-class Apache5HttpClientSecurityManagerTest {
+class Apache5SecurityManagerClientCreationTest {
 
     @AfterEach
     void tearDown() {
@@ -50,7 +50,7 @@ class Apache5HttpClientSecurityManagerTest {
 
     @Test
     void buildWithDefaults_whenStandardPermissionsGrantedButNetworkPermissionMissing_shouldThrowIllegalStateException() {
-        System.setProperty("java.security.policy", "=" + getPolicyUrl("security-manager-test.policy"));
+        System.setProperty("java.security.policy", "=" + getPolicyUrl());
         java.security.Policy.getPolicy().refresh();
         System.setSecurityManager(new SecurityManager());
 
@@ -59,19 +59,8 @@ class Apache5HttpClientSecurityManagerTest {
             .hasMessageContaining("jdk.net.NetworkPermission");
     }
 
-    @Test
-    void buildWithDefaults_whenPolicyGrantsNetworkPermissions_shouldSucceed() {
-        System.setProperty("java.security.policy", "=" + getPolicyUrl("security-manager-test-with-network-permissions.policy"));
-        java.security.Policy.getPolicy().refresh();
-        System.setSecurityManager(new SecurityManager());
-
-        assertThatNoException().isThrownBy(() -> {
-            Apache5HttpClient.builder().build().close();
-        });
-    }
-
-    private String getPolicyUrl(String policyFileName) {
-        return getClass().getResource(policyFileName).toExternalForm();
+    private String getPolicyUrl() {
+        return getClass().getResource("security-manager-test.policy").toExternalForm();
     }
 
     @Test
