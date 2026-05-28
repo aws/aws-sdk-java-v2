@@ -445,6 +445,7 @@
         <module>s3files</module>
         <module>marketplacediscovery</module>
         <module>interconnect</module>
+        <module>resiliencehubv2</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
