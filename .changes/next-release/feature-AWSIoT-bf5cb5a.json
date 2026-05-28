@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "Adds new connectivity-related fields to Fleet Indexing API requests and responses."
+}
