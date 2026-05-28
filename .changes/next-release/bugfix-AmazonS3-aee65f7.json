@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "The multipart S3 client now honors MetadataDirective COPY by preserving source object metadata on the destination during multipart copy."
+}
