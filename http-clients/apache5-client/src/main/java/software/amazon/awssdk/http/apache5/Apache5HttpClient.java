@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Permission;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -770,8 +771,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
             try {
                 Class<?> permClass = ClassLoaderHelper.loadClass("jdk.net.NetworkPermission", Apache5HttpClient.class);
                 for (String permName : REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS) {
-                    java.security.Permission perm =
-                        (java.security.Permission) permClass.getConstructor(String.class).newInstance(permName);
+                    Permission perm = (Permission) permClass.getConstructor(String.class).newInstance(permName);
                     sm.checkPermission(perm);
                 }
             } catch (SecurityException e) {
