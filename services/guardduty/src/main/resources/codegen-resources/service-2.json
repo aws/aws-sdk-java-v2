@@ -181,7 +181,7 @@
         {"shape":"BadRequestException"},
         {"shape":"InternalServerErrorException"}
       ],
-      "documentation":"<p>Creates a new threat entity set. In a threat entity set, you can provide known malicious IP addresses and domains for your Amazon Web Services environment. GuardDuty generates findings based on the entries in the threat entity sets. Only users of the administrator account can manage entity sets, which automatically apply to member accounts.</p>"
+      "documentation":"<p>Creates a new threat entity set. In a threat entity set, you can provide known malicious threat entities for your Amazon Web Services environment. GuardDuty generates findings based on the entries in the threat entity sets. Only users of the administrator account can manage entity sets, which automatically apply to member accounts.</p>"
     },
     "CreateThreatIntelSet":{
       "name":"CreateThreatIntelSet",
@@ -2350,6 +2350,23 @@
     "Containers":{
       "type":"list",
       "member":{"shape":"Container"}
+    },
+    "ContinuousScanDetails":{
+      "type":"structure",
+      "required":["EndTime"],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp representing the start of the time range to scan. Reserved for internal use.</p>",
+          "locationName":"startTime"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp representing the end of the time range to scan.</p>",
+          "locationName":"endTime"
+        }
+      },
+      "documentation":"<p>Contains information about the time range within the continuous backup in Amazon Web Services Backup to scan for a point-in-time recovery resource.</p>"
     },
     "CountByCoverageStatus":{
       "type":"map",
@@ -6333,7 +6350,12 @@
         "CRYPTOMINING_IP",
         "CRYPTOMINING_DOMAIN",
         "CRYPTOMINING_PROCESS",
-        "MALICIOUS_FILE"
+        "MALICIOUS_FILE",
+        "VULNERABILITY",
+        "MALICIOUS_PACKAGE",
+        "MISCONFIGURATION",
+        "REACHABILITY",
+        "SENSITIVE_DATA"
       ]
     },
     "IndicatorValueString":{
@@ -7901,7 +7923,8 @@
         "EC2_INSTANCE",
         "EC2_RECOVERY_POINT",
         "S3_RECOVERY_POINT",
-        "S3_BUCKET"
+        "S3_BUCKET",
+        "S3_POINT_IN_TIME_RECOVERY"
       ]
     },
     "MalwareProtectionScanStatus":{
@@ -9371,6 +9394,11 @@
           "shape":"String",
           "documentation":"<p>The name of the Amazon Web Services Backup vault that contains the name of the recovery point to be scanned.</p>",
           "locationName":"backupVaultName"
+        },
+        "ContinuousScanDetails":{
+          "shape":"ContinuousScanDetails",
+          "documentation":"<p>Contains information about the time range within the continuous backup in Amazon Web Services Backup to scan.</p>",
+          "locationName":"continuousScanDetails"
         }
       },
       "documentation":"<p>Contains information about the recovery point configuration for scanning backup data from Amazon Web Services Backup.</p>"
@@ -10282,6 +10310,23 @@
       },
       "documentation":"<p>Contains information about the configuration used for the malware scan.</p>"
     },
+    "ScanConfigurationContinuousScanDetails":{
+      "type":"structure",
+      "required":["EndTime"],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp representing the start of the time range that was scanned.</p>",
+          "locationName":"startTime"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp representing the end of the time range that was scanned.</p>",
+          "locationName":"endTime"
+        }
+      },
+      "documentation":"<p>Contains information about the time range within the continuous backup in Amazon Web Services Backup that was scanned for a point-in-time recovery resource.</p>"
+    },
     "ScanConfigurationRecoveryPoint":{
       "type":"structure",
       "members":{
@@ -10289,6 +10334,11 @@
           "shape":"NonEmptyString",
           "documentation":"<p>The name of the Amazon Web Services Backup vault that contains the recovery point for the scanned.</p>",
           "locationName":"backupVaultName"
+        },
+        "ContinuousScanDetails":{
+          "shape":"ScanConfigurationContinuousScanDetails",
+          "documentation":"<p>The time range within the continuous backup in Amazon Web Services Backup that was scanned for a point-in-time recovery resource.</p>",
+          "locationName":"continuousScanDetails"
         }
       },
       "documentation":"<p>Contains information about the recovery point configuration used in the scan.</p>"
