@@ -36,16 +36,23 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.query.engine.DefaultQueryExpressionEngine;
+import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionEngine;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryLatencyReport;
+import software.amazon.awssdk.enhanced.dynamodb.query.result.EnhancedQueryResult;
+import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @SdkInternalApi
 public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
     private final DynamoDbClient dynamoDbClient;
     private final DynamoDbEnhancedClientExtension extension;
+    private final QueryExpressionEngine queryExpressionEngine;
 
     private DefaultDynamoDbEnhancedClient(Builder builder) {
         this.dynamoDbClient = builder.dynamoDbClient == null ? DynamoDbClient.create() : builder.dynamoDbClient;
         this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
+        this.queryExpressionEngine = new DefaultQueryExpressionEngine(this);
     }
 
     public static Builder builder() {
@@ -124,6 +131,17 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return transactWriteItemsWithResponse(builder.build());
+    }
+
+    @Override
+    public EnhancedQueryResult enhancedQuery(QueryExpressionSpec spec) {
+        return queryExpressionEngine.execute(spec);
+    }
+
+    @Override
+    public EnhancedQueryResult enhancedQuery(QueryExpressionSpec spec,
+                                             Consumer<EnhancedQueryLatencyReport> reportConsumer) {
+        return queryExpressionEngine.execute(spec, reportConsumer);
     }
 
     @Override
