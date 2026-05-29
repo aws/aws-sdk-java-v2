@@ -229,6 +229,75 @@ public class SplittingPublisherTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void upstreamError_shouldPropagateToCurrentBodySubscriber(boolean enableRetryableSubAsyncRequestBody) throws Exception {
+        RuntimeException upstreamError = new RuntimeException("upstream failure");
+        AsyncRequestBody errorBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of(20L);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                s.onSubscribe(new Subscription() {
+                    private int calls = 0;
+
+                    @Override
+                    public void request(long n) {
+                        if (calls++ == 0) {
+                            // Send partial data, then error
+                            s.onNext(ByteBuffer.wrap(new byte[3]));
+                        } else {
+                            s.onError(upstreamError);
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+
+        SplittingPublisher splittingPublisher =
+            SplittingPublisher.builder()
+                              .asyncRequestBody(errorBody)
+                              .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                                                                                    .chunkSizeInBytes(10L)
+                                                                                    .bufferSizeInBytes(20L)
+                                                                                    .build())
+                              .retryableSubAsyncRequestBodyEnabled(enableRetryableSubAsyncRequestBody)
+                              .build();
+
+        CompletableFuture<Throwable> bodyError = new CompletableFuture<>();
+        splittingPublisher.subscribe(requestBody -> {
+            requestBody.subscribe(new Subscriber<ByteBuffer>() {
+                @Override
+                public void onSubscribe(Subscription s) {
+                    s.request(Long.MAX_VALUE);
+                }
+
+                @Override
+                public void onNext(ByteBuffer byteBuffer) {
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    bodyError.complete(t);
+                }
+
+                @Override
+                public void onComplete() {
+                }
+            });
+        });
+
+        Throwable error = bodyError.get(5, TimeUnit.SECONDS);
+        assertThat(error).isEqualTo(upstreamError);
+    }
+
     private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                 .asyncRequestBody(asyncRequestBody)

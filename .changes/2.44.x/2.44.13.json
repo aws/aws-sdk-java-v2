@@ -1,0 +1,42 @@
+{
+    "version": "2.44.13",
+    "date": "2026-05-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "contributor": "",
+            "description": "Service Release Notes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Added resourceConfigurations and allowUserProvidedConfigurations fields to environment blueprint configuration APIs, enabling customers who migrated from V1 to V2 domains to update resource configurations (such as lineage schedules) programmatically via the SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Increase the maximum value of jobExecutionTimeoutMinutes to support longer job timeouts during compute environment infrastructure updates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "Launching S3 PITR malware scanning support for AWS Backup"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add malware scan support for Continuous Backups, also known as Point-In-Time Recovery Points (PITR)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "AWS Budget Name Validation Documentation Updates."
+        }
+    ]
+}
