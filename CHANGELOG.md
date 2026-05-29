@@ -6,7 +6,7 @@
 
 ## __AWS RDS DataService__
   - ### Features
-    - Service Release Notes
+    - RDS Data API arrays (longValues, doubleValues, stringValues, booleanValues) in ExecuteStatement responses now correctly support null elements. Runtime change for JS v3 and .NET. Compile-time change for C plus plus, .NET, Kotlin, Rust. No impact for Java, Python, Ruby, PHP, Go.
 
 ## __AWS SDK for Java v2__
   - ### Features
@@ -18,7 +18,7 @@
 
 ## __Amazon Bedrock AgentCore Control__
   - ### Features
-    - Service Release Notes
+    - Reference your own AWS Secrets Manager secrets when configuring credential providers, giving you control over encryption, rotation, and access policies instead of using service-managed secrets.
 
 ## __Amazon Omics__
   - ### Features
