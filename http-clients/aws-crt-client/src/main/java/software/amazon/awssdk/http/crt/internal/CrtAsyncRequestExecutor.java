@@ -26,23 +26,25 @@ import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.crt.internal.request.CrtRequestBodyPublisherSubscriber;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class CrtAsyncRequestExecutor {
 
+    private static final Logger log = Logger.loggerFor(CrtAsyncRequestExecutor.class);
+
     public CompletableFuture<Void> execute(CrtAsyncRequestContext executionContext) {
         AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
         CompletableFuture<Void> requestFuture = createAsyncExecutionFuture(asyncRequest);
-        ResponseHandlerErrorNotifier errorNotifier = new ResponseHandlerErrorNotifier(asyncRequest.responseHandler());
 
         try {
-            doExecute(executionContext, asyncRequest, requestFuture, errorNotifier);
+            doExecute(executionContext, asyncRequest, requestFuture);
         } catch (Throwable t) {
-            reportAsyncFailure(t, requestFuture, errorNotifier);
+            reportAsyncFailure(t, requestFuture, asyncRequest.responseHandler());
         }
 
         return requestFuture;
@@ -50,8 +52,7 @@ public final class CrtAsyncRequestExecutor {
 
     private void doExecute(CrtAsyncRequestContext executionContext,
                            AsyncExecuteRequest asyncRequest,
-                           CompletableFuture<Void> requestFuture,
-                           ResponseHandlerErrorNotifier errorNotifier) {
+                           CompletableFuture<Void> requestFuture) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
@@ -70,53 +71,24 @@ public final class CrtAsyncRequestExecutor {
         CrtStreamHandler streamHandler = new CrtStreamHandler(streamFuture);
 
         HttpStreamBaseResponseHandler crtResponseHandler =
-            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler(), streamHandler, errorNotifier);
-
-        CrtRequestBodyPublisherSubscriber bodySubscriber =
-            new CrtRequestBodyPublisherSubscriber(streamHandler, requestFuture, errorNotifier);
+            CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler(), streamHandler);
 
         long finalAcquireStartTime = acquireStartTime;
 
-        executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler, true)
-                        .handle((stream, throwable) -> {
+        executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler)
+                        .whenComplete((stream, throwable) -> {
                             if (shouldPublishMetrics) {
                                 reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
                             }
 
                             if (throwable != null) {
-                                handleAcquireFailure(throwable, streamFuture, requestFuture, errorNotifier);
-                                return null;
+                                Throwable toThrow = wrapCrtException(throwable);
+                                streamFuture.completeExceptionally(toThrow);
+                                reportAsyncFailure(toThrow, requestFuture, asyncRequest.responseHandler());
+                            } else {
+                                streamFuture.complete(stream);
                             }
-                            try {
-                                stream.activate();
-                            } catch (Throwable t) {
-                                // Stream is acquired but not activated and not yet published via
-                                // streamFuture. No other path can reach it, so clean it up directly.
-                                stream.cancel();
-                                stream.close();
-                                handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
-                                return null;
-                            }
-                            streamFuture.complete(stream);
-                            asyncRequest.requestContentPublisher().subscribe(bodySubscriber);
-                            return null;
-                        }).exceptionally(t -> {
-                            // Reached when the handle lambda throws (e.g., publisher.subscribe).
-                            // closeConnection is a no-op if the stream isn't in streamFuture yet;
-                            // otherwise it tears down the published stream.
-                            streamHandler.closeConnection();
-                            handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
-                            return null;
                         });
-    }
-
-    private void handleAcquireFailure(Throwable t,
-                                      CompletableFuture<HttpStreamBase> streamFuture,
-                                      CompletableFuture<Void> requestFuture,
-                                      ResponseHandlerErrorNotifier errorNotifier) {
-        Throwable toThrow = wrapCrtException(t);
-        streamFuture.completeExceptionally(toThrow);
-        reportAsyncFailure(toThrow, requestFuture, errorNotifier);
     }
 
     /**
@@ -141,10 +113,18 @@ public final class CrtAsyncRequestExecutor {
         return future;
     }
 
+    /**
+     * Notify the provided response handler and future of the failure.
+     */
     private void reportAsyncFailure(Throwable cause,
                                     CompletableFuture<Void> executeFuture,
-                                    ResponseHandlerErrorNotifier errorNotifier) {
-        errorNotifier.tryNotifyError(cause);
+                                    SdkAsyncHttpResponseHandler responseHandler) {
+        try {
+            responseHandler.onError(cause);
+        } catch (Exception e) {
+            log.error(() -> "SdkAsyncHttpResponseHandler " + responseHandler + " threw an exception in onError. It will be "
+                            + "ignored.", e);
+        }
         executeFuture.completeExceptionally(cause);
     }
 }

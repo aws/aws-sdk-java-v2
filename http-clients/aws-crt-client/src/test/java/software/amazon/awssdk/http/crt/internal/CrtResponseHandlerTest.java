@@ -34,7 +34,6 @@ import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.crt.internal.CrtStreamHandler;
-import software.amazon.awssdk.http.crt.internal.ResponseHandlerErrorNotifier;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -46,8 +45,7 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
                                                                                           executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler,
-                                                       new ResponseHandlerErrorNotifier(responseHandler));
+        return CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler);
     }
 
     @Override
@@ -57,16 +55,14 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
                                                                                  executionAttributes) -> null, Function.identity(), new ExecutionAttributes());
 
         responseHandler.prepare();
-        return new CrtResponseAdapter(requestFuture, responseHandler, simplePublisher, streamHandler,
-                                      new ResponseHandlerErrorNotifier(responseHandler));
+        return new CrtResponseAdapter(requestFuture, responseHandler, simplePublisher, streamHandler);
     }
 
     @Test
     void onResponseComplete_publisherCancelled_closesStream() {
         SdkAsyncHttpResponseHandler responseHandler = new TestAsyncHttpResponseHandler();
 
-        HttpStreamBaseResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler,
-                                                                                                   new ResponseHandlerErrorNotifier(responseHandler));
+        HttpStreamBaseResponseHandler crtResponseHandler = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler, streamHandler);
         HttpHeader[] httpHeaders = getHttpHeaders();
         crtResponseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);

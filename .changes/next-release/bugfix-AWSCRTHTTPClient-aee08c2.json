@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS CRT HTTP Client",
     "contributor": "",
-    "description": "Fixed a potential deadlock in both `AwsCrtHttpClient` and `AwsCrtAsyncHttpClient` that could occur when the request body source delivered data on the CRT event loop thread. For sync, this happened when a blocking `InputStream` (e.g., a `BufferedInputStream` wrapping a `ResponseInputStream`) was used as a request body. For async, this happened when the user-supplied `Publisher<ByteBuffer>` scheduled `onNext` back onto the same event loop. Request body data is now pushed via the CRT push-based `writeData` API: sync writes from the caller thread, async writes from a Reactive Streams subscriber outside the event loop."
+    "description": "Fixed a potential deadlock in `AwsCrtHttpClient` that could occur when the request body `InputStream` blocked waiting for data on the CRT event loop thread. This could happen when a blocking stream (e.g., a `BufferedInputStream` wrapping a `ResponseInputStream`) was used as a request body and the read depended on the same event loop thread to deliver data. Request body writing now happens on the caller thread."
 }

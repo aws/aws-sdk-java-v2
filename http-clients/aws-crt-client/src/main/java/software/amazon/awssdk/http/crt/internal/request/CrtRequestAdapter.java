@@ -50,12 +50,14 @@ public final class CrtRequestAdapter {
                                               .map(value -> "?" + value)
                                               .orElse("");
         String path = encodedPath + encodedQueryString;
+        CrtRequestBodyAdapter crtRequestBodyAdapter = new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
+                                                                                request.readBufferSize());
         HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest,
                                                                         request.protocol()));
         return new HttpRequest(method,
                                path,
                                crtHeaderArray,
-                               null);
+                               crtRequestBodyAdapter);
     }
 
     public static HttpRequest toCrtRequest(CrtRequestContext request) {
