@@ -20302,6 +20302,8 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ap-southeast-5" : { },
+          "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "rekognition-fips.ca-central-1.amazonaws.com",
@@ -38283,7 +38285,8 @@
               "hostname" : "elasticfilesystem-fips.us-isob-east-1.sc2s.sgov.gov",
               "tags" : [ "fips" ]
             } ]
-          }
+          },
+          "us-isob-west-1" : { }
         }
       },
       "elasticloadbalancing" : {
