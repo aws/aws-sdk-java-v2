@@ -246,6 +246,9 @@ public class CrtAsyncRequestExecutorTest {
         Mockito.verify(responseHandler, Mockito.times(1)).onError(errorCaptor.capture());
         assertThat(errorCaptor.getValue()).isInstanceOf(IOException.class)
                                           .hasCauseInstanceOf(CrtRuntimeException.class);
+        // Verify the acquired stream was cancelled and closed so the connection is not leaked.
+        Mockito.verify(httpStream).cancel();
+        Mockito.verify(httpStream).close();
     }
 
     @Test
@@ -273,6 +276,9 @@ public class CrtAsyncRequestExecutorTest {
 
         assertThat(executeFuture).hasFailedWithThrowableThat().isSameAs(subscribeError);
         Mockito.verify(responseHandler, Mockito.times(1)).onError(subscribeError);
+        // Verify the acquired stream was cancelled and closed so the connection is not leaked.
+        Mockito.verify(httpStream).cancel();
+        Mockito.verify(httpStream).close();
     }
 
     @Test

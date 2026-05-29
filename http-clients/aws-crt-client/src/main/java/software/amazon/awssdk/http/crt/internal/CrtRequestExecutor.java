@@ -81,12 +81,18 @@ public final class CrtRequestExecutor {
                             }
                             try {
                                 streamBase.activate();
-                                streamFuture.complete(streamBase);
                             } catch (Throwable t) {
+                                // Stream is acquired but not activated and not yet published via
+                                // streamFuture. No other path can reach it, so clean it up directly.
+                                streamBase.cancel();
+                                streamBase.close();
                                 handleAcquireFailure(t, streamFuture, responseFuture);
+                                return null;
                             }
+                            streamFuture.complete(streamBase);
                             return null;
                         }).exceptionally(t -> {
+                            // Defensive: only reached if the handle lambda itself throws.
                             handleAcquireFailure(t, streamFuture, responseFuture);
                             return null;
                         });

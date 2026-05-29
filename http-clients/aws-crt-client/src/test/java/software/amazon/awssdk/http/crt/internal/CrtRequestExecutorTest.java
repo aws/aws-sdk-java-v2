@@ -173,6 +173,9 @@ public class CrtRequestExecutorTest {
             .isInstanceOf(CompletionException.class)
             .hasCauseInstanceOf(IOException.class)
             .hasRootCauseInstanceOf(CrtRuntimeException.class);
+        // Verify the acquired stream was cancelled and closed so the connection is not leaked.
+        Mockito.verify(httpStream).cancel();
+        Mockito.verify(httpStream).close();
     }
 
     @Test

@@ -24,14 +24,12 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -46,13 +44,6 @@ class CrtStreamHandlerTest {
 
     @BeforeEach
     void setUp() {
-        AtomicBoolean closed = new AtomicBoolean(false);
-        Mockito.lenient().when(stream.isNull()).thenAnswer(invocation -> closed.get());
-        Mockito.lenient().doAnswer((Answer<Void>) invocation -> {
-            closed.set(true);
-            return null;
-        }).when(stream).close();
-
         streamHandler = new CrtStreamHandler(CompletableFuture.completedFuture(stream));
     }
 

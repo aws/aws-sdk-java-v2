@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,13 +34,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,15 +63,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     @BeforeEach
     public void setUp() {
         requestFuture = new CompletableFuture<>();
-
-        // Simulate CRT refcount behavior: isNull() returns true after close()
-        AtomicBoolean closed = new AtomicBoolean(false);
-        Mockito.lenient().when(httpStream.isNull()).thenAnswer(invocation -> closed.get());
-        Mockito.lenient().doAnswer((Answer<Void>) invocation -> {
-            closed.set(true);
-            return null;
-        }).when(httpStream).close();
-
         streamHandler = new CrtStreamHandler(CompletableFuture.completedFuture(httpStream));
         responseHandler = responseHandler(streamHandler);
     }
@@ -114,7 +102,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseComplete(httpStream, 1);
         assertThatThrownBy(() -> requestFuture.join()).hasRootCauseInstanceOf(HttpException.class);
         verify(httpStream).cancel();
-        verify(httpStream, Mockito.atLeastOnce()).close();
+        verify(httpStream).close();
     }
 
     @Test
@@ -155,7 +143,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         }
 
         verify(httpStream).cancel();
-        verify(httpStream, Mockito.atLeastOnce()).close();
+        verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
@@ -179,7 +167,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         future.complete(null);
 
         requestFuture.join();
-        verify(httpStream, Mockito.atLeastOnce()).close();
+        verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
     }
 
@@ -204,7 +192,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         handler.onResponseComplete(httpStream, 0);
         requestFuture.join();
         verify(httpStream).incrementWindow(anyInt());
-        verify(httpStream, Mockito.atLeastOnce()).close();
+        verify(httpStream).close();
     }
 
     static HttpHeader[] getHttpHeaders() {

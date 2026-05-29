@@ -106,7 +106,7 @@ public final class CrtStreamHandler {
 
     public void incrementWindow(int windowSize) {
         synchronized (streamLock) {
-            HttpStreamBase s = streamFuture.getNow(null);
+            HttpStreamBase s = streamIfAvailable();
             if (!streamClosed && s != null) {
                 s.incrementWindow(windowSize);
             }
@@ -119,7 +119,7 @@ public final class CrtStreamHandler {
      */
     public void releaseConnection() {
         synchronized (streamLock) {
-            HttpStreamBase s = streamFuture.getNow(null);
+            HttpStreamBase s = streamIfAvailable();
             if (!streamClosed && s != null) {
                 streamClosed = true;
                 s.close();
@@ -134,12 +134,24 @@ public final class CrtStreamHandler {
      */
     public void closeConnection() {
         synchronized (streamLock) {
-            HttpStreamBase s = streamFuture.getNow(null);
+            HttpStreamBase s = streamIfAvailable();
             if (!streamClosed && s != null) {
                 streamClosed = true;
                 s.cancel();
                 s.close();
             }
         }
+    }
+
+    /**
+     * Returns the acquired stream if {@link #streamFuture} completed normally, otherwise {@code null}.
+     * Tolerates exceptional or pending completion (in contrast to {@link CompletableFuture#getNow}, which
+     * throws {@link CompletionException} when the future is exceptional).
+     */
+    private HttpStreamBase streamIfAvailable() {
+        if (!streamFuture.isDone() || streamFuture.isCompletedExceptionally()) {
+            return null;
+        }
+        return streamFuture.getNow(null);
     }
 }

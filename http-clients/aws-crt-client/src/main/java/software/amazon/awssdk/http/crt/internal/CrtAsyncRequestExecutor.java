@@ -89,13 +89,22 @@ public final class CrtAsyncRequestExecutor {
                             }
                             try {
                                 stream.activate();
-                                streamFuture.complete(stream);
-                                asyncRequest.requestContentPublisher().subscribe(bodySubscriber);
                             } catch (Throwable t) {
+                                // Stream is acquired but not activated and not yet published via
+                                // streamFuture. No other path can reach it, so clean it up directly.
+                                stream.cancel();
+                                stream.close();
                                 handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
+                                return null;
                             }
+                            streamFuture.complete(stream);
+                            asyncRequest.requestContentPublisher().subscribe(bodySubscriber);
                             return null;
                         }).exceptionally(t -> {
+                            // Reached when the handle lambda throws (e.g., publisher.subscribe).
+                            // closeConnection is a no-op if the stream isn't in streamFuture yet;
+                            // otherwise it tears down the published stream.
+                            streamHandler.closeConnection();
                             handleAcquireFailure(t, streamFuture, requestFuture, errorNotifier);
                             return null;
                         });

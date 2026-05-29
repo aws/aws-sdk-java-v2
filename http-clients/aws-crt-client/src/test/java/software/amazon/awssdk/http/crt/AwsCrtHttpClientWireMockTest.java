@@ -114,6 +114,36 @@ public class AwsCrtHttpClientWireMockTest {
     }
 
     @Test
+    public void contentStreamReadThrows_propagatesIoExceptionAndDoesNotLeakConnection() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().maxConcurrency(1).build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(randomAlphabetic(10))));
+            SdkHttpRequest request = createRequest(uri);
+
+            IOException readError = new IOException("simulated read failure");
+            ExecutableHttpRequest failing = client.prepareRequest(
+                HttpExecuteRequest.builder()
+                                  .request(request)
+                                  .contentStreamProvider(() -> new java.io.InputStream() {
+                                      @Override
+                                      public int read() throws IOException {
+                                          throw readError;
+                                      }
+                                  })
+                                  .build());
+
+            assertThatThrownBy(failing::call)
+                .isInstanceOf(IOException.class)
+                .isSameAs(readError);
+
+            // If the connection leaked, this second request would hang since maxConcurrency=1.
+            // Use a short overall test timeout to fail fast if the leak regresses.
+            HttpExecuteResponse second = makeSimpleRequest(client, null);
+            assertThat(second.httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
     public void abortRequest_shouldFailTheExceptionWithIOException() throws Exception {
         try (SdkHttpClient client = AwsCrtHttpClient.create()) {
             String body = randomAlphabetic(10);

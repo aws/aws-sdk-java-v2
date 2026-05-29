@@ -69,7 +69,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         }
     }
 
-    public static AwsCrtHttpClient.Builder builder() {
+    public static Builder builder() {
         return new DefaultBuilder();
     }
 
@@ -124,45 +124,53 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         @Override
         public HttpExecuteResponse call() throws IOException {
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
+            CrtRequestExecutor.Result result = new CrtRequestExecutor().execute(context);
+            responseFuture = result.responseFuture();
 
             try {
-                CrtRequestExecutor.Result result = new CrtRequestExecutor().execute(context);
-                responseFuture = result.responseFuture();
                 writeRequestBody(result.streamHandler());
 
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
                 builder.response(response);
                 builder.responseBody(response.content().orElse(null));
                 return builder.build();
-            } catch (CompletionException e) {
-                Throwable cause = e.getCause();
+            } catch (Throwable t) {
+                // CompletionException is the wrapper from joinInterruptibly; direct throws
+                // (e.g., IOException from inputStream.read in writeRequestBody) arrive unwrapped.
+                Throwable cause = (t instanceof CompletionException && t.getCause() != null) ? t.getCause() : t;
 
-                // Complete the future exceptionally to trigger connection cleanup in the response handler.
-                // Handles thread-interrupt case where joinInterruptibly throws due to
-                // InterruptedException. Without this, the
-                // Ensures that closeConnection() is invoked to prevent leaking the connection from the pool.
-                if (responseFuture != null) {
-                    responseFuture.completeExceptionally(cause != null ? cause : e);
-                }
+                // Tear down the stream so the connection is not leaked back to the pool.
+                // closeConnection() is idempotent and a no-op if the stream is not yet acquired
+                // or is already closed.
+                result.streamHandler().closeConnection();
+                responseFuture.completeExceptionally(cause);
 
-                if (cause instanceof IOException) {
-                    throw (IOException) cause;
-                }
-
-                if (cause instanceof HttpException) {
-                    Throwable wrapped = CrtUtils.wrapCrtException(cause);
-                    if (wrapped instanceof IOException) {
-                        throw (IOException) wrapped;
-                    }
-                    throw (HttpException) cause;
-                }
-
-                if (cause instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                    throw new IOException("Request was cancelled", cause);
-                }
-                throw new RuntimeException(e.getCause());
+                throw mapToIoExceptionOrRethrow(cause);
             }
+        }
+
+        private static IOException mapToIoExceptionOrRethrow(Throwable cause) {
+            if (cause instanceof IOException) {
+                return (IOException) cause;
+            }
+            if (cause instanceof HttpException) {
+                Throwable wrapped = CrtUtils.wrapCrtException(cause);
+                if (wrapped instanceof IOException) {
+                    return (IOException) wrapped;
+                }
+                throw (HttpException) cause;
+            }
+            if (cause instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                return new IOException("Request was cancelled", cause);
+            }
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            return new IOException(cause);
         }
 
         private void writeRequestBody(CrtStreamHandler streamHandler) throws IOException {
@@ -194,14 +202,14 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     /**
      * Builder that allows configuration of the AWS CRT HTTP implementation.
      */
-    public interface Builder extends SdkHttpClient.Builder<AwsCrtHttpClient.Builder> {
+    public interface Builder extends SdkHttpClient.Builder<Builder> {
 
         /**
          * The Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections.
          * @param maxConcurrency maximum concurrency per endpoint
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder maxConcurrency(Integer maxConcurrency);
+        Builder maxConcurrency(Integer maxConcurrency);
 
         /**
          * Configures the number of unread bytes that can be buffered in the
@@ -211,14 +219,14 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param readBufferSize The number of bytes that can be buffered.
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
+        Builder readBufferSizeInBytes(Long readBufferSize);
 
         /**
          * Sets the http proxy configuration to use for this client.
          * @param proxyConfiguration The http proxy configuration to use
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+        Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -226,7 +234,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param proxyConfigurationBuilderConsumer The consumer of the proxy configuration builder object.
          * @return the builder for method chaining.
          */
-        AwsCrtHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
+        Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
          * Configure the health checks for all connections established by this client.
@@ -246,7 +254,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder connectionHealthConfiguration(ConnectionHealthConfiguration healthChecksConfiguration);
+        Builder connectionHealthConfiguration(ConnectionHealthConfiguration healthChecksConfiguration);
 
         /**
          * A convenience method that creates an instance of the {@link ConnectionHealthConfiguration} builder, avoiding the
@@ -256,7 +264,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return The builder of the method chaining.
          * @see #connectionHealthConfiguration(ConnectionHealthConfiguration)
          */
-        AwsCrtHttpClient.Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
+        Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
                                                                         healthChecksConfigurationBuilder);
 
         /**
@@ -264,21 +272,21 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param connectionMaxIdleTime the maximum amount of connection idle time
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
+        Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
 
         /**
          * The amount of time to wait when initially establishing a connection before giving up and timing out.
          * @param connectionTimeout timeout
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder connectionTimeout(Duration connectionTimeout);
+        Builder connectionTimeout(Duration connectionTimeout);
 
         /**
          * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
          * @param connectionAcquisitionTimeout the timeout duration
          * @return this builder for method chaining.
          */
-        AwsCrtHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
+        Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
@@ -292,7 +300,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param tcpKeepAliveConfiguration The TCP keep-alive configuration to use
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration);
+        Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration);
 
         /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
@@ -306,7 +314,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return The builder of the method chaining.
          * @see #tcpKeepAliveConfiguration(TcpKeepAliveConfiguration)
          */
-        AwsCrtHttpClient.Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
+        Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
                                                                     tcpKeepAliveConfigurationBuilder);
 
         /**
@@ -325,7 +333,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.
          */
-        AwsCrtHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
+        Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
     }
 
     /**
@@ -333,7 +341,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
      * Use {@link #builder()} to configure and construct an immutable instance of the factory.
      */
     private static final class DefaultBuilder
-        extends AwsCrtClientBuilderBase<AwsCrtHttpClient.Builder> implements AwsCrtHttpClient.Builder {
+        extends AwsCrtClientBuilderBase<Builder> implements Builder {
 
 
         @Override
