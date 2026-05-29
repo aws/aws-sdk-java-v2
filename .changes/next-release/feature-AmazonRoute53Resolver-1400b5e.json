@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53 Resolver",
-    "contributor": "",
-    "description": "Added BatchCreateFirewallRule, BatchUpdateFirewallRule, BatchDeleteFirewallRule, and ListFirewallRuleTypes APIs. Added FirewallRuleType support to Firewall Rule APIs."
-}
