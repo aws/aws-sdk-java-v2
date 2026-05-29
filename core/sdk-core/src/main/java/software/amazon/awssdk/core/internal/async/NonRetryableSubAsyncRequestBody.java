@@ -97,6 +97,7 @@ public final class NonRetryableSubAsyncRequestBody implements SubAsyncRequestBod
         return partNumber;
     }
 
+    @Override
     public void error(Throwable error) {
         delegate.error(error);
     }
