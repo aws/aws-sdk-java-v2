@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "contributor": "",
+    "description": "Adds support for Alpha-5 satellite number encoding in the Two-Line Element ephemeris format."
+}
