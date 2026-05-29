@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client 5",
+    "contributor": "",
+    "description": "Upgrade httpcomponents.client5 to 5.6.1"
+}
