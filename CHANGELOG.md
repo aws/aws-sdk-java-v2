@@ -10,7 +10,7 @@
 
 ## __AWS IoT Data Plane__
   - ### Features
-    - Service Release Notes
+    - Adding GetConnection, ListSubscriptions, and SendDirectMessage APIs to IoT Data Plane
 
 ## __AWS Parallel Computing Service__
   - ### Features
@@ -22,7 +22,7 @@
 
 ## __AWS S3 Control__
   - ### Features
-    - Service Release Notes
+    - Update the minimum value of MinStorageBytesPercentage in StorageLensPrefixLevel.SelectionCriteria from 0.1 to 1, aligning the model with the documented contract.
 
 ## __AWS SDK for Java v2__
   - ### Features
@@ -42,19 +42,19 @@
 
 ## __Amazon Bedrock AgentCore__
   - ### Features
-    - Service Release Notes
+    - Added Harness support for LiteLLM model configuration for third-party model providers. Added S3 and Git skill source types. Added Responses API format for OpenAI and Bedrock models. Added runtimeUserId and runtimeClientError to InvokeHarness.
 
 ## __Amazon Bedrock AgentCore Control__
   - ### Features
-    - Service Release Notes
+    - Added Harness support for LiteLLM model configuration for third-party model providers. Added S3 and Git skill source types. Added Responses API format for OpenAI and Bedrock models. Added runtimeUserId parameter to InvokeHarness for end-user identification.
 
 ## __Amazon Bedrock Runtime__
   - ### Features
-    - Service Release Notes
+    - Support system role in message
 
 ## __Amazon Connect Customer Profiles__
   - ### Features
-    - Service Release Notes
+    - BatchPutProfileObject API adds multiple profile objects to a domain of a given ObjectType in a single API call.
 
 ## __Amazon S3__
   - ### Bugfixes

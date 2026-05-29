@@ -36,7 +36,7 @@
             "type": "feature",
             "category": "Partner Central Account API",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Added ServiceQuotaExceededExceptions for Profile operations"
         },
         {
             "type": "feature",
@@ -60,7 +60,7 @@
             "type": "feature",
             "category": "ARC - Region switch",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adds support for enabling and disabling Lambda event source mappings in Region switch plans."
         },
         {
             "type": "feature",
@@ -78,7 +78,7 @@
             "type": "feature",
             "category": "Amazon Bedrock AgentCore Control",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adds support for read-only summary APIs for Policy Engine, Policy, and Policy Generation resources, enabling metadata retrieval without KMS decryption for AWS Config integration."
         },
         {
             "type": "feature",
@@ -126,13 +126,13 @@
             "type": "feature",
             "category": "Amazon Elasticsearch Service",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adds support for AutomatedSnapshotPauseOptions."
         },
         {
             "type": "feature",
             "category": "AWS Step Functions",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Updated default SDK endpoints for AWS Step Functions in AWS GovCloud (US) regions. The default Dual-Stack endpoints now resolve to \"states-fips\" prefixed hostnames. There are no changes to service behavior. No customer action is required."
         },
         {
             "type": "feature",
