@@ -46,6 +46,11 @@ public class ResponseHandlerHelper {
         synchronized (streamLock) {
             if (this.stream == null) {
                 this.stream = stream;
+                // closeConnection() was requested before the stream was acquired; close it now.
+                if (streamClosed && this.stream != null) {
+                    this.stream.cancel();
+                    this.stream.close();
+                }
             }
         }
     }
@@ -88,10 +93,12 @@ public class ResponseHandlerHelper {
      */
     public void closeConnection() {
         synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
+            if (!streamClosed) {
                 streamClosed = true;
-                stream.cancel();
-                stream.close();
+                if (stream != null) {
+                    stream.cancel();
+                    stream.close();
+                }
             }
         }
     }

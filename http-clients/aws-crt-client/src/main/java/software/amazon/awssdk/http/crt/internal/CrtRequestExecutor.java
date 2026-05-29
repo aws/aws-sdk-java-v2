@@ -64,8 +64,6 @@ public final class CrtRequestExecutor {
         CompletableFuture<HttpStreamBase> streamFuture =
             executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
 
-        streamFuture.thenAccept(crtResponseHandler::onAcquireStream);
-
         // Evict the connection from the pool on failure so it is not reused.
         requestFuture.whenComplete((r, t) -> {
             if (t != null) {
@@ -76,6 +74,7 @@ public final class CrtRequestExecutor {
         long finalAcquireStartTime = acquireStartTime;
 
         streamFuture.whenComplete((streamBase, throwable) -> {
+            crtResponseHandler.onAcquireStream(streamBase);
             if (shouldPublishMetrics) {
                 reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
             }
