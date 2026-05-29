@@ -55,6 +55,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultPresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -77,6 +78,7 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -600,7 +602,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public final FileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+    public final PresignedFileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
         Validate.paramNotNull(presignedDownloadFileRequest, "presignedDownloadFileRequest");
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -632,11 +634,7 @@ class GenericS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(),
-                                       () -> {
-                                           throw new UnsupportedOperationException(
-                                               "Pause is not supported for presigned URL downloads");
-                                       }, null);
+        return new DefaultPresignedFileDownload(returnFuture, progressUpdater.progress());
     }
 
     @Override

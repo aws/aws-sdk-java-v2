@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.Download;
-import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -123,7 +123,7 @@ public class S3TransferManagerPresignedUrlListenerWiremockTest {
         }
 
         if ("toFile".equals(type)) {
-            FileDownload download = tm.downloadFileWithPresignedUrl(
+            PresignedFileDownload download = tm.downloadFileWithPresignedUrl(
                 PresignedDownloadFileRequest.builder()
                     .presignedUrlDownloadRequest(requestBuilder.build())
                     .destination(testFile.toPath())
@@ -172,7 +172,7 @@ public class S3TransferManagerPresignedUrlListenerWiremockTest {
         URL presignedUrl = new URL(testEndpoint + "/presigned-key?X-Amz-Algorithm=AWS4-HMAC-SHA256");
 
         if ("toFile".equals(type)) {
-            FileDownload download = tm.downloadFileWithPresignedUrl(
+            PresignedFileDownload download = tm.downloadFileWithPresignedUrl(
                 PresignedDownloadFileRequest.builder()
                     .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(presignedUrl)
@@ -222,7 +222,7 @@ public class S3TransferManagerPresignedUrlListenerWiremockTest {
         URL presignedUrl = new URL(testEndpoint + "/presigned-key?X-Amz-Algorithm=AWS4-HMAC-SHA256");
 
         if ("toFile".equals(type)) {
-            FileDownload download = tm.downloadFileWithPresignedUrl(
+            PresignedFileDownload download = tm.downloadFileWithPresignedUrl(
                 PresignedDownloadFileRequest.builder()
                                             .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
                                                                                                     .presignedUrl(presignedUrl)

@@ -43,6 +43,7 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -730,16 +731,16 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *                                                                                    LoggingTransferListener.create())
      *                                                                            .build();
      *         
-     *         FileDownload download = transferManager.downloadFileWithPresignedUrl(request);
+     *         PresignedFileDownload download = transferManager.downloadFileWithPresignedUrl(request);
      *         download.completionFuture().join();
      * }
      *
      * @param presignedDownloadFileRequest the presigned download file request
-     * @return A {@link FileDownload} that can be used to track the ongoing transfer
+     * @return A {@link PresignedFileDownload} that can be used to track the ongoing transfer
      * @see #downloadFileWithPresignedUrl(Consumer)
      * @see #downloadWithPresignedUrl(PresignedDownloadRequest)
      */
-    default FileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+    default PresignedFileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -752,7 +753,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * @see #downloadFileWithPresignedUrl(PresignedDownloadFileRequest)
      */
-    default FileDownload downloadFileWithPresignedUrl(
+    default PresignedFileDownload downloadFileWithPresignedUrl(
             Consumer<PresignedDownloadFileRequest.Builder> presignedDownloadFileRequest) {
         return downloadFileWithPresignedUrl(
                 PresignedDownloadFileRequest.builder().applyMutation(presignedDownloadFileRequest).build());
