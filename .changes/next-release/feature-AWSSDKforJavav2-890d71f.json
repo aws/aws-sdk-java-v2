@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This update replaces the default `apache-client` runtime dependency of service clients with the new `apache5-client`. This means that service clients will now use the `Apache5HttpClient` by default if no HTTP client is explicitly configured on the service client builder.\\n Notable changes:\\n - Apache 5 uses different logger names than Apache 4\\n - Expect: 100-Continue is disabled by default\\n - TCP keep-alive socket options require `jdk.net.NetworkPermission` when SecurityManager is active"
+}
