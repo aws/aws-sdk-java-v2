@@ -6,13 +6,13 @@
             "type": "feature",
             "category": "Amazon CloudWatch Logs",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Updating the max limit for start query api parameter."
         },
         {
             "type": "feature",
             "category": "Partner Central Selling API",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Enable TCV intake on Opportunity to improve Opportunities Hygiene and downstream revenue attribution."
         },
         {
             "type": "feature",

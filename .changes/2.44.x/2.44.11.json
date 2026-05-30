@@ -36,7 +36,7 @@
             "type": "feature",
             "category": "Amazon Bedrock AgentCore Control",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adds dataset management APIs for creating, versioning, and managing evaluation datasets."
         },
         {
             "type": "feature",
