@@ -13,21 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.model;
+package software.amazon.awssdk.transfer.s3.internal;
 
-import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultPresignedFileDownload;
 
-/**
- * A download transfer of a single object from S3 using a presigned URL.
- *
- * <p>Unlike {@link FileDownload}, this type does not support pause/resume.
- */
-@SdkPublicApi
-@ThreadSafe
-public interface PresignedFileDownload extends ObjectTransfer {
+public class DefaultPresignedFileDownloadTest {
 
-    @Override
-    CompletableFuture<CompletedFileDownload> completionFuture();
+    @Test
+    public void equals_hashcode() {
+        EqualsVerifier.forClass(DefaultPresignedFileDownload.class)
+                      .withNonnullFields("completionFuture", "progress")
+                      .verify();
+    }
 }

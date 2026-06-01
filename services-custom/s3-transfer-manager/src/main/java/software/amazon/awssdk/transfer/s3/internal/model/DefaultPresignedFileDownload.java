@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal.model;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -42,6 +43,30 @@ public final class DefaultPresignedFileDownload implements PresignedFileDownload
     @Override
     public TransferProgress progress() {
         return progress;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultPresignedFileDownload that = (DefaultPresignedFileDownload) o;
+
+        if (!Objects.equals(completionFuture, that.completionFuture)) {
+            return false;
+        }
+        return Objects.equals(progress, that.progress);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = completionFuture != null ? completionFuture.hashCode() : 0;
+        result = 31 * result + (progress != null ? progress.hashCode() : 0);
+        return result;
     }
 
     @Override
