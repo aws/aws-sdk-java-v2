@@ -18,7 +18,7 @@
             "type": "feature",
             "category": "Amazon Bedrock AgentCore",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Add RetryableConflictException (HTTP 409) to InvokeAgentRuntime and StopRuntimeSession to prevent orphaned VMs during concurrent session access. The SDK automatically retries this exception with backoff. Enforcement is not yet active and will be enabled in a future service update."
         },
         {
             "type": "feature",
@@ -36,7 +36,7 @@
             "type": "feature",
             "category": "AWS DevOps Agent Service",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Added a new serviceType mcpserversigv4 service and association. This provides feature to register MCP sigv4 authorization based MCPs"
         },
         {
             "type": "feature",

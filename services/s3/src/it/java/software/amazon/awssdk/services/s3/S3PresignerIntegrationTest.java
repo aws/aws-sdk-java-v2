@@ -37,7 +37,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -192,7 +192,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = presigned.signedPayload()
                                                         .map(SdkBytes::asContentStreamProvider)
@@ -226,7 +226,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = presigned.signedPayload()
                                                         .map(SdkBytes::asContentStreamProvider)
@@ -255,7 +255,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = () -> new StringInputStream(testObjectContent);
 
@@ -374,7 +374,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteRequest request = HttpExecuteRequest.builder()
                                                        .request(presigned.httpRequest())
@@ -397,7 +397,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteRequest request = HttpExecuteRequest.builder()
                                                        .request(presigned.httpRequest())
@@ -442,7 +442,7 @@ public class S3PresignerIntegrationTest {
     }
 
     private HttpExecuteResponse execute(PresignedRequest presigned, String payload) throws IOException {
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = payload == null ? null : () -> new StringInputStream(payload);
 

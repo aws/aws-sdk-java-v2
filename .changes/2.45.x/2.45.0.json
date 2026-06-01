@@ -24,19 +24,19 @@
             "type": "feature",
             "category": "Amazon Bedrock AgentCore",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Added Harness support for LiteLLM model configuration for third-party model providers. Added S3 and Git skill source types. Added Responses API format for OpenAI and Bedrock models. Added runtimeUserId and runtimeClientError to InvokeHarness."
         },
         {
             "type": "feature",
             "category": "Amazon Connect Customer Profiles",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "BatchPutProfileObject API adds multiple profile objects to a domain of a given ObjectType in a single API call."
         },
         {
             "type": "feature",
             "category": "Amazon Bedrock AgentCore Control",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Added Harness support for LiteLLM model configuration for third-party model providers. Added S3 and Git skill source types. Added Responses API format for OpenAI and Bedrock models. Added runtimeUserId parameter to InvokeHarness for end-user identification."
         },
         {
             "type": "feature",
@@ -54,7 +54,7 @@
             "type": "feature",
             "category": "AWS IoT Data Plane",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adding GetConnection, ListSubscriptions, and SendDirectMessage APIs to IoT Data Plane"
         },
         {
             "type": "feature",
@@ -66,7 +66,7 @@
             "type": "feature",
             "category": "AWS S3 Control",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Update the minimum value of MinStorageBytesPercentage in StorageLensPrefixLevel.SelectionCriteria from 0.1 to 1, aligning the model with the documented contract."
         },
         {
             "type": "bugfix",
@@ -84,7 +84,7 @@
             "type": "feature",
             "category": "Amazon Bedrock Runtime",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Support system role in message"
         },
         {
             "type": "feature",

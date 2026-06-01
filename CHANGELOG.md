@@ -1,66 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.45.0__ __2026-05-28__
-## __AWS Control Catalog__
+# __2.46.0__ __2026-06-01__
+## __AWS Marketplace Agreement Service__
   - ### Features
-    - AWS Control Catalog - Added GovernedProviders response field and inclusion filter to GetControl and ListControls APIs to identify and filter by cloud provider. Added ParameterRequirementSummary response field indicating parameter requirements.
-
-## __AWS IoT__
-  - ### Features
-    - Adds new connectivity-related fields to Fleet Indexing API requests and responses.
-
-## __AWS IoT Data Plane__
-  - ### Features
-    - Service Release Notes
-
-## __AWS Parallel Computing Service__
-  - ### Features
-    - This release adds support for configuring scaleDownIdleTimeInSeconds at the compute node group level, allowing customers to set different idle timeouts per node group. Previously this setting was only available at the cluster level.
-
-## __AWS Resilience Hub V2__
-  - ### Features
-    - This is the initial SDK release for the next generation of Resilience Hub.
-
-## __AWS S3 Control__
-  - ### Features
-    - Service Release Notes
+    - Adding Entitlements in SearchAgreements Response
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - This update replaces the default `apache-client` runtime dependency of service clients with the new `apache5-client`. This means that service clients will now use the `Apache5HttpClient` by default if no HTTP client is explicitly configured on the service client builder.\n Notable changes:\n - Apache 5 uses different logger names than Apache 4\n - Expect: 100-Continue is disabled by default\n - TCP keep-alive socket options require `jdk.net.NetworkPermission` when SecurityManager is active
 
-## __AWSDeadlineCloud__
+## __Amazon Cognito Identity Provider__
   - ### Features
-    - Added support for persistent storage on Service-Managed Fleets, allowing customers to configure persistent storage that preserves data across worker sessions which reduces job startup times for workloads with large software installations or asset caches.
+    - Add support for multi-region replication, enabling synchronization of user data and configurations to a secondary user pool in a standby Region. Add support for customer managed keys (CMK) in AWS KMS for encrypting user pool data at rest.
 
-## __Amazon AppStream__
+## __Amazon DynamoDB Enhanced Client__
   - ### Features
-    - Amazon WorkSpaces Applications now supports BYOL (Bring Your Own License). This enables customers to import their own WorkSpaces images and use them in WorkSpaces Applications.
+    - Increase code coverage on dynamodb-enhanced module
 
-## __Amazon Bedrock__
+## __Amazon QuickSight__
   - ### Features
-    - Add support for ModelPackageArn in Bedrock's CreateCustomModel API
+    - This release adds public APIs for Amazon QuickSight Spaces, Agents, and Flows. Spaces APIs enable management of curated resource collections. Agents APIs provide lifecycle control over AI-powered agents that leverage Spaces. Flows APIs add CRUDL APIs for automated workflows.
 
-## __Amazon Bedrock AgentCore__
+## __Apache HTTP Client 5__
   - ### Features
-    - Service Release Notes
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon Bedrock Runtime__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon Connect Customer Profiles__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon S3__
-  - ### Bugfixes
-    - The multipart S3 client now honors MetadataDirective COPY by preserving source object metadata on the destination during multipart copy.
-
-## __OpenSearch Service Serverless__
-  - ### Features
-    - Adds support for deletion protection on collections, ability to create NEXTGEN collection groups and autoscaling visibility for NEXTGEN collection groups
+    - Upgrade httpcomponents.client5 to 5.6.1
 
