@@ -167,7 +167,7 @@ public class DownloadDirectoryHelper {
         ListObjectsV2Request listRequest,
         S3Object s3Object) {
 
-        if (returnFuture.isDone()) {
+        if (returnFuture.isCompletedExceptionally()) {
             return CompletableFutureUtils.failedFuture(
                 SdkClientException.create("Download was cancelled before file could be started"));
         }
