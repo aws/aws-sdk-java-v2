@@ -35,7 +35,6 @@ import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtensio
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 
@@ -153,18 +152,6 @@ class S3TransferManagerPresignedUrlDownloadTest {
     void downloadWithPresignedUrl_withNullRequest_shouldThrowNullPointerException() {
         assertThatThrownBy(() -> tm.downloadWithPresignedUrl(null))
             .isInstanceOf(NullPointerException.class);
-    }
-    @Test
-    void downloadFileWithPresignedUrl_pause_shouldThrowUnsupportedOperationException() {
-        GetObjectResponse response = GetObjectResponse.builder().build();
-        stubGetObject(CompletableFuture.completedFuture(response));
-
-        FileDownload download = tm.downloadFileWithPresignedUrl(fileDownloadRequest());
-        download.completionFuture().join();
-
-        assertThatThrownBy(download::pause)
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Pause is not supported for presigned URL downloads");
     }
 
     private PresignedDownloadFileRequest fileDownloadRequest() {

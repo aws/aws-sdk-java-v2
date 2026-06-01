@@ -41,8 +41,8 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.Download;
-import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
@@ -92,7 +92,7 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
     void downloadFileWithPresignedUrl_shouldDownloadCorrectly(S3TransferManager tm, String key,
                                                               File sourceFile, int objSize) throws Exception {
         Path downloadPath = RandomTempFile.randomUncreatedFile().toPath();
-        FileDownload download = tm.downloadFileWithPresignedUrl(createFileDownloadRequest(key, downloadPath));
+        PresignedFileDownload download = tm.downloadFileWithPresignedUrl(createFileDownloadRequest(key, downloadPath));
         CompletedFileDownload completed = download.completionFuture().join();
 
         assertThat(Files.exists(downloadPath)).isTrue();
@@ -131,7 +131,7 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
             requestBuilder.range(range);
         }
 
-        FileDownload download = tm.downloadFileWithPresignedUrl(
+        PresignedFileDownload download = tm.downloadFileWithPresignedUrl(
             PresignedDownloadFileRequest.builder()
                                         .presignedUrlDownloadRequest(requestBuilder.build())
                                         .destination(downloadPath)
