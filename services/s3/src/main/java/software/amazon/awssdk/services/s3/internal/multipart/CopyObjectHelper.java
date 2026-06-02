@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -95,15 +96,34 @@ public final class CopyObjectHelper {
             copyInOneChunk(copyObjectRequest, returnFuture);
         } else {
             log.debug(() -> "Starting the copy as multipart copy request");
-            copyInParts(copyObjectRequest, contentLength, returnFuture);
+            copyInParts(copyObjectRequest, contentLength, returnFuture, headObjectResponse);
         }
     }
 
+    /**
+     * Performs a multipart copy, forwarding source object metadata by default to match
+     * {@code CopyObject} with {@code MetadataDirective: COPY} semantics.
+     */
     private void copyInParts(CopyObjectRequest copyObjectRequest,
                              Long contentLength,
-                             CompletableFuture<CopyObjectResponse> returnFuture) {
+                             CompletableFuture<CopyObjectResponse> returnFuture,
+                             HeadObjectResponse headObjectResponse) {
 
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(copyObjectRequest);
+
+        // Preserve source metadata for multipart copy since CreateMultipartUpload has no MetadataDirective support.
+        if (copyObjectRequest.metadataDirective() == MetadataDirective.COPY) {
+            request = request.toBuilder()
+                             .metadata(headObjectResponse.metadata())
+                             .contentType(headObjectResponse.contentType())
+                             .cacheControl(headObjectResponse.cacheControl())
+                             .contentDisposition(headObjectResponse.contentDisposition())
+                             .contentEncoding(headObjectResponse.contentEncoding())
+                             .contentLanguage(headObjectResponse.contentLanguage())
+                             .expires(headObjectResponse.expires())
+                             .build();
+        }
+
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 

@@ -5339,7 +5339,8 @@
         "ml.p5.4xlarge",
         "ml.p5.48xlarge",
         "ml.p5e.48xlarge",
-        "ml.p5en.48xlarge"
+        "ml.p5en.48xlarge",
+        "ml.p6-b200.48xlarge"
       ]
     },
     "AIRecommendationInstanceTypeList":{
@@ -10069,6 +10070,14 @@
       },
       "documentation":"<p>A summary of an event in a HyperPod cluster.</p>"
     },
+    "ClusterFSxLustreDeletionPolicy":{
+      "type":"string",
+      "documentation":"<p>The deletion policy for the Amazon FSx for Lustre file system used in the shared environment of restricted instance groups (RIG).</p>",
+      "enum":[
+        "DeleteIfNotUsed",
+        "Keep"
+      ]
+    },
     "ClusterFsxLustreConfig":{
       "type":"structure",
       "required":[
@@ -11181,6 +11190,28 @@
       "max":100,
       "min":1
     },
+    "ClusterRestrictedInstanceGroupsConfig":{
+      "type":"structure",
+      "required":["SharedEnvironmentConfig"],
+      "members":{
+        "SharedEnvironmentConfig":{
+          "shape":"ClusterSharedEnvironmentConfig",
+          "documentation":"<p>The shared environment configuration for the restricted instance groups (RIG).</p>"
+        }
+      },
+      "documentation":"<p>The configuration for the restricted instance groups (RIG) in the SageMaker HyperPod cluster.</p>"
+    },
+    "ClusterRestrictedInstanceGroupsConfigOutput":{
+      "type":"structure",
+      "required":["SharedEnvironmentConfig"],
+      "members":{
+        "SharedEnvironmentConfig":{
+          "shape":"ClusterSharedEnvironmentConfigDetails",
+          "documentation":"<p>The shared environment configuration details for the restricted instance groups (RIG).</p>"
+        }
+      },
+      "documentation":"<p>The output configuration for the restricted instance groups (RIG) in the SageMaker HyperPod cluster.</p>"
+    },
     "ClusterSchedulerConfigArn":{
       "type":"string",
       "max":256,
@@ -11248,6 +11279,46 @@
     "ClusterSchedulerPriorityClassName":{
       "type":"string",
       "pattern":"[a-z0-9]([-a-z0-9]*[a-z0-9]){0,39}?"
+    },
+    "ClusterSharedEnvironmentConfig":{
+      "type":"structure",
+      "required":[
+        "FSxLustreDeletionPolicy",
+        "FSxLustreConfig"
+      ],
+      "members":{
+        "FSxLustreDeletionPolicy":{
+          "shape":"ClusterFSxLustreDeletionPolicy",
+          "documentation":"<p>The deletion policy for the Amazon FSx for Lustre file system in the shared environment.</p>"
+        },
+        "FSxLustreConfig":{
+          "shape":"FSxLustreConfig",
+          "documentation":"<p>Configuration settings for an Amazon FSx for Lustre file system in the shared environment.</p>"
+        }
+      },
+      "documentation":"<p>The shared environment configuration for the restricted instance groups (RIG).</p>"
+    },
+    "ClusterSharedEnvironmentConfigDetails":{
+      "type":"structure",
+      "members":{
+        "CurrentFSxLustreConfig":{
+          "shape":"FSxLustreConfig",
+          "documentation":"<p>The current Amazon FSx for Lustre file system configuration in the shared environment.</p>"
+        },
+        "DesiredFSxLustreConfig":{
+          "shape":"FSxLustreConfig",
+          "documentation":"<p>The desired Amazon FSx for Lustre file system configuration in the shared environment.</p>"
+        },
+        "CurrentFSxLustreDeletionPolicy":{
+          "shape":"ClusterFSxLustreDeletionPolicy",
+          "documentation":"<p>The current deletion policy for the Amazon FSx for Lustre file system in the shared environment.</p>"
+        },
+        "DesiredFSxLustreDeletionPolicy":{
+          "shape":"ClusterFSxLustreDeletionPolicy",
+          "documentation":"<p>The desired deletion policy for the Amazon FSx for Lustre file system in the shared environment.</p>"
+        }
+      },
+      "documentation":"<p>The shared environment configuration details for the restricted instance groups (RIG).</p>"
     },
     "ClusterSlurmConfig":{
       "type":"structure",
@@ -12696,6 +12767,10 @@
           "shape":"ClusterRestrictedInstanceGroupSpecifications",
           "documentation":"<p>The specialized instance groups for training models like Amazon Nova to be created in the SageMaker HyperPod cluster.</p>"
         },
+        "RestrictedInstanceGroupsConfig":{
+          "shape":"ClusterRestrictedInstanceGroupsConfig",
+          "documentation":"<p>The configuration for the restricted instance groups (RIG) in the SageMaker HyperPod cluster.</p>"
+        },
         "VpcConfig":{
           "shape":"VpcConfig",
           "documentation":"<p>Specifies the Amazon Virtual Private Cloud (VPC) that is associated with the Amazon SageMaker HyperPod cluster. You can control access to and from your resources by configuring your VPC. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/infrastructure-give-access.html\">Give SageMaker access to resources in your Amazon VPC</a>.</p> <note> <p>When your Amazon VPC and subnets support IPv6, network communications differ based on the cluster orchestration platform:</p> <ul> <li> <p>Slurm-orchestrated clusters automatically configure nodes with dual IPv6 and IPv4 addresses, allowing immediate IPv6 network communications.</p> </li> <li> <p>In Amazon EKS-orchestrated clusters, nodes receive dual-stack addressing, but pods can only use IPv6 when the Amazon EKS cluster is explicitly IPv6-enabled. For information about deploying an IPv6 Amazon EKS cluster, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/deploy-ipv6-cluster.html#_deploy_an_ipv6_cluster_with_eksctl\">Amazon EKS IPv6 Cluster Deployment</a>.</p> </li> </ul> <p>Additional resources for IPv6 configuration:</p> <ul> <li> <p>For information about adding IPv6 support to your VPC, see to <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-migrate-ipv6.html\">IPv6 Support for VPC</a>.</p> </li> <li> <p>For information about creating a new IPv6-compatible VPC, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc.html\">Amazon VPC Creation Guide</a>.</p> </li> <li> <p>To configure SageMaker HyperPod with a custom Amazon VPC, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-prerequisites.html#sagemaker-hyperpod-prerequisites-optional-vpc\">Custom Amazon VPC Setup for SageMaker HyperPod</a>.</p> </li> </ul> </note>"
@@ -13110,6 +13185,10 @@
         "AppSecurityGroupManagement":{
           "shape":"AppSecurityGroupManagement",
           "documentation":"<p>The entity that creates and manages the required security groups for inter-app communication in <code>VPCOnly</code> mode. Required when <code>CreateDomain.AppNetworkAccessType</code> is <code>VPCOnly</code> and <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is provided. If setting up the domain for use with RStudio, this value must be set to <code>Service</code>.</p>"
+        },
+        "HomeEfsFileSystemCreation":{
+          "shape":"HomeEfsFileSystemCreation",
+          "documentation":"<p>Indicates whether to create a home EFS file system for the domain. Defaults to <code>Enabled</code>. Set to <code>Disabled</code> to skip EFS creation and reduce domain creation time. You can enable EFS later by calling <code>UpdateDomain</code>.</p>"
         },
         "TagPropagation":{
           "shape":"TagPropagation",
@@ -14667,7 +14746,7 @@
         },
         "PlatformIdentifier":{
           "shape":"PlatformIdentifier",
-          "documentation":"<p>The platform identifier of the notebook instance runtime environment. The default value is <code>notebook-al2-v2</code>.</p>"
+          "documentation":"<p>The platform identifier of the notebook instance runtime environment. The default value is <code>notebook-al2023-v1</code>.</p>"
         },
         "InstanceMetadataServiceConfiguration":{
           "shape":"InstanceMetadataServiceConfiguration",
@@ -18261,6 +18340,10 @@
           "shape":"ClusterRestrictedInstanceGroupDetailsList",
           "documentation":"<p>The specialized instance groups for training models like Amazon Nova to be created in the SageMaker HyperPod cluster.</p>"
         },
+        "RestrictedInstanceGroupsConfig":{
+          "shape":"ClusterRestrictedInstanceGroupsConfigOutput",
+          "documentation":"<p>The configuration for the restricted instance groups (RIG) in the SageMaker HyperPod cluster.</p>"
+        },
         "VpcConfig":{"shape":"VpcConfig"},
         "Orchestrator":{
           "shape":"ClusterOrchestrator",
@@ -18933,6 +19016,10 @@
         "AppSecurityGroupManagement":{
           "shape":"AppSecurityGroupManagement",
           "documentation":"<p>The entity that creates and manages the required security groups for inter-app communication in <code>VPCOnly</code> mode. Required when <code>CreateDomain.AppNetworkAccessType</code> is <code>VPCOnly</code> and <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is provided.</p>"
+        },
+        "HomeEfsFileSystemCreation":{
+          "shape":"HomeEfsFileSystemCreation",
+          "documentation":"<p>Indicates whether a home EFS file system is created for the domain.</p>"
         },
         "TagPropagation":{
           "shape":"TagPropagation",
@@ -25874,6 +25961,14 @@
         }
       },
       "documentation":"<p>Stores the holiday featurization attributes applicable to each item of time-series datasets during the training of a forecasting model. This allows the model to identify patterns associated with specific holidays.</p>"
+    },
+    "HomeEfsFileSystemCreation":{
+      "type":"string",
+      "documentation":"<p>Indicates whether a home EFS file system is created for the domain.</p>",
+      "enum":[
+        "Enabled",
+        "Disabled"
+      ]
     },
     "HookParameters":{
       "type":"map",
@@ -42197,6 +42292,10 @@
           "shape":"AvailabilityZone",
           "documentation":"<p>The availability zone for the reserved capacity.</p>"
         },
+        "AvailabilityZoneId":{
+          "shape":"AvailabilityZoneId",
+          "documentation":"<p>The Availability Zone ID of the reserved capacity.</p>"
+        },
         "DurationHours":{
           "shape":"ReservedCapacityDurationHours",
           "documentation":"<p>The number of whole hours in the total duration for this reserved capacity.</p>"
@@ -47984,6 +48083,10 @@
           "shape":"ClusterRestrictedInstanceGroupSpecifications",
           "documentation":"<p>The specialized instance groups for training models like Amazon Nova to be created in the SageMaker HyperPod cluster.</p>"
         },
+        "RestrictedInstanceGroupsConfig":{
+          "shape":"ClusterRestrictedInstanceGroupsConfig",
+          "documentation":"<p>The configuration for the restricted instance groups (RIG) in the SageMaker HyperPod cluster.</p>"
+        },
         "TieredStorageConfig":{
           "shape":"ClusterTieredStorageConfig",
           "documentation":"<p>Updates the configuration for managed tier checkpointing on the HyperPod cluster. For example, you can enable or disable the feature and modify the percentage of cluster memory allocated for checkpoint storage.</p>"
@@ -48302,6 +48405,10 @@
         "TagPropagation":{
           "shape":"TagPropagation",
           "documentation":"<p>Indicates whether custom tag propagation is supported for the domain. Defaults to <code>DISABLED</code>.</p>"
+        },
+        "HomeEfsFileSystemCreation":{
+          "shape":"HomeEfsFileSystemCreation",
+          "documentation":"<p>Indicates whether to create a home EFS file system for the domain. You can change from <code>Disabled</code> to <code>Enabled</code> to provision EFS on demand, but you cannot change from <code>Enabled</code> to <code>Disabled</code>.</p>"
         },
         "VpcId":{
           "shape":"VpcId",
