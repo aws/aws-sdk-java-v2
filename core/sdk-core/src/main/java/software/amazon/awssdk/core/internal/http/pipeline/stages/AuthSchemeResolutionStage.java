@@ -63,6 +63,13 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
             return request;
         }
 
+        // Skip if auth scheme was already resolved by an old service interceptor
+        // The "unset" scheme ID indicates the placeholder - anything else means it's already resolved.
+        SelectedAuthScheme<?> existing = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (existing != null && !"unset".equals(existing.authSchemeOption().schemeId())) {
+            return request;
+        }
+
         SdkRequest sdkRequest = context.executionContext().interceptorContext().request();
         List<AuthSchemeOption> authOptions = resolveAuthSchemeOptions(executionAttributes, sdkRequest);
         if (authOptions == null || authOptions.isEmpty()) {
