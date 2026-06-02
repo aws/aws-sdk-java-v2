@@ -52,7 +52,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -245,8 +245,8 @@ public class S3ExpressCacheFunctionalTest {
                                                     .addExecutionInterceptor(PATH_STYLE_INTERCEPTOR))
                        .credentialsProvider(CLIENT_CREDENTIALS_PROVIDER)
                        .endpointOverride(WM_HTTPS_ENDPOINT.apply(wm))
-                       .httpClient(ApacheHttpClient.builder()
-                                                   .buildWithDefaults(AttributeMap.builder()
+                       .httpClient(Apache5HttpClient.builder()
+                                                    .buildWithDefaults(AttributeMap.builder()
                                                                                   .put(TRUST_ALL_CERTIFICATES, TRUE)
                                                                                   .build()));
     }
