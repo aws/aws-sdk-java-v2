@@ -228,4 +228,47 @@ class AuthSchemeResolutionStageTest {
             AuthSchemeOption.builder().schemeId(SCHEME_ID).build()
         );
     }
+
+    @Test
+    void execute_authSchemeAlreadyResolved_skipsResolution() throws Exception {
+        // Simulate old service interceptor already resolved auth scheme
+        SelectedAuthScheme<Identity> alreadyResolved = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(mock(Identity.class)),
+            mock(HttpSigner.class),
+            AuthSchemeOption.builder().schemeId("aws.auth#sigv4").build()
+        );
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, alreadyResolved);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
+
+        SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
+
+        assertThat(result).isSameAs(httpRequestBuilder);
+        // Auth scheme should still be the one set by the old interceptor (not re-resolved)
+        SelectedAuthScheme<?> finalScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(finalScheme.authSchemeOption().schemeId()).isEqualTo("aws.auth#sigv4");
+    }
+
+    @Test
+    void execute_authSchemeUnset_proceedsWithResolution() throws Exception {
+        // "unset" placeholder — pipeline should resolve
+        SelectedAuthScheme<Identity> unsetPlaceholder = new SelectedAuthScheme<>(
+            CompletableFuture.completedFuture(mock(Identity.class)),
+            mock(HttpSigner.class),
+            AuthSchemeOption.builder().schemeId("unset").build()
+        );
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, unsetPlaceholder);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
+
+        stage.execute(httpRequestBuilder, context);
+
+        // Should have resolved to the test scheme
+        SelectedAuthScheme<?> finalScheme = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(finalScheme.authSchemeOption().schemeId()).isEqualTo(SCHEME_ID);
+    }
 }
