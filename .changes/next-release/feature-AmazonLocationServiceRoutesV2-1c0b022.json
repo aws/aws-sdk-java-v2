@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service Routes V2",
+    "contributor": "",
+    "description": "Add \"standardRegionalEndpoints\" back to fix 'Could not connect to the endpoint URL'"
+}
