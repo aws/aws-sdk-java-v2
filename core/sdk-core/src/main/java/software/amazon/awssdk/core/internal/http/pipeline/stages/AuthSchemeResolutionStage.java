@@ -75,10 +75,10 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         IdentityProviders identityProviders = updateIdentityProvidersIfNeeded(executionAttributes, sdkRequest);
 
         // Skip resolution if auth scheme was already resolved by an old service interceptor
-        // With old service + new core, resolution would happen twice (interceptor + pipeline stage),
-        // so we skip here to avoid redundant resolution.
         SelectedAuthScheme<?> existing = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         if (existing != null && !"unset".equals(existing.authSchemeOption().schemeId())) {
+            //Updates the identity on an already-resolved auth scheme, ensuring credential overrides via interceptors
+            //are respected even with old service clients.
             updateIdentityOnExistingScheme(existing, identityProviders, executionAttributes);
             return request;
         }
@@ -135,9 +135,6 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         return identityProviders;
     }
 
-    /**
-     * Re-resolves identity to ensure credential overrides via interceptors are respected, even with old service clients.
-     */
     @SuppressWarnings("unchecked")
     private <T extends Identity> void updateIdentityOnExistingScheme(SelectedAuthScheme<T> existing,
                                                                      IdentityProviders identityProviders,
