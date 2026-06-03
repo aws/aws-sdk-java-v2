@@ -78,20 +78,23 @@ public final class MultipartDownloadUtils {
     }
 
     /**
-     * Parses the start byte from a Content-Range header.
-     * 
+     * Parses start byte and end byte from a Content-Range header.
+     *
      * @param contentRange the Content-Range header value (e.g., "bytes 0-1023/2048")
-     * @return the start byte position, or -1 if parsing fails
+     * @return array of [startByte, endByte], or null if parsing fails
      */
-    public static long parseStartByteFromContentRange(String contentRange) {
+    public static long[] parseContentRange(String contentRange) {
         if (contentRange == null) {
-            return -1;
+            return null;
         }
         Matcher matcher = CONTENT_RANGE_PATTERN.matcher(contentRange);
         if (!matcher.matches()) {
-            return -1;
+            return null;
         }
-        return Long.parseLong(matcher.group(1));
+        return new long[] {
+            Long.parseLong(matcher.group(1)),
+            Long.parseLong(matcher.group(2))
+        };
     }
 
     /**
@@ -109,6 +112,17 @@ public final class MultipartDownloadUtils {
             return Optional.empty();
         }
         return Optional.of(Long.parseLong(matcher.group(3)));
+    }
+
+    /**
+     * Calculates the total number of parts needed to download an object of the given size.
+     *
+     * @param contentLength total object size in bytes
+     * @param partSize      size of each part in bytes
+     * @return the number of parts
+     */
+    public static int calculateTotalParts(long contentLength, long partSize) {
+        return (int) Math.ceil((double) contentLength / partSize);
     }
 
 }
