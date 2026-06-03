@@ -260,4 +260,17 @@ class EndpointResolutionStageTest {
                                      .originalRequest(request)
                                      .build();
     }
+
+    @Test
+    void execute_endpointAlreadyResolved_skipsResolution() throws Exception {
+        Endpoint preResolved = Endpoint.builder().url(URI.create("https://pre-resolved.example.com")).build();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, preResolved);
+
+        SdkHttpFullRequest.Builder request = defaultRequest();
+        SdkHttpFullRequest.Builder result = stage.execute(request, createContext());
+
+
+        assertThat(result).isSameAs(request);
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT)).isSameAs(preResolved);
+    }
 }

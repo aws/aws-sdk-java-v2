@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -37,7 +38,9 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 
@@ -70,6 +73,15 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         }
 
         IdentityProviders identityProviders = updateIdentityProvidersIfNeeded(executionAttributes, sdkRequest);
+
+        // Skip resolution if auth scheme was already resolved by an old service interceptor
+        SelectedAuthScheme<?> existing = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        if (existing != null && !"unset".equals(existing.authSchemeOption().schemeId())) {
+            //Updates the identity on an already-resolved auth scheme, ensuring credential overrides via interceptors
+            //are respected even with old service clients.
+            updateIdentityOnExistingScheme(existing, identityProviders, executionAttributes);
+            return request;
+        }
 
         MetricCollector metricCollector =
             executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);
@@ -121,6 +133,25 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
             identityProviders = updater.update(request, identityProviders, executionAttributes);
         }
         return identityProviders;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Identity> void updateIdentityOnExistingScheme(SelectedAuthScheme<T> existing,
+                                                                     IdentityProviders identityProviders,
+                                                                     ExecutionAttributes executionAttributes) {
+        AuthScheme<T> authScheme = (AuthScheme<T>) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES)
+            .get(existing.authSchemeOption().schemeId());
+        if (authScheme == null) {
+            return;
+        }
+        IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
+        if (identityProvider == null) {
+            return;
+        }
+        CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(ResolveIdentityRequest.builder().build());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                         new SelectedAuthScheme<>(identity, existing.signer(), existing.authSchemeOption()));
     }
 
     private void recordBusinessMetrics(SelectedAuthScheme<? extends Identity> selectedAuthScheme,
