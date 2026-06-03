@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.3__ __2026-06-03__
+## __ARC - Region switch__
+  - ### Features
+    - ARC Region Switch now supports three new execution blocks for multi-Region database workloads-Amazon Aurora Serverless scaling, Amazon Aurora Provisioned scaling, and Amazon Neptune Global Database failover.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release lets customers extend the lookback period for Amazon EBS volume and Amazon ECS rightsizing recommendations to 32 days.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added support for target-coverage-based Savings Plans purchase analysis. The StartCommitmentPurchaseAnalysis API now accepts a new TARGET AVERAGE COVERAGE value for AnalysisType, as well as an optional SavingsPlansTargetCoverage field in SavingsPlansPurchaseAnalysisConfiguration
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adding support for WhatsApp flow APIs and adding AccessDeniedByMetaException for Template APIs
+
+## __Amazon Connect Service__
+  - ### Features
+    - SearchContacts Connect API now supports filtering contacts by the AI Agents involved in handling them
+
+## __Inspector2__
+  - ### Features
+    - Inspector support for enhanced scanning
+
 # __2.46.2__ __2026-06-02__
 ## __AWS SDK for Java v2__
   - ### Features

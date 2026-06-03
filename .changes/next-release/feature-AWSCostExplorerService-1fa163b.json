@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cost Explorer Service",
-    "contributor": "",
-    "description": "Added support for target-coverage-based Savings Plans purchase analysis. The StartCommitmentPurchaseAnalysis API now accepts a new TARGET AVERAGE COVERAGE value for AnalysisType, as well as an optional SavingsPlansTargetCoverage field in SavingsPlansPurchaseAnalysisConfiguration"
-}
