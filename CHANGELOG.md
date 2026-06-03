@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.2__ __2026-06-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - Add "standardRegionalEndpoints" back to fix 'Could not connect to the endpoint URL'
+
 # __2.46.1__ __2026-06-02__
 ## __AWS IoT__
   - ### Features
