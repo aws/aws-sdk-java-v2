@@ -28,6 +28,7 @@ jobs:
     needs: submit-dependencies
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions: {}
     steps:
       - name: Wait for alert processing
         run: sleep 60
