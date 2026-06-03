@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "SearchContacts Connect API now supports filtering contacts by the AI Agents involved in handling them"
+}
