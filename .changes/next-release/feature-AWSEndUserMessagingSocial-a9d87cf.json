@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS End User Messaging Social",
+    "contributor": "",
+    "description": "Adding support for WhatsApp flow APIs and adding AccessDeniedByMetaException for Template APIs"
+}
