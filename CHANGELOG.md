@@ -1,4 +1,85 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.4__ __2026-06-04__
+## __AWS Audit Manager__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fix connection pool exhaustion in the CRT HTTP client where connections were not released after a request abort or timeout.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports internal service-linked rules, allowing AWS service partners to deploy Config rules for customers and use the evaluation results to build enhanced features.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Interactive Sessions now supports Apache Spark Connect, enabling remote Spark execution over gRPC with minimal client-side dependencies. Adds GetSessionEndpoint and GetDashboardUrl APIs. Modifies CreateSession now accepts SPARK CONNECT session type.
+
+## __AWS Wickr Admin API__
+  - ### Features
+    - AWS Wickr now allows network administrators to configure a maximum session duration for non-SSO users in security groups, and display customizable consent popups to users at login for terms of use or compliance acknowledgements.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon EMR__
+  - ### Features
+    - Added support for Spark Connect interactive sessions on Amazon EMR on EC2 with new APIs - StartSession, GetSession, GetSessionEndpoint, ListSessions, and TerminateSession. Added sessionEnabled field in RunJobFlow and DescribeCluster to enable Spark Connect endpoints on EMR clusters.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Remove unsupported RDS field for filter
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - adds UpdateAdConfiguration operation to AWS IVS low-latency APIs
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds the IncludedData parameter to DescribeModelCard and DescribeModelPackage. Set it to MetadataOnly to retrieve a model card without decrypt permission on the customer managed AWS KMS key (default AllData returns full content). Adds support for the MTRL Job resource in SageMaker Search.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Tax Settings__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
 # __2.46.3__ __2026-06-03__
 ## __ARC - Region switch__
   - ### Features
