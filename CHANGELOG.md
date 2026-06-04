@@ -1,107 +1,105 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.45.1__ __2026-05-29__
-## __AWS Ground Station__
+# __2.46.3__ __2026-06-03__
+## __ARC - Region switch__
   - ### Features
-    - Adds support for Alpha-5 satellite number encoding in the Two-Line Element ephemeris format.
+    - ARC Region Switch now supports three new execution blocks for multi-Region database workloads-Amazon Aurora Serverless scaling, Amazon Aurora Provisioned scaling, and Amazon Neptune Global Database failover.
 
-## __AWS RDS DataService__
+## __AWS Compute Optimizer__
   - ### Features
-    - Service Release Notes
+    - This release lets customers extend the lookback period for Amazon EBS volume and Amazon ECS rightsizing recommendations to 32 days.
 
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added support for target-coverage-based Savings Plans purchase analysis. The StartCommitmentPurchaseAnalysis API now accepts a new TARGET AVERAGE COVERAGE value for AnalysisType, as well as an optional SavingsPlansTargetCoverage field in SavingsPlansPurchaseAnalysisConfiguration
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adding support for WhatsApp flow APIs and adding AccessDeniedByMetaException for Template APIs
+
+## __Amazon Connect Service__
+  - ### Features
+    - SearchContacts Connect API now supports filtering contacts by the AI Agents involved in handling them
+
+## __Inspector2__
+  - ### Features
+    - Inspector support for enhanced scanning
+
+# __2.46.2__ __2026-06-02__
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-## __Amazon Bedrock__
+## __Amazon Location Service Routes V2__
   - ### Features
-    - Automated Reasoning checks - Added two build workflows for policies. Iterative Refine Policy uses AI to update policy definitions based on test results and feedback. Resolve Policy Ambiguities consolidates ambiguous variables in Automated Reasoning policies, a common source of ambiguous validation.
+    - Add "standardRegionalEndpoints" back to fix 'Could not connect to the endpoint URL'
 
-## __Amazon Bedrock AgentCore Control__
+# __2.46.1__ __2026-06-02__
+## __AWS IoT__
   - ### Features
-    - Service Release Notes
+    - Fleet indexing documentation update
 
-## __Amazon Omics__
+## __AWS Lambda__
   - ### Features
-    - Add engineSettings to StartRun and GetRun. Add profiles and profileParameterTemplates to GetWorkflow and GetWorkflowVersion.
+    - Adds configuration for tag propagation to Lambda-managed resources.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache for Valkey now supports durability. This new capability is enabled through a Multi-AZ transactional log, enabling fast recovery and restart during failures.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports self-service cancellation of future-dated Capacity Reservations. A cancellation charge applies based on remaining commitment. Customers can generate a cancellation quote to review charges before confirming.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty Runtime Monitoring now supports 3 new SensitiveFileModified finding types (Persistence, PrivilegeEscalation, DefenseEvasion) that detect when security-sensitive system files are modified on EC2 instances or containers, indicating potential compromise through file tampering.
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Added iterator description to the GetRecords API response for Amazon Keyspaces Change Data Capture (CDC) streams, enabling consumers to track their current position within the stream.
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - Added Transit and Intermodal travel modes to CalculateRoutes. Plan routes using public transit (bus, subway, train, ferry) or combine transit with driving, taxi, and rental car segments in a single multi-modal route.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Job is a new service to help you manage various workloads related to model fine tuning, evaluation etc. Two job categories are supported today, AgentRFT for multi-turn agentic reinforcement fine tuning, and AgentRFTEvaluation for evaluating base model or trained model from AgentRFT.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Release new Language locales including am-ET, es-MX, fa-AF, ht-HT, jv-ID, km-KH, my-MM, sq-AL, ne-NP. The commit shows past locales that have already been release which include cy-gb, ga-ie, gd-gb.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix a resource leak in `downloadDirectory` where cancelling the download could still allow file transfers that arrive late to recreate the destination directory. Added a guard in `DownloadDirectoryHelper` to skip file downloads after the operation is cancelled.
+
+## __Sagemaker Job Runtime Service__
+  - ### Features
+    - Amazon SageMaker Job Runtime is a new service for managing trajectory data during multi-turn customization jobs. It provides APIs to send inference requests to models during job execution, mark rollouts as complete, and submit reward values for training trajectories.
+
+# __2.46.0__ __2026-06-01__
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - Adding Entitlements in SearchAgreements Response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This update replaces the default `apache-client` runtime dependency of service clients with the new `apache5-client`. This means that service clients will now use the `Apache5HttpClient` by default if no HTTP client is explicitly configured on the service client builder.\n Notable changes:\n - Apache 5 uses different logger names than Apache 4\n - Expect: 100-Continue is disabled by default\n - TCP keep-alive socket options require `jdk.net.NetworkPermission` when SecurityManager is active
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for multi-region replication, enabling synchronization of user data and configurations to a secondary user pool in a standby Region. Add support for customer managed keys (CMK) in AWS KMS for encrypting user pool data at rest.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Increase code coverage on dynamodb-enhanced module
 
 ## __Amazon QuickSight__
   - ### Features
-    - Adds support for creating, updating, describing, listing, and deleting an OAuthClientApplication resource, a new quicksight resource that allows customers to store OAuth configurations to connect to their databases via 3 Legged OAuth.
-
-## __Amazon Route 53 Resolver__
-  - ### Features
-    - Added BatchCreateFirewallRule, BatchUpdateFirewallRule, BatchDeleteFirewallRule, and ListFirewallRuleTypes APIs. Added FirewallRuleType support to Firewall Rule APIs.
-
-## __Amazon Simple Email Service__
-  - ### Features
-    - This release introduces support for Tenant Suppression Lists
+    - This release adds public APIs for Amazon QuickSight Spaces, Agents, and Flows. Spaces APIs enable management of curated resource collections. Agents APIs provide lifecycle control over AI-powered agents that leverage Spaces. Flows APIs add CRUDL APIs for automated workflows.
 
 ## __Apache HTTP Client 5__
   - ### Features
-    - Fail fast at Apache5HttpClient construction when SecurityManager is active and jdk.net.NetworkPermission setOption.TCP_KEEPIDLE, setOption.TCP_KEEPINTERVAL, setOption.TCP_KEEPCOUNT are not granted.
-
-# __2.45.0__ __2026-05-28__
-## __AWS Control Catalog__
-  - ### Features
-    - AWS Control Catalog - Added GovernedProviders response field and inclusion filter to GetControl and ListControls APIs to identify and filter by cloud provider. Added ParameterRequirementSummary response field indicating parameter requirements.
-
-## __AWS IoT__
-  - ### Features
-    - Adds new connectivity-related fields to Fleet Indexing API requests and responses.
-
-## __AWS IoT Data Plane__
-  - ### Features
-    - Service Release Notes
-
-## __AWS Parallel Computing Service__
-  - ### Features
-    - This release adds support for configuring scaleDownIdleTimeInSeconds at the compute node group level, allowing customers to set different idle timeouts per node group. Previously this setting was only available at the cluster level.
-
-## __AWS Resilience Hub V2__
-  - ### Features
-    - This is the initial SDK release for the next generation of Resilience Hub.
-
-## __AWS S3 Control__
-  - ### Features
-    - Service Release Notes
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWSDeadlineCloud__
-  - ### Features
-    - Added support for persistent storage on Service-Managed Fleets, allowing customers to configure persistent storage that preserves data across worker sessions which reduces job startup times for workloads with large software installations or asset caches.
-
-## __Amazon AppStream__
-  - ### Features
-    - Amazon WorkSpaces Applications now supports BYOL (Bring Your Own License). This enables customers to import their own WorkSpaces images and use them in WorkSpaces Applications.
-
-## __Amazon Bedrock__
-  - ### Features
-    - Add support for ModelPackageArn in Bedrock's CreateCustomModel API
-
-## __Amazon Bedrock AgentCore__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon Bedrock Runtime__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon Connect Customer Profiles__
-  - ### Features
-    - Service Release Notes
-
-## __Amazon S3__
-  - ### Bugfixes
-    - The multipart S3 client now honors MetadataDirective COPY by preserving source object metadata on the destination during multipart copy.
-
-## __OpenSearch Service Serverless__
-  - ### Features
-    - Adds support for deletion protection on collections, ability to create NEXTGEN collection groups and autoscaling visibility for NEXTGEN collection groups
+    - Upgrade httpcomponents.client5 to 5.6.1
 

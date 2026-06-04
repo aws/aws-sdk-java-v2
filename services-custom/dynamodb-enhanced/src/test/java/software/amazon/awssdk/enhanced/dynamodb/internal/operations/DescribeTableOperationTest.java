@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
 
@@ -47,6 +46,12 @@ public class DescribeTableOperationTest {
     private DynamoDbClient mockDynamoDbClient;
 
     @Test
+    public void returnsCorrectOperationName() {
+        DescribeTableOperation<FakeItem> operation = DescribeTableOperation.create();
+        assertThat(operation.operationName().label()).isEqualTo("DescribeTable");
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCall() {
         DescribeTableOperation<FakeItem> operation = DescribeTableOperation.create();
         DescribeTableRequest describeTableRequest = DescribeTableRequest.builder().build();
@@ -62,7 +67,7 @@ public class DescribeTableOperationTest {
                 .generateRequest(FakeItemWithSort.getTableSchema(),
                         PRIMARY_CONTEXT,
                         null);
-        assertThat(describeTableRequest, is(describeTableRequest.builder().tableName(TABLE_NAME).build()));
+        assertThat(describeTableRequest).isEqualTo(DescribeTableRequest.builder().tableName(TABLE_NAME).build());
     }
 
     @Test

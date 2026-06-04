@@ -44,7 +44,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
@@ -117,7 +117,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
         // sign the request
         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructSignerParams());
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
@@ -136,7 +136,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
         // sign the request
         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructExecutionAttributes());
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
