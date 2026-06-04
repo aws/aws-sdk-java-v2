@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fix connection pool exhaustion in the CRT HTTP client where connections were not released after a request abort or timeout."
+}
