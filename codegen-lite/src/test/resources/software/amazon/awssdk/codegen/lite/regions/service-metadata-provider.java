@@ -1,5 +1,6 @@
 package software.amazon.awssdk.regions;
 
+import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -257,155 +258,536 @@ import software.amazon.awssdk.regions.servicemetadata.WorkdocsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.WorkmailServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.WorkspacesServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.XrayServiceMetadata;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 public final class GeneratedServiceMetadataProvider implements ServiceMetadataProvider {
-    private static final Map<String, ServiceMetadata> SERVICE_METADATA = ImmutableMap.<String, ServiceMetadata> builder()
-                                                                                     .put("a4b", new A4bServiceMetadata()).put("access-analyzer", new AccessAnalyzerServiceMetadata())
-                                                                                     .put("account", new AccountServiceMetadata()).put("acm", new AcmServiceMetadata())
-                                                                                     .put("acm-pca", new AcmPcaServiceMetadata()).put("airflow", new AirflowServiceMetadata())
-                                                                                     .put("amplify", new AmplifyServiceMetadata()).put("amplifybackend", new AmplifybackendServiceMetadata())
-                                                                                     .put("api.detective", new ApiDetectiveServiceMetadata()).put("api.ecr", new ApiEcrServiceMetadata())
-                                                                                     .put("api.ecr-public", new ApiEcrPublicServiceMetadata())
-                                                                                     .put("api.elastic-inference", new ApiElasticInferenceServiceMetadata())
-                                                                                     .put("api.fleethub.iot", new ApiFleethubIotServiceMetadata())
-                                                                                     .put("api.mediatailor", new ApiMediatailorServiceMetadata()).put("api.pricing", new ApiPricingServiceMetadata())
-                                                                                     .put("api.sagemaker", new ApiSagemakerServiceMetadata()).put("apigateway", new ApigatewayServiceMetadata())
-                                                                                     .put("app-integrations", new AppIntegrationsServiceMetadata()).put("appflow", new AppflowServiceMetadata())
-                                                                                     .put("application-autoscaling", new ApplicationAutoscalingServiceMetadata())
-                                                                                     .put("applicationinsights", new ApplicationinsightsServiceMetadata()).put("appmesh", new AppmeshServiceMetadata())
-                                                                                     .put("apprunner", new ApprunnerServiceMetadata()).put("appstream2", new Appstream2ServiceMetadata())
-                                                                                     .put("appsync", new AppsyncServiceMetadata()).put("aps", new ApsServiceMetadata())
-                                                                                     .put("athena", new AthenaServiceMetadata()).put("auditmanager", new AuditmanagerServiceMetadata())
-                                                                                     .put("autoscaling", new AutoscalingServiceMetadata()).put("autoscaling-plans", new AutoscalingPlansServiceMetadata())
-                                                                                     .put("backup", new BackupServiceMetadata()).put("batch", new BatchServiceMetadata())
-                                                                                     .put("braket", new BraketServiceMetadata()).put("budgets", new BudgetsServiceMetadata())
-                                                                                     .put("ce", new CeServiceMetadata()).put("chime", new ChimeServiceMetadata())
-                                                                                     .put("cloud9", new Cloud9ServiceMetadata()).put("cloudcontrolapi", new CloudcontrolapiServiceMetadata())
-                                                                                     .put("clouddirectory", new ClouddirectoryServiceMetadata())
-                                                                                     .put("cloudformation", new CloudformationServiceMetadata()).put("cloudfront", new CloudfrontServiceMetadata())
-                                                                                     .put("cloudhsm", new CloudhsmServiceMetadata()).put("cloudhsmv2", new Cloudhsmv2ServiceMetadata())
-                                                                                     .put("cloudsearch", new CloudsearchServiceMetadata()).put("cloudtrail", new CloudtrailServiceMetadata())
-                                                                                     .put("codeartifact", new CodeartifactServiceMetadata()).put("codebuild", new CodebuildServiceMetadata())
-                                                                                     .put("codecommit", new CodecommitServiceMetadata()).put("codedeploy", new CodedeployServiceMetadata())
-                                                                                     .put("codeguru-profiler", new CodeguruProfilerServiceMetadata())
-                                                                                     .put("codeguru-reviewer", new CodeguruReviewerServiceMetadata())
-                                                                                     .put("codepipeline", new CodepipelineServiceMetadata()).put("codestar", new CodestarServiceMetadata())
-                                                                                     .put("codestar-connections", new CodestarConnectionsServiceMetadata())
-                                                                                     .put("codestar-notifications", new CodestarNotificationsServiceMetadata())
-                                                                                     .put("cognito-identity", new CognitoIdentityServiceMetadata()).put("cognito-idp", new CognitoIdpServiceMetadata())
-                                                                                     .put("cognito-sync", new CognitoSyncServiceMetadata()).put("comprehend", new ComprehendServiceMetadata())
-                                                                                     .put("comprehendmedical", new ComprehendmedicalServiceMetadata())
-                                                                                     .put("compute-optimizer", new ComputeOptimizerServiceMetadata()).put("config", new ConfigServiceMetadata())
-                                                                                     .put("connect", new ConnectServiceMetadata()).put("connectparticipant", new ConnectparticipantServiceMetadata())
-                                                                                     .put("contact-lens", new ContactLensServiceMetadata()).put("cur", new CurServiceMetadata())
-                                                                                     .put("data.iot", new DataIotServiceMetadata()).put("data.jobs.iot", new DataJobsIotServiceMetadata())
-                                                                                     .put("data.mediastore", new DataMediastoreServiceMetadata()).put("databrew", new DatabrewServiceMetadata())
-                                                                                     .put("dataexchange", new DataexchangeServiceMetadata()).put("datapipeline", new DatapipelineServiceMetadata())
-                                                                                     .put("datasync", new DatasyncServiceMetadata()).put("dax", new DaxServiceMetadata())
-                                                                                     .put("deeplens", new DeeplensServiceMetadata()).put("devicefarm", new DevicefarmServiceMetadata())
-                                                                                     .put("devices.iot1click", new DevicesIot1clickServiceMetadata())
-                                                                                     .put("directconnect", new DirectconnectServiceMetadata()).put("discovery", new DiscoveryServiceMetadata())
-                                                                                     .put("dlm", new DlmServiceMetadata()).put("dms", new DmsServiceMetadata()).put("docdb", new DocdbServiceMetadata())
-                                                                                     .put("ds", new DsServiceMetadata()).put("dynamodb", new DynamodbServiceMetadata())
-                                                                                     .put("ebs", new EbsServiceMetadata()).put("ec2", new Ec2ServiceMetadata()).put("ecs", new EcsServiceMetadata())
-                                                                                     .put("edge.sagemaker", new EdgeSagemakerServiceMetadata()).put("eks", new EksServiceMetadata())
-                                                                                     .put("elasticache", new ElasticacheServiceMetadata()).put("elasticbeanstalk", new ElasticbeanstalkServiceMetadata())
-                                                                                     .put("elasticfilesystem", new ElasticfilesystemServiceMetadata())
-                                                                                     .put("elasticloadbalancing", new ElasticloadbalancingServiceMetadata())
-                                                                                     .put("elasticmapreduce", new ElasticmapreduceServiceMetadata())
-                                                                                     .put("elastictranscoder", new ElastictranscoderServiceMetadata()).put("email", new EmailServiceMetadata())
-                                                                                     .put("emr-containers", new EmrContainersServiceMetadata())
-                                                                                     .put("entitlement.marketplace", new EntitlementMarketplaceServiceMetadata()).put("es", new EsServiceMetadata())
-                                                                                     .put("events", new EventsServiceMetadata()).put("execute-api", new ExecuteApiServiceMetadata())
-                                                                                     .put("finspace", new FinspaceServiceMetadata()).put("finspace-api", new FinspaceApiServiceMetadata())
-                                                                                     .put("firehose", new FirehoseServiceMetadata()).put("fms", new FmsServiceMetadata())
-                                                                                     .put("forecast", new ForecastServiceMetadata()).put("forecastquery", new ForecastqueryServiceMetadata())
-                                                                                     .put("frauddetector", new FrauddetectorServiceMetadata()).put("fsx", new FsxServiceMetadata())
-                                                                                     .put("gamelift", new GameliftServiceMetadata()).put("glacier", new GlacierServiceMetadata())
-                                                                                     .put("glue", new GlueServiceMetadata()).put("grafana", new GrafanaServiceMetadata())
-                                                                                     .put("greengrass", new GreengrassServiceMetadata()).put("groundstation", new GroundstationServiceMetadata())
-                                                                                     .put("guardduty", new GuarddutyServiceMetadata()).put("health", new HealthServiceMetadata())
-                                                                                     .put("healthlake", new HealthlakeServiceMetadata()).put("honeycode", new HoneycodeServiceMetadata())
-                                                                                     .put("iam", new IamServiceMetadata()).put("identity-chime", new IdentityChimeServiceMetadata())
-                                                                                     .put("identitystore", new IdentitystoreServiceMetadata()).put("importexport", new ImportexportServiceMetadata())
-                                                                                     .put("inspector", new InspectorServiceMetadata()).put("iot", new IotServiceMetadata())
-                                                                                     .put("iotanalytics", new IotanalyticsServiceMetadata())
-                                                                                     .put("iotdeviceadvisor", new IotdeviceadvisorServiceMetadata()).put("iotevents", new IoteventsServiceMetadata())
-                                                                                     .put("ioteventsdata", new IoteventsdataServiceMetadata())
-                                                                                     .put("iotsecuredtunneling", new IotsecuredtunnelingServiceMetadata())
-                                                                                     .put("iotsitewise", new IotsitewiseServiceMetadata()).put("iotthingsgraph", new IotthingsgraphServiceMetadata())
-                                                                                     .put("iotwireless", new IotwirelessServiceMetadata()).put("ivs", new IvsServiceMetadata())
-                                                                                     .put("kafka", new KafkaServiceMetadata()).put("kafkaconnect", new KafkaconnectServiceMetadata())
-                                                                                     .put("kendra", new KendraServiceMetadata()).put("kinesis", new KinesisServiceMetadata())
-                                                                                     .put("kinesisanalytics", new KinesisanalyticsServiceMetadata())
-                                                                                     .put("kinesisvideo", new KinesisvideoServiceMetadata()).put("kms", new KmsServiceMetadata())
-                                                                                     .put("lakeformation", new LakeformationServiceMetadata()).put("lambda", new LambdaServiceMetadata())
-                                                                                     .put("license-manager", new LicenseManagerServiceMetadata()).put("lightsail", new LightsailServiceMetadata())
-                                                                                     .put("logs", new LogsServiceMetadata()).put("lookoutequipment", new LookoutequipmentServiceMetadata())
-                                                                                     .put("lookoutmetrics", new LookoutmetricsServiceMetadata()).put("lookoutvision", new LookoutvisionServiceMetadata())
-                                                                                     .put("machinelearning", new MachinelearningServiceMetadata()).put("macie", new MacieServiceMetadata())
-                                                                                     .put("macie2", new Macie2ServiceMetadata()).put("managedblockchain", new ManagedblockchainServiceMetadata())
-                                                                                     .put("marketplacecommerceanalytics", new MarketplacecommerceanalyticsServiceMetadata())
-                                                                                     .put("mediaconnect", new MediaconnectServiceMetadata()).put("mediaconvert", new MediaconvertServiceMetadata())
-                                                                                     .put("medialive", new MedialiveServiceMetadata()).put("mediapackage", new MediapackageServiceMetadata())
-                                                                                     .put("mediapackage-vod", new MediapackageVodServiceMetadata()).put("mediastore", new MediastoreServiceMetadata())
-                                                                                     .put("memorydb", new MemorydbServiceMetadata()).put("messaging-chime", new MessagingChimeServiceMetadata())
-                                                                                     .put("metering.marketplace", new MeteringMarketplaceServiceMetadata()).put("mgh", new MghServiceMetadata())
-                                                                                     .put("mgn", new MgnServiceMetadata()).put("migrationhub-strategy", new MigrationhubStrategyServiceMetadata())
-                                                                                     .put("mobileanalytics", new MobileanalyticsServiceMetadata()).put("models-v2-lex", new ModelsV2LexServiceMetadata())
-                                                                                     .put("models.lex", new ModelsLexServiceMetadata()).put("monitoring", new MonitoringServiceMetadata())
-                                                                                     .put("mq", new MqServiceMetadata()).put("mturk-requester", new MturkRequesterServiceMetadata())
-                                                                                     .put("neptune", new NeptuneServiceMetadata()).put("network-firewall", new NetworkFirewallServiceMetadata())
-                                                                                     .put("networkmanager", new NetworkmanagerServiceMetadata()).put("nimble", new NimbleServiceMetadata())
-                                                                                     .put("oidc", new OidcServiceMetadata()).put("opsworks", new OpsworksServiceMetadata())
-                                                                                     .put("opsworks-cm", new OpsworksCmServiceMetadata()).put("organizations", new OrganizationsServiceMetadata())
-                                                                                     .put("outposts", new OutpostsServiceMetadata()).put("personalize", new PersonalizeServiceMetadata())
-                                                                                     .put("pi", new PiServiceMetadata()).put("pinpoint", new PinpointServiceMetadata())
-                                                                                     .put("pinpoint-sms-voice", new PinpointSmsVoiceServiceMetadata()).put("polly", new PollyServiceMetadata())
-                                                                                     .put("portal.sso", new PortalSsoServiceMetadata()).put("profile", new ProfileServiceMetadata())
-                                                                                     .put("projects.iot1click", new ProjectsIot1clickServiceMetadata()).put("qldb", new QldbServiceMetadata())
-                                                                                     .put("quicksight", new QuicksightServiceMetadata()).put("ram", new RamServiceMetadata())
-                                                                                     .put("rds", new RdsServiceMetadata()).put("rdsdataservice", new RdsdataserviceServiceMetadata())
-                                                                                     .put("redshift", new RedshiftServiceMetadata()).put("rekognition", new RekognitionServiceMetadata())
-                                                                                     .put("resource-groups", new ResourceGroupsServiceMetadata()).put("robomaker", new RobomakerServiceMetadata())
-                                                                                     .put("route53", new Route53ServiceMetadata())
-                                                                                     .put("route53-recovery-control-config", new Route53RecoveryControlConfigServiceMetadata())
-                                                                                     .put("route53domains", new Route53domainsServiceMetadata())
-                                                                                     .put("route53resolver", new Route53resolverServiceMetadata())
-                                                                                     .put("runtime-v2-lex", new RuntimeV2LexServiceMetadata()).put("runtime.lex", new RuntimeLexServiceMetadata())
-                                                                                     .put("runtime.sagemaker", new RuntimeSagemakerServiceMetadata()).put("s3", new EnhancedS3ServiceMetadata())
-                                                                                     .put("s3-control", new S3ControlServiceMetadata()).put("s3-outposts", new S3OutpostsServiceMetadata())
-                                                                                     .put("savingsplans", new SavingsplansServiceMetadata()).put("schemas", new SchemasServiceMetadata())
-                                                                                     .put("sdb", new SdbServiceMetadata()).put("secretsmanager", new SecretsmanagerServiceMetadata())
-                                                                                     .put("securityhub", new SecurityhubServiceMetadata()).put("serverlessrepo", new ServerlessrepoServiceMetadata())
-                                                                                     .put("servicecatalog", new ServicecatalogServiceMetadata())
-                                                                                     .put("servicecatalog-appregistry", new ServicecatalogAppregistryServiceMetadata())
-                                                                                     .put("servicediscovery", new ServicediscoveryServiceMetadata())
-                                                                                     .put("servicequotas", new ServicequotasServiceMetadata()).put("session.qldb", new SessionQldbServiceMetadata())
-                                                                                     .put("shield", new ShieldServiceMetadata()).put("signer", new SignerServiceMetadata())
-                                                                                     .put("sms", new SmsServiceMetadata()).put("sms-voice.pinpoint", new SmsVoicePinpointServiceMetadata())
-                                                                                     .put("snow-device-management", new SnowDeviceManagementServiceMetadata())
-                                                                                     .put("snowball", new SnowballServiceMetadata()).put("sns", new SnsServiceMetadata())
-                                                                                     .put("sqs", new SqsServiceMetadata()).put("ssm", new SsmServiceMetadata())
-                                                                                     .put("ssm-incidents", new SsmIncidentsServiceMetadata()).put("states", new StatesServiceMetadata())
-                                                                                     .put("storagegateway", new StoragegatewayServiceMetadata())
-                                                                                     .put("streams.dynamodb", new StreamsDynamodbServiceMetadata()).put("sts", new StsServiceMetadata())
-                                                                                     .put("support", new SupportServiceMetadata()).put("swf", new SwfServiceMetadata())
-                                                                                     .put("synthetics", new SyntheticsServiceMetadata()).put("tagging", new TaggingServiceMetadata())
-                                                                                     .put("textract", new TextractServiceMetadata()).put("timestream.query", new TimestreamQueryServiceMetadata())
-                                                                                     .put("timestream.write", new TimestreamWriteServiceMetadata()).put("transcribe", new TranscribeServiceMetadata())
-                                                                                     .put("transcribestreaming", new TranscribestreamingServiceMetadata()).put("transfer", new TransferServiceMetadata())
-                                                                                     .put("translate", new TranslateServiceMetadata()).put("valkyrie", new ValkyrieServiceMetadata())
-                                                                                     .put("voiceid", new VoiceidServiceMetadata()).put("waf", new WafServiceMetadata())
-                                                                                     .put("waf-regional", new WafRegionalServiceMetadata()).put("wisdom", new WisdomServiceMetadata())
-                                                                                     .put("workdocs", new WorkdocsServiceMetadata()).put("workmail", new WorkmailServiceMetadata())
-                                                                                     .put("workspaces", new WorkspacesServiceMetadata()).put("xray", new XrayServiceMetadata())
-                                                                                     .put("operator", new OperatorServiceMetadata()).build();
+    private static final Map<String, ServiceMetadata> SERVICE_METADATA = new HashMap<>();
 
-    public ServiceMetadata serviceMetadata(String endpointPrefix) {
+    private static ServiceMetadata createServiceMetadata(String endpointPrefix) {
+        switch (endpointPrefix) {
+            case "a4b":
+                return new A4bServiceMetadata();
+            case "access-analyzer":
+                return new AccessAnalyzerServiceMetadata();
+            case "account":
+                return new AccountServiceMetadata();
+            case "acm":
+                return new AcmServiceMetadata();
+            case "acm-pca":
+                return new AcmPcaServiceMetadata();
+            case "airflow":
+                return new AirflowServiceMetadata();
+            case "amplify":
+                return new AmplifyServiceMetadata();
+            case "amplifybackend":
+                return new AmplifybackendServiceMetadata();
+            case "api.detective":
+                return new ApiDetectiveServiceMetadata();
+            case "api.ecr":
+                return new ApiEcrServiceMetadata();
+            case "api.ecr-public":
+                return new ApiEcrPublicServiceMetadata();
+            case "api.elastic-inference":
+                return new ApiElasticInferenceServiceMetadata();
+            case "api.fleethub.iot":
+                return new ApiFleethubIotServiceMetadata();
+            case "api.mediatailor":
+                return new ApiMediatailorServiceMetadata();
+            case "api.pricing":
+                return new ApiPricingServiceMetadata();
+            case "api.sagemaker":
+                return new ApiSagemakerServiceMetadata();
+            case "apigateway":
+                return new ApigatewayServiceMetadata();
+            case "app-integrations":
+                return new AppIntegrationsServiceMetadata();
+            case "appflow":
+                return new AppflowServiceMetadata();
+            case "application-autoscaling":
+                return new ApplicationAutoscalingServiceMetadata();
+            case "applicationinsights":
+                return new ApplicationinsightsServiceMetadata();
+            case "appmesh":
+                return new AppmeshServiceMetadata();
+            case "apprunner":
+                return new ApprunnerServiceMetadata();
+            case "appstream2":
+                return new Appstream2ServiceMetadata();
+            case "appsync":
+                return new AppsyncServiceMetadata();
+            case "aps":
+                return new ApsServiceMetadata();
+            case "athena":
+                return new AthenaServiceMetadata();
+            case "auditmanager":
+                return new AuditmanagerServiceMetadata();
+            case "autoscaling":
+                return new AutoscalingServiceMetadata();
+            case "autoscaling-plans":
+                return new AutoscalingPlansServiceMetadata();
+            case "backup":
+                return new BackupServiceMetadata();
+            case "batch":
+                return new BatchServiceMetadata();
+            case "braket":
+                return new BraketServiceMetadata();
+            case "budgets":
+                return new BudgetsServiceMetadata();
+            case "ce":
+                return new CeServiceMetadata();
+            case "chime":
+                return new ChimeServiceMetadata();
+            case "cloud9":
+                return new Cloud9ServiceMetadata();
+            case "cloudcontrolapi":
+                return new CloudcontrolapiServiceMetadata();
+            case "clouddirectory":
+                return new ClouddirectoryServiceMetadata();
+            case "cloudformation":
+                return new CloudformationServiceMetadata();
+            case "cloudfront":
+                return new CloudfrontServiceMetadata();
+            case "cloudhsm":
+                return new CloudhsmServiceMetadata();
+            case "cloudhsmv2":
+                return new Cloudhsmv2ServiceMetadata();
+            case "cloudsearch":
+                return new CloudsearchServiceMetadata();
+            case "cloudtrail":
+                return new CloudtrailServiceMetadata();
+            case "codeartifact":
+                return new CodeartifactServiceMetadata();
+            case "codebuild":
+                return new CodebuildServiceMetadata();
+            case "codecommit":
+                return new CodecommitServiceMetadata();
+            case "codedeploy":
+                return new CodedeployServiceMetadata();
+            case "codeguru-profiler":
+                return new CodeguruProfilerServiceMetadata();
+            case "codeguru-reviewer":
+                return new CodeguruReviewerServiceMetadata();
+            case "codepipeline":
+                return new CodepipelineServiceMetadata();
+            case "codestar":
+                return new CodestarServiceMetadata();
+            case "codestar-connections":
+                return new CodestarConnectionsServiceMetadata();
+            case "codestar-notifications":
+                return new CodestarNotificationsServiceMetadata();
+            case "cognito-identity":
+                return new CognitoIdentityServiceMetadata();
+            case "cognito-idp":
+                return new CognitoIdpServiceMetadata();
+            case "cognito-sync":
+                return new CognitoSyncServiceMetadata();
+            case "comprehend":
+                return new ComprehendServiceMetadata();
+            case "comprehendmedical":
+                return new ComprehendmedicalServiceMetadata();
+            case "compute-optimizer":
+                return new ComputeOptimizerServiceMetadata();
+            case "config":
+                return new ConfigServiceMetadata();
+            case "connect":
+                return new ConnectServiceMetadata();
+            case "connectparticipant":
+                return new ConnectparticipantServiceMetadata();
+            case "contact-lens":
+                return new ContactLensServiceMetadata();
+            case "cur":
+                return new CurServiceMetadata();
+            case "data.iot":
+                return new DataIotServiceMetadata();
+            case "data.jobs.iot":
+                return new DataJobsIotServiceMetadata();
+            case "data.mediastore":
+                return new DataMediastoreServiceMetadata();
+            case "databrew":
+                return new DatabrewServiceMetadata();
+            case "dataexchange":
+                return new DataexchangeServiceMetadata();
+            case "datapipeline":
+                return new DatapipelineServiceMetadata();
+            case "datasync":
+                return new DatasyncServiceMetadata();
+            case "dax":
+                return new DaxServiceMetadata();
+            case "deeplens":
+                return new DeeplensServiceMetadata();
+            case "devicefarm":
+                return new DevicefarmServiceMetadata();
+            case "devices.iot1click":
+                return new DevicesIot1clickServiceMetadata();
+            case "directconnect":
+                return new DirectconnectServiceMetadata();
+            case "discovery":
+                return new DiscoveryServiceMetadata();
+            case "dlm":
+                return new DlmServiceMetadata();
+            case "dms":
+                return new DmsServiceMetadata();
+            case "docdb":
+                return new DocdbServiceMetadata();
+            case "ds":
+                return new DsServiceMetadata();
+            case "dynamodb":
+                return new DynamodbServiceMetadata();
+            case "ebs":
+                return new EbsServiceMetadata();
+            case "ec2":
+                return new Ec2ServiceMetadata();
+            case "ecs":
+                return new EcsServiceMetadata();
+            case "edge.sagemaker":
+                return new EdgeSagemakerServiceMetadata();
+            case "eks":
+                return new EksServiceMetadata();
+            case "elasticache":
+                return new ElasticacheServiceMetadata();
+            case "elasticbeanstalk":
+                return new ElasticbeanstalkServiceMetadata();
+            case "elasticfilesystem":
+                return new ElasticfilesystemServiceMetadata();
+            case "elasticloadbalancing":
+                return new ElasticloadbalancingServiceMetadata();
+            case "elasticmapreduce":
+                return new ElasticmapreduceServiceMetadata();
+            case "elastictranscoder":
+                return new ElastictranscoderServiceMetadata();
+            case "email":
+                return new EmailServiceMetadata();
+            case "emr-containers":
+                return new EmrContainersServiceMetadata();
+            case "entitlement.marketplace":
+                return new EntitlementMarketplaceServiceMetadata();
+            case "es":
+                return new EsServiceMetadata();
+            case "events":
+                return new EventsServiceMetadata();
+            case "execute-api":
+                return new ExecuteApiServiceMetadata();
+            case "finspace":
+                return new FinspaceServiceMetadata();
+            case "finspace-api":
+                return new FinspaceApiServiceMetadata();
+            case "firehose":
+                return new FirehoseServiceMetadata();
+            case "fms":
+                return new FmsServiceMetadata();
+            case "forecast":
+                return new ForecastServiceMetadata();
+            case "forecastquery":
+                return new ForecastqueryServiceMetadata();
+            case "frauddetector":
+                return new FrauddetectorServiceMetadata();
+            case "fsx":
+                return new FsxServiceMetadata();
+            case "gamelift":
+                return new GameliftServiceMetadata();
+            case "glacier":
+                return new GlacierServiceMetadata();
+            case "glue":
+                return new GlueServiceMetadata();
+            case "grafana":
+                return new GrafanaServiceMetadata();
+            case "greengrass":
+                return new GreengrassServiceMetadata();
+            case "groundstation":
+                return new GroundstationServiceMetadata();
+            case "guardduty":
+                return new GuarddutyServiceMetadata();
+            case "health":
+                return new HealthServiceMetadata();
+            case "healthlake":
+                return new HealthlakeServiceMetadata();
+            case "honeycode":
+                return new HoneycodeServiceMetadata();
+            case "iam":
+                return new IamServiceMetadata();
+            case "identity-chime":
+                return new IdentityChimeServiceMetadata();
+            case "identitystore":
+                return new IdentitystoreServiceMetadata();
+            case "importexport":
+                return new ImportexportServiceMetadata();
+            case "inspector":
+                return new InspectorServiceMetadata();
+            case "iot":
+                return new IotServiceMetadata();
+            case "iotanalytics":
+                return new IotanalyticsServiceMetadata();
+            case "iotdeviceadvisor":
+                return new IotdeviceadvisorServiceMetadata();
+            case "iotevents":
+                return new IoteventsServiceMetadata();
+            case "ioteventsdata":
+                return new IoteventsdataServiceMetadata();
+            case "iotsecuredtunneling":
+                return new IotsecuredtunnelingServiceMetadata();
+            case "iotsitewise":
+                return new IotsitewiseServiceMetadata();
+            case "iotthingsgraph":
+                return new IotthingsgraphServiceMetadata();
+            case "iotwireless":
+                return new IotwirelessServiceMetadata();
+            case "ivs":
+                return new IvsServiceMetadata();
+            case "kafka":
+                return new KafkaServiceMetadata();
+            case "kafkaconnect":
+                return new KafkaconnectServiceMetadata();
+            case "kendra":
+                return new KendraServiceMetadata();
+            case "kinesis":
+                return new KinesisServiceMetadata();
+            case "kinesisanalytics":
+                return new KinesisanalyticsServiceMetadata();
+            case "kinesisvideo":
+                return new KinesisvideoServiceMetadata();
+            case "kms":
+                return new KmsServiceMetadata();
+            case "lakeformation":
+                return new LakeformationServiceMetadata();
+            case "lambda":
+                return new LambdaServiceMetadata();
+            case "license-manager":
+                return new LicenseManagerServiceMetadata();
+            case "lightsail":
+                return new LightsailServiceMetadata();
+            case "logs":
+                return new LogsServiceMetadata();
+            case "lookoutequipment":
+                return new LookoutequipmentServiceMetadata();
+            case "lookoutmetrics":
+                return new LookoutmetricsServiceMetadata();
+            case "lookoutvision":
+                return new LookoutvisionServiceMetadata();
+            case "machinelearning":
+                return new MachinelearningServiceMetadata();
+            case "macie":
+                return new MacieServiceMetadata();
+            case "macie2":
+                return new Macie2ServiceMetadata();
+            case "managedblockchain":
+                return new ManagedblockchainServiceMetadata();
+            case "marketplacecommerceanalytics":
+                return new MarketplacecommerceanalyticsServiceMetadata();
+            case "mediaconnect":
+                return new MediaconnectServiceMetadata();
+            case "mediaconvert":
+                return new MediaconvertServiceMetadata();
+            case "medialive":
+                return new MedialiveServiceMetadata();
+            case "mediapackage":
+                return new MediapackageServiceMetadata();
+            case "mediapackage-vod":
+                return new MediapackageVodServiceMetadata();
+            case "mediastore":
+                return new MediastoreServiceMetadata();
+            case "memorydb":
+                return new MemorydbServiceMetadata();
+            case "messaging-chime":
+                return new MessagingChimeServiceMetadata();
+            case "metering.marketplace":
+                return new MeteringMarketplaceServiceMetadata();
+            case "mgh":
+                return new MghServiceMetadata();
+            case "mgn":
+                return new MgnServiceMetadata();
+            case "migrationhub-strategy":
+                return new MigrationhubStrategyServiceMetadata();
+            case "mobileanalytics":
+                return new MobileanalyticsServiceMetadata();
+            case "models-v2-lex":
+                return new ModelsV2LexServiceMetadata();
+            case "models.lex":
+                return new ModelsLexServiceMetadata();
+            case "monitoring":
+                return new MonitoringServiceMetadata();
+            case "mq":
+                return new MqServiceMetadata();
+            case "mturk-requester":
+                return new MturkRequesterServiceMetadata();
+            case "neptune":
+                return new NeptuneServiceMetadata();
+            case "network-firewall":
+                return new NetworkFirewallServiceMetadata();
+            case "networkmanager":
+                return new NetworkmanagerServiceMetadata();
+            case "nimble":
+                return new NimbleServiceMetadata();
+            case "oidc":
+                return new OidcServiceMetadata();
+            case "opsworks":
+                return new OpsworksServiceMetadata();
+            case "opsworks-cm":
+                return new OpsworksCmServiceMetadata();
+            case "organizations":
+                return new OrganizationsServiceMetadata();
+            case "outposts":
+                return new OutpostsServiceMetadata();
+            case "personalize":
+                return new PersonalizeServiceMetadata();
+            case "pi":
+                return new PiServiceMetadata();
+            case "pinpoint":
+                return new PinpointServiceMetadata();
+            case "pinpoint-sms-voice":
+                return new PinpointSmsVoiceServiceMetadata();
+            case "polly":
+                return new PollyServiceMetadata();
+            case "portal.sso":
+                return new PortalSsoServiceMetadata();
+            case "profile":
+                return new ProfileServiceMetadata();
+            case "projects.iot1click":
+                return new ProjectsIot1clickServiceMetadata();
+            case "qldb":
+                return new QldbServiceMetadata();
+            case "quicksight":
+                return new QuicksightServiceMetadata();
+            case "ram":
+                return new RamServiceMetadata();
+            case "rds":
+                return new RdsServiceMetadata();
+            case "rdsdataservice":
+                return new RdsdataserviceServiceMetadata();
+            case "redshift":
+                return new RedshiftServiceMetadata();
+            case "rekognition":
+                return new RekognitionServiceMetadata();
+            case "resource-groups":
+                return new ResourceGroupsServiceMetadata();
+            case "robomaker":
+                return new RobomakerServiceMetadata();
+            case "route53":
+                return new Route53ServiceMetadata();
+            case "route53-recovery-control-config":
+                return new Route53RecoveryControlConfigServiceMetadata();
+            case "route53domains":
+                return new Route53domainsServiceMetadata();
+            case "route53resolver":
+                return new Route53resolverServiceMetadata();
+            case "runtime-v2-lex":
+                return new RuntimeV2LexServiceMetadata();
+            case "runtime.lex":
+                return new RuntimeLexServiceMetadata();
+            case "runtime.sagemaker":
+                return new RuntimeSagemakerServiceMetadata();
+            case "s3":
+                return new EnhancedS3ServiceMetadata();
+            case "s3-control":
+                return new S3ControlServiceMetadata();
+            case "s3-outposts":
+                return new S3OutpostsServiceMetadata();
+            case "savingsplans":
+                return new SavingsplansServiceMetadata();
+            case "schemas":
+                return new SchemasServiceMetadata();
+            case "sdb":
+                return new SdbServiceMetadata();
+            case "secretsmanager":
+                return new SecretsmanagerServiceMetadata();
+            case "securityhub":
+                return new SecurityhubServiceMetadata();
+            case "serverlessrepo":
+                return new ServerlessrepoServiceMetadata();
+            case "servicecatalog":
+                return new ServicecatalogServiceMetadata();
+            case "servicecatalog-appregistry":
+                return new ServicecatalogAppregistryServiceMetadata();
+            case "servicediscovery":
+                return new ServicediscoveryServiceMetadata();
+            case "servicequotas":
+                return new ServicequotasServiceMetadata();
+            case "session.qldb":
+                return new SessionQldbServiceMetadata();
+            case "shield":
+                return new ShieldServiceMetadata();
+            case "signer":
+                return new SignerServiceMetadata();
+            case "sms":
+                return new SmsServiceMetadata();
+            case "sms-voice.pinpoint":
+                return new SmsVoicePinpointServiceMetadata();
+            case "snow-device-management":
+                return new SnowDeviceManagementServiceMetadata();
+            case "snowball":
+                return new SnowballServiceMetadata();
+            case "sns":
+                return new SnsServiceMetadata();
+            case "sqs":
+                return new SqsServiceMetadata();
+            case "ssm":
+                return new SsmServiceMetadata();
+            case "ssm-incidents":
+                return new SsmIncidentsServiceMetadata();
+            case "states":
+                return new StatesServiceMetadata();
+            case "storagegateway":
+                return new StoragegatewayServiceMetadata();
+            case "streams.dynamodb":
+                return new StreamsDynamodbServiceMetadata();
+            case "sts":
+                return new StsServiceMetadata();
+            case "support":
+                return new SupportServiceMetadata();
+            case "swf":
+                return new SwfServiceMetadata();
+            case "synthetics":
+                return new SyntheticsServiceMetadata();
+            case "tagging":
+                return new TaggingServiceMetadata();
+            case "textract":
+                return new TextractServiceMetadata();
+            case "timestream.query":
+                return new TimestreamQueryServiceMetadata();
+            case "timestream.write":
+                return new TimestreamWriteServiceMetadata();
+            case "transcribe":
+                return new TranscribeServiceMetadata();
+            case "transcribestreaming":
+                return new TranscribestreamingServiceMetadata();
+            case "transfer":
+                return new TransferServiceMetadata();
+            case "translate":
+                return new TranslateServiceMetadata();
+            case "valkyrie":
+                return new ValkyrieServiceMetadata();
+            case "voiceid":
+                return new VoiceidServiceMetadata();
+            case "waf":
+                return new WafServiceMetadata();
+            case "waf-regional":
+                return new WafRegionalServiceMetadata();
+            case "wisdom":
+                return new WisdomServiceMetadata();
+            case "workdocs":
+                return new WorkdocsServiceMetadata();
+            case "workmail":
+                return new WorkmailServiceMetadata();
+            case "workspaces":
+                return new WorkspacesServiceMetadata();
+            case "xray":
+                return new XrayServiceMetadata();
+            case "operator":
+                return new OperatorServiceMetadata();
+            default:
+                throw new IllegalStateException("Unexpected value: " + endpointPrefix);
+        }
+    }
+
+    private static ServiceMetadata getServiceMetadata(String endpointPrefix) {
+        if (!SERVICE_METADATA.containsKey(endpointPrefix)) {
+            SERVICE_METADATA.put(endpointPrefix, createServiceMetadata(endpointPrefix));
+        }
         return SERVICE_METADATA.get(endpointPrefix);
+    }
+
+    @Override
+    public ServiceMetadata serviceMetadata(String endpointPrefix) {
+        return getServiceMetadata(endpointPrefix);
     }
 }
