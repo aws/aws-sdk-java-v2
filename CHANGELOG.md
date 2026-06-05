@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.5__ __2026-06-05__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for configurable number of Clear Lead segments at the beginning of encrypted output. Adds support for multiple trickplay variants.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Netty to 4.1.135
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds support for Knowledge Base APIs and Index Capacity API
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for MLflow experiment tracking in SageMaker inference optimization. CreateAIRecommendationJob and CreateAIBenchmarkJob now accept an optional OutputConfig.MlflowConfig (MLflow App ARN, experiment, run name) to stream benchmark metrics and artifacts to your own MLflow App.
+
+## __EMR Serverless__
+  - ### Features
+    - Adds support for updating max capacity and custom fields while application is started
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adds CloudFormation support for resource-based policies on AWS Payment Cryptography keys.
+
 # __2.46.4__ __2026-06-04__
 ## __AWS Audit Manager__
   - ### Features

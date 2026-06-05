@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Control Plane",
-    "contributor": "",
-    "description": "Adds CloudFormation support for resource-based policies on AWS Payment Cryptography keys."
-}
