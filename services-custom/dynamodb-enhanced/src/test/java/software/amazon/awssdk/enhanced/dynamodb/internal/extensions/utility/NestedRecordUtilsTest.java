@@ -119,12 +119,12 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void getTableSchemaForListElement_withNullConverter_throwsIllegalArgumentException() {
+    public void getTableSchemaForListElement_withNullConverter_returnsNull() {
         when(mockSchema.converterForAttribute("nonExistentAttribute")).thenReturn(null);
 
-        assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, "nonExistentAttribute"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No converter found for attribute: nonExistentAttribute");
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "nonExistentAttribute");
+
+        assertThat(result).isNull();
     }
 
     @Test
@@ -137,25 +137,25 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void getTableSchemaForListElement_withEmptyRawClassParameters_throwsIllegalArgumentException() {
+    public void getTableSchemaForListElement_withEmptyRawClassParameters_returnsNull() {
         when(mockSchema.converterForAttribute("emptyParamsAttribute")).thenReturn(mockAttributeConverter);
         when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
         when(mockEnhancedType.rawClassParameters()).thenReturn(Collections.emptyList());
 
-        assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, "emptyParamsAttribute"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No type parameters found for list attribute: emptyParamsAttribute");
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "emptyParamsAttribute");
+
+        assertThat(result).isNull();
     }
 
     @Test
-    public void getTableSchemaForListElement_withNullRawClassParameters_throwsIllegalArgumentException() {
+    public void getTableSchemaForListElement_withNullRawClassParameters_returnsNull() {
         when(mockSchema.converterForAttribute("nullParamsAttribute")).thenReturn(mockAttributeConverter);
         when(mockAttributeConverter.type()).thenReturn(mockEnhancedType);
         when(mockEnhancedType.rawClassParameters()).thenReturn(null);
 
-        assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, "nullParamsAttribute"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("No type parameters found for list attribute: nullParamsAttribute");
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, "nullParamsAttribute");
+
+        assertThat(result).isNull();
     }
 
     @Test
@@ -381,14 +381,14 @@ public class NestedRecordUtilsTest {
     }
 
     @Test
-    public void getTableSchemaForListElement_withNestedPathAndMissingSchema_throwsIllegalArgumentException() {
+    public void getTableSchemaForListElement_withNestedPathAndMissingSchema_returnsNull() {
         String nestedKey = String.join(NESTED_OBJECT_UPDATE, "parent", "child", "listAttribute");
 
         when(mockSchema.converterForAttribute("parent")).thenReturn(null);
 
-        assertThatThrownBy(() -> NestedRecordUtils.getTableSchemaForListElement(mockSchema, nestedKey))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unable to resolve schema for list element at: " + nestedKey);
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, nestedKey);
+
+        assertThat(result).isNull();
     }
 
     @Test
@@ -441,6 +441,69 @@ public class NestedRecordUtilsTest {
 
         String expected = String.join(NESTED_OBJECT_UPDATE, "parent-with-dashes", "child_with_underscores", "attr");
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void schemaLookupKey_equalSchemaInstances_areNotEqualWhenDifferentObjects() {
+        // SchemaLookupKey must use identity (==) not equals() for parentSchema.
+        // Two distinct schema instances must NOT share a cache entry, even if they are logically equivalent.
+        // We use two separate mocks to guarantee distinct object identities, because TableSchema.fromBean()
+        // caches results and would return the same instance for the same class.
+        @SuppressWarnings("unchecked")
+        TableSchema<Record> schema1 = mock(TableSchema.class);
+        @SuppressWarnings("unchecked")
+        TableSchema<Record> schema2 = mock(TableSchema.class);
+
+        NestedRecordUtils.SchemaLookupKey key1 = new NestedRecordUtils.SchemaLookupKey(schema1, "children");
+        NestedRecordUtils.SchemaLookupKey key2 = new NestedRecordUtils.SchemaLookupKey(schema2, "children");
+
+        assertThat(key1).isNotEqualTo(key2);
+    }
+
+    @Test
+    public void schemaLookupKey_sameSchemaInstance_areEqual() {
+        TableSchema<Record> schema = TableSchema.fromBean(Record.class);
+
+        NestedRecordUtils.SchemaLookupKey key1 = new NestedRecordUtils.SchemaLookupKey(schema, "children");
+        NestedRecordUtils.SchemaLookupKey key2 = new NestedRecordUtils.SchemaLookupKey(schema, "children");
+
+        assertThat(key1).isEqualTo(key2);
+        assertThat(key1.hashCode()).isEqualTo(key2.hashCode());
+    }
+
+    @Test
+    public void schemaLookupKey_sameSchemaInstanceDifferentAttribute_areNotEqual() {
+        TableSchema<Record> schema = TableSchema.fromBean(Record.class);
+
+        NestedRecordUtils.SchemaLookupKey key1 = new NestedRecordUtils.SchemaLookupKey(schema, "children");
+        NestedRecordUtils.SchemaLookupKey key2 = new NestedRecordUtils.SchemaLookupKey(schema, "nestedItem");
+
+        assertThat(key1).isNotEqualTo(key2);
+    }
+
+    @Test
+    public void getTableSchemaForListElement_withDelimitedPathAndUnresolvableFinalSegment_returnsNull() {
+        // listElementSchemaForDelimitedKey must return null instead of throwing
+        // when the final path segment cannot be resolved.
+        TableSchema<Record> rootSchema = TableSchema.fromBean(Record.class);
+
+        // "nestedItem" resolves to Record schema, but "nonExistentList" is not on Record
+        String key = "nestedItem" + NESTED_OBJECT_UPDATE + "nonExistentList";
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(rootSchema, key);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void getTableSchemaForListElement_withDelimitedPathConverterThrowsUnsupportedOperation_returnsNull() {
+        // UnsupportedOperationException during delimited path traversal must be handled gracefully and return null.
+        String key = "parent" + NESTED_OBJECT_UPDATE + "listAttr";
+        when(mockSchema.converterForAttribute("parent")).thenThrow(new UnsupportedOperationException());
+
+        TableSchema<?> result = NestedRecordUtils.getTableSchemaForListElement(mockSchema, key);
+
+        assertThat(result).isNull();
     }
 
     @DynamoDbBean

@@ -94,11 +94,11 @@ public final class NestedRecordUtils {
             return null;
         }
         if (converter == null) {
-            throw new IllegalArgumentException("No converter found for attribute: " + key);
+            return null;
         }
         List<EnhancedType<?>> rawClassParameters = converter.type().rawClassParameters();
         if (CollectionUtils.isNullOrEmpty(rawClassParameters)) {
-            throw new IllegalArgumentException("No type parameters found for list attribute: " + key);
+            return null;
         }
         Class<?> elementClass = rawClassParameters.get(0).rawClass();
         if (elementClass.getAnnotation(DynamoDbBean.class) == null
@@ -126,7 +126,7 @@ public final class NestedRecordUtils {
 
         String attributeName = parts[parts.length - 1];
         return getNestedSchemaCached(nestedSchemaCache, currentSchema, attributeName)
-            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve schema for list element at: " + key));
+            .orElse(null);
     }
 
     /**
@@ -272,7 +272,7 @@ public final class NestedRecordUtils {
                 return false;
             }
             SchemaLookupKey that = (SchemaLookupKey) o;
-            return Objects.equals(parentSchema, that.parentSchema) && Objects.equals(attributeName, that.attributeName);
+            return parentSchema == that.parentSchema && Objects.equals(attributeName, that.attributeName);
         }
 
         @Override
