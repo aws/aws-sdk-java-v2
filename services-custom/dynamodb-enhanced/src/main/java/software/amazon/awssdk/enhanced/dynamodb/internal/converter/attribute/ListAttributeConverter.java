@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -145,7 +146,9 @@ public class ListAttributeConverter<T extends Collection<?>> implements Attribut
         @Override
         public AttributeValue transformFrom(T input) {
             return EnhancedAttributeValue.fromListOfAttributeValues(input.stream()
-                                                                         .map(elementConverter::transformFrom)
+                                                                         .map(e -> e == null
+                                                                             ? AttributeValues.nullAttributeValue()
+                                                                             : elementConverter.transformFrom(e))
                                                                          .collect(toList()))
                                          .toAttributeValue();
         }
