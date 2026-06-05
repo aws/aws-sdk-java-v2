@@ -575,38 +575,38 @@ public class InstanceProfileCredentialsProviderTest {
 
     @Test
     void imdsCallFrequencyIsLimited() {
-        // Requires running the test multiple times to account for refresh jitter
-        for (int i = 0; i < 10; i++) {
-            AdjustableClock clock = new AdjustableClock();
-            AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
-            Instant now = Instant.now();
-            String successfulCredentialsResponse1 =
-                "{"
-                + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
-                + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-                + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now) + '"'
-                + "}";
+        // Verify that IMDS is not called again if we haven't reached the prefetch window
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        Instant expiration = now.plus(6, HOURS);
+        String successfulCredentialsResponse1 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+            + "}";
 
-            String successfulCredentialsResponse2 =
-                "{"
-                + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
-                + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
-                + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
-                + "}";
+        String successfulCredentialsResponse2 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration.plus(6, HOURS)) + '"'
+            + "}";
 
-            // Set the time to 5 minutes before expiration and call IMDS
-            clock.time = now.minus(5, MINUTES);
-            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
-            AwsCredentials credentials5MinutesAgo = credentialsProvider.resolveCredentials();
+        // Prime the cache at the current time
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+        AwsCredentials credentialsAtStart = credentialsProvider.resolveCredentials();
 
-            // Set the time to 2 seconds before expiration, and verify that do not call IMDS because it hasn't been 5 minutes yet
-            clock.time = now.minus(2, SECONDS);
-            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-            AwsCredentials credentials2SecondsAgo = credentialsProvider.resolveCredentials();
+        // Move time forward but still before the prefetch window (5 min before expiry).
+        // Since prefetchTime = expiration - 5min = now + 5h55m, anything before that should not trigger refresh.
+        clock.time = now.plus(5, HOURS);
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+        AwsCredentials credentials5HoursLater = credentialsProvider.resolveCredentials();
 
-            assertThat(credentials2SecondsAgo).isEqualTo(credentials5MinutesAgo);
-            assertThat(credentials5MinutesAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        }
+        assertThat(credentials5HoursLater).isEqualTo(credentialsAtStart);
+        assertThat(credentialsAtStart.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
     }
 
     @Test

@@ -78,7 +78,8 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSessionCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }

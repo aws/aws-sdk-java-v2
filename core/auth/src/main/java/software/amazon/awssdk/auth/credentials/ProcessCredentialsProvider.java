@@ -54,9 +54,10 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Available settings:
  * <ul>
  *     <li>Command - The command that should be executed to retrieve credentials.</li>
- *     <li>CredentialRefreshThreshold - The amount of time between when the credentials expire and when the credentials should
- *     start to be refreshed. This allows the credentials to be refreshed *before* they are reported to expire. Default: 15
- *     seconds.</li>
+ *     <li>CredentialRefreshThreshold - <b>Deprecated.</b> Previously configured the amount of time between when the
+ *     credentials expire and when the credentials should start to be refreshed. The provider now uses a default prefetch time
+ *     of 5 minutes before expiry and a stale time of 1 minute before expiry. If explicitly set, the value is honored as the
+ *     prefetch time for backward compatibility.</li>
  *     <li>ProcessOutputLimit - The maximum amount of data that can be returned by the external process before an exception is
  *     raised. Default: 64000 bytes (64KB).</li>
  * </ul>
@@ -71,9 +72,12 @@ public final class ProcessCredentialsProvider
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
+    private static final Duration PROCESS_STALE_TIME = Duration.ofMinutes(1);
+    private static final Duration PROCESS_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private final List<String> executableCommand;
     private final Duration credentialRefreshThreshold;
+    private final boolean credentialRefreshThresholdExplicitlySet;
     private final long processOutputLimit;
     private final String staticAccountId;
 
@@ -95,6 +99,7 @@ public final class ProcessCredentialsProvider
         this.executableCommand = executableCommand(builder);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
+        this.credentialRefreshThresholdExplicitlySet = builder.credentialRefreshThresholdExplicitlySet;
         this.commandFromBuilder = builder.command;
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
@@ -154,14 +159,31 @@ public final class ProcessCredentialsProvider
             Instant credentialExpirationTime = credentialExpirationTime(credentialsJson);
 
             return RefreshResult.builder(credentials)
-                                .staleTime(credentialExpirationTime)
-                                .prefetchTime(credentialExpirationTime.minusMillis(credentialRefreshThreshold.toMillis()))
+                                .staleTime(staleTime(credentialExpirationTime))
+                                .prefetchTime(prefetchTime(credentialExpirationTime))
                                 .build();
         } catch (InterruptedException e) {
             throw new IllegalStateException("Process-based credential refreshing has been interrupted.", e);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to refresh process-based credentials.", e);
         }
+    }
+
+    private Instant staleTime(Instant expiration) {
+        if (expiration == null || expiration.equals(Instant.MAX)) {
+            return Instant.MAX;
+        }
+        return expiration.minus(PROCESS_STALE_TIME);
+    }
+
+    private Instant prefetchTime(Instant expiration) {
+        if (expiration == null || expiration.equals(Instant.MAX)) {
+            return Instant.MAX;
+        }
+        if (credentialRefreshThresholdExplicitlySet) {
+            return expiration.minusMillis(credentialRefreshThreshold.toMillis());
+        }
+        return expiration.minus(PROCESS_PREFETCH_TIME);
     }
 
     /**
@@ -278,6 +300,7 @@ public final class ProcessCredentialsProvider
         private String command;
         private List<String> commandAsListOfStrings;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
+        private boolean credentialRefreshThresholdExplicitlySet = false;
         private long processOutputLimit = 64000;
         private String staticAccountId;
         private String sourceChain;
@@ -293,6 +316,7 @@ public final class ProcessCredentialsProvider
             this.command = provider.commandFromBuilder;
             this.commandAsListOfStrings = provider.commandAsListOfStringsFromBuilder;
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
+            this.credentialRefreshThresholdExplicitlySet = provider.credentialRefreshThresholdExplicitlySet;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
             this.sourceChain = provider.sourceChain;
@@ -339,9 +363,15 @@ public final class ProcessCredentialsProvider
          * refreshed. This allows the credentials to be refreshed *before* they are reported to expire.
          *
          * <p>Default: 15 seconds.</p>
+         *
+         * @deprecated The provider now uses a default prefetch time of 5 minutes before expiry, aligned with other
+         * credential providers. If this method is called, the specified value will be honored as the prefetch time for
+         * backward compatibility.
          */
+        @Deprecated
         public Builder credentialRefreshThreshold(Duration credentialRefreshThreshold) {
             this.credentialRefreshThreshold = credentialRefreshThreshold;
+            this.credentialRefreshThresholdExplicitlySet = true;
             return this;
         }
 

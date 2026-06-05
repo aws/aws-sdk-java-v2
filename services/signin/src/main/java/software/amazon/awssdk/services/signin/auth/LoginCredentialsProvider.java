@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.signin.auth;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 import static software.amazon.awssdk.utils.Validate.notNull;
 import static software.amazon.awssdk.utils.Validate.paramNotBlank;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.exception.CacheInvalidatingException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.signin.SigninClient;
@@ -120,7 +122,8 @@ public final class LoginCredentialsProvider implements
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSigninCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(ALLOW);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -205,15 +208,14 @@ public final class LoginCredentialsProvider implements
 
             switch (accessDeniedException.error()) {
                 case TOKEN_EXPIRED:
-                    throw SdkClientException.create(
+                    throw CacheInvalidatingException.create(
                         "Your session has expired. Please reauthenticate.",
                         accessDeniedException);
                 case USER_CREDENTIALS_CHANGED:
-                    throw SdkClientException.create(
+                    throw CacheInvalidatingException.create(
                         "Unable to refresh credentials because of a change in your password. "
                         + "Please reauthenticate with your new password.",
-                        accessDeniedException
-                    );
+                        accessDeniedException);
                 case INSUFFICIENT_PERMISSIONS:
                     throw SdkClientException.create(
                         "Unable to refresh credentials due to insufficient permissions. You may be missing permission "

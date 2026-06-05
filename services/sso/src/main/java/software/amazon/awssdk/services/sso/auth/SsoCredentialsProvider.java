@@ -25,11 +25,13 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.exception.CacheInvalidatingException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
+import software.amazon.awssdk.services.sso.model.UnauthorizedException;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -90,7 +92,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
             CachedSupplier.builder(this::updateSsoCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -103,19 +106,31 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
      * are close to expiring.
      */
     private RefreshResult<SessionCredentialsHolder> updateSsoCredentials() {
-        SessionCredentialsHolder credentials = getUpdatedCredentials(ssoClient);
-        Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
+        try {
+            SessionCredentialsHolder credentials = getUpdatedCredentials(ssoClient);
+            Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
 
-        return RefreshResult.builder(credentials)
-                            .staleTime(actualTokenExpiration.minus(staleTime))
-                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
-                            .build();
+            return RefreshResult.builder(credentials)
+                                .staleTime(actualTokenExpiration.minus(staleTime))
+                                .prefetchTime(actualTokenExpiration.minus(prefetchTime))
+                                .build();
+        } catch (ExpiredTokenException e) {
+            throw CacheInvalidatingException.create(
+                "SSO token has expired. Please run 'aws sso login' to re-authenticate.", e);
+        }
     }
 
     private SessionCredentialsHolder getUpdatedCredentials(SsoClient ssoClient) {
         GetRoleCredentialsRequest request = getRoleCredentialsRequestSupplier.get();
         notNull(request, "GetRoleCredentialsRequest can't be null.");
-        RoleCredentials roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
+
+        RoleCredentials roleCredentials;
+        try {
+            roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
+        } catch (UnauthorizedException e) {
+            throw CacheInvalidatingException.create(
+                "SSO access token is expired or invalid. Please run 'aws sso login'.", e);
+        }
         AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
                                                                         .accessKeyId(roleCredentials.accessKeyId())
                                                                         .secretAccessKey(roleCredentials.secretAccessKey())

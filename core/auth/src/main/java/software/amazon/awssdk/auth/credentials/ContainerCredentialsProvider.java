@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -43,7 +44,6 @@ import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
-import software.amazon.awssdk.utils.ComparableUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -113,10 +113,12 @@ public final class ContainerCredentialsProvider
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         }
     }
@@ -157,15 +159,11 @@ public final class ContainerCredentialsProvider
     }
 
     private Instant prefetchTime(Instant expiration) {
-        Instant oneHourFromNow = Instant.now().plus(1, ChronoUnit.HOURS);
-
         if (expiration == null) {
-            return oneHourFromNow;
+            return Instant.now().plus(1, ChronoUnit.HOURS);
         }
-
-        Instant fifteenMinutesBeforeExpiration = expiration.minus(15, ChronoUnit.MINUTES);
-
-        return ComparableUtils.minimum(oneHourFromNow, fifteenMinutesBeforeExpiration);
+        // 5 minutes before expiry
+        return expiration.minus(5, ChronoUnit.MINUTES);
     }
 
     @Override

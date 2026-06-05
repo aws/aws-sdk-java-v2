@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static software.amazon.awssdk.utils.ComparableUtils.maximum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
@@ -120,7 +119,7 @@ public final class InstanceProfileCredentialsProvider
                                      .profileName(profileName)
                                      .build();
 
-        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofSeconds(1));
+        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofMinutes(1));
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -192,19 +191,24 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private Instant prefetchTime(Instant expiration) {
-        Instant now = clock.instant();
-
         if (expiration == null) {
-            return now.plus(60, MINUTES);
+            return clock.instant().plus(60, MINUTES);
         }
 
+        Instant now = clock.instant();
         Duration timeUntilExpiration = Duration.between(now, expiration);
         if (timeUntilExpiration.isNegative()) {
             // IMDS gave us a time in the past. We're already stale. Don't prefetch.
             return null;
         }
 
-        return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
+        // Advisory refresh window: 5 minutes before expiry.
+        // If remaining lifetime < 5 minutes, use remaining lifetime.
+        Duration advisoryWindow = Duration.ofMinutes(5);
+        if (timeUntilExpiration.compareTo(advisoryWindow) < 0) {
+            return now;
+        }
+        return expiration.minus(advisoryWindow);
     }
 
     @Override
@@ -357,10 +361,7 @@ public final class InstanceProfileCredentialsProvider
         /**
          * Configure the amount of time before the moment of expiration of credentials for which to consider the credentials to
          * be stale. A higher value can lead to a higher rate of request being made to the Amazon EC2 Instance Metadata Service.
-         * The default is 1 sec.
-         * <p>Increasing this value to a higher value (10s or more) may help with situations where a higher load on the instance
-         * metadata service causes it to return 503s error, for which the SDK may not be able to recover fast enough and
-         * returns expired credentials.
+         * The default is 1 minute.
          *
          * @param duration the amount of time before expiration for when to consider the credentials to be stale and need refresh
          */

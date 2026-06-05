@@ -225,7 +225,7 @@ public class ProcessCredentialsProviderTest {
             ProcessCredentialsProvider.builder()
                                       .command(String.format("%s %s %s token=%s exp=%s",
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN,
-                                                             DateUtils.formatIso8601Date(Instant.now().plusSeconds(20))))
+                                                             DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(30)))))
                                       .build();
 
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
@@ -248,6 +248,40 @@ public class ProcessCredentialsProviderTest {
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
         assertThat(request1).isNotEqualTo(request2);
+    }
+
+    @Test
+    void defaultPrefetchTime_credentialsWithinFiveMinuteWindow_areRefreshed() {
+        // Credentials that expire in 30 seconds: staleTime = now+30s - 1min = now-30s (in the past, stale!)
+        // In STRICT mode, stale credentials force a synchronous refresh on every call
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=%s exp=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, RANDOM_SESSION_TOKEN,
+                                                             DateUtils.formatIso8601Date(Instant.now().plusSeconds(30))))
+                                      .build();
+
+        AwsCredentials request1 = credentialsProvider.resolveCredentials();
+        AwsCredentials request2 = credentialsProvider.resolveCredentials();
+
+        assertThat(request1).isNotEqualTo(request2);
+    }
+
+    @Test
+    void defaultPrefetchTime_credentialsFarFromExpiry_areCached() {
+        // Credentials that expire in 30 minutes: prefetchTime = now+30min - 5min = now+25min (in the future)
+        // So the cache should NOT refresh
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=%s exp=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, RANDOM_SESSION_TOKEN,
+                                                             DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(30)))))
+                                      .build();
+
+        AwsCredentials request1 = credentialsProvider.resolveCredentials();
+        AwsCredentials request2 = credentialsProvider.resolveCredentials();
+
+        assertThat(request1).isEqualTo(request2);
     }
 
     @Test
