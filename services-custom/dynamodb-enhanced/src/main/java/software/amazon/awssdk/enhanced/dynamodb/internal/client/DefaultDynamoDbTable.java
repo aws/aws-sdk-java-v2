@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper;
 import software.amazon.awssdk.enhanced.dynamodb.internal.TableIndices;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
@@ -126,12 +128,18 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
                                               .build());
     }
 
+    /**
+     * Supports optimistic locking via {@link OptimisticLockingHelper}.
+     */
     @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
         TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
+    /**
+     * Supports optimistic locking via {@link OptimisticLockingHelper}.
+     */
     @Override
     public T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
@@ -139,14 +147,22 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         return deleteItem(builder.build());
     }
 
+    /**
+     * Does not support optimistic locking.
+     */
     @Override
     public T deleteItem(Key key) {
         return deleteItem(r -> r.key(key));
     }
 
+    /**
+     * Supports optimistic locking based on annotation configuration via {@link OptimisticLockingHelper}.
+     */
     @Override
     public T deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem));
+        DeleteItemEnhancedRequest request = conditionallyApplyOptimisticLocking(builder, keyItem, tableSchema);
+        return deleteItem(request);
     }
 
     @Override

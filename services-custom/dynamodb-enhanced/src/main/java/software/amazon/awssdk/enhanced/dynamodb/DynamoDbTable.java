@@ -229,6 +229,9 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
      * further details and constraints.
      * <p>
+     * For versioned records, optimistic locking behavior is controlled by the {@code useVersionOnDelete} parameter
+     * in the {@link software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute} annotation.
+     * <p>
      * Example:
      * <pre>
      * {@code
