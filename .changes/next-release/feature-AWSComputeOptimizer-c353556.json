@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "contributor": "",
+    "description": "Adds new Idle Recommendation Resource types in the AWS Compute Optimizer API"
+}
