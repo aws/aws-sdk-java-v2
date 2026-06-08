@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.6__ __2026-06-08__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds new Idle Recommendation Resource types in the AWS Compute Optimizer API
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Add Asset APIs for managing versioned assets and asset files in AWS DevOps Agent agent spaces.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Adds support for DASH Audio Timeline Patternization. This enables your DASH manifests to templatize the repeating patterns that emerge in audio segment timelines. This compacts the total timeline length, utilizing the repeat notation, such that manifests don't grow indefinitely long.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Added optional identityCenterRegion parameter to AssociateMember APIs to allow managing memberships for users and groups in other regions.
+
+## __Amazon Omics__
+  - ### Features
+    - StartRunBatch API - Add EngineSettings
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform discovery tool now supported as network migration input source. You can now use the AWS Transform Discovery tool as a source for network migration alongside modelizeIT, enabling hybrid network migrations for environments running both VMware and non-VMware workloads.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin extends CentralizationRuleForOrganization APIs to support metrics, enabling centralization of metrics across accounts and Regions alongside logs.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - Adds new Idle Recommendation types in the Cost Optimization Hub API
+
+## __Tax Settings__
+  - ### Features
+    - Adds support for additional tax information fields for Philippines, Belgium, Chile, France, Poland, and Italy in the Tax Settings API.
+
 # __2.46.5__ __2026-06-05__
 ## __AWS Elemental MediaConvert__
   - ### Features

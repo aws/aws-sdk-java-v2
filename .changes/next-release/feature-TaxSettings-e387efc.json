@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Tax Settings",
-    "contributor": "",
-    "description": "Adds support for additional tax information fields for Philippines, Belgium, Chile, France, Poland, and Italy in the Tax Settings API."
-}
