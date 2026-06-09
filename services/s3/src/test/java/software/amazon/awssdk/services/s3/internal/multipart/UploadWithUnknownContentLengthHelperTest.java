@@ -146,6 +146,37 @@ public class UploadWithUnknownContentLengthHelperTest {
     }
 
     @Test
+    void uploadObject_apiCallBufferSizeLessThanTwicePartSize_shouldFailFastWithoutSplitting() {
+        UploadWithUnknownContentLengthHelper helperWithSmallBuffer =
+            new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, 2 * PART_SIZE - 1, 50);
+
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+
+        CompletableFuture<PutObjectResponse> future =
+            helperWithSmallBuffer.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        verifyFailureWithMessage(future, "must be at least 2 x minimumPartSizeInBytes");
+
+        verify(asyncRequestBody, times(0)).splitCloseable(any(Consumer.class));
+    }
+
+    @Test
+    void uploadObject_apiCallBufferSizeEqualToTwicePartSize_shouldNotFailFast() {
+        UploadWithUnknownContentLengthHelper helperWithBoundaryBuffer =
+            new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, 2 * PART_SIZE, 50);
+
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+        SdkPublisher<CloseableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitCloseable(any(Consumer.class))).thenReturn(mockPublisher);
+
+        CompletableFuture<PutObjectResponse> future =
+            helperWithBoundaryBuffer.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        assertThat(future).isNotCompleted();
+        verify(asyncRequestBody, times(1)).splitCloseable(any(Consumer.class));
+    }
+
+    @Test
     void uploadObject_withPartSizeExceedingLimit_shouldFailRequest() {
         CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
