@@ -61,12 +61,18 @@ class MultipartDownloadUtilsTest {
     }
 
     @Test
-    void parseStartByteFromContentRange_shouldParseValidAndInvalidRanges() {
-        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("bytes 0-1023/2048")).isEqualTo(0);
-        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("bytes 1024-2047/2048")).isEqualTo(1024);
+    void parseContentRange_shouldParseValidAndInvalidRanges() {
+        long[] result = MultipartDownloadUtils.parseContentRange("bytes 0-1023/2048");
+        assertThat(result).isNotNull();
+        assertThat(result[0]).isEqualTo(0);
+        assertThat(result[1]).isEqualTo(1023);
 
-        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("invalid")).isEqualTo(-1);
-        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange(null)).isEqualTo(-1);
+        result = MultipartDownloadUtils.parseContentRange("bytes 1024-2047/2048");
+        assertThat(result[0]).isEqualTo(1024);
+        assertThat(result[1]).isEqualTo(2047);
+
+        assertThat(MultipartDownloadUtils.parseContentRange("invalid")).isNull();
+        assertThat(MultipartDownloadUtils.parseContentRange(null)).isNull();
     }
 
     @Test
@@ -76,5 +82,14 @@ class MultipartDownloadUtilsTest {
 
         assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("invalid")).isEmpty();
         assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize(null)).isEmpty();
+    }
+
+    @Test
+    void calculateTotalParts_shouldCalculateCorrectly() {
+        assertThat(MultipartDownloadUtils.calculateTotalParts(32, 16)).isEqualTo(2);   // exact fit
+        assertThat(MultipartDownloadUtils.calculateTotalParts(33, 16)).isEqualTo(3);   // remainder rounds up
+        assertThat(MultipartDownloadUtils.calculateTotalParts(1, 16)).isEqualTo(1);    // smaller than part size
+        assertThat(MultipartDownloadUtils.calculateTotalParts(16, 16)).isEqualTo(1);   // exactly one part
+        assertThat(MultipartDownloadUtils.calculateTotalParts(0, 16)).isEqualTo(0);    // empty object
     }
 }

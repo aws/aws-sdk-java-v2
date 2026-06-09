@@ -336,6 +336,84 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
             .isInstanceOf(CompletionException.class);
     }
 
+    @Test
+    void getObject_firstPartContentLengthMismatch_shouldFailWithValidationError() throws IOException {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "10")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 10))));
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                        .presignedUrl(presignedUrl)
+                                                                        .build();
+
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+            .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+            .join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("content length validation failed");
+    }
+
+    @Test
+    void getObject_firstPartContentRangeStartByteMismatch_shouldFailWithValidationError() throws IOException {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 5-20/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                        .presignedUrl(presignedUrl)
+                                                                        .build();
+
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+            .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+            .join())
+            .isInstanceOf(CompletionException.class)
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Content-Range mismatch");
+    }
+
+    @Test
+    void getObject_objectMutatedBetweenParts_shouldFailWith412() throws IOException {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"original-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=16-31"))
+                    .withHeader("If-Match", matching("\"original-etag\""))
+                    .willReturn(aResponse()
+                                    .withStatus(412)
+                                    .withBody("<Error><Code>PreconditionFailed</Code>"
+                                              + "<Message>Object changed</Message></Error>")));
+
+        tempFile = createTempFileUnchecked();
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                        .presignedUrl(presignedUrl)
+                                                                        .build();
+
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+            .getObject(request, AsyncResponseTransformer.toFile(tempFile))
+            .join())
+            .isInstanceOf(CompletionException.class);
+    }
+
     private static Path createTempFile() throws IOException {
         Path path = Files.createTempFile("parallel-test-" + UUID.randomUUID(), ".tmp");
         Files.deleteIfExists(path);

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -140,6 +141,93 @@ public class PresignedUrlDownloadHelper {
 
     static SdkClientException invalidContentLength() {
         return SdkClientException.create("Invalid or missing Content-Length in response");
+    }
+
+    /**
+     * Validates a part response for data integrity. Checks that Content-Range and Content-Length
+     * match the expected values based on part index, part size, and total object size.
+     *
+     * @param response           the GetObject response to validate
+     * @param partIndex          zero-based index of this part
+     * @param partSizeInBytes    configured part size
+     * @param totalContentLength total object size (from Content-Range), or null if not yet known
+     * @param totalParts         total number of parts, or null if not yet known
+     * @return empty if valid, or an SdkClientException describing the mismatch
+     */
+    static Optional<SdkClientException> validatePartResponse(GetObjectResponse response,
+                                                             int partIndex,
+                                                             long partSizeInBytes,
+                                                             Long totalContentLength,
+                                                             Integer totalParts) {
+        String contentRange = response.contentRange();
+        if (contentRange == null) {
+            return Optional.of(missingContentRangeHeader());
+        }
+
+        Long contentLength = response.contentLength();
+        if (contentLength == null || contentLength < 0) {
+            return Optional.of(invalidContentLength());
+        }
+
+        long expectedStartByte = partIndex * partSizeInBytes;
+        long[] parsedRange = MultipartDownloadUtils.parseContentRange(contentRange);
+        if (parsedRange == null) {
+            return Optional.of(invalidContentRangeHeader(contentRange));
+        }
+        long actualStartByte = parsedRange[0];
+        long actualEndByte = parsedRange[1];
+        if (actualStartByte != expectedStartByte) {
+            return Optional.of(SdkClientException.create(
+                String.format("Content-Range mismatch for part %d. Expected start byte: %d, but got: bytes %d-%d",
+                              partIndex, expectedStartByte, actualStartByte, actualEndByte)));
+        }
+        if (totalContentLength != null) {
+            long expectedEndByte = Math.min(expectedStartByte + partSizeInBytes - 1, totalContentLength - 1);
+            if (actualEndByte != expectedEndByte) {
+                return Optional.of(SdkClientException.create(
+                    String.format("Content-Range mismatch for part %d. Expected: bytes %d-%d, but got: bytes %d-%d",
+                                  partIndex, expectedStartByte, expectedEndByte, actualStartByte, actualEndByte)));
+            }
+        }
+
+        if (totalContentLength != null && totalParts != null) {
+            long expectedPartSize = (partIndex == totalParts - 1)
+                                    ? totalContentLength - (partIndex * partSizeInBytes)
+                                    : partSizeInBytes;
+            if (!contentLength.equals(expectedPartSize)) {
+                return Optional.of(SdkClientException.create(
+                    String.format("Part content length validation failed for part %d. Expected: %d, but got: %d",
+                                  partIndex, expectedPartSize, contentLength)));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Creates a range-based GET request for a specific part of a presigned URL download.
+     *
+     * @param originalRequest    the original presigned URL request
+     * @param partIndex          zero-based index of this part
+     * @param partSizeInBytes    configured part size
+     * @param totalContentLength total object size, or null if not yet known (first part)
+     * @param eTag               ETag from first response, used for If-Match on parts 1+
+     * @return a new PresignedUrlDownloadRequest with the appropriate Range and If-Match headers
+     */
+    static PresignedUrlDownloadRequest createRangedGetRequest(PresignedUrlDownloadRequest originalRequest,
+                                                              int partIndex,
+                                                              long partSizeInBytes,
+                                                              Long totalContentLength,
+                                                              String eTag) {
+        long startByte = partIndex * partSizeInBytes;
+        long endByte = totalContentLength != null
+                       ? Math.min(startByte + partSizeInBytes - 1, totalContentLength - 1)
+                       : startByte + partSizeInBytes - 1;
+        PresignedUrlDownloadRequest.Builder builder = originalRequest.toBuilder()
+                                                                     .range("bytes=" + startByte + "-" + endByte);
+        if (partIndex > 0 && eTag != null) {
+            builder.ifMatch(eTag);
+        }
+        return builder.build();
     }
 
     /**
