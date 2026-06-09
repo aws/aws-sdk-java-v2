@@ -161,7 +161,8 @@ public class ProcessCredentialsProviderTest {
                                           .command(String.format("%s %s %s token=%s exp=%s",
                                                                  scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY,
                                                                  SESSION_TOKEN, expiration))
-                                          .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                          .staleTime(Duration.ofMillis(500))
+                                          .prefetchTime(Duration.ofSeconds(1))
                                           .build();
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
@@ -176,7 +177,8 @@ public class ProcessCredentialsProviderTest {
             ProcessCredentialsProvider.builder()
                                       .command(String.format("%s %s %s token=sessionToken exp=%s acctid=%s",
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration, ACCOUNT_ID))
-                                      .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                      .staleTime(Duration.ofMillis(500))
+                                      .prefetchTime(Duration.ofSeconds(1))
                                       .build();
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
@@ -191,7 +193,8 @@ public class ProcessCredentialsProviderTest {
             ProcessCredentialsProvider.builder()
                                       .command(String.format("%s %s %s token=sessionToken exp=%s",
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration))
-                                      .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                      .staleTime(Duration.ofMillis(500))
+                                      .prefetchTime(Duration.ofSeconds(1))
                                       .staticAccountId("staticAccountId")
                                       .sourceChain("v")
                                       .build();
@@ -241,7 +244,8 @@ public class ProcessCredentialsProviderTest {
                                           .command(String.format("%s %s %s token=%s exp=%s",
                                                          scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, RANDOM_SESSION_TOKEN,
                                                          DateUtils.formatIso8601Date(Instant.now().plusSeconds(20))))
-                                          .credentialRefreshThreshold(Duration.ofSeconds(20))
+                                          .staleTime(Duration.ofSeconds(10))
+                                          .prefetchTime(Duration.ofSeconds(20))
                                           .build();
 
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
@@ -289,7 +293,8 @@ public class ProcessCredentialsProviderTest {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(errorScriptLocation)
-                                      .credentialRefreshThreshold(Duration.ofSeconds(20))
+                                      .staleTime(Duration.ofSeconds(10))
+                                      .prefetchTime(Duration.ofSeconds(20))
                                       .build();
 
         assertThatThrownBy(credentialsProvider::resolveCredentials)
@@ -303,7 +308,8 @@ public class ProcessCredentialsProviderTest {
             ProcessCredentialsProvider.builder()
                                       .command(String.format("%s %s %s token=%s",
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN))
-                                      .credentialRefreshThreshold(Duration.ofSeconds(20))
+                                      .staleTime(Duration.ofSeconds(10))
+                                      .prefetchTime(Duration.ofSeconds(20))
                                       .build();
 
         AwsCredentials request1 = credentialsProvider.resolveCredentials();

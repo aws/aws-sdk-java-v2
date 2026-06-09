@@ -448,10 +448,10 @@ public class CachedSupplierTest {
                 cachedSupplier.get();
 
                 // Advance well past the extended time to test that the backoff was applied
-                // The extended stale time should be: now(61) + 300s(advisory) + [300,600]s(backoff)
-                // So total offset from epoch: 61 + 300 + [300,600] = [661, 961] seconds from original now
-                Instant minExpectedStale = now.plusSeconds(61 + 300 + 300);
-                Instant maxExpectedStale = now.plusSeconds(61 + 300 + 600);
+                // The extended stale time should be: now(61) + [300,600]s(backoff)
+                // So total offset from epoch: 61 + [300,600] = [361, 661] seconds from original now
+                Instant minExpectedStale = now.plusSeconds(61 + 300);
+                Instant maxExpectedStale = now.plusSeconds(61 + 600);
 
                 // Advance just before the minimum backoff - should still return cached (not stale yet)
                 clock.time = minExpectedStale.minusSeconds(1);

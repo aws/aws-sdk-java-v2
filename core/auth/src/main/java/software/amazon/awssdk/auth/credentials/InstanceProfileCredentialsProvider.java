@@ -196,11 +196,12 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private Instant prefetchTime(Instant expiration) {
+        Instant now = clock.instant();
+
         if (expiration == null) {
-            return clock.instant().plus(60, MINUTES);
+            return now.plus(60, MINUTES);
         }
 
-        Instant now = clock.instant();
         Duration timeUntilExpiration = Duration.between(now, expiration);
         if (timeUntilExpiration.isNegative()) {
             // IMDS gave us a time in the past. We're already stale. Don't prefetch.
