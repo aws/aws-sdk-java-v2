@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -157,7 +158,7 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         verifyFailureWithMessage(future, "must be at least 2 x minimumPartSizeInBytes");
 
-        verify(asyncRequestBody, times(0)).splitCloseable(any(Consumer.class));
+        verify(asyncRequestBody, never()).splitCloseable(any(Consumer.class));
     }
 
     @Test

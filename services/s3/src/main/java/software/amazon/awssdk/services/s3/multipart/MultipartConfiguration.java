@@ -175,7 +175,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
          * <p>
          * When uploading content with an unknown content length, this value
-         * must be at least 2 x {@code minimumPartSizeInBytes}. The unknown-length upload path buffers one part while it buffers
+         * must be at least 2 x {@link #minimumPartSizeInBytes(Long)}. The unknown-length upload path buffers one part while it buffers
          * the next to determine whether a single-part or multipart upload is needed, so it requires room for two parts. A value
          * smaller than that will be rejected.
          * <p>
