@@ -178,15 +178,15 @@ public class PresignedUrlDownloadHelper {
         long actualEndByte = parsedRange[1];
         if (actualStartByte != expectedStartByte) {
             return Optional.of(SdkClientException.create(
-                "Content-Range mismatch for part " + partIndex + ". Expected start byte: " + expectedStartByte
-                + ", but got: bytes " + actualStartByte + "-" + actualEndByte));
+                String.format("Content-Range mismatch for part %d. Expected start byte: %d, but got: bytes %d-%d",
+                              partIndex, expectedStartByte, actualStartByte, actualEndByte)));
         }
         if (totalContentLength != null) {
             long expectedEndByte = Math.min(expectedStartByte + partSizeInBytes - 1, totalContentLength - 1);
             if (actualEndByte != expectedEndByte) {
                 return Optional.of(SdkClientException.create(
-                    "Content-Range mismatch for part " + partIndex + ". Expected: bytes " + expectedStartByte + "-"
-                    + expectedEndByte + ", but got: bytes " + actualStartByte + "-" + actualEndByte));
+                    String.format("Content-Range mismatch for part %d. Expected: bytes %d-%d, but got: bytes %d-%d",
+                                  partIndex, expectedStartByte, expectedEndByte, actualStartByte, actualEndByte)));
             }
         }
 
