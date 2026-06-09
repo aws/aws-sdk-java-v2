@@ -357,6 +357,47 @@ public abstract class BaseSqsBatchManagerTest {
         assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
+    @Test
+    public void sendMessageWithOverrideConfig_batchRequestUsesOriginalQueueUrl() {
+        String id = "0";
+        String responseBody = String.format(
+            "{\"Successful\":[{\"Id\":\"%s\",\"MD5OfMessageBody\":\"dummy\"}]}", id);
+
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
+
+        sendMessageWithOverrideConfig(DEFAULT_QUEUE_URL, "test-body").join();
+
+        // The batch request QueueUrl must be the original URL, not batchKey (queueUrl + overrideConfig.hashCode())
+        verify(anyRequestedFor(anyUrl())
+                   .withRequestBody(containing("\"QueueUrl\":\"" + DEFAULT_QUEUE_URL + "\"")));
+    }
+
+    @Test
+    public void deleteMessageWithOverrideConfig_batchRequestUsesOriginalQueueUrl() throws Exception {
+        String id = "0";
+        String responseBody = String.format("{\"Successful\":[{\"Id\":\"%s\"}]}", id);
+
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
+
+        deleteMessageWithOverrideConfig(DEFAULT_QUEUE_URL, "receipt-handle").get(3, TimeUnit.SECONDS);
+
+        verify(anyRequestedFor(anyUrl())
+                   .withRequestBody(containing("\"QueueUrl\":\"" + DEFAULT_QUEUE_URL + "\"")));
+    }
+
+    @Test
+    public void changeMessageVisibilityWithOverrideConfig_batchRequestUsesOriginalQueueUrl() throws Exception {
+        String id = "0";
+        String responseBody = String.format("{\"Successful\":[{\"Id\":\"%s\"}]}", id);
+
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(responseBody)));
+
+        changeMessageVisibilityWithOverrideConfig(DEFAULT_QUEUE_URL, "receipt-handle").get(3, TimeUnit.SECONDS);
+
+        verify(anyRequestedFor(anyUrl())
+                   .withRequestBody(containing("\"QueueUrl\":\"" + DEFAULT_QUEUE_URL + "\"")));
+    }
+
     public abstract List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1,
                                                                                                  String message2);
 
@@ -365,6 +406,12 @@ public abstract class BaseSqsBatchManagerTest {
     public abstract List<CompletableFuture<DeleteMessageResponse>> createAndSendDeleteMessageRequests();
 
     public abstract List<CompletableFuture<ChangeMessageVisibilityResponse>> createAndSendChangeVisibilityRequests();
+
+    public abstract CompletableFuture<SendMessageResponse> sendMessageWithOverrideConfig(String queueUrl, String messageBody);
+
+    public abstract CompletableFuture<DeleteMessageResponse> deleteMessageWithOverrideConfig(String queueUrl, String receiptHandle);
+
+    public abstract CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibilityWithOverrideConfig(String queueUrl, String receiptHandle);
 
     private String getMd5Hash(String message) {
         byte[] expectedMd5;

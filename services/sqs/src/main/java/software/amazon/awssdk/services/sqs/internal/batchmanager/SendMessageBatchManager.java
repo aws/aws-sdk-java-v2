@@ -90,21 +90,21 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
                                                                                            identifiedRequest.message()))
                               .collect(Collectors.toList());
 
-        // All requests must have the same overrideConfiguration, so retrieve it from the first request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                            .message()
-                                                                                            .overrideConfiguration();
+        // All requests must have the same queueUrl and overrideConfiguration, so retrieve them from the first request.
+        SendMessageRequest firstRequest = identifiedRequests.get(0).message();
+        String queueUrl = firstRequest.queueUrl();
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = firstRequest.overrideConfiguration();
 
         return overrideConfiguration
             .map(overrideConfig -> SendMessageBatchRequest.builder()
-                                                          .queueUrl(batchKey)
+                                                          .queueUrl(queueUrl)
                                                           .overrideConfiguration(overrideConfig.toBuilder()
                                                                                                .applyMutation(USER_AGENT_APPLIER)
                                                                                                .build())
                                                           .entries(entries)
                                                           .build())
             .orElseGet(() -> SendMessageBatchRequest.builder()
-                                                    .queueUrl(batchKey)
+                                                    .queueUrl(queueUrl)
                                                     .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
                                                     .entries(entries)
                                                     .build());
