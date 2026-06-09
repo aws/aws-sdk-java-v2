@@ -92,6 +92,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
+    private final Duration prefetchTime;
+
     private final String sourceChain;
     private final String providerName;
 
@@ -120,6 +122,9 @@ public final class InstanceProfileCredentialsProvider
                                      .build();
 
         this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofMinutes(1));
+        this.prefetchTime = Validate.getOrDefault(builder.prefetchTime, () -> Duration.ofMinutes(5));
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
+                        "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -202,13 +207,12 @@ public final class InstanceProfileCredentialsProvider
             return null;
         }
 
-        // Advisory refresh window: 5 minutes before expiry.
-        // If remaining lifetime < 5 minutes, use remaining lifetime.
-        Duration advisoryWindow = Duration.ofMinutes(5);
-        if (timeUntilExpiration.compareTo(advisoryWindow) < 0) {
+        // Advisory refresh window: use configured prefetchTime before expiry.
+        // If remaining lifetime < prefetchTime, refresh immediately.
+        if (timeUntilExpiration.compareTo(prefetchTime) < 0) {
             return now;
         }
-        return expiration.minus(advisoryWindow);
+        return expiration.minus(prefetchTime);
     }
 
     @Override
@@ -359,13 +363,36 @@ public final class InstanceProfileCredentialsProvider
         Builder profileName(String profileName);
 
         /**
-         * Configure the amount of time before the moment of expiration of credentials for which to consider the credentials to
-         * be stale. A higher value can lead to a higher rate of request being made to the Amazon EC2 Instance Metadata Service.
-         * The default is 1 minute.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
          *
-         * @param duration the amount of time before expiration for when to consider the credentials to be stale and need refresh
+         * <p>This value must be less than {@link #prefetchTime(Duration)}.
+         *
+         * <p>By default, this is 1 minute.
+         *
+         * @param duration the duration before expiration that triggers mandatory (blocking) refresh
          */
         Builder staleTime(Duration duration);
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than {@link #staleTime(Duration)}.
+         *
+         * <p>By default, this is 5 minutes.
+         *
+         * @param duration the duration before expiration that triggers advisory (proactive) refresh
+         */
+        Builder prefetchTime(Duration duration);
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
@@ -383,6 +410,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
+        private Duration prefetchTime;
         private String sourceChain;
 
         private BuilderImpl() {
@@ -397,6 +425,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
             this.sourceChain = provider.sourceChain;
         }
 
@@ -474,6 +503,16 @@ public final class InstanceProfileCredentialsProvider
 
         public void setStaleTime(Duration duration) {
             staleTime(duration);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration duration) {
+            this.prefetchTime = duration;
+            return this;
+        }
+
+        public void setPrefetchTime(Duration duration) {
+            prefetchTime(duration);
         }
 
         /**

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -136,6 +137,25 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             assertThat(((AwsSessionCredentials) secondResult).accessKeyId()).isEqualTo("a");
             assertThat(((AwsSessionCredentials) secondResult).secretAccessKey()).isEqualTo("b");
             assertThat(((AwsSessionCredentials) secondResult).sessionToken()).isEqualTo("c");
+        }
+    }
+
+    @Test
+    public void initialFetchFailureThrowsException_noCachedCredentials() {
+        RequestT request = getRequest();
+
+        // The very first call to STS fails — no credentials have ever been cached
+        when(callClient(stsClient, request))
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // Should throw because there are no cached credentials to fall back on
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("STS service unavailable");
         }
     }
 

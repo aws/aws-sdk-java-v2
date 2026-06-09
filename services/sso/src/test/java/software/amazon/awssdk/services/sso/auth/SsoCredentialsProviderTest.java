@@ -189,6 +189,27 @@ public class SsoCredentialsProviderTest {
         }
     }
 
+    @Test
+    public void noCachedCredentials_anyFailure_throwsImmediately() {
+        ssoClient = mock(SsoClient.class);
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+
+        // First call fails with a transient error — no cached credentials exist
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenThrow(SdkClientException.create("SSO service unavailable"));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // Should throw immediately since no cached credentials exist
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("SSO service unavailable");
+        }
+    }
+
 
 
     private GetRoleCredentialsRequestSupplier getRequestSupplier() {

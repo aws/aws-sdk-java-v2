@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -91,6 +92,8 @@ public final class ProcessCredentialsProvider
 
     private final String sourceChain;
     private final String providerName;
+    private final Duration staleTime;
+    private final Duration prefetchTime;
 
     /**
      * @see #builder()
@@ -108,6 +111,10 @@ public final class ProcessCredentialsProvider
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
             : builder.sourceChain + "," + PROVIDER_NAME;
+        this.staleTime = Optional.ofNullable(builder.staleTime).orElse(PROCESS_STALE_TIME);
+        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(PROCESS_PREFETCH_TIME);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
+                        "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -173,7 +180,7 @@ public final class ProcessCredentialsProvider
         if (expiration == null || expiration.equals(Instant.MAX)) {
             return Instant.MAX;
         }
-        return expiration.minus(PROCESS_STALE_TIME);
+        return expiration.minus(staleTime);
     }
 
     private Instant prefetchTime(Instant expiration) {
@@ -183,7 +190,7 @@ public final class ProcessCredentialsProvider
         if (credentialRefreshThresholdExplicitlySet) {
             return expiration.minusMillis(credentialRefreshThreshold.toMillis());
         }
-        return expiration.minus(PROCESS_PREFETCH_TIME);
+        return expiration.minus(prefetchTime);
     }
 
     /**
@@ -304,6 +311,8 @@ public final class ProcessCredentialsProvider
         private long processOutputLimit = 64000;
         private String staticAccountId;
         private String sourceChain;
+        private Duration staleTime;
+        private Duration prefetchTime;
 
         /**
          * @see #builder()
@@ -320,18 +329,63 @@ public final class ProcessCredentialsProvider
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
             this.sourceChain = provider.sourceChain;
+            this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is disabled.</p>
          */
         @SuppressWarnings("unchecked")
         public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return this;
+        }
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * raises an exception to the caller.
+         *
+         * <p>This value must be less than {@link #prefetchTime(Duration)}.
+         *
+         * <p>By default, this is 1 minute.</p>
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
+         */
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails during the advisory window, the provider
+         * returns the existing cached credentials. If the refresh fails after credentials have entered the mandatory refresh
+         * window (defined by {@link #staleTime(Duration)}), the provider raises an exception.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than {@link #staleTime(Duration)}.
+         *
+         * <p>By default, this is 5 minutes.</p>
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
+         */
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
             return this;
         }
 

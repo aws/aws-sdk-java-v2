@@ -74,6 +74,8 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
+                        "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
@@ -117,16 +119,16 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered stale and
-     * should no longer be used. All threads will block until the value is updated.
+     * The amount of time, relative to credential expiration, that defines the mandatory refresh window. When credentials are
+     * within this window, all threads will block until the credentials are updated.
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered close to stale
-     * and should be updated.
+     * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
+     * within this window, the provider proactively attempts to refresh them.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -184,9 +186,13 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is disabled.</p>
          */
@@ -197,10 +203,16 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * stale and must be updated. All threads will block until the value is updated.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than {@link #prefetchTime(Duration)}.
          *
          * <p>By default, this is 1 minute.</p>
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
         @SuppressWarnings("unchecked")
         public B staleTime(Duration staleTime) {
@@ -209,13 +221,20 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * close to stale and should be updated.
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
          *
-         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
-         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than {@link #staleTime(Duration)}.
          *
          * <p>By default, this is 5 minutes.</p>
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
         @SuppressWarnings("unchecked")
         public B prefetchTime(Duration prefetchTime) {
