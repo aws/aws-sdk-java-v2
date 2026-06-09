@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch",
-    "contributor": "",
-    "description": "This release adds the APIs (AssociateDatasetKmsKey, DisassociateDatasetKmsKey, GetDataset) to manage encryption at rest for OpenTelemetry metrics in CloudWatch using AWS KMS customer managed keys."
-}

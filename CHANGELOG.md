@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.7__ __2026-06-09__
+## __AWS Outposts__
+  - ### Features
+    - Added AWS Outposts APIs for self-service Outposts quoting and ordering. New operations include CreateQuote, GetQuote, UpdateQuote, DeleteQuote, ListQuotes, and ListOrderableInstanceTypes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adds support for the Amazon Bedrock account-level data retention APIs PutAccountDataRetention and GetAccountDataRetention.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Add RetryableConflictException (HTTP 409) to InvokeAgentRuntimeCommand and GetAgentCard to prevent orphaned VMs during concurrent session access. The SDK automatically retries this exception with backoff. Enforcement is not yet active and will be enabled in a future service update.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds the APIs (AssociateDatasetKmsKey, DisassociateDatasetKmsKey, GetDataset) to manage encryption at rest for OpenTelemetry metrics in CloudWatch using AWS KMS customer managed keys.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added TagFieldSpecifications to CreateFlowLogs and DescribeFlowLogs APIs. Customers can now specify tag keys in their Flow Logs subscriptions to capture associated EC2 resource tag values in their logs, enabling tag-based visibility.
+
+## __Amazon SNS Message Manager__
+  - ### Bugfixes
+    - Fixed `SnsMessageManager` rejecting valid SNS messages whose signature timestamp falls on a whole second (zero milliseconds): the canonical string was rebuilt with `Instant#toString()`, which drops the `.000` fraction and no longer matched the value Amazon SNS signed.
+        - Contributed by: [@henricook](https://github.com/henricook)
+
+## __odb__
+  - ### Features
+    - Releases Autonomous Database Serverless APIs, autonomousDatabaseOciIntegrationIamRoles, linkedOciTenancyId, linkedOciCompartmentId, and subscriptionErrors fields in GetOciOnboardingStatus API response.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@henricook](https://github.com/henricook)
 # __2.46.6__ __2026-06-08__
 ## __AWS Compute Optimizer__
   - ### Features

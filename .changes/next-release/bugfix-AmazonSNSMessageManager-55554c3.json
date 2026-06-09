@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon SNS Message Manager",
-    "description": "Fixed `SnsMessageManager` rejecting valid SNS messages whose signature timestamp falls on a whole second (zero milliseconds): the canonical string was rebuilt with `Instant#toString()`, which drops the `.000` fraction and no longer matched the value Amazon SNS signed.",
-    "contributor": "henricook"
-}
