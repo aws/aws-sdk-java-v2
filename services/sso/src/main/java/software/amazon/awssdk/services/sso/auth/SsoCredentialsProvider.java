@@ -84,8 +84,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
-               "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+               "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)

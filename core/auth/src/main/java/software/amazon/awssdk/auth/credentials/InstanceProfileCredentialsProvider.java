@@ -123,8 +123,8 @@ public final class InstanceProfileCredentialsProvider
 
         this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofMinutes(1));
         this.prefetchTime = Validate.getOrDefault(builder.prefetchTime, () -> Duration.ofMinutes(5));
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
-                        "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");

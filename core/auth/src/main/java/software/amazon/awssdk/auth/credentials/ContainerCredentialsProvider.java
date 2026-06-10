@@ -115,8 +115,8 @@ public final class ContainerCredentialsProvider
         this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) < 0,
-                        "staleTime (%s) must be less than prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
