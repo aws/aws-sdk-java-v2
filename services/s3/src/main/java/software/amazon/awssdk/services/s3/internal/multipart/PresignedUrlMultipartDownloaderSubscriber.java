@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -67,8 +67,8 @@ public class PresignedUrlMultipartDownloaderSubscriber
      */
     private final CompletableFuture<?> resultFuture;
     private final Object lock = new Object();
-    private final AtomicInteger nextPartIndex;
-    private final AtomicInteger requestsSent;
+    private final AtomicLong nextPartIndex;
+    private final AtomicLong requestsSent;
 
     /**
      * Store the GetObject futures so we can cancel them if onError() is invoked.
@@ -76,7 +76,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
     private final Queue<CompletableFuture<GetObjectResponse>> getObjectFutures = new ConcurrentLinkedQueue<>();
 
     private volatile Long totalContentLength;
-    private volatile Integer totalParts;
+    private volatile Long totalParts;
     private volatile String eTag;
     private Subscription subscription;
 
@@ -88,8 +88,8 @@ public class PresignedUrlMultipartDownloaderSubscriber
         this.s3AsyncClient = s3AsyncClient;
         this.presignedUrlDownloadRequest = presignedUrlDownloadRequest;
         this.configuredPartSizeInBytes = configuredPartSizeInBytes;
-        this.nextPartIndex = new AtomicInteger(0);
-        this.requestsSent = new AtomicInteger(0);
+        this.nextPartIndex = new AtomicLong(0);
+        this.requestsSent = new AtomicLong(0);
         this.future = new CompletableFuture<>();
         this.resultFuture = resultFuture;
     }
@@ -110,7 +110,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
-        int currentPartIndex;
+        long currentPartIndex;
         synchronized (lock) {
             currentPartIndex = nextPartIndex.get();
             if (totalParts != null && currentPartIndex >= totalParts) {
@@ -123,7 +123,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         makeRangeRequest(currentPartIndex, asyncResponseTransformer);
     }
 
-    private void makeRangeRequest(int partIndex,
+    private void makeRangeRequest(long partIndex,
                                   AsyncResponseTransformer<GetObjectResponse,
                                       GetObjectResponse> asyncResponseTransformer) {
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(partIndex);
@@ -153,9 +153,9 @@ public class PresignedUrlMultipartDownloaderSubscriber
         });
     }
 
-    private boolean validatePart(GetObjectResponse response, int partIndex,
+    private boolean validatePart(GetObjectResponse response, long partIndex,
                                  AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        int dispatched = nextPartIndex.get();
+        long dispatched = nextPartIndex.get();
         log.debug(() -> String.format("Dispatched %d parts so far", dispatched));
 
         String responseETag = response.eTag();
@@ -191,7 +191,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         return true;
     }
 
-    private void requestMoreIfNeeded(int dispatched) {
+    private void requestMoreIfNeeded(long dispatched) {
         synchronized (lock) {
             if (hasMoreParts(dispatched)) {
                 subscription.request(1);
@@ -207,16 +207,16 @@ public class PresignedUrlMultipartDownloaderSubscriber
         }
     }
 
-    private Optional<SdkClientException> validateResponse(GetObjectResponse response, int partIndex) {
+    private Optional<SdkClientException> validateResponse(GetObjectResponse response, long partIndex) {
         return PresignedUrlDownloadHelper.validatePartResponse(
             response, partIndex, configuredPartSizeInBytes, totalContentLength, totalParts);
     }
 
-    private boolean hasMoreParts(int dispatched) {
+    private boolean hasMoreParts(long dispatched) {
         return totalParts != null && dispatched < totalParts;
     }
 
-    private PresignedUrlDownloadRequest createRangedGetRequest(int partIndex) {
+    private PresignedUrlDownloadRequest createRangedGetRequest(long partIndex) {
         return PresignedUrlDownloadHelper.createRangedGetRequest(
             presignedUrlDownloadRequest, partIndex, configuredPartSizeInBytes, totalContentLength, eTag);
     }

@@ -121,8 +121,9 @@ public final class MultipartDownloadUtils {
      * @param partSize      size of each part in bytes
      * @return the number of parts
      */
-    public static int calculateTotalParts(long contentLength, long partSize) {
-        return (int) Math.ceil((double) contentLength / partSize);
+    public static long calculateTotalParts(long contentLength, long partSize) {
+        return (contentLength / partSize) + (contentLength % partSize == 0 ? 0 : 1);
+
     }
 
 }

@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -62,23 +62,23 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     private final CompletableFuture<GetObjectResponse> resultFuture;
     private final int maxInFlightParts;
 
-    private final AtomicInteger partNumber = new AtomicInteger(0);
-    private final AtomicInteger completedParts = new AtomicInteger(0);
+    private final AtomicLong partNumber = new AtomicLong(0);
+    private final AtomicLong completedParts = new AtomicLong(0);
     private final Semaphore inFlightPermits;
     /**
      * CAS gate ensuring only the first part failure triggers error handling and cancellation.
      */
     private final AtomicBoolean downloadFailed = new AtomicBoolean(false);
     private final AtomicBoolean processingPending = new AtomicBoolean(false);
-    private final Map<Integer, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
-    private final Queue<Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>> pendingTransformers =
+    private final Map<Long, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
+    private final Queue<Pair<Long, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>> pendingTransformers =
         new ConcurrentLinkedQueue<>();
 
     private final Object subscriptionLock = new Object();
     private Subscription subscription;
 
     private volatile Long totalContentLength;
-    private volatile Integer totalParts;
+    private volatile Long totalParts;
     private volatile String eTag;
     private volatile GetObjectResponse firstResponse;
 
@@ -112,7 +112,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
-        int currentPart = partNumber.getAndIncrement();
+        long currentPart = partNumber.getAndIncrement();
 
         if (currentPart == 0) {
             sendFirstRequest(asyncResponseTransformer);
@@ -129,7 +129,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     }
 
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer) {
-        PresignedUrlDownloadRequest partRequest = createRangedGetRequest(0);
+        PresignedUrlDownloadRequest partRequest = createRangedGetRequest(0L);
         log.debug(() -> "Sending first range request with range=" + partRequest.range());
 
         if (!inFlightPermits.tryAcquire()) {
@@ -139,11 +139,11 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         CompletableFuture<GetObjectResponse> response =
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);
 
-        inFlightRequests.put(0, response);
+        inFlightRequests.put(0L, response);
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, error) -> {
-            inFlightRequests.remove(0);
+            inFlightRequests.remove(0L);
             inFlightPermits.release();
 
             if (error != null) {
@@ -154,7 +154,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
                         subscription.cancel();
                     }
                 } else {
-                    handlePartError(error, 0);
+                    handlePartError(error, 0L);
                 }
                 return;
             }
@@ -170,13 +170,13 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
             String contentRange = res.contentRange();
             if (contentRange == null) {
-                handlePartError(PresignedUrlDownloadHelper.missingContentRangeHeader(), 0);
+                handlePartError(PresignedUrlDownloadHelper.missingContentRangeHeader(), 0L);
                 return;
             }
 
             Optional<Long> parsedTotal = MultipartDownloadUtils.parseContentRangeForTotalSize(contentRange);
             if (!parsedTotal.isPresent()) {
-                handlePartError(PresignedUrlDownloadHelper.invalidContentRangeHeader(contentRange), 0);
+                handlePartError(PresignedUrlDownloadHelper.invalidContentRangeHeader(contentRange), 0L);
                 return;
             }
 
@@ -184,9 +184,9 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             this.totalParts = MultipartDownloadUtils.calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
 
-            Optional<SdkClientException> validationError = validatePartResponse(res, 0);
+            Optional<SdkClientException> validationError = validatePartResponse(res, 0L);
             if (validationError.isPresent()) {
-                handlePartError(validationError.get(), 0);
+                handlePartError(validationError.get(), 0L);
                 return;
             }
 
@@ -200,8 +200,8 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
             processPendingTransformers();
 
-            int remainingParts = totalParts - 1;
-            int toRequest = Math.min(remainingParts, maxInFlightParts);
+            long remainingParts = totalParts - 1;
+            long toRequest = Math.min(remainingParts, maxInFlightParts);
             synchronized (subscriptionLock) {
                 subscription.request(toRequest);
             }
@@ -209,7 +209,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     }
 
     private void processRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer,
-                                int currentPart) {
+                                long currentPart) {
         if (currentPart >= totalParts) {
             return;
         }
@@ -224,7 +224,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
     }
 
     private void sendPartRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer,
-                                 int partIndex) {
+                                 long partIndex) {
         if (downloadFailed.get()) {
             inFlightPermits.release();
             return;
@@ -259,7 +259,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             }
 
             log.debug(() -> "Completed part: " + partIndex);
-            int totalComplete = completedParts.incrementAndGet();
+            long totalComplete = completedParts.incrementAndGet();
 
             if (totalComplete == totalParts) {
                 resultFuture.complete(firstResponse);
@@ -285,7 +285,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             try {
                 // Drain pending queue while permits are available
                 while (!pendingTransformers.isEmpty() && inFlightPermits.tryAcquire()) {
-                    Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingPart =
+                    Pair<Long, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingPart =
                         pendingTransformers.poll();
                     if (pendingPart != null && pendingPart.left() < totalParts) {
                         sendPartRequest(pendingPart.right(), pendingPart.left());
@@ -299,12 +299,12 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         } while (!pendingTransformers.isEmpty() && inFlightPermits.availablePermits() > 0);
     }
 
-    private Optional<SdkClientException> validatePartResponse(GetObjectResponse response, int partIndex) {
+    private Optional<SdkClientException> validatePartResponse(GetObjectResponse response, long partIndex) {
         return PresignedUrlDownloadHelper.validatePartResponse(
             response, partIndex, configuredPartSizeInBytes, totalContentLength, totalParts);
     }
 
-    private void handlePartError(Throwable error, int partIndex) {
+    private void handlePartError(Throwable error, long partIndex) {
         if (downloadFailed.compareAndSet(false, true)) {
             log.debug(() -> "Error on part " + partIndex, error);
             resultFuture.completeExceptionally(error);
@@ -317,7 +317,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         }
     }
 
-    private PresignedUrlDownloadRequest createRangedGetRequest(int partIndex) {
+    private PresignedUrlDownloadRequest createRangedGetRequest(long partIndex) {
         return PresignedUrlDownloadHelper.createRangedGetRequest(
             presignedUrlDownloadRequest, partIndex, configuredPartSizeInBytes, totalContentLength, eTag);
     }

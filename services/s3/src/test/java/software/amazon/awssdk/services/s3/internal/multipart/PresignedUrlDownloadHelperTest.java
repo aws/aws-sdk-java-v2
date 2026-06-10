@@ -35,7 +35,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 0, 16L, 32L, 2);
+            response, 0, 16L, 32L, 2L);
 
         assertThat(result).isEmpty();
     }
@@ -47,7 +47,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 0, 16L, 32L, 2);
+            response, 0, 16L, 32L, 2L);
 
         assertThat(result).isPresent();
         assertThat(result.get().getMessage()).contains("No Content-Range header");
@@ -61,7 +61,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 0, 16L, 32L, 2);
+            response, 0, 16L, 32L, 2L);
 
         assertThat(result).isPresent();
         assertThat(result.get().getMessage()).contains("Invalid or missing Content-Length");
@@ -75,7 +75,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 0, 16L, 32L, 2);
+            response, 0, 16L, 32L, 2L);
 
         assertThat(result).isPresent();
         assertThat(result.get().getMessage()).contains("Content-Range mismatch for part 0");
@@ -89,7 +89,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 0, 16L, 32L, 2);
+            response, 0, 16L, 32L, 2L);
 
         assertThat(result).isPresent();
         assertThat(result.get().getMessage()).contains("content length validation failed");
@@ -104,7 +104,7 @@ class PresignedUrlDownloadHelperTest {
                                                       .build();
 
         Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
-            response, 1, 16L, 30L, 2);
+            response, 1, 16L, 30L, 2L);
 
         assertThat(result).isEmpty();
     }
