@@ -28,9 +28,11 @@ import software.amazon.awssdk.http.crt.internal.request.SyncRequestBodyPump;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
+    private static final Logger LOG = Logger.loggerFor(CrtRequestExecutor.class);
 
     public Result execute(CrtRequestContext executionContext) {
         CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
@@ -45,29 +47,40 @@ public final class CrtRequestExecutor {
             InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
                 new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
             SyncCrtRequest syncCrtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+            LOG.info(() -> "execute() acquireStream invoked");
             CompletableFuture<HttpStreamBase> streamFuture =
                 executionContext.streamManager().acquireStream(syncCrtRequest.httpRequest(), crtResponseHandler);
 
             // Evict the connection from the pool on failure so it is not reused.
             requestFuture.whenComplete((r, t) -> {
                 if (t != null) {
+                    LOG.info(() -> "execute() requestFuture exceptional: closeConnection() (cause="
+                                   + t.getClass().getSimpleName() + ")");
                     crtResponseHandler.closeConnection();
                 }
             });
 
             long finalAcquireStartTime = acquireStartTime;
             streamFuture.whenComplete((streamBase, throwable) -> {
+                if (throwable == null) {
+                    LOG.info(() -> "execute() streamFuture.whenComplete fired with success");
+                } else {
+                    LOG.info(() -> "execute() streamFuture.whenComplete fired with throwable=" + throwable.getClass().getName()
+                                   + ": " + throwable.getMessage());
+                }
                 crtResponseHandler.onAcquireStream(streamBase);
                 if (shouldPublishMetrics) {
                     reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
                 }
                 if (throwable != null) {
+                    LOG.info(() -> "execute() completing requestFuture exceptionally from streamFuture failure");
                     requestFuture.completeExceptionally(wrapCrtException(throwable));
                 }
             });
 
             return new Result(requestFuture, syncCrtRequest.pump(), streamFuture);
         } catch (Throwable t) {
+            LOG.info(() -> "execute() outer catch, completing requestFuture exceptionally: " + t.getClass().getName());
             requestFuture.completeExceptionally(t);
             return new Result(requestFuture, null, null);
         }

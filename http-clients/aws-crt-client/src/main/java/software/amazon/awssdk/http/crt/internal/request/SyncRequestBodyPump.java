@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Caller-thread producer that reads from the customer's {@link InputStream} and publishes chunks to a
@@ -27,6 +28,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
  */
 @SdkInternalApi
 public final class SyncRequestBodyPump {
+    private static final Logger LOG = Logger.loggerFor(SyncRequestBodyPump.class);
 
     private final ContentStreamProvider contentStreamProvider;
     private final BodyChunkPipe pipe;
@@ -41,21 +43,24 @@ public final class SyncRequestBodyPump {
      * event-loop thread. On EOF signals the pipe normally; on {@link IOException} signals an error and rethrows.
      */
     public void pump() throws IOException {
+        LOG.info(() -> "pump() entered");
         try (InputStream in = contentStreamProvider.newStream()) {
             while (true) {
                 Chunk chunk = pipe.acquireForFill();
                 if (chunk == null) {
-                    // pipe was aborted while we were waiting; stop without signaling EOF.
+                    LOG.info(() -> "pump() exiting due to abort (acquireForFill returned null)");
                     return;
                 }
                 int read;
                 try {
                     read = in.read(chunk.data(), 0, chunk.data().length);
                 } catch (IOException ioe) {
+                    LOG.info(() -> "pump() exiting due to error: " + ioe.getMessage());
                     pipe.signalError(ioe);
                     throw ioe;
                 }
                 if (read < 0) {
+                    LOG.info(() -> "pump() exiting due to eof");
                     pipe.signalEof();
                     return;
                 }
@@ -65,6 +70,7 @@ public final class SyncRequestBodyPump {
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
+            LOG.info(() -> "pump() exiting due to interrupt");
             pipe.abort();
             throw new IOException("Interrupted while writing request body", ie);
         }
@@ -74,6 +80,7 @@ public final class SyncRequestBodyPump {
      * Abort the underlying pipe (e.g., when the caller's {@code call()} is cancelled).
      */
     public void abort() {
+        LOG.info(() -> "pump.abort() called");
         pipe.abort();
     }
 }

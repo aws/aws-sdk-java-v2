@@ -22,6 +22,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Bounded producer/consumer hand-off between the caller thread (producer) and the CRT event-loop thread (consumer).
@@ -42,6 +43,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
  */
 @SdkInternalApi
 final class BodyChunkPipe {
+    private static final Logger LOG = Logger.loggerFor(BodyChunkPipe.class);
 
     enum State {
         OPEN,
@@ -98,6 +100,7 @@ final class BodyChunkPipe {
             while (true) {
                 State s = state.get();
                 if (s == State.ABORTED || s == State.ERROR) {
+                    LOG.debug(() -> "acquireForFill returning null, state=" + s);
                     return null;
                 }
                 Chunk c = free.pollFirst();
@@ -135,7 +138,9 @@ final class BodyChunkPipe {
      * Producer side: signal end-of-stream. Idempotent.
      */
     void signalEof() {
-        state.compareAndSet(State.OPEN, State.EOF);
+        if (state.compareAndSet(State.OPEN, State.EOF)) {
+            LOG.debug(() -> "state OPEN -> EOF");
+        }
     }
 
     /**
@@ -147,7 +152,9 @@ final class BodyChunkPipe {
             // never observes state==ERROR with error==null. The volatile write to `error` is
             // harmless if the CAS later loses (idempotent signal).
             error = t;
-            state.compareAndSet(State.OPEN, State.ERROR);
+            if (state.compareAndSet(State.OPEN, State.ERROR)) {
+                LOG.debug(() -> "state OPEN -> ERROR (" + t.getClass().getSimpleName() + ")");
+            }
             freeLock.notifyAll();
         }
     }
@@ -158,6 +165,7 @@ final class BodyChunkPipe {
     void abort() {
         synchronized (freeLock) {
             if (state.compareAndSet(State.OPEN, State.ABORTED)) {
+                LOG.debug(() -> "state OPEN -> ABORTED");
                 ready.clear();
             }
             freeLock.notifyAll();
