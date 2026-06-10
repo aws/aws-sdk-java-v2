@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT-based HTTP Client",
+    "contributor": "",
+    "description": "Fixed an issue where AwsCrtHttpClient (sync) could deadlock when a request body was sourced from an InputStream that depends on the same CRT event loop, for example when piping a GetObject ResponseInputStream into a PutObject body. The InputStream read now happens on the caller thread instead of the CRT event-loop thread."
+}
