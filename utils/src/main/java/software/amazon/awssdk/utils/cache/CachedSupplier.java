@@ -23,7 +23,6 @@ import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -54,6 +53,16 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
 
+    /**
+     * Minimum backoff duration in seconds when a refresh fails (inclusive).
+     */
+    private static final int STATIC_STABILITY_BACKOFF_MIN_SECONDS = 300;
+
+    /**
+     * Maximum backoff duration in seconds when a refresh fails (inclusive).
+     */
+    private static final int STATIC_STABILITY_BACKOFF_MAX_SECONDS = 600;
+
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
@@ -82,11 +91,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * The clock used by this supplier. Adjustable for testing.
      */
     private final Clock clock;
-
-    /**
-     * The number of consecutive failures encountered when updating a stale value.
-     */
-    private final AtomicInteger consecutiveStaleRetrievalFailures = new AtomicInteger(0);
 
     /**
      * The name to include with each log message, to differentiate caches.
@@ -229,8 +233,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Perform necessary transformations of the successfully-fetched value based on the stale value behavior of this supplier.
      */
     private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
-        consecutiveStaleRetrievalFailures.set(0);
-
         Instant now = clock.instant();
 
         if (now.isBefore(fetch.staleTime())) {
@@ -269,23 +271,53 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         Instant now = clock.instant();
         if (!now.isBefore(currentCachedValue.staleTime())) {
-            int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
-
             switch (staleValueBehavior) {
                 case STRICT:
                     throw e;
                 case ALLOW:
-                    Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));
-                    log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " +
-                                   newStaleTime + " because calling the downstream service failed (consecutive failures: " +
-                                   numFailures + ").", e);
+                    // Cache-invalidating errors bypass static stability
+                    if (e instanceof CacheInvalidatingError) {
+                        throw e;
+                    }
+
+                    // Uniform random backoff: 5-10 minutes
+                    long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN_SECONDS
+                        + jitterRandom.nextInt(
+                            STATIC_STABILITY_BACKOFF_MAX_SECONDS - STATIC_STABILITY_BACKOFF_MIN_SECONDS + 1);
+                    Instant extendedStaleTime = now.plusSeconds(backoffSeconds);
+
+                    log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
+                                   + ". Extending cached credential expiration. A refresh of these credentials"
+                                   + " will be attempted again after " + backoffSeconds + " seconds.", e);
 
                     return currentCachedValue.toBuilder()
-                                             .staleTime(newStaleTime)
+                                             .staleTime(extendedStaleTime)
+                                             .prefetchTime(extendedStaleTime)
                                              .build();
                 default:
                     throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
             }
+        }
+
+        // Not yet stale — we're in the prefetch window. Handle failure based on mode.
+        if (staleValueBehavior == StaleValueBehavior.ALLOW) {
+            if (e instanceof CacheInvalidatingError) {
+                throw e;
+            }
+            // During prefetch window failure: extend prefetchTime to suppress further attempts
+            long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN_SECONDS
+                + jitterRandom.nextInt(
+                    STATIC_STABILITY_BACKOFF_MAX_SECONDS - STATIC_STABILITY_BACKOFF_MIN_SECONDS + 1);
+            Instant extendedPrefetchTime = now.plusSeconds(backoffSeconds);
+
+            log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
+                           + ". Extending cached credential expiration. A refresh of these credentials"
+                           + " will be attempted again after " + backoffSeconds + " seconds.", e);
+
+            return currentCachedValue.toBuilder()
+                                     .staleTime(extendedPrefetchTime)
+                                     .prefetchTime(extendedPrefetchTime)
+                                     .build();
         }
 
         return currentCachedValue;
@@ -333,6 +365,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         return timeBetweenPrefetchAndStale;
     }
 
+    private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
+        long jitterRange = jitterEnd.minus(jitterStart).toMillis();
+        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
+        return time.plus(jitterStart).plusMillis(jitterAmount);
+    }
+
     private Duration maxStaleFailureJitter(int numFailures) {
         // prevent cycling back through low values
         if (numFailures > 63) {
@@ -348,12 +386,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     @SdkTestInternalApi
     protected Duration maxStaleFailureJitterTest(int numFailures) {
         return maxStaleFailureJitter(numFailures);
-    }
-
-    private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
-        long jitterRange = jitterEnd.minus(jitterStart).toMillis();
-        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
-        return time.plus(jitterStart).plusMillis(jitterAmount);
     }
 
     /**
@@ -488,8 +520,14 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         STRICT,
 
         /**
-         * Allow stale values to be returned from the cache. Value retrieval will never fail, as long as the cache has
-         * succeeded when calling the underlying supplier at least once.
+         * Allow stale values to be returned from the cache with static stability semantics. On refresh failure,
+         * extends the stale time by a uniformly random backoff between 5 and 10 minutes (300-600 seconds).
+         *
+         * <p>If the failure is a {@link CacheInvalidatingError}, the exception is re-thrown immediately
+         * without extending the stale time.</p>
+         *
+         * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
+         * unless the error is cache-invalidating.</p>
          */
         ALLOW
     }

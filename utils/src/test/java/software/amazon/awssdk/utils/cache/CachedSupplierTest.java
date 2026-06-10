@@ -364,25 +364,186 @@ public class CachedSupplierTest {
     }
 
     @Test
-    public void maxStaleFailureJitter_shouldNotReturnNegativeOrCycleLowValues() {
-        CachedSupplier<String> supplier = CachedSupplier.builder(() -> RefreshResult.builder("v")
-                                                                                    .staleTime(Instant.MAX)
-                                                                                    .build())
-                                                        .build();
+    public void allowMode_returnsCachedValueOnNonCacheInvalidatingFailure() throws InterruptedException {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            Instant now = Instant.now();
+            clock.time = now;
 
-        for (int i = 1; i <= 70; i++) {
-            Duration jitter = supplier.maxStaleFailureJitterTest(i);
-            assertThat(jitter)
-                .as("numFailures=%d: jitter must be positive", i)
-                .isPositive();
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
 
-            if (i > 64) {
-                assertThat(jitter)
-                    .isEqualTo(Duration.ofSeconds(10));
+            // Advance past stale time
+            clock.time = now.plusSeconds(61);
+            supplier.set(new RuntimeException("service unavailable"));
+
+            // Should return cached value instead of throwing
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+        }
+    }
+
+    @Test
+    public void allowMode_cacheInvalidatingError_isRethrown() throws InterruptedException {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            Instant now = Instant.now();
+            clock.time = now;
+
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past stale time and throw cache-invalidating error
+            clock.time = now.plusSeconds(61);
+            CacheInvalidatingRuntimeException invalidatingError =
+                new CacheInvalidatingRuntimeException("token expired");
+            supplier.set(invalidatingError);
+
+            // Should re-throw even though cached value exists
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(invalidatingError);
+        }
+    }
+
+    @Test
+    public void allowMode_backoffIsInExpectedRange() throws InterruptedException {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+
+        // Run multiple iterations to verify backoff range
+        for (int i = 0; i < 50; i++) {
+            try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                       .staleValueBehavior(ALLOW)
+                                                                       .clock(clock)
+                                                                       .jitterEnabled(false)
+                                                                       .build()) {
+                Instant now = Instant.parse("2024-01-01T00:00:00Z");
+                clock.time = now;
+
+                supplier.set(RefreshResult.builder("cached-creds")
+                                          .staleTime(now.plusSeconds(60))
+                                          .prefetchTime(now.plusSeconds(30))
+                                          .build());
+                cachedSupplier.get();
+
+                // Advance past stale time and trigger failure
+                clock.time = now.plusSeconds(61);
+                supplier.set(new RuntimeException("service unavailable"));
+                cachedSupplier.get();
+
+                // Advance well past the extended time to test that the backoff was applied
+                // The extended stale time should be: now(61) + [300,600]s(backoff)
+                // So total offset from epoch: 61 + [300,600] = [361, 661] seconds from original now
+                Instant minExpectedStale = now.plusSeconds(61 + 300);
+                Instant maxExpectedStale = now.plusSeconds(61 + 600);
+
+                // Advance just before the minimum backoff - should still return cached (not stale yet)
+                clock.time = minExpectedStale.minusSeconds(1);
+                supplier.set(RefreshResult.builder("new-creds")
+                                          .staleTime(Instant.MAX)
+                                          .prefetchTime(Instant.MAX)
+                                          .build());
+                // Value not stale yet so should return cached
+                assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+                // Advance past maximum possible backoff - must be stale now and will refresh
+                clock.time = maxExpectedStale.plusSeconds(1);
+                assertThat(cachedSupplier.get()).isEqualTo("new-creds");
             }
         }
+    }
 
-        supplier.close();
+    @Test
+    public void allowMode_prefetchWindowFailure_extendsPrefetchTime() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            Instant now = Instant.parse("2024-01-01T00:00:00Z");
+            clock.time = now;
+
+            // Initial successful fetch with prefetch in the future, stale much later
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(60))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past prefetch time but before stale time
+            clock.time = now.plusSeconds(61);
+            supplier.set(new RuntimeException("service unavailable"));
+
+            // Should return cached value (not throw) and extend prefetch time
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Verify that a subsequent call shortly after does NOT attempt another refresh
+            // (because prefetchTime was extended)
+            clock.time = now.plusSeconds(62);
+            supplier.set(RefreshResult.builder("should-not-get-this")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            // The prefetchTime was extended far into the future, so this should still return cached
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+        }
+    }
+
+    @Test
+    public void allowMode_prefetchWindowFailure_cacheInvalidatingError_isRethrown() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            Instant now = Instant.parse("2024-01-01T00:00:00Z");
+            clock.time = now;
+
+            // Initial successful fetch with prefetch in the future, stale much later
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(60))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past prefetch time but before stale time
+            clock.time = now.plusSeconds(61);
+            CacheInvalidatingRuntimeException invalidatingError =
+                new CacheInvalidatingRuntimeException("token expired");
+            supplier.set(invalidatingError);
+
+            // Should re-throw cache-invalidating error even in prefetch window
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(invalidatingError);
+        }
+    }
+
+    /**
+     * A RuntimeException that implements CacheInvalidatingError for testing.
+     */
+    private static class CacheInvalidatingRuntimeException extends RuntimeException implements CacheInvalidatingError {
+        CacheInvalidatingRuntimeException(String message) {
+            super(message);
+        }
     }
 
     @Test
