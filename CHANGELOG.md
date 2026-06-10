@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.8__ __2026-06-10__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adding premixer settings to pid and track audio inputs in MediaLIve to allow greater control over mixing audio from multiple source streams including support for AudioPidSelectors made up of multiple audio PIDs.
+
+## __AWS Sign-In Service__
+  - ### Features
+    - AWS Sign-In now allows customers to control access to the AWS Management Console using resource-based policies. With this release customers can restrict console access based on network perimeters such as VPC IDs, VPC endpoints, and IP addresses.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS Managed Daemon task definitions now support pidMode and ipcMode parameters. Set shared to allow daemons to share PID or IPC namespaces with co-located tasks on Managed Instances, enabling process tracing and shared memory communication.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AMI Watermark which a structured identifier that helps in tracking AMI provenance
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Asia Pacific (Hong Kong) (ap-east-1), Europe (Spain) (eu-south-2) and South America (Sao Paulo) (sa-east-1) Regions.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Adds supports for out-of-order sample ingestion (default 1-minute window) and a configurable rule query offset to reduce data loss and improve alerting accuracy.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where S3 multipart uploads with unknown content length could hang indefinitely when apiCallBufferSizeInBytes was less than twice minimumPartSizeInBytes. The SDK now validates this at request time and fails fast with a descriptive error instead of deadlocking
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for G6e instances (ml.g6e.xlarge through ml.g6e.48xlarge) on Amazon SageMaker Notebook Instances.
+
+## __Connect Health__
+  - ### Features
+    - Add support for MedicalScribeBinaryAudioEvent in the Medical Scribe streaming input. This new event type lets you send audio as a raw binary payload instead of a base64-encoded value
+
 # __2.46.7__ __2026-06-09__
 ## __AWS Outposts__
   - ### Features

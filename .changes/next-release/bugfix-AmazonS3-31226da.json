@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fixed an issue where S3 multipart uploads with unknown content length could hang indefinitely when apiCallBufferSizeInBytes was less than twice minimumPartSizeInBytes. The SDK now validates this at request time and fails fast with a descriptive error instead of deadlocking"
-}
