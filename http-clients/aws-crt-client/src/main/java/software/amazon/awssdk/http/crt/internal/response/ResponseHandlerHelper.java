@@ -38,12 +38,25 @@ public class ResponseHandlerHelper {
         this.responseBuilder = responseBuilder;
     }
 
-    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+    /**
+     * Set the stream reference as soon as it is acquired from the pool, so that closeConnection can
+     * cancel it even if onResponseHeaders has not yet fired (e.g. the server is unresponsive).
+     */
+    public void onAcquireStream(HttpStreamBase stream) {
         synchronized (streamLock) {
             if (this.stream == null) {
                 this.stream = stream;
+                // closeConnection() was requested before the stream was acquired; close it now.
+                if (streamClosed && this.stream != null) {
+                    this.stream.cancel();
+                    this.stream.close();
+                }
             }
         }
+    }
+
+    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+        onAcquireStream(stream);
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
@@ -80,10 +93,12 @@ public class ResponseHandlerHelper {
      */
     public void closeConnection() {
         synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
+            if (!streamClosed) {
                 streamClosed = true;
-                stream.cancel();
-                stream.close();
+                if (stream != null) {
+                    stream.cancel();
+                    stream.close();
+                }
             }
         }
     }

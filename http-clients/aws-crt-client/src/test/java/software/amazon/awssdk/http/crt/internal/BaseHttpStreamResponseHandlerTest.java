@@ -91,7 +91,7 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
-    void failedToGetResponse_shouldCancelAndCloseStream() {
+    void failedToGetResponse_shouldCloseStreamWithoutCancel() {
         HttpHeader[] httpHeaders = getHttpHeaders();
         responseHandler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
                                           httpHeaders);
@@ -99,7 +99,6 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         responseHandler.onResponseComplete(httpStream, 1);
         assertThatThrownBy(() -> requestFuture.join()).hasRootCauseInstanceOf(HttpException.class);
         InOrder inOrder = Mockito.inOrder(httpStream);
-        inOrder.verify(httpStream).cancel();
         inOrder.verify(httpStream).close();
     }
 

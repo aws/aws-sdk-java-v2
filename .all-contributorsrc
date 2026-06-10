@@ -1147,6 +1147,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "henricook",
+      "name": "Henri Cook",
+      "avatar_url": "https://avatars.githubusercontent.com/u/82004?v=4",
+      "profile": "https://www.henricook.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

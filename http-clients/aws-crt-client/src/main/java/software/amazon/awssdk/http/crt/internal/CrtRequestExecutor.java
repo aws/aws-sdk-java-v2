@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapCrtException
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
-import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter.SyncCrtRequest;
@@ -43,13 +42,22 @@ public final class CrtRequestExecutor {
         long acquireStartTime = shouldPublishMetrics ? System.nanoTime() : 0;
 
         try {
-            HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+            InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
+                new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
             SyncCrtRequest syncCrtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
             CompletableFuture<HttpStreamBase> streamFuture =
                 executionContext.streamManager().acquireStream(syncCrtRequest.httpRequest(), crtResponseHandler);
 
+            // Evict the connection from the pool on failure so it is not reused.
+            requestFuture.whenComplete((r, t) -> {
+                if (t != null) {
+                    crtResponseHandler.closeConnection();
+                }
+            });
+
             long finalAcquireStartTime = acquireStartTime;
             streamFuture.whenComplete((streamBase, throwable) -> {
+                crtResponseHandler.onAcquireStream(streamBase);
                 if (shouldPublishMetrics) {
                     reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
                 }
