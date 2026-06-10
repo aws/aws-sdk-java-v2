@@ -20,11 +20,12 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapCrtException
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamBaseResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
+import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter.SyncCrtRequest;
+import software.amazon.awssdk.http.crt.internal.request.SyncRequestBodyPump;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -32,49 +33,71 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 @SdkInternalApi
 public final class CrtRequestExecutor {
 
-    public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
+    public Result execute(CrtRequestContext executionContext) {
         CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
-
-        try {
-            doExecute(executionContext, requestFuture);
-        } catch (Throwable t) {
-            requestFuture.completeExceptionally(t);
-        }
-
-        return requestFuture;
-    }
-
-    private void doExecute(CrtRequestContext executionContext, CompletableFuture<SdkHttpFullResponse> requestFuture) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
-        long acquireStartTime = 0;
+        // get acquireStartTime as early as possible for the concurrency timer, but only when metrics are
+        // enabled since clock_gettime() is a full sys call barrier (multiple mutexes and a hw interrupt).
+        long acquireStartTime = shouldPublishMetrics ? System.nanoTime() : 0;
 
-        if (shouldPublishMetrics) {
-            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
-            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
-            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
-            acquireStartTime = System.nanoTime();
+        try {
+            HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+            SyncCrtRequest syncCrtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+            CompletableFuture<HttpStreamBase> streamFuture =
+                executionContext.streamManager().acquireStream(syncCrtRequest.httpRequest(), crtResponseHandler);
+
+            long finalAcquireStartTime = acquireStartTime;
+            streamFuture.whenComplete((streamBase, throwable) -> {
+                if (shouldPublishMetrics) {
+                    reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
+                }
+                if (throwable != null) {
+                    requestFuture.completeExceptionally(wrapCrtException(throwable));
+                }
+            });
+
+            return new Result(requestFuture, syncCrtRequest.pump(), streamFuture);
+        } catch (Throwable t) {
+            requestFuture.completeExceptionally(t);
+            return new Result(requestFuture, null, null);
+        }
+    }
+
+    /**
+     * Result of {@link #execute(CrtRequestContext)}: bundles the response future with the optional
+     * caller-thread body pump (null when the request has no body) and the future that completes
+     * when the CRT stream has been acquired from the connection pool.
+     */
+    public static final class Result {
+        private final CompletableFuture<SdkHttpFullResponse> responseFuture;
+        private final SyncRequestBodyPump pump;
+        private final CompletableFuture<HttpStreamBase> streamFuture;
+
+        Result(CompletableFuture<SdkHttpFullResponse> responseFuture,
+               SyncRequestBodyPump pump,
+               CompletableFuture<HttpStreamBase> streamFuture) {
+            this.responseFuture = responseFuture;
+            this.pump = pump;
+            this.streamFuture = streamFuture;
         }
 
-        HttpStreamBaseResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
+        public CompletableFuture<SdkHttpFullResponse> responseFuture() {
+            return responseFuture;
+        }
 
-        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+        public SyncRequestBodyPump pump() {
+            return pump;
+        }
 
-        CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
-
-        long finalAcquireStartTime = acquireStartTime;
-
-        streamFuture.whenComplete((streamBase, throwable) -> {
-            if (shouldPublishMetrics) {
-                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
-            }
-
-            if (throwable != null) {
-                Throwable toThrow = wrapCrtException(throwable);
-                requestFuture.completeExceptionally(toThrow);
-            }
-        });
+        /**
+         * Future that completes when the CRT stream has been acquired (or acquisition has failed).
+         * The caller blocks on this before running the body pump so per-request body buffers are
+         * not allocated while a request is queued on the connection pool.
+         */
+        public CompletableFuture<HttpStreamBase> streamFuture() {
+            return streamFuture;
+        }
     }
 }

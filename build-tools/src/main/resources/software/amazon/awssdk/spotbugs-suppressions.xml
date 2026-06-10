@@ -348,6 +348,11 @@
 
             <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
 
+            <!-- BodyChunkPipe is the producer/consumer pipe for the sync CRT client; producer-side
+                 acquireForFill is intentionally blocking on back-pressure and only ever runs on the
+                 caller (sync) thread, never on the CRT event loop. -->
+            <Class name="~software\.amazon\.awssdk\.http\.crt\.internal\.request\.BodyChunkPipe" />
+
             <!-- test modules are allowed to make blocking call as parts of their testing -->
             <Class name="~.*testutils.*" />
             <Class name="~.*s3benchmarks.*" />

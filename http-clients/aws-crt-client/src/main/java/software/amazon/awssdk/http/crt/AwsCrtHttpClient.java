@@ -24,6 +24,7 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
 import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.http.crt.internal.request.SyncRequestBodyPump;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -109,6 +111,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
     private static final class CrtHttpRequest implements ExecutableHttpRequest {
         private final CrtRequestContext context;
         private volatile CompletableFuture<SdkHttpFullResponse> responseFuture;
+        private volatile SyncRequestBodyPump pump;
 
         private CrtHttpRequest(CrtRequestContext context) {
             this.context = context;
@@ -119,7 +122,38 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
 
             try {
-                responseFuture = new CrtRequestExecutor().execute(context);
+                CrtRequestExecutor.Result result = new CrtRequestExecutor().execute(context);
+                responseFuture = result.responseFuture();
+                pump = result.pump();
+
+                // Abort the pump to unblock a parked producer when CRT signals request failure
+                // via responseFuture.
+                if (pump != null) {
+                    SyncRequestBodyPump pumpRef = pump;
+                    responseFuture.whenComplete((r, t) -> {
+                        if (t != null) {
+                            pumpRef.abort();
+                        }
+                    });
+                }
+
+                boolean streamAcquired = waitForStreamAcquired(result.streamFuture());
+
+                // No body case (pump == null): CRT writes the request line + headers when the stream
+                // is acquired and emits no body callbacks. We only need to join responseFuture below.
+                if (pump != null) {
+                    if (streamAcquired) {
+                        try {
+                            pump.pump();
+                        } catch (IOException ioe) {
+                            responseFuture.completeExceptionally(ioe);
+                            throw ioe;
+                        }
+                    } else {
+                        pump.abort();
+                    }
+                }
+
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
                 builder.response(response);
                 builder.responseBody(response.content().orElse(null));
@@ -128,11 +162,15 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
                 Throwable cause = e.getCause();
 
                 // Complete the future exceptionally to trigger connection cleanup in the response handler.
-                // Handles thread-interrupt case where joinInterruptibly throws due to
-                // InterruptedException. Without this, the
-                // Ensures that closeConnection() is invoked to prevent leaking the connection from the pool.
+                // Handles the thread-interrupt case where joinInterruptibly throws due to
+                // InterruptedException, ensuring closeConnection() is invoked to prevent leaking the
+                // connection from the pool.
                 if (responseFuture != null) {
                     responseFuture.completeExceptionally(cause != null ? cause : e);
+                }
+
+                if (pump != null) {
+                    pump.abort();
                 }
 
                 if (cause instanceof IOException) {
@@ -155,6 +193,21 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         public void abort() {
             if (responseFuture != null) {
                 responseFuture.completeExceptionally(new IOException("Request was cancelled"));
+            }
+            if (pump != null) {
+                pump.abort();
+            }
+        }
+
+        private boolean waitForStreamAcquired(CompletableFuture<HttpStreamBase> streamFuture) {
+            if (streamFuture == null) {
+                return false;
+            }
+            try {
+                CompletableFutureUtils.joinInterruptibly(streamFuture);
+                return true;
+            } catch (CompletionException e) {
+                return false;
             }
         }
     }
