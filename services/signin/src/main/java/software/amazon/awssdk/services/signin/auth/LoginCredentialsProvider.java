@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.signin.auth;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 import static software.amazon.awssdk.utils.Validate.notNull;
 import static software.amazon.awssdk.utils.Validate.paramNotBlank;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
+import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
@@ -120,7 +122,9 @@ public final class LoginCredentialsProvider implements
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSigninCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(ALLOW)
+                          .cacheInvalidatingPredicate(LoginCredentialsProvider::isCacheInvalidating);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -205,15 +209,10 @@ public final class LoginCredentialsProvider implements
 
             switch (accessDeniedException.error()) {
                 case TOKEN_EXPIRED:
-                    throw SdkClientException.create(
-                        "Your session has expired. Please reauthenticate.",
-                        accessDeniedException);
                 case USER_CREDENTIALS_CHANGED:
-                    throw SdkClientException.create(
-                        "Unable to refresh credentials because of a change in your password. "
-                        + "Please reauthenticate with your new password.",
-                        accessDeniedException
-                    );
+                    // Let the original AccessDeniedException propagate — the cacheInvalidatingPredicate
+                    // on CachedSupplier will identify it and bypass static stability.
+                    throw accessDeniedException;
                 case INSUFFICIENT_PERMISSIONS:
                     throw SdkClientException.create(
                         "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
@@ -225,6 +224,20 @@ public final class LoginCredentialsProvider implements
 
             }
         }
+    }
+
+    /**
+     * Determines whether a given exception represents a non-recoverable refresh failure that should bypass
+     * static stability. For Login, this is an {@link AccessDeniedException} with error code
+     * {@link OAuth2ErrorCode#TOKEN_EXPIRED} or {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}.
+     */
+    private static boolean isCacheInvalidating(RuntimeException e) {
+        if (!(e instanceof AccessDeniedException)) {
+            return false;
+        }
+        AccessDeniedException ade = (AccessDeniedException) e;
+        return ade.error() == OAuth2ErrorCode.TOKEN_EXPIRED
+               || ade.error() == OAuth2ErrorCode.USER_CREDENTIALS_CHANGED;
     }
 
     /**

@@ -140,4 +140,54 @@ public class ContainerCredentialsProviderTest {
                "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
                "\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     }
+
+    /**
+     * Tests that when the cache is stale and refresh fails, the provider returns cached credentials
+     * instead of throwing an exception (ALLOW behavior / static stability).
+     */
+    @Test
+    public void testRefreshFailureReturnsCachedCredentials_whenCacheIsStale() {
+        // First call succeeds with credentials that are already expired (stale immediately on next get)
+        String alreadyExpiredBody = "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
+                                    "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
+                                    "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
+                                    "\"Expiration\":\"2020-01-01T00:00:00Z\"}";
+
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(alreadyExpiredBody)));
+
+        // First call succeeds (initial fetch always succeeds even if credentials are expired)
+        AwsCredentials firstCredentials = credentialsProvider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+
+        // Now stub the endpoint to return a 500 error (simulating container metadata endpoint failure)
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("Internal Server Error")));
+
+        // Second call: cache is stale (expiration is in the past), refresh fails with 500,
+        // but ALLOW behavior should return the cached credentials
+        AwsCredentials secondCredentials = credentialsProvider.resolveCredentials();
+        assertThat(secondCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(secondCredentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+    }
+
+    /**
+     * Tests that when no credentials are cached (initial fetch) and the endpoint fails,
+     * an exception is thrown.
+     */
+    @Test
+    public void testInitialFetchFailure_throwsException() {
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("Internal Server Error")));
+
+        assertThatThrownBy(credentialsProvider::resolveCredentials)
+            .isInstanceOf(SdkClientException.class);
+    }
 }

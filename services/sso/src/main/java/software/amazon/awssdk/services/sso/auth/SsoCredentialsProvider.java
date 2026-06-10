@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
+import software.amazon.awssdk.services.sso.model.UnauthorizedException;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -90,7 +91,10 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
             CachedSupplier.builder(this::updateSsoCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
+                          .cacheInvalidatingPredicate(
+                              e -> e instanceof ExpiredTokenException || e instanceof UnauthorizedException);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -115,6 +119,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private SessionCredentialsHolder getUpdatedCredentials(SsoClient ssoClient) {
         GetRoleCredentialsRequest request = getRoleCredentialsRequestSupplier.get();
         notNull(request, "GetRoleCredentialsRequest can't be null.");
+
         RoleCredentials roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
         AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
                                                                         .accessKeyId(roleCredentials.accessKeyId())
