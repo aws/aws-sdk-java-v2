@@ -302,7 +302,10 @@ public class S3MultipartClientPutObjectWiremockTest {
 
         // Wrap with full buffering enabled — this ensures retry buffer is populated before HTTP subscribe
         BufferedSplittableAsyncRequestBody bufferedBody =
-            BufferedSplittableAsyncRequestBody.create(slowStreamingBody, true);
+            BufferedSplittableAsyncRequestBody.builder()
+                .asyncRequestBody(slowStreamingBody)
+                .fullBufferingEnabled(true)
+                .build();
 
         // The upload should complete successfully — retry works because full buffering
         // ensures the retry buffer is populated before the HTTP layer subscribes

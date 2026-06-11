@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Added BufferedSplittableAsyncRequestBody.builder() with fullBufferingEnabled option that fully buffers each multipart upload part before sending, fixing NonRetryableException when retrying parts from slow streaming sources."
+}

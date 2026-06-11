@@ -36,6 +36,8 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  *
  * <p>If content length is known, each {@link AsyncRequestBody} is sent to the subscriber right after it's initialized.
  * Otherwise, it is sent after the entire content for that chunk is buffered. This is required to get content length.
+ * When {@code fullBufferingEnabled} is set to {@code true}, the known-content-length path also defers sending until the
+ * part is fully buffered, guaranteeing that the retry buffer is populated before the downstream subscriber receives it.
  */
 @SdkInternalApi
 public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBody> {

@@ -335,8 +335,11 @@ public class SplittingPublisherTest {
             }
         };
 
-        // Use create(body, true) to enable full buffering
-        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.create(sourceBody, true);
+        // Use builder to enable full buffering
+        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
+                .asyncRequestBody(sourceBody)
+                .fullBufferingEnabled(true)
+                .build();
 
         // Verify that content length is propagated
         assertThat(bufferedBody.contentLength()).hasValue((long) data.length);
@@ -457,7 +460,10 @@ public class SplittingPublisherTest {
         }
         AsyncRequestBody sourceBody = AsyncRequestBody.fromBytes(data);
 
-        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.create(sourceBody, true);
+        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
+                .asyncRequestBody(sourceBody)
+                .fullBufferingEnabled(true)
+                .build();
 
         AsyncRequestBodySplitConfiguration splitConfig = AsyncRequestBodySplitConfiguration.builder()
                 .chunkSizeInBytes(5L)
