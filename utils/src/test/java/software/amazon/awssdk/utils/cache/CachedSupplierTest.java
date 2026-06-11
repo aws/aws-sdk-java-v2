@@ -397,6 +397,8 @@ public class CachedSupplierTest {
         MutableSupplier supplier = new MutableSupplier();
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
+                                                                   .cacheInvalidatingPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
                                                                    .jitterEnabled(false)
                                                                    .build()) {
@@ -513,6 +515,8 @@ public class CachedSupplierTest {
         MutableSupplier supplier = new MutableSupplier();
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
+                                                                   .cacheInvalidatingPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
                                                                    .jitterEnabled(false)
                                                                    .build()) {
@@ -538,9 +542,9 @@ public class CachedSupplierTest {
     }
 
     /**
-     * A RuntimeException that implements CacheInvalidatingError for testing.
+     * A RuntimeException that represents a cache-invalidating error for testing.
      */
-    private static class CacheInvalidatingRuntimeException extends RuntimeException implements CacheInvalidatingError {
+    private static class CacheInvalidatingRuntimeException extends RuntimeException {
         CacheInvalidatingRuntimeException(String message) {
             super(message);
         }

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -54,14 +55,14 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
 
     /**
-     * Minimum backoff duration in seconds when a refresh fails (inclusive).
+     * Minimum backoff duration when a refresh fails (inclusive).
      */
-    private static final int STATIC_STABILITY_BACKOFF_MIN_SECONDS = 300;
+    private static final Duration STATIC_STABILITY_BACKOFF_MIN = Duration.ofMinutes(5);
 
     /**
-     * Maximum backoff duration in seconds when a refresh fails (inclusive).
+     * Maximum backoff duration when a refresh fails (inclusive).
      */
-    private static final int STATIC_STABILITY_BACKOFF_MAX_SECONDS = 600;
+    private static final Duration STATIC_STABILITY_BACKOFF_MAX = Duration.ofMinutes(10);
 
 
     /**
@@ -112,6 +113,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private final Random jitterRandom = new Random();
 
+    /**
+     * Predicate that determines whether an exception represents a non-recoverable refresh failure
+     * that should bypass static stability (i.e., be re-thrown immediately without extending expiration).
+     */
+    private final Predicate<RuntimeException> cacheInvalidatingPredicate;
+
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
         Validate.notNull(builder.jitterEnabled, "builder.jitterEnabled");
@@ -121,6 +128,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
         this.cachedValueName = Validate.notNull(builder.cachedValueName, "builder.cachedValueName");
+        this.cacheInvalidatingPredicate = builder.cacheInvalidatingPredicate;
     }
 
     /**
@@ -276,14 +284,15 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     throw e;
                 case ALLOW:
                     // Cache-invalidating errors bypass static stability
-                    if (e instanceof CacheInvalidatingError) {
+                    if (cacheInvalidatingPredicate != null && cacheInvalidatingPredicate.test(e)) {
                         throw e;
                     }
 
                     // Uniform random backoff: 5-10 minutes
-                    long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN_SECONDS
+                    long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
                         + jitterRandom.nextInt(
-                            STATIC_STABILITY_BACKOFF_MAX_SECONDS - STATIC_STABILITY_BACKOFF_MIN_SECONDS + 1);
+                            (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
+                                   - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
                     Instant extendedStaleTime = now.plusSeconds(backoffSeconds);
 
                     log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
@@ -301,13 +310,14 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         // Not yet stale — we're in the prefetch window. Handle failure based on mode.
         if (staleValueBehavior == StaleValueBehavior.ALLOW) {
-            if (e instanceof CacheInvalidatingError) {
+            if (cacheInvalidatingPredicate != null && cacheInvalidatingPredicate.test(e)) {
                 throw e;
             }
             // During prefetch window failure: extend prefetchTime to suppress further attempts
-            long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN_SECONDS
+            long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
                 + jitterRandom.nextInt(
-                    STATIC_STABILITY_BACKOFF_MAX_SECONDS - STATIC_STABILITY_BACKOFF_MIN_SECONDS + 1);
+                    (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
+                           - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
             Instant extendedPrefetchTime = now.plusSeconds(backoffSeconds);
 
             log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
@@ -406,6 +416,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
         private Clock clock = Clock.systemUTC();
         private String cachedValueName = "unknown";
+        private Predicate<RuntimeException> cacheInvalidatingPredicate;
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -442,6 +453,23 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          */
         public Builder<T> cachedValueName(String cachedValueName) {
             this.cachedValueName = cachedValueName;
+            return this;
+        }
+
+        /**
+         * Configure a predicate that determines whether an exception represents a non-recoverable refresh failure
+         * that should bypass static stability. When the predicate returns {@code true} for a given exception,
+         * the exception will be re-thrown immediately without extending the cached value's expiration.
+         *
+         * <p>This is used for errors where the credential source has definitively indicated that the current
+         * authentication state is invalid and requires user intervention (e.g., expired SSO tokens,
+         * changed user credentials).</p>
+         *
+         * <p>By default, no exceptions are considered cache-invalidating (all failures trigger static stability
+         * backoff when {@link StaleValueBehavior#ALLOW} is configured).</p>
+         */
+        public Builder<T> cacheInvalidatingPredicate(Predicate<RuntimeException> cacheInvalidatingPredicate) {
+            this.cacheInvalidatingPredicate = cacheInvalidatingPredicate;
             return this;
         }
 
@@ -523,8 +551,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Allow stale values to be returned from the cache with static stability semantics. On refresh failure,
          * extends the stale time by a uniformly random backoff between 5 and 10 minutes (300-600 seconds).
          *
-         * <p>If the failure is a {@link CacheInvalidatingError}, the exception is re-thrown immediately
-         * without extending the stale time.</p>
+         * <p>If a {@link Builder#cacheInvalidatingPredicate(Predicate)} is configured and returns {@code true}
+         * for the exception, it is re-thrown immediately without extending the stale time.</p>
          *
          * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
          * unless the error is cache-invalidating.</p>
