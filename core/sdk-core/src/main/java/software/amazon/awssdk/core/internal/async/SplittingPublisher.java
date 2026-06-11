@@ -46,6 +46,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
     private final long chunkSizeInBytes;
     private final long bufferSizeInBytes;
     private final boolean retryableSubAsyncRequestBodyEnabled;
+    private final boolean fullBufferingEnabled;
     private final AtomicBoolean currentBodySent = new AtomicBoolean(false);
     private final String sourceBodyName;
 
@@ -64,6 +65,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
 
         this.retryableSubAsyncRequestBodyEnabled = Validate.paramNotNull(builder.retryableSubAsyncRequestBodyEnabled,
                                                                          "retryableSubAsyncRequestBodyEnabled");
+        this.fullBufferingEnabled = builder.fullBufferingEnabled;
         this.sourceBodyName = builder.asyncRequestBody.body();
         if (!upstreamPublisher.contentLength().isPresent()) {
             Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
@@ -136,7 +138,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
             }
 
             currentBodySent.set(false);
-            if (contentLengthKnown) {
+            if (contentLengthKnown && !fullBufferingEnabled) {
                 sendCurrentBody(body);
             }
             return body;
@@ -234,7 +236,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
 
             // Current body could be completed in either onNext or onComplete, so we need to guard against sending the last body
             // twice.
-            if (upstreamSize == null && currentBodySent.compareAndSet(false, true)) {
+            if ((upstreamSize == null || fullBufferingEnabled) && currentBodySent.compareAndSet(false, true)) {
                 sendCurrentBody(currentBody);
             }
         }
@@ -307,6 +309,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
         private AsyncRequestBody asyncRequestBody;
         private AsyncRequestBodySplitConfiguration splitConfiguration;
         private Boolean retryableSubAsyncRequestBodyEnabled;
+        private boolean fullBufferingEnabled = false;
 
         private Builder() {
         }
@@ -332,6 +335,16 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
          */
         public Builder retryableSubAsyncRequestBodyEnabled(Boolean retryableSubAsyncRequestBodyEnabled) {
             this.retryableSubAsyncRequestBodyEnabled = retryableSubAsyncRequestBodyEnabled;
+            return this;
+        }
+
+        /**
+         * Sets whether to enable full buffering before sending parts downstream.
+         * When enabled, parts are only sent to the downstream subscriber after
+         * all data for that part has been received and complete() has been called.
+         */
+        public Builder fullBufferingEnabled(boolean fullBufferingEnabled) {
+            this.fullBufferingEnabled = fullBufferingEnabled;
             return this;
         }
 

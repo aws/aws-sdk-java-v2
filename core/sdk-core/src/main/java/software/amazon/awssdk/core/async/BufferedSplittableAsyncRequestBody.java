@@ -54,13 +54,18 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBody {
     private final AsyncRequestBody delegate;
+    private final boolean fullBufferingEnabled;
 
-    private BufferedSplittableAsyncRequestBody(AsyncRequestBody delegate) {
+    private BufferedSplittableAsyncRequestBody(AsyncRequestBody delegate, boolean fullBufferingEnabled) {
         this.delegate = delegate;
+        this.fullBufferingEnabled = fullBufferingEnabled;
     }
 
     /**
      * Creates a new {@link BufferedSplittableAsyncRequestBody} that wraps the provided {@link AsyncRequestBody}.
+     *
+     * <p>Full buffering is disabled by default. Each part is sent to the downstream subscriber immediately
+     * upon initialization in the known-content-length path (existing behavior).
      *
      * @param delegate the {@link AsyncRequestBody} to wrap and make retryable. Must not be null.
      * @return a new {@link BufferedSplittableAsyncRequestBody} instance
@@ -68,7 +73,27 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
      */
     public static BufferedSplittableAsyncRequestBody create(AsyncRequestBody delegate) {
         Validate.paramNotNull(delegate, "delegate");
-        return new BufferedSplittableAsyncRequestBody(delegate);
+        return new BufferedSplittableAsyncRequestBody(delegate, false);
+    }
+
+    /**
+     * Creates a new {@link BufferedSplittableAsyncRequestBody} that wraps the provided {@link AsyncRequestBody},
+     * with an option to enable full buffering before sending parts downstream.
+     *
+     * <p>When {@code fullBufferingEnabled} is {@code true}, each part is fully buffered before being sent to the
+     * downstream subscriber. This guarantees that the retry buffer is always populated before the HTTP layer
+     * subscribes, making per-part retry deterministically successful for slow streaming sources (e.g., SFTP).
+     *
+     * <p>When {@code fullBufferingEnabled} is {@code false}, behavior is identical to {@link #create(AsyncRequestBody)}.
+     *
+     * @param delegate the {@link AsyncRequestBody} to wrap and make retryable. Must not be null.
+     * @param fullBufferingEnabled whether to enable full buffering before sending parts downstream
+     * @return a new {@link BufferedSplittableAsyncRequestBody} instance
+     * @throws NullPointerException if delegate is null
+     */
+    public static BufferedSplittableAsyncRequestBody create(AsyncRequestBody delegate, boolean fullBufferingEnabled) {
+        Validate.paramNotNull(delegate, "delegate");
+        return new BufferedSplittableAsyncRequestBody(delegate, fullBufferingEnabled);
     }
 
     @Override
@@ -98,6 +123,7 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
                 .asyncRequestBody(this)
                 .splitConfiguration(splitConfiguration)
                 .retryableSubAsyncRequestBodyEnabled(true)
+                .fullBufferingEnabled(fullBufferingEnabled)
                 .build();
     }
 

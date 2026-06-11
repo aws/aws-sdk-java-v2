@@ -27,6 +27,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -52,6 +53,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
@@ -240,6 +242,76 @@ public class S3MultipartClientPutObjectWiremockTest {
                 return 1;
             }
         };
+    }
+
+    /**
+     * Verifies that with full buffering enabled, a slow-streaming body with known content length
+     * can successfully retry a failed part upload. This simulates the SFTP scenario where data
+     * arrives slowly and the retry buffer must be populated before the HTTP layer subscribes.
+     */
+    @Test
+    void mpuWithFullBufferingEnabled_slowStreamingKnownLength_retriesSuccessfullyOn500() {
+        // Stub CreateMultipartUpload (POST) and CompleteMultipartUpload (POST)
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
+        // Part 1: first attempt returns 500, retry returns 200
+        stubUploadFailsInitialAttemptCalls(1, aResponse().withStatus(500));
+        // Part 2: succeeds on first attempt
+        stubFor(put(anyUrl())
+                    .withQueryParam("partNumber", matching(String.valueOf(2)))
+                    .willReturn(aResponse().withStatus(200)));
+
+        // Create a slow-streaming body with KNOWN content length (20 bytes total = 2 parts of 10 bytes)
+        int partSize = 10;
+        int totalSize = partSize * 2;
+        AsyncRequestBody slowStreamingBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of((long) totalSize);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    private int bytesEmitted = 0;
+
+                    @Override
+                    public void request(long n) {
+                        // Emit data in small chunks to simulate slow streaming (like SFTP)
+                        for (long i = 0; i < n && bytesEmitted < totalSize; i++) {
+                            int chunkSize = Math.min(5, totalSize - bytesEmitted);
+                            ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
+                            for (int j = 0; j < chunkSize; j++) {
+                                buffer.put((byte) ('a' + (bytesEmitted + j) % 26));
+                            }
+                            buffer.flip();
+                            bytesEmitted += chunkSize;
+                            subscriber.onNext(buffer);
+                        }
+                        if (bytesEmitted >= totalSize) {
+                            subscriber.onComplete();
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                        // no-op
+                    }
+                });
+            }
+        };
+
+        // Wrap with full buffering enabled — this ensures retry buffer is populated before HTTP subscribe
+        BufferedSplittableAsyncRequestBody bufferedBody =
+            BufferedSplittableAsyncRequestBody.create(slowStreamingBody, true);
+
+        // The upload should complete successfully — retry works because full buffering
+        // ensures the retry buffer is populated before the HTTP layer subscribes
+        PutObjectResponse response = s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), bufferedBody).join();
+        assertThat(response).isNotNull();
+
+        // Verify part 1 was attempted more than once (retry happened)
+        verify(moreThan(1), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(lessThanOrExactly(3), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
     }
 }
 
