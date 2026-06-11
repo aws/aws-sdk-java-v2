@@ -20,6 +20,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -79,6 +82,8 @@ public final class LongRunningRequestTestSupport {
             future.get(maxWait.toMillis(), TimeUnit.MILLISECONDS);
             throw new AssertionError("Expected request to throw an exception but it completed successfully");
         } catch (TimeoutException e) {
+            // Dump threads BEFORE cancelling the future so the snapshot reflects the hang.
+            System.err.println(dumpAllThreads());
             future.cancel(true);
             throw new AssertionError(
                 "Expected request to fail within " + maxWait + " but it was still running - client appears to hang",
@@ -89,5 +94,16 @@ public final class LongRunningRequestTestSupport {
         } catch (ExecutionException e) {
             // expected
         }
+    }
+
+    static String dumpAllThreads() {
+        ThreadMXBean tmx = ManagementFactory.getThreadMXBean();
+        ThreadInfo[] infos = tmx.dumpAllThreads(true, true);
+        StringBuilder sb = new StringBuilder("=== THREAD DUMP ===\n");
+        for (ThreadInfo info : infos) {
+            sb.append(info.toString()).append('\n');
+        }
+        sb.append("=== END THREAD DUMP ===\n");
+        return sb.toString();
     }
 }
