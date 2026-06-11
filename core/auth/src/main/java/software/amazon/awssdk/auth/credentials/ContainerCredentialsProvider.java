@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -113,10 +114,12 @@ public final class ContainerCredentialsProvider
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         }
     }
