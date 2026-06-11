@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.signin.auth;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 import static software.amazon.awssdk.utils.Validate.notNull;
 import static software.amazon.awssdk.utils.Validate.paramNotBlank;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.exception.CacheInvalidatingException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.signin.SigninClient;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -104,6 +107,8 @@ public final class LoginCredentialsProvider implements
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
@@ -120,7 +125,8 @@ public final class LoginCredentialsProvider implements
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSigninCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(ALLOW);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -205,15 +211,14 @@ public final class LoginCredentialsProvider implements
 
             switch (accessDeniedException.error()) {
                 case TOKEN_EXPIRED:
-                    throw SdkClientException.create(
+                    throw CacheInvalidatingException.create(
                         "Your session has expired. Please reauthenticate.",
                         accessDeniedException);
                 case USER_CREDENTIALS_CHANGED:
-                    throw SdkClientException.create(
+                    throw CacheInvalidatingException.create(
                         "Unable to refresh credentials because of a change in your password. "
                         + "Please reauthenticate with your new password.",
-                        accessDeniedException
-                    );
+                        accessDeniedException);
                 case INSUFFICIENT_PERMISSIONS:
                     throw SdkClientException.create(
                         "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
@@ -228,16 +233,16 @@ public final class LoginCredentialsProvider implements
     }
 
     /**
-     * The amount of time, relative to session token expiration, that the cached credentials are considered stale and should no
-     * longer be used. All threads will block until the value is updated.
+     * The amount of time, relative to credential expiration, that defines the mandatory refresh window. When credentials are
+     * within this window, all threads will block until the credentials are updated.
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to session token expiration, that the cached credentials are considered close to stale and
-     * should be updated.
+     * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
+     * within this window, the provider proactively attempts to refresh them.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -286,29 +291,47 @@ public final class LoginCredentialsProvider implements
         Builder signinClient(SigninClient signinClient);
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when credentials are loaded, but additional resources are used to maintain the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is enabled.
          */
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
 
         /**
-         * Configure the amount of time, relative to login token expiration, that the cached credentials are considered stale and
-         * should no longer be used. All threads will block until the value is updated.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than {@link #prefetchTime(Duration)}.
          *
          * <p>By default, this is 1 minute.
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
         Builder staleTime(Duration staleTime);
 
         /**
-         * Configure the amount of time, relative to signin token expiration, that the cached credentials are considered close to
-         * stale and should be updated.
-         * <p>
-         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
-         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than {@link #staleTime(Duration)}.
          *
          * <p>By default, this is 5 minutes.
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
         Builder prefetchTime(Duration prefetchTime);
 
