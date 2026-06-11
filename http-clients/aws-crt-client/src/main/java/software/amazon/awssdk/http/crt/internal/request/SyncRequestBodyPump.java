@@ -69,9 +69,9 @@ public final class SyncRequestBodyPump {
                 pipe.publish(chunk);
             }
         } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
             LOG.info(() -> "pump() exiting due to interrupt");
             pipe.abort();
+            Thread.currentThread().interrupt();
             throw new IOException("Interrupted while writing request body", ie);
         }
     }

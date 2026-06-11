@@ -55,4 +55,9 @@ final class Chunk {
     void len(int len) {
         this.len = len;
     }
+
+    void reset() {
+        this.pos = 0;
+        this.len = 0;
+    }
 }

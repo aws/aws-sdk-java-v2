@@ -239,8 +239,7 @@ final class BodyChunkPipe {
     }
 
     private void recycle(Chunk c) {
-        c.pos(0);
-        c.len(0);
+        c.reset();
         synchronized (freeLock) {
             free.push(c);
             freeLock.notifyAll();
