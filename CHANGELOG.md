@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.9__ __2026-06-11__
+## __AWS Support__
+  - ### Features
+    - Adding new BDD representation of endpoint ruleset
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds support to perform cross account data plane actions on an AgentCore Memory resource
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Supports deterministic metadata for AgentCore Memory
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introduce new CreateCluster parameters for Amazon EKS local clusters on AWS Outposts. Added etcdInstanceType for configuring the EC2 instance type for dedicated etcd instances, and spreadLevel for configuring the placement group spread level for Kubernetes control plane and etcd instances.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Adds the UpdateFHIRDatastore API and adds analytics, NLP, and profile configuration support to CreateFHIRDatastore and DescribeFHIRDatastore.
+
+## __Amazon Neptune__
+  - ### Features
+    - Amazon Neptune now supports IPv6 dual-stack networking. You can create and manage Neptune DB clusters accessible over both IPv4 and IPv6 by specifying NetworkType as DUAL in CreateDBCluster, ModifyDBCluster, RestoreDBClusterFromSnapshot, and RestoreDBClusterToPointInTime API operations
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for workflowName in the ListRuns API response.
+
 # __2.46.8__ __2026-06-10__
 ## __AWS Elemental MediaLive__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Adds support to perform cross account data plane actions on an AgentCore Memory resource"
-}

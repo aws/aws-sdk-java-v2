@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Omics",
-    "contributor": "",
-    "description": "Adds support for workflowName in the ListRuns API response."
-}
