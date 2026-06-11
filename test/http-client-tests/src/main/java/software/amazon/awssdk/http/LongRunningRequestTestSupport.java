@@ -28,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Shared helpers for the long-running request test suites.
@@ -38,6 +39,8 @@ public final class LongRunningRequestTestSupport {
     public static final Duration SERVER_DELAY = Duration.ofSeconds(10);
     public static final Duration TIME_BOUND_SAFETY_MARGIN = Duration.ofSeconds(10);
     public static final Duration HANG_DELAY = Duration.ofMinutes(1);
+
+    private static final Logger log = Logger.loggerFor(LongRunningRequestTestSupport.class);
 
     private LongRunningRequestTestSupport() {
     }
@@ -83,7 +86,7 @@ public final class LongRunningRequestTestSupport {
             throw new AssertionError("Expected request to throw an exception but it completed successfully");
         } catch (TimeoutException e) {
             // Dump threads BEFORE cancelling the future so the snapshot reflects the hang.
-            System.err.println(dumpAllThreads());
+            log.error(() -> dumpAllThreads());
             future.cancel(true);
             throw new AssertionError(
                 "Expected request to fail within " + maxWait + " but it was still running - client appears to hang",

@@ -73,10 +73,8 @@
     <suppress id="NoCrtStreamCancel"
               files=".*ResponseHandlerHelper\.java$"/>
 
-    <!-- LongRunningRequestTestSupport prints a thread dump to System.err and uses java.lang.management
-         on hang to surface the failure cause through surefire-reports in CI. -->
+    <!-- LongRunningRequestTestSupport uses java.lang.management on hang to capture a thread dump
+         that surfaces the failure cause in CI logs. -->
     <suppress checks="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck"
-              files=".*LongRunningRequestTestSupport\.java$"/>
-    <suppress checks="Regexp"
               files=".*LongRunningRequestTestSupport\.java$"/>
 </suppressions>
