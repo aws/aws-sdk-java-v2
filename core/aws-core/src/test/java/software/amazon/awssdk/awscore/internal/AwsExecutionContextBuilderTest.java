@@ -581,6 +581,45 @@ public class AwsExecutionContextBuilderTest {
         assertThat(actualProvider).isSameAs(clientAuthSchemeProvider);
     }
 
+    /**
+     * Per-request credential override via AwsRequestOverrideConfiguration.credentialsProvider() must be
+     * reflected in IDENTITY_PROVIDERS even when AUTH_SCHEME_OPTIONS_RESOLVER is not set (old service client).
+     */
+    @Test
+    public void postSra_requestCredentialOverride_withoutAuthSchemeOptionsResolver_identityProvidersHasOverride() {
+        IdentityProvider<AwsCredentialsIdentity> requestCredsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("request-akid", "request-skid"));
+
+        SdkRequest request = NoopTestAwsRequest.builder()
+            .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                   .credentialsProvider(requestCredsProvider)
+                                                                   .build())
+            .build();
+
+        IdentityProviders clientIdentityProviders = IdentityProviders.builder()
+            .putIdentityProvider(defaultCredentialsProvider)
+            .build();
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.IDENTITY_PROVIDERS, clientIdentityProviders)
+            .option(SdkClientOption.EXECUTION_INTERCEPTORS, Collections.emptyList())
+            .build();
+
+        // No AUTH_SCHEME_OPTIONS_RESOLVER set — simulates old service client
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams(request);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        IdentityProviders resolvedProviders =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        // The per-request credential override must be reflected in IDENTITY_PROVIDERS
+        IdentityProvider<AwsCredentialsIdentity> resolvedCredProvider =
+            resolvedProviders.identityProvider(AwsCredentialsIdentity.class);
+        assertThat(resolvedCredProvider).isSameAs(requestCredsProvider);
+    }
+
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
         return clientExecutionParams(sdkRequest);
     }
