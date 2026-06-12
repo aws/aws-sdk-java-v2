@@ -140,6 +140,8 @@ public class SyncClientClass extends SyncClientInterface {
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
                                                           model));
         type.addMethod(protocolSpec.initProtocolFactory(model));
+
+        protocolSpec.errorResponseHandlerProvider(model).ifPresent(type::addMethod);
     }
 
     private FieldSpec logger() {

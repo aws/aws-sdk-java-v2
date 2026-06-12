@@ -172,6 +172,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                           model));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
         protocolSpec.createEventstreamErrorResponseHandler().ifPresent(type::addMethod);
+        protocolSpec.errorResponseHandlerProvider(model).ifPresent(type::addMethod);
     }
 
     @Override
@@ -331,10 +332,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
                              CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId());
         builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
                              CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
-        
+
         if (opModel.hasStreamingOutput()) {
             ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
-            
+
             builder.addStatement("$T<$T<$T, ReturnT>, $T<$T>> $N = $T.wrapWithEndOfStreamFuture($N)",
                                  Pair.class,
                                  AsyncResponseTransformer.class,
@@ -344,11 +345,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "pair",
                                  AsyncResponseTransformerUtils.class,
                                  "asyncResponseTransformer");
-            
+
             builder.addStatement("$N = $N.left()",
                                  "asyncResponseTransformer",
                                  "pair");
-            
+
             builder.addStatement("$T<$T> $N = $N.right()",
                                  CompletableFuture.class,
                                  Void.class,

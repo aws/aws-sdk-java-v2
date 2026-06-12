@@ -51,6 +51,10 @@ public interface ProtocolSpec {
 
     Optional<CodeBlock> errorResponseHandler(OperationModel opModel);
 
+    default Optional<MethodSpec> errorResponseHandlerProvider(IntermediateModel model) {
+        return Optional.empty();
+    }
+
     CodeBlock executionHandler(OperationModel opModel);
 
     /**
