@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Added `S3Presigner#presignPost(...)` to generate pre-signed HTTP POST requests for browser-based direct uploads to S3. The API exposes an independent `PostPolicyConditions` typed builder and a `fields` map, with build-time validation that every form field has a matching policy condition. Internals are split between `PostPolicyDocument` (policy model + JSON) and `S3PostPolicySigner` (SigV4 signing of the base64 policy). SigV4a and S3 Express One Zone session credentials are not supported."
+}
