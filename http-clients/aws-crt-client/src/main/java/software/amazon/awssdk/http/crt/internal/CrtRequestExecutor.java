@@ -64,11 +64,11 @@ public final class CrtRequestExecutor {
             streamFuture.whenComplete((streamBase, throwable) -> {
                 if (throwable == null) {
                     LOG.info(() -> "execute() streamFuture.whenComplete fired with success");
+                    crtResponseHandler.onAcquireStream(streamBase);
                 } else {
                     LOG.info(() -> "execute() streamFuture.whenComplete fired with throwable=" + throwable.getClass().getName()
                                    + ": " + throwable.getMessage());
                 }
-                crtResponseHandler.onAcquireStream(streamBase);
                 if (shouldPublishMetrics) {
                     reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
                 }
