@@ -69,10 +69,10 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
                                                                          "retryableSubAsyncRequestBodyEnabled");
         this.bufferBeforeSend = builder.bufferBeforeSend;
         this.sourceBodyName = builder.asyncRequestBody.body();
-        if (!upstreamPublisher.contentLength().isPresent()) {
+        if (!upstreamPublisher.contentLength().isPresent() || bufferBeforeSend) {
             Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
                             "bufferSizeInBytes must be larger than or equal to " +
-                            "chunkSizeInBytes if the content length is unknown");
+                            "chunkSizeInBytes when the content length is unknown or bufferBeforeSend is enabled");
         }
     }
 
@@ -344,6 +344,9 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
          * Sets whether to enable full buffering before sending parts downstream.
          * When enabled, parts are only sent to the downstream subscriber after
          * all data for that part has been received and complete() has been called.
+         *
+         * <p>This does not increase the maximum memory footprint. Buffered data remains
+         * bounded by {@code bufferSizeInBytes} in the split configuration.
          */
         public Builder bufferBeforeSend(boolean bufferBeforeSend) {
             this.bufferBeforeSend = bufferBeforeSend;

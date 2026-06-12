@@ -166,6 +166,12 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
          * <p>When disabled (the default), each part is sent immediately upon initialization in the
          * known-content-length path, allowing the HTTP connection to open while data is still arriving.
          *
+         * <p><b>Memory usage:</b> Enabling this option does not increase the maximum memory footprint.
+         * Buffered data remains bounded by the {@code bufferSizeInBytes} configured in the
+         * {@link AsyncRequestBodySplitConfiguration}. The only behavioral difference is timing: data is
+         * held in the buffer slightly longer (until the part is complete) before being sent downstream,
+         * rather than being streamed out concurrently.
+         *
          * @param bufferBeforeSend whether to enable full buffering before sending parts downstream.
          *                         Defaults to {@code false}.
          * @return this builder for method chaining

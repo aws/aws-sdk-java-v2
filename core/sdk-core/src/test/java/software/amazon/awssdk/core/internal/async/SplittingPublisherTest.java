@@ -830,6 +830,73 @@ public class SplittingPublisherTest {
         assertThat(receivedBodies.size()).isEqualTo(0);
     }
 
+    // ==================== Tests for bufferBeforeSend validation ====================
+
+    @Test
+    void bufferBeforeSend_bufferSizeLessThanChunkSize_throwsException() {
+        // When bufferBeforeSend=true and bufferSizeInBytes < chunkSizeInBytes, construction should fail
+        // because the buffer cannot hold a full chunk, which would cause a deadlock.
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bufferSizeInBytes must be larger than or equal to chunkSizeInBytes");
+    }
+
+    @Test
+    void bufferBeforeSend_bufferSizeEqualToChunkSize_succeeds() {
+        // When bufferBeforeSend=true and bufferSizeInBytes == chunkSizeInBytes, construction should succeed.
+        SplittingPublisher publisher = SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(10L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+        assertThat(publisher).isNotNull();
+    }
+
+    @Test
+    void bufferBeforeSendDisabled_bufferSizeLessThanChunkSize_knownContentLength_succeeds() {
+        // When bufferBeforeSend=false and content length is known, bufferSizeInBytes < chunkSizeInBytes
+        // is allowed because data flows through without full buffering.
+        SplittingPublisher publisher = SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(false)
+                .build();
+        assertThat(publisher).isNotNull();
+    }
+
+    @Test
+    void unknownContentLength_bufferSizeLessThanChunkSize_throwsException() {
+        // Existing behavior: unknown content length with bufferSizeInBytes < chunkSizeInBytes should fail.
+        ControlledAsyncRequestBody unknownLengthBody = new ControlledAsyncRequestBody(Optional.empty());
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                .asyncRequestBody(unknownLengthBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(false)
+                .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bufferSizeInBytes must be larger than or equal to chunkSizeInBytes");
+    }
+
     /**
      * A controlled AsyncRequestBody that allows tests to send data, complete, and signal errors
      * at specific times to test deferred/immediate behavior.
