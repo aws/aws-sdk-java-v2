@@ -23,10 +23,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -46,6 +54,7 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
@@ -378,6 +387,122 @@ class CopyObjectHelperTest {
 
         when(s3AsyncClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
             .thenReturn(completeMultipartUploadFuture);
+    }
+
+    @ParameterizedTest
+    @MethodSource("metadataDirectiveCopyProvider")
+    void multiPartCopy_metadataDirectiveCopyOrUnset_shouldForwardSourceMetadata(MetadataDirective directive) {
+        CopyObjectRequest.Builder requestBuilder = CopyObjectRequest.builder()
+                                                                    .sourceBucket(SOURCE_BUCKET)
+                                                                    .sourceKey(SOURCE_KEY)
+                                                                    .destinationBucket(DESTINATION_BUCKET)
+                                                                    .destinationKey(DESTINATION_KEY);
+        if (directive != null) {
+            requestBuilder.metadataDirective(directive);
+        }
+        CopyObjectRequest copyObjectRequest = requestBuilder.build();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        assertThat(actualRequest.metadata()).containsEntry("customKey", "customValue");
+        assertThat(actualRequest.contentType()).isEqualTo("application/zip");
+        assertThat(actualRequest.cacheControl()).isEqualTo("max-age=86400");
+        assertThat(actualRequest.contentDisposition()).isEqualTo("attachment");
+        assertThat(actualRequest.contentEncoding()).isEqualTo("gzip");
+        assertThat(actualRequest.contentLanguage()).isEqualTo("en-US");
+        assertThat(actualRequest.expires()).isEqualTo(Instant.ofEpochSecond(1700000000L));
+    }
+
+    private static Stream<Arguments> metadataDirectiveCopyProvider() {
+        return Stream.of(
+            Arguments.of(MetadataDirective.COPY)
+        );
+    }
+
+    @Test
+    void multiPartCopy_metadataDirectiveReplace_shouldNotForwardSourceMetadata() {
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .sourceBucket(SOURCE_BUCKET)
+                                                               .sourceKey(SOURCE_KEY)
+                                                               .destinationBucket(DESTINATION_BUCKET)
+                                                               .destinationKey(DESTINATION_KEY)
+                                                               .metadataDirective(MetadataDirective.REPLACE)
+                                                               .metadata(Collections.singletonMap("newKey", "newValue"))
+                                                               .contentType("text/plain")
+                                                               .build();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        assertThat(actualRequest.metadata()).containsEntry("newKey", "newValue");
+        assertThat(actualRequest.metadata()).doesNotContainKey("customKey");
+        assertThat(actualRequest.contentType()).isEqualTo("text/plain");
+    }
+
+    @Test
+    void multiPartCopy_metadataDirectiveCopyWithCustomerMetadata_sourceMetadataShouldWin() {
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .sourceBucket(SOURCE_BUCKET)
+                                                               .sourceKey(SOURCE_KEY)
+                                                               .destinationBucket(DESTINATION_BUCKET)
+                                                               .destinationKey(DESTINATION_KEY)
+                                                               .metadataDirective(MetadataDirective.COPY)
+                                                               .metadata(Collections.singletonMap("ignored", "value"))
+                                                               .contentType("text/html")
+                                                               .build();
+
+        stubSuccessfulHeadObjectCallWithMetadata(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        ArgumentCaptor<CreateMultipartUploadRequest> captor = ArgumentCaptor.forClass(CreateMultipartUploadRequest.class);
+        verify(s3AsyncClient).createMultipartUpload(captor.capture());
+
+        CreateMultipartUploadRequest actualRequest = captor.getValue();
+        // Source metadata wins when directive is COPY, matching S3 CopyObject API behavior
+        assertThat(actualRequest.metadata()).containsEntry("customKey", "customValue");
+        assertThat(actualRequest.metadata()).doesNotContainKey("ignored");
+        assertThat(actualRequest.contentType()).isEqualTo("application/zip");
+    }
+
+    private void stubSuccessfulHeadObjectCallWithMetadata(long contentLength) {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("customKey", "customValue");
+
+        CompletableFuture<HeadObjectResponse> headFuture =
+            CompletableFuture.completedFuture(HeadObjectResponse.builder()
+                                                                .contentLength(contentLength)
+                                                                .metadata(metadata)
+                                                                .contentType("application/zip")
+                                                                .cacheControl("max-age=86400")
+                                                                .contentDisposition("attachment")
+                                                                .contentEncoding("gzip")
+                                                                .contentLanguage("en-US")
+                                                                .expires(Instant.ofEpochSecond(1700000000L))
+                                                                .build());
+
+        when(s3AsyncClient.headObject(any(HeadObjectRequest.class)))
+            .thenReturn(headFuture);
     }
 
     private void stubSuccessfulHeadObjectCall(long contentLength) {

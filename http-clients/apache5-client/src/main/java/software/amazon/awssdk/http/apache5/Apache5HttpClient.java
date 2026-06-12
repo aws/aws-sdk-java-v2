@@ -28,9 +28,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Permission;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -101,6 +103,7 @@ import software.amazon.awssdk.http.apache5.internal.utils.Apache5Utils;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -543,6 +546,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
     }
 
     private static final class DefaultBuilder implements Builder {
+        private static final String[] REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS = {
+            "setOption.TCP_KEEPIDLE",
+            "setOption.TCP_KEEPINTERVAL",
+            "setOption.TCP_KEEPCOUNT"
+        };
+
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private Registry<AuthSchemeFactory> authSchemeRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
@@ -744,8 +753,46 @@ public final class Apache5HttpClient implements SdkHttpClient {
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(
                 SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
+            checkTcpSocketOptionPermissions();
             return new Apache5HttpClient(this, resolvedOptions);
         }
+
+        /**
+         * Fails fast if a SecurityManager is active but denies the {@code jdk.net.NetworkPermission} entries
+         * that Apache HC5 requires for its default TCP keepalive socket options.
+         * No-op when no SecurityManager is installed (including Java 24+).
+         */
+        private static void checkTcpSocketOptionPermissions() {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm == null) {
+                return;
+            }
+
+            try {
+                Class<?> permClass = ClassLoaderHelper.loadClass("jdk.net.NetworkPermission", Apache5HttpClient.class);
+                for (String permName : REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS) {
+                    Permission perm = (Permission) permClass.getConstructor(String.class).newInstance(permName);
+                    sm.checkPermission(perm);
+                }
+            } catch (SecurityException e) {
+                if (isTcpSocketOptionPermissionDenied(e)) {
+                    throw new IllegalStateException(
+                        "Apache5HttpClient requires jdk.net.NetworkPermission for \""
+                        + String.join("\", \"", REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS)
+                        + "\" when a SecurityManager is active.", e);
+                }
+                log.debug(() -> "SecurityManager denied a non-TCP socket option permission during verification: "
+                                + e.getMessage(), e);
+            } catch (Exception e) {
+                log.debug(() -> "Could not verify jdk.net.NetworkPermission for TCP socket options: " + e.getMessage(), e);
+            }
+        }
+
+        private static boolean isTcpSocketOptionPermissionDenied(SecurityException securityException) {
+            String message = securityException.getMessage();
+            return message != null && Arrays.stream(REQUIRED_TCP_SOCKET_OPTION_PERMISSIONS).anyMatch(message::contains);
+        }
+
     }
 
     private static class ApacheConnectionManagerFactory {

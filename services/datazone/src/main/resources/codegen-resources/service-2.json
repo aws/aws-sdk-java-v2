@@ -6007,6 +6007,10 @@
         "lakehouseProperties":{
           "shape":"LakehousePropertiesInput",
           "documentation":"<p>The lakehouse properties of a connection.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesInput",
+          "documentation":"<p>The VPC properties of a connection.</p>"
         }
       },
       "documentation":"<p>The properties of a connection.</p>",
@@ -6066,6 +6070,10 @@
         "lakehouseProperties":{
           "shape":"LakehousePropertiesOutput",
           "documentation":"<p>The lakehouse properties of a connection.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesOutput",
+          "documentation":"<p>The VPC properties of a connection.</p>"
         }
       },
       "documentation":"<p>The properties of a connection.</p>",
@@ -6109,6 +6117,10 @@
         "lakehouseProperties":{
           "shape":"LakehousePropertiesPatch",
           "documentation":"<p>The lakehouse properties of a connection properties patch.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesPatch",
+          "documentation":"<p>The VPC properties of a connection properties patch.</p>"
         }
       },
       "documentation":"<p>The connection properties patch.</p>",
@@ -6225,7 +6237,8 @@
         "VERTICA",
         "WORKFLOWS_MWAA",
         "AMAZON_Q",
-        "MLFLOW"
+        "MLFLOW",
+        "VPC"
       ]
     },
     "CreateAccountPoolInput":{
@@ -11530,6 +11543,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters of the environment blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when an environment blueprint was created.</p>"
@@ -11537,6 +11554,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was updated.</p>"
+        },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
         },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
@@ -13511,6 +13532,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters of the blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when this blueprint was created.</p>"
@@ -13518,6 +13543,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when this blueprint was upated.</p>"
+        },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
         },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
@@ -21361,6 +21390,14 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters in the environment blueprint.</p>"
         },
+        "resourceConfigurations":{
+          "shape":"PutResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
+        },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "globalParameters":{
           "shape":"GlobalParameterMap",
           "documentation":"<p>Region-agnostic environment blueprint parameters. </p>"
@@ -21406,6 +21443,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters in the environment blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was created.</p>"
@@ -21414,11 +21455,53 @@
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was updated.</p>"
         },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
+        },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
           "documentation":"<p>The provisioning configuration of a blueprint.</p>"
         }
       }
+    },
+    "PutResourceConfiguration":{
+      "type":"structure",
+      "required":[
+        "name",
+        "region",
+        "parameters"
+      ],
+      "members":{
+        "name":{
+          "shape":"PutResourceConfigurationNameString",
+          "documentation":"<p>The name of the resource configuration.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the resource configuration.</p>"
+        },
+        "region":{
+          "shape":"RegionName",
+          "documentation":"<p>The Amazon Web Services Region of the resource configuration.</p>"
+        },
+        "parameters":{
+          "shape":"ResourceConfigurationParameterMap",
+          "documentation":"<p>The parameters of the resource configuration.</p>"
+        }
+      },
+      "documentation":"<p>The resource configuration that is used to configure the environment blueprint.</p>"
+    },
+    "PutResourceConfigurationNameString":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "PutResourceConfigurations":{
+      "type":"list",
+      "member":{"shape":"PutResourceConfiguration"},
+      "max":10,
+      "min":0
     },
     "QueryGraphInput":{
       "type":"structure",
@@ -22267,6 +22350,49 @@
         }
       },
       "documentation":"<p>The details of a provisioned resource of this Amazon DataZone environment.</p>"
+    },
+    "ResourceConfiguration":{
+      "type":"structure",
+      "required":[
+        "identifier",
+        "name",
+        "region",
+        "parameters"
+      ],
+      "members":{
+        "identifier":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the resource configuration.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the resource configuration.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the resource configuration.</p>"
+        },
+        "region":{
+          "shape":"RegionName",
+          "documentation":"<p>The Amazon Web Services Region of the resource configuration.</p>"
+        },
+        "parameters":{
+          "shape":"ResourceConfigurationParameterMap",
+          "documentation":"<p>The parameters of the resource configuration.</p>"
+        }
+      },
+      "documentation":"<p>The details of the resource configuration.</p>"
+    },
+    "ResourceConfigurationParameterMap":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "ResourceConfigurations":{
+      "type":"list",
+      "member":{"shape":"ResourceConfiguration"},
+      "max":10,
+      "min":0
     },
     "ResourceList":{
       "type":"list",
@@ -23323,6 +23449,12 @@
           "documentation":"<p>When the number of results is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of results, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>SearchUserProfiles</code> to list the next set of results.</p>"
         }
       }
+    },
+    "SecurityGroupId":{
+      "type":"string",
+      "max":32,
+      "min":0,
+      "pattern":"sg-[a-z0-9]+"
     },
     "SecurityGroupIdList":{
       "type":"list",
@@ -28060,6 +28192,89 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "VpcConnectionSubnetIdList":{
+      "type":"list",
+      "member":{"shape":"SubnetId"},
+      "max":16,
+      "min":1
+    },
+    "VpcId":{
+      "type":"string",
+      "max":32,
+      "min":0,
+      "pattern":"vpc-[a-z0-9]+"
+    },
+    "VpcPropertiesInput":{
+      "type":"structure",
+      "required":[
+        "vpcId",
+        "subnetIds"
+      ],
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC. Must match the pattern <code>^vpc-[a-z0-9]+$</code>. Maximum length of 32.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection. You can specify between 1 and 16 subnet IDs.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection. Must match the pattern <code>^sg-[a-z0-9]+$</code>. Maximum length of 32.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties used when creating a connection.</p>"
+    },
+    "VpcPropertiesOutput":{
+      "type":"structure",
+      "required":[
+        "vpcId",
+        "subnetIds",
+        "status"
+      ],
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection.</p>"
+        },
+        "status":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The status of the VPC connection.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection.</p>"
+        },
+        "glueConnectionNames":{
+          "shape":"GlueConnectionNames",
+          "documentation":"<p>The Amazon Web Services Glue connection names associated with the VPC connection.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties returned in responses.</p>"
+    },
+    "VpcPropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties used when updating a connection.</p>"
     },
     "WorkflowsMwaaPropertiesInput":{
       "type":"structure",
