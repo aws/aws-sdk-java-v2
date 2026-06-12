@@ -32,10 +32,16 @@ public final class SyncRequestBodyPump {
 
     private final ContentStreamProvider contentStreamProvider;
     private final BodyChunkPipe pipe;
+    private final String tag;
 
     SyncRequestBodyPump(ContentStreamProvider contentStreamProvider, BodyChunkPipe pipe) {
+        this(contentStreamProvider, pipe, "-");
+    }
+
+    SyncRequestBodyPump(ContentStreamProvider contentStreamProvider, BodyChunkPipe pipe, String reqId) {
         this.contentStreamProvider = contentStreamProvider;
         this.pipe = pipe;
+        this.tag = "[reqId=" + reqId + "] ";
     }
 
     /**
@@ -43,24 +49,24 @@ public final class SyncRequestBodyPump {
      * event-loop thread. On EOF signals the pipe normally; on {@link IOException} signals an error and rethrows.
      */
     public void pump() throws IOException {
-        LOG.info(() -> "pump() entered");
+        LOG.info(() -> tag + "pump() entered");
         try (InputStream in = contentStreamProvider.newStream()) {
             while (true) {
                 Chunk chunk = pipe.acquireForFill();
                 if (chunk == null) {
-                    LOG.info(() -> "pump() exiting due to abort (acquireForFill returned null)");
+                    LOG.info(() -> tag + "pump() exiting due to abort (acquireForFill returned null)");
                     return;
                 }
                 int read;
                 try {
                     read = in.read(chunk.data(), 0, chunk.data().length);
                 } catch (IOException ioe) {
-                    LOG.info(() -> "pump() exiting due to error: " + ioe.getMessage());
+                    LOG.info(() -> tag + "pump() exiting due to error: " + ioe.getMessage());
                     pipe.signalError(ioe);
                     throw ioe;
                 }
                 if (read < 0) {
-                    LOG.info(() -> "pump() exiting due to eof");
+                    LOG.info(() -> tag + "pump() exiting due to eof");
                     pipe.signalEof();
                     return;
                 }
@@ -69,7 +75,7 @@ public final class SyncRequestBodyPump {
                 pipe.publish(chunk);
             }
         } catch (InterruptedException ie) {
-            LOG.info(() -> "pump() exiting due to interrupt");
+            LOG.info(() -> tag + "pump() exiting due to interrupt");
             pipe.abort();
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted while writing request body", ie);
@@ -80,7 +86,7 @@ public final class SyncRequestBodyPump {
      * Abort the underlying pipe (e.g., when the caller's {@code call()} is cancelled).
      */
     public void abort() {
-        LOG.info(() -> "pump.abort() called");
+        LOG.info(() -> tag + "pump.abort() called");
         pipe.abort();
     }
 }

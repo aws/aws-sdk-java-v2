@@ -38,6 +38,7 @@ public final class CrtRequestExecutor {
         CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
+        String tag = "[reqId=" + executionContext.reqId() + "] ";
 
         // get acquireStartTime as early as possible for the concurrency timer, but only when metrics are
         // enabled since clock_gettime() is a full sys call barrier (multiple mutexes and a hw interrupt).
@@ -47,14 +48,14 @@ public final class CrtRequestExecutor {
             InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
                 new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
             SyncCrtRequest syncCrtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
-            LOG.info(() -> "execute() acquireStream invoked");
+            LOG.info(() -> tag + "execute() acquireStream invoked");
             CompletableFuture<HttpStreamBase> streamFuture =
                 executionContext.streamManager().acquireStream(syncCrtRequest.httpRequest(), crtResponseHandler);
 
             // Evict the connection from the pool on failure so it is not reused.
             requestFuture.whenComplete((r, t) -> {
                 if (t != null) {
-                    LOG.info(() -> "execute() requestFuture exceptional: closeConnection() (cause="
+                    LOG.info(() -> tag + "execute() requestFuture exceptional: closeConnection() (cause="
                                    + t.getClass().getSimpleName() + ")");
                     crtResponseHandler.closeConnection();
                 }
@@ -63,24 +64,24 @@ public final class CrtRequestExecutor {
             long finalAcquireStartTime = acquireStartTime;
             streamFuture.whenComplete((streamBase, throwable) -> {
                 if (throwable == null) {
-                    LOG.info(() -> "execute() streamFuture.whenComplete fired with success");
+                    LOG.info(() -> tag + "execute() streamFuture.whenComplete fired with success");
                     crtResponseHandler.onAcquireStream(streamBase);
                 } else {
-                    LOG.info(() -> "execute() streamFuture.whenComplete fired with throwable=" + throwable.getClass().getName()
-                                   + ": " + throwable.getMessage());
+                    LOG.info(() -> tag + "execute() streamFuture.whenComplete fired with throwable="
+                                   + throwable.getClass().getName() + ": " + throwable.getMessage());
                 }
                 if (shouldPublishMetrics) {
                     reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
                 }
                 if (throwable != null) {
-                    LOG.info(() -> "execute() completing requestFuture exceptionally from streamFuture failure");
+                    LOG.info(() -> tag + "execute() completing requestFuture exceptionally from streamFuture failure");
                     requestFuture.completeExceptionally(wrapCrtException(throwable));
                 }
             });
 
             return new Result(requestFuture, syncCrtRequest.pump(), streamFuture);
         } catch (Throwable t) {
-            LOG.info(() -> "execute() outer catch, completing requestFuture exceptionally: " + t.getClass().getName());
+            LOG.info(() -> tag + "execute() outer catch, completing requestFuture exceptionally: " + t.getClass().getName());
             requestFuture.completeExceptionally(t);
             return new Result(requestFuture, null, null);
         }

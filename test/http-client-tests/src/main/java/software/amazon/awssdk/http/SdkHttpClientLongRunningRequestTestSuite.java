@@ -19,19 +19,15 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.CONFIGURED_TIMEOUT;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.HANG_DELAY;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertFailsWithinTimeBound;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.executeAsync;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubHanging;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubLongPolling;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubStreamingWithPauses;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import software.amazon.awssdk.http.LongRunningRequestTestSupport.TestRequestExecution;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -56,7 +52,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
                                                                     CONFIGURED_TIMEOUT)
                                                                .build());
         try {
-            assertFailsWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
+            assertFailsWithinTimeBound(executeAsync(client, mockServer), CONFIGURED_TIMEOUT);
         } finally {
             client.close();
         }
@@ -71,7 +67,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
                                                                     CONFIGURED_TIMEOUT)
                                                                .build());
         try {
-            assertFailsWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
+            assertFailsWithinTimeBound(executeAsync(client, mockServer), CONFIGURED_TIMEOUT);
         } finally {
             client.close();
         }
@@ -89,54 +85,14 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
                                                                     CONFIGURED_TIMEOUT)
                                                                .build());
         try {
-            CompletableFuture<?> firstRequest = executeAsync(client);
+            TestRequestExecution firstRequest = executeAsync(client, mockServer);
             Thread.sleep(500);
 
-            assertFailsWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
+            assertFailsWithinTimeBound(executeAsync(client, mockServer), CONFIGURED_TIMEOUT);
 
-            firstRequest.cancel(true);
+            firstRequest.future().cancel(true);
         } finally {
             client.close();
-        }
-    }
-
-    private CompletableFuture<Void> executeAsync(SdkHttpClient client) {
-        return CompletableFuture.supplyAsync(() -> {
-            executeRequest(client);
-            return null;
-        });
-    }
-
-    private void executeRequest(SdkHttpClient client) {
-        URI uri = URI.create("http://localhost:" + mockServer.getPort());
-        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                                                       .uri(uri)
-                                                       .method(SdkHttpMethod.POST)
-                                                       .putHeader("Host", uri.getHost())
-                                                       .putHeader("Content-Length", "4")
-                                                       .contentStreamProvider(() -> new ByteArrayInputStream(
-                                                           "Body".getBytes(StandardCharsets.UTF_8)))
-                                                       .build();
-        try {
-            HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                                   .request(request)
-                                                                                   .contentStreamProvider(
-                                                                                       request.contentStreamProvider()
-                                                                                              .orElse(null))
-                                                                                   .build())
-                                                 .call();
-            response.responseBody().ifPresent(body -> {
-                try {
-                    while (body.read() != -1) {
-                        // drain body so mid-body timeouts surface
-                    }
-                    body.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 }

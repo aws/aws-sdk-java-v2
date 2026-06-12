@@ -64,6 +64,7 @@ final class BodyChunkPipe {
     private final ArrayBlockingQueue<Chunk> ready;
     private final Deque<Chunk> free;
     private final AtomicReference<State> state = new AtomicReference<>(State.OPEN);
+    private final String tag;
     /**
      * Guards the free deque, allocated counter, and producer wait/notify protocol. Kept private
      * so external code cannot synchronize on the pipe instance and stall the producer.
@@ -75,6 +76,10 @@ final class BodyChunkPipe {
     private Chunk pendingDrain;
 
     BodyChunkPipe(int depth, int chunkSize) {
+        this(depth, chunkSize, "-");
+    }
+
+    BodyChunkPipe(int depth, int chunkSize, String reqId) {
         if (depth < 1) {
             throw new IllegalArgumentException("depth must be >= 1");
         }
@@ -85,6 +90,7 @@ final class BodyChunkPipe {
         this.chunkSize = chunkSize;
         this.ready = new ArrayBlockingQueue<>(depth);
         this.free = new ArrayDeque<>(depth);
+        this.tag = "[reqId=" + reqId + "] ";
     }
 
     /**
@@ -100,7 +106,7 @@ final class BodyChunkPipe {
             while (true) {
                 State s = state.get();
                 if (s == State.ABORTED || s == State.ERROR) {
-                    LOG.debug(() -> "acquireForFill returning null, state=" + s);
+                    LOG.debug(() -> tag + "acquireForFill returning null, state=" + s);
                     return null;
                 }
                 Chunk c = free.pollFirst();
@@ -139,7 +145,7 @@ final class BodyChunkPipe {
      */
     void signalEof() {
         if (state.compareAndSet(State.OPEN, State.EOF)) {
-            LOG.debug(() -> "state OPEN -> EOF");
+            LOG.debug(() -> tag + "state OPEN -> EOF");
         }
     }
 
@@ -153,7 +159,7 @@ final class BodyChunkPipe {
             // harmless if the CAS later loses (idempotent signal).
             error = t;
             if (state.compareAndSet(State.OPEN, State.ERROR)) {
-                LOG.debug(() -> "state OPEN -> ERROR (" + t.getClass().getSimpleName() + ")");
+                LOG.debug(() -> tag + "state OPEN -> ERROR (" + t.getClass().getSimpleName() + ")");
             }
             freeLock.notifyAll();
         }
@@ -165,7 +171,7 @@ final class BodyChunkPipe {
     void abort() {
         synchronized (freeLock) {
             if (state.compareAndSet(State.OPEN, State.ABORTED)) {
-                LOG.debug(() -> "state OPEN -> ABORTED");
+                LOG.debug(() -> tag + "state OPEN -> ABORTED");
                 ready.clear();
             }
             freeLock.notifyAll();
