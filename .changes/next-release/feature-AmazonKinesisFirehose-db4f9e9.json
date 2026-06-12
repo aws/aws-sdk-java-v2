@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Firehose",
-    "contributor": "",
-    "description": "Update KeyARN in DeliveryStreamEncryptionConfigurationInput to accept KMS key ARNs only (not alias ARNs), matching service behavior."
-}

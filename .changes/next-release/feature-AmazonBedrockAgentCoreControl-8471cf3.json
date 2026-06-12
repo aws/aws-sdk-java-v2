@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Control",
-    "contributor": "",
-    "description": "Added tagging and CMK support for optimizations and an insights feature to identify failure patterns, extract user intents, and summarize execution behavior"
-}

@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.10__ __2026-06-12__
+## __AWS Certificate Manager__
+  - ### Features
+    - Certificate transparency logging opt-out is no longer available. Per compliance requirements, all public ACM certificates are automatically recorded in certificate transparency logs. The CertificateTransparencyLoggingPreference option is deprecated.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for Trigger CRUD APIs (CreateTrigger, GetTrigger, UpdateTrigger, DeleteTrigger, ListTriggers) for managing schedule-based automation triggers in DevOps Agent agent spaces.
+
+## __AWS Glue__
+  - ### Features
+    - Adds support for retrieving Apache Iceberg table metadata via GetTable. Use the new AttributesToGet parameter with LATEST ICEBERG METADATA to receive schema, partition specs, sort orders, and table properties in the response.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updating documentation for select service-specific credential APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added tagging and CMK support across optimization, an explanation field in recommendation output, and an insights feature to identify failure patterns, extract user intents, and summarize execution behavior
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Added tagging and CMK support for optimizations and an insights feature to identify failure patterns, extract user intents, and summarize execution behavior
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Patches missing enum values for EKS updates
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Update KeyARN in DeliveryStreamEncryptionConfigurationInput to accept KMS key ARNs only (not alias ARNs), matching service behavior.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Added support for inline request payloads to the InvokeEndpointAsync operation to allow users to provide the inference payload directly in the request Body (up to 128,000 bytes) as an alternative to uploading the payload to Amazon S3 and passing InputLocation.
+
 # __2.46.9__ __2026-06-11__
 ## __AWS Support__
   - ### Features
