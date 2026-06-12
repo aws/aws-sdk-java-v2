@@ -30,17 +30,17 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class UnionWithTypeMember implements SdkPojo, Serializable,
-                                                  ToCopyableBuilder<UnionWithTypeMember.Builder, UnionWithTypeMember> {
+        ToCopyableBuilder<UnionWithTypeMember.Builder, UnionWithTypeMember> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                        .memberName("StringMember").getter(getter(UnionWithTypeMember::stringMember)).setter(setter(Builder::stringMember))
-                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+            .memberName("StringMember").getter(getter(UnionWithTypeMember::stringMember)).setter(setter(Builder::stringMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final SdkField<String> TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Type")
-                                                               .getter(getter(UnionWithTypeMember::typeValue)).setter(setter(Builder::typeValue))
-                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Type").build()).build();
+            .getter(getter(UnionWithTypeMember::typeValue)).setter(setter(Builder::typeValue))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Type").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
-                                                                                                   TYPE_FIELD));
+            TYPE_FIELD));
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
@@ -58,9 +58,15 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable,
         this.type = builder.type;
     }
 
+    private UnionWithTypeMember(Type type, String stringMember, String typeValue) {
+        this.type = type;
+        this.stringMember = stringMember;
+        this.typeValue = typeValue;
+    }
+
     /**
      * Returns the value of the StringMember property for this object.
-     *
+     * 
      * @return The value of the StringMember property for this object.
      */
     public final String stringMember() {
@@ -69,7 +75,7 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the Type property for this object.
-     *
+     * 
      * @return The value of the Type property for this object.
      */
     public final String typeValue() {
@@ -128,12 +134,12 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable,
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "StringMember":
-                return Optional.ofNullable(clazz.cast(stringMember()));
-            case "Type":
-                return Optional.ofNullable(clazz.cast(typeValue()));
-            default:
-                return Optional.empty();
+        case "StringMember":
+            return Optional.ofNullable(clazz.cast(stringMember()));
+        case "Type":
+            return Optional.ofNullable(clazz.cast(typeValue()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -159,6 +165,20 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable,
      */
     public static UnionWithTypeMember fromTypeValue(String typeValue) {
         return builder().typeValue(typeValue).build();
+    }
+
+    public static UnionWithTypeMember fastStringMember(String stringMember) {
+        if (stringMember == null) {
+            return new UnionWithTypeMember(Type.UNKNOWN_TO_SDK_VERSION, stringMember, null);
+        }
+        return new UnionWithTypeMember(Type.STRING_MEMBER, stringMember, null);
+    }
+
+    public static UnionWithTypeMember fastTypeValue(String typeValue) {
+        if (typeValue == null) {
+            return new UnionWithTypeMember(Type.UNKNOWN_TO_SDK_VERSION, null, typeValue);
+        }
+        return new UnionWithTypeMember(Type.TYPE, null, typeValue);
     }
 
     /**
