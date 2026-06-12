@@ -48,6 +48,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 
@@ -298,6 +301,203 @@ public class SplittingPublisherTest {
         assertThat(error).isEqualTo(upstreamError);
     }
 
+    @Test
+    void bufferedSplittable_createWithFullBufferingTrue_defersPartEmission() throws Exception {
+        // Create a controlled async request body with known content length that delivers data in two chunks
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+        AsyncRequestBody sourceBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of((long) data.length);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                s.onSubscribe(new Subscription() {
+                    private boolean done = false;
+
+                    @Override
+                    public void request(long n) {
+                        if (!done) {
+                            done = true;
+                            s.onNext(ByteBuffer.wrap(data));
+                            s.onComplete();
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+
+        // Use builder to enable full buffering
+        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
+                .asyncRequestBody(sourceBody)
+                .bufferBeforeSend(true)
+                .build();
+
+        // Verify that content length is propagated
+        assertThat(bufferedBody.contentLength()).hasValue((long) data.length);
+
+        // Split with a chunk size of 5 (two parts of 5 bytes each)
+        AsyncRequestBodySplitConfiguration splitConfig = AsyncRequestBodySplitConfiguration.builder()
+                .chunkSizeInBytes(5L)
+                .bufferSizeInBytes(20L)
+                .build();
+
+        SdkPublisher<CloseableAsyncRequestBody> publisher = bufferedBody.splitCloseable(splitConfig);
+
+        // Track when parts are received by the downstream subscriber
+        List<CompletableFuture<byte[]>> partFutures = new ArrayList<>();
+
+        CompletableFuture<Void> subscribeFuture = publisher.subscribe(requestBody -> {
+            // Each part should arrive with data already available (fully buffered)
+            CompletableFuture<byte[]> partFuture = new CompletableFuture<>();
+            partFutures.add(partFuture);
+            requestBody.subscribe(new BaosSubscriber(partFuture));
+            partFuture.whenComplete((r, t) -> requestBody.close());
+        });
+
+        subscribeFuture.get(5, TimeUnit.SECONDS);
+
+        // Verify we received 2 parts with correct data
+        assertThat(partFutures.size()).isEqualTo(2);
+
+        byte[] firstPart = partFutures.get(0).get(5, TimeUnit.SECONDS);
+        byte[] secondPart = partFutures.get(1).get(5, TimeUnit.SECONDS);
+
+        byte[] expectedFirst = new byte[]{0, 1, 2, 3, 4};
+        byte[] expectedSecond = new byte[]{5, 6, 7, 8, 9};
+
+        assertThat(firstPart).isEqualTo(expectedFirst);
+        assertThat(secondPart).isEqualTo(expectedSecond);
+    }
+
+    @Test
+    void bufferedSplittable_createDefault_sendsPartsImmediately() throws Exception {
+        // Create a body with known content length
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+        AsyncRequestBody sourceBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of((long) data.length);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                s.onSubscribe(new Subscription() {
+                    private boolean done = false;
+
+                    @Override
+                    public void request(long n) {
+                        if (!done) {
+                            done = true;
+                            s.onNext(ByteBuffer.wrap(data));
+                            s.onComplete();
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+
+        // Use default create(body) - full buffering should be disabled
+        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.create(sourceBody);
+
+        // Verify content length is propagated
+        assertThat(bufferedBody.contentLength()).hasValue((long) data.length);
+
+        // Split with chunk size of 5 (two parts of 5 bytes each)
+        AsyncRequestBodySplitConfiguration splitConfig = AsyncRequestBodySplitConfiguration.builder()
+                .chunkSizeInBytes(5L)
+                .bufferSizeInBytes(20L)
+                .build();
+
+        SdkPublisher<CloseableAsyncRequestBody> publisher = bufferedBody.splitCloseable(splitConfig);
+
+        // Track parts received
+        List<CompletableFuture<byte[]>> partFutures = new ArrayList<>();
+
+        CompletableFuture<Void> subscribeFuture = publisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> partFuture = new CompletableFuture<>();
+            partFutures.add(partFuture);
+            requestBody.subscribe(new BaosSubscriber(partFuture));
+            partFuture.whenComplete((r, t) -> requestBody.close());
+        });
+
+        subscribeFuture.get(5, TimeUnit.SECONDS);
+
+        // Verify we received 2 parts with correct data (existing behavior preserved)
+        assertThat(partFutures.size()).isEqualTo(2);
+
+        byte[] firstPart = partFutures.get(0).get(5, TimeUnit.SECONDS);
+        byte[] secondPart = partFutures.get(1).get(5, TimeUnit.SECONDS);
+
+        byte[] expectedFirst = new byte[]{0, 1, 2, 3, 4};
+        byte[] expectedSecond = new byte[]{5, 6, 7, 8, 9};
+
+        assertThat(firstPart).isEqualTo(expectedFirst);
+        assertThat(secondPart).isEqualTo(expectedSecond);
+    }
+
+    @Test
+    void bufferedSplittable_createWithFullBufferingTrue_partsAreRetryable() throws Exception {
+        // Verify that create(body, true) produces retryable sub-bodies (retry buffer is populated)
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+        AsyncRequestBody sourceBody = AsyncRequestBody.fromBytes(data);
+
+        BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
+                .asyncRequestBody(sourceBody)
+                .bufferBeforeSend(true)
+                .build();
+
+        AsyncRequestBodySplitConfiguration splitConfig = AsyncRequestBodySplitConfiguration.builder()
+                .chunkSizeInBytes(5L)
+                .bufferSizeInBytes(20L)
+                .build();
+
+        SdkPublisher<CloseableAsyncRequestBody> publisher = bufferedBody.splitCloseable(splitConfig);
+
+        // Subscribe, read each part, then resubscribe to verify retry buffer is available
+        Map<Integer, Pair<CompletableFuture<byte[]>, CompletableFuture<byte[]>>> futures = new HashMap<>();
+        AtomicInteger index = new AtomicInteger();
+
+        publisher.subscribe(requestBody -> {
+            int i = index.getAndIncrement();
+            CompletableFuture<byte[]> firstRead = new CompletableFuture<>();
+            requestBody.subscribe(new BaosSubscriber(firstRead));
+
+            firstRead.whenComplete((r, t) -> {
+                // Resubscribe to verify retry works
+                CompletableFuture<byte[]> secondRead = new CompletableFuture<>();
+                requestBody.subscribe(new BaosSubscriber(secondRead));
+                futures.put(i, Pair.of(firstRead, secondRead));
+                secondRead.whenComplete((res, throwable) -> requestBody.close());
+            });
+        }).get(5, TimeUnit.SECONDS);
+
+        // Verify all parts can be re-read (retry buffer is populated before downstream subscription)
+        for (int i = 0; i < futures.size(); i++) {
+            byte[] firstReadData = futures.get(i).left().get(5, TimeUnit.SECONDS);
+            byte[] secondReadData = futures.get(i).right().get(5, TimeUnit.SECONDS);
+            assertThat(firstReadData).isEqualTo(secondReadData);
+        }
+    }
+
     private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
         SplittingPublisher splittingPublisher = SplittingPublisher.builder()
                 .asyncRequestBody(asyncRequestBody)
@@ -353,6 +553,393 @@ public class SplittingPublisherTest {
                 }
             });
 
+        }
+    }
+
+    // ==================== Tests for bufferBeforeSend ====================
+
+    @Test
+    void bufferBeforeSend_knownContentLength_defersBodyUntilComplete() throws Exception {
+        // When bufferBeforeSend=true and content length is known, the downstream subscriber
+        // should NOT receive the body until completeCurrentBody() is invoked (i.e., after the part is fully buffered).
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+
+        // Use a controlled upstream that sends data in pieces
+        ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.of((long) data.length));
+
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(controlledBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(20L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+
+        List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
+        CompletableFuture<Void> subscribeFuture = splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+            receivedBodies.add(bodyFuture);
+            BaosSubscriber subscriber = new BaosSubscriber(bodyFuture);
+            requestBody.subscribe(subscriber);
+        });
+
+        // Give time for subscription to be set up
+        Thread.sleep(100);
+
+        // Send partial data — the body should NOT have been emitted yet
+        controlledBody.sendData(ByteBuffer.wrap(data, 0, 5));
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(0);
+
+        // Send remaining data and complete
+        controlledBody.sendData(ByteBuffer.wrap(data, 5, 5));
+        controlledBody.complete();
+
+        subscribeFuture.get(5, TimeUnit.SECONDS);
+
+        // Now the body should have been emitted and completed
+        assertThat(receivedBodies.size()).isEqualTo(1);
+        byte[] result = receivedBodies.get(0).get(5, TimeUnit.SECONDS);
+        assertThat(result).isEqualTo(data);
+    }
+
+    @Test
+    void bufferBeforeSendDisabled_knownContentLength_sendsImmediately() throws Exception {
+        // When bufferBeforeSend=false (default) and content length is known, the body should
+        // be sent to the downstream subscriber immediately upon initialization.
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+
+        ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.of((long) data.length));
+
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(controlledBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(20L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(false)
+                .build();
+
+        List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
+        splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+            receivedBodies.add(bodyFuture);
+            BaosSubscriber subscriber = new BaosSubscriber(bodyFuture);
+            requestBody.subscribe(subscriber);
+        });
+
+        // Give time for subscription to be set up — the body should be sent immediately
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(1);
+
+        // Now send data and complete
+        controlledBody.sendData(ByteBuffer.wrap(data));
+        controlledBody.complete();
+
+        byte[] result = receivedBodies.get(0).get(5, TimeUnit.SECONDS);
+        assertThat(result).isEqualTo(data);
+    }
+
+    @Test
+    void bufferBeforeSend_unknownContentLength_behaviorUnchanged() throws Exception {
+        // When content length is unknown, behavior is unchanged regardless of bufferBeforeSend.
+        // The body is always deferred until complete (existing behavior).
+        byte[] data = new byte[10];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+
+        ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.empty());
+
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(controlledBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(20L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+
+        List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
+        splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+            receivedBodies.add(bodyFuture);
+            BaosSubscriber subscriber = new BaosSubscriber(bodyFuture);
+            requestBody.subscribe(subscriber);
+        });
+
+        // Give time for subscription to be set up
+        Thread.sleep(100);
+
+        // Send partial data — the body should NOT have been emitted yet (unknown-length path defers)
+        controlledBody.sendData(ByteBuffer.wrap(data, 0, 5));
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(0);
+
+        // Send remaining data and complete
+        controlledBody.sendData(ByteBuffer.wrap(data, 5, 5));
+        controlledBody.complete();
+
+        // Now body should be emitted
+        Thread.sleep(200);
+        assertThat(receivedBodies.size()).isEqualTo(1);
+        byte[] result = receivedBodies.get(0).get(5, TimeUnit.SECONDS);
+        assertThat(result).isEqualTo(data);
+    }
+
+    @Test
+    void bufferBeforeSend_multiPart_allPartsDeferred() throws Exception {
+        // When splitting into multiple parts with bufferBeforeSend=true, all parts are deferred
+        // until fully buffered.
+        byte[] data = new byte[20];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = (byte) i;
+        }
+
+        ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.of((long) data.length));
+
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(controlledBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(30L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+
+        List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
+        CompletableFuture<Void> subscribeFuture = splittingPublisher.subscribe(requestBody -> {
+            CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+            receivedBodies.add(bodyFuture);
+            BaosSubscriber subscriber = new BaosSubscriber(bodyFuture);
+            requestBody.subscribe(subscriber);
+        });
+
+        // Give time for subscription
+        Thread.sleep(100);
+
+        // Send first chunk partially — no body should be emitted yet
+        controlledBody.sendData(ByteBuffer.wrap(data, 0, 5));
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(0);
+
+        // Complete first chunk (10 bytes) — first body should now be emitted
+        controlledBody.sendData(ByteBuffer.wrap(data, 5, 5));
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(1);
+
+        // Send second chunk partially — second body should not be emitted yet
+        controlledBody.sendData(ByteBuffer.wrap(data, 10, 5));
+        Thread.sleep(100);
+        assertThat(receivedBodies.size()).isEqualTo(1);
+
+        // Complete second chunk and signal upstream complete
+        controlledBody.sendData(ByteBuffer.wrap(data, 15, 5));
+        controlledBody.complete();
+
+        subscribeFuture.get(5, TimeUnit.SECONDS);
+
+        // Both bodies should now be emitted
+        assertThat(receivedBodies.size()).isEqualTo(2);
+
+        // Verify content of first part
+        byte[] firstPart = receivedBodies.get(0).get(5, TimeUnit.SECONDS);
+        byte[] expectedFirst = new byte[10];
+        System.arraycopy(data, 0, expectedFirst, 0, 10);
+        assertThat(firstPart).isEqualTo(expectedFirst);
+
+        // Verify content of second part
+        byte[] secondPart = receivedBodies.get(1).get(5, TimeUnit.SECONDS);
+        byte[] expectedSecond = new byte[10];
+        System.arraycopy(data, 10, expectedSecond, 0, 10);
+        assertThat(secondPart).isEqualTo(expectedSecond);
+    }
+
+    @Test
+    void bufferBeforeSend_upstreamError_doesNotSendIncompleteBody() throws Exception {
+        // When bufferBeforeSend=true and the upstream signals onError() before a part is fully buffered,
+        // the incomplete part body should NOT be sent downstream.
+        ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.of(20L));
+
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(controlledBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(20L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+
+        List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
+        CompletableFuture<Throwable> downstreamError = new CompletableFuture<>();
+        splittingPublisher.subscribe(new Subscriber<CloseableAsyncRequestBody>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(CloseableAsyncRequestBody requestBody) {
+                CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+                receivedBodies.add(bodyFuture);
+                BaosSubscriber subscriber = new BaosSubscriber(bodyFuture);
+                requestBody.subscribe(subscriber);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                downstreamError.complete(t);
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        // Give time for subscription
+        Thread.sleep(100);
+
+        // Send partial data (less than chunk size of 10)
+        controlledBody.sendData(ByteBuffer.wrap(new byte[5]));
+        Thread.sleep(100);
+
+        // No body should have been emitted (bufferBeforeSend defers until complete)
+        assertThat(receivedBodies.size()).isEqualTo(0);
+
+        // Signal upstream error
+        RuntimeException error = new RuntimeException("upstream failure");
+        controlledBody.sendError(error);
+
+        // The error should propagate to downstream subscriber
+        Throwable receivedError = downstreamError.get(5, TimeUnit.SECONDS);
+        assertThat(receivedError).isEqualTo(error);
+
+        // The incomplete body should NOT have been sent downstream
+        assertThat(receivedBodies.size()).isEqualTo(0);
+    }
+
+    // ==================== Tests for bufferBeforeSend validation ====================
+
+    @Test
+    void bufferBeforeSend_bufferSizeLessThanChunkSize_throwsException() {
+        // When bufferBeforeSend=true and bufferSizeInBytes < chunkSizeInBytes, construction should fail
+        // because the buffer cannot hold a full chunk, which would cause a deadlock.
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bufferSizeInBytes must be larger than or equal to chunkSizeInBytes");
+    }
+
+    @Test
+    void bufferBeforeSend_bufferSizeEqualToChunkSize_succeeds() {
+        // When bufferBeforeSend=true and bufferSizeInBytes == chunkSizeInBytes, construction should succeed.
+        SplittingPublisher publisher = SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(10L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(true)
+                .build();
+        assertThat(publisher).isNotNull();
+    }
+
+    @Test
+    void bufferBeforeSendDisabled_bufferSizeLessThanChunkSize_knownContentLength_succeeds() {
+        // When bufferBeforeSend=false and content length is known, bufferSizeInBytes < chunkSizeInBytes
+        // is allowed because data flows through without full buffering.
+        SplittingPublisher publisher = SplittingPublisher.builder()
+                .asyncRequestBody(AsyncRequestBody.fromString("hello"))
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(false)
+                .build();
+        assertThat(publisher).isNotNull();
+    }
+
+    @Test
+    void unknownContentLength_bufferSizeLessThanChunkSize_throwsException() {
+        // Existing behavior: unknown content length with bufferSizeInBytes < chunkSizeInBytes should fail.
+        ControlledAsyncRequestBody unknownLengthBody = new ControlledAsyncRequestBody(Optional.empty());
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                .asyncRequestBody(unknownLengthBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes(10L)
+                        .bufferSizeInBytes(5L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .bufferBeforeSend(false)
+                .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("bufferSizeInBytes must be larger than or equal to chunkSizeInBytes");
+    }
+
+    /**
+     * A controlled AsyncRequestBody that allows tests to send data, complete, and signal errors
+     * at specific times to test deferred/immediate behavior.
+     */
+    private static class ControlledAsyncRequestBody implements AsyncRequestBody {
+        private final Optional<Long> contentLength;
+        private volatile Subscriber<? super ByteBuffer> subscriber;
+        private volatile Subscription subscription;
+
+        ControlledAsyncRequestBody(Optional<Long> contentLength) {
+            this.contentLength = contentLength;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return contentLength;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            this.subscriber = s;
+            s.onSubscribe(new Subscription() {
+                @Override
+                public void request(long n) {
+                    // Controlled — data is sent explicitly via sendData()
+                }
+
+                @Override
+                public void cancel() {
+                }
+            });
+        }
+
+        void sendData(ByteBuffer data) {
+            subscriber.onNext(data);
+        }
+
+        void complete() {
+            subscriber.onComplete();
+        }
+
+        void sendError(Throwable t) {
+            subscriber.onError(t);
         }
     }
 
