@@ -341,6 +341,71 @@ class DefaultAsyncPresignedUrlExtensionTest {
         }
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("checksumValidationTestCases")
+    void getObject_withChecksumHeaderInResponse_shouldDownloadSuccessfully(
+        String testName,
+        HttpExecuteResponse response,
+        String testUrl,
+        boolean expectSuccess) throws Exception {
+
+        mockHttpClient.stubNextResponse(response);
+
+        URL presignedUrl = new URL(testUrl);
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        CompletableFuture<ResponseBytes<GetObjectResponse>> future =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
+
+        ResponseBytes<GetObjectResponse> result = future.get();
+        assertThat(result).isNotNull();
+        assertThat(result.asUtf8String()).isEqualTo(TEST_CONTENT);
+    }
+
+    private static Stream<Arguments> checksumValidationTestCases() {
+        // CRC32 of "test-content" = 0x6B59FCDE → base64 = a1n83g==
+        String correctCrc32 = "a1n83g==";
+        String urlWithChecksumSigned = "https://test-bucket.s3.us-east-1.amazonaws.com/test-key?" +
+                                       "X-Amz-Algorithm=AWS4-HMAC-SHA256&" +
+                                       "X-Amz-Date=20250707T000000Z&" +
+                                       "X-Amz-SignedHeaders=host%3Bx-amz-checksum-mode&" +
+                                       "X-Amz-Signature=test-signature&" +
+                                       "X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250707%2Fus-east-1%2Fs3%2Faws4_request&" +
+                                       "X-Amz-Expires=600";
+
+        return Stream.of(
+            Arguments.of(
+                "With checksum in response - should succeed",
+                createResponseWithChecksum("x-amz-checksum-crc32", correctCrc32),
+                urlWithChecksumSigned,
+                true
+            ),
+            Arguments.of(
+                "No checksum header in response - should succeed without validation",
+                createSuccessResponse(),
+                TEST_URL,
+                true
+            )
+        );
+    }
+
+    private static HttpExecuteResponse createResponseWithChecksum(String checksumHeader, String checksumValue) {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .putHeader("Content-Length", "12")
+                                                              .putHeader("ETag", "\"test-etag\"")
+                                                              .putHeader("Content-Type", "text/plain")
+                                                              .putHeader(checksumHeader, checksumValue)
+                                                              .build();
+        return HttpExecuteResponse.builder()
+                                  .response(httpResponse)
+                                  .responseBody(AbortableInputStream.create(
+                                      new ByteArrayInputStream(TEST_CONTENT.getBytes(StandardCharsets.UTF_8))))
+                                  .build();
+    }
+
     private static HttpExecuteResponse createSuccessResponse() {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
