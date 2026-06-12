@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.utils.Validate;
 
+
 /**
  * An {@link AsyncRequestBody} decorator that enables splitting into retryable sub-request bodies.
  *
@@ -41,11 +42,11 @@ import software.amazon.awssdk.utils.Validate;
  * BufferedSplittableAsyncRequestBody retryableBody =
  *     BufferedSplittableAsyncRequestBody.create(originalBody);
  *
- * // With full buffering enabled for slow streaming sources:
+ * // With buffer-before-send enabled for slow streaming sources:
  * BufferedSplittableAsyncRequestBody fullBufferedBody =
  *     BufferedSplittableAsyncRequestBody.builder()
  *         .asyncRequestBody(originalBody)
- *         .fullBufferingEnabled(true)
+ *         .bufferBeforeSend(true)
  *         .build();
  * }
  *
@@ -62,11 +63,11 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBody {
     private final AsyncRequestBody delegate;
-    private final boolean fullBufferingEnabled;
+    private final boolean bufferBeforeSend;
 
     private BufferedSplittableAsyncRequestBody(Builder builder) {
         this.delegate = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
-        this.fullBufferingEnabled = builder.fullBufferingEnabled;
+        this.bufferBeforeSend = Validate.getOrDefault(builder.bufferBeforeSend, () -> false);
     }
 
     /**
@@ -120,7 +121,7 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
                 .asyncRequestBody(this)
                 .splitConfiguration(splitConfiguration)
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(fullBufferingEnabled)
+                .bufferBeforeSend(bufferBeforeSend)
                 .build();
     }
 
@@ -139,7 +140,7 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
      */
     public static final class Builder {
         private AsyncRequestBody asyncRequestBody;
-        private boolean fullBufferingEnabled = false;
+        private Boolean bufferBeforeSend = null;
 
         private Builder() {
         }
@@ -165,12 +166,12 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
          * <p>When disabled (the default), each part is sent immediately upon initialization in the
          * known-content-length path, allowing the HTTP connection to open while data is still arriving.
          *
-         * @param fullBufferingEnabled whether to enable full buffering before sending parts downstream.
-         *                             Defaults to {@code false}.
+         * @param bufferBeforeSend whether to enable full buffering before sending parts downstream.
+         *                         Defaults to {@code false}.
          * @return this builder for method chaining
          */
-        public Builder fullBufferingEnabled(boolean fullBufferingEnabled) {
-            this.fullBufferingEnabled = fullBufferingEnabled;
+        public Builder bufferBeforeSend(Boolean bufferBeforeSend) {
+            this.bufferBeforeSend = bufferBeforeSend;
             return this;
         }
 

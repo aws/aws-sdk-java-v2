@@ -338,7 +338,7 @@ public class SplittingPublisherTest {
         // Use builder to enable full buffering
         BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
                 .asyncRequestBody(sourceBody)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         // Verify that content length is propagated
@@ -462,7 +462,7 @@ public class SplittingPublisherTest {
 
         BufferedSplittableAsyncRequestBody bufferedBody = BufferedSplittableAsyncRequestBody.builder()
                 .asyncRequestBody(sourceBody)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         AsyncRequestBodySplitConfiguration splitConfig = AsyncRequestBodySplitConfiguration.builder()
@@ -556,11 +556,11 @@ public class SplittingPublisherTest {
         }
     }
 
-    // ==================== Tests for fullBufferingEnabled ====================
+    // ==================== Tests for bufferBeforeSend ====================
 
     @Test
-    void fullBufferingEnabled_knownContentLength_defersBodyUntilComplete() throws Exception {
-        // When fullBufferingEnabled=true and content length is known, the downstream subscriber
+    void bufferBeforeSend_knownContentLength_defersBodyUntilComplete() throws Exception {
+        // When bufferBeforeSend=true and content length is known, the downstream subscriber
         // should NOT receive the body until completeCurrentBody() is invoked (i.e., after the part is fully buffered).
         byte[] data = new byte[10];
         for (int i = 0; i < data.length; i++) {
@@ -577,7 +577,7 @@ public class SplittingPublisherTest {
                         .bufferSizeInBytes(20L)
                         .build())
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
@@ -609,8 +609,8 @@ public class SplittingPublisherTest {
     }
 
     @Test
-    void fullBufferingDisabled_knownContentLength_sendsImmediately() throws Exception {
-        // When fullBufferingEnabled=false (default) and content length is known, the body should
+    void bufferBeforeSendDisabled_knownContentLength_sendsImmediately() throws Exception {
+        // When bufferBeforeSend=false (default) and content length is known, the body should
         // be sent to the downstream subscriber immediately upon initialization.
         byte[] data = new byte[10];
         for (int i = 0; i < data.length; i++) {
@@ -626,7 +626,7 @@ public class SplittingPublisherTest {
                         .bufferSizeInBytes(20L)
                         .build())
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(false)
+                .bufferBeforeSend(false)
                 .build();
 
         List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
@@ -650,8 +650,8 @@ public class SplittingPublisherTest {
     }
 
     @Test
-    void fullBufferingEnabled_unknownContentLength_behaviorUnchanged() throws Exception {
-        // When content length is unknown, behavior is unchanged regardless of fullBufferingEnabled.
+    void bufferBeforeSend_unknownContentLength_behaviorUnchanged() throws Exception {
+        // When content length is unknown, behavior is unchanged regardless of bufferBeforeSend.
         // The body is always deferred until complete (existing behavior).
         byte[] data = new byte[10];
         for (int i = 0; i < data.length; i++) {
@@ -667,7 +667,7 @@ public class SplittingPublisherTest {
                         .bufferSizeInBytes(20L)
                         .build())
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
@@ -698,8 +698,8 @@ public class SplittingPublisherTest {
     }
 
     @Test
-    void fullBufferingEnabled_multiPart_allPartsDeferred() throws Exception {
-        // When splitting into multiple parts with fullBufferingEnabled=true, all parts are deferred
+    void bufferBeforeSend_multiPart_allPartsDeferred() throws Exception {
+        // When splitting into multiple parts with bufferBeforeSend=true, all parts are deferred
         // until fully buffered.
         byte[] data = new byte[20];
         for (int i = 0; i < data.length; i++) {
@@ -715,7 +715,7 @@ public class SplittingPublisherTest {
                         .bufferSizeInBytes(30L)
                         .build())
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
@@ -767,8 +767,8 @@ public class SplittingPublisherTest {
     }
 
     @Test
-    void fullBufferingEnabled_upstreamError_doesNotSendIncompleteBody() throws Exception {
-        // When fullBufferingEnabled=true and the upstream signals onError() before a part is fully buffered,
+    void bufferBeforeSend_upstreamError_doesNotSendIncompleteBody() throws Exception {
+        // When bufferBeforeSend=true and the upstream signals onError() before a part is fully buffered,
         // the incomplete part body should NOT be sent downstream.
         ControlledAsyncRequestBody controlledBody = new ControlledAsyncRequestBody(Optional.of(20L));
 
@@ -779,7 +779,7 @@ public class SplittingPublisherTest {
                         .bufferSizeInBytes(20L)
                         .build())
                 .retryableSubAsyncRequestBodyEnabled(true)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         List<CompletableFuture<byte[]>> receivedBodies = new ArrayList<>();
@@ -815,7 +815,7 @@ public class SplittingPublisherTest {
         controlledBody.sendData(ByteBuffer.wrap(new byte[5]));
         Thread.sleep(100);
 
-        // No body should have been emitted (fullBufferingEnabled defers until complete)
+        // No body should have been emitted (bufferBeforeSend defers until complete)
         assertThat(receivedBodies.size()).isEqualTo(0);
 
         // Signal upstream error

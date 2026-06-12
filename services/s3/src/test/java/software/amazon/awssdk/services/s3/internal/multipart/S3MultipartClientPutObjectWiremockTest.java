@@ -250,7 +250,7 @@ public class S3MultipartClientPutObjectWiremockTest {
      * arrives slowly and the retry buffer must be populated before the HTTP layer subscribes.
      */
     @Test
-    void mpuWithFullBufferingEnabled_slowStreamingKnownLength_retriesSuccessfullyOn500() {
+    void mpuWithBufferBeforeSend_slowStreamingKnownLength_retriesSuccessfullyOn500() {
         // Stub CreateMultipartUpload (POST) and CompleteMultipartUpload (POST)
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
         // Part 1: first attempt returns 500, retry returns 200
@@ -304,7 +304,7 @@ public class S3MultipartClientPutObjectWiremockTest {
         BufferedSplittableAsyncRequestBody bufferedBody =
             BufferedSplittableAsyncRequestBody.builder()
                 .asyncRequestBody(slowStreamingBody)
-                .fullBufferingEnabled(true)
+                .bufferBeforeSend(true)
                 .build();
 
         // The upload should complete successfully — retry works because full buffering

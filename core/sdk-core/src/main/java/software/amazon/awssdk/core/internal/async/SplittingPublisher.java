@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  *
  * <p>If content length is known, each {@link AsyncRequestBody} is sent to the subscriber right after it's initialized.
  * Otherwise, it is sent after the entire content for that chunk is buffered. This is required to get content length.
- * When {@code fullBufferingEnabled} is set to {@code true}, the known-content-length path also defers sending until the
+ * When {@code bufferBeforeSend} is set to {@code true}, the known-content-length path also defers sending until the
  * part is fully buffered, guaranteeing that the retry buffer is populated before the downstream subscriber receives it.
  */
 @SdkInternalApi
@@ -48,7 +48,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
     private final long chunkSizeInBytes;
     private final long bufferSizeInBytes;
     private final boolean retryableSubAsyncRequestBodyEnabled;
-    private final boolean fullBufferingEnabled;
+    private final boolean bufferBeforeSend;
     private final AtomicBoolean currentBodySent = new AtomicBoolean(false);
     private final String sourceBodyName;
 
@@ -67,7 +67,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
 
         this.retryableSubAsyncRequestBodyEnabled = Validate.paramNotNull(builder.retryableSubAsyncRequestBodyEnabled,
                                                                          "retryableSubAsyncRequestBodyEnabled");
-        this.fullBufferingEnabled = builder.fullBufferingEnabled;
+        this.bufferBeforeSend = builder.bufferBeforeSend;
         this.sourceBodyName = builder.asyncRequestBody.body();
         if (!upstreamPublisher.contentLength().isPresent()) {
             Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
@@ -140,7 +140,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
             }
 
             currentBodySent.set(false);
-            if (contentLengthKnown && !fullBufferingEnabled) {
+            if (contentLengthKnown && !bufferBeforeSend) {
                 sendCurrentBody(body);
             }
             return body;
@@ -238,7 +238,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
 
             // Current body could be completed in either onNext or onComplete, so we need to guard against sending the last body
             // twice.
-            if ((upstreamSize == null || fullBufferingEnabled) && currentBodySent.compareAndSet(false, true)) {
+            if ((upstreamSize == null || bufferBeforeSend) && currentBodySent.compareAndSet(false, true)) {
                 sendCurrentBody(currentBody);
             }
         }
@@ -311,7 +311,7 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
         private AsyncRequestBody asyncRequestBody;
         private AsyncRequestBodySplitConfiguration splitConfiguration;
         private Boolean retryableSubAsyncRequestBodyEnabled;
-        private boolean fullBufferingEnabled = false;
+        private boolean bufferBeforeSend = false;
 
         private Builder() {
         }
@@ -345,8 +345,8 @@ public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBod
          * When enabled, parts are only sent to the downstream subscriber after
          * all data for that part has been received and complete() has been called.
          */
-        public Builder fullBufferingEnabled(boolean fullBufferingEnabled) {
-            this.fullBufferingEnabled = fullBufferingEnabled;
+        public Builder bufferBeforeSend(boolean bufferBeforeSend) {
+            this.bufferBeforeSend = bufferBeforeSend;
             return this;
         }
 
