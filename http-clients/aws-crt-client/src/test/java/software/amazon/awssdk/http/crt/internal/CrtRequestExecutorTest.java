@@ -87,7 +87,7 @@ public class CrtRequestExecutorTest {
                                                      .request(HttpExecuteRequest.builder().build())
                                                      .build();
 
-        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context).responseFuture();
 
         assertThat(executeFuture).hasFailedWithThrowableThat().isInstanceOf(NullPointerException.class);
     }
@@ -102,7 +102,7 @@ public class CrtRequestExecutorTest {
                .thenReturn(completableFuture);
         completableFuture.completeExceptionally(exception);
 
-        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context).responseFuture();
 
         assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
     }
@@ -116,7 +116,7 @@ public class CrtRequestExecutorTest {
         Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class), Mockito.any(HttpStreamBaseResponseHandler.class)))
                .thenReturn(completableFuture);
 
-        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context).responseFuture();
         assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(throwable).isInstanceOf(IOException.class);
     }
 
@@ -133,7 +133,7 @@ public class CrtRequestExecutorTest {
         Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class), Mockito.any(HttpStreamBaseResponseHandler.class)))
                .thenReturn(completableFuture);
 
-        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context).responseFuture();
         assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(expectedExceptionClass);
     }
 
@@ -146,7 +146,7 @@ public class CrtRequestExecutorTest {
         Mockito.when(streamManager.acquireStream(Mockito.any(HttpRequest.class), Mockito.any(HttpStreamBaseResponseHandler.class)))
                .thenReturn(completableFuture);
 
-        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
+        CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context).responseFuture();
         assertThatThrownBy(executeFuture::join).hasCause(exception);
     }
 

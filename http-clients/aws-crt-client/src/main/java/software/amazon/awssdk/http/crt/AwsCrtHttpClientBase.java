@@ -61,6 +61,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
 
     protected final long readBufferSize;
     protected final Protocol protocol;
+    protected final long connectionAcquisitionTimeout;
     private final Map<URI, HttpStreamManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
@@ -70,7 +71,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
     private final int maxStreamsPerEndpoint;
-    private final long connectionAcquisitionTimeout;
     private final TlsContextOptions tlsContextOptions;
     private boolean isClosed = false;
 
