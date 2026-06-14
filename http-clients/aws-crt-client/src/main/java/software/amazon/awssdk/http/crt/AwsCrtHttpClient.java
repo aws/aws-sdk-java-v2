@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -43,7 +42,6 @@ import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
 import software.amazon.awssdk.http.crt.internal.request.SyncRequestBodyPump;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * An implementation of {@link SdkHttpClient} that uses the AWS Common Runtime (CRT) Http Client to communicate with
@@ -105,100 +103,76 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * request)
          */
         HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(request.httpRequest()));
-        // Tests may override via x-aws-sdk-test-id so surefire output can be grep'd by request.
-        String reqId = request.httpRequest()
-                              .firstMatchingHeader("x-aws-sdk-test-id")
-                              .orElseGet(() -> String.format("%08x", ThreadLocalRandom.current().nextInt()));
         CrtRequestContext context = CrtRequestContext.builder()
                                                      .streamManager(streamManager)
                                                      .readBufferSize(this.readBufferSize)
                                                      .request(request)
                                                      .connectionAcquisitionTimeoutMillis(this.connectionAcquisitionTimeout)
-                                                     .reqId(reqId)
                                                      .build();
         return new CrtHttpRequest(context);
     }
 
     private static final class CrtHttpRequest implements ExecutableHttpRequest {
-        private static final Logger LOG = Logger.loggerFor(CrtHttpRequest.class);
-
         private final CrtRequestContext context;
-        private final String reqId;
-        private final String tag;
         private volatile CompletableFuture<SdkHttpFullResponse> responseFuture;
         private volatile SyncRequestBodyPump pump;
 
         private CrtHttpRequest(CrtRequestContext context) {
             this.context = context;
-            this.reqId = context.reqId();
-            this.tag = "[reqId=" + reqId + "] ";
         }
 
         @Override
         public HttpExecuteResponse call() throws IOException {
             HttpExecuteResponse.Builder builder = HttpExecuteResponse.builder();
-            boolean hasBody = context.sdkRequest().contentStreamProvider().isPresent();
-            LOG.info(() -> tag + "call() entered, hasBody=" + hasBody);
 
             try {
                 CrtRequestExecutor.Result result = new CrtRequestExecutor().execute(context);
                 responseFuture = result.responseFuture();
                 pump = result.pump();
-                LOG.info(() -> tag + "call() executor.execute() returned, streamFuture pending, pump="
-                               + (pump != null ? "non-null" : "null"));
 
+                // Wake a parked producer when CRT signals request failure via responseFuture so the
+                // pump's blocked acquireForFill() returns instead of holding the caller thread.
                 if (pump != null) {
                     SyncRequestBodyPump pumpRef = pump;
                     responseFuture.whenComplete((r, t) -> {
                         if (t != null) {
-                            LOG.info(() -> tag + "responseFuture hook: invoking pump.abort() (cause="
-                                           + t.getClass().getSimpleName() + ")");
                             pumpRef.abort();
                         }
                     });
                 }
 
-                LOG.info(() -> tag + "call() entering waitForStreamAcquired, timeoutMillis="
-                               + context.connectionAcquisitionTimeoutMillis());
                 boolean streamAcquired = waitForStreamAcquired(result.streamFuture(),
                                                                context.connectionAcquisitionTimeoutMillis());
-                LOG.info(() -> tag + "call() waitForStreamAcquired returned " + streamAcquired);
 
                 if (pump != null) {
                     if (streamAcquired) {
-                        LOG.info(() -> tag + "call() entering pump.pump()");
                         try {
                             pump.pump();
-                            LOG.info(() -> tag + "call() pump.pump() returned");
                         } catch (IOException ioe) {
-                            LOG.info(() -> tag + "call() pump.pump() threw IOException: " + ioe.getMessage());
                             responseFuture.completeExceptionally(ioe);
                             throw ioe;
                         }
                     } else {
-                        LOG.info(() -> tag + "call() invoking pump.abort() (post-wait, streamAcquired=false)");
                         pump.abort();
                     }
                 }
 
-                LOG.info(() -> tag + "call() entering joinInterruptibly(responseFuture)");
                 SdkHttpFullResponse response = CompletableFutureUtils.joinInterruptibly(responseFuture);
-                LOG.info(() -> tag + "call() responseFuture joined: success");
                 builder.response(response);
                 builder.responseBody(response.content().orElse(null));
-                LOG.info(() -> tag + "call() exiting normally");
                 return builder.build();
             } catch (CompletionException e) {
                 Throwable cause = e.getCause();
-                LOG.info(() -> tag + "call() catch CompletionException, cause="
-                               + (cause == null ? "<null>" : cause.getClass().getName() + ": " + cause.getMessage()));
 
+                // Complete the future exceptionally to trigger connection cleanup in the response handler.
+                // Handles the thread-interrupt case where joinInterruptibly throws due to
+                // InterruptedException, ensuring closeConnection() is invoked to prevent leaking the
+                // connection from the pool.
                 if (responseFuture != null) {
                     responseFuture.completeExceptionally(cause != null ? cause : e);
                 }
 
                 if (pump != null) {
-                    LOG.info(() -> tag + "call() catch invoking pump.abort()");
                     pump.abort();
                 }
 
@@ -220,38 +194,25 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
 
         @Override
         public void abort() {
-            LOG.info(() -> tag + "abort() called externally");
             if (responseFuture != null) {
                 responseFuture.completeExceptionally(new IOException("Request was cancelled"));
             }
             if (pump != null) {
-                LOG.info(() -> tag + "abort() invoking pump.abort()");
                 pump.abort();
             }
         }
 
         private boolean waitForStreamAcquired(CompletableFuture<HttpStreamBase> streamFuture, long timeoutMillis) {
             if (streamFuture == null) {
-                LOG.info(() -> tag + "waitForStreamAcquired: streamFuture==null, returning false");
                 return false;
             }
-            LOG.info(() -> tag + "waitForStreamAcquired: starting, timeout=" + timeoutMillis + "ms");
             try {
                 streamFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
-                LOG.info(() -> tag + "waitForStreamAcquired: streamFuture completed normally");
                 return true;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                LOG.info(() -> tag + "waitForStreamAcquired: interrupted");
                 return false;
-            } catch (TimeoutException e) {
-                LOG.warn(() -> tag + "waitForStreamAcquired: timed out after " + timeoutMillis
-                               + "ms - streamFuture still pending");
-                return false;
-            } catch (ExecutionException e) {
-                Throwable cause = e.getCause();
-                LOG.info(() -> tag + "waitForStreamAcquired: streamFuture completed exceptionally: "
-                               + (cause == null ? e.getMessage() : cause.getClass().getName() + ": " + cause.getMessage()));
+            } catch (TimeoutException | ExecutionException e) {
                 return false;
             }
         }

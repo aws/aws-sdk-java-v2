@@ -100,10 +100,9 @@ public final class CrtRequestAdapter {
             return new SyncCrtRequest(new HttpRequest(method, finalEncodedPath, crtHeaderArray, null), null);
         }
 
-        String reqId = request.reqId();
-        BodyChunkPipe pipe = new BodyChunkPipe(PIPE_DEPTH, CHUNK_SIZE, reqId);
+        BodyChunkPipe pipe = new BodyChunkPipe(PIPE_DEPTH, CHUNK_SIZE);
         PipeBackedRequestBodyStream bodyStream = new PipeBackedRequestBodyStream(pipe);
-        SyncRequestBodyPump pump = new SyncRequestBodyPump(providerOpt.get(), pipe, reqId);
+        SyncRequestBodyPump pump = new SyncRequestBodyPump(providerOpt.get(), pipe);
         HttpRequest crtRequest = new HttpRequest(method, finalEncodedPath, crtHeaderArray, bodyStream);
         return new SyncCrtRequest(crtRequest, pump);
     }

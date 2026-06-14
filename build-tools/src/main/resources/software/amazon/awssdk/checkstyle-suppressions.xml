@@ -72,9 +72,4 @@
     <!-- ResponseHandlerHelper has helper method closeConnection() which handles safe closing of connection -->
     <suppress id="NoCrtStreamCancel"
               files=".*ResponseHandlerHelper\.java$"/>
-
-    <!-- LongRunningRequestTestSupport uses java.lang.management on hang to capture a thread dump
-         that surfaces the failure cause in CI logs. -->
-    <suppress checks="software.amazon.awssdk.buildtools.checkstyle.NonJavaBaseModuleCheck"
-              files=".*LongRunningRequestTestSupport\.java$"/>
 </suppressions>
