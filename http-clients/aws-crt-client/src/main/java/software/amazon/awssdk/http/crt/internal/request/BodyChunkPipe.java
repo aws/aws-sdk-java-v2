@@ -181,9 +181,9 @@ final class BodyChunkPipe {
     /**
      * Consumer side: drain bytes into {@code dst}. NEVER blocks.
      *
-     * <p>Single-consumer: CRT invokes this only on the request's outgoing-stream task, which is
-     * scheduled serially on one event-loop thread per stream. {@code pendingDrain} is therefore
-     * not volatile - it is written and read by that single consumer thread.
+     * <p><b>Single-consumer only.</b> {@code pendingDrain} is non-volatile, so this method MUST be
+     * invoked from a single thread. CRT honors that by scheduling the outgoing-stream task serially
+     * on one event-loop thread per stream. Concurrent invocation will silently corrupt body delivery.
      *
      * @return number of bytes drained, or {@code -1} on EOF with no remaining data.
      * @throws RuntimeException if the pipe is in ERROR or ABORTED state with no remaining data.
@@ -195,16 +195,28 @@ final class BodyChunkPipe {
                 pendingDrain = ready.poll();
             }
             if (pendingDrain == null) {
-                switch (state.get()) {
+                State s = state.get();
+                if (s == State.OPEN) {
+                    return totalBytesConsumed;
+                }
+                // JMM happens-before: the producer's program order is publish() (ready.put) THEN
+                // signalEof/Error/abort (volatile state CAS). Once we observe the volatile state
+                // transition here, the producer's prior ready.put is guaranteed visible to a
+                // subsequent poll on this thread. Re-poll once to drain any chunk that landed in
+                // ready before the producer's terminal CAS - otherwise we'd drop it, causing CRT
+                // to fire AWS_ERROR_HTTP_OUTGOING_STREAM_LENGTH_INCORRECT.
+                pendingDrain = ready.poll();
+                if (pendingDrain != null) {
+                    continue;
+                }
+                switch (s) {
                     case ERROR:
                         throw new RuntimeException("Producer failed", error);
                     case ABORTED:
                         throw new RuntimeException("Request body stream was aborted");
                     case EOF:
                         return totalBytesConsumed > 0 ? totalBytesConsumed : -1;
-                    case OPEN:
                     default:
-                        // OPEN with empty queue: return what we have (possibly 0); CRT will retry.
                         return totalBytesConsumed;
                 }
             }
@@ -245,8 +257,8 @@ final class BodyChunkPipe {
     }
 
     private void recycle(Chunk c) {
-        c.reset();
         synchronized (freeLock) {
+            c.reset();
             free.push(c);
             freeLock.notifyAll();
         }
