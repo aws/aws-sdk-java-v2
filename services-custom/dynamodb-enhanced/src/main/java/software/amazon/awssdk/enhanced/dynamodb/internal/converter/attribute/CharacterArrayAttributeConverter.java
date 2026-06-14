@@ -63,7 +63,7 @@ public final class CharacterArrayAttributeConverter implements AttributeConverte
 
     @Override
     public AttributeValue transformFrom(char[] input) {
-        return AttributeValue.builder().s(CHAR_ARRAY_STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastS(CHAR_ARRAY_STRING_CONVERTER.toString(input));
     }
 
     @Override

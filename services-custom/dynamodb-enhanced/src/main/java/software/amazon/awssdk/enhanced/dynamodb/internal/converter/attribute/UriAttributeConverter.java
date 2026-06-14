@@ -55,7 +55,7 @@ public final class UriAttributeConverter implements AttributeConverter<URI> {
 
     @Override
     public AttributeValue transformFrom(URI input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastS(STRING_CONVERTER.toString(input));
     }
 
     @Override

@@ -54,7 +54,7 @@ public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
     @Override
     public AttributeValue transformFrom(T input) {
-        return AttributeValue.builder().m(tableSchema.itemToMap(input, ignoreNulls)).build();
+        return AttributeValue.fastM(tableSchema.itemToMap(input, ignoreNulls));
     }
 
     @Override

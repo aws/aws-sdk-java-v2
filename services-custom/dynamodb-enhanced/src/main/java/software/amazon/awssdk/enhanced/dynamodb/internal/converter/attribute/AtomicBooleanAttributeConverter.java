@@ -62,7 +62,7 @@ public final class AtomicBooleanAttributeConverter implements AttributeConverter
 
     @Override
     public AttributeValue transformFrom(AtomicBoolean input) {
-        return AttributeValue.builder().bool(input.get()).build();
+        return AttributeValue.fastBool(input.get());
     }
 
     @Override

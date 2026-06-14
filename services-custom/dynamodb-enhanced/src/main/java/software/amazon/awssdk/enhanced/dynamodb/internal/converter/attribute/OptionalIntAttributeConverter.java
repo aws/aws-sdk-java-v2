@@ -76,7 +76,7 @@ public final class OptionalIntAttributeConverter implements AttributeConverter<O
     @Override
     public AttributeValue transformFrom(OptionalInt input) {
         if (input.isPresent()) {
-            return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
+            return AttributeValue.fastN(STRING_CONVERTER.toString(input));
         } else {
             return AttributeValues.nullAttributeValue();
         }

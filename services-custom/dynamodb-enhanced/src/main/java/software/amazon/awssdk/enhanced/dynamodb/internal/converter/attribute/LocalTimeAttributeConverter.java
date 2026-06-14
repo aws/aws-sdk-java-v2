@@ -81,7 +81,7 @@ public final class LocalTimeAttributeConverter implements AttributeConverter<Loc
 
     @Override
     public AttributeValue transformFrom(LocalTime input) {
-        return AttributeValue.builder().s(input.toString()).build();
+        return AttributeValue.fastS(input.toString());
     }
 
     @Override

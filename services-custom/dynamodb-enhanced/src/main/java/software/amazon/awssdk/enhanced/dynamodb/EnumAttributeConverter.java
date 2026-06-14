@@ -94,7 +94,7 @@ public final class EnumAttributeConverter<T extends Enum<T>> implements Attribut
      */
     @Override
     public AttributeValue transformFrom(T input) {
-        return AttributeValue.builder().s(keyExtractor.apply(input)).build();
+        return AttributeValue.fastS(keyExtractor.apply(input));
     }
 
     /**

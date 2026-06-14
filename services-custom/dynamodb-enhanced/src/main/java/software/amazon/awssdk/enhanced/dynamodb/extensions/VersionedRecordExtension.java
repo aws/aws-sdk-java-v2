@@ -166,9 +166,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
 
         if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
-            newVersionValue = AttributeValue.builder()
-                                            .n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation))
-                                            .build();
+            newVersionValue = AttributeValue.fastN(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation));
             condition = Expression.builder()
                                   .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
@@ -194,7 +192,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                   existingVersion, increment));
             }
 
-            newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
+            newVersionValue = AttributeValue.fastN(Long.toString(existingVersion + increment));
 
             // When version equals startAt, we can't distinguish between new and existing records
             // Use OR condition to handle both cases

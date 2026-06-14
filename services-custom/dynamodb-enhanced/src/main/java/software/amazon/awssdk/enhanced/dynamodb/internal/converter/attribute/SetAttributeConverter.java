@@ -159,17 +159,17 @@ public class SetAttributeConverter<T extends Collection<?>> implements Attribute
                                          .convert(new TypeConvertingVisitor<T>(type.rawClass(), SetAttributeConverter.class) {
                                              @Override
                                              public T convertSetOfStrings(List<String> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().s(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.fastS(v));
                                              }
 
                                              @Override
                                              public T convertSetOfNumbers(List<String> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().n(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.fastN(v));
                                              }
 
                                              @Override
                                              public T convertSetOfBytes(List<SdkBytes> value) {
-                                                 return convertCollection(value, v -> AttributeValue.builder().b(v).build());
+                                                 return convertCollection(value, v -> AttributeValue.fastB(v));
                                              }
 
                                              @Override
@@ -219,29 +219,23 @@ public class SetAttributeConverter<T extends Collection<?>> implements Attribute
 
             switch (attributeValueType) {
                 case NS:
-                    return AttributeValue.builder()
-                                         .ns(listOfAttributeValues.stream()
+                    return AttributeValue.fastNs(listOfAttributeValues.stream()
                                                                   .peek(av -> Validate.isTrue(av.n() != null,
                                                                                               "Attribute value must be N."))
                                                                   .map(AttributeValue::n)
-                                                                  .collect(Collectors.toList()))
-                                         .build();
+                                                                  .collect(Collectors.toList()));
                 case SS:
-                    return AttributeValue.builder()
-                                         .ss(listOfAttributeValues.stream()
+                    return AttributeValue.fastSs(listOfAttributeValues.stream()
                                                                   .peek(av -> Validate.isTrue(av.s() != null,
                                                                                               "Attribute value must be S."))
                                                                   .map(AttributeValue::s)
-                                                                  .collect(Collectors.toList()))
-                                         .build();
+                                                                  .collect(Collectors.toList()));
                 case BS:
-                    return AttributeValue.builder()
-                                         .bs(listOfAttributeValues.stream()
+                    return AttributeValue.fastBs(listOfAttributeValues.stream()
                                                                   .peek(av -> Validate.isTrue(av.b() != null,
                                                                                               "Attribute value must be B."))
                                                                   .map(AttributeValue::b)
-                                                                  .collect(Collectors.toList()))
-                                         .build();
+                                                                  .collect(Collectors.toList()));
                 default:
                     throw new IllegalStateException("Unsupported set attribute value type: " + attributeValueType);
             }

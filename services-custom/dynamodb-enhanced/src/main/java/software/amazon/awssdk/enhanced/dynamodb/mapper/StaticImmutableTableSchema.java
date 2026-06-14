@@ -188,7 +188,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                             "[Attribute name: " + key + "]");
                     }
                     if (!ignoreNulls || value != null) {
-                        result.put(key, AttributeValue.builder().s(value).build());
+                        result.put(key, AttributeValue.fastS(value));
                     }
                 });
             }

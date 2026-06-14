@@ -100,7 +100,7 @@ public final class LocalDateTimeAttributeConverter implements AttributeConverter
 
     @Override
     public AttributeValue transformFrom(LocalDateTime input) {
-        return AttributeValue.builder().s(input.toString()).build();
+        return AttributeValue.fastS(input.toString());
     }
 
     @Override

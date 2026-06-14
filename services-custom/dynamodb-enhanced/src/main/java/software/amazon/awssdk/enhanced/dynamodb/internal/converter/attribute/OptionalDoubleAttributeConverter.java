@@ -79,7 +79,7 @@ public final class OptionalDoubleAttributeConverter implements AttributeConverte
     public AttributeValue transformFrom(OptionalDouble input) {
         if (input.isPresent()) {
             ConverterUtils.validateDouble(input.getAsDouble());
-            return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
+            return AttributeValue.fastN(STRING_CONVERTER.toString(input));
         } else {
             return AttributeValues.nullAttributeValue();
         }

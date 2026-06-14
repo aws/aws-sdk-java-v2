@@ -62,7 +62,7 @@ public final class PeriodAttributeConverter implements AttributeConverter<Period
 
     @Override
     public AttributeValue transformFrom(Period input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastS(STRING_CONVERTER.toString(input));
     }
 
     @Override

@@ -65,7 +65,7 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public AttributeValue transformFrom(String input) {
-        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.builder().s(input).build();
+        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.fastS(input);
     }
 
     @Override

@@ -43,35 +43,33 @@ public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<Att
 
     @Override
     public AttributeValue visitBoolean(boolean bool) {
-        return AttributeValue.builder().bool(bool).build();
+        return AttributeValue.fastBool(bool);
     }
 
     @Override
     public AttributeValue visitNumber(String number) {
-        return AttributeValue.builder().n(number).build();
+        return AttributeValue.fastN(number);
     }
 
     @Override
     public AttributeValue visitString(String string) {
-        return AttributeValue.builder().s(string).build();
+        return AttributeValue.fastS(string);
     }
 
     @Override
     public AttributeValue visitArray(List<JsonNode> array) {
-        return AttributeValue.builder().l(array.stream()
+        return AttributeValue.fastL(array.stream()
                                                .map(node -> node.visit(this))
-                                               .collect(Collectors.toList()))
-                             .build();
+                                               .collect(Collectors.toList()));
     }
 
     @Override
     public AttributeValue visitObject(Map<String, JsonNode> object) {
-        return AttributeValue.builder().m(object.entrySet().stream()
+        return AttributeValue.fastM(object.entrySet().stream()
                                                 .collect(Collectors.toMap(
                                                     Map.Entry::getKey,
                                                     entry -> entry.getValue().visit(this),
-                                                    (left, right) -> left, LinkedHashMap::new)))
-                             .build();
+                                                    (left, right) -> left, LinkedHashMap::new)));
     }
 
     @Override

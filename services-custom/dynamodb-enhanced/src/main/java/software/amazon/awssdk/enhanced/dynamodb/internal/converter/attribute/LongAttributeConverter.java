@@ -69,7 +69,7 @@ public final class LongAttributeConverter implements AttributeConverter<Long>, P
 
     @Override
     public AttributeValue transformFrom(Long input) {
-        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastN(STRING_CONVERTER.toString(input));
     }
 
     @Override

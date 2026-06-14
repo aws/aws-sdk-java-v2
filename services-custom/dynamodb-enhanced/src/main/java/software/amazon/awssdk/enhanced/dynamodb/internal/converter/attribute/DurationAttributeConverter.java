@@ -79,10 +79,8 @@ public final class DurationAttributeConverter implements AttributeConverter<Dura
 
     @Override
     public AttributeValue transformFrom(Duration input) {
-        return AttributeValue.builder()
-                             .n(input.getSeconds() +
-                                (input.getNano() == 0 ? "" : "." + padLeft(9, input.getNano())))
-                             .build();
+        return AttributeValue.fastN(input.getSeconds() +
+                                (input.getNano() == 0 ? "" : "." + padLeft(9, input.getNano())));
     }
 
     @Override

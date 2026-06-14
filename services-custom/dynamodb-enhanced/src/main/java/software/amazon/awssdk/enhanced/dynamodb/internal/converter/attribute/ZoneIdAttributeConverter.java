@@ -57,7 +57,7 @@ public final class ZoneIdAttributeConverter implements AttributeConverter<ZoneId
 
     @Override
     public AttributeValue transformFrom(ZoneId input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastS(STRING_CONVERTER.toString(input));
     }
 
     @Override

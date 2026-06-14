@@ -55,7 +55,7 @@ public final class LocaleAttributeConverter implements AttributeConverter<Locale
 
     @Override
     public AttributeValue transformFrom(Locale input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.fastS(STRING_CONVERTER.toString(input));
     }
 
     @Override

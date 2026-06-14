@@ -65,7 +65,7 @@ public final class ByteBufferAttributeConverter implements AttributeConverter<By
 
     @Override
     public AttributeValue transformFrom(ByteBuffer input) {
-        return AttributeValue.builder().b(SdkBytes.fromByteBuffer(input)).build();
+        return AttributeValue.fastB(SdkBytes.fromByteBuffer(input));
     }
 
     @Override
