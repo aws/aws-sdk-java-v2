@@ -527,17 +527,10 @@ public class AwsServiceModel implements ClassSpec {
         return unionMembers;
     }
 
-    /**
-     * Fast direct-construction factories that bypass the builder for union shapes. Each produces an object
-     * identical to builder().member(v).build() (same fields, same union type, collection members defensively
-     * copied), but with one allocation and no union-type resolution. Gated by generateFastUnionConstructors.
-     */
     private Collection<MethodSpec> fastUnionConstructors() {
         List<MemberModel> members = shapeModel.getMembers();
         List<MethodSpec> methods = new ArrayList<>();
 
-        // One all-args constructor; its full signature avoids the collisions a per-member constructor
-        // would hit where members share an erased type (S/N, SS/NS, BOOL/NUL).
         MethodSpec.Builder ctor = MethodSpec.constructorBuilder()
                                             .addModifiers(PRIVATE)
                                             .addParameter(unionTypeClassName(), "type");
@@ -549,8 +542,6 @@ public class AwsServiceModel implements ClassSpec {
         }
         methods.add(ctor.build());
 
-        // Per-member factory: one allocation, builder-identical. A null (or sentinel) value yields type()
-        // UNKNOWN_TO_SDK_VERSION, matching the builder; list/map values are defensively copied.
         for (MemberModel member : members) {
             String memberName = member.getVariable().getVariableName();
             String factoryName = "fast" + capitalize(member.getFluentSetterMethodName());
@@ -588,11 +579,6 @@ public class AwsServiceModel implements ClassSpec {
         return methods;
     }
 
-    /**
-     * Builds the {@code return new <Class>(type, slot...)} statement for a fast union factory. {@code notSet}
-     * selects UNKNOWN_TO_SDK_VERSION (mirrors the builder for a null/sentinel value) vs the member's own type.
-     * {@code slotValue} is the expression placed in the target member's slot (the copied local for collections).
-     */
     private CodeBlock fastCtorCall(List<MemberModel> members, MemberModel target, String slotValue, boolean notSet) {
         CodeBlock.Builder args = CodeBlock.builder();
         if (notSet) {
