@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.crt.internal.request;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.utils.Logger;
@@ -52,14 +53,14 @@ public final class SyncRequestBodyPump {
         LOG.info(() -> tag + "pump() entered");
         try (InputStream in = contentStreamProvider.newStream()) {
             while (true) {
-                Chunk chunk = pipe.acquireForFill();
+                ByteBuffer chunk = pipe.acquireForFill();
                 if (chunk == null) {
                     LOG.info(() -> tag + "pump() exiting due to abort (acquireForFill returned null)");
                     return;
                 }
                 int read;
                 try {
-                    read = in.read(chunk.data(), 0, chunk.data().length);
+                    read = in.read(chunk.array(), chunk.arrayOffset() + chunk.position(), chunk.remaining());
                 } catch (IOException ioe) {
                     LOG.info(() -> tag + "pump() exiting due to error: " + ioe.getMessage());
                     pipe.signalError(ioe);
@@ -70,8 +71,8 @@ public final class SyncRequestBodyPump {
                     pipe.signalEof();
                     return;
                 }
-                chunk.pos(0);
-                chunk.len(read);
+                chunk.position(chunk.position() + read);
+                chunk.flip();
                 pipe.publish(chunk);
             }
         } catch (InterruptedException ie) {

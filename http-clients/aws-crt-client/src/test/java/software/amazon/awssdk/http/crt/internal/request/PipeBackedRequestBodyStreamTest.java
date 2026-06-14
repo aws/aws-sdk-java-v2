@@ -38,11 +38,11 @@ class PipeBackedRequestBodyStreamTest {
     @Test
     void sendRequestBody_afterEofAndDrained_returnsTrue() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {1, 2, 3};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
         PipeBackedRequestBodyStream stream = new PipeBackedRequestBodyStream(pipe);
 
@@ -97,11 +97,11 @@ class PipeBackedRequestBodyStreamTest {
     @Test
     void sendRequestBody_destinationSmallerThanChunk_drainsAcrossMultipleCalls() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 16);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
         PipeBackedRequestBodyStream stream = new PipeBackedRequestBodyStream(pipe);
 

@@ -51,12 +51,11 @@ class BodyChunkPipeTest {
     @Test
     void publish_thenDrain_consumerSeesProducerBytes() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {1, 2, 3, 4, 5};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.pos(0);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
         ByteBuffer dst = ByteBuffer.allocate(16);
 
@@ -84,9 +83,10 @@ class BodyChunkPipeTest {
     @Test
     void abort_emptiesReadyAndChangesState() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
-        c.len(4);
-        pipe.publish(c);
+        ByteBuffer bb = pipe.acquireForFill();
+        bb.put(new byte[]{1, 2, 3, 4});
+        bb.flip();
+        pipe.publish(bb);
 
         pipe.abort();
 
@@ -97,11 +97,11 @@ class BodyChunkPipeTest {
     @Test
     void pollDrain_signalErrorWithQueuedChunks_drainsThenThrows() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {7, 8, 9};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalError(new RuntimeException("boom"));
 
         ByteBuffer dst = ByteBuffer.allocate(payload.length);
@@ -120,11 +120,11 @@ class BodyChunkPipeTest {
     @Test
     void pollDrain_signalEofWithQueuedChunks_drainsThenReturnsMinusOne() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {10, 20, 30};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
 
         ByteBuffer dst = ByteBuffer.allocate(payload.length);
@@ -153,11 +153,11 @@ class BodyChunkPipeTest {
     @Test
     void abort_afterSignalEofWithQueuedChunks_doesNotClearReady() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         byte[] payload = {1, 2, 3};
-        System.arraycopy(payload, 0, c.data(), 0, payload.length);
-        c.len(payload.length);
-        pipe.publish(c);
+        bb.put(payload);
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
 
         pipe.abort();
@@ -172,9 +172,10 @@ class BodyChunkPipeTest {
     @Test
     void recycle_intoEofPipe_doesNotThrowAndDoesNotCorruptPool() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
-        c.len(4);
-        pipe.publish(c);
+        ByteBuffer bb = pipe.acquireForFill();
+        bb.put(new byte[]{1, 2, 3, 4});
+        bb.flip();
+        pipe.publish(bb);
         pipe.signalEof();
 
         ByteBuffer dst = ByteBuffer.allocate(8);
@@ -189,11 +190,11 @@ class BodyChunkPipeTest {
     @Test
     void recycle_intoAbortedPipe_doesNotThrow() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         pipe.abort();
 
-        c.len(0);
-        pipe.publish(c);
+        bb.flip();
+        pipe.publish(bb);
 
         assertThat(pipe.state()).isEqualTo(BodyChunkPipe.State.ABORTED);
     }
@@ -201,11 +202,11 @@ class BodyChunkPipeTest {
     @Test
     void recycle_intoErrorPipe_doesNotThrow() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
         pipe.signalError(new RuntimeException("boom"));
 
-        c.len(0);
-        pipe.publish(c);
+        bb.flip();
+        pipe.publish(bb);
 
         assertThat(pipe.state()).isEqualTo(BodyChunkPipe.State.ERROR);
     }
@@ -221,24 +222,27 @@ class BodyChunkPipeTest {
     void acquireForFill_firstCall_allocatesOneChunk() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(4, 16);
 
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
 
-        assertThat(c).isNotNull();
-        assertThat(c.data()).hasSize(16);
+        assertThat(bb).isNotNull();
+        assertThat(bb.capacity()).isEqualTo(16);
+        assertThat(bb.position()).isZero();
+        assertThat(bb.limit()).isEqualTo(16);
         assertThat(pipe.allocatedForTest()).isEqualTo(1);
     }
 
     @Test
     void acquireForFill_uniqueChunksUpToDepth_thenStopsAllocating() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(3, 8);
-        Chunk c1 = pipe.acquireForFill();
-        Chunk c2 = pipe.acquireForFill();
-        Chunk c3 = pipe.acquireForFill();
+        ByteBuffer c1 = pipe.acquireForFill();
+        ByteBuffer c2 = pipe.acquireForFill();
+        ByteBuffer c3 = pipe.acquireForFill();
 
-        c1.len(1);
+        c1.put((byte) 1);
+        c1.flip();
         pipe.publish(c1);
         pipe.pollDrain(ByteBuffer.allocate(8));
-        Chunk reused = pipe.acquireForFill();
+        ByteBuffer reused = pipe.acquireForFill();
 
         assertThat(c1).isNotSameAs(c2).isNotSameAs(c3);
         assertThat(c2).isNotSameAs(c3);
@@ -249,14 +253,15 @@ class BodyChunkPipeTest {
     @Test
     void acquireForFill_recycledChunkReused_noNewAllocation() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
-        Chunk c = pipe.acquireForFill();
-        c.len(3);
-        pipe.publish(c);
+        ByteBuffer bb = pipe.acquireForFill();
+        bb.put(new byte[]{1, 2, 3});
+        bb.flip();
+        pipe.publish(bb);
         pipe.pollDrain(ByteBuffer.allocate(8));
 
-        Chunk reused = pipe.acquireForFill();
+        ByteBuffer reused = pipe.acquireForFill();
 
-        assertThat(reused).isSameAs(c);
+        assertThat(reused).isSameAs(bb);
         assertThat(pipe.allocatedForTest()).isEqualTo(1);
     }
 
@@ -265,9 +270,9 @@ class BodyChunkPipeTest {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
         pipe.abort();
 
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
 
-        assertThat(c).isNull();
+        assertThat(bb).isNull();
     }
 
     @Test
@@ -275,9 +280,9 @@ class BodyChunkPipeTest {
         BodyChunkPipe pipe = new BodyChunkPipe(2, 8);
         pipe.signalError(new RuntimeException("boom"));
 
-        Chunk c = pipe.acquireForFill();
+        ByteBuffer bb = pipe.acquireForFill();
 
-        assertThat(c).isNull();
+        assertThat(bb).isNull();
     }
 
     @Test
@@ -363,18 +368,19 @@ class BodyChunkPipeTest {
     @Test
     void acquireForFill_blocksUntilConsumerRecycles_thenWakesAndCompletes() throws Exception {
         BodyChunkPipe pipe = new BodyChunkPipe(1, 8);
-        Chunk first = pipe.acquireForFill();
-        first.len(4);
+        ByteBuffer first = pipe.acquireForFill();
+        first.put(new byte[]{1, 2, 3, 4});
+        first.flip();
         pipe.publish(first);
 
         CountDownLatch producerEntered = new CountDownLatch(1);
-        AtomicReference<Chunk> reused = new AtomicReference<>();
+        AtomicReference<ByteBuffer> reused = new AtomicReference<>();
         AtomicReference<Throwable> producerError = new AtomicReference<>();
         Thread producer = new Thread(() -> {
             try {
                 producerEntered.countDown();
-                Chunk c = pipe.acquireForFill();
-                reused.set(c);
+                ByteBuffer bb = pipe.acquireForFill();
+                reused.set(bb);
             } catch (Throwable t) {
                 producerError.set(t);
             }
