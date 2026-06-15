@@ -91,5 +91,12 @@ class MultipartDownloadUtilsTest {
         assertThat(MultipartDownloadUtils.calculateTotalParts(1, 16)).isEqualTo(1);    // smaller than part size
         assertThat(MultipartDownloadUtils.calculateTotalParts(16, 16)).isEqualTo(1);   // exactly one part
         assertThat(MultipartDownloadUtils.calculateTotalParts(0, 16)).isEqualTo(0);    // empty object
+        // 5 GiB / 1 byte = 5_368_709_120 parts (exceeds Integer.MAX_VALUE)
+        long fiveGiB = 5L * 1024L * 1024L * 1024L;
+        assertThat(MultipartDownloadUtils.calculateTotalParts(fiveGiB, 1L)).isEqualTo(fiveGiB);
+        assertThat(MultipartDownloadUtils.calculateTotalParts(Long.MAX_VALUE - 1, 1L))
+            .isEqualTo(Long.MAX_VALUE - 1);
+        assertThat(MultipartDownloadUtils.calculateTotalParts(Long.MAX_VALUE, 2))
+            .isEqualTo((Long.MAX_VALUE / 2) + 1);
     }
 }

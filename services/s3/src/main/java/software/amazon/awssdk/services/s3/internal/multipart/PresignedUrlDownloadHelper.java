@@ -155,10 +155,10 @@ public class PresignedUrlDownloadHelper {
      * @return empty if valid, or an SdkClientException describing the mismatch
      */
     static Optional<SdkClientException> validatePartResponse(GetObjectResponse response,
-                                                             int partIndex,
+                                                             long partIndex,
                                                              long partSizeInBytes,
                                                              Long totalContentLength,
-                                                             Integer totalParts) {
+                                                             Long totalParts) {
         String contentRange = response.contentRange();
         if (contentRange == null) {
             return Optional.of(missingContentRangeHeader());
@@ -214,7 +214,7 @@ public class PresignedUrlDownloadHelper {
      * @return a new PresignedUrlDownloadRequest with the appropriate Range and If-Match headers
      */
     static PresignedUrlDownloadRequest createRangedGetRequest(PresignedUrlDownloadRequest originalRequest,
-                                                              int partIndex,
+                                                              long partIndex,
                                                               long partSizeInBytes,
                                                               Long totalContentLength,
                                                               String eTag) {
