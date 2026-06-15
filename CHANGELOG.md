@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.11__ __2026-06-15__
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports AI traffic monetization for CloudFront. Configure payment networks and pricing on your web ACL, use the new Monetize rule action to charge AI agents via x402, and monitor revenue with new GetRevenueStatisticsSummary, GetRevenueStatistics, and ListSettlementRecords APIs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - InvokeGuardrailChecks API evaluates prompts and responses against safety checks (content filters, prompt attacks, sensitive info) without creating guardrail resources. It's a detect-only API, returning numeric scores so you can build adaptive logic as per your application.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added endTimeOffset parameter to Scheduled Queries APIs (Create, Update, Get) enabling bounded time window configuration. Introduced scheduleType filter (CUSTOMER MANAGED, AWS MANAGED) for ListScheduledQueries and exposed it in Get and Update responses.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for deleting lineage events in Amazon DataZone.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS SQL Server BYOM and DB2 Community Edition
+
+## __Amazon S3__
+  - ### Features
+    - Added BufferedSplittableAsyncRequestBody.builder() with bufferBeforeSend option that fully buffers each multipart upload part before sending, fixing NonRetryableException when retrying parts from slow streaming sources.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added a validation for null check for ImageIds in DescribeWorkspaceImages API request parameters.
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform for VMware now supports Amazon FSx for NetApp ONTAP as a target storage. Customers can migrate source server disks directly to FSx for NetApp ONTAP iSCSI LUNs. Target storage is configurable per source server, and compute, network, and storage migrate together in coordinated waves.
+
 # __2.46.10__ __2026-06-12__
 ## __AWS Certificate Manager__
   - ### Features
