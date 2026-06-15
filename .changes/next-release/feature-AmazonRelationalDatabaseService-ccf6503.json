@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Adding support for RDS SQL Server BYOM and DB2 Community Edition"
+}
