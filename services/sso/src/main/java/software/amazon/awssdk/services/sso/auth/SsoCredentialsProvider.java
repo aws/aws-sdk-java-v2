@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sso.auth;
 
 import static software.amazon.awssdk.utils.Validate.notNull;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -92,7 +93,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
             CachedSupplier.builder(this::updateSsoCredentials)
                           .cachedValueName(toString())
-                          .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
+                          .staleValueBehavior(ALLOW)
                           .cacheInvalidatingPredicate(
                               e -> e instanceof ExpiredTokenException || e instanceof UnauthorizedException);
         if (builder.asyncCredentialUpdateEnabled) {

@@ -214,6 +214,7 @@ public final class LoginCredentialsProvider implements
                     // on CachedSupplier will identify it and bypass static stability.
                     throw accessDeniedException;
                 case INSUFFICIENT_PERMISSIONS:
+                    // Wrap with a helpful message, but still cache-invalidating — the predicate checks the cause.
                     throw SdkClientException.create(
                         "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
                         + "for the 'CreateOAuth2Token' action.",
@@ -229,15 +230,27 @@ public final class LoginCredentialsProvider implements
     /**
      * Determines whether a given exception represents a non-recoverable refresh failure that should bypass
      * static stability. For Login, this is an {@link AccessDeniedException} with error code
-     * {@link OAuth2ErrorCode#TOKEN_EXPIRED} or {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}.
+     * {@link OAuth2ErrorCode#TOKEN_EXPIRED}, {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED},
+     * or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}.
      */
     private static boolean isCacheInvalidating(RuntimeException e) {
-        if (!(e instanceof AccessDeniedException)) {
+        AccessDeniedException ade = extractAccessDeniedException(e);
+        if (ade == null) {
             return false;
         }
-        AccessDeniedException ade = (AccessDeniedException) e;
         return ade.error() == OAuth2ErrorCode.TOKEN_EXPIRED
-               || ade.error() == OAuth2ErrorCode.USER_CREDENTIALS_CHANGED;
+               || ade.error() == OAuth2ErrorCode.USER_CREDENTIALS_CHANGED
+               || ade.error() == OAuth2ErrorCode.INSUFFICIENT_PERMISSIONS;
+    }
+
+    private static AccessDeniedException extractAccessDeniedException(RuntimeException e) {
+        if (e instanceof AccessDeniedException) {
+            return (AccessDeniedException) e;
+        }
+        if (e.getCause() instanceof AccessDeniedException) {
+            return (AccessDeniedException) e.getCause();
+        }
+        return null;
     }
 
     /**
