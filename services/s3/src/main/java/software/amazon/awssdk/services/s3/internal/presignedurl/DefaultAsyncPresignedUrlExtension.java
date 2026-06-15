@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -67,20 +68,13 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
      * Checksum configuration matching the codegen-produced GetObject operation.
      * Enables the HttpChecksumValidationInterceptor to validate response checksums.
      */
-    private static final HttpChecksum RESPONSE_CHECKSUM_CONFIG = HttpChecksum.builder()
-                                                                             .requestValidationMode("ENABLED")
-                                                                             .responseAlgorithmsV2(
-                                                                                 DefaultChecksumAlgorithm.XXHASH3,
-                                                                                 DefaultChecksumAlgorithm.XXHASH128,
-                                                                                 DefaultChecksumAlgorithm.CRC64NVME,
-                                                                                 DefaultChecksumAlgorithm.CRC32C,
-                                                                                 DefaultChecksumAlgorithm.CRC32,
-                                                                                 DefaultChecksumAlgorithm.XXHASH64,
-                                                                                 DefaultChecksumAlgorithm.SHA512,
-                                                                                 DefaultChecksumAlgorithm.SHA256,
-                                                                                 DefaultChecksumAlgorithm.SHA1,
-                                                                                 DefaultChecksumAlgorithm.MD5)
-                                                                             .build();
+    private static final HttpChecksum RESPONSE_CHECKSUM_CONFIG =
+        HttpChecksum.builder()
+                    .requestValidationMode("ENABLED")
+                    .responseAlgorithmsV2(
+                        DefaultChecksumAlgorithm.values()
+                                                .toArray(new ChecksumAlgorithm[0]))
+                    .build();
 
     private final AsyncClientHandler clientHandler;
     private final AwsS3ProtocolFactory protocolFactory;
