@@ -57,16 +57,14 @@ public final class CrtRequestExecutor {
 
             long finalAcquireStartTime = acquireStartTime;
             streamFuture.whenComplete((streamBase, throwable) -> {
-                // Only notify the response handler when stream acquisition succeeded; passing a null
-                // streamBase from a failed acquisition would NPE inside the handler.
-                if (throwable == null) {
-                    crtResponseHandler.onAcquireStream(streamBase);
-                }
-                if (shouldPublishMetrics) {
-                    reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
-                }
                 if (throwable != null) {
                     requestFuture.completeExceptionally(wrapCrtException(throwable));
+
+                } else {
+                    crtResponseHandler.onAcquireStream(streamBase);
+                    if (shouldPublishMetrics) {
+                        reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
+                    }
                 }
             });
 

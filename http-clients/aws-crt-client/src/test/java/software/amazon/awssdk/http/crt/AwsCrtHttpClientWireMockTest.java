@@ -40,6 +40,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -308,6 +309,133 @@ public class AwsCrtHttpClientWireMockTest {
                                                              .uri(uri)
                                                              .method(SdkHttpMethod.PUT)
                                                              .encodedPath("/sink2")
+                                                             .putHeader("Host", uri.getHost())
+                                                             .putHeader("Content-Length", Integer.toString(okBytes.length))
+                                                             .build();
+            HttpExecuteRequest okExecute = HttpExecuteRequest.builder()
+                                                              .request(okRequest)
+                                                              .contentStreamProvider(() -> new ByteArrayInputStream(okBytes))
+                                                              .build();
+
+            HttpExecuteResponse response = client.prepareRequest(okExecute).call();
+            assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
+    public void interruptDuringCall_connectionReturnedToPool_subsequentRequestSucceeds() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder()
+                                                    .maxConcurrency(1)
+                                                    .connectionAcquisitionTimeout(Duration.ofSeconds(10))
+                                                    .build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFixedDelay(2000).withBody("hello")));
+            stubFor(put(urlPathEqualTo("/sink")).willReturn(aResponse().withStatus(200)));
+
+            SdkHttpRequest delayedRequest = createRequest(uri);
+            HttpExecuteRequest delayedExecute = HttpExecuteRequest.builder()
+                                                                   .request(delayedRequest)
+                                                                   .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]))
+                                                                   .build();
+
+            CountDownLatch workerDone = new CountDownLatch(1);
+            AtomicReference<Throwable> workerError = new AtomicReference<>();
+            ExecutorService worker = Executors.newSingleThreadExecutor();
+            try {
+                Future<?> inFlight = worker.submit(() -> {
+                    try {
+                        client.prepareRequest(delayedExecute).call();
+                    } catch (Throwable t) {
+                        workerError.set(t);
+                    } finally {
+                        workerDone.countDown();
+                    }
+                });
+
+                // Give call() time to enter joinInterruptibly() before we interrupt.
+                Thread.sleep(100);
+                inFlight.cancel(true);
+
+                assertThat(workerDone.await(10, TimeUnit.SECONDS)).isTrue();
+                assertThat(workerError.get())
+                    .isInstanceOf(IOException.class)
+                    .hasMessageContaining("cancelled");
+            } finally {
+                worker.shutdownNow();
+                worker.awaitTermination(5, TimeUnit.SECONDS);
+            }
+
+            // If the interrupt leaked the connection, this second call() would block on acquire and fail
+            // when connectionAcquisitionTimeout (10s above) elapses.
+            String body = "after-interrupt";
+            byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+            SdkHttpFullRequest okRequest = SdkHttpFullRequest.builder()
+                                                             .uri(uri)
+                                                             .method(SdkHttpMethod.PUT)
+                                                             .encodedPath("/sink")
+                                                             .putHeader("Host", uri.getHost())
+                                                             .putHeader("Content-Length", Integer.toString(bodyBytes.length))
+                                                             .build();
+            HttpExecuteRequest okExecute = HttpExecuteRequest.builder()
+                                                              .request(okRequest)
+                                                              .contentStreamProvider(() -> new ByteArrayInputStream(bodyBytes))
+                                                              .build();
+            HttpExecuteResponse response = client.prepareRequest(okExecute).call();
+            assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
+    public void acquireTimeoutThenHolderCancelled_connectionReturnedToPool_subsequentRequestSucceeds() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder()
+                                                    .maxConcurrency(1)
+                                                    .connectionAcquisitionTimeout(Duration.ofSeconds(2))
+                                                    .build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFixedDelay(60_000).withBody("hello")));
+
+            SdkHttpRequest holderRequest = createRequest(uri);
+            HttpExecuteRequest holderExecute = HttpExecuteRequest.builder()
+                                                                  .request(holderRequest)
+                                                                  .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]))
+                                                                  .build();
+            ExecutableHttpRequest holder = client.prepareRequest(holderExecute);
+
+            SdkHttpRequest racerRequest = createRequest(uri);
+            HttpExecuteRequest racerExecute = HttpExecuteRequest.builder()
+                                                                 .request(racerRequest)
+                                                                 .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]))
+                                                                 .build();
+
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            try {
+                Future<HttpExecuteResponse> holderFuture = pool.submit(holder::call);
+                // Give the holder time to acquire the only slot before the racer tries.
+                Thread.sleep(500);
+
+                Future<HttpExecuteResponse> racerFuture = pool.submit(() -> client.prepareRequest(racerExecute).call());
+                // CRT surfaces the acquire-timeout as HttpException; CrtHttpRequest.call() rethrows
+                // it directly (does not wrap in IOException).
+                assertThatThrownBy(() -> racerFuture.get(5, TimeUnit.SECONDS))
+                    .hasMessageContaining("acquire");
+
+                // Release the slot via the same closeConnection path the other leak tests exercise.
+                holder.abort();
+                assertThatThrownBy(() -> holderFuture.get(5, TimeUnit.SECONDS))
+                    .hasCauseInstanceOf(IOException.class);
+            } finally {
+                pool.shutdownNow();
+                pool.awaitTermination(5, TimeUnit.SECONDS);
+            }
+
+            // If the slot didn't reclaim, this third call() blocks on acquire and fails when the
+            // 2s connectionAcquisitionTimeout above elapses.
+            stubFor(put(urlPathEqualTo("/sink")).willReturn(aResponse().withStatus(200)));
+            byte[] okBytes = "ok".getBytes(StandardCharsets.UTF_8);
+            SdkHttpFullRequest okRequest = SdkHttpFullRequest.builder()
+                                                             .uri(uri)
+                                                             .method(SdkHttpMethod.PUT)
+                                                             .encodedPath("/sink")
                                                              .putHeader("Host", uri.getHost())
                                                              .putHeader("Content-Length", Integer.toString(okBytes.length))
                                                              .build();

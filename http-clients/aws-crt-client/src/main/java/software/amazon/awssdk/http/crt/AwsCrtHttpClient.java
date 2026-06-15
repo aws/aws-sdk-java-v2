@@ -206,6 +206,8 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
             if (streamFuture == null) {
                 return false;
             }
+            // The eventual exception is propagated by the executor's streamFuture.whenComplete via
+            // requestFuture.completeExceptionally; here we only decide whether to run the body pump.
             try {
                 streamFuture.get(timeoutMillis, TimeUnit.MILLISECONDS);
                 return true;
