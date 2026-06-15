@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Added a validation for null check for ImageIds in DescribeWorkspaceImages API request parameters."
+}
