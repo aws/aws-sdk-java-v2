@@ -159,6 +159,69 @@ class PresignedUrlDownloadRequestMarshallerTest {
     }
 
     @Test
+    void marshall_withChecksumModeInSignedHeaders_shouldAddChecksumHeader() throws Exception {
+        URL urlWithChecksum = new URL("https://test-bucket.s3.us-east-1.amazonaws.com/test-key?" +
+                                      "X-Amz-Algorithm=AWS4-HMAC-SHA256&" +
+                                      "X-Amz-SignedHeaders=host%3Bx-amz-checksum-mode&" +
+                                      "X-Amz-Signature=abc123&" +
+                                      "X-Amz-Expires=600");
+
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(urlWithChecksum)
+                                                                                         .build();
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.headers()).containsKey("x-amz-checksum-mode");
+        assertThat(result.firstMatchingHeader("x-amz-checksum-mode")).hasValue("ENABLED");
+    }
+
+    @Test
+    void marshall_withoutChecksumModeInSignedHeaders_shouldNotAddChecksumHeader() throws Exception {
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(testUrl)
+                                                                                         .build();
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.headers()).doesNotContainKey("x-amz-checksum-mode");
+    }
+
+    @Test
+    void marshall_withNoQueryString_shouldNotAddChecksumHeader() throws Exception {
+        URL urlNoQuery = new URL("https://test-bucket.s3.us-east-1.amazonaws.com/test-key");
+
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(urlNoQuery)
+                                                                                         .build();
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.headers()).doesNotContainKey("x-amz-checksum-mode");
+    }
+
+    @Test
     void marshall_withMalformedUrl_shouldThrowSdkClientException() throws Exception {
         // Setup the mock marshaller to return a properly configured request
         SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
