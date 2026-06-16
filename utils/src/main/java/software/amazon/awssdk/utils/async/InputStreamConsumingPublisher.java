@@ -46,7 +46,7 @@ public class InputStreamConsumingPublisher implements Publisher<ByteBuffer> {
     /**
      * If a {@link InputStream#read(byte[])} call returns fewer than this many bytes, the data is copied into a
      * right-sized array before being passed downstream. This is a fallback for cases where {@link InputStream#available()}
-     * underestimated, ensuring oversized backing arrays don't pin memory as they flow through buffered pipelines
+     * overestimated or was 0, ensuring oversized backing arrays don't pin memory as they flow through buffered pipelines
      * (e.g., retry buffers, Netty write queue).
      */
     private static final int TRIM_THRESHOLD = BUFFER_SIZE / 2;
