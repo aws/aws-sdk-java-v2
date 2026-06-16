@@ -117,6 +117,9 @@ public class AwsServiceModel implements ClassSpec {
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
+            if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors()) {
+                specBuilder.addField(fastUnionUnsetConstant());
+            }
         }
 
         if (!isEvent()) {
@@ -565,18 +568,37 @@ public class AwsServiceModel implements ClassSpec {
                     ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
                     : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
                 factory.beginControlFlow("if ($N instanceof $T)", slotValue, autoConstruct);
+                factory.addStatement("$L", fastCtorCall(members, member, slotValue, true));
             } else {
                 factory.beginControlFlow("if ($N == null)", memberName);
+                factory.addStatement("return FAST_UNSET");
             }
-
-            CodeBlock notSet = fastCtorCall(members, member, slotValue, true);
-            factory.addStatement("$L", notSet);
             factory.endControlFlow();
             factory.addStatement("$L", fastCtorCall(members, member, slotValue, false));
 
             methods.add(factory.build());
         }
         return methods;
+    }
+
+    private FieldSpec fastUnionUnsetConstant() {
+        List<MemberModel> members = shapeModel.getMembers();
+        CodeBlock.Builder init = CodeBlock.builder();
+        init.add("new $T($T.UNKNOWN_TO_SDK_VERSION", className(), unionTypeClassName());
+        for (MemberModel m : members) {
+            if (m.isList() || m.isMap()) {
+                ClassName sentinel = m.isMap()
+                    ? ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructMap")
+                    : ClassName.get("software.amazon.awssdk.core.util", "DefaultSdkAutoConstructList");
+                init.add(", $T.getInstance()", sentinel);
+            } else {
+                init.add(", null");
+            }
+        }
+        init.add(")");
+        return FieldSpec.builder(className(), "FAST_UNSET", PRIVATE, STATIC, Modifier.FINAL)
+                        .initializer(init.build())
+                        .build();
     }
 
     private CodeBlock fastCtorCall(List<MemberModel> members, MemberModel target, String slotValue, boolean notSet) {
