@@ -532,6 +532,9 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private Collection<MethodSpec> fastUnionConstructors() {
+        Validate.isTrue(shapeModel.getShapeType() == ShapeType.Model,
+                        "Fast union constructors are only supported on Model shapes, not %s (%s)",
+                        shapeModel.getShapeType(), shapeModel.getShapeName());
         List<MemberModel> members = shapeModel.getMembers();
         List<MethodSpec> methods = new ArrayList<>();
 
@@ -559,17 +562,18 @@ public class AwsServiceModel implements ClassSpec {
 
             String slotValue = memberName;
             if (isCollection) {
-                Optional<ClassName> copier = serviceModelCopiers.copierClassFor(member);
-                if (copier.isPresent()) {
-                    factory.addStatement("$T copied = $T.$N($N)", paramType, copier.get(),
-                                         serviceModelCopiers.copyMethodName(), memberName);
-                    slotValue = "copied";
-                }
+                ClassName copier = serviceModelCopiers.copierClassFor(member)
+                    .orElseThrow(() -> new IllegalStateException(
+                        "Fast union constructor requires a copier for collection member "
+                        + memberName + " on shape " + shapeModel.getShapeName()));
+                factory.addStatement("$T copied = $T.$N($N)", paramType, copier,
+                                     serviceModelCopiers.copyMethodName(), memberName);
+                slotValue = "copied";
                 ClassName autoConstruct = member.isMap()
                     ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
                     : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
                 factory.beginControlFlow("if ($N instanceof $T)", slotValue, autoConstruct);
-                factory.addStatement("$L", fastCtorCall(members, member, slotValue, true));
+                factory.addStatement("return FAST_UNSET");
             } else {
                 factory.beginControlFlow("if ($N == null)", memberName);
                 factory.addStatement("return FAST_UNSET");
