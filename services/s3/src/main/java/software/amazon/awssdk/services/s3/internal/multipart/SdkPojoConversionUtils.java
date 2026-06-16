@@ -130,6 +130,7 @@ public final class SdkPojoConversionUtils {
         "Metadata",
         "MetadataDirective",
         "TaggingDirective",
+        "AnnotationDirective",
         "ServerSideEncryption",
         "SourceBucket",
         "SourceKey",

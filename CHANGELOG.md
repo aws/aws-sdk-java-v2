@@ -1,4 +1,115 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.12__ __2026-06-16__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Wrap connection pool acquire timeout and other transient HTTP errors in IOException so the SDK retry layer treats them as retryable.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Added VIF rate limiting support for AWS Direct Connect, allowing customers to set bandwidth allocations on virtual interfaces to manage traffic on dedicated connections.
+
+## __AWS Outposts__
+  - ### Features
+    - Adds support for creating an order from quotes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adds supports for PartnerManagedRules
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Amazon S3 Vectors now supports paginated QueryVectors requests, returning up to 10,000 results per query.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add EnableDetailedObservability to Endpoint MetricsConfig. Publishes GPU, host, and framework-native inference metrics to CloudWatch with per-inference-component, availability-zone, and instance dimensions. Adds Inference Component provisioning lifecycle and multi-AZ placement metrics.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for annotations. You can now attach up to 1000 annotations (up to 1 MB each) directly to objects and create, retrieve, list, and delete them using new annotation APIs. Also added support for configuring an annotation table in S3 Metadata.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Added Prospecting APIs to convert engagements into AI-enriched leads with scoring insights. Extended Engagement APIs with ProspectingResult and Lead contexts. Added CoSell Scoring to GetAwsOpportunitySummary- quality score, trend, agent-driven recommendations, and engagement classification.
+
+# __2.46.11__ __2026-06-15__
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports AI traffic monetization for CloudFront. Configure payment networks and pricing on your web ACL, use the new Monetize rule action to charge AI agents via x402, and monitor revenue with new GetRevenueStatisticsSummary, GetRevenueStatistics, and ListSettlementRecords APIs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - InvokeGuardrailChecks API evaluates prompts and responses against safety checks (content filters, prompt attacks, sensitive info) without creating guardrail resources. It's a detect-only API, returning numeric scores so you can build adaptive logic as per your application.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added endTimeOffset parameter to Scheduled Queries APIs (Create, Update, Get) enabling bounded time window configuration. Introduced scheduleType filter (CUSTOMER MANAGED, AWS MANAGED) for ListScheduledQueries and exposed it in Get and Update responses.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for deleting lineage events in Amazon DataZone.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS SQL Server BYOM and DB2 Community Edition
+
+## __Amazon S3__
+  - ### Features
+    - Added BufferedSplittableAsyncRequestBody.builder() with bufferBeforeSend option that fully buffers each multipart upload part before sending, fixing NonRetryableException when retrying parts from slow streaming sources.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added a validation for null check for ImageIds in DescribeWorkspaceImages API request parameters.
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform for VMware now supports Amazon FSx for NetApp ONTAP as a target storage. Customers can migrate source server disks directly to FSx for NetApp ONTAP iSCSI LUNs. Target storage is configurable per source server, and compute, network, and storage migrate together in coordinated waves.
+
+# __2.46.10__ __2026-06-12__
+## __AWS Certificate Manager__
+  - ### Features
+    - Certificate transparency logging opt-out is no longer available. Per compliance requirements, all public ACM certificates are automatically recorded in certificate transparency logs. The CertificateTransparencyLoggingPreference option is deprecated.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for Trigger CRUD APIs (CreateTrigger, GetTrigger, UpdateTrigger, DeleteTrigger, ListTriggers) for managing schedule-based automation triggers in DevOps Agent agent spaces.
+
+## __AWS Glue__
+  - ### Features
+    - Adds support for retrieving Apache Iceberg table metadata via GetTable. Use the new AttributesToGet parameter with LATEST ICEBERG METADATA to receive schema, partition specs, sort orders, and table properties in the response.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updating documentation for select service-specific credential APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Added tagging and CMK support across optimization, an explanation field in recommendation output, and an insights feature to identify failure patterns, extract user intents, and summarize execution behavior
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Added tagging and CMK support for optimizations and an insights feature to identify failure patterns, extract user intents, and summarize execution behavior
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Patches missing enum values for EKS updates
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Update KeyARN in DeliveryStreamEncryptionConfigurationInput to accept KMS key ARNs only (not alias ARNs), matching service behavior.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Added support for inline request payloads to the InvokeEndpointAsync operation to allow users to provide the inference payload directly in the request Body (up to 128,000 bytes) as an alternative to uploading the payload to Amazon S3 and passing InputLocation.
+
 # __2.46.9__ __2026-06-11__
 ## __AWS Support__
   - ### Features

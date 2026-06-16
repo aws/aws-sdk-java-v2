@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -89,5 +90,63 @@ public final class LongRunningRequestTestSupport {
         } catch (ExecutionException e) {
             // expected
         }
+    }
+
+    /**
+     * Same time-bound check as {@link #assertFailsWithinTimeBound} but also asserts that the failure cause chain
+     * contains an {@link IOException}. The SDK retry layer relies on IOException-wrapping to classify failures as
+     * transient, so HTTP clients must surface acquire/connect failures as (or wrapping) {@code IOException}.
+     */
+    public static void assertFailsWithIoExceptionWithinTimeBound(CompletableFuture<?> future, Duration expectedTimeout) {
+        Duration maxWait = expectedTimeout.plus(TIME_BOUND_SAFETY_MARGIN);
+
+        try {
+            future.get(maxWait.toMillis(), TimeUnit.MILLISECONDS);
+            throw new AssertionError("Expected request to throw an exception but it completed successfully");
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            throw new AssertionError(
+                "Expected request to fail within " + maxWait + " but it was still running - client appears to hang",
+                e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Unexpected interruption while waiting for request to fail", e);
+        } catch (ExecutionException e) {
+            if (!causeChainContains(e, IOException.class)) {
+                throw new AssertionError(
+                    "Expected failure cause chain to contain IOException so the SDK retry layer treats the error as "
+                    + "transient, but found: " + describeCauseChain(e), e);
+            }
+        }
+    }
+
+    private static boolean causeChainContains(Throwable t, Class<? extends Throwable> type) {
+        Throwable current = t;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            if (current.getCause() == current) {
+                return false;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private static String describeCauseChain(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        Throwable current = t;
+        while (current != null) {
+            if (sb.length() > 0) {
+                sb.append(" -> ");
+            }
+            sb.append(current.getClass().getName());
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return sb.toString();
     }
 }
