@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.12__ __2026-06-16__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Wrap connection pool acquire timeout and other transient HTTP errors in IOException so the SDK retry layer treats them as retryable.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Added VIF rate limiting support for AWS Direct Connect, allowing customers to set bandwidth allocations on virtual interfaces to manage traffic on dedicated connections.
+
+## __AWS Outposts__
+  - ### Features
+    - Adds support for creating an order from quotes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adds supports for PartnerManagedRules
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Amazon S3 Vectors now supports paginated QueryVectors requests, returning up to 10,000 results per query.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add EnableDetailedObservability to Endpoint MetricsConfig. Publishes GPU, host, and framework-native inference metrics to CloudWatch with per-inference-component, availability-zone, and instance dimensions. Adds Inference Component provisioning lifecycle and multi-AZ placement metrics.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for annotations. You can now attach up to 1000 annotations (up to 1 MB each) directly to objects and create, retrieve, list, and delete them using new annotation APIs. Also added support for configuring an annotation table in S3 Metadata.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Added Prospecting APIs to convert engagements into AI-enriched leads with scoring insights. Extended Engagement APIs with ProspectingResult and Lead contexts. Added CoSell Scoring to GetAwsOpportunitySummary- quality score, trend, agent-driven recommendations, and engagement classification.
+
 # __2.46.11__ __2026-06-15__
 ## __AWS WAFV2__
   - ### Features

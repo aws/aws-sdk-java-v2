@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Wrap connection pool acquire timeout and other transient HTTP errors in IOException so the SDK retry layer treats them as retryable."
-}
