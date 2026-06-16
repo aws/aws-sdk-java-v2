@@ -32,8 +32,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 public interface SdkWarmUpProvider {
 
     /**
-     * Exercises the service's request path so the Just-In-Time compiled code is captured in a CRaC snapshot. This
-     * method requires no credentials and performs no network I/O.
+     * Exercises the service's request path so the Just-In-Time compiled code is captured in a CRaC snapshot.
      */
     void warmUp();
 }
