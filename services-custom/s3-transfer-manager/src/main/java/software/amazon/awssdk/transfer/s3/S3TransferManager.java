@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.transfer.s3.internal.TransferManagerFactory;
@@ -349,8 +351,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *         upload.completionFuture().join();
      * }
      *
-     * @see #uploadFile(Consumer) 
-     * @see #upload(UploadRequest) 
+     * @see #uploadFile(Consumer)
+     * @see #upload(UploadRequest)
      */
     default FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
         throw new UnsupportedOperationException();
@@ -637,10 +639,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Depending on the underlying S3Client, {@link S3TransferManager} may intelligently use plain {@link CopyObjectRequest}s
      * for smaller objects, and multiple parallel {@link UploadPartCopyRequest}s for larger objects. If multipart copy is
      * supported by the underlying S3Client, this behavior can be configured via
-     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy requests, source object
-     * metadata is not copied by default. To preserve source metadata, set
-     * {@link CopyObjectRequest.Builder#metadataDirective(MetadataDirective)} to {@code COPY}. To provide your own
-     * metadata instead, set it to {@code REPLACE}.
+     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}.
+     *
+     * <p>
+     * For multipart copy requests, source object metadata is copied by default. To provide your own metadata, set it using
+     * {@link CopyObjectRequest.Builder#metadata(Map)} and set
+     * {@link CopyObjectRequest.Builder#metadataDirective(MetadataDirective)} to {@code REPLACE}.
      *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
