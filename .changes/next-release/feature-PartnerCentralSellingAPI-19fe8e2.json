@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Partner Central Selling API",
+    "contributor": "",
+    "description": "Added Prospecting APIs to convert engagements into AI-enriched leads with scoring insights. Extended Engagement APIs with ProspectingResult and Lead contexts. Added CoSell Scoring to GetAwsOpportunitySummary- quality score, trend, agent-driven recommendations, and engagement classification."
+}
