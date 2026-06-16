@@ -25,14 +25,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
@@ -44,19 +51,27 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 class PresignedUrlChecksumValidationWiremockTest {
 
     private static final String BODY = "test-content-for-checksum";
-    // Correct CRC32 of "test-content-for-checksum" encoded as base64
     private static final String CORRECT_CRC32 = "HUUjuQ=="; // CRC32 of "test-content-for-checksum"
     private static final String INCORRECT_CRC32 = "AAAAAAAA==";
 
     private S3AsyncClient s3Client;
+    private final AtomicReference<ChecksumValidation> checksumValidationStatus = new AtomicReference<>();
 
     @BeforeEach
     void setUp(WireMockRuntimeInfo wmInfo) {
+        checksumValidationStatus.set(null);
         s3Client = S3AsyncClient.builder()
                                 .endpointOverride(java.net.URI.create(wmInfo.getHttpBaseUrl()))
-                                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
-                                .credentialsProvider(software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider.create())
+                                .region(Region.US_EAST_1)
+                                .credentialsProvider(AnonymousCredentialsProvider.create())
                                 .forcePathStyle(true)
+                                .overrideConfiguration(c -> c.addExecutionInterceptor(new ExecutionInterceptor() {
+                                    @Override
+                                    public void afterExecution(Context.AfterExecution context, ExecutionAttributes attrs) {
+                                        checksumValidationStatus.set(
+                                            attrs.getAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION));
+                                    }
+                                }))
                                 .build();
     }
 
@@ -90,6 +105,8 @@ class PresignedUrlChecksumValidationWiremockTest {
                                                           .join();
 
         assertThat(result.asUtf8String()).isEqualTo(BODY);
+        assertThat(checksumValidationStatus.get())
+            .isEqualTo(ChecksumValidation.VALIDATED);
     }
 
     @Test
@@ -139,11 +156,38 @@ class PresignedUrlChecksumValidationWiremockTest {
                                                           .join();
 
         assertThat(result.asUtf8String()).isEqualTo(BODY);
+        assertThat(checksumValidationStatus.get()).isNull();
+    }
+
+    @Test
+    void getObject_withChecksumModeButNoChecksumInResponse_shouldSetAlgorithmNotFound(WireMockRuntimeInfo wmInfo)
+        throws Exception {
+        // URL has checksum mode signed, but S3 response has no checksum header (e.g., ranged GET on single-PUT)
+        stubFor(get(urlPathEqualTo("/test-key"))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Length", String.valueOf(BODY.length()))
+                                    .withBody(BODY)));
+
+        URL presignedUrl = new URL(wmInfo.getHttpBaseUrl() + "/test-key?" +
+                                   "X-Amz-Algorithm=AWS4-HMAC-SHA256&" +
+                                   "X-Amz-SignedHeaders=host%3Bx-amz-checksum-mode&" +
+                                   "X-Amz-Signature=fake&" +
+                                   "X-Amz-Expires=600");
+
+        ResponseBytes<GetObjectResponse> result = s3Client.presignedUrlExtension()
+                                                          .getObject(
+                                                              PresignedUrlDownloadRequest.builder().presignedUrl(presignedUrl).build(),
+                                                              AsyncResponseTransformer.toBytes())
+                                                          .join();
+
+        assertThat(result.asUtf8String()).isEqualTo(BODY);
+        assertThat(checksumValidationStatus.get())
+            .isEqualTo(ChecksumValidation.CHECKSUM_ALGORITHM_NOT_FOUND);
     }
 
     @Test
     void getObject_withCompositeChecksum_shouldSkipValidationAndSucceed(WireMockRuntimeInfo wmInfo) throws Exception {
-        // COMPOSITE checksum (suffix -3 indicates 3 parts) — cannot be validated by raw byte CRC
         stubFor(get(urlPathEqualTo("/test-key"))
                     .willReturn(aResponse()
                                     .withStatus(200)
@@ -165,5 +209,8 @@ class PresignedUrlChecksumValidationWiremockTest {
                                                           .join();
 
         assertThat(result.asUtf8String()).isEqualTo(BODY);
+        assertThat(checksumValidationStatus.get())
+            .isEqualTo(ChecksumValidation.FORCE_SKIP);
+
     }
 }
