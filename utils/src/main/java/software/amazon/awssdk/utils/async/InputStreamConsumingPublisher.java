@@ -37,6 +37,20 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public class InputStreamConsumingPublisher implements Publisher<ByteBuffer> {
     private static final int BUFFER_SIZE = 16 * 1024; // 16 KB
 
+    /**
+     * Minimum allocation size when sizing buffers based on {@link InputStream#available()}. Avoids excessive
+     * per-read overhead from very small allocations.
+     */
+    private static final int MIN_BUFFER_SIZE = 1024;
+
+    /**
+     * If a {@link InputStream#read(byte[])} call returns fewer than this many bytes, the data is copied into a
+     * right-sized array before being passed downstream. This is a fallback for cases where {@link InputStream#available()}
+     * underestimated, ensuring oversized backing arrays don't pin memory as they flow through buffered pipelines
+     * (e.g., retry buffers, Netty write queue).
+     */
+    private static final int TRIM_THRESHOLD = BUFFER_SIZE / 2;
+
     private final SimplePublisher<ByteBuffer> delegate = new SimplePublisher<>();
 
     /**
@@ -51,11 +65,11 @@ public class InputStreamConsumingPublisher implements Publisher<ByteBuffer> {
         try {
             long dataWritten = 0;
             while (true) {
-                byte[] data = new byte[BUFFER_SIZE];
+                byte[] data = new byte[allocSize(inputStream)];
                 int dataLength = inputStream.read(data);
                 if (dataLength > 0) {
                     dataWritten += dataLength;
-                    joinInterruptibly(delegate.send(ByteBuffer.wrap(data, 0, dataLength)));
+                    joinInterruptibly(delegate.send(toByteBuffer(data, dataLength)));
                 } else if (dataLength < 0) {
                     // We ignore cancel failure on completion, because as long as our onNext calls have succeeded, the
                     // subscriber got everything we wanted to send.
@@ -71,6 +85,39 @@ public class InputStreamConsumingPublisher implements Publisher<ByteBuffer> {
             joinInterruptiblyIgnoringFailures(delegate.error(e));
             throw e;
         }
+    }
+
+    /**
+     * Choose an allocation size for the next read based on {@link InputStream#available()}. Streams that report
+     * useful availability (e.g., {@link java.io.PipedInputStream} with a small pipe buffer, sockets) get
+     * right-sized allocations, eliminating the need to trim oversized arrays after the read. Streams that
+     * always report 0 (or that throw) fall back to {@link #BUFFER_SIZE}.
+     */
+    private static int allocSize(InputStream inputStream) {
+        try {
+            int avail = inputStream.available();
+            if (avail <= 0) {
+                return BUFFER_SIZE;
+            }
+            return Math.min(BUFFER_SIZE, Math.max(MIN_BUFFER_SIZE, avail));
+        } catch (IOException ignored) {
+            return BUFFER_SIZE;
+        }
+    }
+
+    /**
+     * Wrap the given byte array into a {@link ByteBuffer}, trimming to the actual data length if the read was
+     * significantly underfilled. This is a fallback for cases where the upfront allocation in {@link #allocSize}
+     * overestimated. Avoids holding onto oversized backing arrays in downstream pipelines that may retain
+     * references for extended periods (retry buffers, async write queues, etc.).
+     */
+    private static ByteBuffer toByteBuffer(byte[] data, int dataLength) {
+        if (dataLength < data.length && dataLength < TRIM_THRESHOLD) {
+            byte[] trimmed = new byte[dataLength];
+            System.arraycopy(data, 0, trimmed, 0, dataLength);
+            return ByteBuffer.wrap(trimmed);
+        }
+        return ByteBuffer.wrap(data, 0, dataLength);
     }
 
     /**
