@@ -364,9 +364,9 @@ public class CustomizationConfig {
     private boolean enableEnvironmentBearerToken = false;
 
     /**
-     * Generate per-union-member fast static factories (fastX) that bypass the builder.
+     * List of union shape names for which to generate per-member fast static factories (fastX) that bypass the builder.
      */
-    private boolean generateFastUnionConstructors = false;
+    private List<String> generateFastUnionConstructors = Collections.emptyList();
 
     /**
      * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
@@ -983,11 +983,11 @@ public class CustomizationConfig {
         this.allowedUnderscoreNames = allowedUnderscoreNames;
     }
 
-    public boolean getGenerateFastUnionConstructors() {
+    public List<String> getGenerateFastUnionConstructors() {
         return generateFastUnionConstructors;
     }
 
-    public void setGenerateFastUnionConstructors(boolean generateFastUnionConstructors) {
+    public void setGenerateFastUnionConstructors(List<String> generateFastUnionConstructors) {
         this.generateFastUnionConstructors = generateFastUnionConstructors;
     }
 }

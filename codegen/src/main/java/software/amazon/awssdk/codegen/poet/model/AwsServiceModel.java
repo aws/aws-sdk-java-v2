@@ -117,7 +117,8 @@ public class AwsServiceModel implements ClassSpec {
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
-            if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors()) {
+            if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors()
+                    .contains(shapeModel.getShapeName())) {
                 specBuilder.addField(fastUnionUnsetConstant());
             }
         }
@@ -522,7 +523,7 @@ public class AwsServiceModel implements ClassSpec {
 
         List<MethodSpec> unionMembers = new ArrayList<>();
         unionMembers.addAll(unionConstructors());
-        if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors()) {
+        if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors().contains(shapeModel.getShapeName())) {
             unionMembers.addAll(fastUnionConstructors());
         }
         unionMembers.add(unionTypeMethod());
