@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "Adds support for creating an order from quotes."
+}
