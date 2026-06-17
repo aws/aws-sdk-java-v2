@@ -63,14 +63,43 @@ public class PresignedUrlDownloadRequestMarshaller implements Marshaller<Presign
                 .createProtocolMarshaller(SDK_OPERATION_BINDING);
             URI presignedUri = presignedUrlDownloadRequestWrapper.url().toURI();
 
-            return protocolMarshaller.marshall(presignedUrlDownloadRequestWrapper)
-                                     .toBuilder()
-                                     .uri(presignedUri)
-                                     .build();
+            SdkHttpFullRequest.Builder requestBuilder = protocolMarshaller
+                .marshall(presignedUrlDownloadRequestWrapper)
+                .toBuilder()
+                .uri(presignedUri);
+
+            addChecksumModeHeaderIfSignedInUrl(requestBuilder, presignedUri);
+
+            return requestBuilder.build();
         } catch (Exception e) {
             throw SdkClientException.builder()
                     .message("Unable to marshall pre-signed URL Request: " + e.getMessage())
                     .cause(e).build();
         }
+    }
+
+    /**
+     * If the presigned URL's X-Amz-SignedHeaders contains "x-amz-checksum-mode", automatically add
+     * the header with value "ENABLED" so S3 returns checksum headers in the response.
+     */
+    private void addChecksumModeHeaderIfSignedInUrl(SdkHttpFullRequest.Builder requestBuilder, URI uri) {
+        if (hasChecksumModeInSignedHeaders(uri.getQuery())) {
+            requestBuilder.putHeader("x-amz-checksum-mode", "ENABLED");
+        }
+    }
+
+    /**
+     * Returns true if the decoded query string's X-Amz-SignedHeaders parameter contains "x-amz-checksum-mode".
+     */
+    static boolean hasChecksumModeInSignedHeaders(String query) {
+        if (query == null) {
+            return false;
+        }
+        for (String param : query.split("&")) {
+            if (param.startsWith("X-Amz-SignedHeaders=")) {
+                return param.substring("X-Amz-SignedHeaders=".length()).contains("x-amz-checksum-mode");
+            }
+        }
+        return false;
     }
 }

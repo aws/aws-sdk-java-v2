@@ -29,6 +29,14 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 /**
  * Interface for executing S3 operations asynchronously using presigned URLs. This can be accessed using
  * {@link S3AsyncClient#presignedUrlExtension()}.
+ *
+ * <p><b>Checksum Validation:</b> If the presigned URL was generated with
+ * {@link software.amazon.awssdk.services.s3.presigner.S3Presigner#presignGetObject} using
+ * {@code checksumMode(ChecksumMode.ENABLED)}, the SDK automatically sends the required header
+ * and S3 returns checksums for full object downloads (HTTP 200). For ranged downloads (HTTP 206),
+ * checksums are only returned for multipart-uploaded objects when the range aligns with original
+ * upload part boundaries. The downloader cannot enable checksums if the URL was not presigned
+ * with checksum mode.
  */
 @SdkPublicApi
 public interface AsyncPresignedUrlExtension {

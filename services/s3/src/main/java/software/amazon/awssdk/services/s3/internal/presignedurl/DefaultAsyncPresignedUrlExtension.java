@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -61,12 +64,24 @@ import software.amazon.awssdk.utils.Pair;
 public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUrlExtension {
     private static final Logger log = LoggerFactory.getLogger(DefaultAsyncPresignedUrlExtension.class);
 
+    /**
+     * Checksum configuration matching the codegen-produced GetObject operation.
+     * Enables the HttpChecksumValidationInterceptor to validate response checksums.
+     */
+    private static final HttpChecksum RESPONSE_CHECKSUM_CONFIG =
+        HttpChecksum.builder()
+                    .requestValidationMode("ENABLED")
+                    .responseAlgorithmsV2(
+                        DefaultChecksumAlgorithm.values()
+                                                .toArray(new ChecksumAlgorithm[0]))
+                    .build();
+
     private final AsyncClientHandler clientHandler;
     private final AwsS3ProtocolFactory protocolFactory;
     private final SdkClientConfiguration clientConfiguration;
     private final List<MetricPublisher> metricPublishers;
     private final AwsProtocolMetadata protocolMetadata;
-    
+
     public DefaultAsyncPresignedUrlExtension(AsyncClientHandler clientHandler,
                                            AwsS3ProtocolFactory protocolFactory,
                                            SdkClientConfiguration clientConfiguration,
@@ -122,6 +137,8 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
                             .withMetricCollector(apiCallMetricCollector)
                             // TODO: Deprecate IS_DISCOVERED_ENDPOINT, use new SKIP_ENDPOINT_RESOLUTION for better semantics
                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                          checksumConfigForUrl(presignedUrlDownloadRequest.presignedUrl()))
                             .withMarshaller(new PresignedUrlDownloadRequestMarshaller(protocolFactory)),
                                                                                         asyncResponseTransformer);
             
@@ -149,6 +166,17 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
         configBuilder.option(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
         configBuilder.option(SIGNER_OVERRIDDEN, true);
         return configBuilder.build();
+    }
+
+    /**
+     * Returns the checksum validation config if the presigned URL was signed with checksum mode,
+     * or null otherwise.
+     */
+    private static HttpChecksum checksumConfigForUrl(java.net.URL presignedUrl) {
+        if (PresignedUrlDownloadRequestMarshaller.hasChecksumModeInSignedHeaders(presignedUrl.getQuery())) {
+            return RESPONSE_CHECKSUM_CONFIG;
+        }
+        return null;
     }
 
 }

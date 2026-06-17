@@ -45,6 +45,7 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -278,6 +279,61 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
         assertThatThrownBy(() -> presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
                                                       .get(30, TimeUnit.SECONDS))
             .hasCauseInstanceOf(S3Exception.class);
+    }
+
+    @Test
+    void getObject_withChecksumModeEnabled_returnsChecksumHeaders() throws Exception {
+        PresignedGetObjectRequest presigned = presigner.presignGetObject(r -> r
+            .getObjectRequest(req -> req.bucket(testBucket).key(testGetObjectKey)
+                                        .checksumMode(ChecksumMode.ENABLED))
+            .signatureDuration(Duration.ofMinutes(10)));
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presigned.url())
+                                                                         .build();
+
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(response.asUtf8String()).isEqualTo(testObjectContent);
+        assertThat(response.response().checksumTypeAsString()).isNotNull();
+    }
+
+    @Test
+    void getObject_withoutChecksumMode_doesNotReturnChecksumHeaders() throws Exception {
+        PresignedUrlDownloadRequest request = createRequestForKey(testGetObjectKey);
+
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(response.asUtf8String()).isEqualTo(testObjectContent);
+        assertThat(response.response().checksumTypeAsString()).isNull();
+    }
+
+    @Test
+    void getObject_withChecksumModeEnabled_requestContainsChecksumHeader() throws Exception {
+        PresignedGetObjectRequest presigned = presigner.presignGetObject(r -> r
+            .getObjectRequest(req -> req.bucket(testBucket).key(testGetObjectKey)
+                                        .checksumMode(ChecksumMode.ENABLED))
+            .signatureDuration(Duration.ofMinutes(10)));
+
+        // Verify the presigned URL has checksum-mode in SignedHeaders
+        assertThat(presigned.signedHeaders()).containsKey("x-amz-checksum-mode");
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presigned.url())
+                                                                         .build();
+
+        // Download should succeed (proves marshaller sent the header)
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(response).isNotNull();
+        assertThat(response.asUtf8String()).isEqualTo(testObjectContent);
     }
 
     static Stream<Arguments> basicFunctionalityTestData() {
