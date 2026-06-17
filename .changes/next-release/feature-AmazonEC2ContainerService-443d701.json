@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Releasing the ability to bring-your-own task-definition for CreateExpressGatewayService and UpdateGatewayExpressService"
+}
