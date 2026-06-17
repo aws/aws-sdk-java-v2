@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "S3 Event Notification",
-    "contributor": "parasparani1",
-    "description": "Add support for `ObjectAnnotation`."
-}
