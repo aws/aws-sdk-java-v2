@@ -18,6 +18,7 @@ package software.amazon.awssdk.http;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.CONFIGURED_TIMEOUT;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.HANG_DELAY;
+import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertFailsWithIoExceptionWithinTimeBound;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.assertFailsWithinTimeBound;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubHanging;
 import static software.amazon.awssdk.http.LongRunningRequestTestSupport.stubLongPolling;
@@ -92,7 +93,7 @@ public abstract class SdkHttpClientLongRunningRequestTestSuite {
             CompletableFuture<?> firstRequest = executeAsync(client);
             Thread.sleep(500);
 
-            assertFailsWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
+            assertFailsWithIoExceptionWithinTimeBound(executeAsync(client), CONFIGURED_TIMEOUT);
 
             firstRequest.cancel(true);
         } finally {

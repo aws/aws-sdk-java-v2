@@ -36,6 +36,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.S3ObjectAnnotation;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -213,7 +214,8 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         S3Bucket bucket = readBucket(s3.get("bucket"));
         S3Object object = readObject(s3.get("object"));
         String s3SchemaVersion = expectStringOrNull(s3, "s3SchemaVersion");
-        return new S3(configurationId, bucket, object, s3SchemaVersion);
+        List<S3ObjectAnnotation> objectAnnotation = readObjectAnnotations(s3.get("objectAnnotation"));
+        return new S3(configurationId, bucket, object, s3SchemaVersion, objectAnnotation);
     }
 
     private S3Object readObject(JsonNode jsonNode) {
@@ -226,7 +228,10 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         String eTag = expectStringOrNull(objectNode, "eTag");
         String versionId = expectStringOrNull(objectNode, "versionId");
         String sequencer = expectStringOrNull(objectNode, "sequencer");
-        return new S3Object(key, size, eTag, versionId, sequencer);
+        JsonNode hasObjectAnnotationNode = objectNode.get("hasObjectAnnotation");
+        Boolean hasObjectAnnotation = isNull(hasObjectAnnotationNode) ? null 
+                                     : expectBoolean(hasObjectAnnotationNode, "hasObjectAnnotation");
+        return new S3Object(key, size, eTag, versionId, sequencer, hasObjectAnnotation);
     }
 
     private S3Bucket readBucket(JsonNode jsonNode) {
@@ -311,5 +316,29 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         }
         Validate.isTrue(node.isNumber(), "expected '%s' to be numeric, but was not", name);
         return Long.parseLong(node.asNumber());
+    }
+
+    private List<S3ObjectAnnotation> readObjectAnnotations(JsonNode jsonNode) {
+        List<JsonNode> annotationArray = expectArrayOrNull(jsonNode, "objectAnnotation");
+        if (annotationArray == null) {
+            return null;
+        }
+        return annotationArray.stream().map(this::readObjectAnnotation).collect(Collectors.toList());
+    }
+
+    private S3ObjectAnnotation readObjectAnnotation(JsonNode jsonNode) {
+        Map<String, JsonNode> node = expectObjectOrNull(jsonNode, "objectAnnotation[]");
+        if (node == null) {
+            return null;
+        }
+        String name = expectStringOrNull(node, "name");
+        Long size = expectLong(node.get("size"), "size");
+        String eTag = expectStringOrNull(node, "eTag");
+        return new S3ObjectAnnotation(name, size, eTag);
+    }
+
+    private Boolean expectBoolean(JsonNode node, String name) {
+        Validate.isTrue(node.isBoolean(), "expected '%s' to be boolean, but was not", name);
+        return node.asBoolean();
     }
 }
