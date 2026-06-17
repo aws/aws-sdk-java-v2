@@ -39,8 +39,18 @@
 
         <!--
             Java source/target to use for compilation.
+
+            The benchmarks module targets Java 21 because the smithy-java sigv4 signer used in
+            SmithyJavaVsV2SignerBenchmark is published as Java 21 bytecode. The rest of the SDK
+            still targets Java 8.
           -->
-        <javac.target>1.8</javac.target>
+        <javac.target>21</javac.target>
+        <!--
+            Override the parent pom's `maven.compiler.release` (set to 8 by the jdk-11-plus
+            profile) so the benchmark module compiles against the Java 21 surface required by
+            smithy-java.
+          -->
+        <maven.compiler.release>${javac.target}</maven.compiler.release>
 
         <!--
             Name of the benchmark Uber-JAR to generate.
@@ -48,6 +58,7 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.12.797</sdk-v1.version>
+        <smithy-java.version>1.4.0</smithy-java.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
@@ -270,6 +281,43 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>cloudwatch-metric-publisher</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--
+            Smithy-Java's standalone SigV4 signer, benchmarked against the SDK V2 signer in
+            SmithyJavaVsV2SignerBenchmark. The aws-sigv4 pom marks http-api / io / auth-api /
+            context as runtime scope, but the benchmark imports types from those packages
+            directly, so they have to be promoted to compile scope here.
+          -->
+        <dependency>
+            <groupId>software.amazon.smithy.java</groupId>
+            <artifactId>aws-sigv4</artifactId>
+            <version>${smithy-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy.java</groupId>
+            <artifactId>auth-api</artifactId>
+            <version>${smithy-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy.java</groupId>
+            <artifactId>context</artifactId>
+            <version>${smithy-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy.java</groupId>
+            <artifactId>http-api</artifactId>
+            <version>${smithy-java.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy.java</groupId>
+            <artifactId>io</artifactId>
+            <version>${smithy-java.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
