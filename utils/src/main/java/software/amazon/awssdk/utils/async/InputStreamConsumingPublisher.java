@@ -100,7 +100,7 @@ public class InputStreamConsumingPublisher implements Publisher<ByteBuffer> {
                 return BUFFER_SIZE;
             }
             return Math.min(BUFFER_SIZE, Math.max(MIN_BUFFER_SIZE, avail));
-        } catch (IOException ignored) {
+        } catch (Exception ignored) {
             return BUFFER_SIZE;
         }
     }
