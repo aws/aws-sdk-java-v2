@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix excessive memory usage in AsyncRequestBody.fromInputStream() when reading from streams that return small chunks (e.g., PipedInputStream) by right-sizing the read buffer based on InputStream.available() and trimming oversized backing arrays before they're held by downstream pipelines."
+}
