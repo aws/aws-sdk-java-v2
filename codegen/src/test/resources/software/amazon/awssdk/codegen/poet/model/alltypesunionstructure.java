@@ -2065,6 +2065,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     Builder builder = AllTypesUnionStructure.builder();allTypesUnionStructure.accept(builder);return fromAllTypesUnionStructure(builder.build());
   }
 
+  /**
+   * Equivalent to {@code builder().stringMember(stringMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastStringMember(String stringMember) {
     if (stringMember == null) {
       return FAST_UNSET;
@@ -2072,6 +2075,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.STRING_MEMBER, stringMember, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().integerMember(integerMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastIntegerMember(Integer integerMember) {
     if (integerMember == null) {
       return FAST_UNSET;
@@ -2079,6 +2085,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.INTEGER_MEMBER, null, integerMember, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().booleanMember(booleanMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastBooleanMember(Boolean booleanMember) {
     if (booleanMember == null) {
       return FAST_UNSET;
@@ -2086,6 +2095,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.BOOLEAN_MEMBER, null, null, booleanMember, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().floatMember(floatMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastFloatMember(Float floatMember) {
     if (floatMember == null) {
       return FAST_UNSET;
@@ -2093,6 +2105,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.FLOAT_MEMBER, null, null, null, floatMember, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().doubleMember(doubleMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastDoubleMember(Double doubleMember) {
     if (doubleMember == null) {
       return FAST_UNSET;
@@ -2100,6 +2115,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.DOUBLE_MEMBER, null, null, null, null, doubleMember, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().longMember(longMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastLongMember(Long longMember) {
     if (longMember == null) {
       return FAST_UNSET;
@@ -2107,6 +2125,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LONG_MEMBER, null, null, null, null, null, longMember, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().shortMember(shortMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastShortMember(Short shortMember) {
     if (shortMember == null) {
       return FAST_UNSET;
@@ -2114,7 +2135,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.SHORT_MEMBER, null, null, null, null, null, null, shortMember, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().simpleList(simpleList).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastSimpleList(List<String> simpleList) {
+    if (simpleList == null) {
+      return FAST_UNSET;
+    }
     List<String> copied = ListOfStringsCopier.copy(simpleList);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2122,7 +2149,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.SIMPLE_LIST, null, null, null, null, null, null, null, copied, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfEnumsWithStrings(listOfEnums).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfEnumsWithStrings(List<String> listOfEnums) {
+    if (listOfEnums == null) {
+      return FAST_UNSET;
+    }
     List<String> copied = ListOfEnumsCopier.copy(listOfEnums);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2130,7 +2163,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_ENUMS, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfMaps(listOfMaps).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfMaps(List<Map<String, String>> listOfMaps) {
+    if (listOfMaps == null) {
+      return FAST_UNSET;
+    }
     List<Map<String, String>> copied = ListOfMapStringToStringCopier.copy(listOfMaps);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2138,7 +2177,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_MAPS, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfStructs(listOfStructs).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfStructs(List<SimpleStruct> listOfStructs) {
+    if (listOfStructs == null) {
+      return FAST_UNSET;
+    }
     List<SimpleStruct> copied = ListOfSimpleStructsCopier.copy(listOfStructs);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2146,8 +2191,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_STRUCTS, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfMapOfEnumToStringWithStrings(listOfMapOfEnumToString).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfMapOfEnumToStringWithStrings(
       List<Map<String, String>> listOfMapOfEnumToString) {
+    if (listOfMapOfEnumToString == null) {
+      return FAST_UNSET;
+    }
     List<Map<String, String>> copied = ListOfMapOfEnumToStringCopier.copy(listOfMapOfEnumToString);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2155,8 +2206,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_MAP_OF_ENUM_TO_STRING, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfMapOfStringToStruct(listOfMapOfStringToStruct).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfMapOfStringToStruct(
       List<Map<String, SimpleStruct>> listOfMapOfStringToStruct) {
+    if (listOfMapOfStringToStruct == null) {
+      return FAST_UNSET;
+    }
     List<Map<String, SimpleStruct>> copied = ListOfMapOfStringToStructCopier.copy(listOfMapOfStringToStruct);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2164,8 +2221,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_MAP_OF_STRING_TO_STRUCT, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfStringToIntegerList(mapOfStringToIntegerList).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfStringToIntegerList(
       Map<String, List<Integer>> mapOfStringToIntegerList) {
+    if (mapOfStringToIntegerList == null) {
+      return FAST_UNSET;
+    }
     Map<String, List<Integer>> copied = MapOfStringToIntegerListCopier.copy(mapOfStringToIntegerList);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2173,8 +2236,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_INTEGER_LIST, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfStringToString(mapOfStringToString).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfStringToString(
       Map<String, String> mapOfStringToString) {
+    if (mapOfStringToString == null) {
+      return FAST_UNSET;
+    }
     Map<String, String> copied = MapOfStringToStringCopier.copy(mapOfStringToString);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2182,8 +2251,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_STRING, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfStringToSimpleStruct(mapOfStringToSimpleStruct).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfStringToSimpleStruct(
       Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
+    if (mapOfStringToSimpleStruct == null) {
+      return FAST_UNSET;
+    }
     Map<String, SimpleStruct> copied = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2191,8 +2266,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_SIMPLE_STRUCT, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfEnumToEnumWithStrings(mapOfEnumToEnum).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfEnumToEnumWithStrings(
       Map<String, String> mapOfEnumToEnum) {
+    if (mapOfEnumToEnum == null) {
+      return FAST_UNSET;
+    }
     Map<String, String> copied = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2200,8 +2281,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_ENUM_TO_ENUM, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfEnumToStringWithStrings(mapOfEnumToString).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfEnumToStringWithStrings(
       Map<String, String> mapOfEnumToString) {
+    if (mapOfEnumToString == null) {
+      return FAST_UNSET;
+    }
     Map<String, String> copied = MapOfEnumToStringCopier.copy(mapOfEnumToString);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2209,8 +2296,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_ENUM_TO_STRING, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfStringToEnumWithStrings(mapOfStringToEnum).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfStringToEnumWithStrings(
       Map<String, String> mapOfStringToEnum) {
+    if (mapOfStringToEnum == null) {
+      return FAST_UNSET;
+    }
     Map<String, String> copied = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2218,8 +2311,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_STRING_TO_ENUM, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfEnumToSimpleStructWithStrings(mapOfEnumToSimpleStruct).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfEnumToSimpleStructWithStrings(
       Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
+    if (mapOfEnumToSimpleStruct == null) {
+      return FAST_UNSET;
+    }
     Map<String, SimpleStruct> copied = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2227,8 +2326,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_ENUM_TO_SIMPLE_STRUCT, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfEnumToListOfEnumsWithStrings(mapOfEnumToListOfEnums).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfEnumToListOfEnumsWithStrings(
       Map<String, List<String>> mapOfEnumToListOfEnums) {
+    if (mapOfEnumToListOfEnums == null) {
+      return FAST_UNSET;
+    }
     Map<String, List<String>> copied = MapOfEnumToListOfEnumsCopier.copy(mapOfEnumToListOfEnums);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2236,8 +2341,14 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_ENUM_TO_LIST_OF_ENUMS, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().mapOfEnumToMapOfStringToEnumWithStrings(mapOfEnumToMapOfStringToEnum).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMapOfEnumToMapOfStringToEnumWithStrings(
       Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+    if (mapOfEnumToMapOfStringToEnum == null) {
+      return FAST_UNSET;
+    }
     Map<String, Map<String, String>> copied = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2245,6 +2356,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), copied, null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().timestampMember(timestampMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastTimestampMember(Instant timestampMember) {
     if (timestampMember == null) {
       return FAST_UNSET;
@@ -2252,6 +2366,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.TIMESTAMP_MEMBER, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), timestampMember, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().structWithNestedTimestampMember(structWithNestedTimestampMember).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastStructWithNestedTimestampMember(
       StructWithTimestamp structWithNestedTimestampMember) {
     if (structWithNestedTimestampMember == null) {
@@ -2260,6 +2377,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.STRUCT_WITH_NESTED_TIMESTAMP_MEMBER, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, structWithNestedTimestampMember, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().blobArg(blobArg).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastBlobArg(SdkBytes blobArg) {
     if (blobArg == null) {
       return FAST_UNSET;
@@ -2267,6 +2387,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.BLOB_ARG, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, blobArg, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().structWithNestedBlob(structWithNestedBlob).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastStructWithNestedBlob(
       StructWithNestedBlobType structWithNestedBlob) {
     if (structWithNestedBlob == null) {
@@ -2275,7 +2398,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.STRUCT_WITH_NESTED_BLOB, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, structWithNestedBlob, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().blobMap(blobMap).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastBlobMap(Map<String, SdkBytes> blobMap) {
+    if (blobMap == null) {
+      return FAST_UNSET;
+    }
     Map<String, SdkBytes> copied = BlobMapTypeCopier.copy(blobMap);
     if (copied instanceof SdkAutoConstructMap) {
       return FAST_UNSET;
@@ -2283,7 +2412,13 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.BLOB_MAP, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, copied, DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().listOfBlobs(listOfBlobs).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastListOfBlobs(List<SdkBytes> listOfBlobs) {
+    if (listOfBlobs == null) {
+      return FAST_UNSET;
+    }
     List<SdkBytes> copied = ListOfBlobsTypeCopier.copy(listOfBlobs);
     if (copied instanceof SdkAutoConstructList) {
       return FAST_UNSET;
@@ -2291,6 +2426,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.LIST_OF_BLOBS, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), copied, null, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().recursiveStruct(recursiveStruct).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastRecursiveStruct(RecursiveStructType recursiveStruct) {
     if (recursiveStruct == null) {
       return FAST_UNSET;
@@ -2298,6 +2436,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.RECURSIVE_STRUCT, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), recursiveStruct, null, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().polymorphicTypeWithSubTypes(polymorphicTypeWithSubTypes).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastPolymorphicTypeWithSubTypes(
       BaseType polymorphicTypeWithSubTypes) {
     if (polymorphicTypeWithSubTypes == null) {
@@ -2306,6 +2447,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.POLYMORPHIC_TYPE_WITH_SUB_TYPES, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, polymorphicTypeWithSubTypes, null, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().polymorphicTypeWithoutSubTypes(polymorphicTypeWithoutSubTypes).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastPolymorphicTypeWithoutSubTypes(
       SubTypeOne polymorphicTypeWithoutSubTypes) {
     if (polymorphicTypeWithoutSubTypes == null) {
@@ -2314,6 +2458,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, polymorphicTypeWithoutSubTypes, null, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().enumType(enumType).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastEnumType(String enumType) {
     if (enumType == null) {
       return FAST_UNSET;
@@ -2321,6 +2468,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.ENUM_TYPE, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, enumType, null, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().underscore_Name_Type(underscore_Name_Type).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastUnderscore_Name_Type(
       Underscore_Name_Type underscore_Name_Type) {
     if (underscore_Name_Type == null) {
@@ -2329,6 +2479,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.UNDERSCORE_NAME_TYPE, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, underscore_Name_Type, null, null);
   }
 
+  /**
+   * Equivalent to {@code builder().myDocument(myDocument).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastMyDocument(Document myDocument) {
     if (myDocument == null) {
       return FAST_UNSET;
@@ -2336,6 +2489,9 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable, ToCo
     return new AllTypesUnionStructure(Type.MY_DOCUMENT, null, null, null, null, null, null, null, DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructList.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructMap.getInstance(), null, null, null, null, DefaultSdkAutoConstructMap.getInstance(), DefaultSdkAutoConstructList.getInstance(), null, null, null, null, null, myDocument, null);
   }
 
+  /**
+   * Equivalent to {@code builder().allTypesUnionStructure(allTypesUnionStructure).build()} but with a single allocation.
+   */
   public static AllTypesUnionStructure fastAllTypesUnionStructure(
       AllTypesUnionStructure allTypesUnionStructure) {
     if (allTypesUnionStructure == null) {

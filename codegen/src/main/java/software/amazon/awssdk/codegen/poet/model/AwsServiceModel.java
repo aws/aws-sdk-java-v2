@@ -556,12 +556,18 @@ public class AwsServiceModel implements ClassSpec {
             boolean isCollection = member.isList() || member.isMap();
 
             MethodSpec.Builder factory = MethodSpec.methodBuilder(factoryName)
+                                                   .addJavadoc("Equivalent to {@code builder().$N($N).build()} "
+                                                               + "but with a single allocation.\n",
+                                                               member.getFluentSetterMethodName(), memberName)
                                                    .addModifiers(PUBLIC, STATIC)
                                                    .returns(className())
                                                    .addParameter(paramType, memberName);
 
             String slotValue = memberName;
             if (isCollection) {
+                factory.beginControlFlow("if ($N == null)", memberName);
+                factory.addStatement("return FAST_UNSET");
+                factory.endControlFlow();
                 ClassName copier = serviceModelCopiers.copierClassFor(member)
                     .orElseThrow(() -> new IllegalStateException(
                         "Fast union constructor requires a copier for collection member "
@@ -579,7 +585,7 @@ public class AwsServiceModel implements ClassSpec {
                 factory.addStatement("return FAST_UNSET");
             }
             factory.endControlFlow();
-            factory.addStatement("$L", fastCtorCall(members, member, slotValue, false));
+            factory.addStatement("$L", fastCtorCall(members, member, slotValue));
 
             methods.add(factory.build());
         }
@@ -606,13 +612,9 @@ public class AwsServiceModel implements ClassSpec {
                         .build();
     }
 
-    private CodeBlock fastCtorCall(List<MemberModel> members, MemberModel target, String slotValue, boolean notSet) {
+    private CodeBlock fastCtorCall(List<MemberModel> members, MemberModel target, String slotValue) {
         CodeBlock.Builder args = CodeBlock.builder();
-        if (notSet) {
-            args.add("$T.UNKNOWN_TO_SDK_VERSION", unionTypeClassName());
-        } else {
-            args.add("$T.$N", unionTypeClassName(), target.getUnionEnumTypeName());
-        }
+        args.add("$T.$N", unionTypeClassName(), target.getUnionEnumTypeName());
         for (MemberModel m : members) {
             String fName = m.getVariable().getVariableName();
             if (fName.equals(target.getVariable().getVariableName())) {

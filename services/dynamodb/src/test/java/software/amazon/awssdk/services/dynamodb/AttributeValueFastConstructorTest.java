@@ -160,6 +160,42 @@ class AttributeValueFastConstructorTest {
         assertThat(fast.hasL()).isEqualTo(built.hasL());
     }
 
+    @Test
+    void fastX_toBuilderRoundTrip_preservesTypeAndValue() {
+        AttributeValue fast = AttributeValue.fastS("hello");
+        AttributeValue roundTripped = fast.toBuilder().build();
+        assertThat(roundTripped).isEqualTo(fast);
+        assertThat(roundTripped.type()).isEqualTo(AttributeValue.Type.S);
+        assertThat(roundTripped.s()).isEqualTo("hello");
+    }
+
+    @Test
+    void fastX_toBuilderMutation_matchesBuilderBehavior() {
+        AttributeValue fast = AttributeValue.fastS("hello");
+        AttributeValue built = AttributeValue.builder().s("hello").build();
+        AttributeValue fastMutated = fast.toBuilder().n("42").build();
+        AttributeValue builtMutated = built.toBuilder().n("42").build();
+        assertThat(fastMutated.type()).isEqualTo(builtMutated.type());
+        assertThat(fastMutated.n()).isEqualTo(builtMutated.n());
+        assertThat(fastMutated.s()).isEqualTo(builtMutated.s());
+    }
+
+    @Test
+    void fastBool_false_isTreatedAsPresent() {
+        AttributeValue fast = AttributeValue.fastBool(false);
+        AttributeValue built = AttributeValue.builder().bool(false).build();
+        assertThat(fast.type()).isEqualTo(AttributeValue.Type.BOOL);
+        assertIndistinguishable(fast, built);
+    }
+
+    @Test
+    void fastNul_false_isTreatedAsPresent() {
+        AttributeValue fast = AttributeValue.fastNul(false);
+        AttributeValue built = AttributeValue.builder().nul(false).build();
+        assertThat(fast.type()).isEqualTo(AttributeValue.Type.NUL);
+        assertIndistinguishable(fast, built);
+    }
+
     private static Map<String, AttributeValue> singletonMap(String k, AttributeValue v) {
         Map<String, AttributeValue> m = new HashMap<>();
         m.put(k, v);

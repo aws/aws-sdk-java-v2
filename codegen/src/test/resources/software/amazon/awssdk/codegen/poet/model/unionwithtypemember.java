@@ -169,6 +169,9 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable, ToCopya
     return builder().typeValue(typeValue).build();
   }
 
+  /**
+   * Equivalent to {@code builder().stringMember(stringMember).build()} but with a single allocation.
+   */
   public static UnionWithTypeMember fastStringMember(String stringMember) {
     if (stringMember == null) {
       return FAST_UNSET;
@@ -176,6 +179,9 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable, ToCopya
     return new UnionWithTypeMember(Type.STRING_MEMBER, stringMember, null);
   }
 
+  /**
+   * Equivalent to {@code builder().typeValue(typeValue).build()} but with a single allocation.
+   */
   public static UnionWithTypeMember fastTypeValue(String typeValue) {
     if (typeValue == null) {
       return FAST_UNSET;
