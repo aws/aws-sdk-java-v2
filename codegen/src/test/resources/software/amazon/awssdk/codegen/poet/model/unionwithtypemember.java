@@ -52,8 +52,6 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable, ToCopya
 
   private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
-  private static final UnionWithTypeMember FAST_UNSET = new UnionWithTypeMember(Type.UNKNOWN_TO_SDK_VERSION, null, null);
-
   private static final long serialVersionUID = 1L;
 
   private final String stringMember;
@@ -66,12 +64,6 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable, ToCopya
     this.stringMember = builder.stringMember;
     this.typeValue = builder.typeValue;
     this.type = builder.type;
-  }
-
-  private UnionWithTypeMember(Type type, String stringMember, String typeValue) {
-    this.type = type;
-    this.stringMember = stringMember;
-    this.typeValue = typeValue;
   }
 
   /**
@@ -167,26 +159,6 @@ public final class UnionWithTypeMember implements SdkPojo, Serializable, ToCopya
    */
   public static UnionWithTypeMember fromTypeValue(String typeValue) {
     return builder().typeValue(typeValue).build();
-  }
-
-  /**
-   * Equivalent to {@code builder().stringMember(stringMember).build()} but with a single allocation.
-   */
-  public static UnionWithTypeMember fastStringMember(String stringMember) {
-    if (stringMember == null) {
-      return FAST_UNSET;
-    }
-    return new UnionWithTypeMember(Type.STRING_MEMBER, stringMember, null);
-  }
-
-  /**
-   * Equivalent to {@code builder().typeValue(typeValue).build()} but with a single allocation.
-   */
-  public static UnionWithTypeMember fastTypeValue(String typeValue) {
-    if (typeValue == null) {
-      return FAST_UNSET;
-    }
-    return new UnionWithTypeMember(Type.TYPE, null, typeValue);
   }
 
   /**
