@@ -63,6 +63,11 @@ public class PresignedUrlDownloadHelper {
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 
+        if (hasSignedRange(presignedRequest)) {
+            log.debug(() -> "Using single part download because presigned URL has Range in signedHeaders");
+            return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
+        }
+
         CompletableFuture<T> resultFuture = new CompletableFuture<>();
         doMultipartDownload(presignedRequest, asyncResponseTransformer)
             .whenComplete((result, error) -> {
@@ -228,6 +233,17 @@ public class PresignedUrlDownloadHelper {
             builder.ifMatch(eTag);
         }
         return builder.build();
+    }
+
+    /**
+     * Returns true if the request has Range in its signedHeaders.
+     * If so, multipart must not add its own Range values.
+     */
+    private static boolean hasSignedRange(PresignedUrlDownloadRequest request) {
+        if (request.signedHeaders() != null) {
+            return request.signedHeaders().containsKey("range");
+        }
+        return false;
     }
 
     /**

@@ -106,6 +106,10 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
                 .url(presignedUrlDownloadRequest.presignedUrl())
                 .range(presignedUrlDownloadRequest.range())
                 .ifMatch(presignedUrlDownloadRequest.ifMatch())
+                .ifNoneMatch(presignedUrlDownloadRequest.ifNoneMatch())
+                .ifModifiedSince(presignedUrlDownloadRequest.ifModifiedSince())
+                .ifUnmodifiedSince(presignedUrlDownloadRequest.ifUnmodifiedSince())
+                .signedHeaders(presignedUrlDownloadRequest.signedHeaders())
                 .build();
 
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ?

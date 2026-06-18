@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.presignedurl;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -68,13 +70,34 @@ public class PresignedUrlDownloadRequestMarshaller implements Marshaller<Presign
                 .toBuilder()
                 .uri(presignedUri);
 
+            addSignedHeaders(requestBuilder, presignedUrlDownloadRequestWrapper);
             addChecksumModeHeaderIfSignedInUrl(requestBuilder, presignedUri);
 
             return requestBuilder.build();
         } catch (Exception e) {
             throw SdkClientException.builder()
-                    .message("Unable to marshall pre-signed URL Request: " + e.getMessage())
-                    .cause(e).build();
+                                    .message("Unable to marshall pre-signed URL Request: " + e.getMessage())
+                                    .cause(e).build();
+        }
+    }
+
+    /**
+     * Adds all signed headers from the presigned request to the HTTP request.
+     * Skips "host" as it's derived from the URL itself.
+     */
+    private void addSignedHeaders(SdkHttpFullRequest.Builder requestBuilder,
+                                  PresignedUrlDownloadRequestWrapper wrapper) {
+        if (wrapper.signedHeaders() == null) {
+            return;
+        }
+        for (Map.Entry<String, List<String>> entry : wrapper.signedHeaders().entrySet()) {
+            if ("host".equals(entry.getKey())) {
+                continue;
+            }
+            java.util.List<String> values = entry.getValue();
+            if (values != null && !values.isEmpty()) {
+                requestBuilder.putHeader(entry.getKey(), values.get(0));
+            }
         }
     }
 

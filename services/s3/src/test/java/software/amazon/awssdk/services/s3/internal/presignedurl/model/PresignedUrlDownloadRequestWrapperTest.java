@@ -56,9 +56,9 @@ class PresignedUrlDownloadRequestWrapperTest {
 
         List<SdkField<?>> fields = request.sdkFields();
 
-        assertThat(fields).hasSize(2);
+        assertThat(fields).hasSize(5);
         assertThat(fields).extracting(SdkField::memberName)
-                          .containsExactlyInAnyOrder("Range", "IfMatch");
+                          .containsExactlyInAnyOrder("Range", "IfMatch", "IfNoneMatch", "IfModifiedSince", "IfUnmodifiedSince");
         assertThat(fields).allMatch(field -> field.location() == MarshallLocation.HEADER);
         SdkField<?> rangeField = fields.stream()
                                        .filter(f -> "Range".equals(f.memberName()))
@@ -72,14 +72,14 @@ class PresignedUrlDownloadRequestWrapperTest {
     @Test
     void sdkFieldNameToField_shouldReturnExpectedMapping() throws Exception {
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
-                                                                                         .url(new URL("https://example.com"))
-                                                                                         .build();
+                                                                                       .url(new URL("https://example.com"))
+                                                                                       .build();
 
         Map<String, SdkField<?>> fieldMap = request.sdkFieldNameToField();
 
         assertThat(fieldMap)
-            .hasSize(2)
-            .containsKeys("Range", "IfMatch");
+            .hasSize(5)
+            .containsKeys("Range", "IfMatch", "IfNoneMatch", "IfModifiedSince", "IfUnmodifiedSince");
         assertThat(fieldMap.get("Range").memberName()).isEqualTo("Range");
         assertThat(fieldMap.get("IfMatch").memberName()).isEqualTo("IfMatch");
     }
@@ -87,9 +87,9 @@ class PresignedUrlDownloadRequestWrapperTest {
     @Test
     void rangeField_shouldMarshalCorrectly() throws Exception {
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
-                                                                                         .url(new URL("https://example.com"))
-                                                                                         .range("bytes=0-1023")
-                                                                                         .build();
+                                                                                       .url(new URL("https://example.com"))
+                                                                                       .range("bytes=0-1023")
+                                                                                       .build();
 
         SdkField<?> rangeField = request.sdkFields().stream()
                                         .filter(f -> "Range".equals(f.memberName()))

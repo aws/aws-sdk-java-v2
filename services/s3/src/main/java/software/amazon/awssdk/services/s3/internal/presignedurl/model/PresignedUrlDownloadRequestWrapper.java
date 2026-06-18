@@ -55,20 +55,49 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-Match")
                              .unmarshallLocationName("If-Match").build()).build();
 
+    private static final SdkField<String> IF_NONE_MATCH_FIELD = SdkField
+        .<String>builder(MarshallingType.STRING)
+        .memberName("IfNoneMatch")
+        .getter(getter(PresignedUrlDownloadRequestWrapper::ifNoneMatch))
+        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-None-Match")
+                             .unmarshallLocationName("If-None-Match").build()).build();
+
+    private static final SdkField<String> IF_MODIFIED_SINCE_FIELD = SdkField
+        .<String>builder(MarshallingType.STRING)
+        .memberName("IfModifiedSince")
+        .getter(getter(PresignedUrlDownloadRequestWrapper::ifModifiedSince))
+        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-Modified-Since")
+                             .unmarshallLocationName("If-Modified-Since").build()).build();
+
+    private static final SdkField<String> IF_UNMODIFIED_SINCE_FIELD = SdkField
+        .<String>builder(MarshallingType.STRING)
+        .memberName("IfUnmodifiedSince")
+        .getter(getter(PresignedUrlDownloadRequestWrapper::ifUnmodifiedSince))
+        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-Unmodified-Since")
+                             .unmarshallLocationName("If-Unmodified-Since").build()).build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(
-        Arrays.asList(RANGE_FIELD, IF_MATCH_FIELD));
+        Arrays.asList(RANGE_FIELD, IF_MATCH_FIELD, IF_NONE_MATCH_FIELD, IF_MODIFIED_SINCE_FIELD, IF_UNMODIFIED_SINCE_FIELD));
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final URL url;
     private final String range;
     private final String ifMatch;
+    private final String ifNoneMatch;
+    private final String ifModifiedSince;
+    private final String ifUnmodifiedSince;
+    private final Map<String, List<String>> signedHeaders;
 
     private PresignedUrlDownloadRequestWrapper(Builder builder) {
         super(builder);
         this.url = builder.url;
         this.range = builder.range;
         this.ifMatch = builder.ifMatch;
+        this.ifNoneMatch = builder.ifNoneMatch;
+        this.ifModifiedSince = builder.ifModifiedSince;
+        this.ifUnmodifiedSince = builder.ifUnmodifiedSince;
+        this.signedHeaders = builder.signedHeaders;
     }
 
     public URL url() {
@@ -81,6 +110,22 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
 
     public String ifMatch() {
         return ifMatch;
+    }
+
+    public String ifNoneMatch() {
+        return ifNoneMatch;
+    }
+
+    public String ifModifiedSince() {
+        return ifModifiedSince;
+    }
+
+    public String ifUnmodifiedSince() {
+        return ifUnmodifiedSince;
+    }
+
+    public Map<String, List<String>> signedHeaders() {
+        return signedHeaders;
     }
 
     @Override
@@ -101,6 +146,9 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         Map<String, SdkField<?>> map = new HashMap<>();
         map.put("Range", RANGE_FIELD);
         map.put("IfMatch", IF_MATCH_FIELD);
+        map.put("IfNoneMatch", IF_NONE_MATCH_FIELD);
+        map.put("IfModifiedSince", IF_MODIFIED_SINCE_FIELD);
+        map.put("IfUnmodifiedSince", IF_UNMODIFIED_SINCE_FIELD);
         return Collections.unmodifiableMap(map);
     }
 
@@ -125,7 +173,13 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             return false;
         }
         PresignedUrlDownloadRequestWrapper that = (PresignedUrlDownloadRequestWrapper) obj;
-        return Objects.equals(url, that.url) && Objects.equals(range, that.range) && Objects.equals(ifMatch, that.ifMatch);
+        return Objects.equals(url, that.url)
+               && Objects.equals(range, that.range)
+               && Objects.equals(ifMatch, that.ifMatch)
+               && Objects.equals(ifNoneMatch, that.ifNoneMatch)
+               && Objects.equals(ifModifiedSince, that.ifModifiedSince)
+               && Objects.equals(ifUnmodifiedSince, that.ifUnmodifiedSince)
+               && Objects.equals(signedHeaders, that.signedHeaders);
     }
 
     @Override
@@ -134,6 +188,10 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         result = 31 * result + Objects.hashCode(url);
         result = 31 * result + Objects.hashCode(range);
         result = 31 * result + Objects.hashCode(ifMatch);
+        result = 31 * result + Objects.hashCode(ifNoneMatch);
+        result = 31 * result + Objects.hashCode(ifModifiedSince);
+        result = 31 * result + Objects.hashCode(ifUnmodifiedSince);
+        result = 31 * result + Objects.hashCode(signedHeaders);
         return result;
     }
 
@@ -141,6 +199,10 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         private URL url;
         private String range;
         private String ifMatch;
+        private String ifNoneMatch;
+        private String ifModifiedSince;
+        private String ifUnmodifiedSince;
+        private Map<String, List<String>> signedHeaders;
 
         public Builder() {
         }
@@ -150,6 +212,10 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             this.url = request.url();
             this.range = request.range();
             this.ifMatch = request.ifMatch();
+            this.ifNoneMatch = request.ifNoneMatch();
+            this.ifModifiedSince = request.ifModifiedSince();
+            this.ifUnmodifiedSince = request.ifUnmodifiedSince();
+            this.signedHeaders = request.signedHeaders();
         }
 
         public Builder url(URL url) {
@@ -164,6 +230,26 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
 
         public Builder ifMatch(String ifMatch) {
             this.ifMatch = ifMatch;
+            return this;
+        }
+
+        public Builder ifNoneMatch(String ifNoneMatch) {
+            this.ifNoneMatch = ifNoneMatch;
+            return this;
+        }
+
+        public Builder ifModifiedSince(String ifModifiedSince) {
+            this.ifModifiedSince = ifModifiedSince;
+            return this;
+        }
+
+        public Builder ifUnmodifiedSince(String ifUnmodifiedSince) {
+            this.ifUnmodifiedSince = ifUnmodifiedSince;
+            return this;
+        }
+
+        public Builder signedHeaders(Map<String, List<String>> signedHeaders) {
+            this.signedHeaders = signedHeaders;
             return this;
         }
 

@@ -21,6 +21,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -234,11 +238,87 @@ class PresignedUrlDownloadRequestMarshallerTest {
 
         URL malformedUrl = new URL("https", "test-bucket.s3.us-east-1.amazonaws.com", -1, "/test key with spaces");
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
-                                                                                         .url(malformedUrl)
-                                                                                         .build();
+                                                                                       .url(malformedUrl)
+                                                                                       .build();
 
         assertThatThrownBy(() -> marshaller.marshall(request))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Unable to marshall pre-signed URL Request");
+    }
+
+    @Test
+    void marshall_withSignedHeaders_shouldAddAllHeadersExceptHost() throws Exception {
+        Map<String, List<String>> signedHeaders = new HashMap<>();
+        signedHeaders.put("host", Arrays.asList("bucket.s3.amazonaws.com"));
+        signedHeaders.put("range", Arrays.asList("bytes=0-1023"));
+        signedHeaders.put("if-match", Arrays.asList("\"etag123\""));
+        signedHeaders.put("if-none-match", Arrays.asList("\"old-etag\""));
+
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                       .url(testUrl)
+                                                                                       .signedHeaders(signedHeaders)
+                                                                                       .build();
+
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.firstMatchingHeader("range")).hasValue("bytes=0-1023");
+        assertThat(result.firstMatchingHeader("if-match")).hasValue("\"etag123\"");
+        assertThat(result.firstMatchingHeader("if-none-match")).hasValue("\"old-etag\"");
+        assertThat(result.headers()).doesNotContainKey("host");
+    }
+
+    @Test
+    void marshall_withNullSignedHeaders_shouldNotAddExtraHeaders() throws Exception {
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                       .url(testUrl)
+                                                                                       .build();
+
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.headers()).doesNotContainKey("range");
+        assertThat(result.headers()).doesNotContainKey("if-match");
+    }
+
+    @Test
+    void marshall_withSignedHeadersAndSdkFieldRange_shouldUseSignedHeadersValue() throws Exception {
+        Map<String, List<String>> signedHeaders = new HashMap<>();
+        signedHeaders.put("host", Arrays.asList("bucket.s3.amazonaws.com"));
+        signedHeaders.put("range", Arrays.asList("bytes=0-1023"));
+
+        // SdkField marshalling would have set Range from the wrapper's range field
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .putHeader("Range", "bytes=0-8388607")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                       .url(testUrl)
+                                                                                       .range("bytes=0-8388607")
+                                                                                       .signedHeaders(signedHeaders)
+                                                                                       .build();
+
+        SdkHttpFullRequest result = marshaller.marshall(request);
+
+        assertThat(result.firstMatchingHeader("range")).hasValue("bytes=0-1023");
     }
 }
