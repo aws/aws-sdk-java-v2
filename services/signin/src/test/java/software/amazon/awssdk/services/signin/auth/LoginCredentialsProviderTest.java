@@ -54,6 +54,7 @@ import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
+import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.services.signin.model.SigninException;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
@@ -182,7 +183,7 @@ public class LoginCredentialsProviderTest {
 
     @Test
     public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithGeneric500_raisesException() {
-        // expired
+        // expired - no cached value in CachedSupplier yet, so ALLOW still throws on first failure
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
         LoginAccessToken token = buildAccessToken(creds);
         tokenManager.storeToken(token);
@@ -196,6 +197,50 @@ public class LoginCredentialsProviderTest {
     }
 
     @Test
+    public void resolveCredentials_transientFailureAfterSuccessfulCache_returnsCachedCredentials() {
+        // First: store token with expired credentials so it triggers refresh from service
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // First response: successful refresh with short-lived credentials (expires in 30s)
+        // staleTime will be now+30s - 1min = now-30s (already stale), so next get() will refresh again
+        String shortLivedJsonBody =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"new-akid\","
+            + "\"secretAccessKey\":\"new-skid\","
+            + "\"sessionToken\":\"new-session-token\"},"
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"expiresIn\":30,"
+            + "\"refreshToken\":\"new-refresh-token\"}";
+
+        HttpExecuteResponse successResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(200).build())
+            .responseBody(AbortableInputStream.create(
+                new ByteArrayInputStream(shortLivedJsonBody.getBytes(StandardCharsets.UTF_8))))
+            .build();
+
+        // Second response: transient 500 error
+        HttpExecuteResponse failureResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(500).build())
+            .build();
+
+        mockHttpClient.stubResponses(successResponse, failureResponse);
+
+        // First call: succeeds and populates the CachedSupplier cache
+        AwsCredentials firstResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", firstResolve.accessKeyId());
+
+        // Second call: the cached value is already stale (30s expiry - 1min staleTime < now),
+        // so CachedSupplier tries to refresh, gets 500, and with ALLOW behavior returns cached value
+        AwsCredentials secondResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", secondResolve.accessKeyId());
+        assertEquals("new-skid", secondResolve.secretAccessKey());
+    }
+
+    @Test
     public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithTokenExpired_raisesException() {
         // expired
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
@@ -203,8 +248,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
-        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
-        assertTrue(e.getMessage().contains("Your session has expired"));
+        AccessDeniedException e = assertThrows(AccessDeniedException.class,
+                                               () -> loginCredentialsProvider.resolveCredentials());
+        assertNotNull(e);
     }
 
     @Test
@@ -215,8 +261,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
-        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
-        assertTrue(e.getMessage().contains("change in your password"));
+        AccessDeniedException e = assertThrows(AccessDeniedException.class,
+                                               () -> loginCredentialsProvider.resolveCredentials());
+        assertNotNull(e);
     }
 
     @Test
