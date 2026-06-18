@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "description": "Decorate streaming response publisher failures so S3AsyncClient getObject can retry Netty read timeouts.",
+    "contributor": "goutamadwant"
+}
