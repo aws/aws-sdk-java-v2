@@ -66,6 +66,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     private final Abortable abortable;
     private ScheduledFuture<?> timeoutTask;
     private volatile boolean hasRead = false;
+    private volatile boolean closed = false;
 
     public ResponseInputStream(ResponseT resp, AbortableInputStream in) {
         this(resp, in, null);
@@ -98,6 +99,20 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
      */
     public ResponseT response() {
         return response;
+    }
+
+    /**
+     * Returns a non-zero estimate when the stream is still open, even if the underlying stream reports 0 bytes available.
+     * This prevents {@link java.util.zip.GZIPInputStream} from misinterpreting a transient 0 as end-of-stream when reading
+     * concatenated gzip members over a network connection.
+     */
+    @Override
+    public int available() throws IOException {
+        int estimate = super.available();
+        if (estimate == 0 && !closed) {
+            return 1;
+        }
+        return estimate;
     }
 
     @Override
@@ -155,12 +170,19 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        closed = true;
+        super.close();
+    }
+
     /**
      * Close the underlying connection, dropping all remaining data in the stream, and not leaving the
      * connection open to be used for future requests.
      */
     @Override
     public void abort() {
+        closed = true;
         if (timeoutTask != null) {
             timeoutTask.cancel(false);
         }
