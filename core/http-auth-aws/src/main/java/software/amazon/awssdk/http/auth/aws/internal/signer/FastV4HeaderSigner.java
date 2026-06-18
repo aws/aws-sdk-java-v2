@@ -27,6 +27,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_S
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestException;
 import java.security.InvalidKeyException;
@@ -37,7 +38,9 @@ import java.time.ZoneOffset;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.ByteBufferContentProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.V4SigningKeyCache;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
@@ -176,52 +179,140 @@ final class FastV4HeaderSigner {
         // 5. Derive (or reuse) the signing key for this (secret, region, service, day) tuple.
         byte[] signingKey = deriveSigningKey(credentials, regionName, serviceName, dateStamp, signingInstant, r);
 
-        // 6. Compute the signature: SHA-256(canonical) → string-to-sign → HMAC-SHA256 → hex.
+        // 6. Compute the signature, build the Authorization header, and assemble the signed-view request all in
+        //    one helper so checkstyle's variable-declaration-distance lint is happy.
+        return buildSignedResult(source, payload, credentials, isSession, sourceHasHost, hostValue,
+                                 regionName, serviceName, dateStamp, requestDateTime, contentSha256,
+                                 signedHeaders, canonicalLen, signingKey, r);
+    }
+
+    /**
+     * Compute the signature, format the Authorization header, populate the signer-managed-header array, and wrap
+     * everything in a {@link SignedSdkHttpFullRequest} view. Extracted from {@link #signInternal} so the
+     * {@code signature} and {@code authorization} locals don't trigger
+     * {@code VariableDeclarationUsageDistance} checkstyle warnings.
+     */
+    private static SignedRequest buildSignedResult(SdkHttpRequest source,
+                                                   ContentStreamProvider payload,
+                                                   AwsCredentialsIdentity credentials,
+                                                   boolean isSession,
+                                                   boolean sourceHasHost,
+                                                   String hostValue,
+                                                   String regionName,
+                                                   String serviceName,
+                                                   String dateStamp,
+                                                   String requestDateTime,
+                                                   String contentSha256,
+                                                   String signedHeaders,
+                                                   int canonicalLen,
+                                                   byte[] signingKey,
+                                                   V4SigningResources r) {
+        // Build the strided (name, value) array of signer-added headers and the parallel array of source-header
+        // names whose values the signer is replacing. The view will skip the suppressed source entries when
+        // exposing headers, then yield the signer-added entries.
+        String[] addedHeaders = new String[5 * 2];
+        int addedCount = 0;
+        String[] suppressed = new String[5];
+        int suppressedCount = 0;
+
+        addedHeaders[addedCount * 2] = X_AMZ_DATE;
+        addedHeaders[addedCount * 2 + 1] = requestDateTime;
+        addedCount++;
+        suppressed[suppressedCount++] = "x-amz-date";
+
+        addedHeaders[addedCount * 2] = X_AMZ_CONTENT_SHA256;
+        addedHeaders[addedCount * 2 + 1] = contentSha256;
+        addedCount++;
+        suppressed[suppressedCount++] = "x-amz-content-sha256";
+
+        if (isSession) {
+            addedHeaders[addedCount * 2] = X_AMZ_SECURITY_TOKEN;
+            addedHeaders[addedCount * 2 + 1] = ((AwsSessionCredentialsIdentity) credentials).sessionToken();
+            addedCount++;
+            suppressed[suppressedCount++] = "x-amz-security-token";
+        }
+
+        if (!sourceHasHost) {
+            addedHeaders[addedCount * 2] = HOST;
+            addedHeaders[addedCount * 2 + 1] = hostValue;
+            addedCount++;
+            // No need to suppress; the source didn't have one.
+        }
+
+        // Compute the signature, format the Authorization header, and append it last.
         String signature = computeSignature(r.canonicalRequestBytes, canonicalLen, requestDateTime,
                                             dateStamp, regionName, serviceName, signingKey, r);
-
-        // 7. Build the Authorization header value into the pooled StringBuilder.
         String scope = buildScope(dateStamp, regionName, serviceName, r.sb);
-        String authorization = buildAuthorizationHeader(credentials.accessKeyId(), scope,
-                                                        signedHeaders, signature, r.sb);
+        addedHeaders[addedCount * 2] = AUTHORIZATION;
+        addedHeaders[addedCount * 2 + 1] = buildAuthorizationHeader(credentials.accessKeyId(), scope,
+                                                                    signedHeaders, signature, r.sb);
+        addedCount++;
+        suppressed[suppressedCount++] = "authorization";
 
-        // 8. Apply all signer-managed headers in one builder pass and return the signed request.
-        SdkHttpRequest.Builder builder = source.toBuilder();
-        builder.putHeader(X_AMZ_DATE, requestDateTime);
-        builder.putHeader(X_AMZ_CONTENT_SHA256, contentSha256);
-        if (isSession) {
-            builder.putHeader(X_AMZ_SECURITY_TOKEN,
-                              ((AwsSessionCredentialsIdentity) credentials).sessionToken());
-        }
-        if (!sourceHasHost) {
-            builder.putHeader(HOST, hostValue);
-        }
-        builder.putHeader(AUTHORIZATION, authorization);
-
+        SdkHttpFullRequest signedRequest = new SignedSdkHttpFullRequest(source, payload,
+                                                                       addedHeaders, addedCount,
+                                                                       suppressed, suppressedCount);
         return SignedRequest.builder()
-                            .request(builder.build())
+                            .request(signedRequest)
                             .payload(payload)
                             .build();
     }
 
     /**
-     * Stream the request body through the pooled SHA-256 digest and return the lowercase-hex digest.
+     * Compute the SHA-256 of the request body and return the lowercase-hex digest.
      *
-     * <p>Mirrors {@link software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer}'s default
-     * SHA-256-only behaviour: a null or empty payload hashes to the well-known empty-body digest. The shared 8 KB
-     * read buffer in {@link V4SigningResources#readBuffer} replaces the per-call {@code byte[4096]} that
-     * {@code ChecksumUtil.readAll} allocates today (the #1 allocation hot spot in profiling).
+     * <p>Picks one of two paths:
+     * <ul>
+     *     <li>If the {@link ContentStreamProvider} also implements {@link ByteBufferContentProvider} (the case for
+     *         byte-array-backed bodies, including the codegen-generated DDB/etc. JSON marshallers), the bytes are
+     *         passed straight to {@link MessageDigest#update(ByteBuffer)} with no read loop, no copy into the pooled
+     *         read buffer, and no {@link InputStream} wrapper allocation.</li>
+     *     <li>Otherwise (file-backed, {@code InputStream}-supplier, etc.) we fall back to the streaming path, which
+     *         reuses the pooled 8 KB read buffer in {@link V4SigningResources#readBuffer} so we still avoid the
+     *         per-call {@code byte[4096]} allocation that {@code ChecksumUtil.readAll} did before this work.</li>
+     * </ul>
+     *
+     * <p>Both paths produce byte-identical output to the legacy {@code FlexibleChecksummer}'s SHA-256-only mode for
+     * the same body bytes.
      */
     private static String hashPayload(ContentStreamProvider payload, V4SigningResources r) {
         if (payload == null) {
             return EMPTY_BODY_SHA256;
         }
-        InputStream stream;
-        try {
-            stream = payload.newStream();
-        } catch (RuntimeException e) {
-            throw e;
+        if (payload instanceof ByteBufferContentProvider) {
+            return hashByteBufferPayload(((ByteBufferContentProvider) payload).asByteBuffer(), r);
         }
+        return hashStreamingPayload(payload, r);
+    }
+
+    /**
+     * Direct ByteBuffer path: feed the body straight into the pooled SHA-256. The buffer aliases the underlying
+     * {@code byte[]} (no copy). After {@code update}, the buffer's position is at its limit, but the buffer itself
+     * is owned by the caller — repeat calls to {@link ByteBufferContentProvider#asByteBuffer()} produce a fresh
+     * view, so we don't need to rewind.
+     */
+    private static String hashByteBufferPayload(ByteBuffer body, V4SigningResources r) {
+        if (body.remaining() == 0) {
+            return EMPTY_BODY_SHA256;
+        }
+        try {
+            r.sha256Digest.reset();
+            r.sha256Digest.update(body);
+            r.sha256Digest.digest(r.hashBytes, 0, r.hashBytes.length);
+        } catch (DigestException e) {
+            throw new RuntimeException("Unable to compute SHA-256 of request payload: " + e.getMessage(), e);
+        }
+
+        byte[] hex = r.signatureHexBytes;
+        writeHex(r.hashBytes, hex, 0);
+        return new String(hex, 0, hex.length, StandardCharsets.US_ASCII);
+    }
+
+    /**
+     * Streaming fallback for {@link ContentStreamProvider}s without direct byte access.
+     */
+    private static String hashStreamingPayload(ContentStreamProvider payload, V4SigningResources r) {
+        InputStream stream = payload.newStream();
         if (stream == null) {
             return EMPTY_BODY_SHA256;
         }

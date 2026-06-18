@@ -257,6 +257,17 @@
         <Bug pattern="BAD_TO_BUILDER"/>
     </Match>
 
+    <!-- SignedSdkHttpFullRequest is a lightweight view, not a standard buildable. Its toBuilder()
+         intentionally materializes a fresh DefaultSdkHttpFullRequest.Builder via SdkHttpFullRequest.builder()
+         rather than mirroring its own fields, because the view's whole purpose is to avoid the full
+         builder/buildable round-trip during signing. The rawQueryParameters() override delegates to the wrapped
+         source request, which is exactly the correct implementation for an SdkHttpRequest view; the SDK_BAD_METHOD_CALL
+         lint flags any caller of rawQueryParameters() but cannot distinguish a delegating override from a fresh call. -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.SignedSdkHttpFullRequest"/>
+        <Bug pattern="BAD_TO_BUILDER,SDK_BAD_METHOD_CALL"/>
+    </Match>
+
     <!-- False positives from Spotbugs 4.7.3.5 -->
     <Match>
         <Bug pattern="EI_EXPOSE_REP"/>

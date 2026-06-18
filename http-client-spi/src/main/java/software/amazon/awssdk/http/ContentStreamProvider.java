@@ -17,7 +17,6 @@ package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -26,6 +25,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.internal.ByteArrayContentStreamProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -58,20 +58,13 @@ public interface ContentStreamProvider {
      *
      * <p>As the method name implies, this is unsafe. Use {@link #fromByteArray(byte[])} unless you're sure you know
      * the risks.
+     *
+     * <p>The returned provider implements {@link ByteBufferContentProvider}, so consumers that want a copy-free
+     * read path can downcast it.
      */
     static ContentStreamProvider fromByteArrayUnsafe(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
-        return new ContentStreamProvider() {
-            @Override
-            public InputStream newStream() {
-                return new ByteArrayInputStream(bytes);
-            }
-
-            @Override
-            public String name() {
-                return ProviderType.BYTES.getName();
-            }
-        };
+        return new ByteArrayContentStreamProvider(bytes);
     }
 
     /**

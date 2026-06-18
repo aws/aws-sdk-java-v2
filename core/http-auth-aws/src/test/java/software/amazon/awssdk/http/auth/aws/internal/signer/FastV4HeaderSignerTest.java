@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
@@ -152,6 +153,38 @@ class FastV4HeaderSignerTest {
             .payload(() -> new ByteArrayInputStream("hello".getBytes()))
             .build();
         assertSameAsLegacy(req);
+    }
+
+    @Test
+    @DisplayName("byte-equivalent: byte-buffer-backed payload (direct fast path) matches streaming legacy")
+    void byteBufferBackedPayloadMatchesStreaming() {
+        // The fast path detects ByteBufferContentProvider and skips the InputStream loop entirely; the legacy
+        // path goes through ChecksumInputStream as before. Both must produce the same SHA-256 → same Authorization.
+        byte[] body = "{\"TableName\":\"foo\",\"item\":{\"x\":42}}".getBytes();
+        SignRequest<? extends AwsCredentialsIdentity> req = SignRequest.builder(awsCreds())
+            .request(httpsRequest(b -> {}))
+            .payload(ContentStreamProvider.fromByteArrayUnsafe(body))
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(SIGNING_CLOCK, FIXED_CLOCK)
+            .build();
+        assertSameAsLegacy(req);
+    }
+
+    @Test
+    @DisplayName("byte-equivalent: empty byte array body produces well-known empty SHA-256")
+    void emptyByteBufferPayload() {
+        SignRequest<? extends AwsCredentialsIdentity> req = SignRequest.builder(awsCreds())
+            .request(httpsRequest(b -> {}))
+            .payload(ContentStreamProvider.fromByteArrayUnsafe(new byte[0]))
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(SIGNING_CLOCK, FIXED_CLOCK)
+            .build();
+        assertSameAsLegacy(req);
+        assertThat(signer.sign(req).request().firstMatchingHeader("x-amz-content-sha256"))
+            .as("empty body uses precomputed SHA-256 of zero bytes")
+            .hasValue("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
     }
 
     @Test
