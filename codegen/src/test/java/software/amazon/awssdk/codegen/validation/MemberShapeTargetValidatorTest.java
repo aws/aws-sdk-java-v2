@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ListModel;
@@ -119,6 +120,95 @@ public class MemberShapeTargetValidatorTest {
     }
 
     @Test
+    void validate_multipleDanglingMembers_aggregatesAllIntoSingleException() {
+        MemberModel enumMember = new MemberModel()
+            .withC2jName("AuthorizationDetails")
+            .withC2jShape("AuthDetailType")
+            .withVariable(new VariableModel("authorizationDetails", "String"))
+            .withEnumType("AuthDetailType");
+        ShapeModel enumOwner = shape("ResponseShape");
+        enumOwner.setMembers(Arrays.asList(enumMember));
+
+        MemberModel structureMember = new MemberModel()
+            .withC2jName("Nested")
+            .withC2jShape("MissingStruct")
+            .withVariable(new VariableModel("nested", "MissingStruct"));
+        ShapeModel structOwner = shape("RequestShape");
+        structOwner.setMembers(Arrays.asList(structureMember));
+
+        Map<String, ShapeModel> shapes = new HashMap<>();
+        shapes.put("ResponseShape", enumOwner);
+        shapes.put("RequestShape", structOwner);
+        IntermediateModel model = new IntermediateModel();
+        model.setShapes(shapes);
+
+        assertThatThrownBy(() -> MemberShapeTargetValidator.validate(model))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(t -> allUnknownShapeMemberDanger(t, 2), "two UNKNOWN_SHAPE_MEMBER / DANGER entries")
+            .matches(t -> entryMessages(t).stream().anyMatch(m -> m.contains("ResponseShape")
+                                                                  && m.contains("AuthorizationDetails")
+                                                                  && m.contains("AuthDetailType")),
+                     "entry for the enum member names its own shape/member/target")
+            .matches(t -> entryMessages(t).stream().anyMatch(m -> m.contains("RequestShape")
+                                                                  && m.contains("Nested")
+                                                                  && m.contains("MissingStruct")),
+                     "entry for the structure member names its own shape/member/target");
+    }
+
+    @Test
+    void validate_mapKeyAndValueBothDangling_reportsDistinctEntryPerTarget() {
+        MemberModel keyMember = new MemberModel()
+            .withC2jName("key")
+            .withC2jShape("MissingKey")
+            .withVariable(new VariableModel("key", "MissingKey"));
+        MemberModel valueMember = new MemberModel()
+            .withC2jName("value")
+            .withC2jShape("MissingValue")
+            .withVariable(new VariableModel("value", "MissingValue"));
+        MemberModel mapMember = new MemberModel()
+            .withC2jName("Attributes")
+            .withC2jShape("AttributeMap")
+            .withVariable(new VariableModel("attributes", "java.util.Map"))
+            .withMapModel(new MapModel("java.util.HashMap", "java.util.Map", "key", keyMember, "value", valueMember));
+        IntermediateModel model = modelWithShape("MapContainerShape", mapMember);
+
+        assertThatThrownBy(() -> MemberShapeTargetValidator.validate(model))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(t -> allUnknownShapeMemberDanger(t, 2), "two UNKNOWN_SHAPE_MEMBER / DANGER entries")
+            .matches(t -> entryMessages(t).stream().anyMatch(m -> m.contains("MissingKey")), "key target reported")
+            .matches(t -> entryMessages(t).stream().anyMatch(m -> m.contains("MissingValue")), "value target reported");
+    }
+
+    @Test
+    void validate_sameTargetReachableTwice_reportedOnce() {
+        MemberModel innerKey = new MemberModel()
+            .withC2jName("key")
+            .withC2jShape("MissingShared")
+            .withVariable(new VariableModel("key", "MissingShared"));
+        MemberModel innerValue = new MemberModel()
+            .withC2jName("value")
+            .withC2jShape("MissingShared")
+            .withVariable(new VariableModel("value", "MissingShared"));
+        MemberModel mapElement = new MemberModel()
+            .withC2jName("member")
+            .withC2jShape("SharedMap")
+            .withVariable(new VariableModel("member", "java.util.Map"))
+            .withMapModel(new MapModel("java.util.HashMap", "java.util.Map", "key", innerKey, "value", innerValue));
+        MemberModel listMember = new MemberModel()
+            .withC2jName("Items")
+            .withC2jShape("ItemList")
+            .withVariable(new VariableModel("items", "java.util.List"))
+            .withListModel(new ListModel("java.util.Map", null, "java.util.ArrayList", "java.util.List", mapElement));
+        IntermediateModel model = modelWithShape("ListOfMapShape", listMember);
+
+        assertThatThrownBy(() -> MemberShapeTargetValidator.validate(model))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(t -> allUnknownShapeMemberDanger(t, 1), "single deduped UNKNOWN_SHAPE_MEMBER / DANGER entry")
+            .matches(t -> entryMessages(t).get(0).contains("Items") && entryMessages(t).get(0).contains("MissingShared"),
+                     "the single entry names the container member and shared target");
+    }
+
+    @Test
     void validate_scalarMembersWithNullShape_doesNotThrow() {
         MemberModel scalarMember = new MemberModel()
             .withC2jName("Name")
@@ -187,9 +277,19 @@ public class MemberShapeTargetValidatorTest {
     }
 
     private static boolean isUnknownShapeMemberDanger(Throwable t) {
+        return allUnknownShapeMemberDanger(t, 1);
+    }
+
+    private static boolean allUnknownShapeMemberDanger(Throwable t, int expectedCount) {
         List<ValidationEntry> entries = ((ModelInvalidException) t).validationEntries();
-        return entries.size() == 1
-               && entries.get(0).getErrorId() == ValidationErrorId.UNKNOWN_SHAPE_MEMBER
-               && entries.get(0).getSeverity() == ValidationErrorSeverity.DANGER;
+        return entries.size() == expectedCount
+               && entries.stream().allMatch(e -> e.getErrorId() == ValidationErrorId.UNKNOWN_SHAPE_MEMBER
+                                                 && e.getSeverity() == ValidationErrorSeverity.DANGER);
+    }
+
+    private static List<String> entryMessages(Throwable t) {
+        return ((ModelInvalidException) t).validationEntries().stream()
+                                          .map(ValidationEntry::getDetailMessage)
+                                          .collect(Collectors.toList());
     }
 }

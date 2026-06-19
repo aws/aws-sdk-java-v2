@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.codegen.validation;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -35,18 +39,24 @@ public final class MemberShapeTargetValidator {
     }
 
     /**
-     * Fails fast on the first member whose target shape cannot be resolved.
+     * Collects every member whose target shape cannot be resolved and, if any are found, throws a single
+     * {@link ModelInvalidException} carrying one entry per distinct offending member.
      *
-     * @throws ModelInvalidException if a member references a shape that does not exist in the model.
+     * @throws ModelInvalidException if any member references a shape that does not exist in the model.
      */
     public static void validate(IntermediateModel model) {
+        List<ValidationEntry> entries = new ArrayList<>();
+        Set<String> reportedKeys = new HashSet<>();
         for (ShapeModel shape : model.getShapes().values()) {
             if (shape.getMembers() == null) {
                 continue;
             }
             for (MemberModel member : shape.getMembers()) {
-                validateMember(model, shape, member, member);
+                validateMember(model, shape, member, member, entries, reportedKeys);
             }
+        }
+        if (!entries.isEmpty()) {
+            throw ModelInvalidException.builder().validationEntries(entries).build();
         }
     }
 
@@ -55,42 +65,47 @@ public final class MemberShapeTargetValidator {
      *                       container member so the error message identifies a member the service team can locate.
      */
     private static void validateMember(IntermediateModel model, ShapeModel shape, MemberModel topLevelMember,
-                                       MemberModel member) {
+                                       MemberModel member, List<ValidationEntry> entries, Set<String> reportedKeys) {
         if (member == null) {
             return;
         }
 
         if (member.getEnumType() != null) {
-            requireResolvable(model, shape, topLevelMember, member, member.getEnumType());
+            requireResolvable(model, shape, topLevelMember, member, member.getEnumType(), entries, reportedKeys);
         } else if (member.isList()) {
-            validateMember(model, shape, topLevelMember, member.getListModel().getListMemberModel());
+            validateMember(model, shape, topLevelMember, member.getListModel().getListMemberModel(), entries, reportedKeys);
         } else if (member.isMap()) {
             MapModel mapModel = member.getMapModel();
-            validateMember(model, shape, topLevelMember, mapModel.getKeyModel());
-            validateMember(model, shape, topLevelMember, mapModel.getValueModel());
+            validateMember(model, shape, topLevelMember, mapModel.getKeyModel(), entries, reportedKeys);
+            validateMember(model, shape, topLevelMember, mapModel.getValueModel(), entries, reportedKeys);
         } else if (!member.isSimple()) {
-            requireResolvable(model, shape, topLevelMember, member, member.getVariable().getSimpleType());
+            requireResolvable(model, shape, topLevelMember, member, member.getVariable().getSimpleType(), entries, reportedKeys);
         }
     }
 
     private static void requireResolvable(IntermediateModel model, ShapeModel shape, MemberModel topLevelMember,
-                                          MemberModel member, String targetName) {
+                                          MemberModel member, String targetName,
+                                          List<ValidationEntry> entries, Set<String> reportedKeys) {
         // linkMembersToShapes only links members declared directly on a shape, so a list/map element member always carries a
         // null shape; resolve its target by name (matching shape retention) instead of reading the unset getShape().
         boolean resolved = member == topLevelMember ? member.getShape() != null
                                                     : model.getShapes().containsKey(targetName);
         if (!resolved) {
-            throw dangling(shape, topLevelMember, targetName);
+            recordDangling(shape, topLevelMember, targetName, entries, reportedKeys);
         }
     }
 
-    private static ModelInvalidException dangling(ShapeModel shape, MemberModel member, String targetName) {
+    private static void recordDangling(ShapeModel shape, MemberModel member, String targetName,
+                                       List<ValidationEntry> entries, Set<String> reportedKeys) {
+        String dedupKey = shape.getShapeName() + '|' + member.getC2jName() + '|' + targetName;
+        if (!reportedKeys.add(dedupKey)) {
+            return;
+        }
         String detail = String.format(
             "Member '%s' of shape '%s' targets shape '%s' which does not exist in the intermediate model. The target shape "
             + "may be missing from the service model, removed by a customization, or misspelled.",
             member.getC2jName(), shape.getShapeName(), targetName);
 
-        return ModelInvalidException.fromEntry(
-            ValidationEntry.create(ValidationErrorId.UNKNOWN_SHAPE_MEMBER, ValidationErrorSeverity.DANGER, detail));
+        entries.add(ValidationEntry.create(ValidationErrorId.UNKNOWN_SHAPE_MEMBER, ValidationErrorSeverity.DANGER, detail));
     }
 }
