@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.15__ __2026-06-19__
+## __AWS Glue__
+  - ### Features
+    - Adds the SearchAssets operation for discovering assets in the AWS Glue Data Catalog using full-text search and filters. Minor naming refinements across the Glossary Terms and Attachment APIs for consistency.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for metadata-only retrieval on GetFlow, GetFlowVersion, and GetPrompt APIs.
+
+## __Amazon AppStream__
+  - ### Features
+    - Amazon WorkSpaces Agent Access now supports domain-joined fleets for enterprise identity integration, real-time agent observation with instant stop controls, and MCP tool forwarding for lower-latency, cost-effective desktop tool access.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This is the release for point based scoring system and the evaluation form validation project
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release introduces data source attachment APIs, enabling users to attach and detach Amazon OpenSearch Service domains and Amazon OpenSearch Serverless collections to an OpenSearch application.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Decorate streaming response publisher failures so S3AsyncClient getObject can retry Netty read timeouts.
+        - Contributed by: [@goutamadwant](https://github.com/goutamadwant)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@goutamadwant](https://github.com/goutamadwant)
 # __2.46.14__ __2026-06-18__
 ## __AWS Batch__
   - ### Features

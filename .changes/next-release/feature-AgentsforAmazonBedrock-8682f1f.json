@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock",
-    "contributor": "",
-    "description": "Add support for metadata-only retrieval on GetFlow, GetFlowVersion, and GetPrompt APIs."
-}
