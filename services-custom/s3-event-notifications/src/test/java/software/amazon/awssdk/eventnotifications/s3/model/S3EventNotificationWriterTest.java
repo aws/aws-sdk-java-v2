@@ -32,6 +32,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.S3ObjectAnnotation;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
 
@@ -45,7 +46,7 @@ class S3EventNotificationWriterTest {
                 "ObjectCreated:Get",
                 "aws:s3",
                 "1970-01-01T01:01:01.001Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.1.2.3"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANxid2", "C3D13FE58DE4CRID"),
@@ -69,7 +70,7 @@ class S3EventNotificationWriterTest {
 
         String expected = "{\n"
                            + "  \"Records\" : [ {\n"
-                           + "    \"eventVersion\" : \"2.1\",\n"
+                           + "    \"eventVersion\" : \"2.4\",\n"
                            + "    \"eventSource\" : \"aws:s3\",\n"
                            + "    \"awsRegion\" : \"us-west-2\",\n"
                            + "    \"eventTime\" : \"1970-01-01T01:01:01.001Z\",\n"
@@ -109,7 +110,7 @@ class S3EventNotificationWriterTest {
 
     @Test
     void testToJson_requiredFielsdOnly() {
-        String expected = "{\"Records\":[{\"eventVersion\":\"2.1\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"us-west-2\","
+        String expected = "{\"Records\":[{\"eventVersion\":\"2.4\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"us-west-2\","
                           + "\"eventTime\":\"1970-01-01T01:01:01.001Z\",\"eventName\":\"ObjectCreated:Get\","
                           + "\"userIdentity\":{\"principalId\""
                           + ":\"AIDAJDPLRKLG7UEXAMUID\"},\"requestParameters\":{\"sourceIPAddress\":\"127.1.2.3\"},"
@@ -127,7 +128,7 @@ class S3EventNotificationWriterTest {
                 "ObjectCreated:Get",
                 "aws:s3",
                 "1970-01-01T01:01:01.001Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.1.2.3"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANxid2", "C3D13FE58DE4CRID"),
@@ -155,7 +156,7 @@ class S3EventNotificationWriterTest {
     void testPrettyPrint_allFields() {
         String expected = "{\n"
                           + "  \"Records\" : [ {\n"
-                          + "    \"eventVersion\" : \"2.1\",\n"
+                          + "    \"eventVersion\" : \"2.4\",\n"
                           + "    \"eventSource\" : \"aws:s3\",\n"
                           + "    \"awsRegion\" : \"us-west-2\",\n"
                           + "    \"eventTime\" : \"1970-01-01T01:01:01.001Z\",\n"
@@ -185,8 +186,14 @@ class S3EventNotificationWriterTest {
                           + "        \"size\" : 1024,\n"
                           + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
                           + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
-                          + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
-                          + "      }\n"
+                          + "        \"sequencer\" : \"0055AED6DCD90281E5\",\n"
+                          + "        \"hasObjectAnnotation\" : true\n"
+                          + "      },\n"
+                          + "      \"objectAnnotation\" : [ {\n"
+                          + "        \"name\" : \"anno1\",\n"
+                          + "        \"size\" : 50,\n"
+                          + "        \"eTag\" : \"etag1\"\n"
+                          + "      } ]\n"
                           + "    },\n"
                           + "    \"glacierEventData\" : {\n"
                           + "      \"restoreEventData\" : {\n"
@@ -219,7 +226,7 @@ class S3EventNotificationWriterTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T01:01:01.001Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -234,8 +241,12 @@ class S3EventNotificationWriterTest {
                         1024L,
                         "d41d8cd98f00b204e9800998ecf8427e",
                         "096fKKXTRTtl3on89fVO.nfljtsv6qko",
-                        "0055AED6DCD90281E5"),
-                    "1.0"
+                        "0055AED6DCD90281E5",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("AIDAJDPLRKLG7UEXAMPLE"),
                 new GlacierEventData(new RestoreEventData("1971-02-02T01:01:01.001Z", "testStorageClass")),
@@ -256,7 +267,7 @@ class S3EventNotificationWriterTest {
 
     @Test
     void testToJson_allFields() {
-        String expected = "{\"Records\":[{\"eventVersion\":\"2.1\",\"eventSource\":\"aws:s3\",\"awsRegion\":"
+        String expected = "{\"Records\":[{\"eventVersion\":\"2.4\",\"eventSource\":\"aws:s3\",\"awsRegion\":"
                           + "\"us-west-2\",\"eventTime\":\"1970-01-01T01:01:01.001Z\",\"eventName\":\"ObjectCreated:Get\","
                           + "\"userIdentity\":{\"principalId\":\"PRINCIPALIDTEST\"},\"requestParameters\":{\"sourceIPAddress\":"
                           + "\"127.1.2.3\"},\"responseElements\":{\"x-amz-request-id\":\"C3D13FE58DE4CRID\",\"x-amz-id-2\":"
@@ -265,7 +276,8 @@ class S3EventNotificationWriterTest {
                           + "\"ownerIdentity\":{\"principalId\":\"PRINCIPALIDTESTBUCKET\"},\"arn\":\"arn:aws:s3:::mybucket\"},"
                           + "\"object\":{\"key\":\"HappyFace-test.jpg\",\"size\":2048,\"eTag\":"
                           + "\"d41d8cd98f00b204e9800998ecf8etag\",\"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6vid\","
-                          + "\"sequencer\":\"0055AED6DCD9028SEQ\"}},\"glacierEventData\":{\"restoreEventData\":"
+                          + "\"sequencer\":\"0055AED6DCD9028SEQ\",\"hasObjectAnnotation\":true},\"objectAnnotation\":[{\"name\":"
+                          + "\"anno1\",\"size\":50,\"eTag\":\"etag1\"}]},\"glacierEventData\":{\"restoreEventData\":"
                           + "{\"lifecycleRestorationExpiryTime\":\"1971-02-02T01:01:01.001Z\",\"lifecycleRestoreStorageClass\":"
                           + "\"testStorageClass\"}},\"replicationEventData\":{\"replicationRuleId\":\"replicationRuleIdTest\","
                           + "\"destinationBucket\":\"destinationBucketTest\",\"s3Operation\":\"s3OperationTest\","
@@ -280,7 +292,7 @@ class S3EventNotificationWriterTest {
                 "ObjectCreated:Get",
                 "aws:s3",
                 "1970-01-01T01:01:01.001Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.1.2.3"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANxid2", "C3D13FE58DE4CRID"),
@@ -295,8 +307,12 @@ class S3EventNotificationWriterTest {
                         2048L,
                         "d41d8cd98f00b204e9800998ecf8etag",
                         "096fKKXTRTtl3on89fVO.nfljtsv6vid",
-                        "0055AED6DCD9028SEQ"),
-                    "1.0"
+                        "0055AED6DCD9028SEQ",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("PRINCIPALIDTEST"),
                 new GlacierEventData(new RestoreEventData("1971-02-02T01:01:01.001Z", "testStorageClass")),
@@ -372,5 +388,4 @@ class S3EventNotificationWriterTest {
 
         assertThat(event.toJson()).isEqualTo(expected);
     }
-
 }

@@ -150,4 +150,25 @@ class AsyncBufferingSubscriberTest {
         future.cancel(true);
         verify(mockSubscription, times(1)).cancel();
     }
+
+    @Test
+    void returnFutureCancelledDuringOnNext_shouldCancelInFlightFuture() {
+        CompletableFuture<Void> returnFuture = new CompletableFuture<>();
+        CompletableFuture<Object> consumerFuture = new CompletableFuture<>();
+
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            item -> {
+                returnFuture.completeExceptionally(new RuntimeException("cancelled"));
+                return consumerFuture;
+            },
+            returnFuture,
+            1
+        );
+
+        SimplePublisher<String> publisher = new SimplePublisher<>();
+        publisher.subscribe(subscriber);
+        publisher.send("item1");
+
+        assertThat(consumerFuture.isCancelled()).isTrue();
+    }
 }
