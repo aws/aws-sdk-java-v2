@@ -106,9 +106,9 @@
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <awsjavasdk.previous.version>2.46.14</awsjavasdk.previous.version>
         <awsjavasdk.previous-previous.version>2.46.13</awsjavasdk.previous-previous.version>
-        <jackson.version>2.21.3</jackson.version>
-        <jackson.databind.version>2.21.3</jackson.databind.version>
-        <jacksonjr.version>2.21.3</jacksonjr.version>
+        <jackson.version>2.21.4</jackson.version>
+        <jackson.databind.version>2.21.4</jackson.databind.version>
+        <jacksonjr.version>2.21.4</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
