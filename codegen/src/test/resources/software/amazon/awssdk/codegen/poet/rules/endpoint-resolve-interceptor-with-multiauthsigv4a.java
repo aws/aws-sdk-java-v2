@@ -39,7 +39,7 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
-        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.skipEndpointResolution(executionAttributes)) {
             return result;
         }
         DatabaseEndpointProvider provider = (DatabaseEndpointProvider) executionAttributes

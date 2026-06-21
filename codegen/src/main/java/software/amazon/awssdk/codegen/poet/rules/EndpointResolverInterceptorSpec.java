@@ -172,8 +172,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         String providerVar = "provider";
 
         b.addStatement("$T result = context.request()", SdkRequest.class);
-        // We skip resolution if the source of the endpoint is the endpoint discovery call
-        b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
+        // We skip resolution if endpoint resolution should be skipped (e.g., endpoint discovery or pre-signed URLs)
+        b.beginControlFlow("if ($1T.skipEndpointResolution(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
         b.addStatement("return result");
         b.endControlFlow();

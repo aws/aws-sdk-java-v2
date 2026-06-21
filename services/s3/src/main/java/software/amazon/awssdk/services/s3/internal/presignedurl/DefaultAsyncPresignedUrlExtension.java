@@ -135,8 +135,7 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
                             .withRequestConfiguration(clientConfiguration)
                             .withInput(internalRequest)
                             .withMetricCollector(apiCallMetricCollector)
-                            // TODO: Deprecate IS_DISCOVERED_ENDPOINT, use new SKIP_ENDPOINT_RESOLUTION for better semantics
-                            .putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true)
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true)
                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                           checksumConfigForUrl(presignedUrlDownloadRequest.presignedUrl()))
                             .withMarshaller(new PresignedUrlDownloadRequestMarshaller(protocolFactory)),
