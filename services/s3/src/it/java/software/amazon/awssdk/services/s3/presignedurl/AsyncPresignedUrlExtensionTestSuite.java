@@ -373,7 +373,7 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
     private PresignedUrlDownloadRequest createRequestForKey(String key, String range) {
         return PresignedUrlDownloadRequest.builder()
             .presignedUrl(createPresignedUrl(key))
-            .range(range)
+            .putHeader("Range", range)
             .build();
     }
 

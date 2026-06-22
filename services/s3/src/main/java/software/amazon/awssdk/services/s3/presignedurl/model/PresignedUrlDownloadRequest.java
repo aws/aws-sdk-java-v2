@@ -16,8 +16,14 @@
 package software.amazon.awssdk.services.s3.presignedurl.model;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -25,24 +31,40 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request object for performing download operations using a presigned URL.
+ *
+ * <p>If any fields from the {@code GetObjectRequest} that are marshalled as HTTP headers were signed when
+ * generating the presigned URL using {@link software.amazon.awssdk.services.s3.presigner.S3Presigner#presignGetObject},
+ * their values are not stored in the URL — only their names appear in {@code X-Amz-SignedHeaders}. If any
+ * signed headers are missing from the download request, S3 will return a signature mismatch error.
+ *
+ * <p>Use {@link Builder#putHeader(String, String)} (or {@link Builder#headers(Map)}) to supply the signed
+ * header values at download time, for example:</p>
+ * <pre>{@code
+ * PresignedUrlDownloadRequest.builder()
+ *     .presignedUrl(url)
+ *     .putHeader("Range", "bytes=0-1023")
+ *     .putHeader("If-Match", eTag)
+ *     .build();
+ * }</pre>
+ *
  */
 @SdkPublicApi
 public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<PresignedUrlDownloadRequest.Builder,
     PresignedUrlDownloadRequest> {
+
     private final URL presignedUrl;
-    private final String range;
-    private final String ifMatch;
+    private final Map<String, List<String>> headers;
 
     private PresignedUrlDownloadRequest(BuilderImpl builder) {
         this.presignedUrl = builder.presignedUrl;
-        this.range = builder.range;
-        this.ifMatch = builder.ifMatch;
+        this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers,
+                                                           () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
     }
 
     /**
      * <p>
-     * The presigned URL for the S3 object. This URL contains all necessary authentication information and can be used to download
-     * the object without additional credentials.
+     * The presigned URL for the S3 object. This URL contains all necessary authentication information and can be used
+     * to download the object without additional credentials.
      * </p>
      * <b>Note:</b> Presigned URLs have a limited lifetime and will expire after the
      * specified duration. Ensure the URL is used before expiration.
@@ -54,29 +76,16 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
     }
 
     /**
-     * <p>
-     * Specifies the byte range of an object. For more information about the HTTP Range header, see
-     * <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-range">
-     * https://www.rfc-editor.org/rfc/rfc9110.html#name-range</a>.
-     * </p>
-     * <b>Note:</b>  Amazon S3 doesn't support retrieving multiple ranges of data per <code>GET</code> request.
+     * Returns the headers to be sent with the download request. These are the headers that were signed when
+     * generating the presigned URL and must be included at download time for the signature to match (for example
+     * {@code Range}, {@code If-Match}, {@code If-None-Match}, or the SSE-C headers).
      *
-     * @return The HTTP Range header value, or null if not specified.
-     */
-    public String range() {
-        return range;
-    }
-
-    /**
-     * <p>
-     * Return the object only if its entity tag (ETag) is the same as the one specified in this header,
-     * otherwise return a 412 (precondition failed) error.
-     * </p>
+     * <p>The returned map uses case-insensitive header-name comparison.</p>
      *
-     * @return The If-Match header value, or null if not specified.
+     * @return An unmodifiable map of header name to values, or an empty map if none set.
      */
-    public String ifMatch() {
-        return ifMatch;
+    public Map<String, List<String>> headers() {
+        return headers;
     }
 
     @Override
@@ -96,8 +105,7 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
     public int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(presignedUrl());
-        hashCode = 31 * hashCode + Objects.hashCode(range());
-        hashCode = 31 * hashCode + Objects.hashCode(ifMatch());
+        hashCode = 31 * hashCode + Objects.hashCode(headers());
         return hashCode;
     }
 
@@ -111,54 +119,72 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         }
         PresignedUrlDownloadRequest other = (PresignedUrlDownloadRequest) obj;
         return Objects.equals(presignedUrl(), other.presignedUrl()) &&
-               Objects.equals(range(), other.range()) &&
-               Objects.equals(ifMatch(), other.ifMatch());
+               Objects.equals(headers(), other.headers());
     }
 
     @Override
     public String toString() {
         return ToString.builder("PresignedUrlDownloadRequest")
                        .add("PresignedUrl", presignedUrl())
-                       .add("Range", range())
-                       .add("IfMatch", ifMatch())
+                       .add("Headers", headers())
                        .build();
     }
 
     public interface Builder extends CopyableBuilder<Builder, PresignedUrlDownloadRequest> {
         /**
          * Sets the presigned URL for the S3 object.
-         * @param presignedUrl
+         * @param presignedUrl the presigned URL
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder presignedUrl(URL presignedUrl);
 
         /**
-         * Specifies the byte range of an object.
-         * @param range The HTTP Range header value (e.g., "bytes=0-1023")
+         * Adds a single header to be sent with the download request. Use this to supply any header value that was
+         * signed when generating the presigned URL (for example {@code Range}, {@code If-Match},
+         * {@code If-None-Match}, or the SSE-C headers) and therefore must be present at download time.
+         *
+         * <p>Header names are treated case-insensitively. This overrides any value already configured for the same
+         * header name.</p>
+         *
+         * @param name The header name (e.g., {@code "Range"}, {@code "If-Match"})
+         * @param value The header value (e.g., {@code "bytes=0-1023"})
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder range(String range);
+        default Builder putHeader(String name, String value) {
+            return putHeader(name, Collections.singletonList(value));
+        }
 
         /**
-         * Return the object only if its entity tag (ETag) is the same as the one specified in this header.
-         * @param ifMatch The If-Match header value (ETag)
+         * Adds a single header with multiple values to be sent with the download request.
+         *
+         * <p>Header names are treated case-insensitively. This overrides any values already configured for the same
+         * header name.</p>
+         *
+         * @param name The header name
+         * @param values The header values
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder ifMatch(String ifMatch);
+        Builder putHeader(String name, List<String> values);
+
+        /**
+         * Sets all headers to be sent with the download request, replacing any previously configured headers.
+         *
+         * @param headers A map of header name to values
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder headers(Map<String, List<String>> headers);
     }
 
     static final class BuilderImpl implements Builder {
         private URL presignedUrl;
-        private String range;
-        private String ifMatch;
+        private Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         private BuilderImpl() {
         }
 
-        private BuilderImpl(PresignedUrlDownloadRequest presignedUrlDownloadRequest) {
-            presignedUrl(presignedUrlDownloadRequest.presignedUrl());
-            range(presignedUrlDownloadRequest.range());
-            ifMatch(presignedUrlDownloadRequest.ifMatch());
+        private BuilderImpl(PresignedUrlDownloadRequest request) {
+            presignedUrl(request.presignedUrl());
+            headers(request.headers());
         }
 
         @Override
@@ -168,14 +194,19 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         }
 
         @Override
-        public Builder range(String range) {
-            this.range = range;
+        public Builder putHeader(String name, List<String> values) {
+            Validate.paramNotNull(name, "name");
+            Validate.paramNotNull(values, "values");
+            this.headers.put(name, new ArrayList<>(values));
             return this;
         }
 
         @Override
-        public Builder ifMatch(String ifMatch) {
-            this.ifMatch = ifMatch;
+        public Builder headers(Map<String, List<String>> headers) {
+            Validate.paramNotNull(headers, "headers");
+            Map<String, List<String>> copy = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            copy.putAll(CollectionUtils.deepCopyMap(headers));
+            this.headers = copy;
             return this;
         }
 

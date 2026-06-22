@@ -133,8 +133,8 @@ class PresignedUrlDownloadHelperTest {
         PresignedUrlDownloadRequest result = PresignedUrlDownloadHelper.createRangedGetRequest(
             original, 0, 16L, 32L, "\"etag\"");
 
-        assertThat(result.range()).isEqualTo("bytes=0-15");
-        assertThat(result.ifMatch()).isNull();
+        assertThat(result.headers().get("Range")).isEqualTo(java.util.Collections.singletonList("bytes=0-15"));
+        assertThat(result.headers().containsKey("If-Match")).isFalse();
         assertThat(result.presignedUrl()).isEqualTo(url);
     }
 
@@ -148,8 +148,8 @@ class PresignedUrlDownloadHelperTest {
         PresignedUrlDownloadRequest result = PresignedUrlDownloadHelper.createRangedGetRequest(
             original, 1, 16L, 32L, "\"etag\"");
 
-        assertThat(result.range()).isEqualTo("bytes=16-31");
-        assertThat(result.ifMatch()).isEqualTo("\"etag\"");
+        assertThat(result.headers().get("Range")).isEqualTo(java.util.Collections.singletonList("bytes=16-31"));
+        assertThat(result.headers().get("If-Match")).isEqualTo(java.util.Collections.singletonList("\"etag\""));
     }
 
     @Test
@@ -163,7 +163,7 @@ class PresignedUrlDownloadHelperTest {
         PresignedUrlDownloadRequest result = PresignedUrlDownloadHelper.createRangedGetRequest(
             original, 1, 16L, 30L, "\"etag\"");
 
-        assertThat(result.range()).isEqualTo("bytes=16-29");
+        assertThat(result.headers().get("Range")).isEqualTo(java.util.Collections.singletonList("bytes=16-29"));
     }
 
     @Test
@@ -177,6 +177,6 @@ class PresignedUrlDownloadHelperTest {
         PresignedUrlDownloadRequest result = PresignedUrlDownloadHelper.createRangedGetRequest(
             original, 0, 16L, null, null);
 
-        assertThat(result.range()).isEqualTo("bytes=0-15");
+        assertThat(result.headers().get("Range")).isEqualTo(java.util.Collections.singletonList("bytes=0-15"));
     }
 }

@@ -152,7 +152,7 @@ class DefaultAsyncPresignedUrlExtensionTest {
             Arguments.of(
                 "Request with range header",
                 (Consumer<PresignedUrlDownloadRequest.Builder>) builder ->
-                    builder.presignedUrl(createTestUrl()).range("bytes=0-1024"),
+                    builder.presignedUrl(createTestUrl()).putHeader("Range", "bytes=0-1024"),
                 "bytes=0-1024"
             )
         );

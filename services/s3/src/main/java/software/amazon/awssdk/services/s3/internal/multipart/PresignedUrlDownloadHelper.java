@@ -32,6 +32,18 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class PresignedUrlDownloadHelper {
+    /**
+     * The {@code Range} HTTP header name. Used internally to detect a caller-supplied range (which forces a
+     * single-part download) and to build the SDK's own per-part range requests. Package-private so the
+     * multipart subscribers in this package can share it without exposing it on the public request type.
+     */
+    static final String RANGE_HEADER = "Range";
+
+    /**
+     * The {@code If-Match} HTTP header name, used internally for per-part consistency on multipart downloads.
+     */
+    static final String IF_MATCH_HEADER = "If-Match";
+
     private static final Logger log = Logger.loggerFor(PresignedUrlDownloadHelper.class);
     private static final int DEFAULT_MAX_IN_FLIGHT_PARTS = 10;
 
@@ -57,9 +69,9 @@ public class PresignedUrlDownloadHelper {
         Validate.paramNotNull(presignedRequest, "presignedRequest");
         Validate.paramNotNull(asyncResponseTransformer, "asyncResponseTransformer");
 
-        if (presignedRequest.range() != null) {
-            log.debug(() -> "Using single part download because presigned URL request range is included in the request. range = "
-                            + presignedRequest.range());
+        if (presignedRequest.headers().containsKey(RANGE_HEADER)) {
+            log.debug(() -> "Using single part download because presigned URL request includes a Range header. range = "
+                            + presignedRequest.headers().get(RANGE_HEADER));
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 
@@ -222,10 +234,11 @@ public class PresignedUrlDownloadHelper {
         long endByte = totalContentLength != null
                        ? Math.min(startByte + partSizeInBytes - 1, totalContentLength - 1)
                        : startByte + partSizeInBytes - 1;
-        PresignedUrlDownloadRequest.Builder builder = originalRequest.toBuilder()
-                                                                     .range("bytes=" + startByte + "-" + endByte);
+        PresignedUrlDownloadRequest.Builder builder =
+            originalRequest.toBuilder()
+                           .putHeader(RANGE_HEADER, "bytes=" + startByte + "-" + endByte);
         if (partIndex > 0 && eTag != null) {
-            builder.ifMatch(eTag);
+            builder.putHeader(IF_MATCH_HEADER, eTag);
         }
         return builder.build();
     }

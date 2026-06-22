@@ -149,7 +149,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         stubSuccessfulRangeResponse();
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                          .presignedUrl(presignedUrl)
-                                                                         .range("bytes=0-10")
+                                                                         .putHeader("Range", "bytes=0-10")
                                                                          .build();
         Object result = executeDownload(request, transformerType).join();
         byte[] expectedPartial = Arrays.copyOfRange(TEST_DATA, 0, 11);
@@ -333,7 +333,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                          .presignedUrl(presignedUrl)
-                                                                         .range("bytes=0-1024")
+                                                                         .putHeader("Range", "bytes=0-1024")
                                                                          .build();
         assertThatThrownBy(() -> executeDownload(request, transformerType).join())
             .hasRootCauseInstanceOf(S3Exception.class);

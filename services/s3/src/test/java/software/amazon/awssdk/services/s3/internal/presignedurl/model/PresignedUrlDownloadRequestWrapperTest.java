@@ -18,12 +18,13 @@ package software.amazon.awssdk.services.s3.internal.presignedurl.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 
 class PresignedUrlDownloadRequestWrapperTest {
@@ -36,83 +37,69 @@ class PresignedUrlDownloadRequestWrapperTest {
 
     @Test
     void basicProperties_shouldWork() throws Exception {
+        Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        headers.put("Range", Collections.singletonList("bytes=0-100"));
+        headers.put("If-Match", Collections.singletonList("\"etag-123\""));
+
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
-                                                                                         .range("bytes=0-100")
-                                                                                         .ifMatch("\"etag-123\"")
+                                                                                         .headers(headers)
                                                                                          .build();
 
         assertThat(request.url()).isEqualTo(new URL("https://example.com"));
-        assertThat(request.range()).isEqualTo("bytes=0-100");
-        assertThat(request.ifMatch()).isEqualTo("\"etag-123\"");
+        assertThat(request.headers().get("Range")).isEqualTo(Collections.singletonList("bytes=0-100"));
+        assertThat(request.headers().get("If-Match")).isEqualTo(Collections.singletonList("\"etag-123\""));
     }
 
     @Test
-    void sdkFields_shouldReturnExpectedFields() throws Exception {
+    void sdkFields_shouldReturnEmptyList() throws Exception {
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
-                                                                                         .range("bytes=0-100")
+                                                                                         .headers(Collections.emptyMap())
                                                                                          .build();
 
         List<SdkField<?>> fields = request.sdkFields();
 
-        assertThat(fields).hasSize(2);
-        assertThat(fields).extracting(SdkField::memberName)
-                          .containsExactlyInAnyOrder("Range", "IfMatch");
-        assertThat(fields).allMatch(field -> field.location() == MarshallLocation.HEADER);
-        SdkField<?> rangeField = fields.stream()
-                                       .filter(f -> "Range".equals(f.memberName()))
-                                       .findFirst()
-                                       .orElseThrow(() -> new AssertionError("Range field not found"));
-        Object rangeValue = rangeField.getValueOrDefault(request);
-        assertThat(rangeValue).isNotNull();
-        assertThat(rangeValue).isEqualTo("bytes=0-100");
+        assertThat(fields).isEmpty();
     }
 
     @Test
-    void sdkFieldNameToField_shouldReturnExpectedMapping() throws Exception {
+    void sdkFieldNameToField_shouldReturnEmptyMapping() throws Exception {
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .build();
 
         Map<String, SdkField<?>> fieldMap = request.sdkFieldNameToField();
 
-        assertThat(fieldMap)
-            .hasSize(2)
-            .containsKeys("Range", "IfMatch");
-        assertThat(fieldMap.get("Range").memberName()).isEqualTo("Range");
-        assertThat(fieldMap.get("IfMatch").memberName()).isEqualTo("IfMatch");
+        assertThat(fieldMap).isEmpty();
     }
 
     @Test
-    void rangeField_shouldMarshalCorrectly() throws Exception {
+    void headers_shouldBeCaseInsensitive() throws Exception {
+        Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        headers.put("Range", Collections.singletonList("bytes=0-1023"));
+
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
-                                                                                         .range("bytes=0-1023")
+                                                                                         .headers(headers)
                                                                                          .build();
 
-        SdkField<?> rangeField = request.sdkFields().stream()
-                                        .filter(f -> "Range".equals(f.memberName()))
-                                        .findFirst()
-                                        .orElseThrow(() -> new AssertionError("Range field not found"));
-        Object extractedValue = rangeField.getValueOrDefault(request);
-
-        assertThat(extractedValue).isEqualTo("bytes=0-1023");
+        assertThat(request.headers().get("range")).isEqualTo(Collections.singletonList("bytes=0-1023"));
+        assertThat(request.headers().get("RANGE")).isEqualTo(Collections.singletonList("bytes=0-1023"));
     }
 
     @Test
-    void ifMatchField_shouldMarshalCorrectly() throws Exception {
+    void toBuilder_shouldPreserveHeaders() throws Exception {
+        Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        headers.put("If-Match", Collections.singletonList("\"etag-value\""));
+
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
-                                                                                         .ifMatch("\"etag-value\"")
+                                                                                         .headers(headers)
                                                                                          .build();
 
-        SdkField<?> ifMatchField = request.sdkFields().stream()
-                                          .filter(f -> "IfMatch".equals(f.memberName()))
-                                          .findFirst()
-                                          .orElseThrow(() -> new AssertionError("IfMatch field not found"));
-        Object extractedValue = ifMatchField.getValueOrDefault(request);
+        PresignedUrlDownloadRequestWrapper copy = request.toBuilder().build();
 
-        assertThat(extractedValue).isEqualTo("\"etag-value\"");
+        assertThat(copy.headers().get("If-Match")).isEqualTo(Collections.singletonList("\"etag-value\""));
     }
 }

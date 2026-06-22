@@ -16,71 +16,51 @@
 package software.amazon.awssdk.services.s3.internal.presignedurl.model;
 
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
 /**
  * Internal request object for presigned URL GetObject operations.
  * <p>
- * This class is used internally by the AWS SDK to process presigned URL requests for S3 GetObject operations. It contains minimal
- * SdkField definitions needed for custom marshalling and is not intended for direct use by SDK users.
+ * This class is used internally by the AWS SDK to process presigned URL requests for S3 GetObject operations. It carries the
+ * presigned URL and the headers that must be replayed at download time (the values that were signed when the URL was
+ * generated). It is not intended for direct use by SDK users.
  * </p>
  * <b>Note:</b> This is an internal implementation class and should not be used
  * directly. Use {@code PresignedUrlDownloadRequest} for public API interactions.
  */
 @SdkInternalApi
 public final class PresignedUrlDownloadRequestWrapper extends S3Request {
-    private static final SdkField<String> RANGE_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
-        .memberName("Range")
-        .getter(getter(PresignedUrlDownloadRequestWrapper::range))
-        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("Range")
-                             .unmarshallLocationName("Range").build()).build();
 
-    private static final SdkField<String> IF_MATCH_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
-        .memberName("IfMatch")
-        .getter(getter(PresignedUrlDownloadRequestWrapper::ifMatch))
-        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-Match")
-                             .unmarshallLocationName("If-Match").build()).build();
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(
-        Arrays.asList(RANGE_FIELD, IF_MATCH_FIELD));
-
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
 
     private final URL url;
-    private final String range;
-    private final String ifMatch;
+    private final Map<String, List<String>> headers;
 
     private PresignedUrlDownloadRequestWrapper(Builder builder) {
         super(builder);
         this.url = builder.url;
-        this.range = builder.range;
-        this.ifMatch = builder.ifMatch;
+        this.headers = Collections.unmodifiableMap(builder.headers);
     }
 
     public URL url() {
         return url;
     }
 
-    public String range() {
-        return range;
-    }
-
-    public String ifMatch() {
-        return ifMatch;
+    /**
+     * Returns the headers to be sent with the download request, using case-insensitive header-name comparison.
+     */
+    public Map<String, List<String>> headers() {
+        return headers;
     }
 
     @Override
@@ -91,17 +71,6 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
     @Override
     public Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
-    }
-
-    private static <T> Function<Object, T> getter(Function<PresignedUrlDownloadRequestWrapper, T> g) {
-        return obj -> g.apply((PresignedUrlDownloadRequestWrapper) obj);
-    }
-
-    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
-        Map<String, SdkField<?>> map = new HashMap<>();
-        map.put("Range", RANGE_FIELD);
-        map.put("IfMatch", IF_MATCH_FIELD);
-        return Collections.unmodifiableMap(map);
     }
 
     @Override
@@ -125,22 +94,20 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             return false;
         }
         PresignedUrlDownloadRequestWrapper that = (PresignedUrlDownloadRequestWrapper) obj;
-        return Objects.equals(url, that.url) && Objects.equals(range, that.range) && Objects.equals(ifMatch, that.ifMatch);
+        return Objects.equals(url, that.url) && Objects.equals(headers, that.headers);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hashCode(super.hashCode());
         result = 31 * result + Objects.hashCode(url);
-        result = 31 * result + Objects.hashCode(range);
-        result = 31 * result + Objects.hashCode(ifMatch);
+        result = 31 * result + Objects.hashCode(headers);
         return result;
     }
 
     public static final class Builder extends S3Request.BuilderImpl {
         private URL url;
-        private String range;
-        private String ifMatch;
+        private Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         public Builder() {
         }
@@ -148,8 +115,9 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         Builder(PresignedUrlDownloadRequestWrapper request) {
             super(request);
             this.url = request.url();
-            this.range = request.range();
-            this.ifMatch = request.ifMatch();
+            if (request.headers() != null) {
+                headers(request.headers());
+            }
         }
 
         public Builder url(URL url) {
@@ -157,13 +125,14 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             return this;
         }
 
-        public Builder range(String range) {
-            this.range = range;
-            return this;
-        }
-
-        public Builder ifMatch(String ifMatch) {
-            this.ifMatch = ifMatch;
+        public Builder headers(Map<String, List<String>> headers) {
+            Map<String, List<String>> copy = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            if (headers != null) {
+                for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                    copy.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+                }
+            }
+            this.headers = copy;
             return this;
         }
 

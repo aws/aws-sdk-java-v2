@@ -130,7 +130,8 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer) {
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(0L);
-        log.debug(() -> "Sending first range request with range=" + partRequest.range());
+        log.debug(() -> "Sending first range request with range="
+                        + partRequest.headers().get(PresignedUrlDownloadHelper.RANGE_HEADER));
 
         if (!inFlightPermits.tryAcquire()) {
             throw new IllegalStateException("Failed to acquire permit for first request");
@@ -231,7 +232,8 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
         }
 
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(partIndex);
-        log.debug(() -> "Sending range request for part " + partIndex + " with range=" + partRequest.range());
+        log.debug(() -> "Sending range request for part " + partIndex + " with range="
+                        + partRequest.headers().get(PresignedUrlDownloadHelper.RANGE_HEADER));
 
         CompletableFuture<GetObjectResponse> response =
             s3AsyncClient.presignedUrlExtension().getObject(partRequest, transformer);

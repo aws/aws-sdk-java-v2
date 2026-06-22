@@ -168,7 +168,7 @@ public class AsyncPresignedUrlExtensionTest {
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
             PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                                .presignedUrl(presignedUrl)
-                                                                               .range(range)
+                                                                               .putHeader("Range", range)
                                                                                .build();
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =

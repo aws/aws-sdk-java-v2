@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URL;
+import java.util.Collections;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +35,11 @@ class PresignedUrlDownloadRequestTest {
         URL url = new URL("https://example.com");
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
-                                                                           .range("bytes=0-100")
+                                                                           .putHeader("Range", "bytes=0-100")
                                                                            .build();
 
         assertThat(request.presignedUrl()).isEqualTo(url);
-        assertThat(request.range()).isEqualTo("bytes=0-100");
+        assertThat(request.headers().get("Range")).isEqualTo(Collections.singletonList("bytes=0-100"));
     }
 
     @Test
@@ -49,7 +50,7 @@ class PresignedUrlDownloadRequestTest {
                                                                            .build();
 
         assertThat(request.presignedUrl()).isEqualTo(url);
-        assertThat(request.range()).isNull();
+        assertThat(request.headers()).isEmpty();
     }
 
     @Test
@@ -57,13 +58,13 @@ class PresignedUrlDownloadRequestTest {
         URL url = new URL("https://example.com");
         PresignedUrlDownloadRequest original = PresignedUrlDownloadRequest.builder()
                                                                             .presignedUrl(url)
-                                                                            .range("bytes=0-100")
+                                                                            .putHeader("Range", "bytes=0-100")
                                                                             .build();
 
         PresignedUrlDownloadRequest copy = original.toBuilder().build();
 
         assertThat(copy.presignedUrl()).isEqualTo(original.presignedUrl());
-        assertThat(copy.range()).isEqualTo(original.range());
+        assertThat(copy.headers()).isEqualTo(original.headers());
     }
 
     @Test
@@ -72,29 +73,28 @@ class PresignedUrlDownloadRequestTest {
         URL url2 = new URL("https://other.com");
         PresignedUrlDownloadRequest original = PresignedUrlDownloadRequest.builder()
                                                                             .presignedUrl(url1)
-                                                                            .range("bytes=0-100")
+                                                                            .putHeader("Range", "bytes=0-100")
                                                                             .build();
 
         PresignedUrlDownloadRequest modified = original.toBuilder()
                                                         .presignedUrl(url2)
-                                                        .range("bytes=200-300")
+                                                        .putHeader("Range", "bytes=200-300")
                                                         .build();
 
         assertThat(modified.presignedUrl()).isEqualTo(url2);
-        assertThat(modified.range()).isEqualTo("bytes=200-300");
+        assertThat(modified.headers().get("Range")).isEqualTo(Collections.singletonList("bytes=200-300"));
         // Original unchanged
         assertThat(original.presignedUrl()).isEqualTo(url1);
-        assertThat(original.range()).isEqualTo("bytes=0-100");
+        assertThat(original.headers().get("Range")).isEqualTo(Collections.singletonList("bytes=0-100"));
     }
 
     @Test
     void toString_shouldContainActualFieldValues() throws Exception {
         URL url = new URL("https://example.com");
-        String range = "bytes=0-100";
 
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
-                                                                           .range(range)
+                                                                           .putHeader("Range", "bytes=0-100")
                                                                            .build();
 
         String result = request.toString();
@@ -102,9 +102,7 @@ class PresignedUrlDownloadRequestTest {
         assertThat(result)
             .isNotNull()
             .isNotEmpty()
-            .contains(request.presignedUrl().toString())
-            .contains(request.range());
-
+            .contains(request.presignedUrl().toString());
     }
 
     @Test

@@ -104,8 +104,7 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
 
         PresignedUrlDownloadRequestWrapper internalRequest = PresignedUrlDownloadRequestWrapper.builder()
                 .url(presignedUrlDownloadRequest.presignedUrl())
-                .range(presignedUrlDownloadRequest.range())
-                .ifMatch(presignedUrlDownloadRequest.ifMatch())
+                .headers(presignedUrlDownloadRequest.headers())
                 .build();
 
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ?

@@ -119,7 +119,9 @@ class PresignedUrlDownloadRequestMarshallerTest {
 
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(testUrl)
-                                                                                         .range(rangeValue)
+                                                                                         .headers(java.util.Collections.singletonMap(
+                                                                                             "Range",
+                                                                                             java.util.Collections.singletonList(rangeValue)))
                                                                                          .build();
 
         SdkHttpFullRequest result = marshaller.marshall(request);
@@ -144,7 +146,6 @@ class PresignedUrlDownloadRequestMarshallerTest {
 
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(testUrl)
-                                                                                         .range(rangeValue)
                                                                                          .build();
         SdkHttpFullRequest result = marshaller.marshall(request);
 

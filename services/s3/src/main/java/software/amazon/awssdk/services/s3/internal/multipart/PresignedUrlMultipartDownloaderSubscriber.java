@@ -127,7 +127,8 @@ public class PresignedUrlMultipartDownloaderSubscriber
                                   AsyncResponseTransformer<GetObjectResponse,
                                       GetObjectResponse> asyncResponseTransformer) {
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(partIndex);
-        log.debug(() -> "Sending range request for part " + partIndex + " with range=" + partRequest.range());
+        log.debug(() -> "Sending range request for part " + partIndex + " with range="
+                        + partRequest.headers().get(PresignedUrlDownloadHelper.RANGE_HEADER));
 
         requestsSent.incrementAndGet();
         CompletableFuture<GetObjectResponse> responseFuture = s3AsyncClient.presignedUrlExtension()

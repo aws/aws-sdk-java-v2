@@ -78,7 +78,7 @@ class MultipartS3AsyncClientTest {
         AsyncResponseTransformer<GetObjectResponse, String> mockTransformer = mock(AsyncResponseTransformer.class);
         PresignedUrlDownloadRequest req = PresignedUrlDownloadRequest.builder()
                                                                      .presignedUrl(new URL("https://s3.amazonaws.com/bucket/key?signature=abc"))
-                                                                     .range("bytes=0-1023")
+                                                                     .putHeader("Range", "bytes=0-1023")
                                                                      .build();
         when(mockDelegate.presignedUrlExtension()).thenReturn(mockDelegateExtension);
         S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build(), true);
