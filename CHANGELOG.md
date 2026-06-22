@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.16__ __2026-06-22__
+## __AWS Direct Connect__
+  - ### Features
+    - Added VIF rate limiting support for AWS Direct Connect, allowing customers to set bandwidth allocations on virtual interfaces to manage traffic on dedicated connections.
+
+## __AWS Lambda__
+  - ### Features
+    - Add support for tagging Network Connector resources in AWS Lambda.
+
+## __AWS Lambda Core__
+  - ### Features
+    - Initial release of the AWS Lambda Core SDK with APIs to create, manage, and tag network connectors that enable Lambda compute resources to access private resources in your Amazon VPC.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS MediaConnect now supports Content Quality Analysis for Router Inputs, enabling detection of black frames, frozen frames, and silent audio with configurable thresholds.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds an optional extractionMode field to CreateEvent. SKIP retains the event in short-term memory but excludes it from long-term memory extraction.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Application Signals now supports dynamic instrumentation and Service Events telemetry. Add instrumentation at runtime without restarts, and use fine-grained profiling data to quickly pinpoint latency and error root causes.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs Updates - New APIs introduced to support syslog ingestion to a log group. For more information, see CloudWatch Logs API documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AMI Watermark and Allowed AMIs integration
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added AI-powered investigations that automatically analyze security findings, correlate related activity, and produce structured summaries with risk assessment, confidence scoring, MITRE technique classification, and actionable next steps.
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for scratch ephemeral storage mounted at tmp
+
+## __Amazon QuickSight__
+  - ### Features
+    - Updated the Amazon Quick Spaces API to remove unsupported SPACE and ARTIFACT values from the SpaceQuickSightResourceType enum.
+
+## __Lambda MicroVMs__
+  - ### Features
+    - Lambda MicroVMs GA launch. Lambda MicroVMs enable isolated and highly responsive execution of user-supplied or LLM-generated code.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports mTLS authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require mutual TLS for client authentication. This capability is supported when replicating to Amazon MSK Express brokers.
+
 # __2.46.15__ __2026-06-19__
 ## __AWS Glue__
   - ### Features

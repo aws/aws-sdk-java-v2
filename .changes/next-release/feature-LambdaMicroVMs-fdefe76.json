@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Lambda MicroVMs",
-    "contributor": "",
-    "description": "Lambda MicroVMs GA launch. Lambda MicroVMs enable isolated and highly responsive execution of user-supplied or LLM-generated code."
-}
