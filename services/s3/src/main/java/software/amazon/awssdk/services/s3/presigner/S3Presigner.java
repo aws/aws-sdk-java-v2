@@ -300,6 +300,11 @@ public interface S3Presigner extends SdkPresigner {
      * {@code x-amz-checksum-mode} header at download time, which the SDK sends automatically).
      * <p/>
      *
+     * <b>Signed headers note:</b> If the {@code GetObjectRequest} includes fields that are marshalled as
+     * HTTP headers (as defined by the service model), these will be signed into the URL's signature but their
+     * <b>values will not be stored in the URL</b> — only their names appear in {@code X-Amz-SignedHeaders}.
+     * If any signed headers are missing from the download request, S3 will return a signature mismatch error.
+     *
      * <b>Example Usage</b>
      * <p/>
      *
