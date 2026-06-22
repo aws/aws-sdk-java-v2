@@ -128,7 +128,7 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
         PresignedUrlDownloadRequest.Builder requestBuilder = PresignedUrlDownloadRequest.builder()
                                                                                         .presignedUrl(createPresignedRequest(key).url());
         if (range != null) {
-            requestBuilder.range(range);
+            requestBuilder.putHeader("Range", range);
         }
 
         PresignedFileDownload download = tm.downloadFileWithPresignedUrl(
@@ -159,7 +159,7 @@ public class S3TransferManagerPresignedUrlDownloadIntegrationTest extends S3Inte
         PresignedUrlDownloadRequest.Builder requestBuilder = PresignedUrlDownloadRequest.builder()
                                                                                         .presignedUrl(createPresignedRequest(key).url());
         if (range != null) {
-            requestBuilder.range(range);
+            requestBuilder.putHeader("Range", range);
         }
 
         Download<ResponseBytes<GetObjectResponse>> download = tm.downloadWithPresignedUrl(

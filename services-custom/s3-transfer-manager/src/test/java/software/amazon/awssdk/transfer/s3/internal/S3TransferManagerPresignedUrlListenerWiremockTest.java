@@ -119,7 +119,7 @@ public class S3TransferManagerPresignedUrlListenerWiremockTest {
         PresignedUrlDownloadRequest.Builder requestBuilder = PresignedUrlDownloadRequest.builder()
                                                                                        .presignedUrl(presignedUrl);
         if (range != null) {
-            requestBuilder.range(range);
+            requestBuilder.putHeader("Range", range);
         }
 
         if ("toFile".equals(type)) {
