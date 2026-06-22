@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Add support for tagging Network Connector resources in AWS Lambda."
+}
