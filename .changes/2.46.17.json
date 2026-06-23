@@ -1,0 +1,18 @@
+{
+    "version": "2.46.17",
+    "date": "2026-06-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Amazon MSK Replicator now supports mTLS authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require mutual TLS for client authentication. This capability is supported when replicating to Amazon MSK Express brokers."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Always set 'Expect: 100-continue' when using PUT operations across regions; this enables the correct redirect behavior when the initial request goes to an incorrect region."
+        }
+    ]
+}
