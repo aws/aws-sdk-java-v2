@@ -97,6 +97,8 @@ public abstract class BaseClientHandler {
         if (executionParams.discoveredEndpoint() != null) {
             URI discoveredEndpoint = executionParams.discoveredEndpoint();
             executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true);
+            // Keep deprecated attribute for cross-module compatibility with older generated service clients
+            executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
             return originalRequest.toBuilder().host(discoveredEndpoint.getHost()).port(discoveredEndpoint.getPort()).build();
         }
 
