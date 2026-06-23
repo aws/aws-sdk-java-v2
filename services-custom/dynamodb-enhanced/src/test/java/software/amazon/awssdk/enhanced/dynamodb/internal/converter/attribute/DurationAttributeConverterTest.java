@@ -61,6 +61,14 @@ class DurationAttributeConverterTest {
         assertThat(converted).isEqualByComparingTo(expected);
     }
 
+    @ParameterizedTest
+    @MethodSource("roundTripDurations")
+    void roundTrip(Duration duration) {
+        Duration converted = converter.transformTo(converter.transformFrom(duration));
+
+        assertThat(converted).isEqualByComparingTo(duration);
+    }
+
     static Stream<Arguments> noPadding() {
         return Stream.of(
             Arguments.of("0.123456789", Duration.ofNanos(123_456_789)),
@@ -74,7 +82,10 @@ class DurationAttributeConverterTest {
             Arguments.of("0.1",         Duration.ofMillis(100)),
             Arguments.of("0.001", Duration.ofMillis(1)),
             Arguments.of("0.000001", Duration.of(1, MICROS)),
-            Arguments.of("0.001", Duration.ofMillis(1))
+            Arguments.of("0.001", Duration.ofMillis(1)),
+            Arguments.of("-0.1", Duration.ofMillis(-100)),
+            Arguments.of("-0.001", Duration.ofMillis(-1)),
+            Arguments.of("-0.000001", Duration.of(-1, MICROS))
         );
     }
 
@@ -107,7 +118,22 @@ class DurationAttributeConverterTest {
             Arguments.of("9", Duration.ofSeconds(9)),
             Arguments.of("-9", Duration.ofSeconds(-9)),
             Arguments.of("0.001000000", Duration.ofMillis(1)),
-            Arguments.of("0.000000001", Duration.ofNanos(1)));
+            Arguments.of("0.000000001", Duration.ofNanos(1)),
+            Arguments.of("-0.001000000", Duration.ofMillis(-1)),
+            Arguments.of("-0.000000001", Duration.ofNanos(-1)),
+            Arguments.of("-1.234567890", Duration.ofNanos(-1_234_567_890)));
+    }
+
+    static Stream<Duration> roundTripDurations() {
+        return Stream.of(
+            Duration.ZERO,
+            Duration.ofNanos(1),
+            Duration.ofMillis(1),
+            Duration.ofSeconds(1, 234_567_890),
+            Duration.ofSeconds(-9),
+            Duration.ofMillis(-1),
+            Duration.ofNanos(-1),
+            Duration.ofNanos(-1_234_567_890));
     }
 
 }
