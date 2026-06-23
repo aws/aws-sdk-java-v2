@@ -23,18 +23,15 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the static {@link SdkWarmUp#prime()} entry point, exercised end to end through {@link
- * java.util.ServiceLoader} with a test-scoped {@code META-INF/services} registration of {@link
- * CountingWarmUpProvider}.
- *
- * <p>{@code prime()} runs at most once per JVM and there is no reset hook, so assertions here are
- * order-independent: regardless of how many threads call {@code prime()} (and regardless of any other test in
- * this JVM having already called it), the counting provider is invoked exactly once in total.
+ * Tests the static {@link SdkWarmUp#prime()} entry point end to end through {@link java.util.ServiceLoader},
+ * using a test-scoped {@code META-INF/services} registration of {@link RegisteredWarmUpProvider}. {@code prime()}
+ * runs at most once per JVM, so many concurrent calls must invoke the provider exactly once in total.
  */
 class SdkWarmUpTest {
 
     @Test
     void prime_concurrentCalls_invokeRegisteredProviderExactlyOnce() throws InterruptedException {
+        RegisteredWarmUpProvider.INVOCATIONS.set(0);
         int threadCount = 16;
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(threadCount);
@@ -61,6 +58,6 @@ class SdkWarmUpTest {
             thread.join();
         }
 
-        assertThat(CountingWarmUpProvider.INVOCATIONS.get()).isEqualTo(1);
+        assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(1);
     }
 }

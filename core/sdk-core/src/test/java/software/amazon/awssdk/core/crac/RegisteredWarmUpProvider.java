@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.crac;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Test-only {@link SdkWarmUpProvider} registered via test-scoped {@code META-INF/services} so the real static
- * {@code SdkWarmUp.prime()} discovers and invokes it through {@link java.util.ServiceLoader}. It counts how many
- * times {@code warmUp()} is invoked across the JVM. ServiceLoader requires a public no-arg constructor.
+ * Test-only {@link SdkWarmUpProvider} registered in test-scoped {@code META-INF/services} so a real {@link
+ * java.util.ServiceLoader} discovers and instantiates it by name. {@code INVOCATIONS} is static because the loader
+ * builds its own instance. Must be public with a no-arg constructor for ServiceLoader.
  */
-public final class CountingWarmUpProvider implements SdkWarmUpProvider {
+public final class RegisteredWarmUpProvider implements SdkWarmUpProvider {
 
     public static final AtomicInteger INVOCATIONS = new AtomicInteger();
 

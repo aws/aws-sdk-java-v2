@@ -33,13 +33,13 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import software.amazon.awssdk.core.crac.RegisteredWarmUpProvider;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
- * Unit tests for {@link ClasspathWarmUpInvoker}. The {@link WarmUpServiceLoader} is stubbed so each test injects
- * the providers it discovers, mirroring how {@code ClasspathSdkHttpServiceProviderTest} drives the loader. These
- * containment and log-level scenarios cannot run through the static, run-once {@code SdkWarmUp.prime()}.
+ * Unit tests for {@link ClasspathWarmUpInvoker}. Most tests stub {@link WarmUpServiceLoader}; the "fails to load"
+ * tests use a real {@link ServiceLoader} over a temporary {@code META-INF/services} file.
  */
 class ClasspathWarmUpInvokerTest {
 
@@ -73,15 +73,14 @@ class ClasspathWarmUpInvokerTest {
 
     @Test
     void invokeAll_whenProviderFailsToLoad_stillInvokesOthers(@TempDir Path tempDir) throws IOException {
-        RealProvider.INVOCATIONS.set(0);
-        // A real ServiceLoader over a registration that lists a class that does not exist, followed by a real
-        // provider. This proves ServiceLoader advances past the unloadable entry so the real one still runs.
-        WarmUpInvoker invoker = invokerLoading(realServiceLoader(tempDir,
-                                                                 "com.example.DoesNotExistProvider",
-                                                                 RealProvider.class.getName()));
+        // Non-existent class then a real one: ServiceLoader must advance past the bad entry. It builds the
+        // instance itself, so we read the static counter on RegisteredWarmUpProvider.
+        RegisteredWarmUpProvider.INVOCATIONS.set(0);
+        WarmUpInvoker invoker = invokerLoading(createAndLoadTempServicesFile(
+            tempDir, "com.example.DoesNotExistProvider", RegisteredWarmUpProvider.class.getName()));
 
         assertThatCode(invoker::invokeAll).doesNotThrowAnyException();
-        assertThat(RealProvider.INVOCATIONS.get()).isEqualTo(1);
+        assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(1);
     }
 
     @Test
@@ -108,7 +107,7 @@ class ClasspathWarmUpInvokerTest {
 
     @Test
     void invokeAll_whenProviderFailsToLoad_logsAtWarn(@TempDir Path tempDir) throws IOException {
-        WarmUpInvoker invoker = invokerLoading(realServiceLoader(tempDir, "com.example.DoesNotExistProvider"));
+        WarmUpInvoker invoker = invokerLoading(createAndLoadTempServicesFile(tempDir, "com.example.DoesNotExistProvider"));
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             invoker.invokeAll();
@@ -150,9 +149,9 @@ class ClasspathWarmUpInvokerTest {
         return new ClasspathWarmUpInvoker(loader);
     }
 
-    // Writes a real META-INF/services registration for the given class names into tempDir and returns a real
-    // ServiceLoader iterator over it; an unloadable name makes ServiceLoader throw from next() as in production.
-    private Iterator<SdkWarmUpProvider> realServiceLoader(Path tempDir, String... providerClassNames) throws IOException {
+    // Creates a temp META-INF/services file with the given class names and loads it through a real ServiceLoader.
+    private Iterator<SdkWarmUpProvider> createAndLoadTempServicesFile(Path tempDir, String... providerClassNames)
+        throws IOException {
         Path servicesDir = tempDir.resolve("META-INF/services");
         Files.createDirectories(servicesDir);
         Path registration = servicesDir.resolve(SdkWarmUpProvider.class.getName());
@@ -173,19 +172,6 @@ class ClasspathWarmUpInvokerTest {
 
         int invocations() {
             return invocations.get();
-        }
-    }
-
-    /**
-     * Real provider loadable by name through {@link ServiceLoader} (public, top-level-accessible, no-arg ctor). It
-     * counts invocations in a static field because ServiceLoader instantiates its own copy.
-     */
-    public static final class RealProvider implements SdkWarmUpProvider {
-        static final AtomicInteger INVOCATIONS = new AtomicInteger();
-
-        @Override
-        public void warmUp() {
-            INVOCATIONS.incrementAndGet();
         }
     }
 }
