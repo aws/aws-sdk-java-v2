@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.17__ __2026-06-22__
+## __Amazon S3__
+  - ### Bugfixes
+    - Always set 'Expect: 100-continue' when using PUT operations across regions; this enables the correct redirect behavior when the initial request goes to an incorrect region.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports mTLS authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require mutual TLS for client authentication. This capability is supported when replicating to Amazon MSK Express brokers.
+
 # __2.46.16__ __2026-06-22__
 ## __AWS Direct Connect__
   - ### Features
