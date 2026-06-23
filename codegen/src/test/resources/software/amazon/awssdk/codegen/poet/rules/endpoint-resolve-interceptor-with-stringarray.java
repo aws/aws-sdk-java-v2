@@ -41,7 +41,7 @@ public final class SampleSvcResolveEndpointInterceptor implements ExecutionInter
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
-        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.skipEndpointResolution(executionAttributes)) {
             return result;
         }
         SampleSvcEndpointProvider provider = (SampleSvcEndpointProvider) executionAttributes

@@ -67,6 +67,19 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
+    public void skipEndpointResolution_skipAttrIsTrue_returnsTrue() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true);
+        assertThat(AwsEndpointProviderUtils.skipEndpointResolution(attrs)).isTrue();
+    }
+
+    @Test
+    public void skipEndpointResolution_attrsAbsent_returnsFalse() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        assertThat(AwsEndpointProviderUtils.skipEndpointResolution(attrs)).isFalse();
+    }
+
+    @Test
     public void disableHostPrefixInjection_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION, false);

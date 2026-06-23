@@ -66,9 +66,22 @@ public final class AwsEndpointProviderUtils {
     /**
      * True if the the {@link SdkInternalExecutionAttribute#IS_DISCOVERED_ENDPOINT} attribute is present and its value
      * is {@code true}, {@code false} otherwise.
+     *
+     * @deprecated Use {@link #skipEndpointResolution(ExecutionAttributes)} instead.
      */
+    @Deprecated
     public static boolean endpointIsDiscovered(ExecutionAttributes attrs) {
         return attrs.getOptionalAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT).orElse(false);
+    }
+
+    /**
+     * True if endpoint resolution should be skipped for the current request. This returns {@code true} if either
+     * {@link SdkInternalExecutionAttribute#SKIP_ENDPOINT_RESOLUTION} or
+     * {@link SdkInternalExecutionAttribute#IS_DISCOVERED_ENDPOINT} is set to {@code true}.
+     */
+    public static boolean skipEndpointResolution(ExecutionAttributes attrs) {
+        return attrs.getOptionalAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION).orElse(false)
+               || attrs.getOptionalAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT).orElse(false);
     }
 
     /**

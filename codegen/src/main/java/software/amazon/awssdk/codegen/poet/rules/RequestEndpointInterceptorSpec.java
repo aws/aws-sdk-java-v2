@@ -64,8 +64,8 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
                                          .addParameter(ExecutionAttributes.class, "executionAttributes");
 
 
-        // We skip setting the endpoint here if the source of the endpoint is the endpoint discovery call
-        b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
+        // We skip setting the endpoint here if endpoint resolution should be skipped
+        b.beginControlFlow("if ($1T.skipEndpointResolution(executionAttributes))",
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"))
          .addStatement("return context.httpRequest()")
          .endControlFlow().build();
