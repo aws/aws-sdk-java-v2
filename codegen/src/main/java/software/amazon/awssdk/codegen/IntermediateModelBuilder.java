@@ -46,6 +46,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.validation.MemberShapeTargetValidator;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
@@ -162,6 +163,7 @@ public class IntermediateModelBuilder {
                                                                service.getClientContextParams());
 
         linkMembersToShapes(trimmedModel);
+        MemberShapeTargetValidator.validate(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);
         linkCustomAuthorizationToRequestShapes(trimmedModel);
 
