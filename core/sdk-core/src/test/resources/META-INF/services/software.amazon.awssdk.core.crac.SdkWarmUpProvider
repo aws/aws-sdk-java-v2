@@ -12,4 +12,4 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 #
-software.amazon.awssdk.core.crac.CountingWarmUpProvider
+software.amazon.awssdk.core.crac.RegisteredWarmUpProvider

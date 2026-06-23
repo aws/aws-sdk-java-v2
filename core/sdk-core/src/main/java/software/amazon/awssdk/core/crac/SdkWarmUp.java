@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.crac;
 
 import java.util.ServiceLoader;
-import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
@@ -31,8 +30,9 @@ import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
  *
  * <p>Behavior contract:
  * <ul>
- *     <li><b>Idempotent:</b> {@code prime()} runs at most once per JVM. Subsequent calls return without
- *     re-running discovery or invoking any provider.</li>
+ *     <li><b>Idempotent:</b> {@code prime()} runs the warm-up at most once per JVM. Once a call completes
+ *     successfully, later calls return immediately. If a call throws before completing, a later call retries.
+ *     Concurrent callers block until the in-flight call finishes, then observe its result.</li>
  *     <li><b>Per-provider resilience:</b> a single provider that throws from {@code warmUp()}, or that fails
  *     to load, does not prevent the remaining providers from running.</li>
  *     <li><b>Safe when empty:</b> if no providers are registered, {@code prime()} is a no-op.</li>
@@ -44,7 +44,9 @@ import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
 @SdkPublicApi
 public final class SdkWarmUp {
 
-    private static final AtomicBoolean PRIMED = new AtomicBoolean(false);
+    private static final Object PRIME_LOCK = new Object();
+
+    private static volatile boolean primed = false;
 
     private SdkWarmUp() {
     }
@@ -55,10 +57,16 @@ public final class SdkWarmUp {
      * this class. Safe to call concurrently.
      */
     public static void prime() {
-        if (!PRIMED.compareAndSet(false, true)) {
+        if (primed) {
             return;
         }
-
-        ClasspathWarmUpInvoker.create().invokeAll();
+        synchronized (PRIME_LOCK) {
+            if (primed) {
+                return;
+            }
+            // Set primed only after invokeAll() succeeds, so a failed run leaves primed false and a later call retries.
+            ClasspathWarmUpInvoker.create().invokeAll();
+            primed = true;
+        }
     }
 }
