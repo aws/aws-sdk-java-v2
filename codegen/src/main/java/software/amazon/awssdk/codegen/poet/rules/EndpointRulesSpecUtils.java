@@ -193,6 +193,9 @@ public class EndpointRulesSpecUtils {
             case VALUE_NUMBER_INT:
                 b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().intValue());
                 break;
+            case VALUE_NUMBER_FLOAT:
+                b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().doubleValue());
+                break;
             case START_ARRAY:
                 handleArrayDefaultValue(b, "stringarray",
                                         Validate.isInstanceOf(JrsArray.class, treeNode, "Expected string array"));

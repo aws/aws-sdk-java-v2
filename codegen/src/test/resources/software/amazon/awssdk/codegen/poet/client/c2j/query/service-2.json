@@ -219,6 +219,9 @@
         "IntegerMember": {
           "shape": "Integer"
         },
+        "DoubleMember": {
+          "shape": "Double"
+        },
         "NestedMember": {
           "shape": "ChecksumStructure"
         }
@@ -457,6 +460,7 @@
     },
     "String":{"type":"string"},
     "Integer":{"type":"integer"},
+    "Double":{"type":"double"},
     "BearerAuthOperationRequest": {
       "type": "structure",
       "members": {

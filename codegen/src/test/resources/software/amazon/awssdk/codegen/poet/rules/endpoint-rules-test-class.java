@@ -127,6 +127,16 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
                                                                                            .stringMember("this is a test").integerMember(42).build();
                 builder.build().operationWithContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            new SyncTestCase("Has double operation input", () -> {
+                QueryClientBuilder builder = QueryClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getSyncHttpClient());
+                builder.region(Region.of("us-east-1"));
+                OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
+                                                                                           .stringMember("this is a test").doubleMember(3.14).build();
+                builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()));
     }
 
@@ -208,6 +218,16 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.region(Region.of("us-east-1"));
                 OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
                                                                                            .stringMember("this is a test").integerMember(42).build();
+                return builder.build().operationWithContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            new AsyncTestCase("Has double operation input", () -> {
+                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getAsyncHttpClient());
+                builder.region(Region.of("us-east-1"));
+                OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
+                                                                                           .stringMember("this is a test").doubleMember(3.14).build();
                 return builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()));
     }
