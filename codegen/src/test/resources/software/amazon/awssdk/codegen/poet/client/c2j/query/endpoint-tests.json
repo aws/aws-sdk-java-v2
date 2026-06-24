@@ -184,6 +184,46 @@
             ]
         },
         {
+            "documentation": "Has integer operation input",
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            },
+            "params": {
+                "region": "us-east-1"
+            },
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "StringMember": "this is a test",
+                        "IntegerMember": 42
+                    }
+                }
+            ]
+        },
+        {
+            "documentation": "Has double operation input",
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            },
+            "params": {
+                "region": "us-east-1"
+            },
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "StringMember": "this is a test",
+                        "DoubleMember": 3.14
+                    }
+                }
+            ]
+        },
+        {
             "documentation": "Has has undeclared input parameter",
             "expect": {
                 "error": "Missing info"
