@@ -212,7 +212,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private void handleServiceError(int responseStatus, HttpHeader[] headers, byte[] errorPayload) {
         SdkHttpResponse.Builder errorResponse = populateSdkHttpResponse(SdkHttpResponse.builder(),
                                                                         responseStatus, headers);
-        if (requestFailedMidwayOfOtherError(responseStatus)) {
+        if (requestFailedMidwayOfOtherError(responseStatus) || isSuccessStatus(responseStatus)) {
             AwsServiceException s3Exception = buildS3Exception(responseStatus, errorPayload, errorResponse);
 
             SdkClientException sdkClientException =
@@ -224,6 +224,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             initiateResponseHandling(errorResponse.build());
             onErrorResponseComplete(errorPayload);
         }
+    }
+
+    private static boolean isSuccessStatus(int responseStatus) {
+        return responseStatus >= 200 && responseStatus < 300;
     }
 
     private static AwsServiceException buildS3Exception(int responseStatus,

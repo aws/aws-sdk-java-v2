@@ -150,6 +150,21 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void errorResponseWith200Status_shouldCompleteFutureExceptionally() {
+        int statusCode = 200;
+        responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
+
+        byte[] errorPayload = "errorResponse".getBytes(StandardCharsets.UTF_8);
+        responseHandlerAdapter.onFinished(stubResponseContext(1, statusCode, errorPayload));
+
+        Throwable actualException = sdkResponseHandler.error;
+        assertThat(actualException).isInstanceOf(S3Exception.class);
+        assertThat(((S3Exception) actualException).statusCode()).isEqualTo(200);
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void requestFailed_shouldCompleteFutureExceptionally() {
 
         responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
