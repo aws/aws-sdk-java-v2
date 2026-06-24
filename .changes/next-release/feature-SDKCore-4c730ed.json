@@ -1,5 +1,5 @@
 {
     "type": "feature",
     "category": "SDK Core",
-    "description": "Added a public helper execution interceptor OpenTelemetryErrorFilteringInterceptor that reflectively intercepts 4xx HTTP responses to set the span status to StatusCode.OK, preventing OpenTelemetry from incorrectly recording them as errors."
+    "description": "Added OpenTelemetryErrorFilteringInterceptor, globally registered by default, to allow suppressing false positive OpenTelemetry span errors for expected exception classes. The exceptions to ignore can be configured programmatically at startup or declaratively via system properties/environment variables."
 }

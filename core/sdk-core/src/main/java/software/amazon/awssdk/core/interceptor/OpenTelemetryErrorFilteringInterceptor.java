@@ -16,17 +16,23 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * An {@link ExecutionInterceptor} that filters expected 4xx client-side exceptions from being
+ * An {@link ExecutionInterceptor} that filters expected exceptions from being
  * recorded as errors in OpenTelemetry spans.
  * <p>
  * This interceptor uses reflection to detect if OpenTelemetry is available on the classpath.
- * If present, it intercepts 4xx HTTP responses and sets the current OpenTelemetry span's status to
- * {@code StatusCode.OK}. This prevents OpenTelemetry's default exception handling from flagging
- * these expected responses (e.g. DynamoDB Conditional Check Failures) as span errors.
+ * If present, it intercepts exceptions and sets the current OpenTelemetry span's status to
+ * {@code StatusCode.OK} if the exception is registered to be ignored. This prevents OpenTelemetry's
+ * default exception handling from flagging these expected exceptions (e.g. DynamoDB Conditional
+ * Check Failures) as span errors.
  */
 @SdkPublicApi
 public final class OpenTelemetryErrorFilteringInterceptor implements ExecutionInterceptor {
@@ -35,6 +41,7 @@ public final class OpenTelemetryErrorFilteringInterceptor implements ExecutionIn
     private static final Object STATUS_CODE_OK;
     private static final Method SET_STATUS_METHOD;
     private static final Method CURRENT_SPAN_METHOD;
+    private static final Set<Class<? extends Throwable>> IGNORED_EXCEPTIONS = ConcurrentHashMap.newKeySet();
 
     static {
         Object statusCodeOk = null;
@@ -68,17 +75,75 @@ public final class OpenTelemetryErrorFilteringInterceptor implements ExecutionIn
         STATUS_CODE_OK = statusCodeOk;
         SET_STATUS_METHOD = setStatusMethod;
         CURRENT_SPAN_METHOD = currentSpanMethod;
+
+        initializeFromSystemSettings();
+    }
+
+    /**
+     * Registers exception classes to be ignored.
+     * If any exception in the cause chain matches or inherits from these classes, the OpenTelemetry span status
+     * will be set to OK to prevent it from being recorded as an error.
+     */
+    @SafeVarargs
+    public static void addIgnoredExceptions(Class<? extends Throwable>... exceptions) {
+        if (exceptions != null) {
+            Collections.addAll(IGNORED_EXCEPTIONS, exceptions);
+        }
+    }
+
+    /**
+     * Registers exception classes to be ignored.
+     * If any exception in the cause chain matches or inherits from these classes, the OpenTelemetry span status
+     * will be set to OK to prevent it from being recorded as an error.
+     */
+    public static void addIgnoredExceptions(Collection<Class<? extends Throwable>> exceptions) {
+        if (exceptions != null) {
+            IGNORED_EXCEPTIONS.addAll(exceptions);
+        }
+    }
+
+    /**
+     * Clears all registered ignored exceptions. Intended for testing.
+     */
+    static void clearIgnoredExceptions() {
+        IGNORED_EXCEPTIONS.clear();
+    }
+
+    static void initializeFromSystemSettings() {
+        try {
+            SdkSystemSetting.AWS_OTEL_IGNORED_EXCEPTIONS.getStringValue().ifPresent(setting -> {
+                for (String entry : setting.split(",")) {
+                    String className = entry.trim();
+                    if (!className.isEmpty()) {
+                        try {
+                            Class<?> clazz = Class.forName(className);
+                            if (Throwable.class.isAssignableFrom(clazz)) {
+                                @SuppressWarnings("unchecked")
+                                Class<? extends Throwable> throwableClazz = (Class<? extends Throwable>) clazz;
+                                IGNORED_EXCEPTIONS.add(throwableClazz);
+                            } else {
+                                log.warn(() -> "Configured class " + className + " is not a subclass of Throwable.");
+                            }
+                        } catch (ClassNotFoundException e) {
+                            log.warn(() -> "Configured exception class not found: " + className, e);
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.warn(() -> "Failed to initialize ignored exceptions from system settings.", e);
+        }
     }
 
     @Override
-    public void afterTransmission(Context.AfterTransmission context, ExecutionAttributes executionAttributes) {
-        if (STATUS_CODE_OK == null || SET_STATUS_METHOD == null || CURRENT_SPAN_METHOD == null) {
-            return;
+    public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+        if (STATUS_CODE_OK == null || SET_STATUS_METHOD == null || CURRENT_SPAN_METHOD == null || IGNORED_EXCEPTIONS.isEmpty()) {
+            return context.exception();
         }
 
         try {
-            int statusCode = context.httpResponse().statusCode();
-            if (statusCode >= 400 && statusCode < 500) {
+            Throwable exception = context.exception();
+            if (shouldIgnoreException(exception)) {
                 Object currentSpan = CURRENT_SPAN_METHOD.invoke(null);
                 if (currentSpan != null) {
                     SET_STATUS_METHOD.invoke(currentSpan, STATUS_CODE_OK);
@@ -87,5 +152,24 @@ public final class OpenTelemetryErrorFilteringInterceptor implements ExecutionIn
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.debug(() -> "Failed to set OpenTelemetry span status to OK.", e);
         }
+
+        return context.exception();
+    }
+
+    private boolean shouldIgnoreException(Throwable exception) {
+        Throwable current = exception;
+        while (current != null) {
+            for (Class<? extends Throwable> ignoredClass : IGNORED_EXCEPTIONS) {
+                if (ignoredClass.isInstance(current)) {
+                    return true;
+                }
+            }
+            Throwable cause = current.getCause();
+            if (cause == current) {
+                break;
+            }
+            current = cause;
+        }
+        return false;
     }
 }

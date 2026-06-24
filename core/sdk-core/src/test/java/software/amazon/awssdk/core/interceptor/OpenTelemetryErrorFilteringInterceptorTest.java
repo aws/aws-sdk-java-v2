@@ -20,65 +20,98 @@ import static org.mockito.Mockito.mock;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
+import java.io.IOException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 
 class OpenTelemetryErrorFilteringInterceptorTest {
     private final OpenTelemetryErrorFilteringInterceptor interceptor = new OpenTelemetryErrorFilteringInterceptor();
     private SdkRequest mockRequest;
+    private InterceptorContext mockInterceptorContext;
 
     @BeforeEach
     void setUp() {
         mockRequest = mock(SdkRequest.class);
+        mockInterceptorContext = InterceptorContext.builder().request(mockRequest).build();
         Span.clear();
+        OpenTelemetryErrorFilteringInterceptor.clearIgnoredExceptions();
+        System.clearProperty("aws.otel.ignoredExceptions");
+    }
+
+    @AfterEach
+    void tearDown() {
+        System.clearProperty("aws.otel.ignoredExceptions");
     }
 
     @Test
-    void afterTransmission_status400_setsSpanStatusToOk() {
-        InterceptorContext context = InterceptorContext.builder()
-                                                       .request(mockRequest)
-                                                       .httpResponse(SdkHttpResponse.builder().statusCode(400).build())
-                                                       .build();
+    void modifyException_ignoredException_setsSpanStatusToOk() {
+        OpenTelemetryErrorFilteringInterceptor.addIgnoredExceptions(IOException.class);
 
-        interceptor.afterTransmission(context, new ExecutionAttributes());
+        Context.FailedExecution context = DefaultFailedExecutionContext.builder()
+                                                                       .interceptorContext(mockInterceptorContext)
+                                                                       .exception(new IOException("Expected error"))
+                                                                       .build();
+
+        interceptor.modifyException(context, new ExecutionAttributes());
 
         assertThat(Span.getLastStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
-    void afterTransmission_status499_setsSpanStatusToOk() {
-        InterceptorContext context = InterceptorContext.builder()
-                                                       .request(mockRequest)
-                                                       .httpResponse(SdkHttpResponse.builder().statusCode(499).build())
-                                                       .build();
+    void modifyException_nonIgnoredException_doesNotSetSpanStatus() {
+        OpenTelemetryErrorFilteringInterceptor.addIgnoredExceptions(IOException.class);
 
-        interceptor.afterTransmission(context, new ExecutionAttributes());
+        Context.FailedExecution context = DefaultFailedExecutionContext.builder()
+                                                                       .interceptorContext(mockInterceptorContext)
+                                                                       .exception(new RuntimeException("Unexpected error"))
+                                                                       .build();
 
-        assertThat(Span.getLastStatus()).isEqualTo(StatusCode.OK);
-    }
-
-    @Test
-    void afterTransmission_status200_doesNotSetSpanStatus() {
-        InterceptorContext context = InterceptorContext.builder()
-                                                       .request(mockRequest)
-                                                       .httpResponse(SdkHttpResponse.builder().statusCode(200).build())
-                                                       .build();
-
-        interceptor.afterTransmission(context, new ExecutionAttributes());
+        interceptor.modifyException(context, new ExecutionAttributes());
 
         assertThat(Span.getLastStatus()).isNull();
     }
 
     @Test
-    void afterTransmission_status500_doesNotSetSpanStatus() {
-        InterceptorContext context = InterceptorContext.builder()
-                                                       .request(mockRequest)
-                                                       .httpResponse(SdkHttpResponse.builder().statusCode(500).build())
-                                                       .build();
+    void modifyException_ignoredExceptionInChain_setsSpanStatusToOk() {
+        OpenTelemetryErrorFilteringInterceptor.addIgnoredExceptions(IOException.class);
 
-        interceptor.afterTransmission(context, new ExecutionAttributes());
+        RuntimeException wrappingException = new RuntimeException("Wrapped", new IOException("Root cause"));
+        Context.FailedExecution context = DefaultFailedExecutionContext.builder()
+                                                                       .interceptorContext(mockInterceptorContext)
+                                                                       .exception(wrappingException)
+                                                                       .build();
+
+        interceptor.modifyException(context, new ExecutionAttributes());
+
+        assertThat(Span.getLastStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    void modifyException_systemPropertyConfiguration_loadsExceptionsAndSetsSpanStatusToOk() {
+        System.setProperty("aws.otel.ignoredExceptions", "java.io.IOException, java.lang.IllegalArgumentException");
+        OpenTelemetryErrorFilteringInterceptor.initializeFromSystemSettings();
+
+        Context.FailedExecution context = DefaultFailedExecutionContext.builder()
+                                                                       .interceptorContext(mockInterceptorContext)
+                                                                       .exception(new IllegalArgumentException("Invalid argument"))
+                                                                       .build();
+
+        interceptor.modifyException(context, new ExecutionAttributes());
+
+        assertThat(Span.getLastStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    void modifyException_emptyIgnoredExceptions_doesNotSetSpanStatus() {
+        Context.FailedExecution context = DefaultFailedExecutionContext.builder()
+                                                                       .interceptorContext(mockInterceptorContext)
+                                                                       .exception(new IOException("Expected error"))
+                                                                       .build();
+
+        interceptor.modifyException(context, new ExecutionAttributes());
 
         assertThat(Span.getLastStatus()).isNull();
     }
