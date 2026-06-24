@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2 Codegen\"",
+    "contributor": "",
+    "description": "Add support for generating endpoint tests with integer parameter values."
+}
