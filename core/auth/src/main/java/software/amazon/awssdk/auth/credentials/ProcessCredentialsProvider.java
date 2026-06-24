@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -44,21 +45,33 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 /**
  * A credentials provider that can load credentials from an external process. This is used to support the credential_process
  * setting in the profile credentials file. See
- * <a href="https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes">sourcing credentials
- * from external processes</a> for more information.
+ * <a href="https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes">sourcing
+ * credentials from external processes</a> for more information.
  *
- * <p>
- * This class can be initialized using {@link #builder()}.
+ * <p>This provider caches credentials returned by the external process and refreshes them before they expire. If a refresh
+ * attempt fails after credentials have entered the mandatory refresh window, the provider raises an exception to the caller
+ * (unlike other credential providers that return cached credentials on failure).
  *
- * <p>
- * Available settings:
+ * <p>This class can be initialized using {@link #builder()}.
+ *
+ * <h2>Available settings:</h2>
  * <ul>
- *     <li>Command - The command that should be executed to retrieve credentials.</li>
- *     <li>CredentialRefreshThreshold - The amount of time between when the credentials expire and when the credentials should
- *     start to be refreshed. This allows the credentials to be refreshed *before* they are reported to expire. Default: 15
- *     seconds.</li>
- *     <li>ProcessOutputLimit - The maximum amount of data that can be returned by the external process before an exception is
- *     raised. Default: 64000 bytes (64KB).</li>
+ *     <li><b>Command</b> - The command that should be executed to retrieve credentials. Can be specified as a single string
+ *     (deprecated) or as a list of strings.</li>
+ *     <li><b>StaleTime</b> - The amount of time before credential expiration that defines the mandatory refresh window. When
+ *     credentials are within this window, all callers block until a refresh attempt completes. If the refresh fails, an
+ *     exception is raised. Default: 1 minute.</li>
+ *     <li><b>PrefetchTime</b> - The amount of time before credential expiration that defines the advisory refresh window. When
+ *     credentials are within this window, the provider proactively attempts to refresh them. If the refresh fails during the
+ *     advisory window, the existing cached credentials are returned without error. This replaces the deprecated
+ *     {@code credentialRefreshThreshold} setting; if that setting was explicitly configured, its value is honored as the
+ *     prefetch time for backward compatibility. Default: 5 minutes.</li>
+ *     <li><b>AsyncCredentialUpdateEnabled</b> - Whether to refresh credentials asynchronously in a background thread during
+ *     the advisory refresh window, so that callers are less likely to block. Default: disabled.</li>
+ *     <li><b>ProcessOutputLimit</b> - The maximum amount of data that can be returned by the external process before an
+ *     exception is raised. Default: 64000 bytes (64KB).</li>
+ *     <li><b>CredentialRefreshThreshold</b> - <b>Deprecated.</b> Use {@code prefetchTime} instead. If explicitly set, the
+ *     value is honored as the prefetch time for backward compatibility.</li>
  * </ul>
  */
 @SdkPublicApi
@@ -71,9 +84,10 @@ public final class ProcessCredentialsProvider
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
+    private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
+    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private final List<String> executableCommand;
-    private final Duration credentialRefreshThreshold;
     private final long processOutputLimit;
     private final String staticAccountId;
 
@@ -87,6 +101,8 @@ public final class ProcessCredentialsProvider
 
     private final String sourceChain;
     private final String providerName;
+    private final Duration staleTime;
+    private final Duration prefetchTime;
 
     /**
      * @see #builder()
@@ -94,7 +110,6 @@ public final class ProcessCredentialsProvider
     private ProcessCredentialsProvider(Builder builder) {
         this.executableCommand = executableCommand(builder);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
-        this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
@@ -103,6 +118,10 @@ public final class ProcessCredentialsProvider
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
             : builder.sourceChain + "," + PROVIDER_NAME;
+        this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
+        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -154,14 +173,28 @@ public final class ProcessCredentialsProvider
             Instant credentialExpirationTime = credentialExpirationTime(credentialsJson);
 
             return RefreshResult.builder(credentials)
-                                .staleTime(credentialExpirationTime)
-                                .prefetchTime(credentialExpirationTime.minusMillis(credentialRefreshThreshold.toMillis()))
+                                .staleTime(staleTime(credentialExpirationTime))
+                                .prefetchTime(prefetchTime(credentialExpirationTime))
                                 .build();
         } catch (InterruptedException e) {
             throw new IllegalStateException("Process-based credential refreshing has been interrupted.", e);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to refresh process-based credentials.", e);
         }
+    }
+
+    private Instant staleTime(Instant expiration) {
+        if (expiration == null || expiration.equals(Instant.MAX)) {
+            return Instant.MAX;
+        }
+        return expiration.minus(staleTime);
+    }
+
+    private Instant prefetchTime(Instant expiration) {
+        if (expiration == null || expiration.equals(Instant.MAX)) {
+            return Instant.MAX;
+        }
+        return expiration.minus(prefetchTime);
     }
 
     /**
@@ -277,10 +310,11 @@ public final class ProcessCredentialsProvider
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
         private List<String> commandAsListOfStrings;
-        private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
         private String staticAccountId;
         private String sourceChain;
+        private Duration staleTime;
+        private Duration prefetchTime;
 
         /**
          * @see #builder()
@@ -292,22 +326,68 @@ public final class ProcessCredentialsProvider
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.command = provider.commandFromBuilder;
             this.commandAsListOfStrings = provider.commandAsListOfStringsFromBuilder;
-            this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
             this.sourceChain = provider.sourceChain;
+            this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is disabled.</p>
          */
         @SuppressWarnings("unchecked")
         public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return this;
+        }
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * raises an exception to the caller.
+         *
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>By default, this is 1 minute.</p>
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
+         */
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails during the advisory window, the provider
+         * returns the existing cached credentials. If the refresh fails after credentials have entered the mandatory refresh
+         * window (defined by {@link #staleTime(Duration)}), the provider raises an exception.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>By default, this is 5 minutes.</p>
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
+         */
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
             return this;
         }
 
@@ -338,10 +418,13 @@ public final class ProcessCredentialsProvider
          * Configure the amount of time between when the credentials expire and when the credentials should start to be
          * refreshed. This allows the credentials to be refreshed *before* they are reported to expire.
          *
-         * <p>Default: 15 seconds.</p>
+         * @deprecated Use {@link #prefetchTime(Duration)} instead. This method has been deprecated for consistency
+         * with other credential providers. Calls to this method are equivalent to calling
+         * {@code prefetchTime(credentialRefreshThreshold)}.
          */
+        @Deprecated
         public Builder credentialRefreshThreshold(Duration credentialRefreshThreshold) {
-            this.credentialRefreshThreshold = credentialRefreshThreshold;
+            this.prefetchTime = credentialRefreshThreshold;
             return this;
         }
 
