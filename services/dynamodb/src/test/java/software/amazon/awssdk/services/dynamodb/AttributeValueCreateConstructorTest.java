@@ -33,61 +33,61 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * Verifies that the generated {@code fastX} factories on {@link AttributeValue} (emitted under the
+ * Verifies that the generated {@code createX} factories on {@link AttributeValue} (emitted under the
  * {@code generateFastUnionConstructors} DynamoDB codegen customization) produce objects indistinguishable
  * from the builder path, {@code AttributeValue.builder().x(v).build()}, for present values, null arguments,
  * and the auto-construct sentinel; and that collection members are defensively copied and stored unmodifiable.
  */
-class AttributeValueFastConstructorTest {
+class AttributeValueCreateConstructorTest {
 
     private static final SdkBytes BYTES = SdkBytes.fromUtf8String("b");
 
     static Stream<Arguments> presentValueCases() {
         return Stream.of(
-            arg("S", () -> AttributeValue.fastS("v"), () -> AttributeValue.builder().s("v").build()),
-            arg("N", () -> AttributeValue.fastN("1"), () -> AttributeValue.builder().n("1").build()),
-            arg("B", () -> AttributeValue.fastB(BYTES), () -> AttributeValue.builder().b(BYTES).build()),
-            arg("SS", () -> AttributeValue.fastSs(Arrays.asList("a", "b")),
+            arg("S", () -> AttributeValue.createS("v"), () -> AttributeValue.builder().s("v").build()),
+            arg("N", () -> AttributeValue.createN("1"), () -> AttributeValue.builder().n("1").build()),
+            arg("B", () -> AttributeValue.createB(BYTES), () -> AttributeValue.builder().b(BYTES).build()),
+            arg("SS", () -> AttributeValue.createSs(Arrays.asList("a", "b")),
                 () -> AttributeValue.builder().ss(Arrays.asList("a", "b")).build()),
-            arg("NS", () -> AttributeValue.fastNs(Arrays.asList("1", "2")),
+            arg("NS", () -> AttributeValue.createNs(Arrays.asList("1", "2")),
                 () -> AttributeValue.builder().ns(Arrays.asList("1", "2")).build()),
-            arg("BS", () -> AttributeValue.fastBs(Arrays.asList(BYTES)),
+            arg("BS", () -> AttributeValue.createBs(Arrays.asList(BYTES)),
                 () -> AttributeValue.builder().bs(Arrays.asList(BYTES)).build()),
-            arg("M", () -> AttributeValue.fastM(singletonMap("k", AttributeValue.fromS("x"))),
+            arg("M", () -> AttributeValue.createM(singletonMap("k", AttributeValue.fromS("x"))),
                 () -> AttributeValue.builder().m(singletonMap("k", AttributeValue.fromS("x"))).build()),
-            arg("L", () -> AttributeValue.fastL(Arrays.asList(AttributeValue.fromS("x"))),
+            arg("L", () -> AttributeValue.createL(Arrays.asList(AttributeValue.fromS("x"))),
                 () -> AttributeValue.builder().l(Arrays.asList(AttributeValue.fromS("x"))).build()),
-            arg("BOOL", () -> AttributeValue.fastBool(true), () -> AttributeValue.builder().bool(true).build()),
-            arg("NUL", () -> AttributeValue.fastNul(true), () -> AttributeValue.builder().nul(true).build())
+            arg("BOOL", () -> AttributeValue.createBool(true), () -> AttributeValue.builder().bool(true).build()),
+            arg("NUL", () -> AttributeValue.createNul(true), () -> AttributeValue.builder().nul(true).build())
         );
     }
 
     static Stream<Arguments> nullValueCases() {
         return Stream.of(
-            arg("S", () -> AttributeValue.fastS(null), () -> AttributeValue.builder().s(null).build()),
-            arg("N", () -> AttributeValue.fastN(null), () -> AttributeValue.builder().n(null).build()),
-            arg("B", () -> AttributeValue.fastB(null), () -> AttributeValue.builder().b(null).build()),
-            arg("SS", () -> AttributeValue.fastSs(null), () -> AttributeValue.builder().ss((List<String>) null).build()),
-            arg("NS", () -> AttributeValue.fastNs(null), () -> AttributeValue.builder().ns((List<String>) null).build()),
-            arg("BS", () -> AttributeValue.fastBs(null), () -> AttributeValue.builder().bs((List<SdkBytes>) null).build()),
-            arg("M", () -> AttributeValue.fastM(null),
+            arg("S", () -> AttributeValue.createS(null), () -> AttributeValue.builder().s(null).build()),
+            arg("N", () -> AttributeValue.createN(null), () -> AttributeValue.builder().n(null).build()),
+            arg("B", () -> AttributeValue.createB(null), () -> AttributeValue.builder().b(null).build()),
+            arg("SS", () -> AttributeValue.createSs(null), () -> AttributeValue.builder().ss((List<String>) null).build()),
+            arg("NS", () -> AttributeValue.createNs(null), () -> AttributeValue.builder().ns((List<String>) null).build()),
+            arg("BS", () -> AttributeValue.createBs(null), () -> AttributeValue.builder().bs((List<SdkBytes>) null).build()),
+            arg("M", () -> AttributeValue.createM(null),
                 () -> AttributeValue.builder().m((Map<String, AttributeValue>) null).build()),
-            arg("L", () -> AttributeValue.fastL(null), () -> AttributeValue.builder().l((List<AttributeValue>) null).build()),
-            arg("BOOL", () -> AttributeValue.fastBool(null), () -> AttributeValue.builder().bool(null).build()),
-            arg("NUL", () -> AttributeValue.fastNul(null), () -> AttributeValue.builder().nul(null).build())
+            arg("L", () -> AttributeValue.createL(null), () -> AttributeValue.builder().l((List<AttributeValue>) null).build()),
+            arg("BOOL", () -> AttributeValue.createBool(null), () -> AttributeValue.builder().bool(null).build()),
+            arg("NUL", () -> AttributeValue.createNul(null), () -> AttributeValue.builder().nul(null).build())
         );
     }
 
-    @ParameterizedTest(name = "fastX present value matches builder: {0}")
+    @ParameterizedTest(name = "createX present value matches builder: {0}")
     @MethodSource("presentValueCases")
-    void fastX_presentValue_isIndistinguishableFromBuilder(String name, Supplier<AttributeValue> fast,
+    void createX_presentValue_isIndistinguishableFromBuilder(String name, Supplier<AttributeValue> fast,
                                                             Supplier<AttributeValue> builder) {
         assertIndistinguishable(fast.get(), builder.get());
     }
 
-    @ParameterizedTest(name = "fastX null argument matches builder: {0}")
+    @ParameterizedTest(name = "createX null argument matches builder: {0}")
     @MethodSource("nullValueCases")
-    void fastX_nullArgument_isIndistinguishableFromBuilder(String name, Supplier<AttributeValue> fast,
+    void createX_nullArgument_isIndistinguishableFromBuilder(String name, Supplier<AttributeValue> fast,
                                                            Supplier<AttributeValue> builder) {
         AttributeValue fastValue = fast.get();
         AttributeValue builtValue = builder.get();
@@ -99,7 +99,7 @@ class AttributeValueFastConstructorTest {
 
     @Test
     void fastCollection_emptyInput_matchesBuilderAndReportsMemberType() {
-        AttributeValue fastValue = AttributeValue.fastM(new HashMap<>());
+        AttributeValue fastValue = AttributeValue.createM(new HashMap<>());
         AttributeValue builtValue = AttributeValue.builder().m(new HashMap<>()).build();
         assertThat(fastValue.type()).isEqualTo(AttributeValue.Type.M);
         assertIndistinguishable(fastValue, builtValue);
@@ -109,7 +109,7 @@ class AttributeValueFastConstructorTest {
     void fastList_defensivelyCopiesAndStoresUnmodifiable() {
         List<AttributeValue> input = new ArrayList<>();
         input.add(AttributeValue.fromS("first"));
-        AttributeValue value = AttributeValue.fastL(input);
+        AttributeValue value = AttributeValue.createL(input);
 
         input.add(AttributeValue.fromS("mutated-after-construction"));
         assertThat(value.l()).hasSize(1);
@@ -121,7 +121,7 @@ class AttributeValueFastConstructorTest {
     void fastMap_defensivelyCopiesAndStoresUnmodifiable() {
         Map<String, AttributeValue> input = new HashMap<>();
         input.put("k", AttributeValue.fromS("first"));
-        AttributeValue value = AttributeValue.fastM(input);
+        AttributeValue value = AttributeValue.createM(input);
 
         input.put("k2", AttributeValue.fromS("mutated-after-construction"));
         assertThat(value.m()).hasSize(1);
@@ -132,7 +132,7 @@ class AttributeValueFastConstructorTest {
     @Test
     void fastStringSet_defensivelyCopiesAndStoresUnmodifiable() {
         List<String> input = new ArrayList<>(Arrays.asList("a"));
-        AttributeValue value = AttributeValue.fastSs(input);
+        AttributeValue value = AttributeValue.createSs(input);
 
         input.add("b");
         assertThat(value.ss()).containsExactly("a");
@@ -161,8 +161,8 @@ class AttributeValueFastConstructorTest {
     }
 
     @Test
-    void fastX_toBuilderRoundTrip_preservesTypeAndValue() {
-        AttributeValue fast = AttributeValue.fastS("hello");
+    void createX_toBuilderRoundTrip_preservesTypeAndValue() {
+        AttributeValue fast = AttributeValue.createS("hello");
         AttributeValue roundTripped = fast.toBuilder().build();
         assertThat(roundTripped).isEqualTo(fast);
         assertThat(roundTripped.type()).isEqualTo(AttributeValue.Type.S);
@@ -170,8 +170,8 @@ class AttributeValueFastConstructorTest {
     }
 
     @Test
-    void fastX_toBuilderMutation_matchesBuilderBehavior() {
-        AttributeValue fast = AttributeValue.fastS("hello");
+    void createX_toBuilderMutation_matchesBuilderBehavior() {
+        AttributeValue fast = AttributeValue.createS("hello");
         AttributeValue built = AttributeValue.builder().s("hello").build();
         AttributeValue fastMutated = fast.toBuilder().n("42").build();
         AttributeValue builtMutated = built.toBuilder().n("42").build();
@@ -182,7 +182,7 @@ class AttributeValueFastConstructorTest {
 
     @Test
     void fastBool_false_isTreatedAsPresent() {
-        AttributeValue fast = AttributeValue.fastBool(false);
+        AttributeValue fast = AttributeValue.createBool(false);
         AttributeValue built = AttributeValue.builder().bool(false).build();
         assertThat(fast.type()).isEqualTo(AttributeValue.Type.BOOL);
         assertIndistinguishable(fast, built);
@@ -190,7 +190,7 @@ class AttributeValueFastConstructorTest {
 
     @Test
     void fastNul_false_isTreatedAsPresent() {
-        AttributeValue fast = AttributeValue.fastNul(false);
+        AttributeValue fast = AttributeValue.createNul(false);
         AttributeValue built = AttributeValue.builder().nul(false).build();
         assertThat(fast.type()).isEqualTo(AttributeValue.Type.NUL);
         assertIndistinguishable(fast, built);

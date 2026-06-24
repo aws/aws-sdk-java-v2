@@ -117,9 +117,9 @@ public class AwsServiceModel implements ClassSpec {
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
-            if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors()
+            if (intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors()
                     .contains(shapeModel.getShapeName())) {
-                specBuilder.addField(fastUnionUnsetConstant());
+                specBuilder.addField(directUnionUnsetConstant());
             }
         }
 
@@ -523,17 +523,17 @@ public class AwsServiceModel implements ClassSpec {
 
         List<MethodSpec> unionMembers = new ArrayList<>();
         unionMembers.addAll(unionConstructors());
-        if (intermediateModel.getCustomizationConfig().getGenerateFastUnionConstructors().contains(shapeModel.getShapeName())) {
-            unionMembers.addAll(fastUnionConstructors());
+        if (intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors().contains(shapeModel.getShapeName())) {
+            unionMembers.addAll(directUnionConstructors());
         }
         unionMembers.add(unionTypeMethod());
         unionMembers.addAll(unionAcceptMethods());
         return unionMembers;
     }
 
-    private Collection<MethodSpec> fastUnionConstructors() {
+    private Collection<MethodSpec> directUnionConstructors() {
         Validate.isTrue(shapeModel.getShapeType() == ShapeType.Model,
-                        "Fast union constructors are only supported on Model shapes, not %s (%s)",
+                        "Direct union constructors are only supported on Model shapes, not %s (%s)",
                         shapeModel.getShapeType(), shapeModel.getShapeName());
         List<MemberModel> members = shapeModel.getMembers();
         List<MethodSpec> methods = new ArrayList<>();
@@ -551,7 +551,7 @@ public class AwsServiceModel implements ClassSpec {
 
         for (MemberModel member : members) {
             String memberName = member.getVariable().getVariableName();
-            String factoryName = "fast" + capitalize(member.getFluentSetterMethodName());
+            String factoryName = "create" + capitalize(member.getFluentSetterMethodName());
             TypeName paramType = typeProvider.typeName(member, new TypeNameOptions().useEnumTypes(false));
             boolean isCollection = member.isList() || member.isMap();
 
@@ -566,11 +566,11 @@ public class AwsServiceModel implements ClassSpec {
             String slotValue = memberName;
             if (isCollection) {
                 factory.beginControlFlow("if ($N == null)", memberName);
-                factory.addStatement("return FAST_UNSET");
+                factory.addStatement("return UNSET_INSTANCE");
                 factory.endControlFlow();
                 ClassName copier = serviceModelCopiers.copierClassFor(member)
                     .orElseThrow(() -> new IllegalStateException(
-                        "Fast union constructor requires a copier for collection member "
+                        "Direct union constructor requires a copier for collection member "
                         + memberName + " on shape " + shapeModel.getShapeName()));
                 factory.addStatement("$T copied = $T.$N($N)", paramType, copier,
                                      serviceModelCopiers.copyMethodName(), memberName);
@@ -579,20 +579,20 @@ public class AwsServiceModel implements ClassSpec {
                     ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
                     : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
                 factory.beginControlFlow("if ($N instanceof $T)", slotValue, autoConstruct);
-                factory.addStatement("return FAST_UNSET");
+                factory.addStatement("return UNSET_INSTANCE");
             } else {
                 factory.beginControlFlow("if ($N == null)", memberName);
-                factory.addStatement("return FAST_UNSET");
+                factory.addStatement("return UNSET_INSTANCE");
             }
             factory.endControlFlow();
-            factory.addStatement("$L", fastCtorCall(members, member, slotValue));
+            factory.addStatement("$L", directCtorCall(members, member, slotValue));
 
             methods.add(factory.build());
         }
         return methods;
     }
 
-    private FieldSpec fastUnionUnsetConstant() {
+    private FieldSpec directUnionUnsetConstant() {
         List<MemberModel> members = shapeModel.getMembers();
         CodeBlock.Builder init = CodeBlock.builder();
         init.add("new $T($T.UNKNOWN_TO_SDK_VERSION", className(), unionTypeClassName());
@@ -607,12 +607,12 @@ public class AwsServiceModel implements ClassSpec {
             }
         }
         init.add(")");
-        return FieldSpec.builder(className(), "FAST_UNSET", PRIVATE, STATIC, Modifier.FINAL)
+        return FieldSpec.builder(className(), "UNSET_INSTANCE", PRIVATE, STATIC, Modifier.FINAL)
                         .initializer(init.build())
                         .build();
     }
 
-    private CodeBlock fastCtorCall(List<MemberModel> members, MemberModel target, String slotValue) {
+    private CodeBlock directCtorCall(List<MemberModel> members, MemberModel target, String slotValue) {
         CodeBlock.Builder args = CodeBlock.builder();
         args.add("$T.$N", unionTypeClassName(), target.getUnionEnumTypeName());
         for (MemberModel m : members) {
