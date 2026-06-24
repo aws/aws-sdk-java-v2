@@ -532,6 +532,10 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private Collection<MethodSpec> directUnionConstructors() {
+        intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors().forEach(shapeName ->
+            Validate.isTrue(intermediateModel.getShapes().containsKey(shapeName),
+                            "generateDirectUnionConstructors references shape '%s' which does not exist in the model.",
+                            shapeName));
         Validate.isTrue(shapeModel.getShapeType() == ShapeType.Model,
                         "Direct union constructors are only supported on Model shapes, not %s (%s)",
                         shapeModel.getShapeType(), shapeModel.getShapeName());
