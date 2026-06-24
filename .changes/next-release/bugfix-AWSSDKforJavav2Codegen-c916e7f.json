@@ -1,6 +1,6 @@
 {
     "type": "bugfix",
-    "category": "AWS SDK for Java v2 Codegen\"",
+    "category": "AWS SDK for Java v2 Codegen",
     "contributor": "",
     "description": "Validate paginators before generating"
 }
