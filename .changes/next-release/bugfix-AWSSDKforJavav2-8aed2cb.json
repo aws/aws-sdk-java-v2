@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Codegen now fails with a clear model validation error identifying the offending shape, member, and unresolved target when a shape member references a shape that does not exist in the model, instead of a NullPointerException during code generation."
+}

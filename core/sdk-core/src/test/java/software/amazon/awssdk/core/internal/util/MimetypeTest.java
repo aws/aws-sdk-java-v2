@@ -19,11 +19,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.IoUtils;
 
 public class MimetypeTest {
+
+    private static final String MIME_TYPES_RESOURCE = "software/amazon/awssdk/core/util/mime.types";
+    private static final String NATIVE_IMAGE_RESOURCE_CONFIG =
+        "META-INF/native-image/software.amazon.awssdk/sdk-core/resource-config.json";
 
     private static Mimetype mimetype;
 
@@ -57,5 +64,15 @@ public class MimetypeTest {
         Path mockPath = mock(Path.class);
         when(mockPath.getFileName()).thenReturn(null);
         assertThat(mimetype.getMimetype(mockPath)).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void nativeImageResourceConfig_includesMimeTypes() throws IOException {
+        try (InputStream resourceConfig = Mimetype.class.getClassLoader().getResourceAsStream(NATIVE_IMAGE_RESOURCE_CONFIG)) {
+            assertThat(resourceConfig).isNotNull();
+
+            String resourceConfigContents = IoUtils.toUtf8String(resourceConfig);
+            assertThat(resourceConfigContents).contains(MIME_TYPES_RESOURCE);
+        }
     }
 }

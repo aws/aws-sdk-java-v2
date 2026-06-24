@@ -49,7 +49,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.4",
                 null,
                 new ResponseElements(
                     null, null),
@@ -73,7 +73,7 @@ class S3EventNotificationReaderTest {
         String json = eventNotification.toJsonPretty();
         assertThat(json).isEqualTo("{\n"
                                    + "  \"Records\" : [ {\n"
-                                   + "    \"eventVersion\" : \"2.1\",\n"
+                                   + "    \"eventVersion\" : \"2.4\",\n"
                                    + "    \"eventSource\" : \"aws:s3\",\n"
                                    + "    \"awsRegion\" : \"us-west-2\",\n"
                                    + "    \"eventTime\" : \"1970-01-01T00:00:00Z\",\n"
@@ -115,7 +115,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{  "
                            + "   \"Records\":[  "
                            + "      {  "
-                           + "         \"eventVersion\":\"2.1\","
+                           + "         \"eventVersion\":\"2.4\","
                            + "         \"eventSource\":\"aws:s3\","
                            + "         \"awsRegion\":\"us-west-2\","
                            + "         \"eventTime\":\"1970-01-01T00:00:00.000Z\","
@@ -163,7 +163,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -192,7 +192,7 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getAwsRegion()).isEqualTo("us-west-2");
         assertThat(rec.getEventName()).isEqualTo("ObjectCreated:Put");
         assertThat(rec.getEventTime()).isEqualTo(Instant.parse("1970-01-01T00:00:00.000Z"));
-        assertThat(rec.getEventVersion()).isEqualTo("2.1");
+        assertThat(rec.getEventVersion()).isEqualTo("2.4");
 
         UserIdentity userIdentity = rec.getUserIdentity();
         assertThat(userIdentity).isNotNull();
@@ -238,7 +238,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{\n"
                            + "  \"Records\":[\n"
                            + "    {\n"
-                           + "      \"eventVersion\":\"2.1\",\n"
+                           + "      \"eventVersion\":\"2.4\",\n"
                            + "      \"eventSource\":\"aws:s3\",\n"
                            + "      \"awsRegion\":\"us-west-2\",\n"
                            + "      \"eventTime\":\"1970-01-01T00:00:00.000Z\",\n"
@@ -268,8 +268,12 @@ class S3EventNotificationReaderTest {
                            + "          \"size\":1024,\n"
                            + "          \"eTag\":\"d41d8cd98f00b204e9800998ecf8427e\",\n"
                            + "          \"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
-                           + "          \"sequencer\":\"0055AED6DCD90281E5\"\n"
-                           + "        }\n"
+                           + "          \"sequencer\":\"0055AED6DCD90281E5\",\n"
+                           + "          \"hasObjectAnnotation\":true\n"
+                           + "        },\n"
+                           + "        \"objectAnnotation\":[\n"
+                           + "          {\"name\":\"anno1\",\"size\":50,\"eTag\":\"etag1\"}\n"
+                           + "        ]\n"
                            + "      },\n"
                            + "      \"glacierEventData\": {\n"
                            + "        \"restoreEventData\": {\n"
@@ -309,7 +313,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -324,8 +328,12 @@ class S3EventNotificationReaderTest {
                         1024L,
                         "d41d8cd98f00b204e9800998ecf8427e",
                         "096fKKXTRTtl3on89fVO.nfljtsv6qko",
-                        "0055AED6DCD90281E5"),
-                    "1.0"
+                        "0055AED6DCD90281E5",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("AIDAJDPLRKLG7UEXAMPLE"),
                 new GlacierEventData(new RestoreEventData("1970-02-02T00:00:00.000Z", "testStorageClass")),
@@ -372,6 +380,15 @@ class S3EventNotificationReaderTest {
         assertThat(replication.getFailureReason()).isEqualTo("failureReasonTest");
         assertThat(replication.getThreshold()).isEqualTo("thresholdTest");
         assertThat(replication.getS3Operation()).isEqualTo("s3OperationTest");
+
+        S3 s3 = rec.getS3();
+        assertThat(s3.getObjectAnnotation()).hasSize(1);
+        assertThat(s3.getObjectAnnotation().get(0).getName()).isEqualTo("anno1");
+        assertThat(s3.getObjectAnnotation().get(0).getSize()).isEqualTo(50L);
+        assertThat(s3.getObjectAnnotation().get(0).getETag()).isEqualTo("etag1");
+
+        S3Object s3Object = s3.getObject();
+        assertThat(s3Object.getHasObjectAnnotation()).isTrue();
     }
 
     @Test
@@ -402,7 +419,7 @@ class S3EventNotificationReaderTest {
     void missingField_shouldBeNull() {
         String json = "{\n"
                       + "  \"Records\" : [ {\n"
-                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventVersion\" : \"2.4\",\n"
                       + "    \"eventSource\" : \"aws:s3\",\n"
                       + "    \"awsRegion\" : \"us-west-2\",\n"
                       + "    \"eventTime\" : \"1970-01-01T01:01:01.001Z\",\n"
@@ -446,7 +463,7 @@ class S3EventNotificationReaderTest {
     void eventTimeIsNullWhenEventNamePresent_shouldSucceed() {
         String json = "{\n"
                       + "  \"Records\" : [ {\n"
-                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventVersion\" : \"2.4\",\n"
                       + "    \"eventSource\" : \"aws:s3\",\n"
                       + "    \"awsRegion\" : \"us-west-2\",\n"
                       // missing eventTime
@@ -508,7 +525,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{  "
                            + "   \"Records\":[  "
                            + "      {  "
-                           + "         \"eventVersion\":\"2.1\","
+                           + "         \"eventVersion\":\"2.4\","
                            + "         \"eventSource\":\"aws:s3\","
                            + "         \"awsRegion\":\"us-west-2\","
                            + "         \"eventTime\":\"1970-01-01T00:00:00.000Z\","
@@ -538,8 +555,10 @@ class S3EventNotificationReaderTest {
                            + "               \"size\":1024,"
                            + "               \"eTag\":\"d41d8cd98f00b204e9800998ecf8427e\","
                            + "               \"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6qko\","
-                           + "               \"sequencer\":\"0055AED6DCD90281E5\""
-                           + "            }"
+                           + "               \"sequencer\":\"0055AED6DCD90281E5\","
+                           + "               \"hasObjectAnnotation\":true"
+                           + "            },"
+                           + "            \"objectAnnotation\":[{\"name\":\"anno1\",\"size\":50,\"eTag\":\"etag1\"}]"
                            + "         }"
                            + "      }"
                            + "   ]"
@@ -556,7 +575,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.4",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -571,8 +590,12 @@ class S3EventNotificationReaderTest {
                         1024L,
                         "d41d8cd98f00b204e9800998ecf8427e",
                         "096fKKXTRTtl3on89fVO.nfljtsv6qko",
-                        "0055AED6DCD90281E5"),
-                    "1.0"
+                        "0055AED6DCD90281E5",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("AIDAJDPLRKLG7UEXAMPLE")
             ))
@@ -585,7 +608,7 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getAwsRegion()).isEqualTo("us-west-2");
         assertThat(rec.getEventName()).isEqualTo("ObjectCreated:Put");
         assertThat(rec.getEventTime()).isEqualTo(Instant.parse("1970-01-01T00:00:00.000Z"));
-        assertThat(rec.getEventVersion()).isEqualTo("2.1");
+        assertThat(rec.getEventVersion()).isEqualTo("2.4");
 
         UserIdentity userIdentity = rec.getUserIdentity();
         assertThat(userIdentity).isNotNull();
@@ -619,6 +642,12 @@ class S3EventNotificationReaderTest {
         assertThat(s3Object.getSizeAsLong()).isEqualTo(1024L);
         assertThat(s3Object.getVersionId()).isEqualTo("096fKKXTRTtl3on89fVO.nfljtsv6qko");
         assertThat(s3Object.getSequencer()).isEqualTo("0055AED6DCD90281E5");
+        assertThat(s3Object.getHasObjectAnnotation()).isTrue();
+
+        assertThat(s3.getObjectAnnotation()).hasSize(1);
+        assertThat(s3.getObjectAnnotation().get(0).getName()).isEqualTo("anno1");
+        assertThat(s3.getObjectAnnotation().get(0).getSize()).isEqualTo(50L);
+        assertThat(s3.getObjectAnnotation().get(0).getETag()).isEqualTo("etag1");
 
         assertThat(rec.getGlacierEventData()).isNull();
         assertThat(rec.getIntelligentTieringEventData()).isNull();
