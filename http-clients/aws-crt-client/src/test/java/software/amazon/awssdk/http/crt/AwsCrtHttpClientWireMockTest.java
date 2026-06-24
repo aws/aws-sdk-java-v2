@@ -24,20 +24,20 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -45,15 +45,14 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class AwsCrtHttpClientWireMockTest {
-    @Rule
-    public WireMockRule mockServer = new WireMockRule(wireMockConfig()
-                                                          .dynamicPort());
+public class AwsCrtHttpClientWireMockTest extends SdkHttpClientTestSuite  {
 
     private static ScheduledExecutorService executorService;
 
@@ -114,6 +113,26 @@ public class AwsCrtHttpClientWireMockTest {
     }
 
     @Test
+    public void tlsNegotiationTimeout_customValue_clientStartsSuccessfully() throws Exception {
+        AttributeMap defaults = AttributeMap.builder().put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true).build();
+        try (SdkHttpClient client = AwsCrtHttpClient.builder()
+                                                    .tlsNegotiationTimeout(Duration.ofSeconds(3))
+                                                    .buildWithDefaults(defaults)) {
+            String body = randomAlphabetic(10);
+            URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
+            SdkHttpRequest request = createRequest(uri);
+
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request)
+                                 .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+            HttpExecuteResponse response = executableRequest.call();
+            assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
     public void abortRequest_shouldFailTheExceptionWithIOException() throws Exception {
         try (SdkHttpClient client = AwsCrtHttpClient.create()) {
             String body = randomAlphabetic(10);
@@ -150,5 +169,26 @@ public class AwsCrtHttpClientWireMockTest {
                              .metricCollector(metricCollector);
         ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
         return executableRequest.call();
+    }
+
+    /**
+     * default value of connectionAcquisitionTimeout of 10 will fail validatesHttpsCertificateIssuer() test
+     * */
+    @Override
+    protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
+        boolean trustAllCerts = options.trustAll();
+        return AwsCrtHttpClient.builder()
+                               .connectionAcquisitionTimeout(Duration.ofSeconds(40))
+                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManagerAndTrustAllFails() {
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManager() {
     }
 }

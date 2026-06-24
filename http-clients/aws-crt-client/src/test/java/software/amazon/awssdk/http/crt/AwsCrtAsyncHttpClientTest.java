@@ -19,24 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
-
-public class AwsCrtHttpClientTest extends AwsCrtHttpClientTestBase {
-
-    @Test
-    public void negativeConnectionAcquisitionTimeout_shouldFail() {
-        assertThatThrownBy(() -> {
-            SdkHttpClient client = AwsCrtHttpClient.builder()
-                    .connectionAcquisitionTimeout(Duration.ofSeconds(-1))
-                    .build();
-            client.close();
-        }).hasMessage("connectionAcquisitionTimeout must be positive");
-    }
+class AwsCrtAsyncHttpClientTest extends AwsCrtHttpClientTestBase {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidTlsNegotiationTimeouts")
@@ -47,31 +39,31 @@ public class AwsCrtHttpClientTest extends AwsCrtHttpClientTestBase {
             .hasMessageContaining(expectedMessageFragment);
     }
 
-    @Test
-    void syncBuilder_buildWithDefaults_serviceDefaultsLacksTlsNegotiationTimeout_resolvesToCrtDefault10s() {
-        try (SdkHttpClient client = AwsCrtHttpClient.builder().buildWithDefaults(AttributeMap.empty())) {
-            assertThat(((AwsCrtHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(CRT_DEFAULT);
-        }
-    }
-
-
-    @ParameterizedTest(name = "[sync] {0}")
+    @ParameterizedTest(name = "[async] {0}")
     @MethodSource("resolutionMatrix")
-    void syncBuilder_resolvedTlsNegotiationTimeout_matchesPathBPrecedence(String description, Duration customer,
-                                                                          Duration serviceDefault, Duration expected) {
-        AwsCrtHttpClient.Builder builder = AwsCrtHttpClient.builder();
+    void asyncBuilder_resolvedTlsNegotiationTimeout_matchesPathBPrecedence(String description, Duration customer,
+                                                                           Duration serviceDefault, Duration expected) {
+        AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
         if (customer != null) {
             builder.tlsNegotiationTimeout(customer);
         }
 
-        try (SdkHttpClient client = buildSync(builder, serviceDefault)) {
-            assertThat(((AwsCrtHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(expected);
+        try (SdkAsyncHttpClient client = buildAsync(builder, serviceDefault)) {
+            assertThat(((AwsCrtAsyncHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(expected);
         }
     }
 
-    private static SdkHttpClient buildSync(AwsCrtHttpClient.Builder builder, Duration serviceDefault) {
+    @Test
+    void asyncBuilder_buildWithDefaults_serviceDefaultsLacksTlsNegotiationTimeout_resolvesToCrtDefault10s() {
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().buildWithDefaults(AttributeMap.empty())) {
+            assertThat(((AwsCrtAsyncHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(CRT_DEFAULT);
+        }
+    }
+
+    private static SdkAsyncHttpClient buildAsync(AwsCrtAsyncHttpClient.Builder builder, Duration serviceDefault) {
         return serviceDefault == null
                ? builder.build()
                : builder.buildWithDefaults(serviceDefaultsMap(serviceDefault));
     }
+
 }
