@@ -369,7 +369,8 @@ public final class InstanceProfileCredentialsProvider
          * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
          * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
          *
-         * <p>This value must be less than {@link #prefetchTime(Duration)}.
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 1 minute.
          *
@@ -387,7 +388,8 @@ public final class InstanceProfileCredentialsProvider
          * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
          * the refresh while other callers receive the current cached credentials.
          *
-         * <p>This value must be greater than {@link #staleTime(Duration)}.
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 5 minutes.
          *
