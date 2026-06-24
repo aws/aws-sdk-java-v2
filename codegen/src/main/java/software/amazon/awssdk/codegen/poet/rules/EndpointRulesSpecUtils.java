@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.rules;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
+import com.fasterxml.jackson.jr.stree.JrsNumber;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
@@ -188,6 +189,12 @@ public class EndpointRulesSpecUtils {
             case VALUE_TRUE:
             case VALUE_FALSE:
                 b.add("$L", Validate.isInstanceOf(JrsBoolean.class, treeNode, "Expected boolean").booleanValue());
+                break;
+            case VALUE_NUMBER_INT:
+                b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().intValue());
+                break;
+            case VALUE_NUMBER_FLOAT:
+                b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().doubleValue());
                 break;
             case START_ARRAY:
                 handleArrayDefaultValue(b, "stringarray",
