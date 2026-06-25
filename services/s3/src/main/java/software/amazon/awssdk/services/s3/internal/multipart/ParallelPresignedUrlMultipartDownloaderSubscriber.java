@@ -191,7 +191,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             }
 
             if (totalParts <= 1) {
-                resultFuture.complete(firstResponse);
+                resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
                 synchronized (subscriptionLock) {
                     subscription.cancel();
                 }
@@ -262,7 +262,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             long totalComplete = completedParts.incrementAndGet();
 
             if (totalComplete == totalParts) {
-                resultFuture.complete(firstResponse);
+                resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
                 synchronized (subscriptionLock) {
                     subscription.cancel();
                 }

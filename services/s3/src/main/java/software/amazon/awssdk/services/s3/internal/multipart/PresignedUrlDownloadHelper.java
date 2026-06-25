@@ -67,7 +67,10 @@ public class PresignedUrlDownloadHelper {
         doMultipartDownload(presignedRequest, asyncResponseTransformer)
             .whenComplete((result, error) -> {
                 Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                if (cause instanceof EmptyObjectRangeNotSatisfiableException) {
+                // Parallel path wraps it as EmptyObjectRangeNotSatisfiableException;
+                // serial path (toBytes, custom transformers) surfaces raw S3Exception.
+                if (cause instanceof EmptyObjectRangeNotSatisfiableException
+                    || isRangeNotSatisfiable(cause)) {
                     log.debug(() -> "Received 416 on first request, falling back to non-range GET for empty object");
                     asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer)
                                               .whenComplete((r, e) -> {
@@ -99,6 +102,8 @@ public class PresignedUrlDownloadHelper {
         if (split.parallelSplitSupported()) {
             return downloadPartsInParallel(presignedRequest, split);
         }
+        // Serial path: split with response mapper to convert part response to full-object response
+        split = MultipartDownloadUtils.splitWithResponseRewrite(asyncResponseTransformer, splittingConfig);
         return downloadPartsSerially(presignedRequest, split);
     }
 

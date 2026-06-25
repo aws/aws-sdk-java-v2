@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,8 +45,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -71,6 +75,9 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                                                        .build();
         s3AsyncClient = S3AsyncClient.builder()
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                     .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                                         software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("accessKey", "secretKey")))
+                                     .region(software.amazon.awssdk.regions.Region.US_EAST_1)
                                      .multipartEnabled(true)
                                      .multipartConfiguration(multipartConfig)
                                      .build();
@@ -337,6 +344,59 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                                                          .build();
         assertThatThrownBy(() -> executeDownload(request, transformerType).join())
             .hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+    /**
+     * Verifies that custom serial transformers on the presigned URL path correctly trigger
+     * the empty-object 416 fallback.
+     */
+    @Test
+    void presignedUrlDownload_emptyObject_customTransformer_fallbackWorks() {
+        // Range request → 416 (simulates empty object race)
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=.*"))
+                    .willReturn(aResponse()
+                                    .withStatus(416)
+                                    .withBody("<Error><Code>InvalidRange</Code>"
+                                              + "<Message>The requested range is not satisfiable</Message></Error>")));
+
+        // Non-range fallback GET → 200 with empty body (the correct fallback for empty object)
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", absent())
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Length", "0")
+                                    .withBody("")));
+
+        AsyncResponseTransformer<GetObjectResponse, String> customTransformer =
+            new AsyncResponseTransformer<GetObjectResponse, String>() {
+                private CompletableFuture<String> future;
+                @Override
+                public CompletableFuture<String> prepare() {
+                    future = new CompletableFuture<>();
+                    return future;
+                }
+                @Override public void onResponse(GetObjectResponse r) { }
+                @Override public void onStream(SdkPublisher<ByteBuffer> p) {
+                    p.subscribe(new Subscriber<ByteBuffer>() {
+                        @Override public void onSubscribe(Subscription s) { s.request(Long.MAX_VALUE); }
+                        @Override public void onNext(ByteBuffer b) { }
+                        @Override public void onError(Throwable t) { future.completeExceptionally(t); }
+                        @Override public void onComplete() { future.complete("done"); }
+                    });
+                }
+                @Override public void exceptionOccurred(Throwable e) { future.completeExceptionally(e); }
+            };
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        // Should succeed: 416 triggers fallback → non-range GET returns 200
+        String result = s3AsyncClient.presignedUrlExtension()
+                                     .getObject(request, customTransformer)
+                                     .join();
+        assertThat(result).isEqualTo("done");
     }
 
     @AfterEach
