@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -84,12 +85,22 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
     private final Map<Integer, ByteBuffer> buffers;
 
+    private final UnaryOperator<ResponseT> responseMapper;
+
     public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
                                              upstreamResponseTransformer,
                                          CompletableFuture<ResponseBytes<ResponseT>> resultFuture) {
+        this(upstreamResponseTransformer, resultFuture, UnaryOperator.identity());
+    }
+
+    public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
+                                             upstreamResponseTransformer,
+                                         CompletableFuture<ResponseBytes<ResponseT>> resultFuture,
+                                         UnaryOperator<ResponseT> responseMapper) {
         this.upstreamResponseTransformer = upstreamResponseTransformer;
         this.resultFuture = resultFuture;
         this.buffers = new ConcurrentHashMap<>();
+        this.responseMapper = responseMapper;
     }
 
     @Override
@@ -181,7 +192,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
                 CompletableFuture<ResponseBytes<ResponseT>> upstreamPrepareFuture = upstreamResponseTransformer.prepare();
                 CompletableFutureUtils.forwardResultTo(upstreamPrepareFuture, resultFuture);
 
-                upstreamResponseTransformer.onResponse(responseT.get());
+                upstreamResponseTransformer.onResponse(responseMapper.apply(responseT.get()));
 
                 int totalPartCount = nextPartNumber.get() - 1;
                 if (buffers.size() != totalPartCount) {

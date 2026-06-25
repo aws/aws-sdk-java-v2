@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.UnaryOperator;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -73,6 +74,18 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
             new ByteArraySplittingTransformer<>(this, future);
+        return AsyncResponseTransformer.SplitResult.<ResponseT, ResponseBytes<ResponseT>>builder()
+                                                   .publisher(transformer)
+                                                   .resultFuture(future)
+                                                   .build();
+    }
+
+    public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(
+        SplittingTransformerConfiguration splitConfig,
+        UnaryOperator<ResponseT> responseMapper) {
+        CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
+            new ByteArraySplittingTransformer<>(this, future, responseMapper);
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResponseBytes<ResponseT>>builder()
                                                    .publisher(transformer)
                                                    .resultFuture(future)

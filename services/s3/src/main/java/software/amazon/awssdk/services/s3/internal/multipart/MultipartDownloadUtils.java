@@ -20,10 +20,20 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer.SplitResult;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.SplittingTransformer;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
 @SdkInternalApi
@@ -124,6 +134,66 @@ public final class MultipartDownloadUtils {
     public static long calculateTotalParts(long contentLength, long partSize) {
         return (contentLength / partSize) + (contentLength % partSize == 0 ? 0 : 1);
 
+    }
+
+    /**
+     * Rewrites a first-part response to represent the full object.
+     *
+     * @param firstPartResponse the GetObjectResponse from the first part request
+     * @return full-object response with total content-length, full content-range,
+     *         and checksum values nulled if checksum type is COMPOSITE
+     */
+    public static GetObjectResponse toFullObjectResponse(GetObjectResponse firstPartResponse) {
+        String contentRange = firstPartResponse.contentRange();
+        Optional<Long> totalOpt = parseContentRangeForTotalSize(contentRange);
+        if (!totalOpt.isPresent()) {
+            return firstPartResponse;
+        }
+        long totalLength = totalOpt.get();
+        String fullRange = "bytes 0-" + (totalLength - 1) + "/" + totalLength;
+
+        GetObjectResponse.Builder builder = firstPartResponse.toBuilder()
+            .contentLength(totalLength)
+            .contentRange(fullRange);
+
+        if (firstPartResponse.checksumType() == ChecksumType.COMPOSITE) {
+            builder.sdkFields().stream()
+                .filter(f -> f.memberName().startsWith("Checksum") && !"ChecksumType".equals(f.memberName()))
+                .forEach(f -> f.set(builder, null));
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Splits the given transformer with a response mapper that applies {@link #toFullObjectResponse}
+     * to the first part's response before it reaches the customer's transformer.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> SplitResult<GetObjectResponse, T> splitWithResponseRewrite(
+            AsyncResponseTransformer<GetObjectResponse, T> transformer,
+            SplittingTransformerConfiguration splitConfig) {
+
+        UnaryOperator<GetObjectResponse> mapper = MultipartDownloadUtils::toFullObjectResponse;
+
+        if (transformer instanceof ByteArrayAsyncResponseTransformer) {
+            return (SplitResult<GetObjectResponse, T>)
+                ((ByteArrayAsyncResponseTransformer<GetObjectResponse>) transformer).split(splitConfig, mapper);
+        }
+
+        // For default/custom transformers, use SplittingTransformer with mapper
+        CompletableFuture<T> future = new CompletableFuture<>();
+        SdkPublisher<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pub =
+            SplittingTransformer.<GetObjectResponse, T>builder()
+                .upstreamResponseTransformer(transformer)
+                .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+                .resultFuture(future)
+                .responseMapper(mapper)
+                .build();
+        return SplitResult.<GetObjectResponse, T>builder()
+            .publisher(pub)
+            .resultFuture(future)
+            .build();
     }
 
 }

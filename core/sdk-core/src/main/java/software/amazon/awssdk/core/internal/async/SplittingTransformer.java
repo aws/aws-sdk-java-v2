@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.UnaryOperator;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -112,9 +113,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     private final Object cancelLock = new Object();
 
+    private final UnaryOperator<ResponseT> responseMapper;
+
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                  Long maximumBufferSizeInBytes,
                                  CompletableFuture<ResultT> resultFuture) {
+        this(upstreamResponseTransformer, maximumBufferSizeInBytes, resultFuture,
+             UnaryOperator.identity());
+    }
+
+    private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
+                                 Long maximumBufferSizeInBytes,
+                                 CompletableFuture<ResultT> resultFuture,
+                                 UnaryOperator<ResponseT> responseMapper) {
         this.upstreamResponseTransformer = Validate.paramNotNull(
             upstreamResponseTransformer, "upstreamResponseTransformer");
         this.resultFuture = Validate.paramNotNull(
@@ -122,6 +133,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
         this.maximumBufferInBytes = Validate.isPositive(
             maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+        this.responseMapper = responseMapper;
 
         this.resultFuture.whenComplete((r, e) -> {
             if (e == null) {
@@ -296,7 +308,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onResponse(ResponseT response) {
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
-                upstreamResponseTransformer.onResponse(response);
+                upstreamResponseTransformer.onResponse(responseMapper.apply(response));
             }
             this.response = response;
         }
@@ -393,6 +405,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         private Long maximumBufferSize;
         private CompletableFuture<ResultT> returnFuture;
         private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
+        private UnaryOperator<ResponseT> responseMapper;
 
         private Builder() {
         }
@@ -437,10 +450,18 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             return this;
         }
 
+        public Builder<ResponseT, ResultT> responseMapper(UnaryOperator<ResponseT> responseMapper) {
+            this.responseMapper = responseMapper;
+            return this;
+        }
+
         public SplittingTransformer<ResponseT, ResultT> build() {
             return new SplittingTransformer<>(this.upstreamResponseTransformer,
                                               this.maximumBufferSize,
-                                              this.returnFuture);
+                                              this.returnFuture,
+                                              this.responseMapper != null
+                                                  ? this.responseMapper
+                                                  : UnaryOperator.identity());
         }
     }
 }
