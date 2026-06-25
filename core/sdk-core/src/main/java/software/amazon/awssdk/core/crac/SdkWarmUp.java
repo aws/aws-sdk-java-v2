@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.core.crac;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
+import software.amazon.awssdk.core.internal.http.loader.HttpClientWarmer;
+import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
 
 /**
  * Entry point for warming up SDK service request paths before a Coordinated Restore at Checkpoint (CRaC)
@@ -30,21 +34,25 @@ import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
  *
  * <p>Behavior contract:
  * <ul>
- *     <li><b>Idempotent:</b> {@code prime()} runs the warm-up at most once per JVM. Once a call completes
- *     successfully, later calls return immediately. If a call throws before completing, a later call retries.
- *     Concurrent callers block until the in-flight call finishes, then observe its result.</li>
- *     <li><b>Per-provider resilience:</b> a single provider that throws from {@code warmUp()}, or that fails
- *     to load, does not prevent the remaining providers from running.</li>
- *     <li><b>Safe when empty:</b> if no providers are registered, {@code prime()} is a no-op.</li>
+ *     <li><b>Idempotent:</b> runs at most once per JVM. Concurrent callers block until the in-flight call finishes; a call
+ *     that throws before completing lets a later call retry.</li>
+ *     <li><b>Resilient:</b> one provider that throws or fails to load does not stop the others.</li>
+ *     <li><b>Safe when empty:</b> a no-op if nothing is registered.</li>
  * </ul>
  *
- * <p>Call this once during application initialization, before a CRaC checkpoint is taken.
+ * <p>{@code prime()} also fires a best-effort {@code GET} per sync HTTP client at a regional AWS endpoint to JIT-compile the
+ * HTTP, DNS, TLS, and cert-chain paths. This needs network connectivity during init; if unavailable, the failure is swallowed.
+ *
+ * <p>Call this once during initialization, before a CRaC checkpoint is taken.
  */
 @ThreadSafe
 @SdkPublicApi
 public final class SdkWarmUp {
 
     private static final Object PRIME_LOCK = new Object();
+
+    // The HTTP-client warmers invoked by prime(), one per transport kind. The async warmer is added here when implemented.
+    private static final List<HttpClientWarmer> HTTP_CLIENT_WARMERS = Arrays.asList(SyncHttpClientWarmer.create());
 
     private static volatile boolean primed = false;
 
@@ -64,8 +72,11 @@ public final class SdkWarmUp {
             if (primed) {
                 return;
             }
-            // Set primed only after invokeAll() succeeds, so a failed run leaves primed false and a later call retries.
+            // Set primed only after warm-up succeeds, so a failed run leaves primed false and a later call retries.
             ClasspathWarmUpInvoker.create().invokeAll();
+            for (HttpClientWarmer warmer : HTTP_CLIENT_WARMERS) {
+                warmer.warmAll();
+            }
             primed = true;
         }
     }

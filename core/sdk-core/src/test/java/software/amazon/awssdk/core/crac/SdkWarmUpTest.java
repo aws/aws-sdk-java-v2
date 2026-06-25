@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -28,6 +30,27 @@ import org.junit.jupiter.api.Test;
  * runs at most once per JVM, so many concurrent calls must invoke the provider exactly once in total.
  */
 class SdkWarmUpTest {
+
+    private String savedRegionProperty;
+
+    @BeforeEach
+    void setup() {
+        // prime() now also warms every sync HTTP client on the classpath (apache-client is on this module's test
+        // classpath) by firing a real GET at the resolved STS endpoint. Pin the region to a bogus value so the host
+        // (sts.warmup-unit-test.amazonaws.com) never routes to real STS: it fails fast with UnknownHostException, which
+        // the warmer swallows, keeping this unit test hermetic and offline.
+        savedRegionProperty = System.getProperty("aws.region");
+        System.setProperty("aws.region", "warmup-unit-test");
+    }
+
+    @AfterEach
+    void teardown() {
+        if (savedRegionProperty != null) {
+            System.setProperty("aws.region", savedRegionProperty);
+        } else {
+            System.clearProperty("aws.region");
+        }
+    }
 
     @Test
     void prime_concurrentCalls_invokeRegisteredProviderExactlyOnce() throws InterruptedException {

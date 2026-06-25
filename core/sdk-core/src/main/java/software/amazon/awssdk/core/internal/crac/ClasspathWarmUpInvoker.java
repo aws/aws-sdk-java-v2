@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.core.internal.crac;
 
-import java.util.Iterator;
-import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * {@link WarmUpInvoker} implementation that uses {@link ServiceLoader} to find {@link SdkWarmUpProvider}
@@ -29,8 +26,6 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class ClasspathWarmUpInvoker implements WarmUpInvoker {
-
-    private static final Logger log = Logger.loggerFor(ClasspathWarmUpInvoker.class);
 
     private final WarmUpServiceLoader serviceLoader;
 
@@ -41,30 +36,7 @@ public final class ClasspathWarmUpInvoker implements WarmUpInvoker {
 
     @Override
     public void invokeAll() {
-        Iterator<SdkWarmUpProvider> iterator = serviceLoader.loadProviders();
-        boolean invokedAny = false;
-
-        while (iterator.hasNext()) {
-            SdkWarmUpProvider provider;
-            try {
-                provider = iterator.next();
-            } catch (ServiceConfigurationError e) {
-                // next() has already advanced past the bad provider, so it is safe to continue to the next one.
-                log.warn(() -> "Skipping an SdkWarmUpProvider that could not be loaded.", e);
-                continue;
-            }
-
-            invokedAny = true;
-            try {
-                provider.warmUp();
-            } catch (RuntimeException e) {
-                log.warn(() -> "An SdkWarmUpProvider failed during warmUp() and was skipped.", e);
-            }
-        }
-
-        if (!invokedAny) {
-            log.debug(() -> "No SdkWarmUpProvider implementations were discovered on the classpath.");
-        }
+        WarmUpDiscovery.forEachDiscovered(serviceLoader.loadProviders(), SdkWarmUpProvider::warmUp);
     }
 
     /**
