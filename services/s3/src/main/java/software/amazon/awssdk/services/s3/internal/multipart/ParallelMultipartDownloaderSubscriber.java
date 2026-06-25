@@ -283,7 +283,7 @@ public class ParallelMultipartDownloaderSubscriber
                     resultFuture.completeExceptionally(new IllegalStateException("Total parts exceeded"));
                 } else {
                     updateResumeContextForCompletion(res);
-                    resultFuture.complete(getObjectResponse);
+                    resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(getObjectResponse));
                 }
 
                 synchronized (subscriptionLock) {

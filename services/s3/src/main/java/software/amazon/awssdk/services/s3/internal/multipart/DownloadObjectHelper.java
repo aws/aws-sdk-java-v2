@@ -46,15 +46,19 @@ public class DownloadObjectHelper {
             logSinglePartMessage(getObjectRequest);
             return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
         }
+        SplittingTransformerConfiguration splitConfig = SplittingTransformerConfiguration.builder()
+                                                                                         .bufferSizeInBytes(bufferSizeInBytes)
+                                                                                         .build();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
-            asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
-                                                                            .bufferSizeInBytes(bufferSizeInBytes)
-                                                                            .build());
-        if (!split.parallelSplitSupported()) {
-            return downloadPartsSerially(getObjectRequest, split);
+            asyncResponseTransformer.split(splitConfig);
+
+        if (split.parallelSplitSupported()) {
+            return downloadPartsNonSerially(getObjectRequest, split, maxInFlightParts);
         }
 
-        return downloadPartsNonSerially(getObjectRequest, split, maxInFlightParts);
+        // Serial path: split with a response rewrite so the customer sees full-object metadata
+        split = MultipartDownloadUtils.splitWithResponseRewrite(asyncResponseTransformer, splitConfig);
+        return downloadPartsSerially(getObjectRequest, split);
 
     }
 
