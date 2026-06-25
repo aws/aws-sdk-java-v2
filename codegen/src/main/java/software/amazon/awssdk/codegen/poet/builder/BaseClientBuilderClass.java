@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.PROTECTED;
 import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasRequestAlgorithmMember;
 import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasResponseAlgorithms;
 
+import java.net.URI;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -46,9 +47,15 @@ import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -86,7 +93,6 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
-import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -223,6 +229,11 @@ public class BaseClientBuilderClass implements ClassSpec {
         return model.getEndpointOperation()
                     .map(OperationModel::isEndpointCacheRequired)
                     .orElse(false);
+    }
+
+    private boolean hasBuiltInParam(BuiltInParameter builtIn) {
+        return model.getEndpointRuleSetModel().getParameters().values().stream()
+                    .anyMatch(p -> p.getBuiltInEnum() == builtIn);
     }
 
     private MethodSpec signingNameMethod() {
@@ -514,21 +525,48 @@ public class BaseClientBuilderClass implements ClassSpec {
         String serviceNameForSystemProperty = model.getNamingStrategy().getServiceNameForSystemProperties();
         String serviceNameForProfileFile = model.getNamingStrategy().getServiceNameForProfileFile();
 
-        builder.addCode("builder.lazyOptionIfAbsent($T.CLIENT_ENDPOINT_PROVIDER, c ->", SdkClientOption.class)
-               .addCode("  $T.builder()", AwsClientEndpointProvider.class)
-               .addCode("    .serviceEndpointOverrideEnvironmentVariable($S)", "AWS_ENDPOINT_URL_" + serviceNameForEnvVar)
-               .addCode("    .serviceEndpointOverrideSystemProperty($S)", "aws.endpointUrl" + serviceNameForSystemProperty)
-               .addCode("    .serviceProfileProperty($S)", serviceNameForProfileFile)
-               .addCode("    .serviceEndpointPrefix(serviceEndpointPrefix())")
-               .addCode("    .defaultProtocol($S)", "https")
-               .addCode("    .region(c.get($T.AWS_REGION))", AwsClientOption.class)
-               .addCode("    .profileFile(c.get($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class)
-               .addCode("    .profileName(c.get($T.PROFILE_NAME))", SdkClientOption.class)
-               .addCode("    .putAdvancedOption($T.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,", ServiceMetadataAdvancedOption.class)
-               .addCode("        c.get($T.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))", ServiceMetadataAdvancedOption.class)
-               .addCode("    .dualstackEnabled(c.get($T.DUALSTACK_ENDPOINT_ENABLED))", AwsClientOption.class)
-               .addCode("    .fipsEnabled(c.get($T.FIPS_ENDPOINT_ENABLED))", AwsClientOption.class)
-               .addCode("    .build());");
+        builder.addCode("builder.lazyOptionIfAbsent($T.CLIENT_ENDPOINT_PROVIDER, c -> {\n", SdkClientOption.class)
+               .addCode("  $T<$T> fromOverrides = $T.builder()\n",
+                         Optional.class, ClientEndpointProvider.class, AwsClientEndpointProvider.class)
+               .addCode("      .serviceEndpointOverrideEnvironmentVariable($S)\n", "AWS_ENDPOINT_URL_" + serviceNameForEnvVar)
+               .addCode("      .serviceEndpointOverrideSystemProperty($S)\n", "aws.endpointUrl" + serviceNameForSystemProperty)
+               .addCode("      .serviceProfileProperty($S)\n", serviceNameForProfileFile)
+               .addCode("      .profileFile(c.get($T.PROFILE_FILE_SUPPLIER))\n", SdkClientOption.class)
+               .addCode("      .profileName(c.get($T.PROFILE_NAME))\n", SdkClientOption.class)
+               .addCode("      .buildOptional();\n")
+               .addCode("  if (fromOverrides.isPresent()) {\n")
+               .addCode("      return fromOverrides.get();\n")
+               .addCode("  }\n")
+               .addCode("  $T endpointProvider = defaultEndpointProvider();\n",
+                         endpointRulesSpecUtils.providerInterfaceName())
+               .addCode("  $T params = $T.builder()\n",
+                         endpointRulesSpecUtils.parametersClassName(),
+                         endpointRulesSpecUtils.parametersClassName())
+               .addCode("      .region(c.get($T.AWS_REGION))\n", AwsClientOption.class);
+
+        if (hasBuiltInParam(BuiltInParameter.AWS_USE_FIPS)) {
+            builder.addCode("      .useFips(c.get($T.FIPS_ENDPOINT_ENABLED))\n", AwsClientOption.class);
+        }
+        if (hasBuiltInParam(BuiltInParameter.AWS_USE_DUAL_STACK)) {
+            builder.addCode("      .useDualStack(c.get($T.DUALSTACK_ENDPOINT_ENABLED))\n", AwsClientOption.class);
+        }
+
+        builder.addCode("      .build();\n")
+               .addCode("  try {\n")
+               .addCode("    $T endpoint = $T.joinLikeSync(endpointProvider.resolveEndpoint(params));\n",
+                         Endpoint.class, CompletableFutureUtils.class)
+               .addCode("    $T endpointUrl = endpoint.url();\n", URI.class)
+               .addCode("    if (endpointUrl.getHost() == null) {\n")
+               .addCode("      throw $T.create(\"Configured region (\" + c.get($T.AWS_REGION) + \") resulted in an invalid\"\n",
+                         SdkClientException.class, AwsClientOption.class)
+               .addCode("        + \" URI. This is usually caused by an invalid region configuration.\");\n")
+               .addCode("    }\n")
+               .addCode("    return $T.create(endpointUrl, false);\n", ClientEndpointProvider.class)
+               .addCode("  } catch ($T e) {\n", NullPointerException.class)
+               .addCode("    return $T.create($T.create(\"https://localhost\"), false);\n",
+                         ClientEndpointProvider.class, URI.class)
+               .addCode("  }\n")
+               .addCode("});\n");
 
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",

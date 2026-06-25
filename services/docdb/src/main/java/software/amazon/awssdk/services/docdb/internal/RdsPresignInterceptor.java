@@ -25,10 +25,9 @@ import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.ClientEndpointProvider;
-import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -48,6 +47,8 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.docdb.endpoints.DocDbEndpointParams;
+import software.amazon.awssdk.services.docdb.endpoints.DocDbEndpointProvider;
 import software.amazon.awssdk.services.docdb.model.DocDbRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -219,16 +220,15 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
     }
 
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
-        return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol(Protocol.HTTPS.toString())
-                                        .region(Region.of(regionName))
-                                        .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
-                                        .profileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
-                                        .dualstackEnabled(
-                                            attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
-                                        .build()
-                                        .clientEndpoint();
+        DocDbEndpointProvider provider = DocDbEndpointProvider.defaultProvider();
+        DocDbEndpointParams params = DocDbEndpointParams.builder()
+                                                        .region(Region.of(regionName))
+                                                        .useFips(attributes.getAttribute(
+                                                            AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
+                                                        .useDualStack(attributes.getAttribute(
+                                                            AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                                                        .build();
+        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(provider.resolveEndpoint(params));
+        return endpoint.url();
     }
 }

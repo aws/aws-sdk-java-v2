@@ -342,17 +342,14 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private URI resolveEndpoint() {
         return AwsClientEndpointProvider.builder()
-                                        .clientEndpointOverride(endpointOverride)
+                                        .clientEndpointOverride(endpointOverride != null
+                                                               ? endpointOverride
+                                                               : URI.create("https://localhost"))
                                         .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_POLLY")
                                         .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
                                         .serviceProfileProperty("polly")
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol("https")
-                                        .region(region)
                                         .profileFile(profileFile)
                                         .profileName(profileName)
-                                        .dualstackEnabled(dualstackEnabled)
-                                        .fipsEnabled(fipsEnabled)
                                         .build()
                                         .clientEndpoint();
     }

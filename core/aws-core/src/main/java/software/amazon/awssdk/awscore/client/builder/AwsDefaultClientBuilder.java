@@ -64,7 +64,6 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -316,8 +315,30 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * Resolve the signing region from the default-applied configuration.
      */
     private Region resolveSigningRegion(LazyValueSource config) {
-        return ServiceMetadata.of(serviceEndpointPrefix())
-                              .signingRegion(config.get(AwsClientOption.AWS_REGION));
+        Region clientRegion = config.get(AwsClientOption.AWS_REGION);
+
+        if (clientRegion.isGlobalRegion()) {
+            return Region.of(implicitGlobalRegion(clientRegion));
+        }
+
+        return clientRegion;
+    }
+
+    private String implicitGlobalRegion(Region globalRegion) {
+        String regionId = globalRegion.id();
+        if (regionId.startsWith("aws-cn")) {
+            return "cn-northwest-1";
+        } else if (regionId.startsWith("aws-us-gov")) {
+            return "us-gov-west-1";
+        } else if (regionId.startsWith("aws-iso-b")) {
+            return "us-isob-east-1";
+        } else if (regionId.startsWith("aws-iso-e")) {
+            return "us-iso-east-1";
+        } else if (regionId.startsWith("aws-iso")) {
+            return "us-iso-east-1";
+        }
+        // Default: aws-global -> us-east-1
+        return "us-east-1";
     }
 
     /**
@@ -326,18 +347,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * This is only used for older client versions. Newer clients specify this value themselves.
      */
     private ClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
-        ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
-            ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
         return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                                        .defaultProtocol(DEFAULT_ENDPOINT_PROTOCOL)
-                                        .region(config.get(AwsClientOption.AWS_REGION))
+                                        .clientEndpointOverride(URI.create("https://localhost"))
                                         .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                         .profileName(config.get(SdkClientOption.PROFILE_NAME))
-                                        .putAdvancedOption(useGlobalS3EndpointProperty,
-                                                           config.get(useGlobalS3EndpointProperty))
-                                        .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
                                         .build();
     }
 

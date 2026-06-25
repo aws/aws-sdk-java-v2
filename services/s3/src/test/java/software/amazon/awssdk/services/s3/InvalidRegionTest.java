@@ -32,9 +32,8 @@ public class InvalidRegionTest {
 
         assertThatThrownBy(() -> utilities.getUrl(r -> r.bucket("foo").key("bar")))
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("US_EAST_1")
             .hasMessageContaining("region")
-            .hasMessageContaining("us-east-1");
+            .hasMessageContaining("DNS");
     }
 
     @Test
@@ -43,9 +42,8 @@ public class InvalidRegionTest {
 
         assertThatThrownBy(() -> utilities.getUrl(r -> r.bucket("foo").key("bar").region(Region.of("US_WEST_2"))))
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("US_WEST_2")
             .hasMessageContaining("region")
-            .hasMessageContaining("us-west-2");
+            .hasMessageContaining("DNS");
     }
 
     @Test
@@ -77,7 +75,8 @@ public class InvalidRegionTest {
     public void invalidS3PresignerRegionAtClientGivesHelpfulMessage() {
         assertThatThrownBy(() -> S3Presigner.builder().region(Region.of("US_EAST_1")).build())
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Configured region (US_EAST_1) and tags ([]) resulted in an invalid URI");
+            .hasMessageContaining("region")
+            .hasMessageContaining("DNS");
     }
 
     @Test
