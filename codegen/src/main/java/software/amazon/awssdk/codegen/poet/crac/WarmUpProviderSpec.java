@@ -58,8 +58,6 @@ public class WarmUpProviderSpec implements ClassSpec {
         return MethodSpec.methodBuilder("warmUp")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
-                         .addJavadoc("Warms up the service's request path so the Just-In-Time compiled code is "
-                                     + "captured in a CRaC snapshot.\n")
                          .build();
     }
 }
