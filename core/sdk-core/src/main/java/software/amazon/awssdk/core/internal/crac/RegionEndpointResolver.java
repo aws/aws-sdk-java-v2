@@ -18,15 +18,18 @@ package software.amazon.awssdk.core.internal.crac;
 import java.net.URI;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 /**
  * Resolves the regional STS endpoint ({@code https://sts.<region>.amazonaws.com/}) used by the CRaC HTTP-client warm-up.
  *
- * <p>The region is taken from the first of: {@code aws.region} system property, {@code AWS_REGION} environment variable,
- * {@code AWS_DEFAULT_REGION} environment variable, or {@value #DEFAULT_REGION}. A blank value at one source is ignored and the
- * next is tried.
+ * <p>The region is taken from the first of: {@link SdkSystemSetting#AWS_REGION} (the {@code aws.region} system property or
+ * {@code AWS_REGION} environment variable), the {@code AWS_DEFAULT_REGION} environment variable, or {@value #DEFAULT_REGION}.
  *
  * <p>Only system properties and environment variables are read. The full SDK region-resolution chain (IMDS, profile file) is
  * avoided during priming because those add network or filesystem calls that may fail or time out. The endpoint host always
@@ -37,29 +40,6 @@ import software.amazon.awssdk.utils.SystemSetting;
 public final class RegionEndpointResolver {
 
     static final String DEFAULT_REGION = "us-east-1";
-
-    private static final String AWS_REGION_PROPERTY = "aws.region";
-    private static final String AWS_REGION_ENV_VAR = "AWS_REGION";
-    private static final String AWS_DEFAULT_REGION_ENV_VAR = "AWS_DEFAULT_REGION";
-
-    // Property-only SystemSetting (null env var) so aws.region is read as a tier distinct from the AWS_REGION env var,
-    // without a direct System.getProperty call (Checkstyle-banned outside the system-setting utilities).
-    private static final SystemSetting AWS_REGION_PROPERTY_SETTING = new SystemSetting() {
-        @Override
-        public String property() {
-            return AWS_REGION_PROPERTY;
-        }
-
-        @Override
-        public String environmentVariable() {
-            return null;
-        }
-
-        @Override
-        public String defaultValue() {
-            return null;
-        }
-    };
 
     private RegionEndpointResolver() {
     }
@@ -72,18 +52,40 @@ public final class RegionEndpointResolver {
      * @return the regional STS endpoint URI for the resolved region; never null.
      */
     public URI stsEndpoint() {
-        return URI.create("https://sts." + resolveRegion() + ".amazonaws.com/");
+        // URL-encode the region before putting it in the host, same as Region.of(String).
+        return URI.create("https://sts." + SdkHttpUtils.urlEncode(resolveRegion()) + ".amazonaws.com/");
     }
 
     private String resolveRegion() {
-        return trimmed(AWS_REGION_PROPERTY_SETTING.getStringValue())
-            .orElseGet(() -> trimmed(SystemSetting.getStringValueFromEnvironmentVariable(AWS_REGION_ENV_VAR))
-                .orElseGet(() -> trimmed(SystemSetting.getStringValueFromEnvironmentVariable(AWS_DEFAULT_REGION_ENV_VAR))
-                    .orElse(DEFAULT_REGION)));
+        Optional<String> awsRegion = trimmed(SdkSystemSetting.AWS_REGION.getStringValue());
+        return OptionalUtils.firstPresent(awsRegion, RegionEndpointResolver::awsDefaultRegion)
+                            .orElse(DEFAULT_REGION);
+    }
+
+    private static Optional<String> awsDefaultRegion() {
+        return trimmed(SystemSettingUtils.resolveEnvironmentVariable(new AwsDefaultRegionEnvVar()));
     }
 
     private static Optional<String> trimmed(Optional<String> value) {
         // trimToNull returns null for blank/empty input, so Optional.map collapses those to an empty Optional.
         return value.map(StringUtils::trimToNull);
+    }
+
+    // AWS_DEFAULT_REGION is an environment-variable-only fallback with no system-property equivalent.
+    private static final class AwsDefaultRegionEnvVar implements SystemSetting {
+        @Override
+        public String property() {
+            return null;
+        }
+
+        @Override
+        public String environmentVariable() {
+            return "AWS_DEFAULT_REGION";
+        }
+
+        @Override
+        public String defaultValue() {
+            return null;
+        }
     }
 }

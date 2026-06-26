@@ -71,6 +71,28 @@ class RegionEndpointResolverTest {
         );
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("untrustedRegionCases")
+    void stsEndpoint_whenRegionHasSpecialCharacters_encodesThemIntoHost(String description, String region) {
+        System.setProperty(REGION_PROPERTY, region);
+
+        URI endpoint = RegionEndpointResolver.create().stsEndpoint();
+
+        assertThat(endpoint.toString()).startsWith("https://sts.").endsWith(".amazonaws.com/");
+        assertThat(endpoint.toString()).doesNotContain(region);
+    }
+
+    private static Stream<Arguments> untrustedRegionCases() {
+        return Stream.of(
+            arguments("newline is encoded",          "us-east-1\nfoo"),
+            arguments("carriage return is encoded",   "us-east-1\rfoo"),
+            arguments("forward slash is encoded",     "us-east-1/foo"),
+            arguments("space is encoded",             "us-east-1 foo"),
+            arguments("at sign is encoded",           "evil@host"),
+            arguments("hash is encoded",              "host#fragment")
+        );
+    }
+
     @Test
     void stsEndpoint_whenImdsUnreachable_resolvesWithoutCallingImds() {
         // Point IMDS at a non-routable address. A resolver that (incorrectly) called IMDS would block here;

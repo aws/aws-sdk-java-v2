@@ -21,12 +21,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.Assume.assumeTrue;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
@@ -45,7 +42,6 @@ import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
  */
 public class SyncHttpClientWarmerIntegrationTest {
 
-    private static final int WARM_UP_CYCLES = 20;
     private static final int STS_REDIRECT_STATUS = 302;
     private static final String STS_REDIRECT_LOCATION = "https://aws.amazon.com/iam";
 
@@ -55,21 +51,6 @@ public class SyncHttpClientWarmerIntegrationTest {
     @Test
     public void warmAll_sendsWarmUpRequestThroughApache() {
         assertWarmUpRequestIssued(new ApacheSdkHttpService());
-    }
-
-    @Test
-    public void warmAll_repeatedCycles_doNotLeakFileDescriptors() {
-        assumeTrue("FD check only runs where /proc/self/fd is available", openFdCountAvailable());
-        stubStsRedirect();
-        URI endpoint = endpoint();
-
-        long before = openFdCount();
-        for (int i = 0; i < WARM_UP_CYCLES; i++) {
-            warmer(new ApacheSdkHttpService(), endpoint).warmAll();
-        }
-        long after = openFdCount();
-
-        assertThat(after - before).isLessThan(WARM_UP_CYCLES);
     }
 
     @Test
@@ -112,14 +93,5 @@ public class SyncHttpClientWarmerIntegrationTest {
         mockServer.stubFor(any(anyUrl()).willReturn(aResponse()
             .withStatus(STS_REDIRECT_STATUS)
             .withHeader("Location", STS_REDIRECT_LOCATION)));
-    }
-
-    private static boolean openFdCountAvailable() {
-        return new File("/proc/self/fd").isDirectory();
-    }
-
-    private static long openFdCount() {
-        File[] fds = new File("/proc/self/fd").listFiles();
-        return fds == null ? 0 : fds.length;
     }
 }

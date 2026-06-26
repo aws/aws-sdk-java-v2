@@ -52,8 +52,6 @@ class SyncHttpClientWarmerTest {
 
     private static final URI ENDPOINT = URI.create("https://sts.us-east-1.amazonaws.com/");
 
-    // ---- per-client recipe (driven through warmAll) ----
-
     @Test
     void warmAll_whenResponseHasBody_drainsAndClosesIt() throws IOException {
         InputStream body = spy(new ByteArrayInputStream("<Error>denied</Error>".getBytes()));
@@ -97,8 +95,6 @@ class SyncHttpClientWarmerTest {
         verify(client).close();
     }
 
-    // ---- discovery loop ----
-
     @Test
     void warmAll_whenMultipleServicesDiscovered_warmsEach() {
         SdkHttpClient first = stubClient(respondingWith(403, emptyBody()));
@@ -125,8 +121,6 @@ class SyncHttpClientWarmerTest {
     void warmAll_whenNoServices_isNoOp() {
         assertThatCode(() -> warmer(Collections.emptyIterator()).warmAll()).doesNotThrowAnyException();
     }
-
-    // ---- helpers ----
 
     private static SyncHttpClientWarmer warmer(SdkHttpService... services) {
         return warmer(Arrays.asList(services).iterator());
