@@ -32,6 +32,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.S3ObjectAnnotation;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -185,6 +186,9 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         writeStringField(writer, "configurationId", s3.getConfigurationId());
         writeS3Bucket(writer, s3.getBucket());
         writeS3Object(writer, s3.getObject());
+        if (s3.getObjectAnnotation() != null) {
+            writeS3ObjectAnnotations(writer, s3.getObjectAnnotation());
+        }
         writer.writeEndObject();
     }
 
@@ -200,6 +204,9 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         writeStringField(writer, "eTag", s3Object.getETag());
         writeStringField(writer, "versionId", s3Object.getVersionId());
         writeStringField(writer, "sequencer", s3Object.getSequencer());
+        if (s3Object.getHasObjectAnnotation() != null) {
+            writeBooleanField(writer, "hasObjectAnnotation", s3Object.getHasObjectAnnotation());
+        }
         writer.writeEndObject();
     }
 
@@ -273,6 +280,26 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
         } else {
             writer.writeNumber(value.toString());
         }
+    }
+
+    private void writeS3ObjectAnnotations(JsonWriter writer, List<S3ObjectAnnotation> annotations) {
+        writer.writeFieldName("objectAnnotation");
+        writer.writeStartArray();
+        annotations.forEach(a -> writeS3ObjectAnnotation(writer, a));
+        writer.writeEndArray();
+    }
+
+    private void writeS3ObjectAnnotation(JsonWriter writer, S3ObjectAnnotation a) {
+        writer.writeStartObject();
+        writeStringField(writer, "name", a.getName());
+        writeNumericField(writer, "size", a.getSize());
+        writeStringField(writer, "eTag", a.getETag());
+        writer.writeEndObject();
+    }
+
+    private void writeBooleanField(JsonWriter writer, String field, boolean value) {
+        writer.writeFieldName(field);
+        writer.writeValue(value);
     }
 
     @Override

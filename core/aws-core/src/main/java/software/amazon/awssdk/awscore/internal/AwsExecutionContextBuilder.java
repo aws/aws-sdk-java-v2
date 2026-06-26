@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
 import static software.amazon.awssdk.awscore.internal.AwsServiceProtocol.SMITHY_RPC_V2_CBOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.NEW_RETRIES_2026_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
@@ -103,6 +104,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(AwsExecutionAttribute.ENDPOINT_PREFIX, clientConfig.option(AwsClientOption.ENDPOINT_PREFIX))
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION))
             .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, executionParams.isFullDuplex())
+            .putAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING, executionParams.isLongPolling())
+            .putAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED, clientConfig.option(NEW_RETRIES_2026_ENABLED))
             .putAttribute(SdkInternalExecutionAttribute.HAS_INITIAL_REQUEST_EVENT, executionParams.hasInitialRequestEvent())
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
@@ -269,9 +272,9 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO(request-override auth scheme feature): When request-level auth scheme provider is added, use the request-level
-        //  auth scheme provider if the customer specified an override, otherwise fall back to the one on the client.
-        AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+        // Use the request-level auth scheme provider if the customer specified an override, otherwise fall back to the one
+        // on the client.
+        AuthSchemeProvider authSchemeProvider = resolveAuthSchemeProvider(originalRequest, clientConfig);
 
         // Use auth schemes that the user specified at the request level with
         // preference over those on the client.
@@ -358,6 +361,19 @@ public final class AwsExecutionContextBuilder {
         return request.overrideConfiguration()
                       .flatMap(RequestOverrideConfiguration::endpointProvider)
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
+    }
+
+    /**
+     * Resolves the auth scheme provider, with the request override configuration taking precedence over the provided client
+     * configuration.
+     *
+     * @return The auth scheme provider that will be used by the SDK to resolve auth schemes.
+     */
+    private static AuthSchemeProvider resolveAuthSchemeProvider(SdkRequest request,
+                                                               SdkClientConfiguration clientConfig) {
+        return request.overrideConfiguration()
+                      .flatMap(RequestOverrideConfiguration::authSchemeProvider)
+                      .orElse(clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER));
     }
 
     private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection

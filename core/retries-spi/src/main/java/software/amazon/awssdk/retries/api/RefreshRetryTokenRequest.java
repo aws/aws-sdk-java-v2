@@ -44,6 +44,13 @@ public interface RefreshRetryTokenRequest extends ToCopyableBuilder<RefreshRetry
     Optional<Duration> suggestedDelay();
 
     /**
+     * Whether the operation that is being retried is a long polling operation. Returns {@code false} by default.
+     */
+    default boolean isLongPolling() {
+        return false;
+    }
+
+    /**
      * The cause of the last attempt failure.
      */
     Throwable failure();
@@ -65,6 +72,13 @@ public interface RefreshRetryTokenRequest extends ToCopyableBuilder<RefreshRetry
          * Configures the suggested delay to used when refreshing the token.
          */
         Builder suggestedDelay(Duration duration);
+
+        /**
+         * Configures whether this refresh request is for a long polling operation. The default implementation is a no-op.
+         */
+        default Builder isLongPolling(boolean isLongPolling) {
+            return this;
+        }
 
         /**
          * Configures the latest caught exception.

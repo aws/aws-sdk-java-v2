@@ -345,7 +345,8 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"IncompatibleImageException"},
-        {"shape":"DryRunOperationException"}
+        {"shape":"DryRunOperationException"},
+        {"shape":"InvalidParameterCombinationException"}
       ],
       "documentation":"<p>Creates a custom WorkSpaces Applications image by importing an EC2 AMI. This allows you to use your own customized AMI to create WorkSpaces Applications images that support additional instance types beyond the standard stream.* instances.</p>"
     },
@@ -1507,6 +1508,104 @@
         }
       },
       "documentation":"<p>The collection of license usage records.</p>"
+    },
+    "AgentAccessConfig":{
+      "type":"structure",
+      "required":[
+        "Settings",
+        "ScreenResolution",
+        "ScreenImageFormat"
+      ],
+      "members":{
+        "Settings":{
+          "shape":"AgentAccessSettingList",
+          "documentation":"<p>The list of agent access settings that define permissions for each agent action. You must specify at least one setting.</p>"
+        },
+        "S3BucketArn":{
+          "shape":"S3BucketArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon S3 bucket where agent screenshots are stored. Required when ScreenshotsUploadEnabled is true.</p>"
+        },
+        "ScreenshotsUploadEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Indicates whether screenshot uploads to Amazon S3 are enabled for agent sessions.</p>"
+        },
+        "ScreenResolution":{
+          "shape":"ScreenResolution",
+          "documentation":"<p>The screen resolution for the agent streaming environment.</p>"
+        },
+        "ScreenImageFormat":{
+          "shape":"ScreenImageFormat",
+          "documentation":"<p>The image format for agent screen captures.</p>"
+        },
+        "UserControlMode":{
+          "shape":"UserControlMode",
+          "documentation":"<p>The user control mode for agent sessions. This setting determines how users can interact with agent sessions.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for agent access on a stack. Agent access enables AI agents to interact with desktop applications during streaming sessions.</p>"
+    },
+    "AgentAccessConfigForUpdate":{
+      "type":"structure",
+      "members":{
+        "Settings":{
+          "shape":"AgentAccessSettingList",
+          "documentation":"<p>The list of agent access settings that define permissions for each agent action.</p>"
+        },
+        "S3BucketArn":{
+          "shape":"S3BucketArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon S3 bucket where agent screenshots are stored.</p>"
+        },
+        "ScreenshotsUploadEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Indicates whether screenshot uploads to Amazon S3 are enabled for agent sessions.</p>"
+        },
+        "ScreenResolution":{
+          "shape":"ScreenResolution",
+          "documentation":"<p>The screen resolution for the agent streaming environment.</p>"
+        },
+        "ScreenImageFormat":{
+          "shape":"ScreenImageFormat",
+          "documentation":"<p>The image format for agent screen captures.</p>"
+        },
+        "UserControlMode":{
+          "shape":"UserControlMode",
+          "documentation":"<p>The user control mode for agent sessions. This setting determines how users can interact with agent sessions.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for updating agent access on a stack. This type supports partial updates, so you only need to specify the fields you want to change.</p>"
+    },
+    "AgentAccessSetting":{
+      "type":"structure",
+      "required":[
+        "AgentAction",
+        "Permission"
+      ],
+      "members":{
+        "AgentAction":{
+          "shape":"AgentAction",
+          "documentation":"<p>The agent action to configure. Valid values are COMPUTER_VISION, COMPUTER_INPUT, and FORWARD_MCP_TOOLS. If you enable COMPUTER_INPUT, you must also enable COMPUTER_VISION.</p>"
+        },
+        "Permission":{
+          "shape":"Permission",
+          "documentation":"<p>Whether the agent action is enabled or disabled.</p>"
+        }
+      },
+      "documentation":"<p>A permission setting for an agent action. Each setting specifies an agent action and whether it is enabled or disabled.</p>"
+    },
+    "AgentAccessSettingList":{
+      "type":"list",
+      "member":{"shape":"AgentAccessSetting"},
+      "documentation":"<p>A list of AgentAccessSetting objects.</p>",
+      "min":1
+    },
+    "AgentAction":{
+      "type":"string",
+      "documentation":"<p>The type of agent action.</p> <ul> <li> <p>COMPUTER_VISION - Allows agents to take screenshots of the desktop.</p> </li> <li> <p>COMPUTER_INPUT - Allows agents to click, type, and scroll on the desktop. Requires COMPUTER_VISION to also be enabled.</p> </li> <li> <p>FORWARD_MCP_TOOLS - Allows agents to interact with applications and the desktop operating system through direct MCP calls rather than using computer use tools. Forwards MCP tools configured on the WorkSpaces application session to the agent.</p> </li> </ul>",
+      "enum":[
+        "COMPUTER_VISION",
+        "COMPUTER_INPUT",
+        "FORWARD_MCP_TOOLS"
+      ]
     },
     "AgentSoftwareVersion":{
       "type":"string",
@@ -2805,11 +2904,7 @@
     },
     "CreateImportedImageRequest":{
       "type":"structure",
-      "required":[
-        "Name",
-        "SourceAmiId",
-        "IamRoleArn"
-      ],
+      "required":["Name"],
       "members":{
         "Name":{
           "shape":"Name",
@@ -2817,7 +2912,11 @@
         },
         "SourceAmiId":{
           "shape":"PhotonAmiId",
-          "documentation":"<p>The ID of the EC2 AMI to import. The AMI must meet specific requirements including Windows Server 2022 Full Base, UEFI boot mode, TPM 2.0 support, and proper drivers.</p>"
+          "documentation":"<p>The ID of the EC2 AMI to import.</p>"
+        },
+        "WorkspaceImageId":{
+          "shape":"WorkspaceImageId",
+          "documentation":"<p>The ID of the Workspaces Image to import.</p>"
         },
         "IamRoleArn":{
           "shape":"Arn",
@@ -2911,7 +3010,11 @@
           "shape":"StreamingExperienceSettings",
           "documentation":"<p>The streaming protocol you want your stack to prefer. This can be UDP or TCP. Currently, UDP is only supported in the Windows native client.</p>"
         },
-        "ContentRedirection":{"shape":"ContentRedirection"}
+        "ContentRedirection":{"shape":"ContentRedirection"},
+        "AgentAccessConfig":{
+          "shape":"AgentAccessConfig",
+          "documentation":"<p>The configuration for agent access on the stack. If specified, agent access is enabled for the stack.</p>"
+        }
       }
     },
     "CreateStackResult":{
@@ -4382,7 +4485,8 @@
       "enum":[
         "EXPORTING",
         "COMPLETED",
-        "FAILED"
+        "FAILED",
+        "TIMED_OUT"
       ]
     },
     "ExportImageTasks":{
@@ -4974,7 +5078,8 @@
       "documentation":"The image type is the type of AppStream image resource.",
       "enum":[
         "CUSTOM",
-        "NATIVE"
+        "NATIVE",
+        "BYOL"
       ]
     },
     "IncompatibleImageException":{
@@ -5397,6 +5502,10 @@
       "min":3,
       "pattern":"^[0-9a-z\\.\\-]*(?<!\\.)$"
     },
+    "S3BucketArn":{
+      "type":"string",
+      "pattern":"^arn:aws(?:\\-cn|\\-iso\\-b|\\-iso|\\-us\\-gov)?:s3:::[a-z0-9][a-z0-9.\\-]{1,61}[a-z0-9]$"
+    },
     "S3Key":{
       "type":"string",
       "max":1024,
@@ -5416,6 +5525,19 @@
         }
       },
       "documentation":"<p>Describes the S3 location.</p>"
+    },
+    "ScreenImageFormat":{
+      "type":"string",
+      "documentation":"<p>The image format for agent screen captures.</p> <ul> <li> <p>PNG - PNG format.</p> </li> <li> <p>JPEG - JPEG format.</p> </li> </ul>",
+      "enum":[
+        "PNG",
+        "JPEG"
+      ]
+    },
+    "ScreenResolution":{
+      "type":"string",
+      "documentation":"<p>The screen resolution for the agent streaming environment.</p> <ul> <li> <p>W_1280xH_720 - 1280 x 720 pixels.</p> </li> </ul>",
+      "enum":["W_1280xH_720"]
     },
     "ScriptDetails":{
       "type":"structure",
@@ -5673,12 +5795,17 @@
         "ContentRedirection":{
           "shape":"ContentRedirection",
           "documentation":"<p>Configuration for bidirectional URL redirection between the streaming session and the local client. Use HostToClient to redirect URLs from the remote desktop to the local browser.</p>"
+        },
+        "AgentAccessConfig":{
+          "shape":"AgentAccessConfig",
+          "documentation":"<p>The agent access configuration of the stack, if agent access is enabled.</p>"
         }
       },
       "documentation":"<p>Describes a stack.</p>"
     },
     "StackAttribute":{
       "type":"string",
+      "documentation":"<p>The stack attributes to delete.</p> <ul> <li> <p>STORAGE_CONNECTORS</p> </li> <li> <p>STORAGE_CONNECTOR_HOMEFOLDERS</p> </li> <li> <p>STORAGE_CONNECTOR_GOOGLE_DRIVE</p> </li> <li> <p>STORAGE_CONNECTOR_ONE_DRIVE</p> </li> <li> <p>REDIRECT_URL</p> </li> <li> <p>FEEDBACK_URL</p> </li> <li> <p>THEME_NAME</p> </li> <li> <p>USER_SETTINGS</p> </li> <li> <p>EMBED_HOST_DOMAINS</p> </li> <li> <p>IAM_ROLE_ARN</p> </li> <li> <p>ACCESS_ENDPOINTS</p> </li> <li> <p>STREAMING_EXPERIENCE_SETTINGS</p> </li> <li> <p>AGENT_ACCESS_CONFIG</p> </li> </ul>",
       "enum":[
         "STORAGE_CONNECTORS",
         "STORAGE_CONNECTOR_HOMEFOLDERS",
@@ -5692,7 +5819,8 @@
         "IAM_ROLE_ARN",
         "ACCESS_ENDPOINTS",
         "STREAMING_EXPERIENCE_SETTINGS",
-        "CONTENT_REDIRECTION"
+        "CONTENT_REDIRECTION",
+        "AGENT_ACCESS_CONFIG"
       ]
     },
     "StackAttributes":{
@@ -6459,7 +6587,11 @@
           "shape":"StreamingExperienceSettings",
           "documentation":"<p>The streaming protocol you want your stack to prefer. This can be UDP or TCP. Currently, UDP is only supported in the Windows native client.</p>"
         },
-        "ContentRedirection":{"shape":"ContentRedirection"}
+        "ContentRedirection":{"shape":"ContentRedirection"},
+        "AgentAccessConfig":{
+          "shape":"AgentAccessConfigForUpdate",
+          "documentation":"<p>The configuration for agent access on the stack. Specify this to update agent access settings. To remove agent access, use AttributesToDelete with the AGENT_ACCESS_CONFIG value.</p>"
+        }
       }
     },
     "UpdateStackResult":{
@@ -6643,6 +6775,15 @@
       "pattern":"^[A-Za-z0-9_\\-\\s]+$",
       "sensitive":true
     },
+    "UserControlMode":{
+      "type":"string",
+      "documentation":"<p>The user control mode for agent sessions.</p> <ul> <li> <p>VIEW_ONLY - Users can view and observe agent actions as they happen.</p> </li> <li> <p>VIEW_STOP - Users can view agent actions and stop the agent if needed.</p> </li> <li> <p>DISABLED - Users cannot view or stop the agent session.</p> </li> </ul>",
+      "enum":[
+        "VIEW_ONLY",
+        "VIEW_STOP",
+        "DISABLED"
+      ]
+    },
     "UserId":{
       "type":"string",
       "max":128,
@@ -6781,6 +6922,12 @@
         }
       },
       "documentation":"<p>Describes VPC configuration information for fleets and image builders.</p>"
+    },
+    "WorkspaceImageId":{
+      "type":"string",
+      "max":67,
+      "min":12,
+      "pattern":"^wsi-[0-9a-z]{8,63}$"
     }
   },
   "documentation":"<fullname>Amazon WorkSpaces Applications</fullname> <p>This is the <i>Amazon WorkSpaces Applications API Reference</i>. This documentation provides descriptions and syntax for each of the actions and data types in WorkSpaces Applications. WorkSpaces Applications is a fully managed, secure application streaming service that lets you stream desktop applications to users without rewriting applications. WorkSpaces Applications manages the AWS resources that are required to host and run your applications, scales automatically, and provides access to your users on demand. </p> <note> <p>You can call the WorkSpaces Applications API operations by using an interface VPC endpoint (interface endpoint). For more information, see <a href=\"https://docs.aws.amazon.com/appstream2/latest/developerguide/access-api-cli-through-interface-vpc-endpoint.html\">Access WorkSpaces Applications API Operations and CLI Commands Through an Interface VPC Endpoint</a> in the <i>Amazon WorkSpaces Applications Administration Guide</i>.</p> </note> <p>To learn more about WorkSpaces Applications, see the following resources:</p> <ul> <li> <p> <a href=\"http://aws.amazon.com/appstream2\">Amazon WorkSpaces Applications product page</a> </p> </li> <li> <p> <a href=\"http://aws.amazon.com/documentation/appstream2\">Amazon WorkSpaces Applications documentation</a> </p> </li> </ul>"

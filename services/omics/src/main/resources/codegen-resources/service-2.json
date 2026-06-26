@@ -2056,7 +2056,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"RequestTimeoutException"}
       ],
-      "documentation":"<p>Starts a batch of workflow runs. You can group up to 100,000 runs into a single batch that share a common configuration defined in <code>defaultRunSetting</code>. Per-run overrides can be provided either inline via <code>inlineSettings</code> (up to 100 runs) or via a JSON file stored in Amazon S3 via <code>s3UriSettings</code> (up to 100,000 runs).</p> <p> <code>StartRunBatch</code> validates common fields synchronously and returns immediately with a batch ID and status <code>PENDING</code>. Runs are submitted gradually and asynchronously at a rate governed by your <code>StartRun</code> throughput quota.</p>",
+      "documentation":"<p>Starts a batch of workflow runs. You can group up to 100,000 runs into a single batch that share a common configuration defined in <code>defaultRunSetting</code>. Per-run overrides can be provided either inline via <code>inlineSettings</code> (up to 100 runs) or via a JSON file stored in Amazon S3 via <code>s3UriSettings</code> (up to 100,000 runs).</p> <p> <code>StartRunBatch</code> validates common fields synchronously and returns immediately with a batch ID and status <code>CREATING</code>. The batch transitions to <code>PENDING</code> once initial setup completes. Runs are then submitted gradually and asynchronously at a rate governed by your <code>StartRun</code> throughput quota.</p>",
       "endpoint":{"hostPrefix":"workflows-"}
     },
     "StartVariantImportJob":{
@@ -2854,6 +2854,7 @@
     "BatchStatus":{
       "type":"string",
       "enum":[
+        "CREATING",
         "PENDING",
         "SUBMITTING",
         "INPROGRESS",
@@ -4238,6 +4239,22 @@
         "workflowVersionName":{
           "shape":"WorkflowVersionName",
           "documentation":"<p>The version name of the specified workflow.</p>"
+        },
+        "networkingMode":{
+          "shape":"NetworkingMode",
+          "documentation":"<p>Optional configuration for run networking behavior. If not specified, this will default to RESTRICTED.</p>"
+        },
+        "configurationName":{
+          "shape":"ConfigurationName",
+          "documentation":"<p>Optional configuration name to use for the workflow run.</p>"
+        },
+        "engineSettings":{
+          "shape":"EngineSettings",
+          "documentation":"<p>Engine-specific settings for the workflow run. Use this field to specify configuration options that are specific to the workflow engine (for example, Nextflow profiles).</p>"
+        },
+        "scratchStorageMode":{
+          "shape":"ScratchStorageMode",
+          "documentation":"<p>Optional configuration for enabling scratch ephemeral storage mounted at /tmp. If not specified, this will default to SHARED. This configuration is applicable only for CPU tasks. For tasks using GPUs, scratch storage is always LOCAL.</p>"
         }
       },
       "documentation":"<p>Shared configuration applied to all runs in a batch. Fields specified in a per-run <code>InlineSetting</code> entry override the corresponding fields in this object for that run. The <code>parameters</code> and <code>runTags</code> fields are merged rather than replaced — run-specific values take precedence when keys overlap.</p>"
@@ -4660,6 +4677,11 @@
     "EngineLogStream":{
       "type":"string",
       "pattern":"[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+"
+    },
+    "EngineSettings":{
+      "type":"structure",
+      "members":{},
+      "document":true
     },
     "EngineVersion":{
       "type":"string",
@@ -5193,7 +5215,7 @@
         },
         "status":{
           "shape":"BatchStatus",
-          "documentation":"<p>The current status of the run batch.</p>"
+          "documentation":"<p>The current status of the run batch. Possible values: <code>CREATING</code> (initial setup), <code>PENDING</code> (ready to submit runs), <code>SUBMITTING</code> (submitting runs), <code>INPROGRESS</code> (runs executing), <code>STOPPING</code> (cancellation in progress), <code>PROCESSED</code> (all runs completed), <code>CANCELLED</code> (batch cancelled), <code>FAILED</code> (batch failed), <code>RUNS_DELETING</code> (deleting runs), <code>RUNS_DELETED</code> (runs deleted).</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -6186,6 +6208,10 @@
           "shape":"NetworkingMode",
           "documentation":"<p>Configuration for run networking behavior. If absent, this will default to RESTRICTED.</p>"
         },
+        "scratchStorageMode":{
+          "shape":"ScratchStorageMode",
+          "documentation":"<p>Optional configuration for enabling scratch ephemeral storage mounted at /tmp. If absent, this will default to SHARED. This configuration is applicable only for CPU tasks. For tasks using GPUs, scratch storage is always LOCAL.</p>"
+        },
         "configuration":{
           "shape":"ConfigurationDetails",
           "documentation":"<p>Configuration details for the workflow run.</p>"
@@ -6193,6 +6219,10 @@
         "vpcConfig":{
           "shape":"VpcConfigResponse",
           "documentation":"<p>VPC configuration for the workflow run.</p>"
+        },
+        "engineSettings":{
+          "shape":"EngineSettings",
+          "documentation":"<p>The engine-specific settings for the workflow run.</p>"
         }
       }
     },
@@ -6722,6 +6752,14 @@
         "readmePath":{
           "shape":"ReadmePath",
           "documentation":"<p>The path to the workflow README markdown file within the repository. This file provides documentation and usage information for the workflow. If not specified, the <code>README.md</code> file from the root directory of the repository will be used.</p>"
+        },
+        "profiles":{
+          "shape":"WorkflowProfileList",
+          "documentation":"<p>The list of Nextflow profiles that are available for this workflow. Profiles allow you to select predefined configuration settings at runtime.</p>"
+        },
+        "profileParameterTemplates":{
+          "shape":"WorkflowProfileParameterTemplates",
+          "documentation":"<p>A mapping of profile names to their parameter templates. Each profile defines its own set of parameters that you can use when starting a run with that profile.</p>"
         }
       }
     },
@@ -6868,6 +6906,14 @@
         "readmePath":{
           "shape":"ReadmePath",
           "documentation":"<p>The path to the workflow version README markdown file within the repository. This file provides documentation and usage information for the workflow. If not specified, the <code>README.md</code> file from the root directory of the repository will be used.</p>"
+        },
+        "profiles":{
+          "shape":"WorkflowProfileList",
+          "documentation":"<p>The list of Nextflow profiles that are available for this workflow version. Profiles allow you to select predefined configuration settings at runtime.</p>"
+        },
+        "profileParameterTemplates":{
+          "shape":"WorkflowProfileParameterTemplates",
+          "documentation":"<p>A mapping of profile names to their parameter templates. Each profile defines its own set of parameters that you can use when starting a run with that profile.</p>"
         }
       }
     },
@@ -7173,6 +7219,10 @@
         "runTags":{
           "shape":"TagMap",
           "documentation":"<p>Per-run AWS tags. Merged with <code>defaultRunSetting.runTags</code>; values in this object take precedence when keys overlap.</p>"
+        },
+        "engineSettings":{
+          "shape":"EngineSettings",
+          "documentation":"<p>Per-run engine-specific settings. Use this field to specify configuration options that are specific to the workflow engine (for example, Nextflow profiles). Overrides <code>defaultRunSetting.engineSettings</code> for this run.</p>"
         }
       },
       "documentation":"<p>A per-run configuration that overrides or merges with fields from <code>DefaultRunSetting</code> for a specific run.</p>"
@@ -9794,6 +9844,10 @@
         "workflowVersionName":{
           "shape":"WorkflowVersionName",
           "documentation":"<p>The name of the workflow version.</p>"
+        },
+        "workflowName":{
+          "shape":"WorkflowName",
+          "documentation":"<p>The name of the workflow.</p>"
         }
       },
       "documentation":"<p>A workflow run.</p>"
@@ -10049,6 +10103,15 @@
         "DOUBLE",
         "BOOLEAN"
       ]
+    },
+    "ScratchStorageMode":{
+      "type":"string",
+      "enum":[
+        "LOCAL",
+        "SHARED"
+      ],
+      "max":64,
+      "min":1
     },
     "SecurityGroupId":{
       "type":"string",
@@ -10821,7 +10884,7 @@
         },
         "status":{
           "shape":"BatchStatus",
-          "documentation":"<p>The initial status of the run batch.</p>"
+          "documentation":"<p>The initial status of the run batch. Returns <code>CREATING</code> while the batch is being initialized.</p>"
         },
         "uuid":{
           "shape":"BatchUuid",
@@ -10922,9 +10985,17 @@
           "shape":"NetworkingMode",
           "documentation":"<p>Optional configuration for run networking behavior. If not specified, this will default to RESTRICTED.</p>"
         },
+        "scratchStorageMode":{
+          "shape":"ScratchStorageMode",
+          "documentation":"<p>Optional configuration for enabling scratch ephemeral storage mounted at /tmp. If not specified, this will default to SHARED. This configuration is applicable only for CPU tasks. For tasks using GPUs, scratch storage is always LOCAL.</p>"
+        },
         "configurationName":{
           "shape":"ConfigurationName",
           "documentation":"<p>Optional configuration name to use for the workflow run.</p>"
+        },
+        "engineSettings":{
+          "shape":"EngineSettings",
+          "documentation":"<p>Engine-specific settings for the workflow run. Use this field to specify configuration options that are specific to the workflow engine (for example, Nextflow profiles).</p>"
         }
       }
     },
@@ -12462,6 +12533,16 @@
       "value":{"shape":"WorkflowParameter"},
       "max":2000,
       "min":1
+    },
+    "WorkflowProfileList":{
+      "type":"list",
+      "member":{"shape":"WorkflowProfileName"}
+    },
+    "WorkflowProfileName":{"type":"string"},
+    "WorkflowProfileParameterTemplates":{
+      "type":"map",
+      "key":{"shape":"WorkflowProfileName"},
+      "value":{"shape":"WorkflowParameterTemplate"}
     },
     "WorkflowRequestId":{
       "type":"string",

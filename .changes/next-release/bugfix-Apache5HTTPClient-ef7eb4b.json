@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Apache 5 HTTP Client",
+    "contributor": "",
+    "description": "Update `httpcore5` to `5.4.3` to fix an issue where early 3xx responses to requests with `Expect: 100-continue` does not cause the client to terminate the request. Fixes [#7047](https://github.com/aws/aws-sdk-java-v2/issues/7047)."
+}
