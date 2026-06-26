@@ -56,8 +56,9 @@ public final class SyncHttpClientWarmer implements HttpClientWarmer {
 
     /**
      * Discovers sync HTTP clients from the classpath as usual, but warms them against {@code endpointProvider} instead of the
-     * resolved STS endpoint. Lets a caller redirect the warm-up request (e.g. to a local mock server).
+     * resolved STS endpoint, so a test can redirect the warm-up request to a local mock server.
      */
+    @SdkTestInternalApi
     public SyncHttpClientWarmer(Supplier<URI> endpointProvider) {
         this(SdkServiceLoader.INSTANCE, endpointProvider, WarmUpRequest.get());
     }

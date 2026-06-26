@@ -26,8 +26,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * Describes the request the CRaC warm-up sends to the resolved endpoint, and converts it to an {@link SdkHttpRequest} bound to
  * that endpoint. The request is never signed and needs no credentials; only its execution (DNS, TLS, request/response I/O)
  * matters for JIT priming.
- *
- * <p>Add a new warm-up shape (e.g. a request with a body for a different protocol) by adding a factory method here.
  */
 @SdkInternalApi
 public final class WarmUpRequest {

@@ -28,13 +28,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-/**
- * Unit tests for {@link RegionEndpointResolver}.
- *
- * <p>Region resolution precedence under test (system property first, per the SDK's {@code SystemSetting} convention):
- * {@code aws.region} system property, then {@code AWS_REGION} env, then {@code AWS_DEFAULT_REGION} env, then the
- * {@code us-east-1} default.
- */
 class RegionEndpointResolverTest {
 
     private static final String REGION_PROPERTY = "aws.region";

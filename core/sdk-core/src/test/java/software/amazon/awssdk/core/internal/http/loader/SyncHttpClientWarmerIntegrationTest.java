@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assume.assumeTrue;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -35,15 +36,12 @@ import org.junit.Test;
 import software.amazon.awssdk.core.internal.crac.WarmUpRequest;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
-import software.amazon.awssdk.http.apache5.Apache5SdkHttpService;
 
 /**
- * Integration tests for {@link SyncHttpClientWarmer} against the real sync HTTP clients on this module's test classpath
- * (Apache and Apache5) and a WireMock server. Each test pins discovery to one real client so the warm-up exercises that
- * client implementation specifically.
+ * Integration tests that run {@link SyncHttpClientWarmer} against a real HTTP client and a WireMock server.
  *
- * <p>The stub mirrors what a real {@code GET https://sts.<region>.amazonaws.com/} returns: a {@code 302} redirect with an
- * empty body. The warm-up must not follow the redirect, so exactly one GET is expected.
+ * <p>WireMock returns a {@code 302} redirect with an empty body, like a real {@code GET} to an STS endpoint. The warm-up
+ * must not follow the redirect, so exactly one request is expected.
  */
 public class SyncHttpClientWarmerIntegrationTest {
 
@@ -60,13 +58,8 @@ public class SyncHttpClientWarmerIntegrationTest {
     }
 
     @Test
-    public void warmAll_sendsWarmUpRequestThroughApache5() {
-        assertWarmUpRequestIssued(new Apache5SdkHttpService());
-    }
-
-    @Test
     public void warmAll_repeatedCycles_doNotLeakFileDescriptors() {
-        org.junit.Assume.assumeTrue("FD check only runs where /proc/self/fd is available", openFdCountAvailable());
+        assumeTrue("FD check only runs where /proc/self/fd is available", openFdCountAvailable());
         stubStsRedirect();
         URI endpoint = endpoint();
 

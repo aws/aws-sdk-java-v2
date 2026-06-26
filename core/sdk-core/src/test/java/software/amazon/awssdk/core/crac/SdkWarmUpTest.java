@@ -35,10 +35,7 @@ class SdkWarmUpTest {
 
     @BeforeEach
     void setup() {
-        // prime() now also warms every sync HTTP client on the classpath (apache-client is on this module's test
-        // classpath) by firing a real GET at the resolved STS endpoint. Pin the region to a bogus value so the host
-        // (sts.warmup-unit-test.amazonaws.com) never routes to real STS: it fails fast with UnknownHostException, which
-        // the warmer swallows, keeping this unit test hermetic and offline.
+        // Dummy region so prime()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
         savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "warmup-unit-test");
     }
