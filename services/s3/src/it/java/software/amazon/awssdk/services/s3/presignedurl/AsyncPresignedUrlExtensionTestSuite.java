@@ -390,54 +390,50 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
         assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
     }
 
-    @Test
-    void getObject_largeObject_toBytes_hasCorrectFullObjectMetadata() throws Exception {
+    @ParameterizedTest(name = "getObject_largeObject_{0}_hasCorrectFullObjectMetadata")
+    @MethodSource("transformerTypes")
+    void getObject_largeObject_hasCorrectFullObjectMetadata(String type) throws Exception {
         PresignedUrlDownloadRequest request = createRequestForKey(testLargeObjectKey);
-        ResponseBytes<GetObjectResponse> response =
-            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
-                                 .get(60, TimeUnit.SECONDS);
 
-        assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
-        assertThat(response.response().contentLength()).isEqualTo((long) testLargeObjectContent.length);
-        assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+        if ("toFile".equals(type)) {
+            Path downloadFile = temporaryFolder.resolve("large-metadata-test-" + UUID.randomUUID() + ".bin");
+            GetObjectResponse response =
+                presignedUrlExtension.getObject(request, downloadFile)
+                                     .get(60, TimeUnit.SECONDS);
+
+            assertThat(response.contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
+            assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+        } else {
+            ResponseBytes<GetObjectResponse> response =
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                     .get(60, TimeUnit.SECONDS);
+
+            assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
+            assertThat(response.response().contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+        }
     }
 
-    @Test
-    void getObject_largeObject_toFile_hasCorrectFullObjectMetadata() throws Exception {
-        PresignedUrlDownloadRequest request = createRequestForKey(testLargeObjectKey);
-        Path downloadFile = temporaryFolder.resolve("large-metadata-test-" + UUID.randomUUID() + ".bin");
-        GetObjectResponse response =
-            presignedUrlExtension.getObject(request, downloadFile)
-                                 .get(60, TimeUnit.SECONDS);
-
-        assertThat(response.contentLength()).isEqualTo((long) testLargeObjectContent.length);
-        assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
-        assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+    static Stream<String> transformerTypes() {
+        return Stream.of("toFile", "toBytes");
     }
 
-    @Test
-    void getObject_mpuObjectWithChecksumMode_hasCorrectMetadata() throws Exception {
-        PresignedGetObjectRequest presigned = presigner.presignGetObject(r -> r
-            .getObjectRequest(req -> req.bucket(testBucket).key(testMpuChecksumKey)
-                                        .checksumMode(ChecksumMode.ENABLED))
-            .signatureDuration(Duration.ofMinutes(10)));
-
-        ResponseBytes<GetObjectResponse> response =
-            presignedUrlExtension.getObject(
-                PresignedUrlDownloadRequest.builder().presignedUrl(presigned.url()).build(),
-                AsyncResponseTransformer.toBytes())
-                .get(60, TimeUnit.SECONDS);
-
-        assertThat(response.asByteArray().length).isEqualTo(testMpuObjectContent.length);
-        assertThat(response.response().contentLength()).isEqualTo((long) testMpuObjectContent.length);
-        assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
-    }
-
-    @Test
-    void getObject_mpuObjectWithoutChecksumMode_hasCorrectMetadata() throws Exception {
-        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
-            .presignedUrl(createPresignedUrl(testMpuChecksumKey))
-            .build();
+    @ParameterizedTest(name = "getObject_mpuObject_{0}_hasCorrectMetadata")
+    @MethodSource("checksumModes")
+    void getObject_mpuObject_hasCorrectMetadata(String mode) throws Exception {
+        PresignedUrlDownloadRequest request;
+        if ("withChecksumMode".equals(mode)) {
+            PresignedGetObjectRequest presigned = presigner.presignGetObject(r -> r
+                .getObjectRequest(req -> req.bucket(testBucket).key(testMpuChecksumKey)
+                                            .checksumMode(ChecksumMode.ENABLED))
+                .signatureDuration(Duration.ofMinutes(10)));
+            request = PresignedUrlDownloadRequest.builder().presignedUrl(presigned.url()).build();
+        } else {
+            request = PresignedUrlDownloadRequest.builder()
+                .presignedUrl(createPresignedUrl(testMpuChecksumKey))
+                .build();
+        }
 
         ResponseBytes<GetObjectResponse> response =
             presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
@@ -446,6 +442,10 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
         assertThat(response.asByteArray().length).isEqualTo(testMpuObjectContent.length);
         assertThat(response.response().contentLength()).isEqualTo((long) testMpuObjectContent.length);
         assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+    }
+
+    static Stream<String> checksumModes() {
+        return Stream.of("withChecksumMode", "withoutChecksumMode");
     }
 
     @Test

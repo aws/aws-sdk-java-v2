@@ -80,6 +80,7 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
                                                    .build();
     }
 
+    @Override
     public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(
         SplittingTransformerConfiguration splitConfig,
         UnaryOperator<ResponseT> responseMapper) {

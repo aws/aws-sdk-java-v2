@@ -115,25 +115,16 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     private final UnaryOperator<ResponseT> responseMapper;
 
-    private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long maximumBufferSizeInBytes,
-                                 CompletableFuture<ResultT> resultFuture) {
-        this(upstreamResponseTransformer, maximumBufferSizeInBytes, resultFuture,
-             UnaryOperator.identity());
-    }
-
-    private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long maximumBufferSizeInBytes,
-                                 CompletableFuture<ResultT> resultFuture,
-                                 UnaryOperator<ResponseT> responseMapper) {
+    private SplittingTransformer(Builder<ResponseT, ResultT> builder) {
         this.upstreamResponseTransformer = Validate.paramNotNull(
-            upstreamResponseTransformer, "upstreamResponseTransformer");
-        this.resultFuture = Validate.paramNotNull(
-            resultFuture, "resultFuture");
-        Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+            builder.upstreamResponseTransformer, "upstreamResponseTransformer");
+        this.resultFuture = Validate.paramNotNull(builder.returnFuture, "resultFuture");
+        Validate.notNull(builder.maximumBufferSize, "maximumBufferSizeInBytes");
         this.maximumBufferInBytes = Validate.isPositive(
-            maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
-        this.responseMapper = responseMapper;
+            builder.maximumBufferSize, "maximumBufferSizeInBytes");
+        this.responseMapper = builder.responseMapper != null
+            ? builder.responseMapper
+            : UnaryOperator.identity();
 
         this.resultFuture.whenComplete((r, e) -> {
             if (e == null) {
@@ -456,12 +447,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
 
         public SplittingTransformer<ResponseT, ResultT> build() {
-            return new SplittingTransformer<>(this.upstreamResponseTransformer,
-                                              this.maximumBufferSize,
-                                              this.returnFuture,
-                                              this.responseMapper != null
-                                                  ? this.responseMapper
-                                                  : UnaryOperator.identity());
+            return new SplittingTransformer<>(this);
         }
     }
 }
