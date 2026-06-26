@@ -164,6 +164,20 @@ public class ContainerCredentialsEndpointProviderTest {
                                                .headers(new HashMap<>())
                                                .build())),
 
+            // EKS Pod Identity sets the IPv6 container URI but does NOT set
+            // AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE (that controls IMDS, not the
+            // container credentials endpoint). The IPv6 host must be allowed with the
+            // mode left at its IPv4 default.
+            Arguments.of("http link-local EKS URI with IPv6, default endpoint mode",
+                         Collections.singletonList(Pair.of(FULL_URI_ENV, EKS_CONTAINER_HOST_IPV6 + "/credentials")),
+                         EKS_CONTAINER_HOST_IPV6 + "/credentials",
+                         new Result().type("success").sdkRequest(
+                             SdkHttpFullRequest.builder()
+                                               .uri(URI.create(EKS_CONTAINER_HOST_IPV6 + "/credentials"))
+                                               .method(SdkHttpMethod.GET)
+                                               .headers(new HashMap<>())
+                                               .build())),
+
             Arguments.of("complex full URI",
                          Collections.singletonList(Pair.of(FULL_URI_ENV, COMPLEX_URI)),
                          COMPLEX_URI,
