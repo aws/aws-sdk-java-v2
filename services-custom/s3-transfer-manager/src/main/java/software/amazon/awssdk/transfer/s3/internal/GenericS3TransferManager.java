@@ -334,7 +334,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+                                                Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
@@ -650,11 +650,18 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
         progressUpdater.transferInitiated();
 
-        responseTransformer = isS3ClientMultipartEnabled()
-                              && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null
-                              ? progressUpdater.wrapForNonSerialFileDownload(
-                                  responseTransformer, GetObjectRequest.builder().build())
-                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        if (isS3ClientMultipartEnabled()
+            && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null) {
+            if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
+                responseTransformer = progressUpdater.wrapForNonSerialFileDownload(
+                    responseTransformer, GetObjectRequest.builder().build());
+            } else {
+                responseTransformer = progressUpdater.wrapResponseTransformerForMultipartDownload(
+                    responseTransformer, GetObjectRequest.builder().build());
+            }
+        } else {
+            responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
+        }
         progressUpdater.registerCompletion(returnFuture);
 
         try {
