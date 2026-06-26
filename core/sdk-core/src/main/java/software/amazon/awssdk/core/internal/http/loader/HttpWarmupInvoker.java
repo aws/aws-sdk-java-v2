@@ -18,13 +18,13 @@ package software.amazon.awssdk.core.internal.http.loader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Warms the sync or async HTTP clients on the classpath for CRaC priming.
+ * Warms every HTTP client on the classpath for CRaC priming by invoking each {@link HttpClientWarmer}.
  */
 @SdkInternalApi
-public interface HttpClientWarmer {
+public interface HttpWarmupInvoker {
 
     /**
-     * Warms every HTTP client found on the classpath. Best-effort; never throws.
+     * Invokes {@link HttpClientWarmer#warmAll()} on every warmer. Best-effort; never throws.
      */
-    void warmAll();
+    void invokeAll();
 }

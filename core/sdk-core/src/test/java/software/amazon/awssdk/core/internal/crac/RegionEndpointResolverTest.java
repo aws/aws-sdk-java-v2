@@ -16,11 +16,16 @@
 package software.amazon.awssdk.core.internal.crac;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.net.URI;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
@@ -36,88 +41,45 @@ class RegionEndpointResolverTest {
     private static final String AWS_REGION_ENV = "AWS_REGION";
     private static final String AWS_DEFAULT_REGION_ENV = "AWS_DEFAULT_REGION";
 
-    private final EnvironmentVariableHelper env = new EnvironmentVariableHelper();
-    private String savedRegionProperty;
+    private static final EnvironmentVariableHelper ENV = new EnvironmentVariableHelper();
 
     @BeforeEach
-    void setup() {
-        savedRegionProperty = System.getProperty(REGION_PROPERTY);
+    void clearSettings() {
+        ENV.reset();
         System.clearProperty(REGION_PROPERTY);
-        env.remove(AWS_REGION_ENV);
-        env.remove(AWS_DEFAULT_REGION_ENV);
     }
 
     @AfterEach
-    void teardown() {
-        env.reset();
-        if (savedRegionProperty != null) {
-            System.setProperty(REGION_PROPERTY, savedRegionProperty);
-        } else {
-            System.clearProperty(REGION_PROPERTY);
-        }
+    void restoreSettings() {
+        ENV.reset();
+        System.clearProperty(REGION_PROPERTY);
     }
 
-    @Test
-    void stsEndpoint_noConfiguration_usesDefaultRegion() {
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.us-east-1.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_systemProperty_takesPrecedenceOverEnvVars() {
-        System.setProperty(REGION_PROPERTY, "eu-west-1");
-        env.set(AWS_REGION_ENV, "ap-south-1");
-        env.set(AWS_DEFAULT_REGION_ENV, "us-west-2");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("regionResolutionCases")
+    void stsEndpoint_whenRegionConfigured_resolvesExpectedEndpoint(String description, String sysprop, String awsRegion,
+                                                                   String awsDefaultRegion, String expectedRegion) {
+        applyRegionSettings(sysprop, awsRegion, awsDefaultRegion);
 
         assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.eu-west-1.amazonaws.com/"));
+            .isEqualTo(URI.create("https://sts." + expectedRegion + ".amazonaws.com/"));
+    }
+
+    private static Stream<Arguments> regionResolutionCases() {
+        return Stream.of(
+            //        description                                      aws.region      AWS_REGION    AWS_DEFAULT_REGION  expected
+            arguments("nothing set -> default region",                 null,           null,         null,               "us-east-1"),
+            arguments("system property wins over both env vars",       "eu-west-1",    "ap-south-1", "us-west-2",        "eu-west-1"),
+            arguments("AWS_REGION wins over AWS_DEFAULT_REGION",        null,           "ap-south-1", "us-west-2",        "ap-south-1"),
+            arguments("AWS_DEFAULT_REGION used when nothing else set",  null,           null,         "us-west-2",        "us-west-2"),
+            arguments("blank system property falls through to AWS_REGION", "   ",       "ap-south-1", null,               "ap-south-1"),
+            arguments("blank AWS_REGION falls through to AWS_DEFAULT_REGION", null,      "   ",        "us-west-2",        "us-west-2"),
+            arguments("chosen value is trimmed",                       "  eu-central-1  ", null,      null,               "eu-central-1")
+        );
     }
 
     @Test
-    void stsEndpoint_awsRegionEnv_takesPrecedenceOverDefaultRegionEnv() {
-        env.set(AWS_REGION_ENV, "ap-south-1");
-        env.set(AWS_DEFAULT_REGION_ENV, "us-west-2");
-
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.ap-south-1.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_awsDefaultRegionEnv_usedWhenNothingElseSet() {
-        env.set(AWS_DEFAULT_REGION_ENV, "us-west-2");
-
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.us-west-2.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_blankSystemProperty_fallsThroughToNextTier() {
-        System.setProperty(REGION_PROPERTY, "   ");
-        env.set(AWS_REGION_ENV, "ap-south-1");
-
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.ap-south-1.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_blankAwsRegionEnv_fallsThroughToDefaultRegionEnv() {
-        env.set(AWS_REGION_ENV, "   ");
-        env.set(AWS_DEFAULT_REGION_ENV, "us-west-2");
-
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.us-west-2.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_configuredRegionIsTrimmed() {
-        System.setProperty(REGION_PROPERTY, "  eu-central-1  ");
-
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
-            .isEqualTo(URI.create("https://sts.eu-central-1.amazonaws.com/"));
-    }
-
-    @Test
-    void stsEndpoint_doesNotCallImds() {
+    void stsEndpoint_whenImdsUnreachable_resolvesWithoutCallingImds() {
         // Point IMDS at a non-routable address. A resolver that (incorrectly) called IMDS would block here;
         // the correct resolver ignores IMDS entirely and returns the default region immediately.
         String savedImdsEndpoint = System.getProperty("aws.ec2MetadataServiceEndpoint");
@@ -135,6 +97,18 @@ class RegionEndpointResolverTest {
             } else {
                 System.clearProperty("aws.ec2MetadataServiceEndpoint");
             }
+        }
+    }
+
+    private static void applyRegionSettings(String sysprop, String awsRegion, String awsDefaultRegion) {
+        if (sysprop != null) {
+            System.setProperty(REGION_PROPERTY, sysprop);
+        }
+        if (awsRegion != null) {
+            ENV.set(AWS_REGION_ENV, awsRegion);
+        }
+        if (awsDefaultRegion != null) {
+            ENV.set(AWS_DEFAULT_REGION_ENV, awsDefaultRegion);
         }
     }
 }

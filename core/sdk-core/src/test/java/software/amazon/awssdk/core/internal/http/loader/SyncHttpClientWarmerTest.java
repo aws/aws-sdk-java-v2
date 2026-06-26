@@ -55,7 +55,7 @@ class SyncHttpClientWarmerTest {
     // ---- per-client recipe (driven through warmAll) ----
 
     @Test
-    void warmAll_drainsAndClosesResponseBody() throws IOException {
+    void warmAll_whenResponseHasBody_drainsAndClosesIt() throws IOException {
         InputStream body = spy(new ByteArrayInputStream("<Error>denied</Error>".getBytes()));
         SdkHttpClient client = stubClient(respondingWith(403, body));
 
@@ -67,7 +67,7 @@ class SyncHttpClientWarmerTest {
     }
 
     @Test
-    void warmAll_issuesGetToResolvedEndpoint() {
+    void warmAll_whenInvoked_issuesGetToResolvedEndpoint() {
         SdkHttpClient client = stubClient(respondingWith(403, emptyBody()));
         ArgumentCaptor<HttpExecuteRequest> request = ArgumentCaptor.forClass(HttpExecuteRequest.class);
 
@@ -100,7 +100,7 @@ class SyncHttpClientWarmerTest {
     // ---- discovery loop ----
 
     @Test
-    void warmAll_warmsEveryDiscoveredService() {
+    void warmAll_whenMultipleServicesDiscovered_warmsEach() {
         SdkHttpClient first = stubClient(respondingWith(403, emptyBody()));
         SdkHttpClient second = stubClient(respondingWith(403, emptyBody()));
 

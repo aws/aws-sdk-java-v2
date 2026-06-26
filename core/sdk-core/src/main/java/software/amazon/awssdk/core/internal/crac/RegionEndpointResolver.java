@@ -22,16 +22,16 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
- * Resolves the regional STS endpoint that the CRaC HTTP-client warm-up sends its GET to.
+ * Resolves the regional STS endpoint ({@code https://sts.<region>.amazonaws.com/}) used by the CRaC HTTP-client warm-up.
  *
- * <p>Region precedence: {@code aws.region} system property, {@code AWS_REGION} env, {@code AWS_DEFAULT_REGION} env, then
- * {@value #DEFAULT_REGION}. Tiers are resolved independently so a blank value falls through; the combined
- * {@code SdkSystemSetting.AWS_REGION.getStringValue()} cannot be used because a blank {@code aws.region} would shadow the env
- * vars.
+ * <p>The region is taken from the first of: {@code aws.region} system property, {@code AWS_REGION} environment variable,
+ * {@code AWS_DEFAULT_REGION} environment variable, or {@value #DEFAULT_REGION}. A blank value at one source is ignored and the
+ * next is tried.
  *
- * <p>Reads only system properties and env vars: no IMDS, profile-file, or credential-provider lookups, which would slow
- * priming. The host is partition-naive ({@code sts.<region>.amazonaws.com}); the warm-up only JIT-compiles DNS/TLS/cert-chain
- * against any reachable AWS host and is best-effort, so a wrong host in cn/gov/iso partitions fails and is swallowed.
+ * <p>Only system properties and environment variables are read. The full SDK region-resolution chain (IMDS, profile file) is
+ * avoided during priming because those add network or filesystem calls that may fail or time out. The endpoint host always
+ * uses the {@code amazonaws.com} suffix, which is incorrect for the China, GovCloud, and ISO partitions; in those partitions
+ * the warm-up request simply fails and is ignored, since it is best-effort.
  */
 @SdkInternalApi
 public final class RegionEndpointResolver {
