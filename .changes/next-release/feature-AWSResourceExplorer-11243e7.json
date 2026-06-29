@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Explorer",
+    "contributor": "",
+    "description": "Added CFN resource type fields for Search and ListSupportedResourceTypes responses. Added SLRec field for ServiceView"
+}
