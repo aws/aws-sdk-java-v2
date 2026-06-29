@@ -38,13 +38,18 @@ class RegionEndpointResolverTest {
 
     @BeforeEach
     void clearSettings() {
-        ENV.reset();
-        System.clearProperty(REGION_PROPERTY);
+        clearRegionSettings();
     }
 
     @AfterEach
     void restoreSettings() {
+        clearRegionSettings();
+    }
+
+    private void clearRegionSettings() {
         ENV.reset();
+        ENV.remove(AWS_REGION_ENV);
+        ENV.remove(AWS_DEFAULT_REGION_ENV);
         System.clearProperty(REGION_PROPERTY);
     }
 
