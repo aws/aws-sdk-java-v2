@@ -1753,11 +1753,7 @@
                 <artifactId>arczonalshift</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>simspaceweaver</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>securitylake</artifactId>
