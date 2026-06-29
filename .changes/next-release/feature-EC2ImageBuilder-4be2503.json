@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "Adds support for AMI watermarks in Image Builder."
-}

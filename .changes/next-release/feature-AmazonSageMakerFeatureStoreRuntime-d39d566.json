@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Feature Store Runtime",
-    "contributor": "",
-    "description": "Add support for ListRecords and BatchWriteRecord APIs to Feature Store."
-}
