@@ -64,7 +64,7 @@ class RegionEndpointResolverTest {
             arguments("nothing set -> default region",                     null,             null,         "us-east-1"),
             arguments("system property wins over AWS_REGION",              "eu-west-1",      "ap-south-1", "eu-west-1"),
             arguments("AWS_REGION used when no system property",           null,             "ap-south-1", "ap-south-1"),
-            arguments("blank system property falls through to AWS_REGION", "   ",            "ap-south-1", "ap-south-1"),
+            arguments("blank system property short-circuits AWS_REGION",   "   ",            "ap-south-1", "us-east-1"),
             arguments("blank AWS_REGION falls through to default",         null,             "   ",        "us-east-1"),
             arguments("chosen value is trimmed",                           "  eu-central-1  ", null,       "eu-central-1")
         );
