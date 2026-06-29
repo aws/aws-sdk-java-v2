@@ -283,7 +283,6 @@
         <module>account</module>
         <module>cloudcontrol</module>
         <module>grafana</module>
-        <module>panorama</module>
         <module>chimesdkmeetings</module>
         <module>resiliencehub</module>
         <module>migrationhubstrategy</module>
