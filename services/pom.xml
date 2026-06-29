@@ -183,8 +183,6 @@
         <module>mediapackagevod</module>
         <module>groundstation</module>
         <module>iotthingsgraph</module>
-        <module>iotevents</module>
-        <module>ioteventsdata</module>
         <module>personalizeruntime</module>
         <module>personalize</module>
         <module>personalizeevents</module>
