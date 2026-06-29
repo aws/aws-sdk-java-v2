@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RDS DataService",
+    "contributor": "",
+    "description": "Updated documentation to remove Aurora Serverless V1 references."
+}
