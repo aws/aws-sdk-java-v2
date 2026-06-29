@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonConnectCampaignServiceV2",
+    "contributor": "",
+    "description": "Adding new attributes to PutProfileOutboundRequest API that will create an outbound request call for the customer's Web Notification outbound campaign."
+}
