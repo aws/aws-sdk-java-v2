@@ -16,16 +16,18 @@
 package software.amazon.awssdk.core.internal.http.loader;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.internal.crac.RegionEndpointResolver;
 import software.amazon.awssdk.core.internal.crac.WarmUpDiscovery;
-import software.amazon.awssdk.core.internal.crac.WarmUpRequest;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
@@ -33,61 +35,68 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * Warms every sync {@link SdkHttpService} on the classpath for CRaC priming: builds each client and sends a best-effort
- * {@link WarmUpRequest} to the resolved STS endpoint, draining the response body, so the HTTP/DNS/TLS/cert-chain code is
- * JIT-compiled into the snapshot.
- *
- * <p>Lives in this package because the {@link SdkServiceLoader} it reuses is package-private.
+ * {@code GET} to the resolved STS endpoint, draining the response body, so the HTTP/DNS/TLS/cert-chain code is JIT-compiled
+ * into the snapshot.
  */
 @SdkInternalApi
 public final class SyncHttpClientWarmer implements HttpClientWarmer {
 
     private static final Logger log = Logger.loggerFor(SyncHttpClientWarmer.class);
 
-    private final SdkServiceLoader serviceLoader;
+    private final Iterable<SdkHttpService> services;
     private final Supplier<URI> endpointProvider;
-    private final WarmUpRequest warmUpRequest;
 
     @SdkTestInternalApi
-    SyncHttpClientWarmer(SdkServiceLoader serviceLoader, Supplier<URI> endpointProvider, WarmUpRequest warmUpRequest) {
-        this.serviceLoader = serviceLoader;
+    SyncHttpClientWarmer(Iterable<SdkHttpService> services, Supplier<URI> endpointProvider) {
+        this.services = services;
         this.endpointProvider = endpointProvider;
-        this.warmUpRequest = warmUpRequest;
     }
 
     /**
-     * Discovers sync HTTP clients from the classpath as usual, but warms them against {@code endpointProvider} instead of the
-     * resolved STS endpoint, so a test can redirect the warm-up request to a local mock server.
+     * Warms a single {@code service} against {@code endpointProvider}.
      */
     @SdkTestInternalApi
-    public SyncHttpClientWarmer(Supplier<URI> endpointProvider) {
-        this(SdkServiceLoader.INSTANCE, endpointProvider, WarmUpRequest.get());
+    public static SyncHttpClientWarmer forService(Supplier<URI> endpointProvider, SdkHttpService service) {
+        return new SyncHttpClientWarmer(Collections.singletonList(service), endpointProvider);
     }
 
     public static SyncHttpClientWarmer create() {
-        return new SyncHttpClientWarmer(SdkServiceLoader.INSTANCE,
-                                        () -> RegionEndpointResolver.create().stsEndpoint(),
-                                        WarmUpRequest.get());
+        return new SyncHttpClientWarmer(discoverServices(), () -> RegionEndpointResolver.create().endpoint());
+    }
+
+    /**
+     * Like {@link #create()}, but warms against {@code endpointProvider}.
+     */
+    @SdkTestInternalApi
+    public static SyncHttpClientWarmer create(Supplier<URI> endpointProvider) {
+        return new SyncHttpClientWarmer(discoverServices(), endpointProvider);
+    }
+
+    private static Iterable<SdkHttpService> discoverServices() {
+        return () -> SdkServiceLoader.INSTANCE.loadServices(SdkHttpService.class);
     }
 
     @Override
     public void warmAll() {
         URI endpoint = endpointProvider.get();
-        WarmUpDiscovery.forEachDiscovered(serviceLoader.loadServices(SdkHttpService.class), service -> {
+        WarmUpDiscovery.forEachDiscovered(services.iterator(), service -> {
             SdkHttpClient client = service.createHttpClientBuilder().buildWithDefaults(AttributeMap.empty());
             warmClient(client, endpoint);
         });
     }
 
     /**
-     * Sends the {@link WarmUpRequest} to {@code endpoint}, drains the response body (which warms the read and decode path),
-     * and closes the client. Never throws; the goal is JIT compilation, not a successful request.
+     * Sends the warm-up {@code GET} to {@code endpoint}, drains the response body, and closes the client. Best-effort: the
+     * goal is JIT compilation, not a successful request, so any failure is logged and swallowed.
      */
     private void warmClient(SdkHttpClient client, URI endpoint) {
         try {
+            SdkHttpRequest httpRequest = SdkHttpRequest.builder()
+                                                       .method(SdkHttpMethod.GET)
+                                                       .uri(endpoint)
+                                                       .build();
             HttpExecuteRequest request = HttpExecuteRequest.builder()
-                                                           .request(warmUpRequest.toHttpRequest(endpoint))
-                                                           .contentStreamProvider(warmUpRequest.contentStreamProvider()
-                                                                                               .orElse(null))
+                                                           .request(httpRequest)
                                                            .build();
             ExecutableHttpRequest executableRequest = client.prepareRequest(request);
             HttpExecuteResponse response = executableRequest.call();

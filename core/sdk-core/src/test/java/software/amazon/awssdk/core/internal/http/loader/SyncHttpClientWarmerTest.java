@@ -29,11 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.core.internal.crac.WarmUpRequest;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -45,8 +42,7 @@ import software.amazon.awssdk.http.SdkHttpService;
 
 /**
  * Unit tests for {@link SyncHttpClientWarmer}. Every test drives the real {@link SyncHttpClientWarmer#warmAll()} with an
- * injected fake {@link SdkServiceLoader} (supplying stub {@link SdkHttpService}s) and a fixed endpoint supplier (standing in
- * for the resolved STS host).
+ * injected list of stub {@link SdkHttpService}s and a fixed endpoint.
  */
 class SyncHttpClientWarmerTest {
 
@@ -119,22 +115,11 @@ class SyncHttpClientWarmerTest {
 
     @Test
     void warmAll_whenNoServices_isNoOp() {
-        assertThatCode(() -> warmer(Collections.emptyIterator()).warmAll()).doesNotThrowAnyException();
+        assertThatCode(() -> warmer().warmAll()).doesNotThrowAnyException();
     }
 
     private static SyncHttpClientWarmer warmer(SdkHttpService... services) {
-        return warmer(Arrays.asList(services).iterator());
-    }
-
-    private static SyncHttpClientWarmer warmer(Iterator<SdkHttpService> services) {
-        SdkServiceLoader loader = new SdkServiceLoader() {
-            @Override
-            @SuppressWarnings("unchecked")
-            <T> Iterator<T> loadServices(Class<T> clazz) {
-                return (Iterator<T>) services;
-            }
-        };
-        return new SyncHttpClientWarmer(loader, () -> ENDPOINT, WarmUpRequest.get());
+        return new SyncHttpClientWarmer(Arrays.asList(services), () -> ENDPOINT);
     }
 
     /** A service whose builder yields the given client. */

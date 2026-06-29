@@ -50,58 +50,66 @@ class RegionEndpointResolverTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("regionResolutionCases")
-    void stsEndpoint_whenRegionConfigured_resolvesExpectedEndpoint(String description, String sysprop, String awsRegion,
-                                                                   String awsDefaultRegion, String expectedRegion) {
-        applyRegionSettings(sysprop, awsRegion, awsDefaultRegion);
+    void endpoint_whenRegionConfigured_resolvesExpectedEndpoint(String description, String sysprop, String awsRegion,
+                                                                String expectedRegion) {
+        applyRegionSettings(sysprop, awsRegion);
 
-        assertThat(RegionEndpointResolver.create().stsEndpoint())
+        assertThat(RegionEndpointResolver.create().endpoint())
             .isEqualTo(URI.create("https://sts." + expectedRegion + ".amazonaws.com/"));
     }
 
     private static Stream<Arguments> regionResolutionCases() {
         return Stream.of(
-            //        description                                      aws.region      AWS_REGION    AWS_DEFAULT_REGION  expected
-            arguments("nothing set -> default region",                 null,           null,         null,               "us-east-1"),
-            arguments("system property wins over both env vars",       "eu-west-1",    "ap-south-1", "us-west-2",        "eu-west-1"),
-            arguments("AWS_REGION wins over AWS_DEFAULT_REGION",        null,           "ap-south-1", "us-west-2",        "ap-south-1"),
-            arguments("AWS_DEFAULT_REGION used when nothing else set",  null,           null,         "us-west-2",        "us-west-2"),
-            arguments("blank system property falls through to AWS_REGION", "   ",       "ap-south-1", null,               "ap-south-1"),
-            arguments("blank AWS_REGION falls through to AWS_DEFAULT_REGION", null,      "   ",        "us-west-2",        "us-west-2"),
-            arguments("chosen value is trimmed",                       "  eu-central-1  ", null,      null,               "eu-central-1")
-        );
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("untrustedRegionCases")
-    void stsEndpoint_whenRegionHasSpecialCharacters_encodesThemIntoHost(String description, String region) {
-        System.setProperty(REGION_PROPERTY, region);
-
-        URI endpoint = RegionEndpointResolver.create().stsEndpoint();
-
-        assertThat(endpoint.toString()).startsWith("https://sts.").endsWith(".amazonaws.com/");
-        assertThat(endpoint.toString()).doesNotContain(region);
-    }
-
-    private static Stream<Arguments> untrustedRegionCases() {
-        return Stream.of(
-            arguments("newline is encoded",          "us-east-1\nfoo"),
-            arguments("carriage return is encoded",   "us-east-1\rfoo"),
-            arguments("forward slash is encoded",     "us-east-1/foo"),
-            arguments("space is encoded",             "us-east-1 foo"),
-            arguments("at sign is encoded",           "evil@host"),
-            arguments("hash is encoded",              "host#fragment")
+            //        description                                          aws.region        AWS_REGION    expected
+            arguments("nothing set -> default region",                     null,             null,         "us-east-1"),
+            arguments("system property wins over AWS_REGION",              "eu-west-1",      "ap-south-1", "eu-west-1"),
+            arguments("AWS_REGION used when no system property",           null,             "ap-south-1", "ap-south-1"),
+            arguments("blank system property falls through to AWS_REGION", "   ",            "ap-south-1", "ap-south-1"),
+            arguments("blank AWS_REGION falls through to default",         null,             "   ",        "us-east-1"),
+            arguments("chosen value is trimmed",                           "  eu-central-1  ", null,       "eu-central-1")
         );
     }
 
     @Test
-    void stsEndpoint_whenImdsUnreachable_resolvesWithoutCallingImds() {
+    void endpoint_whenOnlyAwsDefaultRegionSet_ignoresItAndUsesDefault() {
+        ENV.set(AWS_DEFAULT_REGION_ENV, "us-west-2");
+
+        assertThat(RegionEndpointResolver.create().endpoint())
+            .isEqualTo(URI.create("https://sts.us-east-1.amazonaws.com/"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("untrustedRegionCases")
+    void endpoint_whenRegionNotHostnameCompliant_fallsBackToDefault(String description, String region) {
+        System.setProperty(REGION_PROPERTY, region);
+
+        URI endpoint = RegionEndpointResolver.create().endpoint();
+
+        // A non-compliant region cannot reach the host; it is rejected and the default region is used instead.
+        assertThat(endpoint).isEqualTo(URI.create("https://sts.us-east-1.amazonaws.com/"));
+    }
+
+    private static Stream<Arguments> untrustedRegionCases() {
+        return Stream.of(
+            arguments("newline is rejected",          "us-east-1\nfoo"),
+            arguments("carriage return is rejected",   "us-east-1\rfoo"),
+            arguments("forward slash is rejected",     "us-east-1/foo"),
+            arguments("space is rejected",             "us-east-1 foo"),
+            arguments("at sign is rejected",           "evil@host"),
+            arguments("hash is rejected",              "host#fragment"),
+            arguments("dot is rejected",               "sts.evil.com")
+        );
+    }
+
+    @Test
+    void endpoint_whenImdsUnreachable_resolvesWithoutCallingImds() {
         // Point IMDS at a non-routable address. A resolver that (incorrectly) called IMDS would block here;
         // the correct resolver ignores IMDS entirely and returns the default region immediately.
         String savedImdsEndpoint = System.getProperty("aws.ec2MetadataServiceEndpoint");
         System.setProperty("aws.ec2MetadataServiceEndpoint", "http://10.255.255.1");
         try {
             long startNanos = System.nanoTime();
-            URI endpoint = RegionEndpointResolver.create().stsEndpoint();
+            URI endpoint = RegionEndpointResolver.create().endpoint();
             long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000;
 
             assertThat(endpoint).isEqualTo(URI.create("https://sts.us-east-1.amazonaws.com/"));
@@ -115,15 +123,12 @@ class RegionEndpointResolverTest {
         }
     }
 
-    private static void applyRegionSettings(String sysprop, String awsRegion, String awsDefaultRegion) {
+    private static void applyRegionSettings(String sysprop, String awsRegion) {
         if (sysprop != null) {
             System.setProperty(REGION_PROPERTY, sysprop);
         }
         if (awsRegion != null) {
             ENV.set(AWS_REGION_ENV, awsRegion);
-        }
-        if (awsDefaultRegion != null) {
-            ENV.set(AWS_DEFAULT_REGION_ENV, awsDefaultRegion);
         }
     }
 }
