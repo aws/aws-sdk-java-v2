@@ -23,8 +23,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
@@ -140,6 +138,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
             .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+            .responseMapper(splitConfig.responseMapper())
             .resultFuture(future)
             .build();
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
@@ -162,28 +161,6 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
                                                                                   .applyMutation(splitConfig)
                                                                                   .build();
         return split(conf);
-    }
-
-    /**
-     * Creates a {@link SplitResult} with a response mapper applied at the upstream {@code onResponse} delivery point.
-     */
-    @SdkInternalApi
-    default SplitResult<ResponseT, ResultT> split(SplittingTransformerConfiguration splitConfig,
-                                                   UnaryOperator<ResponseT> responseMapper) {
-        Validate.notNull(splitConfig, "splitConfig must not be null");
-        Validate.notNull(responseMapper, "responseMapper must not be null");
-        CompletableFuture<ResultT> future = new CompletableFuture<>();
-        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer = SplittingTransformer
-            .<ResponseT, ResultT>builder()
-            .upstreamResponseTransformer(this)
-            .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
-            .resultFuture(future)
-            .responseMapper(responseMapper)
-            .build();
-        return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
-                                            .publisher(transformer)
-                                            .resultFuture(future)
-                                            .build();
     }
 
     /**

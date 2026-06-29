@@ -20,10 +20,10 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer.SplitResult;
@@ -168,8 +168,18 @@ public final class MultipartDownloadUtils {
     public static <T> SplitResult<GetObjectResponse, T> splitWithResponseRewrite(
             AsyncResponseTransformer<GetObjectResponse, T> transformer,
             SplittingTransformerConfiguration splitConfig) {
-        UnaryOperator<GetObjectResponse> mapper = MultipartDownloadUtils::toFullObjectResponse;
-        return transformer.split(splitConfig, mapper);
+        SplittingTransformerConfiguration configWithMapper =
+            splitConfig.toBuilder()
+                       .responseMapper(MultipartDownloadUtils::mapToFullObjectResponse)
+                       .build();
+        return transformer.split(configWithMapper);
+    }
+
+    private static SdkResponse mapToFullObjectResponse(SdkResponse response) {
+        if (response instanceof GetObjectResponse) {
+            return toFullObjectResponse((GetObjectResponse) response);
+        }
+        return response;
     }
 
 }

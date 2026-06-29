@@ -650,18 +650,11 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
         progressUpdater.transferInitiated();
 
-        if (isS3ClientMultipartEnabled()
-            && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null) {
-            if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
-                responseTransformer = progressUpdater.wrapForNonSerialFileDownload(
-                    responseTransformer, GetObjectRequest.builder().build());
-            } else {
-                responseTransformer = progressUpdater.wrapResponseTransformerForMultipartDownload(
-                    responseTransformer, GetObjectRequest.builder().build());
-            }
-        } else {
-            responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
-        }
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
         progressUpdater.registerCompletion(returnFuture);
 
         try {

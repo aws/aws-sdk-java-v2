@@ -23,6 +23,7 @@ import java.util.function.UnaryOperator;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -113,7 +114,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     private final Object cancelLock = new Object();
 
-    private final UnaryOperator<ResponseT> responseMapper;
+    private final UnaryOperator<SdkResponse> responseMapper;
 
     private SplittingTransformer(Builder<ResponseT, ResultT> builder) {
         this.upstreamResponseTransformer = Validate.paramNotNull(
@@ -134,6 +135,14 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 handleFutureCancel(e);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private ResponseT mapResponse(ResponseT response) {
+        if (!(response instanceof SdkResponse)) {
+            return response;
+        }
+        return (ResponseT) responseMapper.apply((SdkResponse) response);
     }
 
     /**
@@ -299,7 +308,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onResponse(ResponseT response) {
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
-                upstreamResponseTransformer.onResponse(responseMapper.apply(response));
+                upstreamResponseTransformer.onResponse(mapResponse(response));
             }
             this.response = response;
         }
@@ -396,7 +405,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         private Long maximumBufferSize;
         private CompletableFuture<ResultT> returnFuture;
         private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
-        private UnaryOperator<ResponseT> responseMapper;
+        private UnaryOperator<SdkResponse> responseMapper;
 
         private Builder() {
         }
@@ -441,7 +450,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             return this;
         }
 
-        public Builder<ResponseT, ResultT> responseMapper(UnaryOperator<ResponseT> responseMapper) {
+        public Builder<ResponseT, ResultT> responseMapper(UnaryOperator<SdkResponse> responseMapper) {
             this.responseMapper = responseMapper;
             return this;
         }

@@ -28,6 +28,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -85,7 +86,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
     private final Map<Integer, ByteBuffer> buffers;
 
-    private final UnaryOperator<ResponseT> responseMapper;
+    private final UnaryOperator<SdkResponse> responseMapper;
 
     public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
                                              upstreamResponseTransformer,
@@ -96,11 +97,19 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
     public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
                                              upstreamResponseTransformer,
                                          CompletableFuture<ResponseBytes<ResponseT>> resultFuture,
-                                         UnaryOperator<ResponseT> responseMapper) {
+                                         UnaryOperator<SdkResponse> responseMapper) {
         this.upstreamResponseTransformer = upstreamResponseTransformer;
         this.resultFuture = resultFuture;
         this.buffers = new ConcurrentHashMap<>();
-        this.responseMapper = responseMapper;
+        this.responseMapper = responseMapper != null ? responseMapper : UnaryOperator.identity();
+    }
+
+    @SuppressWarnings("unchecked")
+    private ResponseT mapResponse(ResponseT response) {
+        if (!(response instanceof SdkResponse)) {
+            return response;
+        }
+        return (ResponseT) responseMapper.apply((SdkResponse) response);
     }
 
     @Override
@@ -192,7 +201,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
                 CompletableFuture<ResponseBytes<ResponseT>> upstreamPrepareFuture = upstreamResponseTransformer.prepare();
                 CompletableFutureUtils.forwardResultTo(upstreamPrepareFuture, resultFuture);
 
-                upstreamResponseTransformer.onResponse(responseMapper.apply(responseT.get()));
+                upstreamResponseTransformer.onResponse(mapResponse(responseT.get()));
 
                 int totalPartCount = nextPartNumber.get() - 1;
                 if (buffers.size() != totalPartCount) {

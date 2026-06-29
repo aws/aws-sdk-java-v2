@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core;
 
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.SplittingTransformer;
@@ -35,9 +36,11 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
     SplittingTransformerConfiguration> {
 
     private final Long bufferSizeInBytes;
+    private final UnaryOperator<SdkResponse> responseMapper;
 
     private SplittingTransformerConfiguration(DefaultBuilder builder) {
         this.bufferSizeInBytes = Validate.paramNotNull(builder.bufferSize, "bufferSize");
+        this.responseMapper = builder.responseMapper;
     }
 
     /**
@@ -54,6 +57,13 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
         return bufferSizeInBytes;
     }
 
+    /**
+     * @return the response mapper, or null if not set
+     */
+    public UnaryOperator<SdkResponse> responseMapper() {
+        return responseMapper;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -65,12 +75,15 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
 
         SplittingTransformerConfiguration that = (SplittingTransformerConfiguration) o;
 
-        return Objects.equals(bufferSizeInBytes, that.bufferSizeInBytes);
+        return Objects.equals(bufferSizeInBytes, that.bufferSizeInBytes)
+            && Objects.equals(responseMapper, that.responseMapper);
     }
 
     @Override
     public int hashCode() {
-        return bufferSizeInBytes != null ? bufferSizeInBytes.hashCode() : 0;
+        int result = bufferSizeInBytes != null ? bufferSizeInBytes.hashCode() : 0;
+        result = 31 * result + (responseMapper != null ? responseMapper.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -94,13 +107,25 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
          * @return This object for method chaining.
          */
         Builder bufferSizeInBytes(Long bufferSize);
+
+        /**
+         * Configures a response mapper that will be applied to the response before it is delivered to the
+         * upstream transformer's {@code onResponse} callback. Used internally by the S3 multipart download
+         * to rewrite per-part metadata to full-object metadata.
+         *
+         * @param responseMapper a function to transform the response before delivery, or null for no mapping
+         * @return This object for method chaining.
+         */
+        Builder responseMapper(UnaryOperator<SdkResponse> responseMapper);
     }
 
     private static final class DefaultBuilder implements Builder {
         private Long bufferSize;
+        private UnaryOperator<SdkResponse> responseMapper;
 
         private DefaultBuilder(SplittingTransformerConfiguration configuration) {
             this.bufferSize = configuration.bufferSizeInBytes;
+            this.responseMapper = configuration.responseMapper;
         }
 
         private DefaultBuilder() {
@@ -109,6 +134,12 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
         @Override
         public Builder bufferSizeInBytes(Long bufferSize) {
             this.bufferSize = bufferSize;
+            return this;
+        }
+
+        @Override
+        public Builder responseMapper(UnaryOperator<SdkResponse> responseMapper) {
+            this.responseMapper = responseMapper;
             return this;
         }
 
