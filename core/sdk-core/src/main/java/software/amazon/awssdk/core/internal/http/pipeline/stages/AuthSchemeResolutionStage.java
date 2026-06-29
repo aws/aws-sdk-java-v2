@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -127,10 +127,10 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         IdentityProviders identityProviders =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
-        IdentityProviderUpdater updater =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
-        if (updater != null) {
-            identityProviders = updater.update(request, identityProviders, executionAttributes);
+        RequestIdentityProviderResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER);
+        if (resolver != null) {
+            identityProviders = resolver.resolve(request, identityProviders, executionAttributes);
         }
         return identityProviders;
     }

@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -175,8 +175,8 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * Callback for updating identity providers based on request-level overrides.
      * This allows aws-core to provide AWS-specific logic without sdk-core depending on aws-core.
      */
-    public static final ExecutionAttribute<IdentityProviderUpdater> IDENTITY_PROVIDER_UPDATER =
-        new ExecutionAttribute<>("IdentityProviderUpdater");
+    public static final ExecutionAttribute<RequestIdentityProviderResolver> IDENTITY_PROVIDER_RESOLVER =
+        new ExecutionAttribute<>("RequestIdentityProviderResolver");
 
     /**
      * Callback to resolve auth scheme options from the (possibly modified) request.

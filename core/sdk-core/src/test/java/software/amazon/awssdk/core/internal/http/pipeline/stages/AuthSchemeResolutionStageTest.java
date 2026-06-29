@@ -36,7 +36,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -139,15 +139,15 @@ class AuthSchemeResolutionStageTest {
     }
 
     @Test
-    void execute_withIdentityProviderUpdater_callsUpdaterWithRequest() throws Exception {
+    void execute_withRequestIdentityProviderResolver_callsUpdaterWithRequest() throws Exception {
         // Create mocks first before any stubbing
         IdentityProvider<Identity> identityProvider = createMockIdentityProvider();
         Map<String, AuthScheme<?>> authSchemes = createAuthSchemes();
         IdentityProviders baseProviders = mock(IdentityProviders.class);
         IdentityProviders updatedProviders = mock(IdentityProviders.class);
 
-        IdentityProviderUpdater updater = mock(IdentityProviderUpdater.class);
-        doReturn(updatedProviders).when(updater).update(sdkRequest, baseProviders, executionAttributes);
+        RequestIdentityProviderResolver resolver = mock(RequestIdentityProviderResolver.class);
+        doReturn(updatedProviders).when(resolver).resolve(sdkRequest, baseProviders, executionAttributes);
 
         // Setup so that auth scheme uses the updated providers
         @SuppressWarnings("unchecked")
@@ -158,20 +158,20 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
             (AuthSchemeOptionsResolver) req -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, baseProviders);
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER, updater);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER, resolver);
 
         stage.execute(httpRequestBuilder, context);
 
-        verify(updater).update(sdkRequest, baseProviders, executionAttributes);
+        verify(resolver).resolve(sdkRequest, baseProviders, executionAttributes);
     }
 
     @Test
-    void execute_withoutIdentityProviderUpdater_doesNotFail() throws Exception {
+    void execute_withoutRequestIdentityProviderResolver_doesNotFail() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
             (AuthSchemeOptionsResolver) req -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
-        // No IDENTITY_PROVIDER_UPDATER set
+        // No IDENTITY_PROVIDER_RESOLVER set
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 

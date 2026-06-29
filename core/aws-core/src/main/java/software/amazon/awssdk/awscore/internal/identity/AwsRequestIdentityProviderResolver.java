@@ -22,27 +22,27 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
- * AWS implementation of {@link IdentityProviderUpdater} that reads credential overrides
+ * AWS implementation of {@link RequestIdentityProviderResolver} that reads credential overrides
  * from {@link AwsRequestOverrideConfiguration} and deprecated {@link AwsSignerExecutionAttribute#AWS_CREDENTIALS}.
  */
 @SdkInternalApi
-public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater {
+public final class AwsRequestIdentityProviderResolver implements RequestIdentityProviderResolver {
 
-    private static final AwsIdentityProviderUpdater INSTANCE = new AwsIdentityProviderUpdater();
+    private static final AwsRequestIdentityProviderResolver INSTANCE = new AwsRequestIdentityProviderResolver();
 
-    private AwsIdentityProviderUpdater() {
+    private AwsRequestIdentityProviderResolver() {
     }
 
-    public static AwsIdentityProviderUpdater create() {
+    public static AwsRequestIdentityProviderResolver create() {
         return INSTANCE;
     }
 
     @Override
-    public IdentityProviders update(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes) {
+    public IdentityProviders resolve(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes) {
         if (base == null) {
             return null;
         }

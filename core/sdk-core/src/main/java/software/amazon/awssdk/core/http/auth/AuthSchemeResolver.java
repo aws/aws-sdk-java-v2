@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -76,10 +76,10 @@ public final class AuthSchemeResolver {
         IdentityProviders identityProviders =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
-        IdentityProviderUpdater updater =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
-        if (updater != null) {
-            identityProviders = updater.update(request, identityProviders, executionAttributes);
+        RequestIdentityProviderResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER);
+        if (resolver != null) {
+            identityProviders = resolver.resolve(request, identityProviders, executionAttributes);
         }
 
         List<AuthSchemeOption> authOptions = optionsResolver.resolve(request);
