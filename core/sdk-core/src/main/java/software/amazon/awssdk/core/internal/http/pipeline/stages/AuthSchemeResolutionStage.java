@@ -120,7 +120,7 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
     /**
      * Returns identity providers after applying any request-level overrides. This allows aws-core to inject
      * credential overrides from {@code AwsRequestOverrideConfiguration} (e.g., per-request credentials provider)
-     * without sdk-core depending on aws-core. The updater is set by {@code AwsExecutionContextBuilder} and runs
+     * without sdk-core depending on aws-core. The resolver is set by {@code AwsExecutionContextBuilder} and runs
      * after interceptors have modified the request, ensuring user-injected credentials are respected.
      */
     private IdentityProviders updateIdentityProvidersIfNeeded(ExecutionAttributes executionAttributes, SdkRequest request) {

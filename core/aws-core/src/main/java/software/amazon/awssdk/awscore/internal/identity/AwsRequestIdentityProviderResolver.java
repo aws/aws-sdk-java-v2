@@ -47,7 +47,7 @@ public final class AwsRequestIdentityProviderResolver implements RequestIdentity
             return null;
         }
 
-        IdentityProviders updated = request.overrideConfiguration()
+        IdentityProviders resolvedProviders = request.overrideConfiguration()
             .filter(c -> c instanceof AwsRequestOverrideConfiguration)
             .map(c -> (AwsRequestOverrideConfiguration) c)
             .map(c -> base.copy(b -> {
@@ -56,8 +56,8 @@ public final class AwsRequestIdentityProviderResolver implements RequestIdentity
             }))
             .orElse(null);
 
-        if (updated != null) {
-            return updated;
+        if (resolvedProviders != null) {
+            return resolvedProviders;
         }
 
         // Support deprecated AWS_CREDENTIALS execution attribute for backwards compatibility
