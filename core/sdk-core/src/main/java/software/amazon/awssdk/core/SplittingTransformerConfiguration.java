@@ -58,7 +58,8 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
     }
 
     /**
-     * @return the response mapper, or null if not set
+     * @return the response mapper applied to the first response before delivery to the upstream transformer, or null if
+     *         not set. See {@link Builder#responseMapper(UnaryOperator)} for semantics.
      */
     public UnaryOperator<SdkResponse> responseMapper() {
         return responseMapper;
@@ -110,8 +111,12 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
 
         /**
          * Configures a response mapper that will be applied to the response before it is delivered to the
-         * upstream transformer's {@code onResponse} callback. Used internally by the S3 multipart download
-         * to rewrite per-part metadata to full-object metadata.
+         * upstream transformer's {@code onResponse} callback, allowing the response to be rewritten - for example,
+         * to report full-object metadata instead of the first part's. Applied once, to the first response; if not
+         * set, the response is delivered unchanged.
+         *
+         * <p>Only applied by the default {@code split} implementation. A transformer that overrides {@code split} (such as a
+         * parallel, file-based one) may not read it, in which case it has no effect.
          *
          * @param responseMapper a function to transform the response before delivery, or null for no mapping
          * @return This object for method chaining.
