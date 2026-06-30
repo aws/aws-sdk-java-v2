@@ -44,9 +44,9 @@ import software.amazon.awssdk.http.nio.netty.NettySdkAsyncHttpService;
  */
 class AsyncHttpClientWarmUpTest {
 
-    // The async HTTP clients on this module's classpath: netty-nio, aws-crt async. Hardcoded so a broken ServiceLoader that
-    // discovers nothing fails the test instead of passing a trivial verify(0).
-    private static final int ASYNC_CLIENT_COUNT = 2;
+    // Minimum async HTTP clients expected on this module's classpath: netty-nio, aws-crt async. Used as a floor so a broken
+    // ServiceLoader that discovers nothing fails the test instead of passing a trivial verify(0).
+    private static final int MIN_ASYNC_CLIENT_COUNT = 2;
 
     private WireMockServer mockServer;
 
@@ -85,7 +85,7 @@ class AsyncHttpClientWarmUpTest {
     /**
      * Exercises the real classpath-discovery path used by {@code prime()}: {@code warmAll()} discovers every async
      * {@link SdkAsyncHttpService} on the classpath via {@link ServiceLoader} and warms each. Confirms discovery finds all
-     * {@value #ASYNC_CLIENT_COUNT} clients and that each receives exactly one warm-up GET.
+     * {@value #MIN_ASYNC_CLIENT_COUNT} clients and that each receives exactly one warm-up GET.
      */
     @Test
     void warmAll_whenDiscoveringFromClasspath_warmsEveryAsyncClient() {
@@ -97,13 +97,14 @@ class AsyncHttpClientWarmUpTest {
         for (SdkAsyncHttpService ignored : ServiceLoader.load(SdkAsyncHttpService.class)) {
             discoveredClients++;
         }
-        // Guard against a broken ServiceLoader: if discovery silently finds 0, verify(0) below would pass trivially.
-        assertThat(discoveredClients).isEqualTo(ASYNC_CLIENT_COUNT);
+        // Fail if discovery finds fewer clients than expected (e.g. a broken ServiceLoader finding none).
+        assertThat(discoveredClients).isGreaterThanOrEqualTo(MIN_ASYNC_CLIENT_COUNT);
 
         URI endpoint = URI.create("http://localhost:" + mockServer.port() + "/");
         AsyncHttpClientWarmer.create(() -> endpoint).warmAll();
 
-        mockServer.verify(ASYNC_CLIENT_COUNT, getRequestedFor(urlPathEqualTo("/")));
-        mockServer.verify(ASYNC_CLIENT_COUNT, anyRequestedFor(anyUrl()));
+        // Verify against the actual discovered count, not the constant, so this stays correct as clients are added.
+        mockServer.verify(discoveredClients, getRequestedFor(urlPathEqualTo("/")));
+        mockServer.verify(discoveredClients, anyRequestedFor(anyUrl()));
     }
 }
