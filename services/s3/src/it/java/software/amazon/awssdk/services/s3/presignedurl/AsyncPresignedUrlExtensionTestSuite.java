@@ -24,7 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -41,15 +43,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
@@ -70,8 +78,10 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
 
     protected static String testGetObjectKey;
     protected static String testLargeObjectKey;
+    protected static String testMpuChecksumKey;
     protected static String testObjectContent;
     protected static byte[] testLargeObjectContent;
+    protected static byte[] testMpuObjectContent;
     protected static String expectedLargeObjectMd5;
 
     protected abstract S3AsyncClient createS3AsyncClient();
@@ -105,6 +115,7 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
                             .build(),
             AsyncRequestBody.fromBytes(testLargeObjectContent)
         ).join();
+        uploadMpuObjectWithChecksum();
         S3TestUtils.addCleanupTask(AsyncPresignedUrlExtensionTestSuite.class, () -> {
             s3.deleteObject(DeleteObjectRequest.builder()
                                                     .bucket(testBucket)
@@ -113,6 +124,10 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
             s3.deleteObject(DeleteObjectRequest.builder()
                                                     .bucket(testBucket)
                                                     .key(testLargeObjectKey)
+                                                    .build());
+            s3.deleteObject(DeleteObjectRequest.builder()
+                                                    .bucket(testBucket)
+                                                    .key(testMpuChecksumKey)
                                                     .build());
             deleteBucketAndAllContents(testBucket);
         });
@@ -152,6 +167,8 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
                 assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
             }
             assertThat(response.response()).isNotNull();
+            assertThat(response.response().contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
         }
     }
 
@@ -239,6 +256,8 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
             assertThat(response).isNotNull();
             assertThat(downloadFile).exists();
             assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
+            assertThat(response.contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
             assertThat(collectedMetrics).isNotEmpty();
         }
     }
@@ -359,7 +378,123 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
         );
     }
 
+    @Test
+    void getObject_withRangeRequest_preservesPartialMetadata() throws Exception {
+        PresignedUrlDownloadRequest request = createRequestForKey(testLargeObjectKey, "bytes=0-1048575");
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                 .get(30, TimeUnit.SECONDS);
+
+        assertThat(response.response().contentLength()).isEqualTo(1048576L);
+        assertThat(response.response().contentRange()).isNotNull();
+        assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+    }
+
+    @ParameterizedTest(name = "getObject_largeObject_{0}_hasCorrectFullObjectMetadata")
+    @MethodSource("transformerTypes")
+    void getObject_largeObject_hasCorrectFullObjectMetadata(String type) throws Exception {
+        PresignedUrlDownloadRequest request = createRequestForKey(testLargeObjectKey);
+
+        if ("toFile".equals(type)) {
+            Path downloadFile = temporaryFolder.resolve("large-metadata-test-" + UUID.randomUUID() + ".bin");
+            GetObjectResponse response =
+                presignedUrlExtension.getObject(request, downloadFile)
+                                     .get(60, TimeUnit.SECONDS);
+
+            assertThat(response.contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
+            assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+        } else {
+            ResponseBytes<GetObjectResponse> response =
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                                     .get(60, TimeUnit.SECONDS);
+
+            assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
+            assertThat(response.response().contentLength()).isEqualTo((long) testLargeObjectContent.length);
+            assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+        }
+    }
+
+    static Stream<String> transformerTypes() {
+        return Stream.of("toFile", "toBytes");
+    }
+
+    @ParameterizedTest(name = "getObject_mpuObject_{0}_hasCorrectMetadata")
+    @MethodSource("checksumModes")
+    void getObject_mpuObject_hasCorrectMetadata(String mode) throws Exception {
+        PresignedUrlDownloadRequest request;
+        if ("withChecksumMode".equals(mode)) {
+            PresignedGetObjectRequest presigned = presigner.presignGetObject(r -> r
+                .getObjectRequest(req -> req.bucket(testBucket).key(testMpuChecksumKey)
+                                            .checksumMode(ChecksumMode.ENABLED))
+                .signatureDuration(Duration.ofMinutes(10)));
+            request = PresignedUrlDownloadRequest.builder().presignedUrl(presigned.url()).build();
+        } else {
+            request = PresignedUrlDownloadRequest.builder()
+                .presignedUrl(createPresignedUrl(testMpuChecksumKey))
+                .build();
+        }
+
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                .get(60, TimeUnit.SECONDS);
+
+        assertThat(response.asByteArray().length).isEqualTo(testMpuObjectContent.length);
+        assertThat(response.response().contentLength()).isEqualTo((long) testMpuObjectContent.length);
+        assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+    }
+
+    static Stream<String> checksumModes() {
+        return Stream.of("withChecksumMode", "withoutChecksumMode");
+    }
+
+    @Test
+    void getObject_mpuObjectWithRange_preservesPartialMetadata() throws Exception {
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+            .presignedUrl(createPresignedUrl(testMpuChecksumKey))
+            .range("bytes=0-1048575")
+            .build();
+
+        ResponseBytes<GetObjectResponse> response =
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes())
+                .get(30, TimeUnit.SECONDS);
+
+        assertThat(response.response().contentLength()).isEqualTo(1048576L);
+        assertThat(response.response().contentRange()).contains("bytes 0-1048575/");
+        assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
+    }
+
     // Helper methods
+    private static void uploadMpuObjectWithChecksum() {
+        testMpuChecksumKey = generateRandomObjectKey() + "-mpu-checksum";
+        int partSize = 5 * 1024 * 1024;
+        int numParts = 2;
+        testMpuObjectContent = new byte[partSize * numParts];
+        new Random(42).nextBytes(testMpuObjectContent);
+
+        CreateMultipartUploadResponse createResp =
+            s3.createMultipartUpload(b -> b.bucket(testBucket).key(testMpuChecksumKey)
+                .checksumAlgorithm(ChecksumAlgorithm.CRC32));
+        String uploadId = createResp.uploadId();
+        List<CompletedPart> parts = new ArrayList<>();
+
+        for (int i = 0; i < numParts; i++) {
+            byte[] partData = Arrays.copyOfRange(testMpuObjectContent, i * partSize, (i + 1) * partSize);
+            final int partNum = i + 1;
+            UploadPartResponse uploadResp = s3.uploadPart(
+                b -> b.bucket(testBucket).key(testMpuChecksumKey).uploadId(uploadId).partNumber(partNum)
+                      .checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                RequestBody.fromBytes(partData));
+            parts.add(CompletedPart.builder()
+                .partNumber(partNum).eTag(uploadResp.eTag())
+                .checksumCRC32(uploadResp.checksumCRC32()).build());
+        }
+
+        s3.completeMultipartUpload(b -> b.bucket(testBucket).key(testMpuChecksumKey).uploadId(uploadId)
+            .multipartUpload(CompletedMultipartUpload.builder()
+                .parts(parts).build()));
+    }
+
     private static String generateRandomObjectKey() {
         return "async-presigned-url-extension-test-" + UUID.randomUUID();
     }

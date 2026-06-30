@@ -19,7 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 class MultipartDownloadUtilsTest {
 
@@ -98,5 +101,78 @@ class MultipartDownloadUtilsTest {
             .isEqualTo(Long.MAX_VALUE - 1);
         assertThat(MultipartDownloadUtils.calculateTotalParts(Long.MAX_VALUE, 2))
             .isEqualTo((Long.MAX_VALUE / 2) + 1);
+    }
+
+    @Test
+    void toFullObjectResponse_setsContentLengthAndContentRange() {
+        GetObjectResponse response = GetObjectResponse.builder()
+            .contentLength(1024L)
+            .contentRange("bytes 0-1023/4096")
+            .eTag("\"abc123\"")
+            .build();
+        response = setHttpResponse(response, 206, "Partial Content");
+
+        GetObjectResponse result = MultipartDownloadUtils.toFullObjectResponse(response);
+
+        assertThat(result.contentLength()).isEqualTo(4096L);
+        assertThat(result.contentRange()).isEqualTo("bytes 0-4095/4096");
+        assertThat(result.eTag()).isEqualTo("\"abc123\"");
+    }
+
+    @Test
+    void toFullObjectResponse_noContentRange_returnsUnchanged() {
+        GetObjectResponse response = GetObjectResponse.builder()
+            .contentLength(1024L)
+            .build();
+        response = setHttpResponse(response, 206, "Partial Content");
+
+        GetObjectResponse result = MultipartDownloadUtils.toFullObjectResponse(response);
+
+        assertThat(result.contentLength()).isEqualTo(1024L);
+    }
+
+    @Test
+    void toFullObjectResponse_compositeChecksum_nullsChecksumValues() {
+        GetObjectResponse response = GetObjectResponse.builder()
+            .contentLength(8388608L)
+            .contentRange("bytes 0-8388607/25165824")
+            .checksumType(ChecksumType.COMPOSITE)
+            .checksumCRC32("/g/pWA==")
+            .build();
+        response = setHttpResponse(response, 206, "Partial Content");
+
+        GetObjectResponse result = MultipartDownloadUtils.toFullObjectResponse(response);
+
+        assertThat(result.checksumType()).isEqualTo(ChecksumType.COMPOSITE);
+        assertThat(result.checksumCRC32()).isNull();
+        assertThat(result.checksumCRC32C()).isNull();
+        assertThat(result.checksumCRC64NVME()).isNull();
+        assertThat(result.checksumSHA1()).isNull();
+        assertThat(result.checksumSHA256()).isNull();
+        assertThat(result.contentLength()).isEqualTo(25165824L);
+    }
+
+    @Test
+    void toFullObjectResponse_fullObjectChecksum_preservesChecksumValues() {
+        GetObjectResponse response = GetObjectResponse.builder()
+            .contentLength(8388608L)
+            .contentRange("bytes 0-8388607/25165824")
+            .checksumType(ChecksumType.FULL_OBJECT)
+            .checksumCRC32("abc123")
+            .build();
+        response = setHttpResponse(response, 206, "Partial Content");
+
+        GetObjectResponse result = MultipartDownloadUtils.toFullObjectResponse(response);
+
+        assertThat(result.checksumType()).isEqualTo(ChecksumType.FULL_OBJECT);
+        assertThat(result.checksumCRC32()).isEqualTo("abc123");
+    }
+
+    private static GetObjectResponse setHttpResponse(GetObjectResponse response, int statusCode, String statusText) {
+        SdkHttpResponse httpResponse = SdkHttpResponse.builder()
+                                                      .statusCode(statusCode)
+                                                      .statusText(statusText)
+                                                      .build();
+        return (GetObjectResponse) response.toBuilder().sdkHttpResponse(httpResponse).build();
     }
 }
