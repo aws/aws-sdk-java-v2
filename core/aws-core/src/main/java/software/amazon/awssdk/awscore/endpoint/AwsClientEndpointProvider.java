@@ -482,5 +482,22 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         public AwsClientEndpointProvider build() {
             return new AwsClientEndpointProvider(this);
         }
+
+        /**
+         * Build a {@link ClientEndpointProvider} if an endpoint override or environment-based endpoint is configured.
+         * Returns {@link Optional#empty()} if no override is found, allowing callers to provide their own fallback.
+         */
+        public Optional<ClientEndpointProvider> buildIfOverridePresent() {
+            this.serviceEndpointPrefix = null;
+            this.region = null;
+            this.protocol = null;
+            AwsClientEndpointProvider provider = new AwsClientEndpointProvider(this);
+            try {
+                provider.clientEndpoint();
+                return Optional.of(provider);
+            } catch (SdkClientException e) {
+                return Optional.empty();
+            }
+        }
     }
 }
