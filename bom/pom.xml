@@ -1068,7 +1068,6 @@
                 <artifactId>iotthingsgraph</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>personalizeruntime</artifactId>
@@ -1564,7 +1563,6 @@
                 <artifactId>grafana</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>chimesdkmeetings</artifactId>
@@ -1740,7 +1738,6 @@
                 <artifactId>arczonalshift</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>securitylake</artifactId>
@@ -2389,6 +2386,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>lambdacore</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>supportauthz</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>

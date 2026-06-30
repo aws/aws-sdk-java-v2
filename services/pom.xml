@@ -445,6 +445,7 @@
         <module>sagemakerjobruntime</module>
         <module>lambdamicrovms</module>
         <module>lambdacore</module>
+        <module>supportauthz</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
