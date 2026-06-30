@@ -639,13 +639,13 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
         AwsCredentials credentialsAtStart = credentialsProvider.resolveCredentials();
 
-        // Move time forward but still before the prefetch window (5 min before expiry).
-        // Since prefetchTime = expiration - 5min = now + 5h55m, anything before that should not trigger refresh.
-        clock.time = now.plus(5, HOURS);
+        // Move time forward but still before the prefetch window (60 min before expiry for 6h credentials).
+        // Since dynamic prefetchTime = expiration - 60min = now + 5h, anything before that should not trigger refresh.
+        clock.time = now.plus(4, HOURS);
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-        AwsCredentials credentials5HoursLater = credentialsProvider.resolveCredentials();
+        AwsCredentials credentialsLater = credentialsProvider.resolveCredentials();
 
-        assertThat(credentials5HoursLater).isEqualTo(credentialsAtStart);
+        assertThat(credentialsLater).isEqualTo(credentialsAtStart);
         assertThat(credentialsAtStart.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
     }
 

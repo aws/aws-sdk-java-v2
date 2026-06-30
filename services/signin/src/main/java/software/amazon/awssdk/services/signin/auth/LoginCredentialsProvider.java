@@ -51,6 +51,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -90,6 +91,7 @@ public final class LoginCredentialsProvider implements
     private final SigninClient signinClient;
     private final Duration staleTime;
     private final Duration prefetchTime;
+    private final boolean prefetchTimeExplicitlySet;
     private final Path tokenCacheLocation;
 
     private final CachedSupplier<AwsCredentials> credentialCache;
@@ -107,6 +109,7 @@ public final class LoginCredentialsProvider implements
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        this.prefetchTimeExplicitlySet = builder.prefetchTime != null;
         Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
                         "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
         this.sourceChain = builder.sourceChain;
@@ -157,9 +160,14 @@ public final class LoginCredentialsProvider implements
                 .providerName(this.providerName)
                 .build();
 
+            Instant now = Instant.now();
+            Duration effectivePrefetchWindow = prefetchTimeExplicitlySet
+                ? prefetchTime
+                : CacheRefreshUtils.computeDynamicPrefetchWindow(currentExpirationTime, now);
+
             return RefreshResult.builder(credentials)
                                 .staleTime(currentExpirationTime.minus(staleTime))
-                                .prefetchTime(currentExpirationTime.minus(prefetchTime))
+                                .prefetchTime(currentExpirationTime.minus(effectivePrefetchWindow))
                                 .build();
         }
 
@@ -203,7 +211,9 @@ public final class LoginCredentialsProvider implements
 
             return RefreshResult.builder((AwsCredentials) updatedCredentials)
                                 .staleTime(newExpiration.minus(staleTime))
-                                .prefetchTime(newExpiration.minus(prefetchTime))
+                                .prefetchTime(newExpiration.minus(prefetchTimeExplicitlySet
+                                    ? prefetchTime
+                                    : CacheRefreshUtils.computeDynamicPrefetchWindow(newExpiration, Instant.now())))
                                 .build();
         } catch (AccessDeniedException accessDeniedException) {
             if (accessDeniedException.error() == null) {
@@ -355,7 +365,10 @@ public final class LoginCredentialsProvider implements
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 5 minutes.
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */

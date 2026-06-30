@@ -313,19 +313,26 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             if (cacheInvalidatingPredicate != null && cacheInvalidatingPredicate.test(e)) {
                 throw e;
             }
-            // During prefetch window failure: extend prefetchTime to suppress further attempts
+            // During prefetch window failure: extend prefetchTime to suppress further attempts.
+            // Preserve existing staleTime if it is later than the new prefetch time.
             long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
                 + jitterRandom.nextInt(
                     (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
                            - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
             Instant extendedPrefetchTime = now.plusSeconds(backoffSeconds);
 
+            // Do not move stale time closer — keep the existing stale time if it's later than the extended prefetch time
+            Instant currentStaleTime = currentCachedValue.staleTime();
+            Instant newStaleTime = (currentStaleTime != null && currentStaleTime.isAfter(extendedPrefetchTime))
+                ? currentStaleTime
+                : extendedPrefetchTime;
+
             log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
                            + ". Extending cached credential expiration. A refresh of these credentials"
                            + " will be attempted again after " + backoffSeconds + " seconds.", e);
 
             return currentCachedValue.toBuilder()
-                                     .staleTime(extendedPrefetchTime)
+                                     .staleTime(newStaleTime)
                                      .prefetchTime(extendedPrefetchTime)
                                      .build();
         }
