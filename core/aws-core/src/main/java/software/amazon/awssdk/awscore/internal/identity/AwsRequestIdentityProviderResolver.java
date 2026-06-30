@@ -22,32 +22,32 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
- * AWS implementation of {@link IdentityProviderUpdater} that reads credential overrides
+ * AWS implementation of {@link RequestIdentityProviderResolver} that reads credential overrides
  * from {@link AwsRequestOverrideConfiguration} and deprecated {@link AwsSignerExecutionAttribute#AWS_CREDENTIALS}.
  */
 @SdkInternalApi
-public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater {
+public final class AwsRequestIdentityProviderResolver implements RequestIdentityProviderResolver {
 
-    private static final AwsIdentityProviderUpdater INSTANCE = new AwsIdentityProviderUpdater();
+    private static final AwsRequestIdentityProviderResolver INSTANCE = new AwsRequestIdentityProviderResolver();
 
-    private AwsIdentityProviderUpdater() {
+    private AwsRequestIdentityProviderResolver() {
     }
 
-    public static AwsIdentityProviderUpdater create() {
+    public static AwsRequestIdentityProviderResolver create() {
         return INSTANCE;
     }
 
     @Override
-    public IdentityProviders update(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes) {
+    public IdentityProviders resolve(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes) {
         if (base == null) {
             return null;
         }
 
-        IdentityProviders updated = request.overrideConfiguration()
+        IdentityProviders resolvedProviders = request.overrideConfiguration()
             .filter(c -> c instanceof AwsRequestOverrideConfiguration)
             .map(c -> (AwsRequestOverrideConfiguration) c)
             .map(c -> base.copy(b -> {
@@ -56,8 +56,8 @@ public final class AwsIdentityProviderUpdater implements IdentityProviderUpdater
             }))
             .orElse(null);
 
-        if (updated != null) {
-            return updated;
+        if (resolvedProviders != null) {
+            return resolvedProviders;
         }
 
         // Support deprecated AWS_CREDENTIALS execution attribute for backwards compatibility

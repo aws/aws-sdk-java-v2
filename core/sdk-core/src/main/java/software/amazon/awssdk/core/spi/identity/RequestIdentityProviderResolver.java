@@ -21,16 +21,16 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 
 /**
- * Callback interface for updating identity providers based on request-level overrides.
+ * Callback interface for resolving the final identity providers considering request-level overrides.
  * <p>
  * This allows aws-core to provide AWS-specific logic for reading credential overrides
  * from {@code AwsRequestOverrideConfiguration} without sdk-core depending on aws-core.
  */
 @FunctionalInterface
 @SdkProtectedApi
-public interface IdentityProviderUpdater {
+public interface RequestIdentityProviderResolver {
     /**
-     * Updates identity providers by applying request-level credential overrides or
+     * Resolves identity providers by applying request-level credential overrides or
      * credentials set via {@code AwsSignerExecutionAttribute.AWS_CREDENTIALS} by interceptors.
      *
      * @param request The request (after interceptors have modified it)
@@ -38,5 +38,5 @@ public interface IdentityProviderUpdater {
      * @param executionAttributes The execution attributes, checked for interceptor-set AWS_CREDENTIALS
      * @return Updated identity providers, or base if no overrides apply
      */
-    IdentityProviders update(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes);
+    IdentityProviders resolve(SdkRequest request, IdentityProviders base, ExecutionAttributes executionAttributes);
 }

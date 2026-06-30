@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
-import software.amazon.awssdk.core.spi.identity.IdentityProviderUpdater;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -120,17 +120,17 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
     /**
      * Returns identity providers after applying any request-level overrides. This allows aws-core to inject
      * credential overrides from {@code AwsRequestOverrideConfiguration} (e.g., per-request credentials provider)
-     * without sdk-core depending on aws-core. The updater is set by {@code AwsExecutionContextBuilder} and runs
+     * without sdk-core depending on aws-core. The resolver is set by {@code AwsExecutionContextBuilder} and runs
      * after interceptors have modified the request, ensuring user-injected credentials are respected.
      */
     private IdentityProviders updateIdentityProvidersIfNeeded(ExecutionAttributes executionAttributes, SdkRequest request) {
         IdentityProviders identityProviders =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
 
-        IdentityProviderUpdater updater =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_UPDATER);
-        if (updater != null) {
-            identityProviders = updater.update(request, identityProviders, executionAttributes);
+        RequestIdentityProviderResolver resolver =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER);
+        if (resolver != null) {
+            identityProviders = resolver.resolve(request, identityProviders, executionAttributes);
         }
         return identityProviders;
     }
