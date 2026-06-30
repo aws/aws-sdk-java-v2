@@ -96,8 +96,7 @@ public final class AsyncHttpClientWarmer implements HttpClientWarmer {
     /**
      * Sends the warm-up {@code GET} to {@code endpoint}, drains the response body on the async stream path, and closes the
      * client. Best-effort: the goal is JIT compilation, not a successful request, so any failure or timeout is logged and
-     * swallowed. The bounded wait keeps priming fast and prevents a hang during checkpoint; the client is always closed so
-     * no file descriptor leaks.
+     * swallowed. The bounded wait keeps priming fast and prevents a hang during checkpoint; the client is always closed.
      */
     private void warmClient(SdkAsyncHttpClient client, URI endpoint) {
         try {
@@ -112,8 +111,7 @@ public final class AsyncHttpClientWarmer implements HttpClientWarmer {
                                                              .responseHandler(new WarmUpResponseHandler(drainComplete))
                                                              .build();
             CompletableFuture<Void> executeFuture = client.execute(request);
-            // Complete the drain future when the request settles even if no body terminal signal arrives (for example an
-            // immediate connection failure), so the bounded wait below never depends on a missing onStream or onError.
+            // Settle the drain future when the request completes, covering failures with no onStream/onError signal.
             executeFuture.whenComplete((response, error) -> drainComplete.complete(null));
             drainComplete.get(WARM_UP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -127,10 +125,9 @@ public final class AsyncHttpClientWarmer implements HttpClientWarmer {
     }
 
     /**
-     * Drains the response body to end of stream and completes {@code drainComplete} on any terminal signal. {@code onStream}
-     * subscribes a draining {@link SimpleSubscriber} (requests {@code Long.MAX_VALUE}, discards bytes); its {@code onComplete}
-     * and {@code onError} are overridden to complete the future, because the base {@code SimpleSubscriber} ignores terminal
-     * signals.
+     * Drains the response body and completes {@code drainComplete} when the stream ends. Uses a {@link SimpleSubscriber}
+     * to read and discard the bytes; its {@code onComplete}/{@code onError} are empty, so this overrides them to settle
+     * the future when the stream finishes or fails.
      */
     private static final class WarmUpResponseHandler implements SdkAsyncHttpResponseHandler {
 
