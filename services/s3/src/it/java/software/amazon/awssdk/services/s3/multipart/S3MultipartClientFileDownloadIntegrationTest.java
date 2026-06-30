@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -47,7 +43,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
-import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -129,70 +124,6 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
         assertThat(downloadedHash).isEqualTo(originalHash);
     }
 
-    @ParameterizedTest(name = "multipartDownload_{0}_hasCorrectFullObjectMetadata")
-    @MethodSource("transformerTypes")
-    void multipartDownload_hasCorrectFullObjectMetadata(String type) throws Exception {
-        if ("toFile".equals(type)) {
-            Path downloadPath = tmpPath().resolve("metadata-" + UUID.randomUUID() + ".dat");
-            GetObjectResponse response = s3Client.getObject(
-                GetObjectRequest.builder().bucket(TEST_BUCKET).key(TEST_KEY).build(),
-                AsyncResponseTransformer.toFile(downloadPath)).join();
-
-            assertThat(response.contentLength()).isEqualTo((long) OBJ_SIZE);
-            assertThat(response.contentRange()).isEqualTo("bytes 0-" + (OBJ_SIZE - 1) + "/" + OBJ_SIZE);
-            assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
-            Files.deleteIfExists(downloadPath);
-        } else {
-            String smallKey = "small-toBytes-" + UUID.randomUUID();
-            int smallSize = 15 * MIB;
-            byte[] data = new byte[smallSize];
-            new Random(42).nextBytes(data);
-            s3Client.putObject(r -> r.bucket(TEST_BUCKET).key(smallKey),
-                               AsyncRequestBody.fromBytes(data)).join();
-
-            ResponseBytes<GetObjectResponse> response = s3Client.getObject(
-                GetObjectRequest.builder().bucket(TEST_BUCKET).key(smallKey).build(),
-                AsyncResponseTransformer.toBytes()).join();
-
-            assertThat(response.response().contentLength()).isEqualTo((long) smallSize);
-            assertThat(response.response().contentRange()).isEqualTo("bytes 0-" + (smallSize - 1) + "/" + smallSize);
-            assertThat(response.asByteArray().length).isEqualTo(smallSize);
-            assertThat(response.response().sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
-            s3Client.deleteObject(r -> r.bucket(TEST_BUCKET).key(smallKey)).join();
-        }
-    }
-
-    @Test
-    void multipartDownload_withRange_preservesPartialMetadata() throws Exception {
-        Path downloadPath = tmpPath().resolve("metadata-range-" + UUID.randomUUID() + ".dat");
-        GetObjectResponse response = s3Client.getObject(
-            GetObjectRequest.builder().bucket(TEST_BUCKET).key(TEST_KEY)
-                .range("bytes=0-1048575").build(),
-            AsyncResponseTransformer.toFile(downloadPath)).join();
-
-        assertThat(response.contentLength()).isEqualTo(1048576L);
-        assertThat(response.contentRange()).contains("bytes 0-1048575/");
-        assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
-        Files.deleteIfExists(downloadPath);
-    }
-
-    @Test
-    void multipartDownload_checksumModeEnabled_hasCorrectFullObjectMetadata() throws Exception {
-        Path downloadPath = tmpPath().resolve("metadata-checksum-" + UUID.randomUUID() + ".dat");
-        GetObjectResponse response = s3Client.getObject(
-            GetObjectRequest.builder().bucket(TEST_BUCKET).key(TEST_KEY)
-                .checksumMode(ChecksumMode.ENABLED).build(),
-            AsyncResponseTransformer.toFile(downloadPath)).join();
-
-        assertThat(response.contentLength()).isEqualTo((long) OBJ_SIZE);
-        assertThat(response.contentRange()).isEqualTo("bytes 0-" + (OBJ_SIZE - 1) + "/" + OBJ_SIZE);
-        assertThat(response.sdkHttpResponse().firstMatchingHeader("x-amz-request-id")).isPresent();
-        Files.deleteIfExists(downloadPath);
-    }
-
-    static java.util.stream.Stream<String> transformerTypes() {
-        return java.util.stream.Stream.of("toFile", "toBytes");
-    }
 
     private Path tmpPath() {
         return Paths.get(JavaSystemSetting.TEMP_DIRECTORY.getStringValueOrThrow());

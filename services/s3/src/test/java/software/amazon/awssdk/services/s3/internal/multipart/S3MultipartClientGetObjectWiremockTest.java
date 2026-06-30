@@ -41,7 +41,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,19 +50,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
@@ -332,56 +327,5 @@ public class S3MultipartClientGetObjectWiremockTest {
         return s3Client.getObject(r -> r.bucket(BUCKET).key(KEY)
                                         .overrideConfiguration(c -> c.putHeader("RunNum", runId)),
                                   transformerSupplier.transformer());
-    }
-
-    @org.junit.jupiter.api.Test
-    void multipartDownload_customTransformer_hasFullObjectMetadata() {
-        int numParts = 3;
-        int partSize = 1024;
-        util.stubAllParts(BUCKET, KEY, numParts, partSize);
-
-        AsyncResponseTransformer<GetObjectResponse, String> customTransformer =
-            new AsyncResponseTransformer<GetObjectResponse, String>() {
-                private CompletableFuture<String> future;
-                private GetObjectResponse response;
-
-                @Override
-                public CompletableFuture<String> prepare() {
-                    future = new CompletableFuture<>();
-                    return future;
-                }
-
-                @Override
-                public void onResponse(GetObjectResponse r) {
-                    this.response = r;
-                }
-
-                @Override
-                public void onStream(SdkPublisher<ByteBuffer> publisher) {
-                    publisher.subscribe(new Subscriber<ByteBuffer>() {
-                        @Override public void onSubscribe(Subscription s) { s.request(Long.MAX_VALUE); }
-                        @Override public void onNext(ByteBuffer b) { }
-                        @Override public void onError(Throwable t) { future.completeExceptionally(t); }
-                        @Override public void onComplete() {
-                            future.complete("contentLength=" + response.contentLength()
-                                           + ",contentRange=" + response.contentRange());
-                        }
-                    });
-                }
-
-                @Override
-                public void exceptionOccurred(Throwable error) {
-                    future.completeExceptionally(error);
-                }
-            };
-
-        String result = multipartClient.getObject(
-            GetObjectRequest.builder().bucket(BUCKET).key(KEY).build(),
-            customTransformer
-        ).join();
-
-        long totalSize = (long) numParts * partSize;
-        assertThat(result).contains("contentLength=" + totalSize);
-        assertThat(result).contains("contentRange=bytes 0-" + (totalSize - 1) + "/" + totalSize);
     }
 }

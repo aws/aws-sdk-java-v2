@@ -546,4 +546,62 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                     .withHeader("ETag", "\"test-etag\"")
                                     .withBody(Arrays.copyOfRange(TEST_DATA, 0, 8))));
     }
+
+    @Test
+    void presignedUrlDownload_customTransformer_hasFullObjectMetadata() {
+        // Stub two parts: 16 bytes each, total 32
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=16-31"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 16-31/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 16, 32))));
+
+        AsyncResponseTransformer<GetObjectResponse, String> customTransformer =
+            new AsyncResponseTransformer<GetObjectResponse, String>() {
+                private CompletableFuture<String> future;
+                private GetObjectResponse response;
+
+                @Override
+                public CompletableFuture<String> prepare() {
+                    future = new CompletableFuture<>();
+                    return future;
+                }
+                @Override public void onResponse(GetObjectResponse r) { this.response = r; }
+                @Override public void onStream(SdkPublisher<ByteBuffer> p) {
+                    p.subscribe(new Subscriber<ByteBuffer>() {
+                        @Override public void onSubscribe(Subscription s) { s.request(Long.MAX_VALUE); }
+                        @Override public void onNext(ByteBuffer b) { }
+                        @Override public void onError(Throwable t) { future.completeExceptionally(t); }
+                        @Override public void onComplete() {
+                            future.complete("contentLength=" + response.contentLength()
+                                + "|contentRange=" + response.contentRange());
+                        }
+                    });
+                }
+                @Override public void exceptionOccurred(Throwable e) { future.completeExceptionally(e); }
+            };
+
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+
+        String result = s3AsyncClient.presignedUrlExtension()
+                                     .getObject(request, customTransformer)
+                                     .join();
+
+        assertThat(result).contains("contentLength=32");
+        assertThat(result).contains("contentRange=bytes 0-31/32");
+    }
 }
