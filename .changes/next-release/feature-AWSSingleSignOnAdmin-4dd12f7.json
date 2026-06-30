@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Single Sign-On Admin",
+    "contributor": "",
+    "description": "AWS IAM Identity Center now returns PrimaryRegion and Regions in the ListInstances response, providing information about replicated instances."
+}
