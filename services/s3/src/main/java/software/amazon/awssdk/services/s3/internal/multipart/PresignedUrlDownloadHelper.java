@@ -96,14 +96,13 @@ public class PresignedUrlDownloadHelper {
         SplittingTransformerConfiguration splittingConfig = SplittingTransformerConfiguration.builder()
                                                                                              .bufferSizeInBytes(bufferSizeInBytes)
                                                                                              .build();
+
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
-            asyncResponseTransformer.split(splittingConfig);
+            MultipartDownloadUtils.splitWithResponseRewrite(asyncResponseTransformer, splittingConfig);
 
         if (split.parallelSplitSupported()) {
             return downloadPartsInParallel(presignedRequest, split);
         }
-        // Serial path: split with response mapper to convert part response to full-object response
-        split = MultipartDownloadUtils.splitWithResponseRewrite(asyncResponseTransformer, splittingConfig);
         return downloadPartsSerially(presignedRequest, split);
     }
 
