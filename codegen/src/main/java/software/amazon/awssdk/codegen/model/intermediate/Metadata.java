@@ -775,6 +775,10 @@ public class Metadata {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
 
+    public String getFullCracInternalPackageName() {
+        return joinPackageNames(getFullInternalPackageName(), "crac");
+    }
+
     public Metadata setJmesPathPackageName(String jmesPathPackageName) {
         this.jmesPathPackageName = jmesPathPackageName;
         return this;

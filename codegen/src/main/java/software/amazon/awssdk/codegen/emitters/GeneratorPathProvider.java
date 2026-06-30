@@ -107,4 +107,8 @@ public class GeneratorPathProvider {
     public String getJmesPathInternalDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalJmesPathPackageName());
     }
+
+    public String getWarmUpProviderDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullCracInternalPackageName());
+    }
 }
