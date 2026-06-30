@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -37,7 +37,8 @@ public final class ClasspathHttpWarmupInvoker implements HttpWarmupInvoker {
      * @return an invoker over the HTTP-client warmers on the classpath.
      */
     public static HttpWarmupInvoker create() {
-        return new ClasspathHttpWarmupInvoker(Collections.singletonList(SyncHttpClientWarmer.create()));
+        return new ClasspathHttpWarmupInvoker(
+            Arrays.asList(SyncHttpClientWarmer.create(), AsyncHttpClientWarmer.create()));
     }
 
     @Override
