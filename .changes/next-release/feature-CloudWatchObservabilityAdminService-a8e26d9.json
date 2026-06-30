@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Observability Admin Service",
-    "contributor": "",
-    "description": "Organization and account level telemetry rule via Observability Admin and CloudWatch pipelines for metrics"
-}

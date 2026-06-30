@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "Adds support for host kernel selection for on-demand builds."
-}

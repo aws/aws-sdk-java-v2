@@ -1,4 +1,73 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.19__ __2026-06-30__
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager now supports the Automatic Certificate Management Environment (ACME) protocol to issue public certificates. ACME is an industry-standard protocol for automating certificate lifecycle on customer-managed infrastructure such as on-premises servers and Kubernetes clusters.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for intermediate tables in AWS Clean Rooms collaborations.
+
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation adds a DeploymentConfig parameter to enable Express mode, which completes stack operations as soon as resource configuration is applied. Also adds a DisableValidation parameter to skip pre-deployment validation, which now runs automatically on CreateStack and UpdateStak.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Adds support for host kernel selection for on-demand builds.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now supports container associations for monitoring ECS and EKS workloads. You can create container associations to dynamically track the IP addresses of running containers in your Amazon ECS and Amazon EKS clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS IAM Identity Center now returns PrimaryRegion and Regions in the ListInstances response, providing information about replicated instances.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Customers can configure alarms with wall-clock-aligned evaluation windows instead of sliding windows, with optional timezone support for daily or weekly periods
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect - Added CreateAttachedFile and StartContactConversationalAnalyticsJob APIs to import call recordings and run conversational analytics.
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now supports SNOWFLAKE as a connection type in the CreateConnection API, enabling metadata and lineage retrieval from Snowflake databases. Specify snowflakeProperties with connection details, a Secrets Manager secret, an Athena spill bucket, and an identity mapping for Snowflake.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updated threshold configuration documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds ModifyVpcEndpointPayerResponsibility API, which enables VPC endpoint service owners to modify the billing account for VPC endpoint usage charges at the individual endpoint level
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds Kubernetes version rollback support, including the CancelUpdate operation to cancel an in-progress VersionRollback update, the RollbackConfig structure with a timeoutMinutes field, and the Cancellation structure surfaced via the new cancellation field on the Update object.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for a new reservations-then-balanced capacity distribution strategy, which first attempts to launch instances into your Capacity Reservations and then balances remaining capacity across healthy Availability Zones.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Organization and account level telemetry rule via Observability Admin and CloudWatch pipelines for metrics
+
+## __Partner Central Selling API__
+  - ### Features
+    - This release adds AwsMarketplaceSolutions and AwsMarketplaceProducts entity types to the Associate and Disassociate APIs, returns them in GetOpportunity, and adds AwsMarketplaceSolutionArn to ListSolutions ,letting partners link Marketplace listings directly to opportunities.
+
+## __SupportAuthZ__
+  - ### Features
+    - New SDK release for SupportAuthZ.
+
 # __2.46.18__ __2026-06-29__
 ## __AWS Glue__
   - ### Features
