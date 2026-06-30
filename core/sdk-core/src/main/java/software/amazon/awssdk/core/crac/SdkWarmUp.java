@@ -19,6 +19,7 @@ import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
+import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
 
 /**
  * Entry point for warming up SDK service request paths before a Coordinated Restore at Checkpoint (CRaC)
@@ -66,6 +67,7 @@ public final class SdkWarmUp {
             }
             // Set primed only after invokeAll() succeeds, so a failed run leaves primed false and a later call retries.
             ClasspathWarmUpInvoker.create().invokeAll();
+            ClasspathHttpWarmupInvoker.create().invokeAll();
             primed = true;
         }
     }

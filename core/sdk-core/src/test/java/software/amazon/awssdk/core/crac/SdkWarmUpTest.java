@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -28,6 +30,24 @@ import org.junit.jupiter.api.Test;
  * runs at most once per JVM, so many concurrent calls must invoke the provider exactly once in total.
  */
 class SdkWarmUpTest {
+
+    private String savedRegionProperty;
+
+    @BeforeEach
+    void setup() {
+        // Dummy region so prime()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
+        savedRegionProperty = System.getProperty("aws.region");
+        System.setProperty("aws.region", "warmup-unit-test");
+    }
+
+    @AfterEach
+    void teardown() {
+        if (savedRegionProperty != null) {
+            System.setProperty("aws.region", savedRegionProperty);
+        } else {
+            System.clearProperty("aws.region");
+        }
+    }
 
     @Test
     void prime_concurrentCalls_invokeRegisteredProviderExactlyOnce() throws InterruptedException {

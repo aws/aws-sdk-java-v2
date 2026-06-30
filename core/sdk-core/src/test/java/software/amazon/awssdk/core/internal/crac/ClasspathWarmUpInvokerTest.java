@@ -101,7 +101,7 @@ class ClasspathWarmUpInvokerTest {
             assertThat(logCaptor.loggedEvents())
                 .filteredOn(loggedFromInvoker())
                 .anyMatch(event -> event.getLevel() == Level.WARN
-                                   && event.getMessage().getFormattedMessage().contains("failed during warmUp()"));
+                                   && event.getMessage().getFormattedMessage().contains("Warm-up failed for"));
         }
     }
 
@@ -127,12 +127,12 @@ class ClasspathWarmUpInvokerTest {
             assertThat(logCaptor.loggedEvents())
                 .filteredOn(loggedFromInvoker())
                 .anyMatch(event -> event.getLevel() == Level.DEBUG
-                                   && event.getMessage().getFormattedMessage().contains("No SdkWarmUpProvider"));
+                                   && event.getMessage().getFormattedMessage().contains("No warm-up tasks"));
         }
     }
 
     private static Predicate<LogEvent> loggedFromInvoker() {
-        return event -> ClasspathWarmUpInvoker.class.getName().equals(event.getLoggerName());
+        return event -> WarmUpDiscovery.class.getName().equals(event.getLoggerName());
     }
 
     private WarmUpInvoker invokerLoading(SdkWarmUpProvider... providers) {
