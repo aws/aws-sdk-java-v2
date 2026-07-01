@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.46.16-SNAPSHOT</version>
+        <version>2.46.20-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -183,8 +183,6 @@
         <module>mediapackagevod</module>
         <module>groundstation</module>
         <module>iotthingsgraph</module>
-        <module>iotevents</module>
-        <module>ioteventsdata</module>
         <module>personalizeruntime</module>
         <module>personalize</module>
         <module>personalizeevents</module>
@@ -283,7 +281,6 @@
         <module>account</module>
         <module>cloudcontrol</module>
         <module>grafana</module>
-        <module>panorama</module>
         <module>chimesdkmeetings</module>
         <module>resiliencehub</module>
         <module>migrationhubstrategy</module>
@@ -319,7 +316,6 @@
         <module>chimesdkvoice</module>
         <module>oam</module>
         <module>arczonalshift</module>
-        <module>simspaceweaver</module>
         <module>securitylake</module>
         <module>opensearchserverless</module>
         <module>omics</module>
@@ -447,6 +443,9 @@
         <module>interconnect</module>
         <module>resiliencehubv2</module>
         <module>sagemakerjobruntime</module>
+        <module>lambdamicrovms</module>
+        <module>lambdacore</module>
+        <module>supportauthz</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

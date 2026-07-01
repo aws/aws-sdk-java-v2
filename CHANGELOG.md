@@ -1,4 +1,227 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.19__ __2026-06-30__
+## __AWS Certificate Manager__
+  - ### Features
+    - AWS Certificate Manager now supports the Automatic Certificate Management Environment (ACME) protocol to issue public certificates. ACME is an industry-standard protocol for automating certificate lifecycle on customer-managed infrastructure such as on-premises servers and Kubernetes clusters.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for intermediate tables in AWS Clean Rooms collaborations.
+
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation adds a DeploymentConfig parameter to enable Express mode, which completes stack operations as soon as resource configuration is applied. Also adds a DisableValidation parameter to skip pre-deployment validation, which now runs automatically on CreateStack and UpdateStak.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Adds support for host kernel selection for on-demand builds.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now supports container associations for monitoring ECS and EKS workloads. You can create container associations to dynamically track the IP addresses of running containers in your Amazon ECS and Amazon EKS clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS IAM Identity Center now returns PrimaryRegion and Regions in the ListInstances response, providing information about replicated instances.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Customers can configure alarms with wall-clock-aligned evaluation windows instead of sliding windows, with optional timezone support for daily or weekly periods
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect - Added CreateAttachedFile and StartContactConversationalAnalyticsJob APIs to import call recordings and run conversational analytics.
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now supports SNOWFLAKE as a connection type in the CreateConnection API, enabling metadata and lineage retrieval from Snowflake databases. Specify snowflakeProperties with connection details, a Secrets Manager secret, an Athena spill bucket, and an identity mapping for Snowflake.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updated threshold configuration documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds ModifyVpcEndpointPayerResponsibility API, which enables VPC endpoint service owners to modify the billing account for VPC endpoint usage charges at the individual endpoint level
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds Kubernetes version rollback support, including the CancelUpdate operation to cancel an in-progress VersionRollback update, the RollbackConfig structure with a timeoutMinutes field, and the Cancellation structure surfaced via the new cancellation field on the Update object.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for a new reservations-then-balanced capacity distribution strategy, which first attempts to launch instances into your Capacity Reservations and then balances remaining capacity across healthy Availability Zones.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Organization and account level telemetry rule via Observability Admin and CloudWatch pipelines for metrics
+
+## __Partner Central Selling API__
+  - ### Features
+    - This release adds AwsMarketplaceSolutions and AwsMarketplaceProducts entity types to the Associate and Disassociate APIs, returns them in GetOpportunity, and adds AwsMarketplaceSolutionArn to ListSolutions ,letting partners link Marketplace listings directly to opportunities.
+
+## __SupportAuthZ__
+  - ### Features
+    - New SDK release for SupportAuthZ.
+
+# __2.46.18__ __2026-06-29__
+## __AWS Glue__
+  - ### Features
+    - Added the UpdateAsset operation to set the business name and description for an existing AWS Glue Data Catalog asset.
+
+## __AWS Lambda__
+  - ### Features
+    - Lambda now supports self-managed S3 buckets for Lambda code storage giving you the option for Lambda to reference a copy of your source code from your own S3 buckets. This allows you to maintain a single copy of your source code and manage your own code storage limits.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Add support for in-place Slurm version upgrades on existing clusters by accepting scheduler.version in UpdateCluster.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Updated documentation to remove Aurora Serverless V1 references.
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Added CFN resource type fields for Search and ListSupportedResourceTypes responses. Added SLRec field for ServiceView
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Codegen now fails with a clear model validation error identifying the offending shape, member, and unresolved target when a shape member references a shape that does not exist in the model, instead of a NullPointerException during code generation.
+    - Include the sdk-core mime.types resource in the native-image resource configuration so default MIME type detection works in GraalVM native images. Fixes [#7063](https://github.com/aws/aws-sdk-java-v2/issues/7063)
+        - Contributed by: [@sjh9714](https://github.com/sjh9714)
+
+## __AWS SDK for Java v2 Codegen__
+  - ### Bugfixes
+    - Add support for generating endpoint tests with integer parameter values.
+    - Validate paginators before generating
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF added support for associating AWS WAF web ACLs with Amazon Bedrock AgentCore Gateway resources. You can now use AssociateWebACL, DisassociateWebACL, GetWebACLForResource, and ListResourcesForWebACL to protect your AgentCore Gateways with AWS WAF.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig introduces Experimentation tools - enhanced capabilities within AWS AppConfig that enable you to run AB tests, multivariate tests, and gradual feature rollouts across your application stack.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds the API (PutLogAlarm) to manage a new CloudWatch resource, Log Based Alarms. Log Based Alarms allows customers to alarm directly on CloudWatch Logs query results.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now supports customizable deployment circuit breaker configurations. Customers can now define the failure threshold or control the failure counting mechanism.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Updated documentation for the ApplyImmediately parameter in ModifyCacheCluster and ModifyReplicationGroup to clarify modification behavior.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for the precision time strategy and a parentGroupId parameter on CreatePlacementGroup and DescribePlacementGroups. Precision time placement groups and cluster placement groups with a parent precision time placement group ensure instances launch on precision time capable hardware.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS introduces a VMware Cloud Foundation (VCF) self-deployed mode, along with new connectors to VCF components such as the Operations and SDDC managers to monitor coverage and usage.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This launch is an expansion of our Q1 RCS for business launch where we will release an API that supports rich media and interactive messaging elements.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Add support for ListRecords and BatchWriteRecord APIs to Feature Store.
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Amazon VPC Lattice now supports mutable idle timeout configuration on VPC Lattice Services
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Adding new attributes to PutProfileOutboundRequest API that will create an outbound request call for the customer's Web Notification outbound campaign.
+
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Update `httpcore5` to `5.4.3` to fix an issue where early 3xx responses to requests with `Expect: 100-continue` does not cause the client to terminate the request. Fixes [#7047](https://github.com/aws/aws-sdk-java-v2/issues/7047).
+
+## __Connect Health__
+  - ### Features
+    - Expand input validation to support Unicode characters and markdown table syntax.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Adds support for AMI watermarks in Image Builder.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sjh9714](https://github.com/sjh9714)
+# __2.46.17__ __2026-06-22__
+## __Amazon S3__
+  - ### Bugfixes
+    - Always set 'Expect: 100-continue' when using PUT operations across regions; this enables the correct redirect behavior when the initial request goes to an incorrect region.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports mTLS authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require mutual TLS for client authentication. This capability is supported when replicating to Amazon MSK Express brokers.
+
+# __2.46.16__ __2026-06-22__
+## __AWS Direct Connect__
+  - ### Features
+    - Added VIF rate limiting support for AWS Direct Connect, allowing customers to set bandwidth allocations on virtual interfaces to manage traffic on dedicated connections.
+
+## __AWS Lambda__
+  - ### Features
+    - Add support for tagging Network Connector resources in AWS Lambda.
+
+## __AWS Lambda Core__
+  - ### Features
+    - Initial release of the AWS Lambda Core SDK with APIs to create, manage, and tag network connectors that enable Lambda compute resources to access private resources in your Amazon VPC.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS MediaConnect now supports Content Quality Analysis for Router Inputs, enabling detection of black frames, frozen frames, and silent audio with configurable thresholds.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds an optional extractionMode field to CreateEvent. SKIP retains the event in short-term memory but excludes it from long-term memory extraction.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Application Signals now supports dynamic instrumentation and Service Events telemetry. Add instrumentation at runtime without restarts, and use fine-grained profiling data to quickly pinpoint latency and error root causes.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs Updates - New APIs introduced to support syslog ingestion to a log group. For more information, see CloudWatch Logs API documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AMI Watermark and Allowed AMIs integration
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added AI-powered investigations that automatically analyze security findings, correlate related activity, and produce structured summaries with risk assessment, confidence scoring, MITRE technique classification, and actionable next steps.
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for scratch ephemeral storage mounted at tmp
+
+## __Amazon QuickSight__
+  - ### Features
+    - Updated the Amazon Quick Spaces API to remove unsupported SPACE and ARTIFACT values from the SpaceQuickSightResourceType enum.
+
+## __Lambda MicroVMs__
+  - ### Features
+    - Lambda MicroVMs GA launch. Lambda MicroVMs enable isolated and highly responsive execution of user-supplied or LLM-generated code.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports mTLS authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require mutual TLS for client authentication. This capability is supported when replicating to Amazon MSK Express brokers.
+
 # __2.46.15__ __2026-06-19__
 ## __AWS Glue__
   - ### Features
