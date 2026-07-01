@@ -74,6 +74,10 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         this.clientEndpoint = new Lazy<>(() -> resolveClientEndpoint(new Builder(builder)));
     }
 
+    private AwsClientEndpointProvider(Builder builder, boolean overridesOnly) {
+        this.clientEndpoint = new Lazy<>(() -> resolveFromOverridesAndEnvironment(new Builder(builder)));
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -95,11 +99,19 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return clientEndpoint.getValue().isEndpointOverridden;
     }
 
+    // TODO: Remove once all callers are migrated to use resolveFromOverridesAndEnvironment
     private ClientEndpoint resolveClientEndpoint(Builder builder) {
         return OptionalUtils.firstPresent(clientEndpointFromClientOverride(builder),
                                           () -> clientEndpointFromEnvironment(builder),
                                           () -> clientEndpointFromServiceMetadata(builder))
                             .orElseThrow(AwsClientEndpointProvider::failToLoadEndpointException);
+    }
+
+    private ClientEndpoint resolveFromOverridesAndEnvironment(Builder builder) {
+        initializeProfileFileDefaults(builder);
+        return OptionalUtils.firstPresent(clientEndpointFromClientOverride(builder),
+                                          () -> clientEndpointFromEnvironment(builder))
+                            .orElse(null);
     }
 
     private static SdkClientException failToLoadEndpointException() {
@@ -488,16 +500,11 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
          * Returns {@link Optional#empty()} if no override is found, allowing callers to provide their own fallback.
          */
         public Optional<ClientEndpointProvider> buildIfOverridePresent() {
-            this.serviceEndpointPrefix = null;
-            this.region = null;
-            this.protocol = null;
-            AwsClientEndpointProvider provider = new AwsClientEndpointProvider(this);
-            try {
-                provider.clientEndpoint();
-                return Optional.of(provider);
-            } catch (SdkClientException e) {
+            AwsClientEndpointProvider provider = new AwsClientEndpointProvider(this, true);
+            if (provider.clientEndpoint.getValue() == null) {
                 return Optional.empty();
             }
+            return Optional.of(provider);
         }
     }
 }
