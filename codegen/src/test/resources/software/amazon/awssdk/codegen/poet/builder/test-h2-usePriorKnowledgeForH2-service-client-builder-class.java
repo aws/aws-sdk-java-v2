@@ -33,6 +33,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.h2.auth.scheme.H2AuthSchemeProvider;
 import software.amazon.awssdk.services.h2.auth.scheme.internal.H2AuthSchemeInterceptor;
@@ -108,20 +109,20 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
                     return endpointFromOverrides.get();
                 }
                 URI clientEndpointUri = null;
+                Region region = c.get(AwsClientOption.AWS_REGION);
                 try {
-                    H2EndpointParams endpointParams = H2EndpointParams.builder().region(c.get(AwsClientOption.AWS_REGION))
-                                                                      .build();
+                    H2EndpointParams endpointParams = H2EndpointParams.builder().region(region).build();
                     Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
                         endpointParams));
                     clientEndpointUri = endpoint.url();
-                } catch (Exception e) {
-                    // Resolution requires request-bound params; fallback to placeholder, resolved at request time.
+                } catch (SdkClientException e) {
+                    // Endpoint resolution failed. This is expected for services that require request-bound
+                    // params (e.g., S3 bucket). Use a placeholder that will be resolved at request time.
                     return ClientEndpointProvider.create(URI.create("https://localhost"), false);
                 }
                 if (clientEndpointUri.getHost() == null) {
-                    throw SdkClientException.create("Configured region (" + c.get(AwsClientOption.AWS_REGION)
-                                                    + ") resulted in an invalid URI: " + clientEndpointUri
-                                                    + ". This is usually caused by an invalid region configuration.");
+                    throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
+                                                    + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
                 }
                 return ClientEndpointProvider.create(clientEndpointUri, false);
             });

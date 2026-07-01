@@ -529,10 +529,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    return endpointFromOverrides.get();\n")
                .addCode("  }\n")
                .addCode("  $T clientEndpointUri = null;\n", URI.class)
+               .addCode("  $T region = c.get($T.AWS_REGION);\n",
+                        ClassName.get("software.amazon.awssdk.regions", "Region"),
+                        AwsClientOption.class)
                .addCode("  try {\n")
                .addCode("    $T endpointParams = $T.builder()\n",
                         endpointRulesSpecUtils.parametersClassName(), endpointRulesSpecUtils.parametersClassName())
-               .addCode("      .region(c.get($T.AWS_REGION))\n", AwsClientOption.class);
+               .addCode("      .region(region)\n");
 
         if (hasBuiltIn(BuiltInParameter.AWS_USE_DUAL_STACK)) {
             builder.addCode("      .useDualStack(c.get($T.DUALSTACK_ENDPOINT_ENABLED))\n", AwsClientOption.class);
@@ -546,16 +549,17 @@ public class BaseClientBuilderClass implements ClassSpec {
                         ClassName.get("software.amazon.awssdk.endpoints", "Endpoint"),
                         ClassName.get("software.amazon.awssdk.utils", "CompletableFutureUtils"))
                .addCode("    clientEndpointUri = endpoint.url();\n")
-               .addCode("  } catch (Exception e) {\n")
-               .addCode("    // Resolution requires request-bound params; fallback to placeholder, resolved at request time.\n")
+               .addCode("  } catch ($T e) {\n",
+                        ClassName.get("software.amazon.awssdk.core.exception", "SdkClientException"))
+               .addCode("    // Endpoint resolution failed. This is expected for services that require request-bound\n")
+               .addCode("    // params (e.g., S3 bucket). Use a placeholder that will be resolved at request time.\n")
                .addCode("    return $T.create($T.create($S), false);\n",
                         ClassName.get("software.amazon.awssdk.core", "ClientEndpointProvider"),
                         URI.class, "https://localhost")
                .addCode("  }\n")
                .addCode("  if (clientEndpointUri.getHost() == null) {\n")
-               .addCode("    throw $T.create(\"Configured region (\" + c.get($T.AWS_REGION)\n",
-                        ClassName.get("software.amazon.awssdk.core.exception", "SdkClientException"),
-                        AwsClientOption.class)
+               .addCode("    throw $T.create(\"Configured region (\" + region\n",
+                        ClassName.get("software.amazon.awssdk.core.exception", "SdkClientException"))
                .addCode("      + \") resulted in an invalid URI: \" + clientEndpointUri\n")
                .addCode("      + \". This is usually caused by an invalid region configuration.\");\n")
                .addCode("  }\n")
