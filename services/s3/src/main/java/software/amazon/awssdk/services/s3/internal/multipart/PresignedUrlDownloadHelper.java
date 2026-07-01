@@ -67,10 +67,7 @@ public class PresignedUrlDownloadHelper {
         doMultipartDownload(presignedRequest, asyncResponseTransformer)
             .whenComplete((result, error) -> {
                 Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                // Parallel path wraps it as EmptyObjectRangeNotSatisfiableException;
-                // serial path (toBytes, custom transformers) surfaces raw S3Exception.
-                if (cause instanceof EmptyObjectRangeNotSatisfiableException
-                    || isRangeNotSatisfiable(cause)) {
+                if (isRangeNotSatisfiable(cause)) {
                     log.debug(() -> "Received 416 on first request, falling back to non-range GET for empty object");
                     asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer)
                                               .whenComplete((r, e) -> {
@@ -241,15 +238,5 @@ public class PresignedUrlDownloadHelper {
     static boolean isRangeNotSatisfiable(Throwable error) {
         Throwable cause = error instanceof CompletionException ? error.getCause() : error;
         return cause instanceof S3Exception && ((S3Exception) cause).statusCode() == 416;
-    }
-
-    /**
-     * Marker exception wrapping a 416 on the first range request, signaling an empty object.
-     * Used to distinguish from 416 errors on subsequent requests which should propagate as failures.
-     */
-    static class EmptyObjectRangeNotSatisfiableException extends RuntimeException {
-        EmptyObjectRangeNotSatisfiableException(Throwable cause) {
-            super("Object is empty (416 on first range request)", cause);
-        }
     }
 }

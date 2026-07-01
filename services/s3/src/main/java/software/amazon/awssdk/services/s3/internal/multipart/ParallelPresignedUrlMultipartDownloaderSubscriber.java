@@ -148,8 +148,7 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
 
             if (error != null) {
                 if (PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
-                    resultFuture.completeExceptionally(
-                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                    resultFuture.completeExceptionally(error);
                     synchronized (subscriptionLock) {
                         subscription.cancel();
                     }

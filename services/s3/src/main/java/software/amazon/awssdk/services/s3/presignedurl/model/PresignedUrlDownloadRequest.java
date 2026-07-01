@@ -25,6 +25,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request object for performing download operations using a presigned URL.
+ *
+ * <p>Presigned URLs with additional signed headers (beyond {@code Range}, {@code If-Match}, and
+ * {@code x-amz-checksum-mode}) are not supported. If the presigned URL was signed with {@code Range} or
+ * {@code If-Match}, those values must be set on this request via {@link Builder#range(String)} or
+ * {@link Builder#ifMatch(String)} — otherwise S3 will return a {@code SignatureDoesNotMatch} error.
+ * The {@code x-amz-checksum-mode} header is replayed automatically by the SDK and requires no
+ * additional configuration.
  */
 @SdkPublicApi
 public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<PresignedUrlDownloadRequest.Builder,

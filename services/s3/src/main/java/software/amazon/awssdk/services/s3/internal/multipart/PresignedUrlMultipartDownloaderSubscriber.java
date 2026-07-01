@@ -137,8 +137,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
             if (error != null) {
                 if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
                     log.debug(() -> "Received 416 on first range request, object is empty");
-                    resultFuture.completeExceptionally(
-                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                    resultFuture.completeExceptionally(error);
                     synchronized (lock) {
                         subscription.cancel();
                     }
