@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestBase;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.Protocol;
@@ -33,6 +34,16 @@ import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 
 @SdkInternalApi
 public final class CrtRequestAdapter {
+    /**
+     * Per-chunk size used by the sync request-body pipe.
+     */
+    private static final int CHUNK_SIZE = 128 * 1024;
+
+    /**
+     * Number of in-flight chunks the pipe holds.
+     */
+    private static final int PIPE_DEPTH = 4;
+
     private CrtRequestAdapter() {
     }
 
@@ -60,7 +71,12 @@ public final class CrtRequestAdapter {
                                crtRequestBodyAdapter);
     }
 
-    public static HttpRequest toCrtRequest(CrtRequestContext request) {
+    /**
+     * Build the CRT request for the sync path. When the SDK request has a body, this also constructs the
+     * {@link BodyChunkPipe} and a {@link SyncRequestBodyPump}; the caller thread is expected to drive
+     * the pump after the stream is activated.
+     */
+    public static SyncCrtRequest toCrtRequest(CrtRequestContext request) {
 
         HttpExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.httpRequest();
@@ -78,14 +94,39 @@ public final class CrtRequestAdapter {
         HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
 
         String finalEncodedPath = encodedPath + encodedQueryString;
-        return sdkExecuteRequest.contentStreamProvider()
-                                .map(provider -> new HttpRequest(method,
-                                                                 finalEncodedPath,
-                                                                 crtHeaderArray,
-                                                                 new CrtRequestInputStreamAdapter(provider)))
-                                .orElse(new HttpRequest(method,
-                                                        finalEncodedPath,
-                                                        crtHeaderArray, null));
+
+        Optional<ContentStreamProvider> providerOpt = sdkExecuteRequest.contentStreamProvider();
+        if (!providerOpt.isPresent()) {
+            return new SyncCrtRequest(new HttpRequest(method, finalEncodedPath, crtHeaderArray, null), null);
+        }
+
+        BodyChunkPipe pipe = new BodyChunkPipe(PIPE_DEPTH, CHUNK_SIZE);
+        PipeBackedRequestBodyStream bodyStream = new PipeBackedRequestBodyStream(pipe);
+        SyncRequestBodyPump pump = new SyncRequestBodyPump(providerOpt.get(), pipe);
+        HttpRequest crtRequest = new HttpRequest(method, finalEncodedPath, crtHeaderArray, bodyStream);
+        return new SyncCrtRequest(crtRequest, pump);
+    }
+
+    /**
+     * Holder returned from {@link #toCrtRequest(CrtRequestContext)} bundling the CRT-side request and the
+     * caller-thread producer pump (null when the SDK request has no body).
+     */
+    public static final class SyncCrtRequest {
+        private final HttpRequest httpRequest;
+        private final SyncRequestBodyPump pump;
+
+        SyncCrtRequest(HttpRequest httpRequest, SyncRequestBodyPump pump) {
+            this.httpRequest = httpRequest;
+            this.pump = pump;
+        }
+
+        public HttpRequest httpRequest() {
+            return httpRequest;
+        }
+
+        public SyncRequestBodyPump pump() {
+            return pump;
+        }
     }
 
     private static HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {

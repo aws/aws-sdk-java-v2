@@ -16,12 +16,13 @@
 package software.amazon.awssdk.services.s3.crthttpclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.assertj.core.api.Assertions;
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -79,5 +81,23 @@ public class S3WithCrtHttpClientsIntegrationTests extends S3IntegrationTestBase 
                                                                  ResponseTransformer.toFile(destination));
 
         assertThat(Md5Utils.md5AsBase64(destination.toFile())).isEqualTo(Md5Utils.md5AsBase64(testFile));
+    }
+
+    @Test
+    void getObject_responseStreamPipedIntoPutObject_completesWithoutDeadlock() throws Exception {
+        String destinationKey = "piped-" + TEST_KEY;
+        try (ResponseInputStream<GetObjectResponse> sourceStream =
+                 s3WithCrtHttpClient.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                               ResponseTransformer.toInputStream())) {
+            long contentLength = sourceStream.response().contentLength();
+
+            PutObjectResponse putResponse = assertTimeoutPreemptively(
+                Duration.ofSeconds(120),
+                () -> s3WithCrtHttpClient.putObject(
+                    r -> r.bucket(TEST_BUCKET).key(destinationKey).contentLength(contentLength),
+                    RequestBody.fromInputStream(sourceStream, contentLength)));
+
+            assertThat(putResponse.eTag()).isNotBlank();
+        }
     }
 }

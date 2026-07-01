@@ -82,7 +82,9 @@ public final class CrtAsyncRequestExecutor {
         long finalAcquireStartTime = acquireStartTime;
 
         streamFuture.whenComplete((stream, throwable) -> {
-            crtResponseHandler.onAcquireStream(stream);
+            if (throwable == null) {
+                crtResponseHandler.onAcquireStream(stream);
+            }
             if (shouldPublishMetrics) {
                 reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
             }

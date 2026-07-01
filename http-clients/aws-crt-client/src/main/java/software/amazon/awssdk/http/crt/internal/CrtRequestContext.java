@@ -26,12 +26,14 @@ public final class CrtRequestContext {
     private final long readBufferSize;
     private final HttpStreamManager streamManager;
     private final MetricCollector metricCollector;
+    private final long connectionAcquisitionTimeoutMillis;
 
     private CrtRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.streamManager = builder.streamManager;
         this.metricCollector = request.metricCollector().orElse(null);
+        this.connectionAcquisitionTimeoutMillis = builder.connectionAcquisitionTimeoutMillis;
     }
 
     public static Builder builder() {
@@ -54,10 +56,15 @@ public final class CrtRequestContext {
         return metricCollector;
     }
 
+    public long connectionAcquisitionTimeoutMillis() {
+        return connectionAcquisitionTimeoutMillis;
+    }
+
     public static final class Builder {
         private HttpExecuteRequest request;
         private long readBufferSize;
         private HttpStreamManager streamManager;
+        private long connectionAcquisitionTimeoutMillis;
 
         private Builder() {
         }
@@ -74,6 +81,11 @@ public final class CrtRequestContext {
 
         public Builder streamManager(HttpStreamManager streamManager) {
             this.streamManager = streamManager;
+            return this;
+        }
+
+        public Builder connectionAcquisitionTimeoutMillis(long connectionAcquisitionTimeoutMillis) {
+            this.connectionAcquisitionTimeoutMillis = connectionAcquisitionTimeoutMillis;
             return this;
         }
 
