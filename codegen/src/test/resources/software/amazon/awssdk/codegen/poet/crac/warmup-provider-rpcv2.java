@@ -1,7 +1,6 @@
-package software.amazon.awssdk.services.query.internal.crac;
+package software.amazon.awssdk.services.smithyrpcv2protocol.internal.crac;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -12,24 +11,24 @@ import software.amazon.awssdk.core.internal.crac.CannedResponseHttpClient;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.query.QueryAsyncClient;
-import software.amazon.awssdk.services.query.QueryClient;
+import software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolAsyncClient;
+import software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolClient;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class QueryWarmUpProvider implements SdkWarmUpProvider {
-    private static final byte[] CANNED_RESPONSE = "<Response/>".getBytes(StandardCharsets.UTF_8);
+public final class SmithyRpcV2ProtocolWarmUpProvider implements SdkWarmUpProvider {
+    private static final byte[] CANNED_RESPONSE = new byte[] { (byte) 0xA0 };
 
     @Override
     public void warmUp() {
         SdkHttpClient httpClient = CannedResponseHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
-        try (QueryClient client = QueryClient.builder().httpClient(httpClient)
+        try (SmithyRpcV2ProtocolClient client = SmithyRpcV2ProtocolClient.builder().httpClient(httpClient)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
         }
         SdkAsyncHttpClient asyncHttpClient = CannedResponseAsyncHttpClient.builder().responseBody(CANNED_RESPONSE)
                 .statusCode(200).build();
-        try (QueryAsyncClient asyncClient = QueryAsyncClient.builder().httpClient(asyncHttpClient)
+        try (SmithyRpcV2ProtocolAsyncClient asyncClient = SmithyRpcV2ProtocolAsyncClient.builder().httpClient(asyncHttpClient)
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
         }

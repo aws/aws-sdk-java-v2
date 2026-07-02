@@ -8,12 +8,9 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 import software.amazon.awssdk.core.internal.crac.CannedResponseAsyncHttpClient;
-import software.amazon.awssdk.core.internal.crac.CannedResponseHttpClient;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
-import software.amazon.awssdk.services.query.QueryClient;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -22,11 +19,6 @@ public final class QueryWarmUpProvider implements SdkWarmUpProvider {
 
     @Override
     public void warmUp() {
-        SdkHttpClient httpClient = CannedResponseHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
-        try (QueryClient client = QueryClient.builder().httpClient(httpClient)
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
-                .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
-        }
         SdkAsyncHttpClient asyncHttpClient = CannedResponseAsyncHttpClient.builder().responseBody(CANNED_RESPONSE)
                 .statusCode(200).build();
         try (QueryAsyncClient asyncClient = QueryAsyncClient.builder().httpClient(asyncHttpClient)
