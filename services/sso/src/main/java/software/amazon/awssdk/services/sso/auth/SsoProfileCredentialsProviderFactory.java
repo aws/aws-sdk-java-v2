@@ -102,11 +102,12 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
                                                                          .accountId(ssoAccountId)
                                                                          .roleName(ssoRoleName)
                                                                          .build();
-            SdkToken sdkToken = tokenProvider.resolveToken();
-            Validate.paramNotNull(sdkToken, "Token provided by the TokenProvider is null");
-            Supplier<GetRoleCredentialsRequest> supplier = () -> request.toBuilder()
-                                                                        .accessToken(sdkToken.token())
-                                                                        .build();
+            Supplier<GetRoleCredentialsRequest> supplier = () -> {
+                SdkToken token = tokenProvider.resolveToken();
+                return request.toBuilder()
+                              .accessToken(token.token())
+                              .build();
+            };
 
 
             this.credentialsProvider = SsoCredentialsProvider.builder()
