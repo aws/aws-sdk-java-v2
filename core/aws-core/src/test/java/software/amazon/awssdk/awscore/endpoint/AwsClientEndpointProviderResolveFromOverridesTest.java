@@ -21,9 +21,8 @@ import java.net.URI;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.ClientEndpointProvider;
 
-class AwsClientEndpointProviderBuildIfOverridePresentTest {
+class AwsClientEndpointProviderResolveFromOverridesTest {
 
     private static final String TEST_SYSTEM_PROPERTY = "aws.endpointUrlTestService";
 
@@ -33,62 +32,48 @@ class AwsClientEndpointProviderBuildIfOverridePresentTest {
     }
 
     @Test
-    void buildIfOverridePresent_withClientEndpointOverride_returnsProviderWithOverride() {
+    void resolveFromOverrides_withClientEndpointOverride_returnsOverrideUri() {
         URI override = URI.create("https://custom-endpoint.example.com");
 
-        Optional<ClientEndpointProvider> result = AwsClientEndpointProvider.builder()
+        Optional<URI> result = AwsClientEndpointProvider.builder()
             .clientEndpointOverride(override)
-            .buildIfOverridePresent();
+            .resolveFromOverrides();
 
         assertThat(result).isPresent();
-        assertThat(result.get().clientEndpoint()).isEqualTo(override);
-        assertThat(result.get().isEndpointOverridden()).isTrue();
+        assertThat(result.get()).isEqualTo(override);
     }
 
     @Test
-    void buildIfOverridePresent_withSystemPropertyEndpoint_returnsProviderWithEndpoint() {
+    void resolveFromOverrides_withSystemPropertyEndpoint_returnsEndpointUri() {
         System.setProperty(TEST_SYSTEM_PROPERTY, "https://sys-prop-endpoint.example.com");
 
-        Optional<ClientEndpointProvider> result = AwsClientEndpointProvider.builder()
+        Optional<URI> result = AwsClientEndpointProvider.builder()
             .serviceEndpointOverrideSystemProperty(TEST_SYSTEM_PROPERTY)
             .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_TEST_SERVICE")
             .serviceProfileProperty("testservice")
-            .buildIfOverridePresent();
+            .resolveFromOverrides();
 
         assertThat(result).isPresent();
-        assertThat(result.get().clientEndpoint())
-            .isEqualTo(URI.create("https://sys-prop-endpoint.example.com"));
-        assertThat(result.get().isEndpointOverridden()).isTrue();
+        assertThat(result.get()).isEqualTo(URI.create("https://sys-prop-endpoint.example.com"));
     }
 
     @Test
-    void buildIfOverridePresent_withNoOverrideOrEnvironment_returnsEmpty() {
-        Optional<ClientEndpointProvider> result = AwsClientEndpointProvider.builder()
+    void resolveFromOverrides_withNoOverrideOrEnvironment_returnsEmpty() {
+        Optional<URI> result = AwsClientEndpointProvider.builder()
             .serviceEndpointOverrideSystemProperty("aws.endpointUrlNonExistent")
             .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_NON_EXISTENT")
             .serviceProfileProperty("nonexistent")
-            .buildIfOverridePresent();
+            .resolveFromOverrides();
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    void buildIfOverridePresent_withNoParamsConfigured_returnsEmpty() {
-        Optional<ClientEndpointProvider> result = AwsClientEndpointProvider.builder()
-            .buildIfOverridePresent();
+    void resolveFromOverrides_withNoParamsConfigured_returnsEmpty() {
+        Optional<URI> result = AwsClientEndpointProvider.builder()
+            .resolveFromOverrides();
 
         assertThat(result).isEmpty();
     }
 
-    @Test
-    void buildIfOverridePresent_withoutServiceMetadataParams_returnsProviderWithOverride() {
-        URI override = URI.create("https://override.example.com");
-
-        Optional<ClientEndpointProvider> result = AwsClientEndpointProvider.builder()
-            .clientEndpointOverride(override)
-            .buildIfOverridePresent();
-
-        assertThat(result).isPresent();
-        assertThat(result.get().clientEndpoint()).isEqualTo(override);
-    }
 }

@@ -101,13 +101,13 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
         builder.lazyOptionIfAbsent(
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> {
-                Optional<ClientEndpointProvider> endpointFromOverrides = AwsClientEndpointProvider.builder()
+                Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
                                                                                                   .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_H2_SERVICE")
                                                                                                   .serviceEndpointOverrideSystemProperty("aws.endpointUrlH2").serviceProfileProperty("h2_service")
                                                                                                   .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                                                                                  .profileName(c.get(SdkClientOption.PROFILE_NAME)).buildIfOverridePresent();
-                if (endpointFromOverrides.isPresent()) {
-                    return endpointFromOverrides.get();
+                                                                                                  .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                if (overrideEndpoint.isPresent()) {
+                    return ClientEndpointProvider.create(overrideEndpoint.get(), true);
                 }
                 URI clientEndpointUri = null;
                 Region region = c.get(AwsClientOption.AWS_REGION);
@@ -116,9 +116,9 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
                     Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
                         endpointParams));
                     clientEndpointUri = endpoint.url();
-                } catch (SdkClientException e) {
-                    // Endpoint resolution failed. This is expected for services that require request-bound
-                    // params (e.g., S3 bucket). Use a placeholder that will be resolved at request time.
+                } catch (Exception e) {
+                    // Endpoint resolution failed. This is expected for services with required parameters
+                    // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
                     return ClientEndpointProvider.create(URI.create("https://localhost"), false);
                 }
                 if (clientEndpointUri.getHost() == null) {

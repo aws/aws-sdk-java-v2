@@ -516,17 +516,18 @@ public class BaseClientBuilderClass implements ClassSpec {
         String serviceNameForProfileFile = model.getNamingStrategy().getServiceNameForProfileFile();
 
         builder.addCode("builder.lazyOptionIfAbsent($T.CLIENT_ENDPOINT_PROVIDER, c -> {\n", SdkClientOption.class)
-               .addCode("  $T<$T> endpointFromOverrides = $T.builder()\n",
-                        Optional.class, ClassName.get("software.amazon.awssdk.core", "ClientEndpointProvider"),
+               .addCode("  $T<$T> overrideEndpoint = $T.builder()\n",
+                        Optional.class, URI.class,
                         AwsClientEndpointProvider.class)
                .addCode("    .serviceEndpointOverrideEnvironmentVariable($S)\n", "AWS_ENDPOINT_URL_" + serviceNameForEnvVar)
                .addCode("    .serviceEndpointOverrideSystemProperty($S)\n", "aws.endpointUrl" + serviceNameForSystemProperty)
                .addCode("    .serviceProfileProperty($S)\n", serviceNameForProfileFile)
                .addCode("    .profileFile(c.get($T.PROFILE_FILE_SUPPLIER))\n", SdkClientOption.class)
                .addCode("    .profileName(c.get($T.PROFILE_NAME))\n", SdkClientOption.class)
-               .addCode("    .buildIfOverridePresent();\n")
-               .addCode("  if (endpointFromOverrides.isPresent()) {\n")
-               .addCode("    return endpointFromOverrides.get();\n")
+               .addCode("    .resolveFromOverrides();\n")
+               .addCode("  if (overrideEndpoint.isPresent()) {\n")
+               .addCode("    return $T.create(overrideEndpoint.get(), true);\n",
+                        ClassName.get("software.amazon.awssdk.core", "ClientEndpointProvider"))
                .addCode("  }\n")
                .addCode("  $T clientEndpointUri = null;\n", URI.class)
                .addCode("  $T region = c.get($T.AWS_REGION);\n",
@@ -549,10 +550,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                         ClassName.get("software.amazon.awssdk.endpoints", "Endpoint"),
                         ClassName.get("software.amazon.awssdk.utils", "CompletableFutureUtils"))
                .addCode("    clientEndpointUri = endpoint.url();\n")
-               .addCode("  } catch ($T e) {\n",
-                        ClassName.get("software.amazon.awssdk.core.exception", "SdkClientException"))
-               .addCode("    // Endpoint resolution failed. This is expected for services that require request-bound\n")
-               .addCode("    // params (e.g., S3 bucket). Use a placeholder that will be resolved at request time.\n")
+               .addCode("  } catch (Exception e) {\n")
+               .addCode("    // Endpoint resolution failed. This is expected for services with required parameters\n")
+               .addCode("    // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.\n")
                .addCode("    return $T.create($T.create($S), false);\n",
                         ClassName.get("software.amazon.awssdk.core", "ClientEndpointProvider"),
                         URI.class, "https://localhost")
