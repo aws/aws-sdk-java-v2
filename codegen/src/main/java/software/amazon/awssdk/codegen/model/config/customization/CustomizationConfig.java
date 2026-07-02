@@ -147,6 +147,15 @@ public class CustomizationConfig {
      */
     private String customRetryStrategy;
 
+    /**
+     * Pins or disables the CRaC warm-up operation for this service.
+     *
+     * <p>When unset (null), codegen's deterministic selection algorithm chooses the warm-up operation. When set to an
+     * operation name (for example, {@code "ListBuckets"}), that operation is pinned as the CRaC warm-up call for this service.
+     * When set to the literal {@code "NONE"}, warm-up is disabled for this service and codegen emits a no-op provider.
+     */
+    private String warmUpOperation;
+
     private boolean skipSyncClientGeneration;
 
     /**
@@ -579,6 +588,14 @@ public class CustomizationConfig {
 
     public void setCustomRetryStrategy(String customRetryStrategy) {
         this.customRetryStrategy = customRetryStrategy;
+    }
+
+    public String getWarmUpOperation() {
+        return warmUpOperation;
+    }
+
+    public void setWarmUpOperation(String warmUpOperation) {
+        this.warmUpOperation = warmUpOperation;
     }
 
     public boolean isSkipSyncClientGeneration() {
