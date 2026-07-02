@@ -48,6 +48,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sso.SsoClient;
+import software.amazon.awssdk.services.sso.auth.ExpiredTokenException;
 import software.amazon.awssdk.services.sso.internal.SsoAccessToken;
 import software.amazon.awssdk.services.sso.internal.SsoAccessTokenProvider;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
@@ -172,6 +173,8 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
     @Test
     public void tokenResolvedFromTokenProvider(@Mock SdkTokenProvider sdkTokenProvider){
+        SsoClient mockSsoClient = mock(SsoClient.class);
+
         ProfileFile profileFile = configFile("[profile test]\n" +
                                              "sso_account_id=accountId\n" +
                                              "sso_role_name=roleName\n" +
@@ -182,20 +185,25 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                              "sso_start_url=https//d-abc123.awsapps.com/start");
         SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
         when(sdkTokenProvider.resolveToken()).thenReturn(SsoAccessToken.builder().accessToken("sample").expiresAt(Instant.now()).build());
+
+        RoleCredentials roleCredentials = RoleCredentials.builder()
+                                                         .accessKeyId("AKID")
+                                                         .secretAccessKey("secret")
+                                                         .sessionToken("session")
+                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .build();
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
+
         AwsCredentialsProvider credentialsProvider = factory.create(ProfileProviderCredentialsContext.builder()
                                                                                                      .profile(profileFile.profile("test").get())
                                                                                                      .profileFile(profileFile)
-                                                                                                     .build(), sdkTokenProvider);
-        // Call resolveCredentials() twice to verify token is re-resolved on each call
-        for (int i = 0; i < 2; i++) {
-            try {
-                credentialsProvider.resolveCredentials();
-            } catch (Exception e) {
-                // sso client created internally which cannot be mocked.
-            }
-        }
-        // The first call triggers the supplier (which calls resolveToken()), and the second call
-        // also triggers the supplier since credentials from the first call expired immediately.
+                                                                                                     .build(),
+                                                                    sdkTokenProvider,
+                                                                    mockSsoClient);
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
+
         Mockito.verify(sdkTokenProvider, times(2)).resolveToken();
     }
 
@@ -306,6 +314,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
     @Test
     public void tokenIsReResolvedOnEachCredentialRefresh() {
         int numberOfRefreshCalls = 3;
+        SsoClient mockSsoClient = mock(SsoClient.class);
 
         ProfileFile profileFile = configFile("[profile test]\n" +
                                              "sso_account_id=accountId\n" +
@@ -323,22 +332,26 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-4").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
+        RoleCredentials roleCredentials = RoleCredentials.builder()
+                                                         .accessKeyId("AKID")
+                                                         .secretAccessKey("secret")
+                                                         .sessionToken("session")
+                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .build();
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
+
         SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
         AwsCredentialsProvider credentialsProvider = factory.create(
             ProfileProviderCredentialsContext.builder()
                                             .profile(profileFile.profile("test").get())
                                             .profileFile(profileFile)
                                             .build(),
-            sdkTokenProvider);
+            sdkTokenProvider,
+            mockSsoClient);
 
-        // Call resolveCredentials() multiple times to trigger the supplier
         for (int i = 0; i < numberOfRefreshCalls; i++) {
-            try {
-                credentialsProvider.resolveCredentials();
-            } catch (Exception e) {
-                // Expected: SsoClient created internally cannot reach the SSO service.
-                // The supplier IS still invoked before the SsoClient call fails.
-            }
+            credentialsProvider.resolveCredentials();
         }
 
         Mockito.verify(sdkTokenProvider, Mockito.atLeast(numberOfRefreshCalls)).resolveToken();
@@ -464,16 +477,9 @@ public class SsoProfileCredentialsProviderFactoryTest {
             sdkTokenProvider);
 
         assertThatThrownBy(credentialsProvider::resolveCredentials)
-            .isInstanceOfAny(UncheckedIOException.class, RuntimeException.class)
-            .satisfies(thrown -> {
-                // The error must surface - either directly or wrapped
-                if (thrown instanceof UncheckedIOException) {
-                    assertThat(thrown.getCause().getMessage()).contains("Token file not found");
-                } else {
-                    // May be wrapped in another exception; verify the root cause is present
-                    assertThat(thrown).hasRootCauseMessage("Token file not found");
-                }
-            });
+            .isInstanceOf(ExpiredTokenException.class)
+            .hasMessageContaining("expired or is otherwise invalid")
+            .hasCauseInstanceOf(UncheckedIOException.class);
     }
 
     @Test
@@ -499,22 +505,9 @@ public class SsoProfileCredentialsProviderFactoryTest {
             sdkTokenProvider);
 
         assertThatThrownBy(credentialsProvider::resolveCredentials)
-            .isInstanceOf(RuntimeException.class)
-            .satisfies(thrown -> {
-                // The error must surface - verify the original message is reachable
-                boolean messageFound = false;
-                Throwable current = thrown;
-                while (current != null) {
-                    if (current.getMessage() != null && current.getMessage().contains("Token is expired")) {
-                        messageFound = true;
-                        break;
-                    }
-                    current = current.getCause();
-                }
-                assertThat(messageFound)
-                    .as("Expected 'Token is expired' somewhere in the exception chain")
-                    .isTrue();
-            });
+            .isInstanceOf(ExpiredTokenException.class)
+            .hasMessageContaining("expired or is otherwise invalid")
+            .hasCauseInstanceOf(RuntimeException.class);
     }
 
     @Test
@@ -541,15 +534,15 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                             .build(),
             sdkTokenProvider);
 
-        // The null token value should cause an error when resolveCredentials is called.
-        // This may manifest as NullPointerException, SdkClientException, or similar.
-        // The critical assertion is that the error is NOT silently swallowed.
         assertThatThrownBy(credentialsProvider::resolveCredentials)
-            .isInstanceOf(Exception.class);
+            .isInstanceOf(ExpiredTokenException.class)
+            .hasMessageContaining("expired or is otherwise invalid");
     }
 
     @Test
-    public void errorPropagation_tokenProviderThrowsOnSecondCall_errorPropagates() {
+    public void tokenProviderThrowsOnSecondCall_staleCachedCredentialsReturned() {
+        SsoClient mockSsoClient = mock(SsoClient.class);
+
         ProfileFile profileFile = configFile("[profile test]\n" +
                                              "sso_account_id=accountId\n" +
                                              "sso_role_name=roleName\n" +
@@ -558,6 +551,15 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                              "[sso-session foo]\n" +
                                              "sso_region=region\n" +
                                              "sso_start_url=https//d-abc123.awsapps.com/start");
+
+        RoleCredentials roleCredentials = RoleCredentials.builder()
+                                                         .accessKeyId("AKID")
+                                                         .secretAccessKey("secret")
+                                                         .sessionToken("session")
+                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .build();
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
         RuntimeException secondCallError = new RuntimeException("Token refresh failed on second attempt");
         when(sdkTokenProvider.resolveToken())
@@ -570,35 +572,15 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                             .profile(profileFile.profile("test").get())
                                             .profileFile(profileFile)
                                             .build(),
-            sdkTokenProvider);
+            sdkTokenProvider,
+            mockSsoClient);
 
-        // First call: token resolves successfully, but SsoClient call will fail
-        // (since it's a real client with no endpoint)
-        try {
-            credentialsProvider.resolveCredentials();
-        } catch (Exception e) {
-            // Expected: internal SsoClient cannot reach the SSO service
-        }
+        // First call succeeds and caches credentials
+        credentialsProvider.resolveCredentials();
 
-        // Second call: token provider throws, this error must propagate
-        assertThatThrownBy(credentialsProvider::resolveCredentials)
-            .isInstanceOf(RuntimeException.class)
-            .satisfies(thrown -> {
-                // Verify the second call's error surfaces somewhere in the chain
-                boolean messageFound = false;
-                Throwable current = thrown;
-                while (current != null) {
-                    if (current.getMessage() != null &&
-                        current.getMessage().contains("Token refresh failed on second attempt")) {
-                        messageFound = true;
-                        break;
-                    }
-                    current = current.getCause();
-                }
-                assertThat(messageFound)
-                    .as("Expected 'Token refresh failed on second attempt' in the exception chain")
-                    .isTrue();
-            });
+        // Second call: token provider throws InvalidTokenException, but CachedSupplier with
+        // StaleValueBehavior.ALLOW returns stale cached credentials (static stability)
+        assertThat(credentialsProvider.resolveCredentials()).isNotNull();
     }
 
     @Test

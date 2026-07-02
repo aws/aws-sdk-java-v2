@@ -32,6 +32,7 @@ import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.LazyTokenProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -117,7 +118,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
                                                                          .roleName(ssoRoleName)
                                                                          .build();
             Supplier<GetRoleCredentialsRequest> supplier = () -> {
-                SdkToken token = tokenProvider.resolveToken();
+                SdkToken token = resolveTokenOrThrow(tokenProvider);
                 return request.toBuilder()
                               .accessToken(token.token())
                               .build();
@@ -140,6 +141,23 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         public void close() {
             IoUtils.closeQuietly(credentialsProvider, null);
             IoUtils.closeQuietly(ssoClient, null);
+        }
+
+        private static SdkToken resolveTokenOrThrow(SdkTokenProvider tokenProvider) {
+            SdkToken token;
+            try {
+                token = tokenProvider.resolveToken();
+            } catch (ExpiredTokenException | SdkServiceException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw ExpiredTokenException.builder()
+                                           .cause(e)
+                                           .build();
+            }
+            if (token == null || token.token() == null) {
+                throw ExpiredTokenException.builder().build();
+            }
+            return token;
         }
 
         private static String regionFromProfileOrSession(Profile profile, ProfileFile profileFile) {

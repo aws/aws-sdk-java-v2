@@ -29,7 +29,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.sso.auth.ExpiredTokenException;
 import software.amazon.awssdk.services.sso.auth.SsoCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Resolve the access token from the cached token file. If the token has expired then throw out an exception to ask the users to
@@ -48,7 +47,15 @@ public final class SsoAccessTokenProvider implements SdkTokenProvider {
 
     @Override
     public SdkToken resolveToken() {
-        return tokenFromFile();
+        try {
+            return tokenFromFile();
+        } catch (ExpiredTokenException e) {
+            throw e;
+        } catch (Exception e) {
+            throw ExpiredTokenException.builder()
+                                       .cause(e)
+                                       .build();
+        }
     }
 
     private SdkToken tokenFromFile() {
@@ -61,25 +68,22 @@ public final class SsoAccessTokenProvider implements SdkTokenProvider {
 
     private SdkToken getTokenFromJson(String json) {
         JsonNode jsonNode = PARSER.parse(json);
-        String expiration = jsonNode.field("expiresAt").map(JsonNode::text).orElse(null);
+        String expirationStr = jsonNode.field("expiresAt").map(JsonNode::text).orElse(null);
 
-        Validate.notNull(expiration,
-                         "The SSO session's expiration time could not be determined. Please refresh your SSO session.");
+        if (expirationStr == null) {
+            throw ExpiredTokenException.builder().build();
+        }
 
-        if (tokenIsInvalid(expiration)) {
-            throw ExpiredTokenException.builder().message("The SSO session associated with this profile has expired or is"
-                                                          + " otherwise invalid. To refresh this SSO session run aws sso"
-                                                          + " login with the corresponding profile.").build();
+        Instant expiration = Instant.parse(expirationStr);
+
+        if (Instant.now().isAfter(expiration)) {
+            throw ExpiredTokenException.builder().build();
         }
 
         return SsoAccessToken.builder()
                              .accessToken(jsonNode.asObject().get("accessToken").text())
-                             .expiresAt(Instant.parse(expiration)).build();
-
+                             .expiresAt(expiration).build();
     }
 
-    private boolean tokenIsInvalid(String expirationTime) {
-        return Instant.now().isAfter(Instant.parse(expirationTime));
-    }
 
 }
