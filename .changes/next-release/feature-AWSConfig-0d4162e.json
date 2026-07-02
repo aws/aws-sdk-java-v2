@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "AWS Config now supports tag-on-create for organization-managed Config rules and conformance packs through the PutOrganizationConfigRule and PutOrganizationConformancePack APIs."
-}

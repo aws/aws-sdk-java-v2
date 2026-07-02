@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.46.21__ __2026-07-02__
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports tag-on-create for organization-managed Config rules and conformance packs through the PutOrganizationConfigRule and PutOrganizationConformancePack APIs.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added dual-stack (IPv4 and IPv6) endpoint fields to SSAI and Channel Assembly API responses.
+
+## __AWS Outposts__
+  - ### Features
+    - Tighten Outpost site ContactPhoneNumber regex to perform phone number validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for provisioned limit management, enabling customers to view and update their provisioned API rate limits for Amazon Cognito User Pools programmatically through the new GetProvisionedLimit and UpdateProvisionedLimit APIs.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Amazon Connect Customer Profiles adds support for diversityConfig to recommenderConfig which can be used for diversifying the recommendations. This release also includes model versioning support which helps customer to rollback trained models.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Handle 200 OK errors in PutObject (multipart) in S3 CRT client
+
 # __2.46.20__ __2026-07-01__
 ## __AWS Artifact__
   - ### Features
