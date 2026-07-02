@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "Tighten Outpost site ContactPhoneNumber regex to perform phone number validation."
+}
