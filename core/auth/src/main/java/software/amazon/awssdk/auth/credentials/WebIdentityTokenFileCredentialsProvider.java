@@ -201,7 +201,10 @@ public class WebIdentityTokenFileCredentialsProvider
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 5 minutes.
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */

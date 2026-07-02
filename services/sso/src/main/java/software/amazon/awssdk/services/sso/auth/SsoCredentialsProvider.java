@@ -37,6 +37,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -59,7 +60,6 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_SSO.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
 
@@ -83,9 +83,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.getRoleCredentialsRequestSupplier = builder.getRoleCredentialsRequestSupplier;
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-               "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                   "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
@@ -114,9 +116,12 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         SessionCredentialsHolder credentials = getUpdatedCredentials(ssoClient);
         Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
 
+        Instant now = Instant.now();
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(actualTokenExpiration, prefetchTime, now);
+
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
-                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
+                            .prefetchTime(actualTokenExpiration.minus(effectivePrefetchWindow))
                             .build();
     }
 
@@ -225,7 +230,10 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 5 minutes.</p>
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.</p>
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */

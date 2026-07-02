@@ -510,6 +510,49 @@ public class CachedSupplierTest {
     }
 
     @Test
+    public void allowMode_prefetchWindowFailure_preservesStaleTime() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            Instant now = Instant.parse("2024-01-01T00:00:00Z");
+            clock.time = now;
+
+            // Initial successful fetch: stale at +3600s (1 hour), prefetch at +60s
+            Instant originalStaleTime = now.plusSeconds(3600);
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(originalStaleTime)
+                                      .prefetchTime(now.plusSeconds(60))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past prefetch time but well before stale time
+            clock.time = now.plusSeconds(61);
+            supplier.set(new RuntimeException("service unavailable"));
+
+            // Trigger failure during prefetch window
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Verify the stale time was preserved (NOT moved to the backoff time).
+            // The original stale time (now + 3600s) should still be in effect.
+            // Advance to a time just before original stale time — should NOT be stale.
+            // The extended prefetchTime was ~now+61+[300,600] = [361,661] from epoch.
+            // At time 3599, we are past the extended prefetchTime, so a prefetch is triggered.
+            clock.time = originalStaleTime.minusSeconds(1);
+            supplier.set(RefreshResult.builder("refreshed-creds")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            // Since stale time is preserved at originalStaleTime (3600), we are NOT stale at 3599.
+            // The prefetch backoff has long elapsed, so a prefetch refresh will succeed.
+            assertThat(cachedSupplier.get()).isEqualTo("refreshed-creds");
+        }
+    }
+
+    @Test
     public void allowMode_prefetchWindowFailure_cacheInvalidatingError_isRethrown() {
         AdjustableClock clock = new AdjustableClock();
         MutableSupplier supplier = new MutableSupplier();

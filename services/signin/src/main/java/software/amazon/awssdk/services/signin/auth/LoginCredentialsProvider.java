@@ -51,6 +51,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -78,7 +79,6 @@ public final class LoginCredentialsProvider implements
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_LOGIN.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
     private static final Path DEFAULT_TOKEN_LOCATION = Paths.get(userHomeDirectory(), ".aws", "login", "cache");
 
     private static final String ASYNC_THREAD_NAME = "sdk-login-credentials-provider";
@@ -106,9 +106,11 @@ public final class LoginCredentialsProvider implements
         this.loginSession = paramNotBlank(builder.loginSession, "LoginSession");
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
@@ -136,21 +138,22 @@ public final class LoginCredentialsProvider implements
     }
 
     /**
-     * Update the expiring session SSO credentials by calling SSO. Invoked by {@link CachedSupplier} when the credentials are
-     * close to expiring.
+     * Update the expiring session Login credentials by calling the Signin Service. Invoked by {@link CachedSupplier} when the
+     * credentials are close to expiring.
      */
     private RefreshResult<AwsCredentials> updateSigninCredentials() {
         // always re-load token from the disk in case it has been updated elsewhere
         LoginAccessToken tokenFromDisc = onDiskTokenManager.loadToken().orElseThrow(
-            () -> SdkClientException.create("Token cache file for login_session `" + loginSession + "` not found. "
+            () -> new InvalidTokenException("Token cache file for login_session `" + loginSession + "` not found. "
                                             + "You must re-authenticate."));
 
         Instant currentExpirationTime = tokenFromDisc.getAccessToken().expirationTime().orElseThrow(
-            () -> SdkClientException.create("Invalid token expiration time. You must re-authenticate.")
+            () -> new InvalidTokenException("Invalid token expiration time. You must re-authenticate.")
         );
 
+        Duration effectivePrefetch = CacheRefreshUtils.computePrefetchWindow(currentExpirationTime, prefetchTime, Instant.now());
         if (shouldNotRefresh(currentExpirationTime, staleTime)
-            && shouldNotRefresh(currentExpirationTime, prefetchTime)) {
+            && shouldNotRefresh(currentExpirationTime, effectivePrefetch)) {
             log.debug(() -> "Using access token from disk, current expiration time is : " + currentExpirationTime);
             AwsCredentials credentials = tokenFromDisc.getAccessToken()
                 .toBuilder()
@@ -159,7 +162,7 @@ public final class LoginCredentialsProvider implements
 
             return RefreshResult.builder(credentials)
                                 .staleTime(currentExpirationTime.minus(staleTime))
-                                .prefetchTime(currentExpirationTime.minus(prefetchTime))
+                                .prefetchTime(currentExpirationTime.minus(effectivePrefetch))
                                 .build();
         }
 
@@ -203,7 +206,8 @@ public final class LoginCredentialsProvider implements
 
             return RefreshResult.builder((AwsCredentials) updatedCredentials)
                                 .staleTime(newExpiration.minus(staleTime))
-                                .prefetchTime(newExpiration.minus(prefetchTime))
+                                .prefetchTime(newExpiration.minus(
+                                    CacheRefreshUtils.computePrefetchWindow(newExpiration, prefetchTime, Instant.now())))
                                 .build();
         } catch (AccessDeniedException accessDeniedException) {
             if (accessDeniedException.error() == null) {
@@ -232,11 +236,18 @@ public final class LoginCredentialsProvider implements
 
     /**
      * Determines whether a given exception represents a non-recoverable refresh failure that should bypass
-     * static stability. For Login, this is an {@link AccessDeniedException} with error code
-     * {@link OAuth2ErrorCode#TOKEN_EXPIRED}, {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED},
-     * or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}.
+     * static stability. For Login, this includes:
+     * <ul>
+     *   <li>Missing or invalid token cache on disk (requires re-authentication)</li>
+     *   <li>An {@link AccessDeniedException} with error code {@link OAuth2ErrorCode#TOKEN_EXPIRED},
+     *       {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}, or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}</li>
+     * </ul>
      */
     private static boolean isCacheInvalidating(RuntimeException e) {
+        if (e instanceof InvalidTokenException) {
+            return true;
+        }
+
         AccessDeniedException ade = extractAccessDeniedException(e);
         if (ade == null) {
             return false;
@@ -355,7 +366,10 @@ public final class LoginCredentialsProvider implements
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 5 minutes.
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
@@ -384,6 +398,17 @@ public final class LoginCredentialsProvider implements
          */
         @Override
         LoginCredentialsProvider build();
+    }
+
+    /**
+     * Exception indicating that the cached login token is missing or invalid, requiring the user to re-authenticate.
+     * This exception bypasses static stability (cache extension on failure) because there is no valid token state
+     * to fall back to.
+     */
+    private static final class InvalidTokenException extends SdkClientException {
+        private InvalidTokenException(String message) {
+            super(builder().message(message));
+        }
     }
 
     protected static final class BuilderImpl implements Builder {

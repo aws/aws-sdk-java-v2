@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -53,7 +54,6 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     private static final Logger log = Logger.loggerFor(StsCredentialsProvider.class);
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     /**
      * The STS client that should be used for periodically updating the session credentials.
@@ -73,9 +73,11 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         this.stsClient = Validate.notNull(builder.stsClient, "STS client must not be null.");
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
@@ -98,9 +100,12 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
             credentials.expirationTime()
                        .orElseThrow(() -> new IllegalStateException("Sourced credentials have no expiration value"));
 
+        Instant now = Instant.now();
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(actualTokenExpiration, prefetchTime, now);
+
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
-                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
+                            .prefetchTime(actualTokenExpiration.minus(effectivePrefetchWindow))
                             .build();
     }
 
@@ -234,7 +239,10 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 5 minutes.</p>
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.</p>
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
