@@ -32,7 +32,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -350,53 +349,47 @@ public class SsoProfileCredentialsProviderFactoryTest {
         SsoClient mockSsoClient = mock(SsoClient.class);
         SdkTokenProvider mockTokenProvider = mock(SdkTokenProvider.class);
 
-        // Token provider returns different tokens on successive calls
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=123456789\n" +
+                                             "sso_role_name=TestRole\n" +
+                                             "sso_region=us-east-1\n" +
+                                             "sso_session=foo\n" +
+                                             "[sso-session foo]\n" +
+                                             "sso_region=us-east-1\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
         when(mockTokenProvider.resolveToken()).thenReturn(
             SsoAccessToken.builder().accessToken("token-A").expiresAt(Instant.now().plusSeconds(3600)).build(),
             SsoAccessToken.builder().accessToken("token-B").expiresAt(Instant.now().plusSeconds(3600)).build(),
             SsoAccessToken.builder().accessToken("token-C").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Set up GetRoleCredentialsResponse with short-lived expiration to force re-fetch each time
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
                                                          .expiration(Instant.now().minusSeconds(1).toEpochMilli())
                                                          .build();
-        GetRoleCredentialsResponse response = GetRoleCredentialsResponse.builder()
-                                                                         .roleCredentials(roleCredentials)
-                                                                         .build();
-        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class))).thenReturn(response);
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
-        // Build supplier using the same pattern as the fixed SsoProfileCredentialsProvider
-        GetRoleCredentialsRequest baseRequest = GetRoleCredentialsRequest.builder()
-                                                                         .accountId("123456789")
-                                                                         .roleName("TestRole")
-                                                                         .build();
-        Supplier<GetRoleCredentialsRequest> supplier = () -> {
-            SdkToken token = mockTokenProvider.resolveToken();
-            return baseRequest.toBuilder()
-                              .accessToken(token.token())
-                              .build();
-        };
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        AwsCredentialsProvider credentialsProvider = factory.create(
+            ProfileProviderCredentialsContext.builder()
+                                            .profile(profileFile.profile("test").get())
+                                            .profileFile(profileFile)
+                                            .build(),
+            mockTokenProvider,
+            mockSsoClient);
 
-        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
-                                                                                .ssoClient(mockSsoClient)
-                                                                                .refreshRequest(supplier)
-                                                                                .build()) {
-            // Call resolveCredentials() three times
-            credentialsProvider.resolveCredentials();
-            credentialsProvider.resolveCredentials();
-            credentialsProvider.resolveCredentials();
-        }
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
 
-        // Capture the requests sent to SsoClient
         ArgumentCaptor<GetRoleCredentialsRequest> requestCaptor =
             ArgumentCaptor.forClass(GetRoleCredentialsRequest.class);
         Mockito.verify(mockSsoClient, Mockito.atLeast(3)).getRoleCredentials(requestCaptor.capture());
 
-        // Verify each call used a different (latest) token
         assertThat(requestCaptor.getAllValues().get(0).accessToken()).isEqualTo("token-A");
         assertThat(requestCaptor.getAllValues().get(1).accessToken()).isEqualTo("token-B");
         assertThat(requestCaptor.getAllValues().get(2).accessToken()).isEqualTo("token-C");
@@ -407,57 +400,44 @@ public class SsoProfileCredentialsProviderFactoryTest {
         SsoClient mockSsoClient = mock(SsoClient.class);
         SdkTokenProvider mockTokenProvider = mock(SdkTokenProvider.class);
 
-        // Simulate SsoAccessTokenProvider behavior: returns different tokens on successive calls
-        // (as if the token file on disk has been updated between calls)
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=987654321\n" +
+                                             "sso_role_name=LegacyRole\n" +
+                                             "sso_region=us-west-2\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
         when(mockTokenProvider.resolveToken()).thenReturn(
             SsoAccessToken.builder().accessToken("disk-token-1").expiresAt(Instant.now().plusSeconds(3600)).build(),
             SsoAccessToken.builder().accessToken("disk-token-2").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Set up GetRoleCredentialsResponse with expired credentials to force re-fetch
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
                                                          .expiration(Instant.now().minusSeconds(1).toEpochMilli())
                                                          .build();
-        GetRoleCredentialsResponse response = GetRoleCredentialsResponse.builder()
-                                                                         .roleCredentials(roleCredentials)
-                                                                         .build();
-        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class))).thenReturn(response);
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
-        // Build supplier mimicking the legacy path: reads token from provider on each call
-        GetRoleCredentialsRequest baseRequest = GetRoleCredentialsRequest.builder()
-                                                                         .accountId("987654321")
-                                                                         .roleName("LegacyRole")
-                                                                         .build();
-        Supplier<GetRoleCredentialsRequest> supplier = () -> {
-            SdkToken token = mockTokenProvider.resolveToken();
-            return baseRequest.toBuilder()
-                              .accessToken(token.token())
-                              .build();
-        };
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        AwsCredentialsProvider credentialsProvider = factory.create(
+            ProfileProviderCredentialsContext.builder()
+                                            .profile(profileFile.profile("test").get())
+                                            .profileFile(profileFile)
+                                            .build(),
+            mockTokenProvider,
+            mockSsoClient);
 
-        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
-                                                                                .ssoClient(mockSsoClient)
-                                                                                .refreshRequest(supplier)
-                                                                                .build()) {
-            // First call uses "disk-token-1"
-            credentialsProvider.resolveCredentials();
-            // Second call (after simulated disk update) uses "disk-token-2"
-            credentialsProvider.resolveCredentials();
-        }
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
 
-        // Capture and verify the requests
         ArgumentCaptor<GetRoleCredentialsRequest> requestCaptor =
             ArgumentCaptor.forClass(GetRoleCredentialsRequest.class);
         Mockito.verify(mockSsoClient, times(2)).getRoleCredentials(requestCaptor.capture());
 
-        // Verify the first call used the first token and second call used the updated token
         assertThat(requestCaptor.getAllValues().get(0).accessToken()).isEqualTo("disk-token-1");
         assertThat(requestCaptor.getAllValues().get(1).accessToken()).isEqualTo("disk-token-2");
-
-        // Also verify the token provider was called exactly twice (once per refresh)
         Mockito.verify(mockTokenProvider, times(2)).resolveToken();
     }
 
@@ -626,7 +606,15 @@ public class SsoProfileCredentialsProviderFactoryTest {
         SsoClient mockSsoClient = mock(SsoClient.class);
         SdkTokenProvider mockTokenProvider = mock(SdkTokenProvider.class);
 
-        // Token provider returns 5 different tokens on successive calls
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=111222333\n" +
+                                             "sso_role_name=MultiRefreshRole\n" +
+                                             "sso_region=us-east-1\n" +
+                                             "sso_session=foo\n" +
+                                             "[sso-session foo]\n" +
+                                             "sso_region=us-east-1\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
         when(mockTokenProvider.resolveToken()).thenReturn(
             SsoAccessToken.builder().accessToken("token-1").expiresAt(Instant.now().plusSeconds(3600)).build(),
             SsoAccessToken.builder().accessToken("token-2").expiresAt(Instant.now().plusSeconds(3600)).build(),
@@ -635,50 +623,37 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-5").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Set up already-expired credentials to force re-fetch every time
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
                                                          .expiration(Instant.now().minusSeconds(1).toEpochMilli())
                                                          .build();
-        GetRoleCredentialsResponse response = GetRoleCredentialsResponse.builder()
-                                                                         .roleCredentials(roleCredentials)
-                                                                         .build();
-        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class))).thenReturn(response);
+        when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
+            .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
-        GetRoleCredentialsRequest baseRequest = GetRoleCredentialsRequest.builder()
-                                                                         .accountId("111222333")
-                                                                         .roleName("MultiRefreshRole")
-                                                                         .build();
-        Supplier<GetRoleCredentialsRequest> supplier = () -> {
-            SdkToken token = mockTokenProvider.resolveToken();
-            return baseRequest.toBuilder()
-                              .accessToken(token.token())
-                              .build();
-        };
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        AwsCredentialsProvider credentialsProvider = factory.create(
+            ProfileProviderCredentialsContext.builder()
+                                            .profile(profileFile.profile("test").get())
+                                            .profileFile(profileFile)
+                                            .build(),
+            mockTokenProvider,
+            mockSsoClient);
 
-        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
-                                                                                .ssoClient(mockSsoClient)
-                                                                                .refreshRequest(supplier)
-                                                                                .build()) {
-            for (int i = 0; i < 5; i++) {
-                credentialsProvider.resolveCredentials();
-            }
+        for (int i = 0; i < 5; i++) {
+            credentialsProvider.resolveCredentials();
         }
 
         ArgumentCaptor<GetRoleCredentialsRequest> requestCaptor =
             ArgumentCaptor.forClass(GetRoleCredentialsRequest.class);
         Mockito.verify(mockSsoClient, times(5)).getRoleCredentials(requestCaptor.capture());
 
-        // Verify each request used the correct token in order
         assertThat(requestCaptor.getAllValues().get(0).accessToken()).isEqualTo("token-1");
         assertThat(requestCaptor.getAllValues().get(1).accessToken()).isEqualTo("token-2");
         assertThat(requestCaptor.getAllValues().get(2).accessToken()).isEqualTo("token-3");
         assertThat(requestCaptor.getAllValues().get(3).accessToken()).isEqualTo("token-4");
         assertThat(requestCaptor.getAllValues().get(4).accessToken()).isEqualTo("token-5");
-
-        // Verify token provider was called exactly 5 times
         Mockito.verify(mockTokenProvider, times(5)).resolveToken();
     }
 

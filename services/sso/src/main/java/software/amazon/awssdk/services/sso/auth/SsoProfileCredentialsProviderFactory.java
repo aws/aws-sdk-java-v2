@@ -63,7 +63,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
      */
     @Override
     public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext) {
-        return new SsoProfileCredentialsProvider(credentialsContext, sdkTokenProvider(credentialsContext));
+        return new SsoProfileCredentialsProvider(credentialsContext, sdkTokenProvider(credentialsContext), null);
     }
 
     /**
@@ -73,7 +73,18 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
     @SdkTestInternalApi
     public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext,
                                          SdkTokenProvider tokenProvider) {
-        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider);
+        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider, null);
+    }
+
+    /**
+     * Alternative method to create the {@link SsoProfileCredentialsProvider} with a customized {@link SdkTokenProvider}
+     * and {@link SsoClient}. This method is only used for testing.
+     */
+    @SdkTestInternalApi
+    public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext,
+                                         SdkTokenProvider tokenProvider,
+                                         SsoClient ssoClient) {
+        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider, ssoClient);
     }
 
     /**
@@ -87,16 +98,19 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         private final SsoCredentialsProvider credentialsProvider;
 
         private SsoProfileCredentialsProvider(ProfileProviderCredentialsContext credentialsContext,
-                                              SdkTokenProvider tokenProvider) {
+                                              SdkTokenProvider tokenProvider,
+                                              SsoClient ssoClient) {
             Profile profile = credentialsContext.profile();
             String ssoAccountId = profile.properties().get(ProfileProperty.SSO_ACCOUNT_ID);
             String ssoRoleName = profile.properties().get(ProfileProperty.SSO_ROLE_NAME);
             String ssoRegion = regionFromProfileOrSession(profile, credentialsContext.profileFile());
 
-            this.ssoClient = SsoClient.builder()
-                                      .credentialsProvider(AnonymousCredentialsProvider.create())
-                                      .region(Region.of(ssoRegion))
-                                      .build();
+            this.ssoClient = ssoClient != null
+                             ? ssoClient
+                             : SsoClient.builder()
+                                        .credentialsProvider(AnonymousCredentialsProvider.create())
+                                        .region(Region.of(ssoRegion))
+                                        .build();
 
             GetRoleCredentialsRequest request = GetRoleCredentialsRequest.builder()
                                                                          .accountId(ssoAccountId)
@@ -111,7 +125,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
 
 
             this.credentialsProvider = SsoCredentialsProvider.builder()
-                                                             .ssoClient(ssoClient)
+                                                             .ssoClient(this.ssoClient)
                                                              .refreshRequest(supplier)
                                                              .sourceChain(credentialsContext.sourceChain())
                                                              .build();
