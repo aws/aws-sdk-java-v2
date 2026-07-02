@@ -86,7 +86,6 @@ public final class ProcessCredentialsProvider
                                                                .removeErrorLocations(true)
                                                                .build();
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private final List<String> executableCommand;
     private final long processOutputLimit;
@@ -104,7 +103,6 @@ public final class ProcessCredentialsProvider
     private final String providerName;
     private final Duration staleTime;
     private final Duration prefetchTime;
-    private final boolean prefetchTimeExplicitlySet;
 
     /**
      * @see #builder()
@@ -121,10 +119,11 @@ public final class ProcessCredentialsProvider
             ? PROVIDER_NAME 
             : builder.sourceChain + "," + PROVIDER_NAME;
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        this.prefetchTimeExplicitlySet = builder.prefetchTime != null;
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -197,11 +196,8 @@ public final class ProcessCredentialsProvider
         if (expiration == null || expiration.equals(Instant.MAX)) {
             return Instant.MAX;
         }
-        if (prefetchTimeExplicitlySet) {
-            return expiration.minus(prefetchTime);
-        }
         Instant now = Instant.now();
-        Duration dynamicWindow = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, now);
+        Duration dynamicWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
         return expiration.minus(dynamicWindow);
     }
 

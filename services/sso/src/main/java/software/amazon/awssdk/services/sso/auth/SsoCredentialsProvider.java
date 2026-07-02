@@ -60,7 +60,6 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_SSO.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
 
@@ -71,7 +70,6 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private final SsoClient ssoClient;
     private final Duration staleTime;
     private final Duration prefetchTime;
-    private final boolean prefetchTimeExplicitlySet;
 
     private final CachedSupplier<SessionCredentialsHolder> credentialCache;
 
@@ -85,10 +83,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.getRoleCredentialsRequestSupplier = builder.getRoleCredentialsRequestSupplier;
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        this.prefetchTimeExplicitlySet = builder.prefetchTime != null;
-        isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-               "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                   "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
@@ -118,9 +117,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
 
         Instant now = Instant.now();
-        Duration effectivePrefetchWindow = prefetchTimeExplicitlySet
-            ? prefetchTime
-            : CacheRefreshUtils.computeDynamicPrefetchWindow(actualTokenExpiration, now);
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(actualTokenExpiration, prefetchTime, now);
 
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))

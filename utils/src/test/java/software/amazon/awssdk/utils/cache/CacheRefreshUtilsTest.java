@@ -32,63 +32,63 @@ public class CacheRefreshUtilsTest {
     public void remainingLifetimeUnder20Minutes_returns5MinuteWindow() {
         // 19 minutes remaining
         Instant expiration = NOW.plus(Duration.ofMinutes(19));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(5));
     }
 
     @Test
     public void remainingLifetimeExactly0_returns5MinuteWindow() {
         // 0 minutes remaining (already expired)
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(NOW, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(NOW, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(5));
     }
 
     @Test
     public void remainingLifetime5Minutes_returns5MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(5));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(5));
     }
 
     @Test
     public void remainingLifetimeExactly20Minutes_returns15MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(20));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(15));
     }
 
     @Test
     public void remainingLifetime45Minutes_returns15MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(45));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(15));
     }
 
     @Test
     public void remainingLifetime89Minutes_returns15MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(89));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(15));
     }
 
     @Test
     public void remainingLifetimeExactly90Minutes_returns60MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(90));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(60));
     }
 
     @Test
     public void remainingLifetime6Hours_returns60MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofHours(6));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(60));
     }
 
     @Test
     public void remainingLifetime12Hours_returns60MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofHours(12));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(60));
     }
 
@@ -96,7 +96,24 @@ public class CacheRefreshUtilsTest {
     public void remainingLifetimeNegative_returns5MinuteWindow() {
         // Expiration is in the past
         Instant expiration = NOW.minus(Duration.ofMinutes(5));
-        Duration window = CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, NOW);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(5));
+    }
+
+    @Test
+    public void explicitPrefetchTime_returnsExplicitValue() {
+        Instant expiration = NOW.plus(Duration.ofHours(6));
+        Duration explicitPrefetch = Duration.ofMinutes(30);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, explicitPrefetch, NOW);
+        assertThat(window).isEqualTo(Duration.ofMinutes(30));
+    }
+
+    @Test
+    public void explicitPrefetchTime_ignoresRemainingLifetime() {
+        // Even with short remaining lifetime, explicit value is used
+        Instant expiration = NOW.plus(Duration.ofMinutes(10));
+        Duration explicitPrefetch = Duration.ofMinutes(60);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, explicitPrefetch, NOW);
+        assertThat(window).isEqualTo(Duration.ofMinutes(60));
     }
 }

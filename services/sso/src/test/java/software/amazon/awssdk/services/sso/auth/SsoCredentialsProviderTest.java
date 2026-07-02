@@ -248,7 +248,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(4));
             } else {
                 assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(1));
-                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(5));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isNull();
             }
 
             for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {

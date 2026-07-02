@@ -181,7 +181,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             } else {
                 //validate that the default values are used
                 assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(1));
-                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(5));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isNull();
             }
 
             for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {

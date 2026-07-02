@@ -95,8 +95,6 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration prefetchTime;
 
-    private final boolean prefetchTimeExplicitlySet;
-
     private final String sourceChain;
     private final String providerName;
 
@@ -125,10 +123,11 @@ public final class InstanceProfileCredentialsProvider
                                      .build();
 
         this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofMinutes(1));
-        this.prefetchTime = Validate.getOrDefault(builder.prefetchTime, () -> Duration.ofMinutes(5));
-        this.prefetchTimeExplicitlySet = builder.prefetchTime != null;
-        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -213,9 +212,7 @@ public final class InstanceProfileCredentialsProvider
         }
 
         // Use dynamic window when user has not explicitly configured prefetchTime
-        Duration effectivePrefetchWindow = prefetchTimeExplicitlySet
-            ? prefetchTime
-            : CacheRefreshUtils.computeDynamicPrefetchWindow(expiration, now);
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
 
         // If remaining lifetime < the advisory window, refresh immediately.
         if (timeUntilExpiration.compareTo(effectivePrefetchWindow) < 0) {

@@ -36,10 +36,12 @@ public final class CacheRefreshUtils {
     }
 
     /**
-     * Compute the dynamic advisory refresh window (prefetch time) based on the credential's remaining lifetime.
-     * The window scales with the credential's time-to-expiry so that longer-lived credentials begin refreshing
+     * Compute the advisory refresh window (prefetch time) for a credential. If {@code prefetchTime} is non-null
+     * (i.e., explicitly configured by the user), it is returned directly. Otherwise, the window is computed
+     * dynamically based on the credential's remaining lifetime so that longer-lived credentials begin refreshing
      * earlier and shorter-lived credentials do not attempt a refresh the moment they are issued.
      *
+     * <p>Dynamic window selection:</p>
      * <ul>
      *   <li>remaining lifetime &lt; 20 minutes → 5 minute window</li>
      *   <li>20 minutes ≤ remaining lifetime &lt; 90 minutes → 15 minute window</li>
@@ -47,10 +49,15 @@ public final class CacheRefreshUtils {
      * </ul>
      *
      * @param expiration the credential's expiration time
+     * @param prefetchTime the explicitly configured prefetch window, or {@code null} to compute dynamically
      * @param now the current time
      * @return the Duration to use as the advisory refresh window
      */
-    public static Duration computeDynamicPrefetchWindow(Instant expiration, Instant now) {
+    public static Duration computePrefetchWindow(Instant expiration, Duration prefetchTime, Instant now) {
+        if (prefetchTime != null) {
+            return prefetchTime;
+        }
+
         Duration remainingLifetime = Duration.between(now, expiration);
         long remainingMinutes = remainingLifetime.toMinutes();
 
