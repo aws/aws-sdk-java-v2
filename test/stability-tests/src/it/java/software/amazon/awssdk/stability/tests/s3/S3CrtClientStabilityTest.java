@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +34,7 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
  * Stability tests for S3 sync client using {@link AwsCrtHttpClient}.
  */
 public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
-    private static final String BUCKET_NAME = String.format("s3crthttpclientstabilitytests%d", System.currentTimeMillis());
+    private static final String BUCKET_NAME = temporaryBucketName(S3CrtClientStabilityTest.class);
 
     private static final int CRT_CLIENT_THREAD_COUNT;
 
