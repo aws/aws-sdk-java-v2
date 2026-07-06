@@ -1,10 +1,12 @@
 package software.amazon.awssdk.services.query;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -17,6 +19,7 @@ import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
@@ -25,9 +28,11 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidationResolver;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
@@ -37,16 +42,18 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
-import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.auth.scheme.internal.QueryAuthSchemeInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -111,20 +118,35 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
         builder.lazyOptionIfAbsent(
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-            c -> AwsClientEndpointProvider
-                .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
-                .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
-                .serviceProfileProperty("query_service")
-                .serviceEndpointPrefix(serviceEndpointPrefix())
-                .defaultProtocol("https")
-                .region(c.get(AwsClientOption.AWS_REGION))
-                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+            c -> {
+                Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                                                                                  .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                                                                                                  .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                                                                                                  .serviceProfileProperty("query_service").profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                  .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                if (overrideEndpoint.isPresent()) {
+                    return ClientEndpointProvider.create(overrideEndpoint.get(), true);
+                }
+                URI clientEndpointUri = null;
+                Region region = c.get(AwsClientOption.AWS_REGION);
+                try {
+                    QueryEndpointParams endpointParams = QueryEndpointParams.builder().region(region)
+                                                                            .useDualStack(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                                                                            .useFips(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build();
+                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                        endpointParams));
+                    clientEndpointUri = endpoint.url();
+                } catch (Exception e) {
+                    // Endpoint resolution failed. This is expected for services with required parameters
+                    // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
+                    return ClientEndpointProvider.create(URI.create("https://localhost"), false);
+                }
+                if (clientEndpointUri.getHost() == null) {
+                    throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
+                                                    + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
+                }
+                return ClientEndpointProvider.create(clientEndpointUri, false);
+            });
         SdkClientConfiguration clientConfig = config;
         builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
         builder.lazyOption(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, c -> resolveResponseChecksumValidation(clientConfig));
