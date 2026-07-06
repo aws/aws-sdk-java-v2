@@ -94,6 +94,16 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "ResolveEndpointInterceptor");
     }
 
+    public ClassName endpointResolverUtilsName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointResolverUtils");
+    }
+
+    public ClassName sharedAwsEndpointProviderUtilsName() {
+        return ClassName.get("software.amazon.awssdk.awscore.endpoints", "AwsEndpointProviderUtils");
+    }
+
     public ClassName requestModifierInterceptorName() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
