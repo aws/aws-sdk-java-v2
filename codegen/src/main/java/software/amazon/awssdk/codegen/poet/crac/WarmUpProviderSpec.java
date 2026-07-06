@@ -43,6 +43,13 @@ public class WarmUpProviderSpec implements ClassSpec {
 
     private static final String CANNED_RESPONSE_FIELD = "CANNED_RESPONSE";
 
+    // Values emitted into the warm-up call. Dummy credentials and a local endpoint keep the call offline; a 200 status
+    // exercises the success path.
+    private static final int SUCCESS_STATUS_CODE = 200;
+    private static final String DUMMY_ACCESS_KEY_ID = "akid";
+    private static final String DUMMY_SECRET_ACCESS_KEY = "skid";
+    private static final String LOCAL_ENDPOINT = "http://localhost";
+
     private static final ClassName CANNED_RESPONSE_HTTP_CLIENT =
         ClassName.get("software.amazon.awssdk.core.internal.crac", "CannedResponseHttpClient");
     private static final ClassName CANNED_RESPONSE_ASYNC_HTTP_CLIENT =
@@ -86,9 +93,11 @@ public class WarmUpProviderSpec implements ClassSpec {
     private MethodSpec warmUpMethod() {
         CodeBlock.Builder body = CodeBlock.builder();
         if (!model.getCustomizationConfig().isSkipSyncClientGeneration()) {
-            body.add(syncClientBlock());
+            body.add(clientBlock(poetExtensions.getClientClass(model.getMetadata().getSyncInterface()),
+                                 CANNED_RESPONSE_HTTP_CLIENT, SDK_HTTP_CLIENT, "httpClient", "client"));
         }
-        body.add(asyncClientBlock());
+        body.add(clientBlock(poetExtensions.getClientClass(model.getMetadata().getAsyncInterface()),
+                             CANNED_RESPONSE_ASYNC_HTTP_CLIENT, SDK_ASYNC_HTTP_CLIENT, "asyncHttpClient", "asyncClient"));
 
         return MethodSpec.methodBuilder("warmUp")
                          .addAnnotation(Override.class)
@@ -97,46 +106,31 @@ public class WarmUpProviderSpec implements ClassSpec {
                          .build();
     }
 
-    private CodeBlock syncClientBlock() {
-        ClassName syncClient = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+    /**
+     * Emits a canned HTTP client plus a try-with-resources that builds and closes {@code clientType}. The sync and async
+     * paths differ only in these types and variable names, so they share this emitter.
+     */
+    private CodeBlock clientBlock(ClassName clientType, ClassName cannedHttpClientType, ClassName httpClientType,
+                                  String httpClientVar, String clientVar) {
         return CodeBlock.builder()
-                        .addStatement("$T httpClient = $T.builder().responseBody($L).statusCode(200).build()",
-                                      SDK_HTTP_CLIENT, CANNED_RESPONSE_HTTP_CLIENT, CANNED_RESPONSE_FIELD)
-                        .beginControlFlow("try ($1T client = $1T.builder()\n"
-                                          + ".httpClient(httpClient)\n"
-                                          + ".credentialsProvider($2T.create($3T.create($4S, $5S)))\n"
-                                          + ".region($6T.US_EAST_1)\n"
-                                          + ".endpointOverride($7T.create($8S))\n"
+                        .addStatement("$T $N = $T.builder().responseBody($L).statusCode($L).build()",
+                                      httpClientType, httpClientVar, cannedHttpClientType, CANNED_RESPONSE_FIELD,
+                                      SUCCESS_STATUS_CODE)
+                        .beginControlFlow("try ($1T $2N = $1T.builder()\n"
+                                          + ".httpClient($3N)\n"
+                                          + ".credentialsProvider($4T.create($5T.create($6S, $7S)))\n"
+                                          + ".region($8T.US_EAST_1)\n"
+                                          + ".endpointOverride($9T.create($10S))\n"
                                           + ".build())",
-                                          syncClient,
+                                          clientType,
+                                          clientVar,
+                                          httpClientVar,
                                           STATIC_CREDENTIALS_PROVIDER,
                                           AWS_BASIC_CREDENTIALS,
-                                          "akid", "skid",
+                                          DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY,
                                           REGION,
                                           URI.class,
-                                          "http://localhost")
-                        .endControlFlow()
-                        .build();
-    }
-
-    private CodeBlock asyncClientBlock() {
-        ClassName asyncClient = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
-        return CodeBlock.builder()
-                        .addStatement("$T asyncHttpClient = $T.builder().responseBody($L).statusCode(200).build()",
-                                      SDK_ASYNC_HTTP_CLIENT, CANNED_RESPONSE_ASYNC_HTTP_CLIENT, CANNED_RESPONSE_FIELD)
-                        .beginControlFlow("try ($1T asyncClient = $1T.builder()\n"
-                                          + ".httpClient(asyncHttpClient)\n"
-                                          + ".credentialsProvider($2T.create($3T.create($4S, $5S)))\n"
-                                          + ".region($6T.US_EAST_1)\n"
-                                          + ".endpointOverride($7T.create($8S))\n"
-                                          + ".build())",
-                                          asyncClient,
-                                          STATIC_CREDENTIALS_PROVIDER,
-                                          AWS_BASIC_CREDENTIALS,
-                                          "akid", "skid",
-                                          REGION,
-                                          URI.class,
-                                          "http://localhost")
+                                          LOCAL_ENDPOINT)
                         .endControlFlow()
                         .build();
     }
@@ -155,14 +149,15 @@ public class WarmUpProviderSpec implements ClassSpec {
         switch (protocol) {
             case REST_JSON:
             case AWS_JSON:
-            case CBOR:
                 return textInitializer("{}");
             case QUERY:
             case EC2:
             case REST_XML:
                 return textInitializer("<Response/>");
+            case CBOR:
             case SMITHY_RPC_V2_CBOR:
-                // 0xA0 is the single-byte CBOR encoding of an empty map "{}", the equivalent of "{}" for JSON.
+                // Both are binary CBOR protocols, so a text "{}" is not a valid body. 0xA0 is the single-byte CBOR
+                // encoding of an empty map, the equivalent of "{}" for JSON.
                 return CodeBlock.of("new byte[] {(byte) 0xA0}");
             default:
                 throw new IllegalArgumentException("Unsupported protocol for CRaC warm-up canned response: " + protocol);

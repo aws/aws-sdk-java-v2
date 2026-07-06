@@ -25,7 +25,7 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 public class WarmUpProviderSpecTest {
 
     @Test
-    public void warmUpProvider() {
+    public void warmUpProvider_queryProtocol_generatesSyncAndAsyncClients() {
         ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.queryServiceModels());
         assertThat(spec, generatesTo("warmup-provider.java"));
     }
@@ -53,5 +53,11 @@ public class WarmUpProviderSpecTest {
     public void warmUpProvider_smithyRpcV2CborProtocol_usesEmptyCborMapCannedResponse() {
         ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.rpcv2ServiceModels());
         assertThat(spec, generatesTo("warmup-provider-rpcv2.java"));
+    }
+
+    @Test
+    public void warmUpProvider_cborProtocol_usesEmptyCborMapCannedResponse() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.cborServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-cbor.java"));
     }
 }
