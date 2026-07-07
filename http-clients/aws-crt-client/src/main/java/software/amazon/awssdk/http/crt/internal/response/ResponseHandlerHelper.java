@@ -41,11 +41,8 @@ public class ResponseHandlerHelper {
     /**
      * Set the stream reference and activate it as soon as it is acquired from the pool.
      *
-     * <p>Activating immediately ensures that any subsequent {@code closeConnection()} call will
-     * properly trigger {@code onResponseComplete} in the CRT native layer, which is required for
-     * {@code Http1StreamManager} to release the connection slot back to the pool. Without prior
-     * activation, {@code cancel()} + {@code close()} releases the native stream handle without
-     * triggering callbacks, permanently leaking the connection slot.
+     * <p>Activate must be called before any other methods on the stream including
+     * {@code cancel()} or {@code close()}.  Calling it here ensures this is done.
      *
      * <p>{@code activate()} is idempotent per the CRT contract — safe to call even if
      * {@code Http1StreamManager} has already activated the stream.
@@ -56,11 +53,12 @@ public class ResponseHandlerHelper {
                 this.stream = stream;
                 if (this.stream != null) {
                     this.stream.activate();
-                }
-                // closeConnection() was requested before the stream was acquired; close it now.
-                if (streamClosed && this.stream != null) {
-                    this.stream.cancel();
-                    this.stream.close();
+
+                    // closeConnection() was requested before the stream was acquired; close it now.
+                    if (streamClosed) {
+                        this.stream.cancel();
+                        this.stream.close();
+                    }
                 }
             }
         }

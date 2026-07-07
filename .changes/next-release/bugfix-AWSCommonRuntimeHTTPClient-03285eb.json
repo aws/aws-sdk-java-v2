@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Common Runtime HTTP Client",
+    "contributor": "",
+    "description": "Fix CRT connection pool exhaustion/leak when streams are cancelled due to API call timeouts.  Ensure concurrency/HTTP metrics are always published."
+}
