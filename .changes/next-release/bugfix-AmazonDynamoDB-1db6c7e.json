@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB",
+    "description": "Fixed DurationAttributeConverter negative fractional duration serialization and parsing. Values like Duration.ofMillis(-1) now serialize as -0.001000000 and round trip correctly. Fixes [#7060](https://github.com/aws/aws-sdk-java-v2/issues/7060).",
+    "contributor": "Arnab Nandy"
+}
