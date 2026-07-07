@@ -80,6 +80,13 @@ public abstract class BaseClientHandler {
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
+
+        // Snapshot the HTTP request URI before modifyHttpRequest interceptors run.
+        // EndpointResolutionStage uses this to detect if a customer interceptor modified the URL.
+        executionContext.executionAttributes().putAttribute(
+            SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
+            executionContext.interceptorContext().httpRequest().getUri());
+
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
 

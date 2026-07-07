@@ -38,20 +38,20 @@ public class MemberShapeTargetValidatorTest {
 
     @Test
     void validate_enumMemberWithDanglingTarget_throwsWithShapeMemberAndTarget() {
-        String owningShape = "GetRequestAuthorizationDetailsResponse";
+        String owningShape = "GetRequestSignatureResponse";
         MemberModel enumMember = new MemberModel()
-            .withC2jName("AuthorizationDetails")
-            .withC2jShape("AuthDetailType")
-            .withVariable(new VariableModel("authorizationDetails", "String"))
-            .withEnumType("AuthDetailType");
+            .withC2jName("Signature")
+            .withC2jShape("SignatureType")
+            .withVariable(new VariableModel("signature", "String"))
+            .withEnumType("SignatureType");
         IntermediateModel model = modelWithShape(owningShape, enumMember);
 
         assertThatThrownBy(() -> MemberShapeTargetValidator.validate(model))
             .isInstanceOf(ModelInvalidException.class)
             .matches(MemberShapeTargetValidatorTest::isUnknownShapeMemberDanger)
             .hasMessageContaining(owningShape)
-            .hasMessageContaining("AuthorizationDetails")
-            .hasMessageContaining("AuthDetailType");
+            .hasMessageContaining("Signature")
+            .hasMessageContaining("SignatureType");
     }
 
     @Test
