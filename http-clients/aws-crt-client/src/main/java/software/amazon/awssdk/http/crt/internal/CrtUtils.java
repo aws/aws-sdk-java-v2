@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
+import static java.util.Collections.unmodifiableSet;
 import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
@@ -25,6 +26,8 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -43,7 +46,29 @@ public final class CrtUtils {
      */
     public static final int CRT_SOCKET_TIMEOUT = 1048;
 
-    public static final int HEALTH_CHECK_FAILURE_ERROR_CODE = 2073;
+    // HTTP error codes that the native CRT classifier (CRT.awsIsTransientError) does NOT mark as transient
+    // but that the SDK considers recoverable. See enum aws_http_errors in aws-c-http/include/aws/http/http.h
+    // for symbolic names.
+    private static final Set<Integer> ADDITIONAL_RETRYABLE_ERROR_CODES;
+
+    static {
+        Set<Integer> codes = new HashSet<>();
+        // AWS_ERROR_HTTP_CHANNEL_THROUGHPUT_FAILURE (health check failure)
+        codes.add(2073);
+        // AWS_ERROR_HTTP_GOAWAY_RECEIVED
+        codes.add(2076);
+        // AWS_ERROR_HTTP_MAX_CONCURRENT_STREAMS_EXCEEDED
+        codes.add(2085);
+        // AWS_ERROR_HTTP_STREAM_MANAGER_CONNECTION_ACQUIRE_FAILURE
+        codes.add(2087);
+        // AWS_ERROR_HTTP_RESPONSE_FIRST_BYTE_TIMEOUT
+        codes.add(2092);
+        // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
+        codes.add(2093);
+        // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
+        codes.add(2094);
+        ADDITIONAL_RETRYABLE_ERROR_CODES = unmodifiableSet(codes);
+    }
 
 
     private CrtUtils() {
@@ -54,7 +79,7 @@ public final class CrtUtils {
         int errorCode = httpException.getErrorCode();
 
         if (CRT.awsIsTransientError(errorCode) ||
-            errorCode == HEALTH_CHECK_FAILURE_ERROR_CODE) {
+            ADDITIONAL_RETRYABLE_ERROR_CODES.contains(errorCode)) {
             toThrow = new IOException(httpException);
         }
         return toThrow;

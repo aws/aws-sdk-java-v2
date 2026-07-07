@@ -22,10 +22,13 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object or Upload Part
@@ -53,6 +56,13 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
         if (!(context.request() instanceof PutObjectRequest
               || context.request() instanceof UploadPartRequest)) {
             return false;
+        }
+
+        // The header is necessary for cross region PUT because sending the body unconditionally to the wrong region where S3
+        // will respond with a 3xx and close the connection will cause I/O errors rather than resulting in the client retrying
+        // based on the region given in the 3xx response.
+        if (isCrossRegionAccessEnabled(executionAttributes)) {
+            return true;
         }
 
         S3Configuration s3Config = getS3Configuration(executionAttributes);
@@ -87,5 +97,13 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
         return decodedLength.isPresent()
                ? decodedLength
                : httpRequest.firstMatchingHeader(CONTENT_LENGTH_HEADER);
+    }
+
+    private boolean isCrossRegionAccessEnabled(ExecutionAttributes executionAttributes) {
+        Optional<AttributeMap> ctxParams = executionAttributes.getOptionalAttribute(
+            SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+
+        return ctxParams.map(p -> Boolean.TRUE.equals(p.get(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED)))
+                        .orElse(false);
     }
 }
