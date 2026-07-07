@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -165,6 +167,20 @@ public final class InstanceProfileCredentialsProvider
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialsCache.get();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (identity instanceof AwsCredentialsIdentity) {
+            String rejectedAccessKeyId = identity.accessKeyId();
+            credentialsCache.invalidate(cachedCreds -> {
+                if (cachedCreds instanceof AwsCredentialsIdentity) {
+                    return rejectedAccessKeyId.equals(((AwsCredentialsIdentity) cachedCreds).accessKeyId());
+                }
+                return false;
+            });
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {

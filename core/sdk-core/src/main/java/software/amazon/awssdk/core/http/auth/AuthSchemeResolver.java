@@ -158,7 +158,8 @@ public final class AuthSchemeResolver {
             return new SelectedAuthScheme<>(
                 selectedAuthScheme.identity(),
                 selectedAuthScheme.signer(),
-                mergedOption.build()
+                mergedOption.build(),
+                selectedAuthScheme.identityProvider()
             );
         }
 
@@ -184,7 +185,8 @@ public final class AuthSchemeResolver {
         return new SelectedAuthScheme<>(
             selectedAuthScheme.identity(),
             selectedAuthScheme.signer(),
-            mergedOption.build()
+            mergedOption.build(),
+            selectedAuthScheme.identityProvider()
         );
     }
 
@@ -243,7 +245,8 @@ public final class AuthSchemeResolver {
             attrs.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
                                new SelectedAuthScheme<>(currentScheme.identity(),
                                                         currentScheme.signer(),
-                                                        mergedOption.build()));
+                                                        mergedOption.build(),
+                                                        currentScheme.identityProvider()));
         }
     }
 
@@ -281,7 +284,7 @@ public final class AuthSchemeResolver {
         CompletableFuture<? extends T> identity = resolveIdentity(
             identityProvider, identityRequestBuilder.build(), metricCollector);
 
-        return new SelectedAuthScheme<>(identity, signer, authOption);
+        return new SelectedAuthScheme<>(identity, signer, authOption, identityProvider);
     }
 
     private static <T extends Identity> CompletableFuture<? extends T> resolveIdentity(

@@ -117,7 +117,16 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Predicate that determines whether an exception represents a non-recoverable refresh failure
      * that should bypass static stability (i.e., be re-thrown immediately without extending expiration).
      */
-    private final Predicate<RuntimeException> cacheInvalidatingPredicate;
+    private final Predicate<RuntimeException> nonRecoverableErrorPredicate;
+
+    /**
+     * Tracks when the next refresh attempt is allowed after a failure. This is set under {@link #refreshLock}
+     * and read without the lock (volatile). When non-null and in the future, {@link #get()} returns the cached
+     * value without contacting the source.
+     *
+     * <p>This field is NEVER modified by {@code invalidate()} — backoff remains independently tracked.</p>
+     */
+    private volatile Instant nextAllowedRefreshTime;
 
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
@@ -128,7 +137,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
         this.cachedValueName = Validate.notNull(builder.cachedValueName, "builder.cachedValueName");
-        this.cacheInvalidatingPredicate = builder.cacheInvalidatingPredicate;
+        this.nonRecoverableErrorPredicate = builder.nonRecoverableErrorPredicate;
     }
 
     /**
@@ -143,14 +152,62 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     @Override
     public T get() {
         if (cacheIsStale()) {
+            if (refreshRateLimited()) {
+                return this.cachedValue.value();
+            }
             log.debug(() -> "(" + cachedValueName + ") Cached value is stale and will be refreshed.");
             refreshCache();
         } else if (shouldInitiateCachePrefetch()) {
+            if (refreshRateLimited()) {
+                return this.cachedValue.value();
+            }
             log.debug(() -> "(" + cachedValueName + ") Cached value has reached prefetch time and will be refreshed.");
             prefetchCache();
         }
 
         return this.cachedValue.value();
+    }
+
+    /**
+     * Marks the cached value for mandatory refresh if the predicate matches.
+     * Sets staleTime to now() so the next get() triggers a refresh, subject to
+     * the refresh backoff gate ({@code nextAllowedRefreshTime}).
+     *
+     * <p>This method MUST NOT discard the cached value.
+     * This method MUST NOT clear or modify {@code nextAllowedRefreshTime}.</p>
+     *
+     * @param matchesCachedValue A predicate that returns true if the cached value
+     *                           is the one that should be invalidated.
+     */
+    public void invalidate(Predicate<T> matchesCachedValue) {
+        try {
+            boolean lockAcquired = refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
+            try {
+                RefreshResult<T> currentCachedValue = this.cachedValue;
+                if (currentCachedValue == null) {
+                    return;
+                }
+                if (!matchesCachedValue.test(currentCachedValue.value())) {
+                    return;
+                }
+                // Set staleTime = now, routing next get() through mandatory refresh
+                // (subject to nextAllowedRefreshTime gate)
+                Instant now = clock.instant();
+                this.cachedValue = currentCachedValue.toBuilder()
+                                                     .staleTime(now)
+                                                     .prefetchTime(now)
+                                                     .build();
+                log.debug(() -> "(" + cachedValueName + ") Cached value invalidated. "
+                               + "Next get() will attempt mandatory refresh.");
+            } finally {
+                if (lockAcquired) {
+                    refreshLock.unlock();
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn(() -> "(" + cachedValueName + ") Interrupted while invalidating cached value.");
+        }
     }
 
     /**
@@ -187,6 +244,16 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         return !clock.instant().isBefore(currentCachedValue.prefetchTime());
+    }
+
+    /**
+     * Checks whether a refresh backoff is currently active. When a refresh fails, a backoff gate
+     * ({@link #nextAllowedRefreshTime}) is set. While the gate is in the future, the cached value
+     * is returned without contacting the credential source.
+     */
+    private boolean refreshRateLimited() {
+        Instant nextAllowed = this.nextAllowedRefreshTime;
+        return nextAllowed != null && clock.instant().isBefore(nextAllowed);
     }
 
     /**
@@ -241,6 +308,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * Perform necessary transformations of the successfully-fetched value based on the stale value behavior of this supplier.
      */
     private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
+        this.nextAllowedRefreshTime = null; // Clear backoff gate on success
         Instant now = clock.instant();
 
         if (now.isBefore(fetch.staleTime())) {
@@ -283,26 +351,22 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 case STRICT:
                     throw e;
                 case ALLOW:
-                    // Cache-invalidating errors bypass static stability
-                    if (cacheInvalidatingPredicate != null && cacheInvalidatingPredicate.test(e)) {
+                    // Non-recoverable errors bypass static stability
+                    if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
                         throw e;
                     }
 
-                    // Uniform random backoff: 5-10 minutes
+                    // Set backoff gate — do NOT modify staleTime/prefetchTime
                     long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
                         + jitterRandom.nextInt(
                             (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
                                    - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
-                    Instant extendedStaleTime = now.plusSeconds(backoffSeconds);
+                    this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
 
                     log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
-                                   + ". Extending cached credential expiration. A refresh of these credentials"
-                                   + " will be attempted again after " + backoffSeconds + " seconds.", e);
+                                   + ". Will retry after " + backoffSeconds + " seconds.", e);
 
-                    return currentCachedValue.toBuilder()
-                                             .staleTime(extendedStaleTime)
-                                             .prefetchTime(extendedStaleTime)
-                                             .build();
+                    return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
                 default:
                     throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
             }
@@ -310,31 +374,21 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         // Not yet stale — we're in the prefetch window. Handle failure based on mode.
         if (staleValueBehavior == StaleValueBehavior.ALLOW) {
-            if (cacheInvalidatingPredicate != null && cacheInvalidatingPredicate.test(e)) {
+            if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
                 throw e;
             }
-            // During prefetch window failure: extend prefetchTime to suppress further attempts.
-            // Preserve existing staleTime if it is later than the new prefetch time.
+
+            // Set backoff gate — do NOT modify staleTime/prefetchTime
             long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
                 + jitterRandom.nextInt(
                     (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
                            - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
-            Instant extendedPrefetchTime = now.plusSeconds(backoffSeconds);
-
-            // Do not move stale time closer — keep the existing stale time if it's later than the extended prefetch time
-            Instant currentStaleTime = currentCachedValue.staleTime();
-            Instant newStaleTime = (currentStaleTime != null && currentStaleTime.isAfter(extendedPrefetchTime))
-                ? currentStaleTime
-                : extendedPrefetchTime;
+            this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
 
             log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
-                           + ". Extending cached credential expiration. A refresh of these credentials"
-                           + " will be attempted again after " + backoffSeconds + " seconds.", e);
+                           + ". Will retry after " + backoffSeconds + " seconds.", e);
 
-            return currentCachedValue.toBuilder()
-                                     .staleTime(newStaleTime)
-                                     .prefetchTime(extendedPrefetchTime)
-                                     .build();
+            return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
         }
 
         return currentCachedValue;
@@ -423,7 +477,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
         private Clock clock = Clock.systemUTC();
         private String cachedValueName = "unknown";
-        private Predicate<RuntimeException> cacheInvalidatingPredicate;
+        private Predicate<RuntimeException> nonRecoverableErrorPredicate;
 
         private Builder(Supplier<RefreshResult<T>> supplier) {
             this.supplier = supplier;
@@ -472,11 +526,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * authentication state is invalid and requires user intervention (e.g., expired SSO tokens,
          * changed user credentials).</p>
          *
-         * <p>By default, no exceptions are considered cache-invalidating (all failures trigger static stability
+         * <p>By default, no exceptions are considered non-recoverable (all failures trigger static stability
          * backoff when {@link StaleValueBehavior#ALLOW} is configured).</p>
          */
-        public Builder<T> cacheInvalidatingPredicate(Predicate<RuntimeException> cacheInvalidatingPredicate) {
-            this.cacheInvalidatingPredicate = cacheInvalidatingPredicate;
+        public Builder<T> nonRecoverableErrorPredicate(Predicate<RuntimeException> nonRecoverableErrorPredicate) {
+            this.nonRecoverableErrorPredicate = nonRecoverableErrorPredicate;
             return this;
         }
 
@@ -558,11 +612,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * Allow stale values to be returned from the cache with static stability semantics. On refresh failure,
          * extends the stale time by a uniformly random backoff between 5 and 10 minutes (300-600 seconds).
          *
-         * <p>If a {@link Builder#cacheInvalidatingPredicate(Predicate)} is configured and returns {@code true}
+         * <p>If a {@link Builder#nonRecoverableErrorPredicate(Predicate)} is configured and returns {@code true}
          * for the exception, it is re-thrown immediately without extending the stale time.</p>
          *
          * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
-         * unless the error is cache-invalidating.</p>
+         * unless the error is non-recoverable.</p>
          */
         ALLOW
     }

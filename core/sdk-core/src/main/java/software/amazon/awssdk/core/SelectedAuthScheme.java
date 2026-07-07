@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.Validate;
 
 
@@ -48,13 +49,22 @@ public final class SelectedAuthScheme<T extends Identity> {
     private final CompletableFuture<? extends T> identity;
     private final HttpSigner<T> signer;
     private final AuthSchemeOption authSchemeOption;
+    private final IdentityProvider<T> identityProvider;
 
     public SelectedAuthScheme(CompletableFuture<? extends T> identity,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
+        this(identity, signer, authSchemeOption, null);
+    }
+
+    public SelectedAuthScheme(CompletableFuture<? extends T> identity,
+                              HttpSigner<T> signer,
+                              AuthSchemeOption authSchemeOption,
+                              IdentityProvider<T> identityProvider) {
         this.identity = Validate.paramNotNull(identity, "identity");
         this.signer = Validate.paramNotNull(signer, "signer");
         this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
+        this.identityProvider = identityProvider; // nullable for backward compat
     }
 
     public CompletableFuture<? extends T> identity() {
@@ -67,5 +77,9 @@ public final class SelectedAuthScheme<T extends Identity> {
 
     public AuthSchemeOption authSchemeOption() {
         return authSchemeOption;
+    }
+
+    public IdentityProvider<T> identityProvider() {
+        return identityProvider;
     }
 }

@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 import software.amazon.awssdk.utils.StringUtils;
@@ -184,6 +186,20 @@ public final class ContainerCredentialsProvider
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialsCache.get();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (identity instanceof AwsCredentialsIdentity) {
+            String rejectedAccessKeyId = identity.accessKeyId();
+            credentialsCache.invalidate(cachedCreds -> {
+                if (cachedCreds instanceof AwsCredentialsIdentity) {
+                    return rejectedAccessKeyId.equals(((AwsCredentialsIdentity) cachedCreds).accessKeyId());
+                }
+                return false;
+            });
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -128,6 +129,21 @@ public final class AwsCredentialsProviderChain
                                 .message("Unable to load credentials from any of the providers in the chain " +
                                          this + " : " + exceptionMessages)
                                 .build();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        for (IdentityProvider<? extends AwsCredentialsIdentity> provider : credentialsProviders) {
+            try {
+                @SuppressWarnings("unchecked")
+                IdentityProvider<AwsCredentialsIdentity> typedProvider =
+                    (IdentityProvider<AwsCredentialsIdentity>) provider;
+                typedProvider.invalidate(identity);
+            } catch (Exception e) {
+                log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+            }
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
