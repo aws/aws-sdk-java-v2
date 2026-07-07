@@ -39,13 +39,24 @@ public class ResponseHandlerHelper {
     }
 
     /**
-     * Set the stream reference as soon as it is acquired from the pool, so that closeConnection can
-     * cancel it even if onResponseHeaders has not yet fired (e.g. the server is unresponsive).
+     * Set the stream reference and activate it as soon as it is acquired from the pool.
+     *
+     * <p>Activating immediately ensures that any subsequent {@code closeConnection()} call will
+     * properly trigger {@code onResponseComplete} in the CRT native layer, which is required for
+     * {@code Http1StreamManager} to release the connection slot back to the pool. Without prior
+     * activation, {@code cancel()} + {@code close()} releases the native stream handle without
+     * triggering callbacks, permanently leaking the connection slot.
+     *
+     * <p>{@code activate()} is idempotent per the CRT contract — safe to call even if
+     * {@code Http1StreamManager} has already activated the stream.
      */
     public void onAcquireStream(HttpStreamBase stream) {
         synchronized (streamLock) {
             if (this.stream == null) {
                 this.stream = stream;
+                if (this.stream != null) {
+                    this.stream.activate();
+                }
                 // closeConnection() was requested before the stream was acquired; close it now.
                 if (streamClosed && this.stream != null) {
                     this.stream.cancel();
@@ -89,13 +100,19 @@ public class ResponseHandlerHelper {
     /**
      * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
      * connection pool. This should be called on error paths or when the stream is aborted before the response is
-     * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
+     * fully consumed.
+     *
+     * <p>Calls {@code activate()} before {@code cancel()} to ensure the CRT native layer will deliver
+     * {@code onResponseComplete}. This is critical for {@code Http1StreamManager} to release the
+     * connection slot back to the pool. {@code activate()} is idempotent — calling it on an
+     * already-activated stream is safe.
      */
     public void closeConnection() {
         synchronized (streamLock) {
             if (!streamClosed) {
                 streamClosed = true;
                 if (stream != null) {
+                    stream.activate();
                     stream.cancel();
                     stream.close();
                 }
