@@ -24,7 +24,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -78,30 +82,6 @@ class IntermediateModelParityCheckerTest {
     }
 
     @Test
-    void compare_whenShapeMissingFromSmithy_reportsMissingDiff() {
-        IntermediateModel a = modelWithShapes("FooShape", "BarShape");
-        IntermediateModel b = modelWithShapes("FooShape");
-
-        ParityResult result = checker.compare("foo", a, b);
-
-        assertThat(result.unexpectedDiffs())
-            .anyMatch(d -> d.path().startsWith("shapes.BarShape")
-                           && d.type() == ParityDiff.Type.MISSING);
-    }
-
-    @Test
-    void compare_whenShapeAddedInSmithy_reportsAddedDiff() {
-        IntermediateModel a = modelWithShapes("FooShape");
-        IntermediateModel b = modelWithShapes("FooShape", "ExtraShape");
-
-        ParityResult result = checker.compare("foo", a, b);
-
-        assertThat(result.unexpectedDiffs())
-            .anyMatch(d -> d.path().startsWith("shapes.ExtraShape")
-                           && d.type() == ParityDiff.Type.ADDED);
-    }
-
-    @Test
     void compare_whenDiffHasPerServiceAllowlistEntry_ignored() {
         IntermediateModel a = simpleModel("Foo", "1.0");
         IntermediateModel b = simpleModel("Foo", "2.0");
@@ -130,25 +110,20 @@ class IntermediateModelParityCheckerTest {
         assertThat(result.allDiffs()).as(result.summary()).isNotEmpty();
     }
 
-    @Test
-    void newAllowlistEntry_whenReasonMissing_throws() {
-        assertThatThrownBy(() -> new ParityAllowlistEntry("some.path", null))
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidAllowlistEntries")
+    void newAllowlistEntry_whenInputInvalid_throws(String label, String path, String reason, String expectedMessage) {
+        assertThatThrownBy(() -> new ParityAllowlistEntry(path, reason))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("reason");
+            .hasMessageContaining(expectedMessage);
     }
 
-    @Test
-    void newAllowlistEntry_whenReasonBlank_throws() {
-        assertThatThrownBy(() -> new ParityAllowlistEntry("some.path", "  "))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("reason");
-    }
-
-    @Test
-    void newAllowlistEntry_whenPathMissing_throws() {
-        assertThatThrownBy(() -> new ParityAllowlistEntry("", "reason"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("path");
+    static Stream<Arguments> invalidAllowlistEntries() {
+        return Stream.of(
+            Arguments.of("path missing",  "",             "reason",   "path"),
+            Arguments.of("reason null",   "some.path",    null,       "reason"),
+            Arguments.of("reason blank",  "some.path",    "  ",       "reason")
+        );
     }
 
     @Test
@@ -201,14 +176,44 @@ class IntermediateModelParityCheckerTest {
             .isEmpty();
     }
 
-    @Test
-    void compare_whenSelfCompared_reportsNoDiffs() {
-        IntermediateModel model = modelWithShapes("FooShape", "BarShape", "BazShape");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("diffCases")
+    void diffEngine_producesExpectedDiff(String label,
+                                         IntermediateModel c2j,
+                                         IntermediateModel smithy,
+                                         ParityDiff.Type expectedType,
+                                         String expectedPath) {
+        ParityResult result = checker.compare("test", c2j, smithy);
 
-        ParityResult result = checker.compare("foo", model, model);
+        assertThat(result.unexpectedDiffs())
+            .as(result.summary())
+            .anyMatch(d -> d.path().equals(expectedPath) && d.type() == expectedType);
+    }
 
-        assertThat(result.unexpectedDiffs()).as(result.summary()).isEmpty();
-        assertThat(result.allDiffs()).isEmpty();
+    static Stream<Arguments> diffCases() {
+        return Stream.of(
+            Arguments.of("apiVersion value changed",
+                         simpleModel("Foo", "1.0"), simpleModel("Foo", "2.0"),
+                         ParityDiff.Type.CHANGED, "metadata.apiVersion"),
+            Arguments.of("shape missing from smithy",
+                         modelWithShapes("FooShape", "BarShape"), modelWithShapes("FooShape"),
+                         ParityDiff.Type.MISSING, "shapes.BarShape"),
+            Arguments.of("shape added in smithy",
+                         modelWithShapes("FooShape"), modelWithShapes("FooShape", "ExtraShape"),
+                         ParityDiff.Type.ADDED, "shapes.ExtraShape"),
+            Arguments.of("shape names differ by case",
+                         modelWithShapes("Foo"), modelWithShapes("foo"),
+                         ParityDiff.Type.MISSING, "shapes.Foo"),
+            Arguments.of("trailing space in value",
+                         simpleModel("Foo", "1.0"), simpleModel("Foo", "1.0 "),
+                         ParityDiff.Type.CHANGED, "metadata.apiVersion"),
+            Arguments.of("internal space in value",
+                         simpleModel("Foo", "1.0"), simpleModel("Foo", "1. 0"),
+                         ParityDiff.Type.CHANGED, "metadata.apiVersion"),
+            Arguments.of("empty string vs non-empty",
+                         simpleModel("Foo", ""), simpleModel("Foo", "1.0"),
+                         ParityDiff.Type.CHANGED, "metadata.apiVersion")
+        );
     }
 
     @Test

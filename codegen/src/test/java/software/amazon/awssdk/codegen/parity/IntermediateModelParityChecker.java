@@ -41,6 +41,11 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
  */
 final class IntermediateModelParityChecker {
 
+    /**
+     * Diff paths ignored for every service. Add an entry
+     * only when a diff at that path is verified acceptable across all services;
+     * prefer per-service allowlists for anything narrower.
+     */
     private static final Set<String> GLOBAL_IGNORE_PATHS;
 
     static {
