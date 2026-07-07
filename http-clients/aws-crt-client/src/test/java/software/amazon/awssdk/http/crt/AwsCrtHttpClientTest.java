@@ -42,7 +42,7 @@ public class AwsCrtHttpClientTest extends AwsCrtHttpClientTestBase {
     @MethodSource("invalidTlsNegotiationTimeouts")
     void tlsNegotiationTimeout_invalidDuration_shouldThrowException(String description, Duration input,
                                                                     String expectedMessageFragment) {
-        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().tlsNegotiationTimeout(input).build())
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().tlsNegotiationTimeout(input).build())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(expectedMessageFragment);
     }
