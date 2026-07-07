@@ -25,17 +25,24 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,6 +70,7 @@ public class GeneratePreSignUrlInterceptorTest {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("foo", "bar"));
         attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
+        addSraAttributes(attrs, AwsBasicCredentials.create("foo", "bar"));
 
         SdkHttpRequest modifiedRequest = INTERCEPTOR.modifyHttpRequest(mockContext, attrs);
 
@@ -116,11 +124,31 @@ public class GeneratePreSignUrlInterceptorTest {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("akid", "skid"));
         attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
+        addSraAttributes(attrs, AwsBasicCredentials.create("akid", "skid"));
 
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(mockContext, attrs);
 
         String generatedPresignedUrl = modifiedRequest.rawQueryParameters().get("PresignedUrl").get(0);
 
         assertThat(generatedPresignedUrl).isEqualTo(expectedPresignedUrl);
+    }
+
+    private static void addSraAttributes(ExecutionAttributes attrs, AwsBasicCredentials credentials) {
+        AwsV4AuthScheme authScheme = AwsV4AuthScheme.create();
+        Map<String, AuthScheme<?>> authSchemes = Collections.singletonMap(authScheme.schemeId(), authScheme);
+        IdentityProviders identityProviders = IdentityProviders.builder()
+            .putIdentityProvider(StaticCredentialsProvider.create(credentials))
+            .build();
+        attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
+        attrs.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
+        attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+                           request -> Collections.singletonList(
+                               software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption.builder()
+                                   .schemeId(authScheme.schemeId())
+                                   .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner
+                                                          .SERVICE_SIGNING_NAME, "ec2")
+                                   .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner
+                                                          .REGION_NAME, "us-west-2")
+                                   .build()));
     }
 }
