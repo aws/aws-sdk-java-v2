@@ -133,17 +133,22 @@ public final class AwsCredentialsProviderChain
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (IdentityProvider<? extends AwsCredentialsIdentity> provider : credentialsProviders) {
             try {
                 @SuppressWarnings("unchecked")
                 IdentityProvider<AwsCredentialsIdentity> typedProvider =
                     (IdentityProvider<AwsCredentialsIdentity>) provider;
-                typedProvider.invalidate(identity);
+                CompletableFuture<Void> future = typedProvider.invalidate(identity);
+                futures.add(future.exceptionally(e -> {
+                    log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+                    return null;
+                }));
             } catch (Exception e) {
                 log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
             }
         }
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     @Override

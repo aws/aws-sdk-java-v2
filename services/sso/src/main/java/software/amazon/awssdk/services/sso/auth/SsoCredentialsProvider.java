@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.internal.CredentialsInvalidationUtils;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sso.SsoClient;
@@ -172,14 +173,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        if (identity instanceof AwsCredentialsIdentity) {
-            String rejectedAccessKeyId = identity.accessKeyId();
-            credentialCache.invalidate(holder -> {
-                AwsCredentialsIdentity cachedCreds = holder.sessionCredentials();
-                return rejectedAccessKeyId.equals(cachedCreds.accessKeyId());
-            });
-        }
-        return CompletableFuture.completedFuture(null);
+        return CredentialsInvalidationUtils.invalidateCredentialsCache(
+            identity, credentialCache, holder -> holder.sessionCredentials());
     }
 
     @Override
