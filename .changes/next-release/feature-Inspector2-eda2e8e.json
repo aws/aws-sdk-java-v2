@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "This release extends vulnerability management to Azure VM, container registries and function apps. Adds support for per-member-account scan configuration settings."
-}

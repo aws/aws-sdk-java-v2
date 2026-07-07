@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Catalog Service",
-    "contributor": "",
-    "description": "This release enhances the ListEntities API to support ResellerRole filter for ResaleAuthorization entity."
-}

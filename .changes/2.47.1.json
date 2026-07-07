@@ -1,0 +1,78 @@
+{
+    "version": "2.47.1",
+    "date": "2026-07-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Adding SSM Cloud Connector to support Azure Virtual Machines onboarding to AWS Systems Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds support for CreateAuthCode and DeleteSession APIs."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Re-resolve SSO access token on each credential refresh in the SSOCredentialsProvider instead of caching it at construction time ensuring that refreshed tokens (for example from running `aws sso login`) are always used."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This launch surfaces the public SSM parameter associated with public AMIs in the AMI metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "The usage reporting window for the BatchMeterUsage API has been extended from 6 hours to 24 hours. Sellers can now submit usage records for up to 24 hours after a metered event occurs. The existing 6-hour grace period at the end of a billing cycle still applies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Added support for connecting AWS Config to third-party cloud service providers. New APIs include PutConnector, GetConnector, DeleteConnector, and ListConnectors for managing connectors, and PutThirdPartyServiceLinkedConfigurationRecorder for creating third-party service-linked recorders."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "This release extends vulnerability management to Azure VM, container registries and function apps. Adds support for per-member-account scan configuration settings."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Revenue Measurement API",
+            "contributor": "",
+            "description": "Add support for AWS Partner Central Revenue Measurement API for creating, managing, and tracking revenue attributions and marketplace revenue share allocations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "release SecurityHub MultiCloud integration with Azure"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Global Resolver",
+            "contributor": "",
+            "description": "Adds ListSharedDNSViews operation to list all DNS Views shared with caller using AWS Resource Access Manager. Also updates ListHostedZoneAssociations operation so that resource ARN param is optional, allowing caller to list all HostedZoneAssociations in account."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "This release enhances the ListEntities API to support ResellerRole filter for ResaleAuthorization entity."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "AWS Lambda Durable Functions now supports customer managed KMS keys. This allows customers to configure a KMS key in Durable Config to have all their durable execution data encrypted."
+        }
+    ]
+}
