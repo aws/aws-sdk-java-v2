@@ -35,20 +35,22 @@ public final class CredentialsInvalidationUtils {
     }
 
     /**
-     * Invalidates the given cache if the rejected identity's access key ID matches the cached credential's access key ID.
+     * Invalidates the given cache if the rejected identity's access key ID matches the access key ID of the cached value.
      *
      * <p>This method encapsulates the common pattern used by caching credential providers:
      * <ol>
      *   <li>Extract the rejected access key ID from the identity</li>
-     *   <li>Compare it against the currently cached credentials</li>
+     *   <li>Use the {@code accessKeyIdExtractor} to get the access key ID from the currently cached value</li>
      *   <li>If they match, mark the cache for mandatory refresh</li>
      * </ol>
      *
+     * <p>For providers whose cache directly stores {@link AwsCredentialsIdentity} (or a subtype), pass
+     * {@code AwsCredentialsIdentity::accessKeyId} as the extractor. For providers that cache a wrapper type,
+     * provide an appropriate extraction function (e.g., {@code holder -> holder.sessionCredentials().accessKeyId()}).
+     *
      * @param identity The identity that was rejected by the service.
      * @param cache The cached supplier to invalidate.
-     * @param credentialsExtractor A function that extracts the {@link AwsCredentialsIdentity} from the cached value type.
-     *                             For providers that cache {@code AwsCredentials} directly, use {@code Function.identity()}.
-     *                             For providers that cache a holder object, provide the appropriate extraction function.
+     * @param accessKeyIdExtractor A function that extracts the access key ID from the cached value.
      * @param <T> The type of value stored in the cache.
      * @return A {@link CompletableFuture} that completes when the invalidation check is done, or completes exceptionally
      *         if an error occurs during the invalidation.
@@ -56,17 +58,11 @@ public final class CredentialsInvalidationUtils {
     public static <T> CompletableFuture<Void> invalidateCredentialsCache(
             AwsCredentialsIdentity identity,
             CachedSupplier<T> cache,
-            Function<T, AwsCredentialsIdentity> credentialsExtractor) {
+            Function<T, String> accessKeyIdExtractor) {
 
         try {
             String rejectedAccessKeyId = identity.accessKeyId();
-            cache.invalidate(cachedValue -> {
-                AwsCredentialsIdentity cachedIdentity = credentialsExtractor.apply(cachedValue);
-                if (cachedIdentity == null) {
-                    return false;
-                }
-                return rejectedAccessKeyId.equals(cachedIdentity.accessKeyId());
-            });
+            cache.invalidate(cachedValue -> rejectedAccessKeyId.equals(accessKeyIdExtractor.apply(cachedValue)));
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             return CompletableFutureUtils.failedFuture(e);

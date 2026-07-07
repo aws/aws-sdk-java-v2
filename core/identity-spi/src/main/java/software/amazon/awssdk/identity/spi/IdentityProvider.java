@@ -166,8 +166,7 @@ public interface IdentityProvider<IdentityT extends Identity> {
      * The next call to {@link #resolveIdentity} will attempt to fetch fresh credentials.</p>
      *
      * <p>Implementations MUST only invalidate if the currently-cached identity matches
-     * the rejected identity (e.g., same access key ID). Implementations MUST NOT discard
-     * cached credentials entirely, and MUST NOT clear or bypass any refresh backoff.</p>
+     * the rejected identity (e.g., same access key ID).</p>
      *
      * <p>The default implementation is a no-op, suitable for providers that do not cache.</p>
      *

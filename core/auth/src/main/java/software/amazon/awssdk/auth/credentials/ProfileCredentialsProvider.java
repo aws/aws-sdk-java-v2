@@ -162,6 +162,7 @@ public final class ProfileCredentialsProvider
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        // Local copy to avoid TOCTOU race on the volatile field during concurrent profile reloads.
         AwsCredentialsProvider provider = credentialsProvider;
         if (provider != null) {
             return provider.invalidate(identity);

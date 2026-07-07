@@ -173,7 +173,7 @@ public final class InstanceProfileCredentialsProvider
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         return CredentialsInvalidationUtils.invalidateCredentialsCache(
-            identity, credentialsCache, cachedCreds -> (AwsCredentialsIdentity) cachedCreds);
+            identity, credentialsCache, AwsCredentialsIdentity::accessKeyId);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {

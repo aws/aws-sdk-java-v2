@@ -66,13 +66,12 @@ class IdentityProviderInvalidateTest {
     @BeforeEach
     void setup() {
         environmentVariableHelper.reset();
-        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
-                           "http://localhost:" + wireMockServer.getPort());
+        environmentVariableHelper.set(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT,
+                                      "http://localhost:" + wireMockServer.getPort());
     }
 
     @AfterAll
     static void teardown() {
-        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
         environmentVariableHelper.reset();
     }
 

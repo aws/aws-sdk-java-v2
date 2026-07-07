@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -211,9 +214,8 @@ public class AuthErrorInvalidationHelperTest {
     }
 
     /**
-     * Creates an SdkServiceException subclass with an {@code awsErrorDetails()} method that returns
-     * an object with an {@code errorCode()} method. This works with the reflection-based approach
-     * in AuthErrorInvalidationHelper.
+     * Creates an SdkServiceException subclass that overrides {@code isAuthenticationError()} to
+     * return true for the known auth error codes.
      */
     private Throwable serviceExceptionWithErrorCode(String errorCode) {
         return new TestAwsServiceException(errorCode);
@@ -286,36 +288,24 @@ public class AuthErrorInvalidationHelperTest {
     }
 
     /**
-     * Simulates an AwsServiceException accessible via reflection. The AuthErrorInvalidationHelper
-     * uses reflection to call awsErrorDetails().errorCode() since sdk-core doesn't depend on aws-core.
-     * Any class with these methods will work via reflection.
+     * Simulates an AwsServiceException that reports authentication errors via the
+     * {@link SdkServiceException#isAuthenticationError()} virtual method.
      */
     private static class TestAwsServiceException extends SdkServiceException {
-        private final TestAwsErrorDetails awsErrorDetails;
+        private static final Set<String> AUTH_ERROR_CODES = new HashSet<>(Arrays.asList(
+            "ExpiredToken", "InvalidToken", "AuthFailure"
+        ));
+
+        private final String errorCode;
 
         TestAwsServiceException(String errorCode) {
             super(SdkServiceException.builder().message("test exception").statusCode(401));
-            this.awsErrorDetails = new TestAwsErrorDetails(errorCode);
-        }
-
-        public TestAwsErrorDetails awsErrorDetails() {
-            return awsErrorDetails;
-        }
-    }
-
-    /**
-     * Simulates AwsErrorDetails. The reflection in AuthErrorInvalidationHelper calls
-     * awsErrorDetails().errorCode(), so this class just needs an errorCode() method.
-     */
-    private static class TestAwsErrorDetails {
-        private final String errorCode;
-
-        TestAwsErrorDetails(String errorCode) {
             this.errorCode = errorCode;
         }
 
-        public String errorCode() {
-            return errorCode;
+        @Override
+        public boolean isAuthenticationError() {
+            return AUTH_ERROR_CODES.contains(errorCode);
         }
     }
 }

@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -32,8 +29,9 @@ import software.amazon.awssdk.utils.Logger;
  * Utility that detects authentication error responses and triggers credential invalidation
  * on the identity provider that produced the rejected credentials.
  *
- * <p>When a service returns {@code ExpiredToken}, {@code InvalidToken}, or {@code AuthFailure},
- * this helper retrieves the {@link SelectedAuthScheme} from the execution context and calls
+ * <p>When a service returns an authentication error (as determined by
+ * {@link SdkServiceException#isAuthenticationError()}), this helper retrieves the
+ * {@link SelectedAuthScheme} from the execution context and calls
  * {@link IdentityProvider#invalidate} so the next retry attempt resolves fresh credentials.</p>
  *
  * <p>All exceptions from the invalidation path are caught and logged at debug level.
@@ -43,12 +41,6 @@ import software.amazon.awssdk.utils.Logger;
 public final class AuthErrorInvalidationHelper {
 
     private static final Logger LOG = Logger.loggerFor(AuthErrorInvalidationHelper.class);
-
-    private static final Set<String> INVALIDATION_ERROR_CODES = new HashSet<>(Arrays.asList(
-        "ExpiredToken",
-        "InvalidToken",
-        "AuthFailure"
-    ));
 
     private AuthErrorInvalidationHelper() {
     }
@@ -67,9 +59,7 @@ public final class AuthErrorInvalidationHelper {
         }
 
         SdkServiceException serviceException = (SdkServiceException) exception;
-        String errorCode = extractErrorCode(serviceException);
-
-        if (errorCode == null || !INVALIDATION_ERROR_CODES.contains(errorCode)) {
+        if (!serviceException.isAuthenticationError()) {
             return;
         }
 
@@ -84,31 +74,6 @@ public final class AuthErrorInvalidationHelper {
             doInvalidate(selectedAuthScheme);
         } catch (Exception e) {
             LOG.debug(() -> "Failed to invalidate identity provider after auth error: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Extracts the error code from an SdkServiceException. Since sdk-core does not depend on
-     * aws-core, this uses reflection to access awsErrorDetails().errorCode() which is defined
-     * on AwsServiceException.
-     */
-    private static String extractErrorCode(SdkServiceException serviceException) {
-        try {
-            java.lang.reflect.Method awsErrorDetailsMethod =
-                serviceException.getClass().getMethod("awsErrorDetails");
-            Object errorDetails = awsErrorDetailsMethod.invoke(serviceException);
-            if (errorDetails == null) {
-                return null;
-            }
-            java.lang.reflect.Method errorCodeMethod = errorDetails.getClass().getMethod("errorCode");
-            Object errorCode = errorCodeMethod.invoke(errorDetails);
-            return errorCode instanceof String ? (String) errorCode : null;
-        } catch (NoSuchMethodException e) {
-            // Exception type does not have awsErrorDetails() — not an AWS service exception
-            return null;
-        } catch (Exception e) {
-            LOG.debug(() -> "Failed to extract error code from exception: " + e.getMessage(), e);
-            return null;
         }
     }
 

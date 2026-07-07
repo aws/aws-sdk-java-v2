@@ -129,7 +129,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         return CredentialsInvalidationUtils.invalidateCredentialsCache(
-            identity, sessionCache, cachedCreds -> (AwsCredentialsIdentity) cachedCreds);
+            identity, sessionCache, AwsCredentialsIdentity::accessKeyId);
     }
 
     /**

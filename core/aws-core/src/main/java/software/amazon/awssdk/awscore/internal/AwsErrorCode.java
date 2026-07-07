@@ -31,6 +31,7 @@ public final class AwsErrorCode {
     public static final Set<String> THROTTLING_ERROR_CODES;
     public static final Set<String> DEFINITE_CLOCK_SKEW_ERROR_CODES;
     public static final Set<String> POSSIBLE_CLOCK_SKEW_ERROR_CODES;
+    public static final Set<String> AUTH_ERROR_CODES;
 
     static {
         Set<String> throttlingErrorCodes = new HashSet<>(9);
@@ -66,6 +67,12 @@ public final class AwsErrorCode {
         retryableErrorCodes.add("RequestTimeoutException");
         retryableErrorCodes.add("InternalError");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
+
+        Set<String> authErrorCodes = new HashSet<>(3);
+        authErrorCodes.add("ExpiredToken");
+        authErrorCodes.add("InvalidToken");
+        authErrorCodes.add("AuthFailure");
+        AUTH_ERROR_CODES = unmodifiableSet(authErrorCodes);
     }
 
     private AwsErrorCode() {
@@ -85,5 +92,9 @@ public final class AwsErrorCode {
 
     public static boolean isRetryableErrorCode(String errorCode) {
         return RETRYABLE_ERROR_CODES.contains(errorCode);
+    }
+
+    public static boolean isAuthenticationErrorCode(String errorCode) {
+        return AUTH_ERROR_CODES.contains(errorCode);
     }
 }

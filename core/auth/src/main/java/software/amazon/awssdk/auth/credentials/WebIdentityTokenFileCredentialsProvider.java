@@ -27,7 +27,6 @@ import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredenti
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -168,11 +167,8 @@ public class WebIdentityTokenFileCredentialsProvider
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        if (credentialsProvider instanceof IdentityProvider) {
-            @SuppressWarnings("unchecked")
-            IdentityProvider<AwsCredentialsIdentity> provider =
-                (IdentityProvider<AwsCredentialsIdentity>) credentialsProvider;
-            return provider.invalidate(identity);
+        if (credentialsProvider != null) {
+            return credentialsProvider.invalidate(identity);
         }
         return CompletableFuture.completedFuture(null);
     }
