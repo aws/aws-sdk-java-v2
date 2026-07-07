@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -70,6 +71,7 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.polly.auth.scheme.PollyAuthSchemeProvider;
+import software.amazon.awssdk.services.polly.endpoints.PollyEndpointProvider;
 import software.amazon.awssdk.services.polly.internal.presigner.model.transform.SynthesizeSpeechRequestMarshaller;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
@@ -341,20 +343,26 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private URI resolveEndpoint() {
-        return AwsClientEndpointProvider.builder()
-                                        .clientEndpointOverride(endpointOverride)
-                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_POLLY")
-                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
-                                        .serviceProfileProperty("polly")
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol("https")
-                                        .region(region)
-                                        .profileFile(profileFile)
-                                        .profileName(profileName)
-                                        .dualstackEnabled(dualstackEnabled)
-                                        .fipsEnabled(fipsEnabled)
-                                        .build()
-                                        .clientEndpoint();
+        // If user configured an endpoint override or one is set via environment/profile, use it.
+        Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                                                  .clientEndpointOverride(endpointOverride)
+                                                                  .serviceEndpointOverrideEnvironmentVariable(
+                                                                      "AWS_ENDPOINT_URL_POLLY")
+                                                                  .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
+                                                                  .serviceProfileProperty("polly")
+                                                                  .profileFile(profileFile)
+                                                                  .profileName(profileName)
+                                                                  .resolveFromOverrides();
+
+        // Resolve endpoint using the service's Endpoints 2.0 provider. Unlike S3, the Polly presigner
+        // does not have an endpoint resolution interceptor chain — this endpoint becomes the final
+        // presigned URL host, so it must be accurate.
+        return overrideEndpoint.orElseGet(() -> CompletableFutureUtils.joinLikeSync(
+            PollyEndpointProvider.defaultProvider()
+                                 .resolveEndpoint(p -> p.region(region)
+                                                        .useDualStack(dualstackEnabled)
+                                                        .useFips(fipsEnabled))
+        ).url());
     }
 
     public static class BuilderImpl implements PollyPresigner.Builder {
