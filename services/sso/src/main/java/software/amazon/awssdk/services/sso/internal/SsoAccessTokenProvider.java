@@ -52,6 +52,8 @@ public final class SsoAccessTokenProvider implements SdkTokenProvider {
         } catch (ExpiredTokenException e) {
             throw e;
         } catch (Exception e) {
+            // Any exception raised while trying to read the token file (invalid file, unable to access, does not exist, ect)
+            // should be treated as an invalid/expired token and requires the user to re-authenticate
             throw ExpiredTokenException.builder()
                                        .cause(e)
                                        .build();

@@ -147,9 +147,11 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
             SdkToken token;
             try {
                 token = tokenProvider.resolveToken();
-            } catch (ExpiredTokenException | SdkServiceException e) {
+            } catch (ExpiredTokenException | SdkServiceException | IllegalArgumentException e) {
                 throw e;
             } catch (RuntimeException e) {
+                // Any exception raised while trying to read the token file (invalid file, unable to access, does not exist, ect) 
+                // should be treated as an invalid/expired token and requires the user to re-authenticate.
                 throw ExpiredTokenException.builder()
                                            .cause(e)
                                            .build();

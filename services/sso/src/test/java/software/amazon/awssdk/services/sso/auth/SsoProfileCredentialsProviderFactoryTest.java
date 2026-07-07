@@ -578,8 +578,8 @@ public class SsoProfileCredentialsProviderFactoryTest {
         // First call succeeds and caches credentials
         credentialsProvider.resolveCredentials();
 
-        // Second call: token provider throws InvalidTokenException, but CachedSupplier with
-        // StaleValueBehavior.ALLOW returns stale cached credentials (static stability)
+        // Second call: token provider throws, but CachedSupplier returns the previously
+        // cached credentials since they haven't reached their stale time yet.
         assertThat(credentialsProvider.resolveCredentials()).isNotNull();
     }
 
