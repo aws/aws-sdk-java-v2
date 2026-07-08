@@ -531,7 +531,7 @@ public final class ClientClassUtils {
      * pressure for services with a large number of operations (e.g., EC2).
      */
     static MethodSpec endpointResolverFactoryMethod() {
-        ClassName endpointResolver = ClassName.get("software.amazon.awssdk.core.internal.endpoint", "EndpointResolver");
+        ClassName endpointResolver = ClassName.get("software.amazon.awssdk.core.endpoint", "EndpointResolver");
 
         return MethodSpec.methodBuilder("endpointResolver")
                          .addModifiers(PRIVATE)
