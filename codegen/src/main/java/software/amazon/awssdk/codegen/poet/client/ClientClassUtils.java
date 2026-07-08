@@ -59,11 +59,13 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -513,8 +515,7 @@ public final class ClientClassUtils {
      * pressure for services with a large number of operations (e.g., EC2).
      */
     static MethodSpec authSchemeResolverFactoryMethod() {
-        ClassName authSchemeOptionsResolver = ClassName.get("software.amazon.awssdk.core.spi.identity",
-                                                           "AuthSchemeOptionsResolver");
+        ClassName authSchemeOptionsResolver = ClassName.get(AuthSchemeOptionsResolver.class);
 
         return MethodSpec.methodBuilder("authSchemeResolver")
                          .addModifiers(PRIVATE)
@@ -531,7 +532,7 @@ public final class ClientClassUtils {
      * pressure for services with a large number of operations (e.g., EC2).
      */
     static MethodSpec endpointResolverFactoryMethod() {
-        ClassName endpointResolver = ClassName.get("software.amazon.awssdk.core.endpoint", "EndpointResolver");
+        ClassName endpointResolver = ClassName.get(EndpointResolver.class);
 
         return MethodSpec.methodBuilder("endpointResolver")
                          .addModifiers(PRIVATE)
