@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.crac;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * Each {@link #execute(AsyncExecuteRequest)} signals the configured status code, publishes the response bytes through a
  * {@link SimplePublisher}, and returns an already-completed future.
  */
-@SdkInternalApi
+@SdkProtectedApi
 @Immutable
 @ThreadSafe
 public final class CannedResponseAsyncHttpClient implements SdkAsyncHttpClient {

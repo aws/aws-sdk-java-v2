@@ -27,7 +27,7 @@ public class WarmUpProviderSpecTest {
     @Test
     public void warmUpProvider_queryProtocol_generatesSyncAndAsyncClients() {
         ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.queryServiceModels());
-        assertThat(spec, generatesTo("warmup-provider.java"));
+        assertThat(spec, generatesTo("warmup-provider-query.java"));
     }
 
     @Test
