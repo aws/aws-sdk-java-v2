@@ -78,7 +78,7 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
     private static final Logger log = LoggerFactory.getLogger(DefaultFooBarAsyncClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final AsyncClientHandler clientHandler;
 
@@ -89,7 +89,7 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
     protected DefaultFooBarAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                .option(SdkClientOption.API_METADATA, "Foo_Bar" + "#" + ServiceVersionInfo.VERSION).build();
+                                                      .option(SdkClientOption.API_METADATA, "Foo_Bar" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -118,39 +118,39 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
     @Override
     public CompletableFuture<GetDatabaseVersionResponse> getDatabaseVersion(GetDatabaseVersionRequest getDatabaseVersionRequest) {
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getDatabaseVersionRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getDatabaseVersionRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Foo Bar");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetDatabaseVersion");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                    .isPayloadJson(true).build();
+                                                                           .isPayloadJson(true).build();
 
             HttpResponseHandler<GetDatabaseVersionResponse> responseHandler = protocolFactory.createResponseHandler(
-                    operationMetadata, GetDatabaseVersionResponse::builder);
+                operationMetadata, GetDatabaseVersionResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 if (errorCode == null) {
                     return Optional.empty();
                 }
                 switch (errorCode) {
-                default:
-                    return Optional.empty();
+                    default:
+                        return Optional.empty();
                 }
             };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                    operationMetadata, exceptionMetadataMapper);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<GetDatabaseVersionResponse> executeFuture = clientHandler
-                    .execute(new ClientExecutionParams<GetDatabaseVersionRequest, GetDatabaseVersionResponse>()
-                            .withOperationName("GetDatabaseVersion").withProtocolMetadata(protocolMetadata)
-                            .withMarshaller(new GetDatabaseVersionRequestMarshaller(protocolFactory))
-                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                            .withAuthSchemeOptionsResolver(authSchemeResolver("GetDatabaseVersion", clientConfiguration))
-                            .withEndpointResolver(endpointResolver("GetDatabaseVersion")).withInput(getDatabaseVersionRequest));
+                .execute(new ClientExecutionParams<GetDatabaseVersionRequest, GetDatabaseVersionResponse>()
+                             .withOperationName("GetDatabaseVersion").withProtocolMetadata(protocolMetadata)
+                             .withMarshaller(new GetDatabaseVersionRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("GetDatabaseVersion", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("GetDatabaseVersion")).withInput(getDatabaseVersionRequest));
             CompletableFuture<GetDatabaseVersionResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -174,11 +174,11 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(FooBarException::builder)
-                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -193,15 +193,15 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-            SdkClientConfiguration clientConfiguration) {
+                                                            SdkClientConfiguration clientConfiguration) {
         FooBarAuthSchemeProvider requestAuthSchemeProvider = request
-                .overrideConfiguration()
-                .flatMap(c -> c.authSchemeProvider())
-                .map(p -> Validate.isInstanceOf(FooBarAuthSchemeProvider.class, p,
-                        "Expected an instance of FooBarAuthSchemeProvider")).orElse(null);
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(FooBarAuthSchemeProvider.class, p,
+                                            "Expected an instance of FooBarAuthSchemeProvider")).orElse(null);
         FooBarAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-                .isInstanceOf(FooBarAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                        "Expected an instance of FooBarAuthSchemeProvider");
+            .isInstanceOf(FooBarAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                          "Expected an instance of FooBarAuthSchemeProvider");
         FooBarAuthSchemeParams.Builder paramsBuilder = FooBarAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
@@ -210,7 +210,7 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
 
     private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
         FooBarEndpointProvider provider = (FooBarEndpointProvider) executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             FooBarEndpointParams endpointParams = FooBarEndpointResolverUtils.ruleParams(request, executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
@@ -222,10 +222,10 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
             }
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = FooBarEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
-                        selectedAuthScheme);
+                                                                                                        selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             FooBarEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
@@ -285,15 +285,15 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
         newContextParams = (newContextParams != null) ? newContextParams : AttributeMap.empty();
         originalContextParams = originalContextParams != null ? originalContextParams : AttributeMap.empty();
         Validate.validState(
-                Objects.equals(originalContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED),
-                        newContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED)),
-                "CROSS_REGION_ACCESS_ENABLED cannot be modified by request level plugins");
+            Objects.equals(originalContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED),
+                           newContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED)),
+            "CROSS_REGION_ACCESS_ENABLED cannot be modified by request level plugins");
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
