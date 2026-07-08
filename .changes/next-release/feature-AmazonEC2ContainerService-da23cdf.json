@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "Amazon ECS now automatically detects the correct CPU architecture for Express Mode services."
-}
