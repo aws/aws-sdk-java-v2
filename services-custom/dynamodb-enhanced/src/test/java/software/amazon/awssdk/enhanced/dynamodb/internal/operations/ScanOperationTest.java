@@ -230,6 +230,25 @@ public class ScanOperationTest {
     }
 
     @Test
+    public void generateRequest_projectionExpressionWithListDereference() {
+        ScanOperation<FakeItem> operation = ScanOperation.create(
+                ScanEnhancedRequest.builder()
+                        .addAttributeToProject("tags[0]")
+                        .build()
+        );
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                PRIMARY_CONTEXT,
+                null);
+
+        ScanRequest expectedRequest = ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .projectionExpression("#AMZN_MAPPED_tags[0]")
+                .expressionAttributeNames(singletonMap("#AMZN_MAPPED_tags", "tags"))
+                .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
     public void generateRequest_hashKeyOnly_exclusiveStartKey() {
         FakeItem exclusiveStartKey = createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(exclusiveStartKey, singletonList("id"));
