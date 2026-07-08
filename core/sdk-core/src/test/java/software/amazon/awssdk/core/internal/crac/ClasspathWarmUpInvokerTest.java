@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.crac.RegisteredWarmUpProvider;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 import software.amazon.awssdk.testutils.LogCaptor;
@@ -59,9 +60,7 @@ class ClasspathWarmUpInvokerTest {
     @Test
     void invokeAll_whenOneProviderThrows_stillInvokesOthers() {
         CountingProvider before = new CountingProvider();
-        SdkWarmUpProvider throwing = () -> {
-            throw new RuntimeException("boom");
-        };
+        SdkWarmUpProvider throwing = throwingProvider();
         CountingProvider after = new CountingProvider();
 
         WarmUpInvoker invoker = invokerLoading(before, throwing, after);
@@ -91,9 +90,7 @@ class ClasspathWarmUpInvokerTest {
 
     @Test
     void invokeAll_whenProviderThrows_logsAtWarn() {
-        SdkWarmUpProvider throwing = () -> {
-            throw new RuntimeException("boom");
-        };
+        SdkWarmUpProvider throwing = throwingProvider();
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             invokerLoading(throwing).invokeAll();
@@ -162,7 +159,26 @@ class ClasspathWarmUpInvokerTest {
         return ServiceLoader.load(SdkWarmUpProvider.class, classLoader).iterator();
     }
 
-    private static final class CountingProvider implements SdkWarmUpProvider {
+    /**
+     * Base class for test providers now that {@link SdkWarmUpProvider}
+     */
+    private abstract static class TestProvider implements SdkWarmUpProvider {
+        @Override
+        public String syncClientClassName() {
+            return null;
+        }
+
+        @Override
+        public String asyncClientClassName() {
+            return null;
+        }
+
+        @Override
+        public void warmUpClient(ClientType clientType) {
+        }
+    }
+
+    private static final class CountingProvider extends TestProvider {
         private final AtomicInteger invocations = new AtomicInteger();
 
         @Override
@@ -173,5 +189,14 @@ class ClasspathWarmUpInvokerTest {
         int invocations() {
             return invocations.get();
         }
+    }
+
+    private static SdkWarmUpProvider throwingProvider() {
+        return new TestProvider() {
+            @Override
+            public void warmUp() {
+                throw new RuntimeException("boom");
+            }
+        };
     }
 }

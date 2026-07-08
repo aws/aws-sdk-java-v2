@@ -29,15 +29,19 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 
 /**
  * Generates an {@link SdkWarmUpProvider} implementation per service.
  *
- * <p>The {@code warmUp()} body instantiates and closes a synthetic sync client (when the service generates one) and a
- * synthetic async client, each wired to an in-memory canned HTTP client, dummy credentials, a fixed region and a local
- * {@code endpointOverride}. Building the clients JIT-compiles the client construction and configuration-resolution path
- * before a CRaC checkpoint. The operation call that exercises the marshal/unmarshal pipeline is added in a later stage.
+ * <p>The {@code warmUpClient(ClientType)} body instantiates and closes a synthetic sync client (when the service
+ * generates one) and a synthetic async client, each guarded by the requested {@link ClientType} and wired to an
+ * in-memory canned HTTP client, dummy credentials, a fixed region and a local {@code endpointOverride}. Building the
+ * clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. The
+ * {@code syncClientClassName()}/{@code asyncClientClassName()} strings let {@code SdkWarmUp.prime(Class...)} match a
+ * requested client class to this provider without loading excluded client interfaces. The operation call that
+ * exercises the marshal/unmarshal pipeline is added in a later stage.
  */
 public class WarmUpProviderSpec implements ClassSpec {
 
@@ -86,24 +90,61 @@ public class WarmUpProviderSpec implements ClassSpec {
                         .addAnnotation(SdkInternalApi.class)
                         .addSuperinterface(SdkWarmUpProvider.class)
                         .addField(cannedResponseField())
-                        .addMethod(warmUpMethod())
+                        .addMethod(syncClientClassNameMethod())
+                        .addMethod(asyncClientClassNameMethod())
+                        .addMethod(warmUpClientMethod())
                         .build();
     }
 
-    private MethodSpec warmUpMethod() {
-        CodeBlock.Builder body = CodeBlock.builder();
-        if (!model.getCustomizationConfig().isSkipSyncClientGeneration()) {
-            body.add(clientBlock(poetExtensions.getClientClass(model.getMetadata().getSyncInterface()),
-                                 CANNED_RESPONSE_HTTP_CLIENT, SDK_HTTP_CLIENT, "httpClient", "client"));
+    private MethodSpec syncClientClassNameMethod() {
+        MethodSpec.Builder method = MethodSpec.methodBuilder("syncClientClassName")
+                                              .addAnnotation(Override.class)
+                                              .addModifiers(Modifier.PUBLIC)
+                                              .returns(String.class);
+        if (model.getCustomizationConfig().isSkipSyncClientGeneration()) {
+            method.addStatement("return null");
+        } else {
+            method.addStatement("return $S", syncClientClass().toString());
         }
-        body.add(clientBlock(poetExtensions.getClientClass(model.getMetadata().getAsyncInterface()),
-                             CANNED_RESPONSE_ASYNC_HTTP_CLIENT, SDK_ASYNC_HTTP_CLIENT, "asyncHttpClient", "asyncClient"));
+        return method.build();
+    }
 
-        return MethodSpec.methodBuilder("warmUp")
+    private MethodSpec asyncClientClassNameMethod() {
+        return MethodSpec.methodBuilder("asyncClientClassName")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
+                         .returns(String.class)
+                         .addStatement("return $S", asyncClientClass().toString())
+                         .build();
+    }
+
+    private MethodSpec warmUpClientMethod() {
+        CodeBlock.Builder body = CodeBlock.builder();
+        if (!model.getCustomizationConfig().isSkipSyncClientGeneration()) {
+            body.beginControlFlow("if (clientType == $T.SYNC)", ClientType.class)
+                .add(clientBlock(syncClientClass(),
+                                 CANNED_RESPONSE_HTTP_CLIENT, SDK_HTTP_CLIENT, "httpClient", "client"))
+                .endControlFlow();
+        }
+        body.beginControlFlow("if (clientType == $T.ASYNC)", ClientType.class)
+            .add(clientBlock(asyncClientClass(),
+                             CANNED_RESPONSE_ASYNC_HTTP_CLIENT, SDK_ASYNC_HTTP_CLIENT, "asyncHttpClient", "asyncClient"))
+            .endControlFlow();
+
+        return MethodSpec.methodBuilder("warmUpClient")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(ClientType.class, "clientType")
                          .addCode(body.build())
                          .build();
+    }
+
+    private ClassName syncClientClass() {
+        return poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+    }
+
+    private ClassName asyncClientClass() {
+        return poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
     }
 
     /**

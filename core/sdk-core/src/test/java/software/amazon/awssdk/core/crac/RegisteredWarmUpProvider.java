@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.crac;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import software.amazon.awssdk.core.ClientType;
 
 /**
  * Test-only {@link SdkWarmUpProvider} registered in test-scoped {@code META-INF/services} so a real {@link
@@ -29,5 +30,19 @@ public final class RegisteredWarmUpProvider implements SdkWarmUpProvider {
     @Override
     public void warmUp() {
         INVOCATIONS.incrementAndGet();
+    }
+
+    @Override
+    public String syncClientClassName() {
+        return "software.amazon.awssdk.core.crac.RegisteredSyncClient";
+    }
+
+    @Override
+    public String asyncClientClassName() {
+        return "software.amazon.awssdk.core.crac.RegisteredAsyncClient";
+    }
+
+    @Override
+    public void warmUpClient(ClientType clientType) {
     }
 }
