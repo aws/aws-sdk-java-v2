@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.crac;
+package software.amazon.awssdk.core.crac.http;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;

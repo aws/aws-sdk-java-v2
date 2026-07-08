@@ -55,9 +55,9 @@ public class WarmUpProviderSpec implements ClassSpec {
     private static final String LOCAL_ENDPOINT = "http://localhost";
 
     private static final ClassName CANNED_RESPONSE_HTTP_CLIENT =
-        ClassName.get("software.amazon.awssdk.core.internal.crac", "CannedResponseHttpClient");
+        ClassName.get("software.amazon.awssdk.core.crac.http", "CannedResponseHttpClient");
     private static final ClassName CANNED_RESPONSE_ASYNC_HTTP_CLIENT =
-        ClassName.get("software.amazon.awssdk.core.internal.crac", "CannedResponseAsyncHttpClient");
+        ClassName.get("software.amazon.awssdk.core.crac.http", "CannedResponseAsyncHttpClient");
     private static final ClassName SDK_HTTP_CLIENT =
         ClassName.get("software.amazon.awssdk.http", "SdkHttpClient");
     private static final ClassName SDK_ASYNC_HTTP_CLIENT =

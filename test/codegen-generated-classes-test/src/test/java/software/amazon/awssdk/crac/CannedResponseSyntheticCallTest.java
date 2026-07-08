@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.internal.crac.CannedResponseHttpClient;
+import software.amazon.awssdk.core.crac.http.CannedResponseHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;

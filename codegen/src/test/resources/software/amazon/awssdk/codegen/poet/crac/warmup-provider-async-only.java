@@ -8,7 +8,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
-import software.amazon.awssdk.core.internal.crac.CannedResponseAsyncHttpClient;
+import software.amazon.awssdk.core.crac.http.CannedResponseAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
