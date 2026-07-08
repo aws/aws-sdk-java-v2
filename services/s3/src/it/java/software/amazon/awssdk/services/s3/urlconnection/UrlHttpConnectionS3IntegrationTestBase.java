@@ -65,7 +65,6 @@ public class UrlHttpConnectionS3IntegrationTestBase extends AwsTestBase {
 
 
     protected static void createBucket(String bucket) {
-        // Tag test buckets so any residual buckets can be cleaned up based on the tag.
         Waiter.run(() -> s3.createBucket(r -> r.bucket(bucket)
                                                .createBucketConfiguration(cfg -> cfg.tags(S3TestUtils.integTestTag()))))
               .ignoringException(NoSuchBucketException.class)
