@@ -507,6 +507,40 @@ public final class ClientClassUtils {
                              List.class, AuthSchemeOption.class);
     }
 
+    /**
+     * Generates a factory method that creates an {@code AuthSchemeOptionsResolver} for a given operation name.
+     * This avoids creating a new lambda per operation in the generated client class, which reduces constant pool
+     * pressure for services with a large number of operations (e.g., EC2).
+     */
+    static MethodSpec authSchemeResolverFactoryMethod() {
+        ClassName authSchemeOptionsResolver = ClassName.get("software.amazon.awssdk.core.spi.identity",
+                                                           "AuthSchemeOptionsResolver");
+
+        return MethodSpec.methodBuilder("authSchemeResolver")
+                         .addModifiers(PRIVATE)
+                         .returns(authSchemeOptionsResolver)
+                         .addParameter(String.class, "operationName")
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                         .addStatement("return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration)")
+                         .build();
+    }
+
+    /**
+     * Generates a factory method that creates an {@code EndpointResolver} for a given operation name.
+     * This avoids creating a new lambda per operation in the generated client class, which reduces constant pool
+     * pressure for services with a large number of operations (e.g., EC2).
+     */
+    static MethodSpec endpointResolverFactoryMethod() {
+        ClassName endpointResolver = ClassName.get("software.amazon.awssdk.core.internal.endpoint", "EndpointResolver");
+
+        return MethodSpec.methodBuilder("endpointResolver")
+                         .addModifiers(PRIVATE)
+                         .returns(endpointResolver)
+                         .addParameter(String.class, "operationName")
+                         .addStatement("return (r, a) -> resolveEndpoint(r, a, operationName)")
+                         .build();
+    }
+
     static MethodSpec resolveEndpointMethod(AuthSchemeSpecUtils authSchemeSpecUtils,
                                             EndpointRulesSpecUtils endpointRulesSpecUtils) {
         ClassName utilsClass = endpointRulesSpecUtils.endpointResolverUtilsName();
