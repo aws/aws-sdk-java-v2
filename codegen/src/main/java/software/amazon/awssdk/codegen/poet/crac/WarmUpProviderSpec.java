@@ -201,7 +201,8 @@ public class WarmUpProviderSpec implements ClassSpec {
                 // encoding of an empty map, the equivalent of "{}" for JSON.
                 return CodeBlock.of("new byte[] {(byte) 0xA0}");
             default:
-                throw new IllegalArgumentException("Unsupported protocol for CRaC warm-up canned response: " + protocol);
+                throw new IllegalStateException("Unsupported protocol for CRaC warm-up canned response: " + protocol
+                                                + " (service: " + model.getMetadata().getServiceName() + ")");
         }
     }
 

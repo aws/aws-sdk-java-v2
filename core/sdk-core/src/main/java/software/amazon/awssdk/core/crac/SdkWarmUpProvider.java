@@ -43,7 +43,6 @@ public interface SdkWarmUpProvider {
     /**
      * The fully qualified name of the sync service client this provider warms (for example
      * {@code "software.amazon.awssdk.services.s3.S3Client"}), or {@code null} if the service has no sync client.
-     *
      */
     String syncClientClassName();
 
