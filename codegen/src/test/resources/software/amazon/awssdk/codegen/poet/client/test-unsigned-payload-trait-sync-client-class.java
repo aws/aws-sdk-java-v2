@@ -31,9 +31,11 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
@@ -106,7 +108,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
     private static final Logger log = Logger.loggerFor(DefaultDatabaseClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -117,7 +119,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
     protected DefaultDatabaseClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, "Database_Service" + "#" + ServiceVersionInfo.VERSION).build();
+                .option(SdkClientOption.API_METADATA, "Database_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -143,42 +145,42 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public DeleteRowResponse deleteRow(DeleteRowRequest deleteRowRequest) throws InvalidInputException, AwsServiceException,
-                                                                                 SdkClientException, DatabaseException {
+            SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<DeleteRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                       DeleteRowResponse::builder);
+                DeleteRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(deleteRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, deleteRowRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "DeleteRow");
 
             return clientHandler.execute(new ClientExecutionParams<DeleteRowRequest, DeleteRowResponse>()
-                                             .withOperationName("DeleteRow").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                                             .withInput(deleteRowRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "DeleteRow", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "DeleteRow"))
-                                             .withMarshaller(new DeleteRowRequestMarshaller(protocolFactory)));
+                    .withOperationName("DeleteRow").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                    .withInput(deleteRowRequest).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("DeleteRow", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("DeleteRow"))
+                    .withMarshaller(new DeleteRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -206,42 +208,42 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public GetRowResponse getRow(GetRowRequest getRowRequest) throws InvalidInputException, AwsServiceException,
-                                                                     SdkClientException, DatabaseException {
+            SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<GetRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                    GetRowResponse::builder);
+                GetRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getRowRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetRow");
 
             return clientHandler.execute(new ClientExecutionParams<GetRowRequest, GetRowResponse>().withOperationName("GetRow")
-                                                                                                   .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
-                                                                                                   .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                                                                                                   .withInput(getRowRequest).withMetricCollector(apiCallMetricCollector)
-                                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "GetRow", clientConfiguration))
-                                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetRow"))
-                                                                                                   .withMarshaller(new GetRowRequestMarshaller(protocolFactory)));
+                    .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                    .withInput(getRowRequest).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("GetRow", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("GetRow"))
+                    .withMarshaller(new GetRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -269,42 +271,42 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public PutRowResponse putRow(PutRowRequest putRowRequest) throws InvalidInputException, AwsServiceException,
-                                                                     SdkClientException, DatabaseException {
+            SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<PutRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                    PutRowResponse::builder);
+                PutRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putRowRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutRow");
 
             return clientHandler.execute(new ClientExecutionParams<PutRowRequest, PutRowResponse>().withOperationName("PutRow")
-                                                                                                   .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
-                                                                                                   .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                                                                                                   .withInput(putRowRequest).withMetricCollector(apiCallMetricCollector)
-                                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "PutRow", clientConfiguration))
-                                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PutRow"))
-                                                                                                   .withMarshaller(new PutRowRequestMarshaller(protocolFactory)));
+                    .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                    .withInput(putRowRequest).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("PutRow", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("PutRow"))
+                    .withMarshaller(new PutRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -333,50 +335,50 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4AndSigv4AUnSignedPayloadResponse opWithSigv4AndSigv4aUnSignedPayload(
-        OpWithSigv4AndSigv4AUnSignedPayloadRequest opWithSigv4AndSigv4AUnSignedPayloadRequest) throws InvalidInputException,
-                                                                                                      AwsServiceException, SdkClientException, DatabaseException {
+            OpWithSigv4AndSigv4AUnSignedPayloadRequest opWithSigv4AndSigv4AUnSignedPayloadRequest) throws InvalidInputException,
+            AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4AndSigv4AUnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpWithSigv4AndSigv4AUnSignedPayloadResponse::builder);
+                operationMetadata, OpWithSigv4AndSigv4AUnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4AndSigv4AUnSignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         opWithSigv4AndSigv4AUnSignedPayloadRequest.overrideConfiguration().orElse(null));
+                opWithSigv4AndSigv4AUnSignedPayloadRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4AndSigv4aUnSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4AndSigv4AUnSignedPayloadRequest, OpWithSigv4AndSigv4AUnSignedPayloadResponse>()
-                             .withOperationName("opWithSigv4AndSigv4aUnSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4AndSigv4AUnSignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4AndSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4AndSigv4aUnSignedPayload"))
-                             .withMarshaller(new OpWithSigv4AndSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpWithSigv4AndSigv4AUnSignedPayloadRequest, OpWithSigv4AndSigv4AUnSignedPayloadResponse>()
+                            .withOperationName("opWithSigv4AndSigv4aUnSignedPayload")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(opWithSigv4AndSigv4AUnSignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("opWithSigv4AndSigv4aUnSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4AndSigv4aUnSignedPayload"))
+                            .withMarshaller(new OpWithSigv4AndSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -404,50 +406,46 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4SignedPayloadResponse opWithSigv4SignedPayload(
-        OpWithSigv4SignedPayloadRequest opWithSigv4SignedPayloadRequest) throws InvalidInputException, AwsServiceException,
-                                                                                SdkClientException, DatabaseException {
+            OpWithSigv4SignedPayloadRequest opWithSigv4SignedPayloadRequest) throws InvalidInputException, AwsServiceException,
+            SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4SignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpWithSigv4SignedPayloadResponse::builder);
+                operationMetadata, OpWithSigv4SignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4SignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4SignedPayloadRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4SignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4SignedPayloadRequest, OpWithSigv4SignedPayloadResponse>()
-                             .withOperationName("opWithSigv4SignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4SignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4SignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4SignedPayload"))
-                             .withMarshaller(new OpWithSigv4SignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpWithSigv4SignedPayloadRequest, OpWithSigv4SignedPayloadResponse>()
+                            .withOperationName("opWithSigv4SignedPayload").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4SignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4SignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4SignedPayload"))
+                            .withMarshaller(new OpWithSigv4SignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -475,50 +473,46 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4UnSignedPayloadResponse opWithSigv4UnSignedPayload(
-        OpWithSigv4UnSignedPayloadRequest opWithSigv4UnSignedPayloadRequest) throws InvalidInputException,
-                                                                                    AwsServiceException, SdkClientException, DatabaseException {
+            OpWithSigv4UnSignedPayloadRequest opWithSigv4UnSignedPayloadRequest) throws InvalidInputException,
+            AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4UnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpWithSigv4UnSignedPayloadResponse::builder);
+                operationMetadata, OpWithSigv4UnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4UnSignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4UnSignedPayloadRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4UnSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadRequest, OpWithSigv4UnSignedPayloadResponse>()
-                             .withOperationName("opWithSigv4UnSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4UnSignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayload"))
-                             .withMarshaller(new OpWithSigv4UnSignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadRequest, OpWithSigv4UnSignedPayloadResponse>()
+                            .withOperationName("opWithSigv4UnSignedPayload").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4UnSignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4UnSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4UnSignedPayload"))
+                            .withMarshaller(new OpWithSigv4UnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -534,11 +528,11 @@ final class DefaultDatabaseClient implements DatabaseClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows ''
      * @return Result of the opWithSigv4UnSignedPayloadAndStreaming operation returned by the service.
@@ -558,57 +552,56 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4UnSignedPayloadAndStreamingResponse opWithSigv4UnSignedPayloadAndStreaming(
-        OpWithSigv4UnSignedPayloadAndStreamingRequest opWithSigv4UnSignedPayloadAndStreamingRequest, RequestBody requestBody)
-        throws InvalidInputException, AwsServiceException, SdkClientException, DatabaseException {
+            OpWithSigv4UnSignedPayloadAndStreamingRequest opWithSigv4UnSignedPayloadAndStreamingRequest, RequestBody requestBody)
+            throws InvalidInputException, AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4UnSignedPayloadAndStreamingResponse> responseHandler = protocolFactory
-            .createResponseHandler(operationMetadata, OpWithSigv4UnSignedPayloadAndStreamingResponse::builder);
+                .createResponseHandler(operationMetadata, OpWithSigv4UnSignedPayloadAndStreamingResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4UnSignedPayloadAndStreamingRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         opWithSigv4UnSignedPayloadAndStreamingRequest.overrideConfiguration().orElse(null));
+                opWithSigv4UnSignedPayloadAndStreamingRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4UnSignedPayloadAndStreaming");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadAndStreamingRequest, OpWithSigv4UnSignedPayloadAndStreamingResponse>()
-                             .withOperationName("opWithSigv4UnSignedPayloadAndStreaming")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4UnSignedPayloadAndStreamingRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayloadAndStreaming",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayloadAndStreaming"))
-                             .withRequestBody(requestBody)
-                             .withMarshaller(
-                                 StreamingRequestMarshaller
-                                     .builder()
-                                     .delegateMarshaller(
-                                         new OpWithSigv4UnSignedPayloadAndStreamingRequestMarshaller(protocolFactory))
-                                     .requestBody(requestBody).transferEncoding(true).build()));
+                    .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadAndStreamingRequest, OpWithSigv4UnSignedPayloadAndStreamingResponse>()
+                            .withOperationName("opWithSigv4UnSignedPayloadAndStreaming")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(opWithSigv4UnSignedPayloadAndStreamingRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("opWithSigv4UnSignedPayloadAndStreaming", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4UnSignedPayloadAndStreaming"))
+                            .withRequestBody(requestBody)
+                            .withMarshaller(
+                                    StreamingRequestMarshaller
+                                            .builder()
+                                            .delegateMarshaller(
+                                                    new OpWithSigv4UnSignedPayloadAndStreamingRequestMarshaller(protocolFactory))
+                                            .requestBody(requestBody).transferEncoding(true).build()));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -636,50 +629,46 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4ASignedPayloadResponse opWithSigv4aSignedPayload(
-        OpWithSigv4ASignedPayloadRequest opWithSigv4ASignedPayloadRequest) throws InvalidInputException, AwsServiceException,
-                                                                                  SdkClientException, DatabaseException {
+            OpWithSigv4ASignedPayloadRequest opWithSigv4ASignedPayloadRequest) throws InvalidInputException, AwsServiceException,
+            SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4ASignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpWithSigv4ASignedPayloadResponse::builder);
+                operationMetadata, OpWithSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4ASignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4ASignedPayloadRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4aSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4ASignedPayloadRequest, OpWithSigv4ASignedPayloadResponse>()
-                             .withOperationName("opWithSigv4aSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4ASignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aSignedPayload"))
-                             .withMarshaller(new OpWithSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpWithSigv4ASignedPayloadRequest, OpWithSigv4ASignedPayloadResponse>()
+                            .withOperationName("opWithSigv4aSignedPayload").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4ASignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4aSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4aSignedPayload"))
+                            .withMarshaller(new OpWithSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -707,50 +696,49 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpWithSigv4AUnSignedPayloadResponse opWithSigv4aUnSignedPayload(
-        OpWithSigv4AUnSignedPayloadRequest opWithSigv4AUnSignedPayloadRequest) throws InvalidInputException,
-                                                                                      AwsServiceException, SdkClientException, DatabaseException {
+            OpWithSigv4AUnSignedPayloadRequest opWithSigv4AUnSignedPayloadRequest) throws InvalidInputException,
+            AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpWithSigv4AUnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpWithSigv4AUnSignedPayloadResponse::builder);
+                operationMetadata, OpWithSigv4AUnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4AUnSignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4AUnSignedPayloadRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opWithSigv4aUnSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpWithSigv4AUnSignedPayloadRequest, OpWithSigv4AUnSignedPayloadResponse>()
-                             .withOperationName("opWithSigv4aUnSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4AUnSignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aUnSignedPayload"))
-                             .withMarshaller(new OpWithSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpWithSigv4AUnSignedPayloadRequest, OpWithSigv4AUnSignedPayloadResponse>()
+                            .withOperationName("opWithSigv4aUnSignedPayload")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(opWithSigv4AUnSignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4aUnSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opWithSigv4aUnSignedPayload"))
+                            .withMarshaller(new OpWithSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -779,50 +767,50 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public OpsWithSigv4AndSigv4ASignedPayloadResponse opsWithSigv4andSigv4aSignedPayload(
-        OpsWithSigv4AndSigv4ASignedPayloadRequest opsWithSigv4AndSigv4ASignedPayloadRequest) throws InvalidInputException,
-                                                                                                    AwsServiceException, SdkClientException, DatabaseException {
+            OpsWithSigv4AndSigv4ASignedPayloadRequest opsWithSigv4AndSigv4ASignedPayloadRequest) throws InvalidInputException,
+            AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OpsWithSigv4AndSigv4ASignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
+                operationMetadata, OpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opsWithSigv4AndSigv4ASignedPayloadRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         opsWithSigv4AndSigv4ASignedPayloadRequest.overrideConfiguration().orElse(null));
+                opsWithSigv4AndSigv4ASignedPayloadRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "opsWithSigv4andSigv4aSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OpsWithSigv4AndSigv4ASignedPayloadRequest, OpsWithSigv4AndSigv4ASignedPayloadResponse>()
-                             .withOperationName("opsWithSigv4andSigv4aSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opsWithSigv4AndSigv4ASignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opsWithSigv4andSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opsWithSigv4andSigv4aSignedPayload"))
-                             .withMarshaller(new OpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OpsWithSigv4AndSigv4ASignedPayloadRequest, OpsWithSigv4AndSigv4ASignedPayloadResponse>()
+                            .withOperationName("opsWithSigv4andSigv4aSignedPayload")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(opsWithSigv4AndSigv4ASignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("opsWithSigv4andSigv4aSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("opsWithSigv4andSigv4aSignedPayload"))
+                            .withMarshaller(new OpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -851,51 +839,50 @@ final class DefaultDatabaseClient implements DatabaseClient {
      */
     @Override
     public SecondOpsWithSigv4AndSigv4ASignedPayloadResponse secondOpsWithSigv4andSigv4aSignedPayload(
-        SecondOpsWithSigv4AndSigv4ASignedPayloadRequest secondOpsWithSigv4AndSigv4ASignedPayloadRequest)
-        throws InvalidInputException, AwsServiceException, SdkClientException, DatabaseException {
+            SecondOpsWithSigv4AndSigv4ASignedPayloadRequest secondOpsWithSigv4AndSigv4ASignedPayloadRequest)
+            throws InvalidInputException, AwsServiceException, SdkClientException, DatabaseException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<SecondOpsWithSigv4AndSigv4ASignedPayloadResponse> responseHandler = protocolFactory
-            .createResponseHandler(operationMetadata, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
+                .createResponseHandler(operationMetadata, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInput":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(
-            secondOpsWithSigv4AndSigv4ASignedPayloadRequest, this.clientConfiguration);
+                secondOpsWithSigv4AndSigv4ASignedPayloadRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         secondOpsWithSigv4AndSigv4ASignedPayloadRequest.overrideConfiguration().orElse(null));
+                secondOpsWithSigv4AndSigv4ASignedPayloadRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Database Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "secondOpsWithSigv4andSigv4aSignedPayload");
 
             return clientHandler
-                .execute(new ClientExecutionParams<SecondOpsWithSigv4AndSigv4ASignedPayloadRequest, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse>()
-                             .withOperationName("secondOpsWithSigv4andSigv4aSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(secondOpsWithSigv4AndSigv4ASignedPayloadRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "secondOpsWithSigv4andSigv4aSignedPayload",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "secondOpsWithSigv4andSigv4aSignedPayload"))
-                             .withMarshaller(new SecondOpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<SecondOpsWithSigv4AndSigv4ASignedPayloadRequest, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse>()
+                            .withOperationName("secondOpsWithSigv4andSigv4aSignedPayload")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(secondOpsWithSigv4AndSigv4ASignedPayloadRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("secondOpsWithSigv4andSigv4aSignedPayload", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("secondOpsWithSigv4andSigv4aSignedPayload"))
+                            .withMarshaller(new SecondOpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -907,7 +894,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -922,15 +909,15 @@ final class DefaultDatabaseClient implements DatabaseClient {
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         DatabaseAuthSchemeProvider requestAuthSchemeProvider = request
-            .overrideConfiguration()
-            .flatMap(c -> c.authSchemeProvider())
-            .map(p -> Validate.isInstanceOf(DatabaseAuthSchemeProvider.class, p,
-                                            "Expected an instance of DatabaseAuthSchemeProvider")).orElse(null);
+                .overrideConfiguration()
+                .flatMap(c -> c.authSchemeProvider())
+                .map(p -> Validate.isInstanceOf(DatabaseAuthSchemeProvider.class, p,
+                        "Expected an instance of DatabaseAuthSchemeProvider")).orElse(null);
         DatabaseAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(DatabaseAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                          "Expected an instance of DatabaseAuthSchemeProvider");
+                .isInstanceOf(DatabaseAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                        "Expected an instance of DatabaseAuthSchemeProvider");
         DatabaseAuthSchemeParams.Builder paramsBuilder = DatabaseAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         Set<String> sigv4aRegionSet = clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET);
@@ -943,7 +930,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
     private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
         DatabaseEndpointProvider provider = (DatabaseEndpointProvider) executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+                .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             DatabaseEndpointParams endpointParams = DatabaseEndpointResolverUtils.ruleParams(request, executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
@@ -955,18 +942,18 @@ final class DefaultDatabaseClient implements DatabaseClient {
             }
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = DatabaseEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
-                                                                                                          selectedAuthScheme);
+                        selectedAuthScheme);
                 // Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications
                 if (selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
-                    && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
+                        && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
                     AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
                     RegionSet rs = RegionSet.create(endpointParams.region().id());
                     optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, rs);
                     selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
-                                                                optionBuilder.build());
+                            optionBuilder.build());
                 }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
@@ -981,8 +968,16 @@ final class DefaultDatabaseClient implements DatabaseClient {
         }
     }
 
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
@@ -1016,7 +1011,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
         }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         DatabaseServiceClientConfigurationBuilder serviceConfigBuilder = new DatabaseServiceClientConfigurationBuilder(
-            configuration);
+                configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -1026,7 +1021,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(DatabaseException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
+                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     @Override

@@ -31,10 +31,12 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -106,7 +108,7 @@ final class DefaultJsonClient implements JsonClient {
     private static final Logger log = Logger.loggerFor(DefaultJsonClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.CBOR).build();
+            .serviceProtocol(AwsServiceProtocol.CBOR).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -117,7 +119,7 @@ final class DefaultJsonClient implements JsonClient {
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, "Json_Service" + "#" + ServiceVersionInfo.VERSION).build();
+                .option(SdkClientOption.API_METADATA, "Json_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsCborProtocolFactory.builder()).build();
     }
 
@@ -143,50 +145,50 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     AwsServiceException, SdkClientException, JsonException {
+            AwsServiceException, SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                            APostOperationResponse::builder);
+                APostOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "{StringMember}-foo.";
             HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
-                                                        "aPostOperationRequest");
+                    "aPostOperationRequest");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
-                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "APostOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperation"))
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                    .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperation", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("APostOperation"))
+                    .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -215,53 +217,49 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, ServiceFaultException,
-                                                                                AwsServiceException, SdkClientException, JsonException {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, ServiceFaultException,
+            AwsServiceException, SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, APostOperationWithOutputResponse::builder);
+                operationMetadata, APostOperationWithOutputResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "APostOperationWithOutput", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperationWithOutput"))
-                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                            .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperationWithOutput", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("APostOperationWithOutput"))
+                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -289,53 +287,49 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
-        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, AwsServiceException,
-                                                                                  SdkClientException, JsonException {
+            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, GetWithoutRequiredMembersResponse::builder);
+                operationMetadata, GetWithoutRequiredMembersResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getWithoutRequiredMembersRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getWithoutRequiredMembersRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetWithoutRequiredMembers");
 
             return clientHandler
-                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                             .withOperationName("GetWithoutRequiredMembers")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(getWithoutRequiredMembersRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "GetWithoutRequiredMembers", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetWithoutRequiredMembers"))
-                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                            .withOperationName("GetWithoutRequiredMembers").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(getWithoutRequiredMembersRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("GetWithoutRequiredMembers", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("GetWithoutRequiredMembers"))
+                            .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -359,55 +353,55 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
-        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
-                                                                                          SdkClientException, JsonException {
+            OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OperationWithChecksumRequiredResponse::builder);
+                operationMetadata, OperationWithChecksumRequiredResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+                operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
-                             .withOperationName("OperationWithChecksumRequired")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithChecksumRequiredRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithChecksumRequired", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithChecksumRequired"))
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
-                                                    HttpChecksumRequired.create())
-                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                            .withOperationName("OperationWithChecksumRequired")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithChecksumRequiredRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("OperationWithChecksumRequired", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("OperationWithChecksumRequired"))
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                    HttpChecksumRequired.create())
+                            .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -431,53 +425,49 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public OperationWithNoneAuthTypeResponse operationWithNoneAuthType(
-        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
-                                                                                  JsonException {
+            OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
+            JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OperationWithNoneAuthTypeResponse::builder);
+                operationMetadata, OperationWithNoneAuthTypeResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithNoneAuthTypeRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithNoneAuthType", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithNoneAuthType"))
-                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                            .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithNoneAuthType", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("OperationWithNoneAuthType"))
+                            .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -501,55 +491,55 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public OperationWithRequestCompressionResponse operationWithRequestCompression(
-        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
-                                                                                              SdkClientException, JsonException {
+            OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, OperationWithRequestCompressionResponse::builder);
+                operationMetadata, OperationWithRequestCompressionResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+                operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
 
             return clientHandler
-                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
-                             .withOperationName("OperationWithRequestCompression")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithRequestCompressionRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithRequestCompression", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithRequestCompression"))
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
-                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
-                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                            .withOperationName("OperationWithRequestCompression")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithRequestCompressionRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("OperationWithRequestCompression", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("OperationWithRequestCompression"))
+                            .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                            .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -573,53 +563,53 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
-                                                                                              SdkClientException, JsonException {
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<PaginatedOperationWithResultKeyResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
+                operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithResultKeyRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
+                paginatedOperationWithResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithResultKey");
 
             return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithResultKey")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(paginatedOperationWithResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "PaginatedOperationWithResultKey", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PaginatedOperationWithResultKey"))
-                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                            .withOperationName("PaginatedOperationWithResultKey")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(paginatedOperationWithResultKeyRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("PaginatedOperationWithResultKey", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("PaginatedOperationWithResultKey"))
+                            .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -643,53 +633,53 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
-                                                                                                    SdkClientException, JsonException {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<PaginatedOperationWithoutResultKeyResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
+                operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithoutResultKeyRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
+                paginatedOperationWithoutResultKeyRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PaginatedOperationWithoutResultKey");
 
             return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithoutResultKey")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(paginatedOperationWithoutResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "PaginatedOperationWithoutResultKey", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PaginatedOperationWithoutResultKey"))
-                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
+                    .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                            .withOperationName("PaginatedOperationWithoutResultKey")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(paginatedOperationWithoutResultKeyRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("PaginatedOperationWithoutResultKey", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("PaginatedOperationWithoutResultKey"))
+                            .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -703,11 +693,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
@@ -724,56 +714,55 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public StreamingInputOperationResponse streamingInputOperation(StreamingInputOperationRequest streamingInputOperationRequest,
-                                                                   RequestBody requestBody) throws AwsServiceException, SdkClientException, JsonException {
+            RequestBody requestBody) throws AwsServiceException, SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, StreamingInputOperationResponse::builder);
+                operationMetadata, StreamingInputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             return clientHandler
-                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                             .withOperationName("StreamingInputOperation")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(streamingInputOperationRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "StreamingInputOperation", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingInputOperation"))
-                             .withRequestBody(requestBody)
-                             .withMarshaller(
-                                 StreamingRequestMarshaller.builder()
-                                                           .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                           .requestBody(requestBody).build()));
+                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                            .withOperationName("StreamingInputOperation")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(streamingInputOperationRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("StreamingInputOperation", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("StreamingInputOperation"))
+                            .withRequestBody(requestBody)
+                            .withMarshaller(
+                                    StreamingRequestMarshaller.builder()
+                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                            .requestBody(requestBody).build()));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -787,11 +776,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     *
+     * 
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     *
+     * 
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @param responseTransformer
@@ -815,61 +804,61 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public <ReturnT> ReturnT streamingInputOutputOperation(
-        StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, RequestBody requestBody,
-        ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
-                                                                                                        SdkClientException, JsonException {
+            StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, RequestBody requestBody,
+            ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
-                                                                       .isPayloadJson(false).build();
+                .isPayloadJson(false).build();
 
         HttpResponseHandler<StreamingInputOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, StreamingInputOutputOperationResponse::builder);
+                operationMetadata, StreamingInputOutputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOutputOperationRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
+                streamingInputOutputOperationRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOutputOperation");
 
             return clientHandler.execute(
-                new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
-                    .withOperationName("StreamingInputOutputOperation")
-                    .withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration)
-                    .withInput(streamingInputOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "StreamingInputOutputOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingInputOutputOperation"))
-                    .withResponseTransformer(responseTransformer)
-                    .withRequestBody(requestBody)
-                    .withMarshaller(
-                        StreamingRequestMarshaller
-                            .builder()
-                            .delegateMarshaller(
-                                new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
-                            .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
+                    new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
+                            .withOperationName("StreamingInputOutputOperation")
+                            .withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(streamingInputOutputOperationRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(
+                                    authSchemeResolver("StreamingInputOutputOperation", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("StreamingInputOutputOperation"))
+                            .withResponseTransformer(responseTransformer)
+                            .withRequestBody(requestBody)
+                            .withMarshaller(
+                                    StreamingRequestMarshaller
+                                            .builder()
+                                            .delegateMarshaller(
+                                                    new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                                            .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -900,54 +889,50 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                      ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
-                                                                                                                                                 SdkClientException, JsonException {
+            ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
+            SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
-                                                                       .isPayloadJson(false).build();
+                .isPayloadJson(false).build();
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-            operationMetadata, StreamingOutputOperationResponse::builder);
+                operationMetadata, StreamingOutputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                case "ServiceFaultException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
-                                                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            case "ServiceFaultException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ServiceFaultException").httpStatusCode(500)
+                        .exceptionBuilderSupplier(ServiceFaultException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
-                                                                                  this.clientConfiguration);
+                this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
             return clientHandler.execute(
-                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration)
-                    .withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "StreamingOutputOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingOutputOperation"))
-                    .withResponseTransformer(responseTransformer)
-                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                            .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
+                            .withMetricCollector(apiCallMetricCollector)
+                            .withAuthSchemeOptionsResolver(authSchemeResolver("StreamingOutputOperation", clientConfiguration))
+                            .withEndpointResolver(endpointResolver("StreamingOutputOperation"))
+                            .withResponseTransformer(responseTransformer)
+                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -967,7 +952,7 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -982,16 +967,16 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         JsonAuthSchemeProvider requestAuthSchemeProvider = request
-            .overrideConfiguration()
-            .flatMap(c -> c.authSchemeProvider())
-            .map(p -> Validate
-                .isInstanceOf(JsonAuthSchemeProvider.class, p, "Expected an instance of JsonAuthSchemeProvider"))
-            .orElse(null);
+                .overrideConfiguration()
+                .flatMap(c -> c.authSchemeProvider())
+                .map(p -> Validate
+                        .isInstanceOf(JsonAuthSchemeProvider.class, p, "Expected an instance of JsonAuthSchemeProvider"))
+                .orElse(null);
         JsonAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(JsonAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                          "Expected an instance of JsonAuthSchemeProvider");
+                .isInstanceOf(JsonAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                        "Expected an instance of JsonAuthSchemeProvider");
         JsonAuthSchemeParams.Builder paramsBuilder = JsonAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
@@ -1000,7 +985,7 @@ final class DefaultJsonClient implements JsonClient {
 
     private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
         JsonEndpointProvider provider = (JsonEndpointProvider) executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+                .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             JsonEndpointParams endpointParams = JsonEndpointResolverUtils.ruleParams(request, executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
@@ -1012,10 +997,10 @@ final class DefaultJsonClient implements JsonClient {
             }
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = JsonEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
-                                                                                                      selectedAuthScheme);
+                        selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             JsonEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
@@ -1029,8 +1014,16 @@ final class DefaultJsonClient implements JsonClient {
         }
     }
 
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
@@ -1073,7 +1066,7 @@ final class DefaultJsonClient implements JsonClient {
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(JsonException::builder)
-                      .protocol(AwsJsonProtocol.AWS_JSON).protocolVersion("1.1");
+                .protocol(AwsJsonProtocol.AWS_JSON).protocolVersion("1.1");
     }
 
     @Override

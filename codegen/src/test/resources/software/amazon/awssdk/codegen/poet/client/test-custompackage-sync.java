@@ -41,8 +41,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -68,7 +70,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     private static final Logger log = Logger.loggerFor(DefaultProtocolRestJsonWithCustomPackageClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -79,10 +81,10 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     protected DefaultProtocolRestJsonWithCustomPackageClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration
-            .toBuilder()
-            .option(SdkClientOption.SDK_CLIENT, this)
-            .option(SdkClientOption.API_METADATA,
-                    "AmazonProtocolRestJsonWithCustomPackage" + "#" + ServiceVersionInfo.VERSION).build();
+                .toBuilder()
+                .option(SdkClientOption.SDK_CLIENT, this)
+                .option(SdkClientOption.API_METADATA,
+                        "AmazonProtocolRestJsonWithCustomPackage" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -104,40 +106,40 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
      */
     @Override
     public OneOperationResponse oneOperation(OneOperationRequest oneOperationRequest) throws AwsServiceException,
-                                                                                             SdkClientException, ProtocolRestJsonWithCustomPackageException {
+            SdkClientException, ProtocolRestJsonWithCustomPackageException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                          OneOperationResponse::builder);
+                OneOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                default:
-                    return Optional.empty();
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(oneOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AmazonProtocolRestJsonWithCustomPackage");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
 
             return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                                             .withOperationName("OneOperation").withProtocolMetadata(protocolMetadata)
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withRequestConfiguration(clientConfiguration).withInput(oneOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "OneOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OneOperation"))
-                                             .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("OneOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withInput(oneOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("OneOperation", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("OneOperation"))
+                    .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -149,7 +151,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -164,18 +166,18 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         ProtocolRestJsonWithCustomPackageAuthSchemeProvider requestAuthSchemeProvider = request
-            .overrideConfiguration()
-            .flatMap(c -> c.authSchemeProvider())
-            .map(p -> Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class, p,
-                                            "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider")).orElse(null);
+                .overrideConfiguration()
+                .flatMap(c -> c.authSchemeProvider())
+                .map(p -> Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class, p,
+                        "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider")).orElse(null);
         ProtocolRestJsonWithCustomPackageAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
-                                                                                                                   : Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
-                                                                                                                                           clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                                                                                           "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
+                : Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
+                        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                        "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
         ProtocolRestJsonWithCustomPackageAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomPackageAuthSchemeParams
-            .builder().operation(operationName);
+                .builder().operation(operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
@@ -183,24 +185,24 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
 
     private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
         ProtocolRestJsonWithCustomPackageEndpointProvider provider = (ProtocolRestJsonWithCustomPackageEndpointProvider) executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+                .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             ProtocolRestJsonWithCustomPackageEndpointParams endpointParams = ProtocolRestJsonWithCustomPackageEndpointResolverUtils
-                .ruleParams(request, executionAttributes);
+                    .ruleParams(request, executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
             if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
                 Optional<String> hostPrefix = ProtocolRestJsonWithCustomPackageEndpointResolverUtils.hostPrefix(operationName,
-                                                                                                                request);
+                        request);
                 if (hostPrefix.isPresent()) {
                     endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
                 }
             }
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = ProtocolRestJsonWithCustomPackageEndpointResolverUtils
-                    .authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
+                        .authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             ProtocolRestJsonWithCustomPackageEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
@@ -214,8 +216,16 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
         }
     }
 
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
@@ -249,7 +259,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
         }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder(
-            configuration);
+                configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -259,14 +269,14 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomPackageException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
+                .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomPackageException::builder)
+                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     @Override
     public final ProtocolRestJsonWithCustomPackageServiceClientConfiguration serviceClientConfiguration() {
         return new ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder())
-            .build();
+                .build();
     }
 
     @Override

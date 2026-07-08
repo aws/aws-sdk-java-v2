@@ -30,8 +30,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -70,7 +72,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     private static final Logger log = Logger.loggerFor(DefaultQueryToJsonCompatibleClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -81,7 +83,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, "QueryToJsonCompatibleService" + "#" + ServiceVersionInfo.VERSION).build();
+                .option(SdkClientOption.API_METADATA, "QueryToJsonCompatibleService" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -107,47 +109,47 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     AwsServiceException, SdkClientException, QueryToJsonCompatibleException {
+            AwsServiceException, SdkClientException, QueryToJsonCompatibleException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                            APostOperationResponse::builder);
+                APostOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
+                operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "QueryToJsonCompatibleService");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "{StringMember}-foo.";
             HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
-                                                        "aPostOperationRequest");
+                    "aPostOperationRequest");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
-                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "APostOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperation"))
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                    .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                    .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperation", clientConfiguration))
+                    .withEndpointResolver(endpointResolver("APostOperation"))
+                    .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -159,7 +161,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -174,18 +176,18 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+            SdkClientConfiguration clientConfiguration) {
         QueryToJsonCompatibleAuthSchemeProvider requestAuthSchemeProvider = request
-            .overrideConfiguration()
-            .flatMap(c -> c.authSchemeProvider())
-            .map(p -> Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class, p,
-                                            "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider")).orElse(null);
+                .overrideConfiguration()
+                .flatMap(c -> c.authSchemeProvider())
+                .map(p -> Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class, p,
+                        "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider")).orElse(null);
         QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
-                                                                                                       : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
-                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
-                                                                                                                               "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
+                : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
+                        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                        "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
         QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
-            operationName);
+                operationName);
         paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
@@ -193,10 +195,10 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
         QueryToJsonCompatibleEndpointProvider provider = (QueryToJsonCompatibleEndpointProvider) executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+                .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             QueryToJsonCompatibleEndpointParams endpointParams = QueryToJsonCompatibleEndpointResolverUtils.ruleParams(request,
-                                                                                                                       executionAttributes);
+                    executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
             if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
                 Optional<String> hostPrefix = QueryToJsonCompatibleEndpointResolverUtils.hostPrefix(operationName, request);
@@ -206,10 +208,10 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             }
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = QueryToJsonCompatibleEndpointResolverUtils.authSchemeWithEndpointSignerProperties(
-                    endpointAuthSchemes, selectedAuthScheme);
+                        endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             QueryToJsonCompatibleEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
@@ -223,8 +225,16 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
         }
     }
 
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
@@ -258,7 +268,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
         }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         QueryToJsonCompatibleServiceClientConfigurationBuilder serviceConfigBuilder = new QueryToJsonCompatibleServiceClientConfigurationBuilder(
-            configuration);
+                configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -268,8 +278,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder).protocol(AwsJsonProtocol.AWS_JSON)
-                      .protocolVersion("1.1").hasAwsQueryCompatible(true);
+                .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder).protocol(AwsJsonProtocol.AWS_JSON)
+                .protocolVersion("1.1").hasAwsQueryCompatible(true);
     }
 
     @Override
