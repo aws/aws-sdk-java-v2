@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -64,7 +65,9 @@ public class UrlHttpConnectionS3IntegrationTestBase extends AwsTestBase {
 
 
     protected static void createBucket(String bucket) {
-        Waiter.run(() -> s3.createBucket(r -> r.bucket(bucket)))
+        // Tag test buckets so any residual buckets can be cleaned up based on the tag.
+        Waiter.run(() -> s3.createBucket(r -> r.bucket(bucket)
+                                               .createBucketConfiguration(cfg -> cfg.tags(S3TestUtils.integTestTag()))))
               .ignoringException(NoSuchBucketException.class)
               .orFail();
         s3.waiter().waitUntilBucketExists(r -> r.bucket(bucket));
