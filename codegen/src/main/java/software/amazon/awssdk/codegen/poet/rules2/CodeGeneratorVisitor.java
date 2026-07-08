@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.poet.rules2;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,7 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.utils.uri.SdkUri;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private static final Logger log = LoggerFactory.getLogger(CodeGeneratorVisitor.class);
@@ -333,13 +332,23 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        if (endpointCaching) {
-            builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
+
+        EndpointUrlCodegenAnalyzer.AnalysisResult analysis =
+            EndpointUrlCodegenAnalyzer.analyze(e.url());
+
+        if (analysis.isPreParseable()) {
+            // Emit EndpointUrl.of(scheme, hostExpr, port, path) — no runtime parsing
+            builder.add("$T.builder().endpointUrl($T.of($S, ",
+                         Endpoint.class, EndpointUrl.class, analysis.scheme());
+            analysis.hostExpr().accept(this);
+            builder.add(", $L, $S))", analysis.port(), analysis.encodedPath());
         } else {
-            builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+            // Fallback: emit EndpointUrl.parse(fullUrl) — lightweight runtime parsing
+            builder.add("$T.builder().endpointUrl($T.parse(", Endpoint.class, EndpointUrl.class);
+            e.url().accept(this);
+            builder.add("))");
         }
-        e.url().accept(this);
-        builder.add("))");
+
         e.headers().accept(this);
         e.properties().accept(this);
         builder.add(".build()");

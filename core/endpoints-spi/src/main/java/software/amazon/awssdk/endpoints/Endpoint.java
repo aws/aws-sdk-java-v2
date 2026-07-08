@@ -28,18 +28,30 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public final class Endpoint {
-    private final URI url;
+    private final EndpointUrl endpointUrl;
     private final Map<String, List<String>> headers;
     private final Map<EndpointAttributeKey<?>, Object> attributes;
 
     private Endpoint(BuilderImpl b) {
-        this.url = b.url;
+        this.endpointUrl = b.endpointUrl;
         this.headers = b.headers;
         this.attributes = b.attributes;
     }
 
+    /**
+     * Returns the URI. Preserved for backward compatibility.
+     * Delegates to {@link EndpointUrl#toUri()} which lazily constructs the URI.
+     */
     public URI url() {
-        return url;
+        return endpointUrl.toUri();
+    }
+
+    /**
+     * Returns the {@link EndpointUrl} for efficient access to URL components
+     * without URI construction overhead.
+     */
+    public EndpointUrl endpointUrl() {
+        return endpointUrl;
     }
 
     public Map<String, List<String>> headers() {
@@ -66,7 +78,11 @@ public final class Endpoint {
 
         Endpoint endpoint = (Endpoint) o;
 
-        if (url != null ? !url.equals(endpoint.url) : endpoint.url != null) {
+        // Use toUri() for backward compatibility — ensures Endpoints built via url(URI) and
+        // endpointUrl(EndpointUrl) are equal when the URLs are equivalent (e.g., IPv6 bracket differences).
+        URI thisUrl = endpointUrl != null ? endpointUrl.toUri() : null;
+        URI thatUrl = endpoint.endpointUrl != null ? endpoint.endpointUrl.toUri() : null;
+        if (thisUrl != null ? !thisUrl.equals(thatUrl) : thatUrl != null) {
             return false;
         }
         if (headers != null ? !headers.equals(endpoint.headers) : endpoint.headers != null) {
@@ -77,7 +93,9 @@ public final class Endpoint {
 
     @Override
     public int hashCode() {
-        int result = url != null ? url.hashCode() : 0;
+        // Use toUri() for consistency with equals()
+        URI uri = endpointUrl != null ? endpointUrl.toUri() : null;
+        int result = uri != null ? uri.hashCode() : 0;
         result = 31 * result + (headers != null ? headers.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;
@@ -88,7 +106,18 @@ public final class Endpoint {
     }
 
     public interface Builder {
+        /**
+         * Sets the endpoint URL from a {@link URI}. Preserved for backward compatibility.
+         * Internally converts to an {@link EndpointUrl} via {@link EndpointUrl#fromUri(URI)}.
+         */
         Builder url(URI url);
+
+        /**
+         * Sets the endpoint URL from an {@link EndpointUrl} directly.
+         * This is the preferred path for code that already has an {@code EndpointUrl}
+         * (e.g., generated endpoint providers).
+         */
+        Builder endpointUrl(EndpointUrl endpointUrl);
 
         Builder putHeader(String name, String value);
 
@@ -98,7 +127,7 @@ public final class Endpoint {
     }
 
     private static class BuilderImpl implements Builder {
-        private URI url;
+        private EndpointUrl endpointUrl;
         private final Map<String, List<String>> headers = new HashMap<>();
         private final Map<EndpointAttributeKey<?>, Object> attributes = new HashMap<>();
 
@@ -106,7 +135,7 @@ public final class Endpoint {
         }
 
         private BuilderImpl(Endpoint e) {
-            this.url = e.url;
+            this.endpointUrl = e.endpointUrl;
             if (e.headers != null) {
                 e.headers.forEach((n, v) -> {
                     this.headers.put(n, new ArrayList<>(v));
@@ -117,7 +146,13 @@ public final class Endpoint {
 
         @Override
         public Builder url(URI url) {
-            this.url = url;
+            this.endpointUrl = EndpointUrl.fromUri(url);
+            return this;
+        }
+
+        @Override
+        public Builder endpointUrl(EndpointUrl endpointUrl) {
+            this.endpointUrl = endpointUrl;
             return this;
         }
 

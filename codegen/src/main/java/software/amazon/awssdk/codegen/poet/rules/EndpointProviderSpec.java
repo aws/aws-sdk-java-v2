@@ -25,7 +25,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -127,7 +127,7 @@ public class EndpointProviderSpec implements ClassSpec {
                      .addStatement("$T endpoint = $N.expectEndpoint()",
                                    endpointRulesSpecUtils.rulesRuntimeClassName("Value.Endpoint"), valueParamName)
                      .addStatement("$T builder = Endpoint.builder()", Endpoint.Builder.class)
-                     .addStatement("builder.url($T.create(endpoint.getUrl()))", URI.class)
+                     .addStatement("builder.endpointUrl($T.parse(endpoint.getUrl()))", EndpointUrl.class)
                      .addStatement("$T headers = endpoint.getHeaders()",
                                    ParameterizedTypeName.get(ClassName.get(Map.class),
                                                              TypeName.get(String.class),
