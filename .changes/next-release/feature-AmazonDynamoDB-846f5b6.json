@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Adding alternative factory methods to construct AttributeValue that circumvent the use of the builder pattern, and wiring those new factory methods into the DDB enhanced client usages to improve performance."
+}
