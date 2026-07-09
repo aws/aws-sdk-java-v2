@@ -224,9 +224,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
-                     .add(".withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, $S, clientConfiguration))\n",
+                     .add(".withAuthSchemeOptionsResolver(authSchemeResolver($S, clientConfiguration))\n",
                           opModel.getOperationName())
-                     .add(".withEndpointResolver((r, a) -> resolveEndpoint(r, a, $S))\n",
+                     .add(".withEndpointResolver(endpointResolver($S))\n",
                           opModel.getOperationName())
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
@@ -302,9 +302,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(".withErrorResponseHandler(errorResponseHandler)\n")
                .add(".withRequestConfiguration(clientConfiguration)")
                .add(".withMetricCollector(apiCallMetricCollector)\n")
-               .add(".withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, $S, clientConfiguration))\n",
+               .add(".withAuthSchemeOptionsResolver(authSchemeResolver($S, clientConfiguration))\n",
                     opModel.getOperationName())
-               .add(".withEndpointResolver((r, a) -> resolveEndpoint(r, a, $S))\n",
+               .add(".withEndpointResolver(endpointResolver($S))\n",
                     opModel.getOperationName())
                .add(hostPrefixExpression(opModel))
                .add(discoveredEndpoint(opModel))

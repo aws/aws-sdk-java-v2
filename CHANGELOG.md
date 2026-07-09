@@ -1,4 +1,60 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.47.3__ __2026-07-08__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Refactor per-operation inline lambdas to factory methods in generated clients
+    - Updating Lake Formation Access Grants Plugin version to 1.4.3
+        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
+
+## __AWS Sign-In Service__
+  - ### Features
+    - Adds support for OAuth 2.0 token operations in AWS Sign-In, CreateOAuth2TokenWithIAM (client credentials flow), IntrospectOAuth2TokenWithIAM (token inspection), and RevokeOAuth2TokenWithIAM (token revocation).
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding alternative factory methods to construct AttributeValue that circumvent the use of the builder pattern, and wiring those new factory methods into the DDB enhanced client usages to improve performance.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix regression where the SDK automatically attached the source object's versionId to UploadPartCopy requests during multipart copy, causing S3 to require `s3:GetObjectVersion` permission. Updated to only add versionId when explicitly provided by the caller.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@rajasbh-aws](https://github.com/rajasbh-aws)
+# __2.47.2__ __2026-07-08__
+## __AWS Common Runtime HTTP Client__
+  - ### Bugfixes
+    - Fix CRT connection pool exhaustion/leak when streams are cancelled due to API call timeouts.  Ensure concurrency/HTTP metrics are always published.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Default session downlink transmission parameters have been added to the existing Multicast Group APIs. Explicit transmission parameters are no longer required when starting a multicast session during the FUOTA procedure.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - Next Generation Resilience Hub now supports filtering and sorting failure mode assessments, resource type filtering in ListResources, cross-region and cross-account topology edges, data recovery achievability status, and more granular dependency discovery progress tracking.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Update ExperimentRun APIs to support ConflictExceptions.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Gateway now supports mapping allowed scopes to separate advertised scopes on the inbound authorizer.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now automatically detects the correct CPU architecture for Express Mode services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Replace Root Volume now supports a VolumeId parameter. This allows the customer to pass in a pre-prepared volume as the target root volume for an RRV workflow.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Added AddressNamesMode, AddressNameTranslations, MobilityMode, PostalCodeMode, SecondaryAddresses, and DriveThrough features across Places V2 APIs to support address name formatting,  multilingual translations, travel-aware search, multi-city postal codes, and unit-level address resolution.
+
 # __2.47.1__ __2026-07-07__
 ## __AWS Config__
   - ### Features

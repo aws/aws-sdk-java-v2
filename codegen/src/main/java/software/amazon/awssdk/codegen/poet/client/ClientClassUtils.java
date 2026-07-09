@@ -59,11 +59,13 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -505,6 +507,39 @@ public final class ClientClassUtils {
 
         builder.addStatement("$T<$T> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build())",
                              List.class, AuthSchemeOption.class);
+    }
+
+    /**
+     * Generates a factory method that creates an {@code AuthSchemeOptionsResolver} for a given operation name.
+     * This avoids creating a new lambda per operation in the generated client class, which reduces constant pool
+     * pressure for services with a large number of operations (e.g., EC2).
+     */
+    static MethodSpec authSchemeResolverFactoryMethod() {
+        ClassName authSchemeOptionsResolver = ClassName.get(AuthSchemeOptionsResolver.class);
+
+        return MethodSpec.methodBuilder("authSchemeResolver")
+                         .addModifiers(PRIVATE)
+                         .returns(authSchemeOptionsResolver)
+                         .addParameter(String.class, "operationName")
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                         .addStatement("return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration)")
+                         .build();
+    }
+
+    /**
+     * Generates a factory method that creates an {@code EndpointResolver} for a given operation name.
+     * This avoids creating a new lambda per operation in the generated client class, which reduces constant pool
+     * pressure for services with a large number of operations (e.g., EC2).
+     */
+    static MethodSpec endpointResolverFactoryMethod() {
+        ClassName endpointResolver = ClassName.get(EndpointResolver.class);
+
+        return MethodSpec.methodBuilder("endpointResolver")
+                         .addModifiers(PRIVATE)
+                         .returns(endpointResolver)
+                         .addParameter(String.class, "operationName")
+                         .addStatement("return (r, a) -> resolveEndpoint(r, a, operationName)")
+                         .build();
     }
 
     static MethodSpec resolveEndpointMethod(AuthSchemeSpecUtils authSchemeSpecUtils,
