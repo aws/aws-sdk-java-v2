@@ -155,12 +155,12 @@ public final class AuthSchemeResolver {
             AuthSchemeOption.Builder mergedOption = selectedAuthScheme.authSchemeOption().toBuilder();
             existingAuthScheme.authSchemeOption().forEachSignerProperty(mergedOption::putSignerPropertyIfAbsent);
             existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
-            return new SelectedAuthScheme<>(
-                selectedAuthScheme.identity(),
-                selectedAuthScheme.signer(),
-                mergedOption.build(),
-                selectedAuthScheme.identityProvider()
-            );
+            return SelectedAuthScheme.<T>builder()
+                                   .identity(selectedAuthScheme.identity())
+                                   .signer(selectedAuthScheme.signer())
+                                   .authSchemeOption(mergedOption.build())
+                                   .identityProvider(selectedAuthScheme.identityProvider())
+                                   .build();
         }
 
         // Start with the freshly resolved auth scheme as the base.
@@ -182,12 +182,12 @@ public final class AuthSchemeResolver {
 
         existingAuthScheme.authSchemeOption().forEachIdentityProperty(mergedOption::putIdentityPropertyIfAbsent);
 
-        return new SelectedAuthScheme<>(
-            selectedAuthScheme.identity(),
-            selectedAuthScheme.signer(),
-            mergedOption.build(),
-            selectedAuthScheme.identityProvider()
-        );
+        return SelectedAuthScheme.<T>builder()
+                               .identity(selectedAuthScheme.identity())
+                               .signer(selectedAuthScheme.signer())
+                               .authSchemeOption(mergedOption.build())
+                               .identityProvider(selectedAuthScheme.identityProvider())
+                               .build();
     }
 
     /**
@@ -243,10 +243,12 @@ public final class AuthSchemeResolver {
         // Only update SELECTED_AUTH_SCHEME if at least one property was re-applied.
         if (changed[0]) {
             attrs.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
-                               new SelectedAuthScheme<>(currentScheme.identity(),
-                                                        currentScheme.signer(),
-                                                        mergedOption.build(),
-                                                        currentScheme.identityProvider()));
+                               SelectedAuthScheme.<T>builder()
+                                                 .identity(currentScheme.identity())
+                                                 .signer(currentScheme.signer())
+                                                 .authSchemeOption(mergedOption.build())
+                                                 .identityProvider(currentScheme.identityProvider())
+                                                 .build());
         }
     }
 
@@ -284,7 +286,12 @@ public final class AuthSchemeResolver {
         CompletableFuture<? extends T> identity = resolveIdentity(
             identityProvider, identityRequestBuilder.build(), metricCollector);
 
-        return new SelectedAuthScheme<>(identity, signer, authOption, identityProvider);
+        return SelectedAuthScheme.<T>builder()
+                               .identity(identity)
+                               .signer(signer)
+                               .authSchemeOption(authOption)
+                               .identityProvider(identityProvider)
+                               .build();
     }
 
     private static <T extends Identity> CompletableFuture<? extends T> resolveIdentity(

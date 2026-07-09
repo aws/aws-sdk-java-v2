@@ -564,8 +564,10 @@ public final class ClientClassUtils {
                            authSchemeOption.nestedClass("Builder"));
             b.addStatement("$1T rs = $1T.create(endpointParams.region().id())", regionSet);
             b.addStatement("optionBuilder.putSignerProperty($T.REGION_SET, rs)", awsV4aHttpSigner);
-            b.addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), selectedAuthScheme.signer(), "
-                           + "optionBuilder.build())", SelectedAuthScheme.class);
+            b.addStatement("selectedAuthScheme = $T.builder().identity(selectedAuthScheme.identity())"
+                           + ".signer(selectedAuthScheme.signer()).authSchemeOption(optionBuilder.build())"
+                           + ".identityProvider(selectedAuthScheme.identityProvider()).build()",
+                           SelectedAuthScheme.class);
             b.endControlFlow();
         }
 

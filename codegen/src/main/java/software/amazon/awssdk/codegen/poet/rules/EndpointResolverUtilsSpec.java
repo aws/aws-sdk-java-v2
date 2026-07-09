@@ -602,8 +602,9 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, v4AuthScheme.signingName())",
                           AwsV4HttpSigner.class);
         code.endControlFlow();
-        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build(), "
-                          + "selectedAuthScheme.identityProvider())",
+        code.addStatement("return $T.<T>builder().identity(selectedAuthScheme.identity())"
+                          + ".signer(selectedAuthScheme.signer()).authSchemeOption(option.build())"
+                          + ".identityProvider(selectedAuthScheme.identityProvider()).build()",
                           SelectedAuthScheme.class);
         code.endControlFlow();
         return code.build();
@@ -632,8 +633,9 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, v4aAuthScheme.signingName())",
                           AwsV4aHttpSigner.class);
         code.endControlFlow();
-        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build(), "
-                          + "selectedAuthScheme.identityProvider())",
+        code.addStatement("return $T.<T>builder().identity(selectedAuthScheme.identity())"
+                          + ".signer(selectedAuthScheme.signer()).authSchemeOption(option.build())"
+                          + ".identityProvider(selectedAuthScheme.identityProvider()).build()",
                           SelectedAuthScheme.class);
         code.endControlFlow();
         return code.build();
@@ -658,8 +660,9 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.SERVICE_SIGNING_NAME, s3ExpressAuthScheme.signingName())",
                           AwsV4HttpSigner.class);
         code.endControlFlow();
-        code.addStatement("return new $T<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build(), "
-                          + "selectedAuthScheme.identityProvider())",
+        code.addStatement("return $T.<T>builder().identity(selectedAuthScheme.identity())"
+                          + ".signer(selectedAuthScheme.signer()).authSchemeOption(option.build())"
+                          + ".identityProvider(selectedAuthScheme.identityProvider()).build()",
                           SelectedAuthScheme.class);
         code.endControlFlow();
         return code.build();

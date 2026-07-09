@@ -140,12 +140,12 @@ public class AuthErrorInvalidationHelperTest {
     void invalidateIfAuthError_whenInvalidateThrowsException_doesNotPropagate() {
         ThrowingIdentityProvider provider = new ThrowingIdentityProvider();
         TestIdentity identity = new TestIdentity();
-        SelectedAuthScheme<TestIdentity> selectedAuthScheme = new SelectedAuthScheme<>(
-            CompletableFuture.completedFuture(identity),
-            mockSigner(),
-            AuthSchemeOption.builder().schemeId("test").build(),
-            provider
-        );
+        SelectedAuthScheme<TestIdentity> selectedAuthScheme = SelectedAuthScheme.<TestIdentity>builder()
+            .identity(CompletableFuture.completedFuture(identity))
+            .signer(mockSigner())
+            .authSchemeOption(AuthSchemeOption.builder().schemeId("test").build())
+            .identityProvider(provider)
+            .build();
 
         RequestExecutionContext context = contextWithSelectedAuthScheme(selectedAuthScheme);
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
@@ -158,12 +158,12 @@ public class AuthErrorInvalidationHelperTest {
     // --- Helper methods ---
 
     private RequestExecutionContext contextWithProvider(TrackingIdentityProvider provider, TestIdentity identity) {
-        SelectedAuthScheme<TestIdentity> selectedAuthScheme = new SelectedAuthScheme<>(
-            CompletableFuture.completedFuture(identity),
-            mockSigner(),
-            AuthSchemeOption.builder().schemeId("test").build(),
-            provider
-        );
+        SelectedAuthScheme<TestIdentity> selectedAuthScheme = SelectedAuthScheme.<TestIdentity>builder()
+            .identity(CompletableFuture.completedFuture(identity))
+            .signer(mockSigner())
+            .authSchemeOption(AuthSchemeOption.builder().schemeId("test").build())
+            .identityProvider(provider)
+            .build();
         return contextWithSelectedAuthScheme(selectedAuthScheme);
     }
 
