@@ -22,6 +22,17 @@ import java.util.Random;
 import software.amazon.awssdk.utils.Logger;
 
 public final class S3BucketUtils {
+    /**
+     * Tag key applied to S3 buckets created by integration tests so any residual test buckets can be cleaned up
+     * based on the tag.
+     */
+    public static final String INTEG_TEST_RESOURCE_TAG_KEY = "aws-sdk-java-v2-integ-test";
+
+    /**
+     * Tag value paired with {@link #INTEG_TEST_RESOURCE_TAG_KEY}.
+     */
+    public static final String INTEG_TEST_RESOURCE_TAG_VALUE = "true";
+
     private static final Logger logger = Logger.loggerFor(S3BucketUtils.class);
     private static final Random RANDOM = new Random();
 
