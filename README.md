@@ -3,7 +3,7 @@
 [![Maven](https://img.shields.io/maven-central/v/software.amazon.awssdk/s3.svg?label=Maven)](https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22s3%22)
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-129-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-130-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -356,6 +356,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/humanzz"><img src="https://avatars.githubusercontent.com/u/5001?v=4?s=100" width="100px;" alt="Ahmed Kamel"/><br /><sub><b>Ahmed Kamel</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=humanzz" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.henricook.com"><img src="https://avatars.githubusercontent.com/u/82004?v=4?s=100" width="100px;" alt="Henri Cook"/><br /><sub><b>Henri Cook</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=henricook" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/parasparani1"><img src="https://avatars.githubusercontent.com/u/294045026?v=4?s=100" width="100px;" alt="parasparani1"/><br /><sub><b>parasparani1</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=parasparani1" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/luneo7"><img src="https://avatars.githubusercontent.com/u/8834774?v=4?s=100" width="100px;" alt="Lucas Rogerio Caetano Ferreira"/><br /><sub><b>Lucas Rogerio Caetano Ferreira</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=luneo7" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
