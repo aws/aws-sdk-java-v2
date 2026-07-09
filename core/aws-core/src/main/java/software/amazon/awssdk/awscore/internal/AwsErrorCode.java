@@ -71,7 +71,6 @@ public final class AwsErrorCode {
         Set<String> authErrorCodes = new HashSet<>(3);
         authErrorCodes.add("ExpiredToken");
         authErrorCodes.add("InvalidToken");
-        authErrorCodes.add("AuthFailure");
         AUTH_ERROR_CODES = unmodifiableSet(authErrorCodes);
     }
 

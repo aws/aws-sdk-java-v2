@@ -35,11 +35,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -866,6 +868,149 @@ public class CachedSupplierTest {
         @Override
         public Instant instant() {
             return time;
+        }
+    }
+
+    // --- invalidate() tests ---
+
+    @Test
+    public void invalidate_predicateMatches_triggersRefresh() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
+                                                          .staleValueBehavior(ALLOW)
+                                                          .clock(clock)
+                                                          .jitterEnabled(false)
+                                                          .build()) {
+            supplier.set(RefreshResult.builder("value-1").staleTime(now.plusSeconds(3600)).prefetchTime(now.plusSeconds(1800)).build());
+            assertThat(cache.get()).isEqualTo("value-1");
+
+            clock.time = now.plusSeconds(10);
+            cache.invalidate(v -> v.equals("value-1"));
+
+            supplier.set(RefreshResult.builder("value-2").staleTime(now.plusSeconds(7200)).prefetchTime(now.plusSeconds(5400)).build());
+            assertThat(cache.get()).isEqualTo("value-2");
+        }
+    }
+
+    @Test
+    public void invalidate_predicateDoesNotMatch_doesNotTriggerRefresh() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
+                                                          .staleValueBehavior(ALLOW)
+                                                          .clock(clock)
+                                                          .jitterEnabled(false)
+                                                          .build()) {
+            supplier.set(RefreshResult.builder("value-1").staleTime(now.plusSeconds(3600)).prefetchTime(now.plusSeconds(1800)).build());
+            assertThat(cache.get()).isEqualTo("value-1");
+
+            cache.invalidate(v -> v.equals("different-value"));
+
+            supplier.set(RefreshResult.builder("value-2").staleTime(now.plusSeconds(7200)).prefetchTime(now.plusSeconds(5400)).build());
+            assertThat(cache.get()).isEqualTo("value-1");
+        }
+    }
+
+    @Test
+    public void invalidate_beforeFirstGet_isNoOp() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        clock.time = Instant.parse("2024-01-01T00:00:00Z");
+
+        try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
+                                                          .staleValueBehavior(ALLOW)
+                                                          .clock(clock)
+                                                          .jitterEnabled(false)
+                                                          .build()) {
+            cache.invalidate(v -> true); // should not throw
+
+            supplier.set(RefreshResult.builder("value-1").staleTime(Instant.MAX).prefetchTime(Instant.MAX).build());
+            assertThat(cache.get()).isEqualTo("value-1");
+        }
+    }
+
+    @Test
+    public void invalidate_doesNotBypassRefreshBackoff() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
+                                                          .staleValueBehavior(ALLOW)
+                                                          .clock(clock)
+                                                          .jitterEnabled(false)
+                                                          .build()) {
+            supplier.set(RefreshResult.builder("old").staleTime(now.plusSeconds(60)).prefetchTime(now.plusSeconds(30)).build());
+            assertThat(cache.get()).isEqualTo("old");
+
+            // Trigger failure to set backoff
+            clock.time = now.plusSeconds(61);
+            supplier.set(new RuntimeException("unavailable"));
+            assertThat(cache.get()).isEqualTo("old");
+
+            // Invalidate — marks stale but doesn't clear backoff
+            clock.time = now.plusSeconds(62);
+            cache.invalidate(v -> v.equals("old"));
+            supplier.set(RefreshResult.builder("new").staleTime(Instant.MAX).prefetchTime(Instant.MAX).build());
+
+            // Still within backoff — returns stale
+            assertThat(cache.get()).isEqualTo("old");
+
+            // Past backoff — returns fresh
+            clock.time = now.plusSeconds(700);
+            assertThat(cache.get()).isEqualTo("new");
+        }
+    }
+
+    @Test
+    public void invalidate_concurrentWithGet_doesNotCorrupt() throws Exception {
+        AdjustableClock clock = new AdjustableClock();
+        clock.time = Instant.parse("2024-01-01T00:00:00Z");
+        AtomicInteger counter = new AtomicInteger(0);
+
+        try (CachedSupplier<String> cache = CachedSupplier.builder(() ->
+                 RefreshResult.builder("v-" + counter.incrementAndGet())
+                              .staleTime(Instant.MAX)
+                              .prefetchTime(Instant.MAX)
+                              .build())
+                 .staleValueBehavior(ALLOW)
+                 .clock(clock)
+                 .jitterEnabled(false)
+                 .build()) {
+
+            cache.get(); // prime
+
+            ExecutorService executor = Executors.newFixedThreadPool(10);
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<?>> futures = new ArrayList<>();
+
+            for (int i = 0; i < 10; i++) {
+                int idx = i;
+                futures.add(executor.submit(() -> {
+                    try { start.await(); } catch (InterruptedException e) { return; }
+                    for (int j = 0; j < 50; j++) {
+                        if (idx % 2 == 0) {
+                            cache.invalidate(v -> true);
+                        } else {
+                            assertThat(cache.get()).isNotNull();
+                        }
+                    }
+                }));
+            }
+
+            start.countDown();
+            for (Future<?> f : futures) { f.get(30, TimeUnit.SECONDS); }
+            executor.shutdown();
+
+            assertThat(cache.get()).isNotNull();
         }
     }
 }

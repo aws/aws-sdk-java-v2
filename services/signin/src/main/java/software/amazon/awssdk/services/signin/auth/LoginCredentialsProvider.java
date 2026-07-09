@@ -299,16 +299,10 @@ public final class LoginCredentialsProvider implements
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        if (identity instanceof AwsCredentialsIdentity) {
-            String rejectedAccessKeyId = identity.accessKeyId();
-            credentialCache.invalidate(cachedCreds -> {
-                if (cachedCreds instanceof AwsCredentialsIdentity) {
-                    return rejectedAccessKeyId.equals(((AwsCredentialsIdentity) cachedCreds).accessKeyId());
-                }
-                return false;
-            });
-        }
-        return CompletableFuture.completedFuture(null);
+        String rejectedAccessKeyId = identity.accessKeyId();
+        return CompletableFuture.runAsync(() ->
+            credentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
+        );
     }
 
     @Override

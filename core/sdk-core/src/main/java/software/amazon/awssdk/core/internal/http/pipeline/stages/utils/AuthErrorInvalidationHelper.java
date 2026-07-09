@@ -81,6 +81,10 @@ public final class AuthErrorInvalidationHelper {
     private static <T extends Identity> void doInvalidate(SelectedAuthScheme<T> selectedAuthScheme) {
         T resolvedIdentity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
         IdentityProvider<T> provider = selectedAuthScheme.identityProvider();
-        provider.invalidate(resolvedIdentity);
+        try {
+            CompletableFutureUtils.joinLikeSync(provider.invalidate(resolvedIdentity));
+        } catch (Exception e) {
+            LOG.debug(() -> "Failed to invalidate identity provider: " + e.getMessage(), e);
+        }
     }
 }

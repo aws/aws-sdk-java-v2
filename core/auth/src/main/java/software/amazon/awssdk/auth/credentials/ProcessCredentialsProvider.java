@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.credentials.internal.CredentialsInvalidationUtils;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -171,8 +170,10 @@ public final class ProcessCredentialsProvider
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        return CredentialsInvalidationUtils.invalidateCredentialsCache(
-            identity, processCredentialCache, AwsCredentialsIdentity::accessKeyId);
+        String rejectedAccessKeyId = identity.accessKeyId();
+        return CompletableFuture.runAsync(() ->
+            processCredentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
+        );
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {

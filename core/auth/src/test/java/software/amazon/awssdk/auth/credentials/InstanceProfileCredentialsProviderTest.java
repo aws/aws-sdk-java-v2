@@ -776,6 +776,61 @@ public class InstanceProfileCredentialsProviderTest {
         }
     }
 
+    @Test
+    void invalidate_matchingAccessKeyId_invalidatesCache() {
+        String accessKeyId = "ACCESS_KEY_ID";
+        String expirationFarFuture = DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)));
+        String credentialsJson = "{\"AccessKeyId\":\"" + accessKeyId + "\","
+                                 + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+                                 + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsJson));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials firstCredentials = provider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(accessKeyId);
+
+        String newAccessKeyId = "NEW_ACCESS_KEY_ID";
+        String newCredentialsJson = "{\"AccessKeyId\":\"" + newAccessKeyId + "\","
+                                    + "\"SecretAccessKey\":\"NEW_SECRET_ACCESS_KEY\","
+                                    + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+        stubSecureCredentialsResponse(aResponse().withBody(newCredentialsJson));
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create(accessKeyId, "SECRET_ACCESS_KEY");
+        provider.invalidate(identity).join();
+
+        AwsCredentials refreshedCredentials = provider.resolveCredentials();
+        assertThat(refreshedCredentials.accessKeyId()).isEqualTo(newAccessKeyId);
+    }
+
+    @Test
+    void invalidate_nonMatchingAccessKeyId_doesNotInvalidateCache() {
+        String accessKeyId = "ACCESS_KEY_ID";
+        String expirationFarFuture = DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)));
+        String credentialsJson = "{\"AccessKeyId\":\"" + accessKeyId + "\","
+                                 + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+                                 + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsJson));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials firstCredentials = provider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(accessKeyId);
+
+        String newCredentialsJson = "{\"AccessKeyId\":\"NEW_ACCESS_KEY_ID\","
+                                    + "\"SecretAccessKey\":\"NEW_SECRET_ACCESS_KEY\","
+                                    + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+        stubSecureCredentialsResponse(aResponse().withBody(newCredentialsJson));
+
+        AwsCredentialsIdentity differentIdentity = AwsBasicCredentials.create("DIFFERENT_KEY", "SECRET");
+        provider.invalidate(differentIdentity).join();
+
+        AwsCredentials secondCredentials = provider.resolveCredentials();
+        assertThat(secondCredentials.accessKeyId()).isEqualTo(accessKeyId);
+    }
+
     private static ProfileFileSupplier supply(Iterable<ProfileFile> iterable) {
         return iterable.iterator()::next;
     }

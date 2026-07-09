@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.internal.CredentialsInvalidationUtils;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.Logger;
@@ -128,8 +127,10 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        return CredentialsInvalidationUtils.invalidateCredentialsCache(
-            identity, sessionCache, AwsCredentialsIdentity::accessKeyId);
+        String rejectedAccessKeyId = identity.accessKeyId();
+        return CompletableFuture.runAsync(() ->
+            sessionCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
+        );
     }
 
     /**

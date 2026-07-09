@@ -18,8 +18,14 @@ package software.amazon.awssdk.auth.credentials;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import org.junit.jupiter.api.function.Executable;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -170,6 +176,65 @@ public class AwsCredentialsProviderChainTest {
         AwsCredentials credentials = chain.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("accessKey");
         assertThat(credentials.secretAccessKey()).isEqualTo("secretKey");
+    }
+
+    @Test
+    public void invalidate_propagatesToAllChildren() {
+        TrackingCredentialsProvider provider1 = new TrackingCredentialsProvider("key1", "secret1");
+        TrackingCredentialsProvider provider2 = new TrackingCredentialsProvider("key2", "secret2");
+        TrackingCredentialsProvider provider3 = new TrackingCredentialsProvider("key3", "secret3");
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(provider1, provider2, provider3)
+                                                                       .build();
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
+        chain.invalidate(identity).join();
+
+        assertThat(provider1.invalidateCallCount).isEqualTo(1);
+        assertThat(provider2.invalidateCallCount).isEqualTo(1);
+        assertThat(provider3.invalidateCallCount).isEqualTo(1);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void invalidate_doesNotShortCircuit_whenChildThrows() {
+        AwsCredentialsProvider mockProvider1 = mock(AwsCredentialsProvider.class);
+        AwsCredentialsProvider mockProvider2 = mock(AwsCredentialsProvider.class);
+        AwsCredentialsProvider mockProvider3 = mock(AwsCredentialsProvider.class);
+
+        doThrow(new RuntimeException("Provider 1 failed")).when(mockProvider1).invalidate(any());
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(mockProvider1, mockProvider2, mockProvider3)
+                                                                       .build();
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
+        chain.invalidate(identity).join();
+
+        verify(mockProvider1, times(1)).invalidate(identity);
+        verify(mockProvider2, times(1)).invalidate(identity);
+        verify(mockProvider3, times(1)).invalidate(identity);
+    }
+
+    private static final class TrackingCredentialsProvider implements AwsCredentialsProvider {
+        private final AwsBasicCredentials credentials;
+        int invalidateCallCount = 0;
+
+        TrackingCredentialsProvider(String accessKeyId, String secretAccessKey) {
+            this.credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+        }
+
+        @Override
+        public AwsCredentials resolveCredentials() {
+            return credentials;
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+            invalidateCallCount++;
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     private static final class MockCredentialsProvider implements AwsCredentialsProvider {

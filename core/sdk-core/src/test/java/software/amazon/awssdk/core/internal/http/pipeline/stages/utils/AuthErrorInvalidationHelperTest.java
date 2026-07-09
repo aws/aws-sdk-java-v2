@@ -51,65 +51,53 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 public class AuthErrorInvalidationHelperTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"ExpiredToken", "InvalidToken", "AuthFailure"})
+    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
     void invalidateIfAuthError_whenAuthErrorCode_triggersInvalidation(String errorCode) {
-        // Arrange
         TrackingIdentityProvider provider = new TrackingIdentityProvider();
         TestIdentity identity = new TestIdentity();
         RequestExecutionContext context = contextWithProvider(provider, identity);
         Throwable exception = serviceExceptionWithErrorCode(errorCode);
 
-        // Act
         AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
 
-        // Assert
         assertThat(provider.invalidateCalled()).isTrue();
         assertThat(provider.lastInvalidatedIdentity()).isSameAs(identity);
     }
 
     @Test
     void invalidateIfAuthError_whenAccessDenied_doesNotTriggerInvalidation() {
-        // Arrange
         TrackingIdentityProvider provider = new TrackingIdentityProvider();
         TestIdentity identity = new TestIdentity();
         RequestExecutionContext context = contextWithProvider(provider, identity);
         Throwable exception = serviceExceptionWithErrorCode("AccessDenied");
 
-        // Act
         AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
 
-        // Assert
         assertThat(provider.invalidateCalled()).isFalse();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ThrottlingException", "InternalServerError", "ValidationException", "ResourceNotFoundException"})
+    @ValueSource(strings = {"ThrottlingException", "InternalServerError", "ValidationException", "ResourceNotFoundException", "AuthFailure"})
     void invalidateIfAuthError_whenUnknownErrorCode_doesNotTriggerInvalidation(String errorCode) {
-        // Arrange
         TrackingIdentityProvider provider = new TrackingIdentityProvider();
         TestIdentity identity = new TestIdentity();
         RequestExecutionContext context = contextWithProvider(provider, identity);
         Throwable exception = serviceExceptionWithErrorCode(errorCode);
 
-        // Act
         AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
 
-        // Assert
         assertThat(provider.invalidateCalled()).isFalse();
     }
 
     @ParameterizedTest
     @MethodSource("nonServiceExceptions")
     void invalidateIfAuthError_whenNonSdkServiceException_doesNotTriggerInvalidation(Throwable exception) {
-        // Arrange
         TrackingIdentityProvider provider = new TrackingIdentityProvider();
         TestIdentity identity = new TestIdentity();
         RequestExecutionContext context = contextWithProvider(provider, identity);
 
-        // Act
         AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
 
-        // Assert
         assertThat(provider.invalidateCalled()).isFalse();
     }
 
@@ -123,11 +111,9 @@ public class AuthErrorInvalidationHelperTest {
 
     @Test
     void invalidateIfAuthError_whenSelectedAuthSchemeIsNull_doesNotThrow() {
-        // Arrange — context with no SELECTED_AUTH_SCHEME attribute
         RequestExecutionContext context = contextWithNoAuthScheme();
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        // Act & Assert — no NPE, no invalidation
         assertThatNoException().isThrownBy(() ->
             AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
         );
@@ -135,7 +121,6 @@ public class AuthErrorInvalidationHelperTest {
 
     @Test
     void invalidateIfAuthError_whenIdentityProviderIsNull_doesNotThrow() {
-        // Arrange — SelectedAuthScheme created with 3-arg constructor (null identityProvider)
         TestIdentity identity = new TestIdentity();
         SelectedAuthScheme<TestIdentity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
@@ -146,7 +131,6 @@ public class AuthErrorInvalidationHelperTest {
         RequestExecutionContext context = contextWithSelectedAuthScheme(selectedAuthScheme);
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        // Act & Assert — no NPE, no invalidation
         assertThatNoException().isThrownBy(() ->
             AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
         );
@@ -154,7 +138,6 @@ public class AuthErrorInvalidationHelperTest {
 
     @Test
     void invalidateIfAuthError_whenInvalidateThrowsException_doesNotPropagate() {
-        // Arrange — provider that throws on invalidate()
         ThrowingIdentityProvider provider = new ThrowingIdentityProvider();
         TestIdentity identity = new TestIdentity();
         SelectedAuthScheme<TestIdentity> selectedAuthScheme = new SelectedAuthScheme<>(
@@ -167,7 +150,6 @@ public class AuthErrorInvalidationHelperTest {
         RequestExecutionContext context = contextWithSelectedAuthScheme(selectedAuthScheme);
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        // Act & Assert — exception is caught internally, method returns normally
         assertThatNoException().isThrownBy(() ->
             AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
         );
@@ -293,7 +275,7 @@ public class AuthErrorInvalidationHelperTest {
      */
     private static class TestAwsServiceException extends SdkServiceException {
         private static final Set<String> AUTH_ERROR_CODES = new HashSet<>(Arrays.asList(
-            "ExpiredToken", "InvalidToken", "AuthFailure"
+            "ExpiredToken", "InvalidToken"
         ));
 
         private final String errorCode;

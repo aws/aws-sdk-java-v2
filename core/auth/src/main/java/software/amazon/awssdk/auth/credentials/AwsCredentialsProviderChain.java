@@ -132,13 +132,11 @@ public final class AwsCredentialsProviderChain
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         CompletableFuture<?>[] futures = credentialsProviders.stream()
             .map(provider -> {
                 try {
-                    return ((IdentityProvider<AwsCredentialsIdentity>) provider)
-                        .invalidate(identity)
+                    return invalidateProvider(provider, identity)
                         .exceptionally(e -> {
                             log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
                             return null;
@@ -150,6 +148,17 @@ public final class AwsCredentialsProviderChain
             })
             .toArray(CompletableFuture<?>[]::new);
         return CompletableFuture.allOf(futures);
+    }
+
+    /**
+     * Helper to call invalidate with proper type capture, avoiding unchecked casts.
+     * The identity is always an {@code AwsCredentialsIdentity}, and all providers in this chain
+     * are {@code IdentityProvider<? extends AwsCredentialsIdentity>}, so the cast is safe.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T extends AwsCredentialsIdentity> CompletableFuture<Void> invalidateProvider(
+            IdentityProvider<T> provider, AwsCredentialsIdentity identity) {
+        return provider.invalidate((T) identity);
     }
 
     @Override

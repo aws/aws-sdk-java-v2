@@ -176,15 +176,22 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * <p>This method MUST NOT discard the cached value.
      * This method MUST NOT clear or modify {@code nextAllowedRefreshTime}.</p>
      *
+     * <p>If there is no cached value, this method is a no-op — the predicate will not be called.</p>
+     *
      * @param matchesCachedValue A predicate that returns true if the cached value
-     *                           is the one that should be invalidated.
+     *                           is the one that should be invalidated. The value passed
+     *                           to the predicate is guaranteed to be non-null.
      */
     public void invalidate(Predicate<T> matchesCachedValue) {
         try {
             boolean lockAcquired = refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
+            if (!lockAcquired) {
+                log.debug(() -> "(" + cachedValueName + ") Unable to acquire lock for invalidation; skipping.");
+                return;
+            }
             try {
                 RefreshResult<T> currentCachedValue = this.cachedValue;
-                if (currentCachedValue == null) {
+                if (currentCachedValue == null || currentCachedValue.value() == null) {
                     return;
                 }
                 if (!matchesCachedValue.test(currentCachedValue.value())) {
@@ -200,9 +207,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 log.debug(() -> "(" + cachedValueName + ") Cached value invalidated. "
                                + "Next get() will attempt mandatory refresh.");
             } finally {
-                if (lockAcquired) {
-                    refreshLock.unlock();
-                }
+                refreshLock.unlock();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

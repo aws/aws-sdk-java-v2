@@ -103,9 +103,9 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     }
 
     /**
-     * Specifies whether an exception indicates an authentication or authorization error where the credentials
-     * used for the request were rejected by the service. Subclasses can override this to check service-specific
-     * error codes (e.g., {@code ExpiredToken}, {@code InvalidToken}, {@code AuthFailure}).
+     * Specifies whether an exception indicates an authentication error where the credentials used for the request
+     * were rejected because they are invalid or expired. This method must return {@code false} for authorization
+     * errors such as {@code AccessDenied}, where the credentials are valid but lack permission for the requested action.
      *
      * <p>When this returns {@code true}, the SDK may invalidate cached credentials so that the next attempt
      * resolves fresh ones.</p>

@@ -38,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
-import software.amazon.awssdk.auth.credentials.internal.CredentialsInvalidationUtils;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -191,8 +190,10 @@ public final class ContainerCredentialsProvider
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        return CredentialsInvalidationUtils.invalidateCredentialsCache(
-            identity, credentialsCache, AwsCredentialsIdentity::accessKeyId);
+        String rejectedAccessKeyId = identity.accessKeyId();
+        return CompletableFuture.runAsync(() ->
+            credentialsCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
+        );
     }
 
     @Override
