@@ -25,8 +25,39 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 public class WarmUpProviderSpecTest {
 
     @Test
-    public void warmUpProvider() {
+    public void warmUpProvider_queryProtocol_generatesSyncAndAsyncClients() {
         ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.queryServiceModels());
-        assertThat(spec, generatesTo("warmup-provider.java"));
+        assertThat(spec, generatesTo("warmup-provider-query.java"));
+    }
+
+    @Test
+    public void warmUpProvider_whenSyncClientSkipped_generatesAsyncClientOnly() {
+        ClassSpec spec = new WarmUpProviderSpec(
+            ClientTestModels.queryServiceModelWithSpecialCustomization("customization-skip-sync.config"));
+        assertThat(spec, generatesTo("warmup-provider-async-only.java"));
+    }
+
+    @Test
+    public void warmUpProvider_restJsonProtocol_usesJsonCannedResponse() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.restJsonServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-rest-json.java"));
+    }
+
+    @Test
+    public void warmUpProvider_restXmlProtocol_usesXmlCannedResponse() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.xmlServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-xml.java"));
+    }
+
+    @Test
+    public void warmUpProvider_smithyRpcV2CborProtocol_usesEmptyCborMapCannedResponse() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.rpcv2ServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-rpcv2.java"));
+    }
+
+    @Test
+    public void warmUpProvider_cborProtocol_usesEmptyCborMapCannedResponse() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.cborServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-cbor.java"));
     }
 }

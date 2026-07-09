@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.crac;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.ClientType;
 
 /**
  * Service Provider Interface for warming up an SDK service's request path before a Coordinated Restore at Checkpoint
@@ -34,5 +35,27 @@ public interface SdkWarmUpProvider {
     /**
      * Exercises the service's request path so the Just-In-Time compiled code is captured in a CRaC snapshot.
      */
-    void warmUp();
+    default void warmUp() {
+        warmUpClient(ClientType.SYNC);
+        warmUpClient(ClientType.ASYNC);
+    }
+
+    /**
+     * The fully qualified name of the sync service client this provider warms (for example
+     * {@code "software.amazon.awssdk.services.s3.S3Client"}), or {@code null} if the service has no sync client.
+     */
+    String syncClientClassName();
+
+    /**
+     * The fully qualified name of the async service client this provider warms (for example
+     * {@code "software.amazon.awssdk.services.s3.S3AsyncClient"}), or {@code null} if the service has no async
+     * client.
+     */
+    String asyncClientClassName();
+
+    /**
+     * Exercises only the request path of the given client type: {@link ClientType#SYNC} warms the sync client,
+     * {@link ClientType#ASYNC} the async client. Any other value is a no-op.
+     */
+    void warmUpClient(ClientType clientType);
 }

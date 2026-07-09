@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.crac;
+package software.amazon.awssdk.core.crac.http;
 
 import java.io.ByteArrayInputStream;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * <p>
  * Each {@link ExecutableHttpRequest#call()} returns the configured status code and a fresh stream over the response bytes.
  */
-@SdkInternalApi
+@SdkProtectedApi
 @Immutable
 @ThreadSafe
 public final class CannedResponseHttpClient implements SdkHttpClient {
