@@ -1,5 +1,10 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
 # __2.47.4__ __2026-07-09__
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Fix GraalVM native-image metadata for Apache 5.
+        - Contributed by: [@luneo7](https://github.com/luneo7)
+
 ## __Amazon Connect Service__
   - ### Features
     - Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject.
