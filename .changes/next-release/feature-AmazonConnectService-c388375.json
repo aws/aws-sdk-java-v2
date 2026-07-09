@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject."
+}
