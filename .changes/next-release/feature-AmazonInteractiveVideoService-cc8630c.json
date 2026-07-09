@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service",
-    "contributor": "",
-    "description": "adds support for AWS IVS ad configuration APIs to allow for a postRollConfiguration object on the ad configuration resource"
-}

@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.47.4__ __2026-07-09__
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for additional override parameters in CreateFleet, including LaunchTemplateSpecificationUserData, KeyName, IamInstanceProfile, and MetadataOptions. The CreateFleet response now also includes SubnetId, AvailabilityZone, and AvailabilityZoneId for launched instances.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding "AI Analyst" enum value for detector
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - adds support for AWS IVS ad configuration APIs to allow for a postRollConfiguration object on the ad configuration resource
+
+## __Synthetics__
+  - ### Features
+    - CloudWatch Synthetics adds support for customer managed KMS keys for canary environment variables. Customers can now encrypt their canary's Lambda function environment variables at rest using their own AWS KMS key, providing additional control over data protection.
+
 # __2.47.3__ __2026-07-08__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
