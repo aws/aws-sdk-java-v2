@@ -31,6 +31,13 @@
             "category": "Amazon GuardDuty",
             "contributor": "",
             "description": "Adding \"AI Analyst\" enum value for detector"
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "luneo7",
+            "description": "Fix GraalVM native-image metadata for Apache 5."
         }
+
     ]
 }
