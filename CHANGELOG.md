@@ -1,4 +1,27 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.47.3__ __2026-07-08__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Refactor per-operation inline lambdas to factory methods in generated clients
+    - Updating Lake Formation Access Grants Plugin version to 1.4.3
+        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
+
+## __AWS Sign-In Service__
+  - ### Features
+    - Adds support for OAuth 2.0 token operations in AWS Sign-In, CreateOAuth2TokenWithIAM (client credentials flow), IntrospectOAuth2TokenWithIAM (token inspection), and RevokeOAuth2TokenWithIAM (token revocation).
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding alternative factory methods to construct AttributeValue that circumvent the use of the builder pattern, and wiring those new factory methods into the DDB enhanced client usages to improve performance.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix regression where the SDK automatically attached the source object's versionId to UploadPartCopy requests during multipart copy, causing S3 to require `s3:GetObjectVersion` permission. Updated to only add versionId when explicitly provided by the caller.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@rajasbh-aws](https://github.com/rajasbh-aws)
 # __2.47.2__ __2026-07-08__
 ## __AWS Common Runtime HTTP Client__
   - ### Bugfixes

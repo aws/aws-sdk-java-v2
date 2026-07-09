@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fix regression where the SDK automatically attached the source object's versionId to UploadPartCopy requests during multipart copy, causing S3 to require `s3:GetObjectVersion` permission. Updated to only add versionId when explicitly provided by the caller."
-}
