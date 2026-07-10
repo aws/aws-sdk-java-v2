@@ -43,7 +43,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.codegen.validation.ValidationErrorId;
@@ -300,7 +299,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getVariableName(String name, Shape parentShape) {
+    public String getVariableName(String name, ShapeContext parentShape) {
         if (isJavaKeyword(name) ||
             isDisallowedNameForShape(unCapitalize(name), parentShape)) {
             return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
@@ -342,15 +341,15 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentGetterMethodName(String memberName, Shape parentShape, Shape shape) {
+    public String getFluentGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
         String getterMethodName = Utils.unCapitalize(memberName);
 
         getterMethodName = rewriteInvalidMemberName(getterMethodName, parentShape);
 
-        if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+        if (shape.isOrContainsEnum()) {
             getterMethodName += "AsString";
 
-            if (Utils.isListShape(shape) || Utils.isMapShape(shape)) {
+            if (shape.isList() || shape.isMap()) {
                 getterMethodName += "s";
             }
         }
@@ -359,8 +358,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentEnumGetterMethodName(String memberName, Shape parentShape, Shape shape) {
-        if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+    public String getFluentEnumGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
+        if (!shape.isOrContainsEnum()) {
             return null;
         }
 
@@ -370,39 +369,37 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getExistenceCheckMethodName(String memberName, Shape parentShape) {
+    public String getExistenceCheckMethodName(String memberName, ShapeContext parentShape) {
         String existenceCheckMethodName = Utils.unCapitalize(memberName);
         existenceCheckMethodName = rewriteInvalidMemberName(existenceCheckMethodName, parentShape);
         return String.format("has%s", Utils.capitalize(existenceCheckMethodName));
     }
 
     @Override
-    public String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
+    public String getBeanStyleGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
         String fluentGetterMethodName;
-        if (Utils.isOrContainsEnumShape(c2jShape, serviceModel.getShapes())) {
+        if (shape.isOrContainsEnum()) {
             // Use the enum (modeled) name for bean-style getters
-            fluentGetterMethodName = getFluentEnumGetterMethodName(memberName, parentShape, c2jShape);
+            fluentGetterMethodName = getFluentEnumGetterMethodName(memberName, parentShape, shape);
         } else {
-            fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, c2jShape);
+            fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, shape);
         }
         return String.format("get%s", Utils.capitalize(fluentGetterMethodName));
     }
 
     @Override
-    public String getBeanStyleSetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
-        String beanStyleGetter = getBeanStyleGetterMethodName(memberName, parentShape, c2jShape);
+    public String getBeanStyleSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
+        String beanStyleGetter = getBeanStyleGetterMethodName(memberName, parentShape, shape);
         return String.format("set%s", beanStyleGetter.substring("get".length()));
     }
 
     @Override
-    public String getFluentSetterMethodName(String memberName, Shape parentShape, Shape shape) {
+    public String getFluentSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
         String setterMethodName = Utils.unCapitalize(memberName);
 
         setterMethodName = rewriteInvalidMemberName(setterMethodName, parentShape);
 
-        if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes()) &&
-            (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
-
+        if (shape.isOrContainsEnum() && (shape.isList() || shape.isMap())) {
             setterMethodName += "WithStrings";
         }
 
@@ -410,8 +407,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentEnumSetterMethodName(String memberName, Shape parentShape, Shape shape) {
-        if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+    public String getFluentEnumSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape) {
+        if (!shape.isOrContainsEnum()) {
             return null;
         }
 
@@ -430,7 +427,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return screamCase(memberModel.getName());
     }
 
-    private String rewriteInvalidMemberName(String memberName, Shape parentShape) {
+    private String rewriteInvalidMemberName(String memberName, ShapeContext parentShape) {
         if (isJavaKeyword(memberName) || isDisallowedNameForShape(memberName, parentShape)) {
             return Utils.unCapitalize(memberName + CONFLICTING_NAME_SUFFIX);
         }
@@ -438,7 +435,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return memberName;
     }
 
-    private boolean isDisallowedNameForShape(String name, Shape parentShape) {
+    private boolean isDisallowedNameForShape(String name, ShapeContext parentShape) {
         // Reserve the name "type" for union shapes.
         if (parentShape.isUnion() && "type".equals(name)) {
             return true;

@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.naming;
 
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
-import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.core.SdkField;
 
 /**
@@ -129,7 +128,7 @@ public interface NamingStrategy {
      * @param parentShape The shape containing the member, used to check for shape-specific reserved names.
      * @return Appropriate name to use for a Java variable or field.
      */
-    String getVariableName(String name, Shape parentShape);
+    String getVariableName(String name, ShapeContext parentShape);
 
     /**
      * @param enumValue Enum value as defined in the service model used to derive the java name.
@@ -145,42 +144,45 @@ public interface NamingStrategy {
 
     /**
      * @param memberName Member name to name getter for.
+     * @param parentShape Shape containing the member.
      * @param shape The shape associated with the member.
      * @return Name of the getter method for a model class member.
      */
-    String getFluentGetterMethodName(String memberName, Shape parentShape, Shape shape);
+    String getFluentGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * @param memberName The full member to get the name for.
+     * @param parentShape Shape containing the member.
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumGetterMethodName(String memberName, Shape parentShape, Shape shape);
+    String getFluentEnumGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * @param memberName Member name to name getter for.
      * @return Name of the JavaBean getter method for model class member.
      */
-    String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape);
+    String getBeanStyleGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * @param memberName Member name to name setter for.
      * @return Name of the JavaBean setter method for model class member.
      */
-    String getBeanStyleSetterMethodName(String memberName, Shape parentShape, Shape c2jShape);
+    String getBeanStyleSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * @param memberName Member name to name fluent setter for.
      * @return Appropriate name to use for fluent setter method (i.e. withFoo) for a model class member.
      */
-    String getFluentSetterMethodName(String memberName, Shape parentShape, Shape shape);
+    String getFluentSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * @param memberName The full member to get the name for.
+     * @param parentShape Shape containing the member.
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumSetterMethodName(String memberName, Shape parentShape, Shape shape);
+    String getFluentEnumSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
 
     /**
      * Stuttering is intentional, returns the name of the {@link SdkField} field.
@@ -205,7 +207,7 @@ public interface NamingStrategy {
      * @param parentShape The shape containing the member.
      * @return Name of an existence check method.
      */
-    String getExistenceCheckMethodName(String memberName, Shape parentShape);
+    String getExistenceCheckMethodName(String memberName, ShapeContext parentShape);
 
     /**
      * Retrieve the service's signing name that should be used based on the model.
