@@ -965,7 +965,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                     AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
                     RegionSet rs = RegionSet.create(endpointParams.region().id());
                     optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, rs);
-                    selectedAuthScheme = SelectedAuthScheme.builder().identity(selectedAuthScheme.identity()).signer(selectedAuthScheme.signer()).authSchemeOption(optionBuilder.build()).identityProvider(selectedAuthScheme.identityProvider()).build();
+                    selectedAuthScheme = selectedAuthScheme.toBuilder().authSchemeOption(optionBuilder.build()).build();
                 }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }

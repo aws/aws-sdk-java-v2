@@ -88,6 +88,18 @@ public final class SelectedAuthScheme<T extends Identity> {
         return identityProvider;
     }
 
+    /**
+     * Returns a builder initialized with the values from this instance, allowing modification
+     * of individual fields while preserving the rest.
+     */
+    public Builder<T> toBuilder() {
+        return new BuilderImpl<T>()
+            .identity(this.identity)
+            .signer(this.signer)
+            .authSchemeOption(this.authSchemeOption)
+            .identityProvider(this.identityProvider);
+    }
+
     public static <T extends Identity> Builder<T> builder() {
         return new BuilderImpl<>();
     }
