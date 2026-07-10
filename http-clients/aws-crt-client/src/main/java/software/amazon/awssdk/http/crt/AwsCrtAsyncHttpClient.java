@@ -195,6 +195,17 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         *
+         * <p>By default, it's 10 seconds.
+         *
+         * @param tlsNegotiationTimeout the timeout duration; must be positive
+         * @return this builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
          * client.
          *
@@ -267,6 +278,7 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
+                                                                      .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                       .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -274,6 +286,7 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
                                                                     .merge(serviceDefaults)
+                                                                    .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                     .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
