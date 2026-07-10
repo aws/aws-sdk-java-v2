@@ -20,9 +20,11 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapCrtException
 import static software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter.toAsyncCrtRequest;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBase;
 import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -58,33 +60,39 @@ public final class CrtAsyncRequestExecutor {
         long acquireStartTime = 0;
 
         if (shouldPublishMetrics) {
-            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
-            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
-            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
             acquireStartTime = System.nanoTime();
         }
 
         HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
+        HttpStreamManager streamManager = executionContext.streamManager();
 
         CrtResponseAdapter crtResponseHandler =
             CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
 
         CompletableFuture<HttpStreamBase> streamFuture =
-            executionContext.streamManager().acquireStream(crtRequest, crtResponseHandler);
+            streamManager.acquireStream(crtRequest, crtResponseHandler);
+
+        // Guard to ensure metrics are reported exactly once per request.
+        AtomicBoolean metricsReported = new AtomicBoolean(false);
+
+        long finalAcquireStartTime = acquireStartTime;
 
         // Evict the connection from the pool on failure so it is not reused.
+        // Also report metrics on failure — this ensures concurrency metrics
+        // are available during pool exhaustion timeouts.
         requestFuture.whenComplete((r, t) -> {
             if (t != null) {
+                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                }
                 crtResponseHandler.closeConnection();
             }
         });
 
-        long finalAcquireStartTime = acquireStartTime;
-
         streamFuture.whenComplete((stream, throwable) -> {
             crtResponseHandler.onAcquireStream(stream);
-            if (shouldPublishMetrics) {
-                reportMetrics(executionContext.streamManager(), metricCollector, finalAcquireStartTime);
+            if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
             }
 
             if (throwable != null) {

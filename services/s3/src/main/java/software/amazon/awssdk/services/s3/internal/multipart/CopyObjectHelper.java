@@ -347,8 +347,7 @@ public final class CopyObjectHelper {
         log.debug(() -> String.format("Starting multipart copy with partCount: %s, optimalPartSize: %s",
                                       partCount, optimalPartSize));
 
-        CopyObjectRequest copyRequestWithPinnedSource =
-            pinSourceVersionAndETag(ctx.copyObjectRequest, ctx.sourceVersionId, ctx.sourceETag);
+        CopyObjectRequest copyRequestWithPinnedSource = pinSourceETag(ctx.copyObjectRequest, ctx.sourceETag);
 
         // The list of completed parts must be sorted
         AtomicReferenceArray<CompletedPart> completedParts = new AtomicReferenceArray<>(partCount);
@@ -422,17 +421,13 @@ public final class CopyObjectHelper {
     }
 
     /**
-     * Returns a CopyObjectRequest with sourceVersionId and copySourceIfMatch set to the pinned values
-     * from HeadObject. This ensures all UploadPartCopy requests target the same source version and
-     * detect source mutation via ETag conditional.
+     * Returns a CopyObjectRequest with copySourceIfMatch set to the ETag from HeadObject.
+     * This detects source mutation via ETag conditional without requiring s3:GetObjectVersion.
+     * If the user explicitly provided sourceVersionId on the original request, it is already
+     * present on the builder and will be preserved.
      */
-    private CopyObjectRequest pinSourceVersionAndETag(CopyObjectRequest request,
-                                                      String sourceVersionId,
-                                                      String sourceETag) {
+    private CopyObjectRequest pinSourceETag(CopyObjectRequest request, String sourceETag) {
         CopyObjectRequest.Builder builder = request.toBuilder();
-        if (sourceVersionId != null) {
-            builder.sourceVersionId(sourceVersionId);
-        }
         if (sourceETag != null) {
             builder.copySourceIfMatch(sourceETag);
         }
