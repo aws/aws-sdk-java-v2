@@ -55,10 +55,14 @@ public final class AwsCrtConfigurationUtils {
         return clientSocketOptions;
     }
 
-    public static TlsConnectionOptions buildTlsConnectionOptions(TlsContext tlsContext, Duration tlsNegotiationTimeout) {
+    public static TlsConnectionOptions buildTlsConnectionOptions(TlsContext tlsContext, Duration tlsNegotiationTimeout,
+                                                                 String serverName) {
         TlsConnectionOptions tlsConnectionOptions = new TlsConnectionOptions(tlsContext);
         if (tlsNegotiationTimeout != null) {
             tlsConnectionOptions.withTimeoutMs(NumericUtils.saturatedCast(tlsNegotiationTimeout.toMillis()));
+        }
+        if (serverName != null) {
+            tlsConnectionOptions.withServerName(serverName);
         }
         return tlsConnectionOptions;
     }

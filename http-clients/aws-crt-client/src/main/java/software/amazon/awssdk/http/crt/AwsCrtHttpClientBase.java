@@ -78,7 +78,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
     private final TlsContext tlsContext;
-    private final TlsConnectionOptions tlsConnectionOptions;
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
@@ -108,8 +107,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         this.socketOptions = registerOwnedResource(clientSocketOptions);
         this.tlsContext = registerOwnedResource(clientTlsContext);
         this.tlsNegotiationTimeout = config.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
-        this.tlsConnectionOptions = registerOwnedResource(
-            buildTlsConnectionOptions(clientTlsContext, tlsNegotiationTimeout));
         this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
                               DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
         this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
@@ -150,7 +147,11 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                                     uri, maxStreamsPerEndpoint, maxStreamsPerEndpoint));
 
         boolean isHttps = "https".equalsIgnoreCase(uri.getScheme());
-        TlsConnectionOptions poolTlsConnectionOptions = isHttps ? tlsConnectionOptions : null;
+        TlsConnectionOptions poolTlsConnectionOptions = null;
+        if (isHttps) {
+            poolTlsConnectionOptions = registerOwnedResource(
+                buildTlsConnectionOptions(tlsContext, tlsNegotiationTimeout, uri.getHost()));
+        }
 
         HttpClientConnectionManagerOptions h1Options = new HttpClientConnectionManagerOptions()
                 .withClientBootstrap(bootstrap)
