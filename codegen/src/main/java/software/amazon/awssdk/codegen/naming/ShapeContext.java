@@ -20,11 +20,13 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
 /**
- * Minimal view of a shape that {@link NamingStrategy} needs when deriving
- * names. Decouples the naming strategy from the concrete
- * {@link software.amazon.awssdk.codegen.model.service.Shape} type so a
- * Smithy-backed implementation can supply the same information without
- * constructing a C2J shape.
+ * A read-only view of a service model shape, exposing the predicates
+ * ({@link #isUnion()}, {@link #isException()}, {@link #isList()},
+ * {@link #isMap()}, {@link #isOrContainsEnum()}) that {@link NamingStrategy}
+ * consults when deriving Java names for members and accessors.
+ *
+ * <p>Adapters for specific model formats are provided as static factories;
+ * see {@link #ofC2j(Shape, Map)}.
  */
 public interface ShapeContext {
 

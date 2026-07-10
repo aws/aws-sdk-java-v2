@@ -26,12 +26,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
-/**
- * Verifies the {@link ShapeContext#ofC2j(Shape, Map)} adapter routes each of
- * the five predicates to the correct backing accessor. Guards against wiring
- * mistakes (swapped predicates, dropped {@code allShapes} argument) that would
- * otherwise silently propagate through {@link NamingStrategy}.
- */
 class ShapeContextTest {
 
     private static Shape shape(String type) {
