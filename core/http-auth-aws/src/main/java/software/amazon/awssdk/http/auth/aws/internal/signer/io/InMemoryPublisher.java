@@ -28,7 +28,8 @@ import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Temporarily used for buffering all data into memory.
+ * A content-length-aware publisher that replays buffered data. Used by {@link ChecksumSubscriber} to replay the payload after
+ * checksumming.
  */
 @SdkInternalApi
 public class InMemoryPublisher implements SdkHttpContentPublisher {

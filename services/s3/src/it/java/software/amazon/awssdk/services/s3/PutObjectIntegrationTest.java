@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -105,9 +106,10 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
                                                                                        .chunkedEncodingEnabled(false)
                                                                                        .build())
                                                   .build()) {
-            s3Async.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
-                             AsyncRequestBody.fromString("TESTING"))
-                   .get(30, java.util.concurrent.TimeUnit.SECONDS);
+            PutObjectResponse response = s3Async.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
+                                                           AsyncRequestBody.fromString("TESTING"))
+                                                .get(30, TimeUnit.SECONDS);
+            assertThat(response.eTag()).isNotNull();
         }
     }
 
