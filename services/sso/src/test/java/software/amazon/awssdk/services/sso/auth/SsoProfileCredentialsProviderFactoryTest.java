@@ -46,6 +46,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.auth.ExpiredTokenException;
@@ -561,7 +562,10 @@ public class SsoProfileCredentialsProviderFactoryTest {
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
-        RuntimeException secondCallError = new RuntimeException("Token refresh failed on second attempt");
+        RuntimeException secondCallError = SdkServiceException.builder()
+            .message("SSO service unavailable")
+            .statusCode(500)
+            .build();
         when(sdkTokenProvider.resolveToken())
             .thenReturn(SsoAccessToken.builder().accessToken("valid-token").expiresAt(Instant.now().plusSeconds(3600)).build())
             .thenThrow(secondCallError);
