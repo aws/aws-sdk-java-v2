@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.crac;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -51,40 +52,40 @@ public final class TargetedWarmUpInvoker {
      * at warn and skipped, and a provider that fails does not stop the others.
      *
      * @param requestedClassNames the fully qualified sync or async client class names to warm.
-     * @return the transports that were matched, for narrowing the follow-on HTTP-client warm-up.
+     * @return the matched transports and the names that warmed successfully.
      */
-    public Set<ClientType> invoke(Collection<String> requestedClassNames) {
+    public TargetedWarmUpResult invoke(Collection<String> requestedClassNames) {
         Set<ClientType> matchedTransports = EnumSet.noneOf(ClientType.class);
+        Set<String> warmedClientNames = new LinkedHashSet<>();
         if (requestedClassNames.isEmpty()) {
-            return matchedTransports;
+            return new TargetedWarmUpResult(matchedTransports, warmedClientNames);
         }
 
         List<SdkWarmUpProvider> providers = loadProviders();
         for (String requested : requestedClassNames) {
-            Set<ClientType> matched = warmMatching(requested, providers);
+            boolean warmFailed = false;
+            Set<ClientType> matched = EnumSet.noneOf(ClientType.class);
+            for (SdkWarmUpProvider provider : providers) {
+                ClientType transport = transportFor(requested, provider);
+                if (transport == null) {
+                    continue;
+                }
+                matched.add(transport);
+                try {
+                    provider.warmUpClient(transport);
+                } catch (RuntimeException | LinkageError e) {
+                    warmFailed = true;
+                    log.warn(() -> "Warm-up failed for " + provider.getClass().getName() + " and was skipped.", e);
+                }
+            }
             if (matched.isEmpty()) {
                 log.warn(() -> "No warm-up provider matched client class " + requested + "; skipping.");
+            } else if (!warmFailed) {
+                warmedClientNames.add(requested);
             }
             matchedTransports.addAll(matched);
         }
-        return matchedTransports;
-    }
-
-    private Set<ClientType> warmMatching(String requested, List<SdkWarmUpProvider> providers) {
-        Set<ClientType> matched = EnumSet.noneOf(ClientType.class);
-        for (SdkWarmUpProvider provider : providers) {
-            ClientType transport = transportFor(requested, provider);
-            if (transport == null) {
-                continue;
-            }
-            matched.add(transport);
-            try {
-                provider.warmUpClient(transport);
-            } catch (RuntimeException | LinkageError e) {
-                log.warn(() -> "Warm-up failed for " + provider.getClass().getName() + " and was skipped.", e);
-            }
-        }
-        return matched;
+        return new TargetedWarmUpResult(matchedTransports, warmedClientNames);
     }
 
     private ClientType transportFor(String requested, SdkWarmUpProvider provider) {

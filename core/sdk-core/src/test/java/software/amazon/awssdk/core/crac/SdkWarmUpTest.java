@@ -21,11 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests the static {@link SdkWarmUp#prime()} entry point end to end through {@link java.util.ServiceLoader},
@@ -108,10 +110,29 @@ class SdkWarmUpTest {
     }
 
     @Test
+    void prime_withUnmatchedClient_warnsOnEveryCallAndIsRetried() {
+        // An unmatched client is not recorded as primed, so every call warns and retries.
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            SdkWarmUp.prime(RetriedUnmatchedClient.class);
+            SdkWarmUp.prime(RetriedUnmatchedClient.class);
+
+            long unmatchedWarns = logCaptor.loggedEvents().stream()
+                .filter(event -> event.getLevel() == Level.WARN
+                                 && event.getMessage().getFormattedMessage()
+                                         .contains(RetriedUnmatchedClient.class.getName()))
+                .count();
+            assertThat(unmatchedWarns).isEqualTo(2);
+        }
+    }
+
+    @Test
     void prime_withEmptyArray_isNoOp() {
         assertThatCode(() -> SdkWarmUp.prime(new Class[0])).doesNotThrowAnyException();
     }
 
     interface UnmatchedClient extends SdkClient {
+    }
+
+    interface RetriedUnmatchedClient extends SdkClient {
     }
 }

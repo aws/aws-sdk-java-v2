@@ -38,30 +38,34 @@ class TargetedWarmUpInvokerTest {
     void invoke_syncClassRequested_warmsSyncTransportOnly() {
         RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC));
+        TargetedWarmUpResult result = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC));
 
         assertThat(service1.warmedTypes()).containsExactly(ClientType.SYNC);
-        assertThat(matched).containsExactly(ClientType.SYNC);
+        assertThat(result.matchedTransports()).containsExactly(ClientType.SYNC);
+        assertThat(result.warmedClientNames()).containsExactly(SERVICE1_SYNC);
     }
 
     @Test
     void invoke_asyncClassRequested_warmsAsyncTransportOnly() {
         RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_ASYNC));
+        TargetedWarmUpResult result = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_ASYNC));
 
         assertThat(service1.warmedTypes()).containsExactly(ClientType.ASYNC);
-        assertThat(matched).containsExactly(ClientType.ASYNC);
+        assertThat(result.matchedTransports()).containsExactly(ClientType.ASYNC);
+        assertThat(result.warmedClientNames()).containsExactly(SERVICE1_ASYNC);
     }
 
     @Test
     void invoke_bothClassesRequested_warmsBothTransports() {
         RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC, SERVICE1_ASYNC));
+        TargetedWarmUpResult result =
+            invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC, SERVICE1_ASYNC));
 
         assertThat(service1.warmedTypes()).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
-        assertThat(matched).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
+        assertThat(result.matchedTransports()).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
+        assertThat(result.warmedClientNames()).containsExactly(SERVICE1_SYNC, SERVICE1_ASYNC);
     }
 
     @Test
@@ -80,9 +84,11 @@ class TargetedWarmUpInvokerTest {
         RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
-            Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList("com.example.NotAClient"));
+            TargetedWarmUpResult result =
+                invokerLoading(service1).invoke(Arrays.asList("com.example.NotAClient"));
 
-            assertThat(matched).isEmpty();
+            assertThat(result.matchedTransports()).isEmpty();
+            assertThat(result.warmedClientNames()).isEmpty();
             assertThat(service1.warmedTypes()).isEmpty();
             assertThat(logCaptor.loggedEvents())
                 .anyMatch(event -> event.getLevel() == Level.WARN
@@ -101,18 +107,50 @@ class TargetedWarmUpInvokerTest {
 
         // A throwing warmUpClient must not stop the follow-on HTTP warm-up: the matched transport is still returned so
         // the caller can narrow the HTTP warmers.
-        Set<ClientType> matched = invokerLoading(throwing).invoke(Arrays.asList(SERVICE1_SYNC));
+        TargetedWarmUpResult result = invokerLoading(throwing).invoke(Arrays.asList(SERVICE1_SYNC));
 
-        assertThat(matched).containsExactly(ClientType.SYNC);
+        assertThat(result.matchedTransports()).containsExactly(ClientType.SYNC);
+    }
+
+    @Test
+    void invoke_whenProviderWarmUpThrows_doesNotReportClientWarmed() {
+        SdkWarmUpProvider throwing = new TestProvider(SERVICE1_SYNC, SERVICE1_ASYNC) {
+            @Override
+            public void warmUpClient(ClientType clientType) {
+                throw new RuntimeException("boom");
+            }
+        };
+
+        TargetedWarmUpResult result = invokerLoading(throwing).invoke(Arrays.asList(SERVICE1_SYNC));
+
+        assertThat(result.warmedClientNames()).isEmpty();
+    }
+
+    @Test
+    void invoke_mixedSuccessAndFailure_reportsOnlySuccessfulClientWarmed() {
+        RecordingProvider healthy = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
+        SdkWarmUpProvider throwing = new TestProvider(SERVICE2_SYNC, null) {
+            @Override
+            public void warmUpClient(ClientType clientType) {
+                throw new RuntimeException("boom");
+            }
+        };
+
+        TargetedWarmUpResult result =
+            invokerLoading(healthy, throwing).invoke(Arrays.asList(SERVICE1_SYNC, SERVICE2_SYNC));
+
+        assertThat(result.warmedClientNames()).containsExactly(SERVICE1_SYNC);
+        assertThat(result.matchedTransports()).containsExactly(ClientType.SYNC);
     }
 
     @Test
     void invoke_emptyRequest_isNoOp() {
         RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(service1).invoke(Collections.emptyList());
+        TargetedWarmUpResult result = invokerLoading(service1).invoke(Collections.emptyList());
 
-        assertThat(matched).isEmpty();
+        assertThat(result.matchedTransports()).isEmpty();
+        assertThat(result.warmedClientNames()).isEmpty();
         assertThat(service1.warmedTypes()).isEmpty();
     }
 

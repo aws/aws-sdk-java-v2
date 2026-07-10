@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
 import software.amazon.awssdk.core.internal.crac.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpInvoker;
+import software.amazon.awssdk.core.internal.crac.TargetedWarmUpResult;
 import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
 import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
@@ -87,8 +88,9 @@ public final class SdkWarmUp {
 
     /**
      * Primes only the given service clients, warming the sync path for a sync client and the async path for an async
-     * client. A class matched by no provider is logged at warn and skipped. Best-effort and safe to call concurrently;
-     * a client already primed by a previous call is skipped.
+     * client. Best-effort and safe to call concurrently; a client already primed by a previous call is skipped.
+     *
+     * <p>A class matched by no provider, or whose warm-up fails, is logged at warn and retried by a later call.
      *
      * @param clients the service client classes to prime, for example {@code S3Client.class} or
      *                {@code S3AsyncClient.class}.
@@ -112,15 +114,15 @@ public final class SdkWarmUp {
         }
 
         // Racing calls may double-warm the same client; warming is idempotent, so that is harmless.
-        Set<ClientType> matched = TargetedWarmUpInvoker.create().invoke(toPrime);
-        if (matched.contains(ClientType.SYNC)) {
+        TargetedWarmUpResult result = TargetedWarmUpInvoker.create().invoke(toPrime);
+        if (result.matchedTransports().contains(ClientType.SYNC)) {
             SyncHttpClientWarmer.create().warmAll();
         }
-        if (matched.contains(ClientType.ASYNC)) {
+        if (result.matchedTransports().contains(ClientType.ASYNC)) {
             AsyncHttpClientWarmer.create().warmAll();
         }
 
-        // Record names only after warming completes, so a run that throws is retried by a later call.
-        PRIMED_CLIENTS.markPrimed(toPrime);
+        // Only successfully warmed names are recorded; unmatched or failed ones are retried on a later call.
+        PRIMED_CLIENTS.markPrimed(result.warmedClientNames());
     }
 }
