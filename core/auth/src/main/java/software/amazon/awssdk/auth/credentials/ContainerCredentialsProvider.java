@@ -191,9 +191,8 @@ public final class ContainerCredentialsProvider
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         String rejectedAccessKeyId = identity.accessKeyId();
-        return CompletableFuture.runAsync(() ->
-            credentialsCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
-        );
+        credentialsCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

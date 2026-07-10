@@ -171,9 +171,8 @@ public final class ProcessCredentialsProvider
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         String rejectedAccessKeyId = identity.accessKeyId();
-        return CompletableFuture.runAsync(() ->
-            processCredentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
-        );
+        processCredentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
@@ -373,7 +372,7 @@ public final class ProcessCredentialsProvider
          * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
          * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 1 minute.</p>
+         * <p>By default, this is 1 minute.
          *
          * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
@@ -399,7 +398,7 @@ public final class ProcessCredentialsProvider
          * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
          * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
          * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
-         * successful refresh.</p>
+         * successful refresh.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */

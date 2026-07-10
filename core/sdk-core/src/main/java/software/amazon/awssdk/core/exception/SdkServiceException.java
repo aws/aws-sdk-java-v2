@@ -108,7 +108,7 @@ public class SdkServiceException extends SdkException implements SdkPojo {
      * errors such as {@code AccessDenied}, where the credentials are valid but lack permission for the requested action.
      *
      * <p>When this returns {@code true}, the SDK may invalidate cached credentials so that the next attempt
-     * resolves fresh ones.</p>
+     * resolves fresh ones.
      *
      * @return true if the exception is classified as an authentication error, otherwise false.
      */

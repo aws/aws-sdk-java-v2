@@ -68,7 +68,7 @@ public final class AwsErrorCode {
         retryableErrorCodes.add("InternalError");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
 
-        Set<String> authErrorCodes = new HashSet<>(3);
+        Set<String> authErrorCodes = new HashSet<>(2);
         authErrorCodes.add("ExpiredToken");
         authErrorCodes.add("InvalidToken");
         AUTH_ERROR_CODES = unmodifiableSet(authErrorCodes);

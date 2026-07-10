@@ -173,9 +173,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         String rejectedAccessKeyId = identity.accessKeyId();
-        return CompletableFuture.runAsync(() ->
-            credentialCache.invalidate(holder -> rejectedAccessKeyId.equals(holder.sessionCredentials().accessKeyId()))
-        );
+        credentialCache.invalidate(holder -> rejectedAccessKeyId.equals(holder.sessionCredentials().accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

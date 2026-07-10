@@ -32,10 +32,10 @@ import software.amazon.awssdk.utils.Logger;
  * <p>When a service returns an authentication error (as determined by
  * {@link SdkServiceException#isAuthenticationError()}), this helper retrieves the
  * {@link SelectedAuthScheme} from the execution context and calls
- * {@link IdentityProvider#invalidate} so the next retry attempt resolves fresh credentials.</p>
+ * {@link IdentityProvider#invalidate} so the next retry attempt resolves fresh credentials.
  *
  * <p>All exceptions from the invalidation path are caught and logged at debug level.
- * Invalidation failures never disrupt the normal request/retry flow.</p>
+ * Invalidation failures never disrupt the normal request/retry flow.
  */
 @SdkInternalApi
 public final class AuthErrorInvalidationHelper {

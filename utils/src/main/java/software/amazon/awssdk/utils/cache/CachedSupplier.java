@@ -124,7 +124,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * and read without the lock (volatile). When non-null and in the future, {@link #get()} returns the cached
      * value without contacting the source.
      *
-     * <p>This field is NEVER modified by {@code invalidate()} — backoff remains independently tracked.</p>
+     * <p>This field is NEVER modified by {@code invalidate()} — backoff remains independently tracked.
      */
     private volatile Instant nextAllowedRefreshTime;
 
@@ -174,9 +174,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * the refresh backoff gate ({@code nextAllowedRefreshTime}).
      *
      * <p>This method MUST NOT discard the cached value.
-     * This method MUST NOT clear or modify {@code nextAllowedRefreshTime}.</p>
+     * This method MUST NOT clear or modify {@code nextAllowedRefreshTime}.
      *
-     * <p>If there is no cached value, this method is a no-op — the predicate will not be called.</p>
+     * <p>If there is no cached value, this method is a no-op — the predicate will not be called.
      *
      * @param matchesCachedValue A predicate that returns true if the cached value
      *                           is the one that should be invalidated. The value passed
@@ -211,7 +211,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn(() -> "(" + cachedValueName + ") Interrupted while invalidating cached value.");
+            log.debug(() -> "(" + cachedValueName + ") Interrupted while invalidating cached value.");
         }
     }
 
@@ -529,10 +529,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          *
          * <p>This is used for errors where the credential source has definitively indicated that the current
          * authentication state is invalid and requires user intervention (e.g., expired SSO tokens,
-         * changed user credentials).</p>
+         * changed user credentials).
          *
          * <p>By default, no exceptions are considered non-recoverable (all failures trigger static stability
-         * backoff when {@link StaleValueBehavior#ALLOW} is configured).</p>
+         * backoff when {@link StaleValueBehavior#ALLOW} is configured).
          */
         public Builder<T> nonRecoverableErrorPredicate(Predicate<RuntimeException> nonRecoverableErrorPredicate) {
             this.nonRecoverableErrorPredicate = nonRecoverableErrorPredicate;
@@ -618,10 +618,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * extends the stale time by a uniformly random backoff between 5 and 10 minutes (300-600 seconds).
          *
          * <p>If a {@link Builder#nonRecoverableErrorPredicate(Predicate)} is configured and returns {@code true}
-         * for the exception, it is re-thrown immediately without extending the stale time.</p>
+         * for the exception, it is re-thrown immediately without extending the stale time.
          *
          * <p>Value retrieval will never fail as long as the cache has succeeded at least once,
-         * unless the error is non-recoverable.</p>
+         * unless the error is non-recoverable.
          */
         ALLOW
     }

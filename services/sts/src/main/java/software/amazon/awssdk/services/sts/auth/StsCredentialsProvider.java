@@ -128,9 +128,8 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
         String rejectedAccessKeyId = identity.accessKeyId();
-        return CompletableFuture.runAsync(() ->
-            sessionCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()))
-        );
+        sessionCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
