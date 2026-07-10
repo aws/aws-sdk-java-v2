@@ -1,0 +1,2 @@
+software.amazon.awssdk.http.warmup.IdempotenceWarmUpProvider
+software.amazon.awssdk.http.warmup.SelectiveWarmUpProvider

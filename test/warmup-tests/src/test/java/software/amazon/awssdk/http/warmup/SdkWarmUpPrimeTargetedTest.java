@@ -19,20 +19,25 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
@@ -43,19 +48,7 @@ import software.amazon.awssdk.services.sts.StsClient;
 
 /**
  * End-to-end integration test of {@link SdkWarmUp#prime(Class...)} with real service clients (STS, DynamoDB) whose
- * generated {@link SdkWarmUpProvider} implementations are on the classpath via ServiceLoader. Verifies that:
- * <ul>
- *     <li>Passing a sync client class routes through {@code warmUpClient(SYNC)} and triggers the sync HTTP warmer.</li>
- *     <li>Passing an async client class routes through {@code warmUpClient(ASYNC)} and triggers the async HTTP warmer.</li>
- *     <li>Idempotency: a second call with the same client is a no-op.</li>
- *     <li>Multiple services can be primed in one call.</li>
- *     <li>Concurrent callers do not throw or corrupt state.</li>
- *     <li>An unmatched client is a safe no-op.</li>
- * </ul>
- *
- * <p>The HTTP warmers resolve their endpoint via {@code RegionEndpointResolver}, which reads {@code aws.region}. Tests
- * set a dummy region so DNS fails fast and no real network traffic leaves the host. The generated providers use
- * {@code CannedResponseHttpClient}, so their {@code warmUpClient} does not need the network either.
+ * generated {@link SdkWarmUpProvider} implementations are on the classpath via ServiceLoader.
  */
 class SdkWarmUpPrimeTargetedTest {
 
@@ -70,12 +63,8 @@ class SdkWarmUpPrimeTargetedTest {
             .withStatus(302)
             .withHeader("Location", "https://aws.amazon.com/iam")));
 
-        // Use a non-routable region so the HTTP warmer's STS endpoint fails DNS immediately; the warm-up is best-effort
-        // and swallows the failure, keeping the test offline.
         savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "warmup-integration-test");
-
-        SdkWarmUp.resetTargetedPrimeStateForTesting();
     }
 
     @AfterEach
@@ -101,24 +90,19 @@ class SdkWarmUpPrimeTargetedTest {
         assertThat(count).isGreaterThanOrEqualTo(3);
     }
 
-    @Test
-    void prime_withStsSyncClient_completesWithoutError() {
-        assertThatCode(() -> SdkWarmUp.prime(StsClient.class)).doesNotThrowAnyException();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("singleClientCases")
+    void prime_withSingleClient_completesWithoutError(String description, Class<? extends SdkClient> client) {
+        assertThatCode(() -> SdkWarmUp.prime(client)).doesNotThrowAnyException();
     }
 
-    @Test
-    void prime_withStsAsyncClient_completesWithoutError() {
-        assertThatCode(() -> SdkWarmUp.prime(StsAsyncClient.class)).doesNotThrowAnyException();
-    }
-
-    @Test
-    void prime_withDynamoDbSyncClient_completesWithoutError() {
-        assertThatCode(() -> SdkWarmUp.prime(DynamoDbClient.class)).doesNotThrowAnyException();
-    }
-
-    @Test
-    void prime_withDynamoDbAsyncClient_completesWithoutError() {
-        assertThatCode(() -> SdkWarmUp.prime(DynamoDbAsyncClient.class)).doesNotThrowAnyException();
+    private static Stream<Arguments> singleClientCases() {
+        return Stream.of(
+            arguments("STS sync", StsClient.class),
+            arguments("STS async", StsAsyncClient.class),
+            arguments("DynamoDB sync", DynamoDbClient.class),
+            arguments("DynamoDB async", DynamoDbAsyncClient.class)
+        );
     }
 
     @Test
@@ -144,11 +128,13 @@ class SdkWarmUpPrimeTargetedTest {
     }
 
     @Test
-    void prime_concurrentCalls_doNotThrow() throws InterruptedException {
+    void prime_concurrentCalls_allCompleteSuccessfully() throws InterruptedException {
         int threadCount = 8;
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(threadCount);
         List<Thread> threads = new ArrayList<>();
+        List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger completed = new AtomicInteger();
 
         Class<?>[] clients = {StsClient.class, StsAsyncClient.class, DynamoDbClient.class, DynamoDbAsyncClient.class};
         for (int i = 0; i < threadCount; i++) {
@@ -158,8 +144,11 @@ class SdkWarmUpPrimeTargetedTest {
                 try {
                     start.await();
                     SdkWarmUp.prime(client);
+                    completed.incrementAndGet();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                } catch (Throwable t) {
+                    failures.add(t);
                 } finally {
                     done.countDown();
                 }
@@ -173,7 +162,9 @@ class SdkWarmUpPrimeTargetedTest {
         for (Thread thread : threads) {
             thread.join();
         }
-        // If we get here without exceptions or hangs, concurrency is safe.
+
+        assertThat(failures).as("no prime(Class...) call threw").isEmpty();
+        assertThat(completed.get()).as("every prime(Class...) call completed").isEqualTo(threadCount);
     }
 
     @Test
@@ -186,16 +177,20 @@ class SdkWarmUpPrimeTargetedTest {
         mockServer.verify(0, anyRequestedFor(anyUrl()));
     }
 
-    @Test
-    void prime_withNullArray_isNoOp() {
-        assertThatCode(() -> SdkWarmUp.prime((Class<? extends SdkClient>[]) null)).doesNotThrowAnyException();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("noOpInputCases")
+    void prime_withNoOpInput_doesNotThrow(String description, Class<? extends SdkClient>[] clients) {
+        assertThatCode(() -> SdkWarmUp.prime(clients)).doesNotThrowAnyException();
     }
 
-    @Test
-    void prime_withEmptyArray_isNoOp() {
-        assertThatCode(() -> SdkWarmUp.prime(new Class[0])).doesNotThrowAnyException();
+    private static Stream<Arguments> noOpInputCases() {
+        return Stream.of(
+            arguments("null array", (Class<? extends SdkClient>[]) null),
+            arguments("empty array", new Class[0])
+        );
     }
 
     interface UnregisteredClient extends SdkClient {
     }
 }
+

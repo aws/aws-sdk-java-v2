@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.core.crac;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.ServiceLoader;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
+import software.amazon.awssdk.core.internal.crac.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpInvoker;
 import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
@@ -61,10 +60,7 @@ public final class SdkWarmUp {
 
     private static volatile boolean primed = false;
 
-    // Client class names already primed by prime(Class...). Access guarded by TARGETED_LOCK.
-    private static final Set<String> PRIMED_CLIENTS = new HashSet<>();
-
-    private static final Object TARGETED_LOCK = new Object();
+    private static final PrimedClientRegistry PRIMED_CLIENTS = new PrimedClientRegistry();
 
     private SdkWarmUp() {
     }
@@ -104,24 +100,18 @@ public final class SdkWarmUp {
             return;
         }
 
-        Set<String> toPrime = new LinkedHashSet<>();
-        synchronized (TARGETED_LOCK) {
-            for (Class<? extends SdkClient> client : clients) {
-                if (client == null) {
-                    continue;
-                }
-                String name = client.getName();
-                if (!PRIMED_CLIENTS.contains(name)) {
-                    toPrime.add(name);
-                }
+        Set<String> requested = new LinkedHashSet<>();
+        for (Class<? extends SdkClient> client : clients) {
+            if (client != null) {
+                requested.add(client.getName());
             }
         }
+        Set<String> toPrime = PRIMED_CLIENTS.selectUnprimed(requested);
         if (toPrime.isEmpty()) {
             return;
         }
 
-        // Warm outside TARGETED_LOCK so no lock is held across network I/O. Concurrent calls racing on the same
-        // client may warm it twice; warming is idempotent, so that is harmless.
+        // Racing calls may double-warm the same client; warming is idempotent, so that is harmless.
         Set<ClientType> matched = TargetedWarmUpInvoker.create().invoke(toPrime);
         if (matched.contains(ClientType.SYNC)) {
             SyncHttpClientWarmer.create().warmAll();
@@ -131,15 +121,6 @@ public final class SdkWarmUp {
         }
 
         // Record names only after warming completes, so a run that throws is retried by a later call.
-        synchronized (TARGETED_LOCK) {
-            PRIMED_CLIENTS.addAll(toPrime);
-        }
-    }
-
-    @SdkTestInternalApi
-    public static void resetTargetedPrimeStateForTesting() {
-        synchronized (TARGETED_LOCK) {
-            PRIMED_CLIENTS.clear();
-        }
+        PRIMED_CLIENTS.markPrimed(toPrime);
     }
 }

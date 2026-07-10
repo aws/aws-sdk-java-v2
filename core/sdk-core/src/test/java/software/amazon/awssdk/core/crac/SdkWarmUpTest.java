@@ -41,7 +41,6 @@ class SdkWarmUpTest {
         // Dummy region so prime()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
         savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "warmup-unit-test");
-        SdkWarmUp.resetTargetedPrimeStateForTesting();
         RegisteredWarmUpProvider.INVOCATIONS.set(0);
         RegisteredWarmUpProvider.WARMED_CLIENTS.clear();
     }
@@ -90,6 +89,7 @@ class SdkWarmUpTest {
     void prime_withMatchingSyncClient_warmsSyncTransportThroughWarmUpClient() {
         SdkWarmUp.prime(RegisteredSyncClient.class);
 
+        // Targeted prime warms via warmUpClient() only; the full warmUp() path (counted by INVOCATIONS) must not run.
         assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(0);
         assertThat(RegisteredWarmUpProvider.WARMED_CLIENTS).containsExactly(ClientType.SYNC);
     }

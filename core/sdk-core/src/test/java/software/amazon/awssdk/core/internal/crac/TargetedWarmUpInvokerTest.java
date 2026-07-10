@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.crac;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,60 +30,60 @@ import software.amazon.awssdk.testutils.LogCaptor;
 
 class TargetedWarmUpInvokerTest {
 
-    private static final String S3_SYNC = "software.amazon.awssdk.services.s3.S3Client";
-    private static final String S3_ASYNC = "software.amazon.awssdk.services.s3.S3AsyncClient";
-    private static final String DDB_SYNC = "software.amazon.awssdk.services.dynamodb.DynamoDbClient";
+    private static final String SERVICE1_SYNC = "software.amazon.awssdk.services.service1.Service1Client";
+    private static final String SERVICE1_ASYNC = "software.amazon.awssdk.services.service1.Service1AsyncClient";
+    private static final String SERVICE2_SYNC = "software.amazon.awssdk.services.service2.Service2Client";
 
     @Test
     void invoke_syncClassRequested_warmsSyncTransportOnly() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(s3).invoke(Arrays.asList(S3_SYNC));
+        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC));
 
-        assertThat(s3.warmedTypes()).containsExactly(ClientType.SYNC);
+        assertThat(service1.warmedTypes()).containsExactly(ClientType.SYNC);
         assertThat(matched).containsExactly(ClientType.SYNC);
     }
 
     @Test
     void invoke_asyncClassRequested_warmsAsyncTransportOnly() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(s3).invoke(Arrays.asList(S3_ASYNC));
+        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_ASYNC));
 
-        assertThat(s3.warmedTypes()).containsExactly(ClientType.ASYNC);
+        assertThat(service1.warmedTypes()).containsExactly(ClientType.ASYNC);
         assertThat(matched).containsExactly(ClientType.ASYNC);
     }
 
     @Test
     void invoke_bothClassesRequested_warmsBothTransports() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(s3).invoke(Arrays.asList(S3_SYNC, S3_ASYNC));
+        Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList(SERVICE1_SYNC, SERVICE1_ASYNC));
 
-        assertThat(s3.warmedTypes()).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
+        assertThat(service1.warmedTypes()).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
         assertThat(matched).containsExactlyInAnyOrder(ClientType.SYNC, ClientType.ASYNC);
     }
 
     @Test
     void invoke_classAcrossTwoProviders_warmsOnlyTheMatchingProvider() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
-        RecordingProvider ddb = new RecordingProvider(DDB_SYNC, null);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
+        RecordingProvider service2 = new RecordingProvider(SERVICE2_SYNC, null);
 
-        invokerLoading(s3, ddb).invoke(Arrays.asList(DDB_SYNC));
+        invokerLoading(service1, service2).invoke(Arrays.asList(SERVICE2_SYNC));
 
-        assertThat(s3.warmedTypes()).isEmpty();
-        assertThat(ddb.warmedTypes()).containsExactly(ClientType.SYNC);
+        assertThat(service1.warmedTypes()).isEmpty();
+        assertThat(service2.warmedTypes()).containsExactly(ClientType.SYNC);
     }
 
     @Test
     void invoke_unmatchedClass_logsWarnAndDoesNotThrow() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
-            Set<ClientType> matched = invokerLoading(s3).invoke(Arrays.asList("com.example.NotAClient"));
+            Set<ClientType> matched = invokerLoading(service1).invoke(Arrays.asList("com.example.NotAClient"));
 
             assertThat(matched).isEmpty();
-            assertThat(s3.warmedTypes()).isEmpty();
+            assertThat(service1.warmedTypes()).isEmpty();
             assertThat(logCaptor.loggedEvents())
                 .anyMatch(event -> event.getLevel() == Level.WARN
                                    && event.getMessage().getFormattedMessage().contains("com.example.NotAClient"));
@@ -93,7 +92,7 @@ class TargetedWarmUpInvokerTest {
 
     @Test
     void invoke_whenProviderWarmUpThrows_stillReturnsMatchedTransport() {
-        SdkWarmUpProvider throwing = new TestProvider(S3_SYNC, S3_ASYNC) {
+        SdkWarmUpProvider throwing = new TestProvider(SERVICE1_SYNC, SERVICE1_ASYNC) {
             @Override
             public void warmUpClient(ClientType clientType) {
                 throw new RuntimeException("boom");
@@ -102,19 +101,19 @@ class TargetedWarmUpInvokerTest {
 
         // A throwing warmUpClient must not stop the follow-on HTTP warm-up: the matched transport is still returned so
         // the caller can narrow the HTTP warmers.
-        Set<ClientType> matched = invokerLoading(throwing).invoke(Arrays.asList(S3_SYNC));
+        Set<ClientType> matched = invokerLoading(throwing).invoke(Arrays.asList(SERVICE1_SYNC));
 
         assertThat(matched).containsExactly(ClientType.SYNC);
     }
 
     @Test
     void invoke_emptyRequest_isNoOp() {
-        RecordingProvider s3 = new RecordingProvider(S3_SYNC, S3_ASYNC);
+        RecordingProvider service1 = new RecordingProvider(SERVICE1_SYNC, SERVICE1_ASYNC);
 
-        Set<ClientType> matched = invokerLoading(s3).invoke(Collections.emptyList());
+        Set<ClientType> matched = invokerLoading(service1).invoke(Collections.emptyList());
 
         assertThat(matched).isEmpty();
-        assertThat(s3.warmedTypes()).isEmpty();
+        assertThat(service1.warmedTypes()).isEmpty();
     }
 
     private TargetedWarmUpInvoker invokerLoading(SdkWarmUpProvider... providers) {
