@@ -531,6 +531,10 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>dynamodb-enhanced</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>dynamodb-mapper</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>

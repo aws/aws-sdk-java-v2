@@ -628,6 +628,7 @@
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
+                            <includeModule>dynamodb-mapper</includeModule>
                             <includeModule>s3-transfer-manager</includeModule>
                             <includeModule>iam-policy-builder</includeModule>
                             <includeModule>s3-event-notifications</includeModule>
