@@ -65,6 +65,12 @@ public class InMemoryPublisher implements SdkHttpContentPublisher {
 
             @Override
             public void request(long n) {
+                if (n <= 0) {
+                    finish(() -> s.onError(
+                        new IllegalArgumentException("n > 0 required but it was " + n)));
+                    return;
+                }
+
                 if (done.get()) {
                     return;
                 }
