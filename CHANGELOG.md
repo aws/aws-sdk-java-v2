@@ -1,4 +1,127 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.47.5__ __2026-07-10__
+## __AWS Lambda__
+  - ### Features
+    - Added TelemetryConfig support for Managed Instances Capacity Provider, enabling customers to configure system log level and custom log group for managed instance logging.
+
+## __AWS License Manager__
+  - ### Features
+    - Added the ResetUsage field to the CreateLicenseVersion API. When set to true, the entitlement usage counts for the license are reset to 0. If it is false or not specified, entitlement usage is left unchanged.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - CloudWatch now assigns a unique identifier to each anomaly detector. PutAnomalyDetector and DescribeAnomalyDetectors return this AnomalyDetectorId, which you can use to describe or delete a specific anomaly detector directly.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New Amazon EC2 instances. M9g, M9gd, C9g, and C9gd on AWS Graviton5. C8in, M8in, and R8in add 600 Gbps network. C8ib, M8ib, and R8ib add 300 Gbps EBS. C8ine, M8ine, M8idn, R8idn, M8idb, and R8idb round out Intel Xeon 6. Mac-m3ultra with Apple M3 Ultra. G7 with NVIDIA RTX PRO 4500 Blackwell GPUs.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Provides CreateKnowledgeBase and UpdateKnowledgeBase APIs
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for g4d, c6g, c7g, c8g instance types for SageMaker HyperPod
+
+## __Apache HTTP Client 5__
+  - ### Features
+    - Upgrade httpcomponents.client5 to 5.6.2 to address CVE-2026-54428
+
+## __Inspector2__
+  - ### Features
+    - Support for 3 day and 7 day ECR re-scan durations
+
+# __2.47.4__ __2026-07-09__
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for additional override parameters in CreateFleet, including LaunchTemplateSpecificationUserData, KeyName, IamInstanceProfile, and MetadataOptions. The CreateFleet response now also includes SubnetId, AvailabilityZone, and AvailabilityZoneId for launched instances.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding "AI Analyst" enum value for detector
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - adds support for AWS IVS ad configuration APIs to allow for a postRollConfiguration object on the ad configuration resource
+
+## __Apache 5 HTTP Client__
+  - ### Bugfixes
+    - Fix GraalVM native-image metadata for Apache 5.
+        - Contributed by: [@luneo7](https://github.com/luneo7)
+
+## __Synthetics__
+  - ### Features
+    - CloudWatch Synthetics adds support for customer managed KMS keys for canary environment variables. Customers can now encrypt their canary's Lambda function environment variables at rest using their own AWS KMS key, providing additional control over data protection.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@luneo7](https://github.com/luneo7)
+# __2.47.3__ __2026-07-08__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Refactor per-operation inline lambdas to factory methods in generated clients
+    - Updating Lake Formation Access Grants Plugin version to 1.4.3
+        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
+
+## __AWS Sign-In Service__
+  - ### Features
+    - Adds support for OAuth 2.0 token operations in AWS Sign-In, CreateOAuth2TokenWithIAM (client credentials flow), IntrospectOAuth2TokenWithIAM (token inspection), and RevokeOAuth2TokenWithIAM (token revocation).
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adding alternative factory methods to construct AttributeValue that circumvent the use of the builder pattern, and wiring those new factory methods into the DDB enhanced client usages to improve performance.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix regression where the SDK automatically attached the source object's versionId to UploadPartCopy requests during multipart copy, causing S3 to require `s3:GetObjectVersion` permission. Updated to only add versionId when explicitly provided by the caller.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@rajasbh-aws](https://github.com/rajasbh-aws)
+# __2.47.2__ __2026-07-08__
+## __AWS Common Runtime HTTP Client__
+  - ### Bugfixes
+    - Fix CRT connection pool exhaustion/leak when streams are cancelled due to API call timeouts.  Ensure concurrency/HTTP metrics are always published.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Default session downlink transmission parameters have been added to the existing Multicast Group APIs. Explicit transmission parameters are no longer required when starting a multicast session during the FUOTA procedure.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - Next Generation Resilience Hub now supports filtering and sorting failure mode assessments, resource type filtering in ListResources, cross-region and cross-account topology edges, data recovery achievability status, and more granular dependency discovery progress tracking.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Update ExperimentRun APIs to support ConflictExceptions.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Gateway now supports mapping allowed scopes to separate advertised scopes on the inbound authorizer.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS now automatically detects the correct CPU architecture for Express Mode services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Replace Root Volume now supports a VolumeId parameter. This allows the customer to pass in a pre-prepared volume as the target root volume for an RRV workflow.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Added AddressNamesMode, AddressNameTranslations, MobilityMode, PostalCodeMode, SecondaryAddresses, and DriveThrough features across Places V2 APIs to support address name formatting,  multilingual translations, travel-aware search, multi-city postal codes, and unit-level address resolution.
+
 # __2.47.1__ __2026-07-07__
 ## __AWS Config__
   - ### Features

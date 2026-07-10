@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -153,8 +155,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(describeEndpointsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "DescribeEndpoints", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "DescribeEndpoints"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("DescribeEndpoints", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("DescribeEndpoints"))
                                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -237,8 +239,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                              .withInput(testDiscoveryIdentifiersRequiredRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "TestDiscoveryIdentifiersRequired", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "TestDiscoveryIdentifiersRequired"))
+                                 authSchemeResolver("TestDiscoveryIdentifiersRequired", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("TestDiscoveryIdentifiersRequired"))
                              .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -301,20 +303,14 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryOptional");
 
-            return clientHandler
-                .execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                             .withOperationName("TestDiscoveryOptional")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .discoveredEndpoint(cachedEndpoint)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(testDiscoveryOptionalRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "TestDiscoveryOptional", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "TestDiscoveryOptional"))
-                             .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
+                                             .withOperationName("TestDiscoveryOptional").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                                             .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("TestDiscoveryOptional", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("TestDiscoveryOptional"))
+                                             .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -384,20 +380,14 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AwsEndpointDiscoveryTest");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "TestDiscoveryRequired");
 
-            return clientHandler
-                .execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                             .withOperationName("TestDiscoveryRequired")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .discoveredEndpoint(cachedEndpoint)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(testDiscoveryRequiredRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "TestDiscoveryRequired", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "TestDiscoveryRequired"))
-                             .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
+                                             .withOperationName("TestDiscoveryRequired").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                                             .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("TestDiscoveryRequired", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("TestDiscoveryRequired"))
+                                             .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -471,6 +461,14 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
+    }
+
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
