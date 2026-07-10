@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix bug where S3 PutObject would hang indefinitely when using AwsCrtAsyncHttpClient with chunkedEncodingEnabled(false)"
+}
