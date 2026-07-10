@@ -179,21 +179,61 @@ public class AwsCredentialsProviderChainTest {
     }
 
     @Test
-    public void invalidate_propagatesToAllChildren() {
+    public void invalidate_reuseEnabled_lastProviderSet_onlyInvalidatesLastProvider() {
         TrackingCredentialsProvider provider1 = new TrackingCredentialsProvider("key1", "secret1");
         TrackingCredentialsProvider provider2 = new TrackingCredentialsProvider("key2", "secret2");
-        TrackingCredentialsProvider provider3 = new TrackingCredentialsProvider("key3", "secret3");
 
         AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
-                                                                       .credentialsProviders(provider1, provider2, provider3)
+                                                                       .credentialsProviders(provider1, provider2)
+                                                                       .reuseLastProviderEnabled(true)
                                                                        .build();
+
+        // Trigger resolveCredentials so lastUsedProvider is set (provider1 succeeds first)
+        chain.resolveCredentials();
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
+        chain.invalidate(identity).join();
+
+        assertThat(provider1.invalidateCallCount).isEqualTo(1);
+        assertThat(provider2.invalidateCallCount).isEqualTo(0);
+    }
+
+    @Test
+    public void invalidate_reuseEnabled_lastProviderNotSet_invalidatesAllProviders() {
+        TrackingCredentialsProvider provider1 = new TrackingCredentialsProvider("key1", "secret1");
+        TrackingCredentialsProvider provider2 = new TrackingCredentialsProvider("key2", "secret2");
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(provider1, provider2)
+                                                                       .reuseLastProviderEnabled(true)
+                                                                       .build();
+
+        // Do NOT call resolveCredentials — lastUsedProvider is null
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
+        chain.invalidate(identity).join();
+
+        assertThat(provider1.invalidateCallCount).isEqualTo(1);
+        assertThat(provider2.invalidateCallCount).isEqualTo(1);
+    }
+
+    @Test
+    public void invalidate_reuseDisabled_invalidatesAllProviders() {
+        TrackingCredentialsProvider provider1 = new TrackingCredentialsProvider("key1", "secret1");
+        TrackingCredentialsProvider provider2 = new TrackingCredentialsProvider("key2", "secret2");
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(provider1, provider2)
+                                                                       .reuseLastProviderEnabled(false)
+                                                                       .build();
+
+        // Even after resolving, all providers should be invalidated
+        chain.resolveCredentials();
 
         AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
         chain.invalidate(identity).join();
 
         assertThat(provider1.invalidateCallCount).isEqualTo(1);
         assertThat(provider2.invalidateCallCount).isEqualTo(1);
-        assertThat(provider3.invalidateCallCount).isEqualTo(1);
     }
 
     @SuppressWarnings("unchecked")
@@ -207,6 +247,7 @@ public class AwsCredentialsProviderChainTest {
 
         AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
                                                                        .credentialsProviders(mockProvider1, mockProvider2, mockProvider3)
+                                                                       .reuseLastProviderEnabled(false)
                                                                        .build();
 
         AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");

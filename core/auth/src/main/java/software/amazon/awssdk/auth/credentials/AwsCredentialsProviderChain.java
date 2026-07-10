@@ -133,6 +133,14 @@ public final class AwsCredentialsProviderChain
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (reuseLastProviderEnabled && lastUsedProvider != null) {
+            return invalidateProvider(lastUsedProvider, identity)
+                .exceptionally(e -> {
+                    log.debug(() -> "Failed to invalidate provider " + lastUsedProvider + ": " + e.getMessage(), e);
+                    return null;
+                });
+        }
+
         CompletableFuture<?>[] futures = credentialsProviders.stream()
             .map(provider -> {
                 try {
