@@ -40,6 +40,7 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
     private volatile Subscription subscription;
 
     private final List<ByteBuffer> bufferedPayload = new ArrayList<>();
+    private long totalBytes = 0;
 
     public ChecksumSubscriber(Collection<? extends Checksum> consumers) {
         this.checksums.addAll(consumers);
@@ -85,6 +86,7 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
         buffer.get(copyBuffer);
         checksums.forEach(c -> c.update(copyBuffer, 0, remaining));
         bufferedPayload.add(ByteBuffer.wrap(copyBuffer));
+        totalBytes += remaining;
     }
 
 
@@ -95,7 +97,7 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onComplete() {
-        checksumming.complete(new InMemoryPublisher(bufferedPayload));
+        checksumming.complete(new InMemoryPublisher(bufferedPayload, totalBytes));
     }
 
     public CompletableFuture<Publisher<ByteBuffer>> completeFuture() {

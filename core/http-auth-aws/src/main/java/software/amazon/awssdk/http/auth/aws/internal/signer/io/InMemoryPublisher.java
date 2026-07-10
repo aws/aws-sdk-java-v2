@@ -18,24 +18,32 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Temporarily used for buffering all data into memory.
  */
 @SdkInternalApi
-public class InMemoryPublisher implements Publisher<ByteBuffer> {
+public class InMemoryPublisher implements SdkHttpContentPublisher {
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
     private final List<ByteBuffer> data;
+    private final long length;
 
-    public InMemoryPublisher(List<ByteBuffer> data) {
+    public InMemoryPublisher(List<ByteBuffer> data, long length) {
         this.data = new ArrayList<>(Validate.noNullElements(data, "Data must not contain null elements."));
+        this.length = length;
+    }
+
+    @Override
+    public Optional<Long> contentLength() {
+        return Optional.of(length);
     }
 
     @Override
@@ -70,12 +78,15 @@ public class InMemoryPublisher implements Publisher<ByteBuffer> {
 
             private void fulfillDemand() {
                 do {
-                    if (sending.compareAndSet(false, true)) {
-                        try {
+                    if (!sending.compareAndSet(false, true)) {
+                        return;
+                    }
+                    try {
+                        while (!done.get() && demand.get() > 0) {
                             send();
-                        } finally {
-                            sending.set(false);
                         }
+                    } finally {
+                        sending.set(false);
                     }
                 } while (!done.get() && demand.get() > 0);
             }

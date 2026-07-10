@@ -57,6 +57,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -92,6 +93,22 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
             Arguments.of(s3AsyncClientBuilder().requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED).build()),
             Arguments.of(s3AsyncClientBuilder().build()),
             Arguments.of(crtClientBuilder().build()));
+    }
+
+    @Test
+    public void crtAsyncClient_chunkedEncodingDisabled_shouldNotHang() throws Exception {
+        try (S3AsyncClient s3Async = S3AsyncClient.builder()
+                                                  .region(DEFAULT_REGION)
+                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                  .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                                  .serviceConfiguration(S3Configuration.builder()
+                                                                                       .chunkedEncodingEnabled(false)
+                                                                                       .build())
+                                                  .build()) {
+            s3Async.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
+                             AsyncRequestBody.fromString("TESTING"))
+                   .get(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
     }
 
     @Test
