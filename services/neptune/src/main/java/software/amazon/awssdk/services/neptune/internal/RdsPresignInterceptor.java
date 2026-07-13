@@ -25,9 +25,7 @@ import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.ClientEndpointProvider;
-import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -35,7 +33,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -48,6 +45,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.neptune.endpoints.NeptuneEndpointProvider;
 import software.amazon.awssdk.services.neptune.model.NeptuneRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -73,7 +71,6 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
                                                    .build())
         .build();
 
-    private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
@@ -110,7 +107,7 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
         SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
         String sourceRegion = presignableRequest.getSourceRegion();
         String destinationRegion = selectedAuthScheme.authSchemeOption().signerProperty(AwsV4HttpSigner.REGION_NAME);
-        URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME, executionAttributes);
+        URI endpoint = createEndpoint(sourceRegion, executionAttributes);
         SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
@@ -219,17 +216,14 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
                                  .build();
     }
 
-    private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
-        return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol(Protocol.HTTPS.toString())
-                                        .region(Region.of(regionName))
-                                        .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
-                                        .profileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
-                                        .dualstackEnabled(
-                                            attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
-                                        .build()
-                                        .clientEndpoint();
+    private URI createEndpoint(String regionName, ExecutionAttributes attributes) {
+        return CompletableFutureUtils.joinLikeSync(
+            NeptuneEndpointProvider.defaultProvider()
+                                   .resolveEndpoint(p -> p.region(Region.of(regionName))
+                                                          .useDualStack(attributes.getAttribute(
+                                                              AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                                                          .useFips(attributes.getAttribute(
+                                                              AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED)))
+        ).url();
     }
 }
