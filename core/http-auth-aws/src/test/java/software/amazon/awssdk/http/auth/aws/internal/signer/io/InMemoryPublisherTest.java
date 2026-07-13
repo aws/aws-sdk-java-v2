@@ -35,7 +35,7 @@ public class InMemoryPublisherTest {
     public void subscribe_deliversAllData() throws Exception {
         byte[] bytes = "test data".getBytes(StandardCharsets.UTF_8);
         List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap(bytes));
-        InMemoryPublisher publisher = new InMemoryPublisher(data);
+        InMemoryPublisher publisher = new InMemoryPublisher(data, bytes.length);
 
         List<ByteBuffer> received = new ArrayList<>();
         CountDownLatch completed = new CountDownLatch(1);
@@ -72,7 +72,7 @@ public class InMemoryPublisherTest {
             ByteBuffer.wrap("b".getBytes(StandardCharsets.UTF_8)),
             ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))
         );
-        InMemoryPublisher publisher = new InMemoryPublisher(data);
+        InMemoryPublisher publisher = new InMemoryPublisher(data, 3);
 
         List<ByteBuffer> received = new ArrayList<>();
         CountDownLatch completed = new CountDownLatch(1);
@@ -116,7 +116,7 @@ public class InMemoryPublisherTest {
     @Test
     public void subscribe_secondSubscription_getsError() {
         List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap("x".getBytes(StandardCharsets.UTF_8)));
-        InMemoryPublisher publisher = new InMemoryPublisher(data);
+        InMemoryPublisher publisher = new InMemoryPublisher(data, 1);
 
         publisher.subscribe(new Subscriber<ByteBuffer>() {
             @Override public void onSubscribe(Subscription s) { s.request(1); }
@@ -139,7 +139,7 @@ public class InMemoryPublisherTest {
     @Test
     public void subscribe_requestNonPositive_signalsError() throws Exception {
         List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap("x".getBytes(StandardCharsets.UTF_8)));
-        InMemoryPublisher publisher = new InMemoryPublisher(data);
+        InMemoryPublisher publisher = new InMemoryPublisher(data, 1);
 
         AtomicBoolean gotError = new AtomicBoolean(false);
         CountDownLatch completed = new CountDownLatch(1);
