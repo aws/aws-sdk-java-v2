@@ -131,16 +131,16 @@ public class DefaultNamingStrategyTest {
 
     @Test
     public void test_GetFluentSetterMethodName_NoEnum() {
-        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
         when(mockShape.getEnumValues()).thenReturn(null);
         when(mockShape.getType()).thenReturn("foo");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
+        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
+        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
     @Test
     public void test_GetFluentSetterMethodName_NoEnum_WithList() {
-        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
         when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
         when(mockShape.getEnumValues()).thenReturn(null);
@@ -152,21 +152,23 @@ public class DefaultNamingStrategyTest {
 
         when(member.getShape()).thenReturn("MockStringShape");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
+        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
+        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
     @Test
     public void test_GetFluentSetterMethodName_WithEnumShape_NoListOrMap() {
-        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
         when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
         when(mockShape.getType()).thenReturn("foo");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
+        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
+        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
     @Test
     public void test_GetFluentSetterMethodName_WithEnumShape_WithList() {
-        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
         when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
         when(mockShape.getEnumValues()).thenReturn(null);
@@ -178,7 +180,10 @@ public class DefaultNamingStrategyTest {
 
         when(member.getShape()).thenReturn("MockStringShape");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethodWithStrings");
+        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
+        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo(
+            "awesomeMethodWithStrings");
     }
 
     @Test
