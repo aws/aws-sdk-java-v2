@@ -56,6 +56,12 @@ public class InMemoryPublisher implements Publisher<ByteBuffer> {
 
             @Override
             public void request(long n) {
+                if (n <= 0) {
+                    finish(() -> s.onError(
+                        new IllegalArgumentException("n > 0 required but it was " + n)));
+                    return;
+                }
+
                 if (done.get()) {
                     return;
                 }
@@ -70,12 +76,15 @@ public class InMemoryPublisher implements Publisher<ByteBuffer> {
 
             private void fulfillDemand() {
                 do {
-                    if (sending.compareAndSet(false, true)) {
-                        try {
+                    if (!sending.compareAndSet(false, true)) {
+                        return;
+                    }
+                    try {
+                        while (!done.get() && demand.get() > 0) {
                             send();
-                        } finally {
-                            sending.set(false);
                         }
+                    } finally {
+                        sending.set(false);
                     }
                 } while (!done.get() && demand.get() > 0);
             }
