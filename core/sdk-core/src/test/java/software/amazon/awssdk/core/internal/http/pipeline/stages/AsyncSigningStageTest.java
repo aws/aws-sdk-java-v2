@@ -43,6 +43,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -618,8 +620,8 @@ public class AsyncSigningStageTest {
                 }
 
                 @Override
-                public void subscribe(org.reactivestreams.Subscriber<? super ByteBuffer> s) {
-                    s.onSubscribe(new org.reactivestreams.Subscription() {
+                public void subscribe(Subscriber<? super ByteBuffer> s) {
+                    s.onSubscribe(new Subscription() {
                         @Override public void request(long n) { s.onComplete(); }
                         @Override public void cancel() { }
                     });
