@@ -96,6 +96,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final URI endpointOverride;
     private final Boolean dualstackEnabled;
     private final Boolean fipsEnabled;
+    private final URI resolvedEndpoint;
 
     private DefaultPollyPresigner(BuilderImpl builder) {
         this.signingClock = builder.signingClock != null ? builder.signingClock
@@ -128,6 +129,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                             .build()
                                                                             .isFipsEnabled()
                                                                             .orElse(false);
+        this.resolvedEndpoint = resolveEndpoint();
     }
 
     IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
@@ -336,10 +338,9 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private void applyEndpoint(SdkHttpFullRequest.Builder httpRequestBuilder) {
-        URI uri = resolveEndpoint();
-        httpRequestBuilder.protocol(uri.getScheme())
-                          .host(uri.getHost())
-                          .port(uri.getPort());
+        httpRequestBuilder.protocol(resolvedEndpoint.getScheme())
+                          .host(resolvedEndpoint.getHost())
+                          .port(resolvedEndpoint.getPort());
     }
 
     private URI resolveEndpoint() {
