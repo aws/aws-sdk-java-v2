@@ -16,13 +16,18 @@
 package software.amazon.awssdk.core.crac;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests the static {@link SdkWarmUp#prime()} entry point end to end through {@link java.util.ServiceLoader},
@@ -38,6 +43,8 @@ class SdkWarmUpTest {
         // Dummy region so prime()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
         savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "warmup-unit-test");
+        RegisteredWarmUpProvider.INVOCATIONS.set(0);
+        RegisteredWarmUpProvider.WARMED_CLIENTS.clear();
     }
 
     @AfterEach
@@ -51,7 +58,6 @@ class SdkWarmUpTest {
 
     @Test
     void prime_concurrentCalls_invokeRegisteredProviderExactlyOnce() throws InterruptedException {
-        RegisteredWarmUpProvider.INVOCATIONS.set(0);
         int threadCount = 16;
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(threadCount);
@@ -79,5 +85,54 @@ class SdkWarmUpTest {
         }
 
         assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(1);
+    }
+
+    @Test
+    void prime_withMatchingSyncClient_warmsSyncClientTypeThroughWarmUpClient() {
+        SdkWarmUp.prime(RegisteredSyncClient.class);
+
+        // Targeted prime warms via warmUpClient() only; the full warmUp() path (counted by INVOCATIONS) must not run.
+        assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(0);
+        assertThat(RegisteredWarmUpProvider.WARMED_CLIENTS).containsExactly(ClientType.SYNC);
+    }
+
+    @Test
+    void prime_withMatchingAsyncClient_warmsAsyncClientTypeThroughWarmUpClient() {
+        SdkWarmUp.prime(RegisteredAsyncClient.class);
+
+        assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(0);
+        assertThat(RegisteredWarmUpProvider.WARMED_CLIENTS).containsExactly(ClientType.ASYNC);
+    }
+
+    @Test
+    void prime_withUnmatchedClient_doesNotThrow() {
+        assertThatCode(() -> SdkWarmUp.prime(UnmatchedClient.class)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void prime_withUnmatchedClient_warnsOnEveryCallAndIsRetried() {
+        // An unmatched client is not recorded as primed, so every call warns and retries.
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            SdkWarmUp.prime(RetriedUnmatchedClient.class);
+            SdkWarmUp.prime(RetriedUnmatchedClient.class);
+
+            long unmatchedWarns = logCaptor.loggedEvents().stream()
+                .filter(event -> event.getLevel() == Level.WARN
+                                 && event.getMessage().getFormattedMessage()
+                                         .contains(RetriedUnmatchedClient.class.getName()))
+                .count();
+            assertThat(unmatchedWarns).isEqualTo(2);
+        }
+    }
+
+    @Test
+    void prime_withEmptyArray_isNoOp() {
+        assertThatCode(() -> SdkWarmUp.prime(new Class[0])).doesNotThrowAnyException();
+    }
+
+    interface UnmatchedClient extends SdkClient {
+    }
+
+    interface RetriedUnmatchedClient extends SdkClient {
     }
 }
