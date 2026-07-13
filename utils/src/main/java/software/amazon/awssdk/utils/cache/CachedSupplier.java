@@ -323,12 +323,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         switch (staleValueBehavior) {
             case STRICT:
                 Instant newStale = now.plusSeconds(1);
-                log.warn(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
+                log.debug(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
                                "). Using expiration of " + newStale);
                 return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
             case ALLOW:
                 Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
-                log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " + newStaleTime +
+                log.debug(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " + newStaleTime +
                                " because the downstream service returned a time in the past: " + fetch.staleTime());
 
                 return fetch.toBuilder()
@@ -368,7 +368,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                                    - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
                     this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
 
-                    log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
+                    log.debug(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
                                    + ". Will retry after " + backoffSeconds + " seconds.", e);
 
                     return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
@@ -390,7 +390,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                            - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
             this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
 
-            log.warn(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
+            log.debug(() -> "(" + cachedValueName + ") Credential refresh failed: " + e.getMessage()
                            + ". Will retry after " + backoffSeconds + " seconds.", e);
 
             return currentCachedValue; // Return unchanged — staleTime/prefetchTime untouched
