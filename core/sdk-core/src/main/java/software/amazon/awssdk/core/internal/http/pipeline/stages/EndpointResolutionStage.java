@@ -61,6 +61,10 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
             return request;
         }
 
+        if (Boolean.TRUE.equals(attrs.getAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION))) {
+            return request;
+        }
+
         // Skip if endpoint was already resolved by an old service interceptor
         Endpoint existingEndpoint = attrs.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
         if (existingEndpoint != null) {

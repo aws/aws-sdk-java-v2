@@ -33,6 +33,26 @@ import software.amazon.awssdk.regions.Region;
 class AwsEndpointProviderUtilsTest {
 
     @Test
+    void skipEndpointResolution_skipAttrIsTrue_returnsTrue() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true);
+        assertThat(AwsEndpointProviderUtils.skipEndpointResolution(attrs)).isTrue();
+    }
+
+    @Test
+    void skipEndpointResolution_discoveredEndpointIsTrue_returnsTrue() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
+        assertThat(AwsEndpointProviderUtils.skipEndpointResolution(attrs)).isTrue();
+    }
+
+    @Test
+    void skipEndpointResolution_attrsAbsent_returnsFalse() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        assertThat(AwsEndpointProviderUtils.skipEndpointResolution(attrs)).isFalse();
+    }
+
+    @Test
     void regionBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
