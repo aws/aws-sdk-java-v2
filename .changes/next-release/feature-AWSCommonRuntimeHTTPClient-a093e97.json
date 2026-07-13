@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Common Runtime HTTP Client",
-    "contributor": "",
-    "description": "Added tlsNegotiationTimeout(Duration) configuration to AwsCrtAsyncHttpClient and AwsCrtHttpClient builders, mirroring the option on the Netty client. Configures the maximum amount of time a TLS handshake may take, from CLIENT HELLO through key exchange. Defaults to 10 seconds, matching the underlying CRT runtime's native default."
-}
