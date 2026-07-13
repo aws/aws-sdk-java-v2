@@ -425,12 +425,12 @@ public final class S3Utilities {
     }
 
     /**
-     * If endpoint is not present, construct a default endpoint using the region information.
-     * The endpoint resolved here is only used for initial request marshalling — it gets completely replaced
-     * by S3ResolveEndpointInterceptor during the getUrl flow.
+     * Resolve the client endpoint provider for request marshalling. Checks client override,
+     * environment variables, system properties, and profile configuration. If no override is found,
+     * a localhost placeholder is used — the actual endpoint is resolved by S3EndpointProvider
+     * during the getUrl flow.
      */
     private ClientEndpointProvider clientEndpointProvider(URI overrideEndpoint, Region region) {
-        // First check if there's an endpoint override from the user or environment.
         Optional<URI> resolvedOverride = AwsClientEndpointProvider.builder()
                                              .clientEndpointOverride(overrideEndpoint)
                                              .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
@@ -440,8 +440,6 @@ public final class S3Utilities {
                                              .profileName(profileName)
                                              .resolveFromOverrides();
 
-        // If an override is configured, use it (marked as overridden). Otherwise, use a localhost placeholder
-        // marked as NOT overridden — S3ResolveEndpointInterceptor will replace it with the real endpoint.
         return resolvedOverride
             .map(uri -> ClientEndpointProvider.create(uri, true))
             .orElseGet(() -> ClientEndpointProvider.create(URI.create("https://localhost"), false));

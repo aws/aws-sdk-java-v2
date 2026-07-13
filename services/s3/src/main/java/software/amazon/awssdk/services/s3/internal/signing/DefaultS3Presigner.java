@@ -254,7 +254,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        // First check if there's an endpoint override from the user or environment.
         Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
                                              .clientEndpointOverride(endpointOverride())
                                              .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
@@ -264,9 +263,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                              .profileName(profileName())
                                              .resolveFromOverrides();
 
-        // If an override is configured, use it (marked as overridden). Otherwise, use a localhost placeholder
-        // marked as NOT overridden — S3ResolveEndpointInterceptor will replace it with the real endpoint
-        // at presigning time using S3EndpointProvider with the full request context.
         ClientEndpointProvider endpointProvider;
         if (overrideEndpoint.isPresent()) {
             endpointProvider = ClientEndpointProvider.create(overrideEndpoint.get(), true);
@@ -274,8 +270,9 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             // Validate region at construction time to fail fast for invalid regions (e.g., US_EAST_1 with underscores).
             URI testEndpoint = URI.create("https://s3." + region().id() + ".amazonaws.com");
             if (testEndpoint.getHost() == null) {
-                throw SdkClientException.create("Configured region (" + region() + ") and tags ([]) resulted in an invalid URI: "
-                                                + testEndpoint + ". This is usually caused by an invalid region configuration.");
+                throw SdkClientException.create("Configured region (" + region() + ") resulted in an invalid URI: "
+                                                + testEndpoint + ". This is usually caused by an invalid region "
+                                                + "configuration.");
             }
             endpointProvider = ClientEndpointProvider.create(URI.create("https://localhost"), false);
         }

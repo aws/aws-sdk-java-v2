@@ -343,7 +343,6 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private URI resolveEndpoint() {
-        // If user configured an endpoint override or one is set via environment/profile, use it.
         Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
                                                                   .clientEndpointOverride(endpointOverride)
                                                                   .serviceEndpointOverrideEnvironmentVariable(
@@ -354,9 +353,6 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                   .profileName(profileName)
                                                                   .resolveFromOverrides();
 
-        // Resolve endpoint using the service's Endpoints 2.0 provider. Unlike S3, the Polly presigner
-        // does not have an endpoint resolution interceptor chain — this endpoint becomes the final
-        // presigned URL host, so it must be accurate.
         return overrideEndpoint.orElseGet(() -> CompletableFutureUtils.joinLikeSync(
             PollyEndpointProvider.defaultProvider()
                                  .resolveEndpoint(p -> p.region(region)
