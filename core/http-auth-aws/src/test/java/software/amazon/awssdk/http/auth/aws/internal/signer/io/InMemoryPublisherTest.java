@@ -32,21 +32,10 @@ import org.reactivestreams.Subscription;
 public class InMemoryPublisherTest {
 
     @Test
-    public void contentLength_returnsCorrectValue() {
-        List<ByteBuffer> data = Arrays.asList(
-            ByteBuffer.wrap("hello".getBytes(StandardCharsets.UTF_8)),
-            ByteBuffer.wrap(" world".getBytes(StandardCharsets.UTF_8))
-        );
-        InMemoryPublisher publisher = new InMemoryPublisher(data, 11);
-
-        assertThat(publisher.contentLength()).hasValue(11L);
-    }
-
-    @Test
     public void subscribe_deliversAllData() throws Exception {
         byte[] bytes = "test data".getBytes(StandardCharsets.UTF_8);
         List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap(bytes));
-        InMemoryPublisher publisher = new InMemoryPublisher(data, bytes.length);
+        InMemoryPublisher publisher = new InMemoryPublisher(data);
 
         List<ByteBuffer> received = new ArrayList<>();
         CountDownLatch completed = new CountDownLatch(1);
@@ -83,7 +72,7 @@ public class InMemoryPublisherTest {
             ByteBuffer.wrap("b".getBytes(StandardCharsets.UTF_8)),
             ByteBuffer.wrap("c".getBytes(StandardCharsets.UTF_8))
         );
-        InMemoryPublisher publisher = new InMemoryPublisher(data, 3);
+        InMemoryPublisher publisher = new InMemoryPublisher(data);
 
         List<ByteBuffer> received = new ArrayList<>();
         CountDownLatch completed = new CountDownLatch(1);
@@ -127,7 +116,7 @@ public class InMemoryPublisherTest {
     @Test
     public void subscribe_secondSubscription_getsError() {
         List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap("x".getBytes(StandardCharsets.UTF_8)));
-        InMemoryPublisher publisher = new InMemoryPublisher(data, 1);
+        InMemoryPublisher publisher = new InMemoryPublisher(data);
 
         publisher.subscribe(new Subscriber<ByteBuffer>() {
             @Override public void onSubscribe(Subscription s) { s.request(1); }
@@ -144,6 +133,35 @@ public class InMemoryPublisherTest {
             @Override public void onComplete() { }
         });
 
+        assertThat(gotError.get()).isTrue();
+    }
+
+    @Test
+    public void subscribe_requestNonPositive_signalsError() throws Exception {
+        List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap("x".getBytes(StandardCharsets.UTF_8)));
+        InMemoryPublisher publisher = new InMemoryPublisher(data);
+
+        AtomicBoolean gotError = new AtomicBoolean(false);
+        CountDownLatch completed = new CountDownLatch(1);
+
+        publisher.subscribe(new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(0);
+            }
+
+            @Override public void onNext(ByteBuffer b) { }
+
+            @Override
+            public void onError(Throwable t) {
+                gotError.set(t instanceof IllegalArgumentException);
+                completed.countDown();
+            }
+
+            @Override public void onComplete() { completed.countDown(); }
+        });
+
+        assertThat(completed.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(gotError.get()).isTrue();
     }
 }

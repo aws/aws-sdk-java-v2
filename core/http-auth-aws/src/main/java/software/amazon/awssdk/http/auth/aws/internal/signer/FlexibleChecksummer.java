@@ -81,10 +81,9 @@ public final class FlexibleChecksummer implements Checksummer {
         }
 
         payload.subscribe(checksumSubscriber);
-        return checksumSubscriber.completeFuture().thenApply(checksummedPayload -> {
-            addChecksums(request);
-            return checksummedPayload;
-        });
+        CompletableFuture<Publisher<ByteBuffer>> result = checksumSubscriber.completeFuture();
+        result.thenRun(() -> addChecksums(request));
+        return result;
     }
 
     private void addChecksums(SdkHttpRequest.Builder request) {

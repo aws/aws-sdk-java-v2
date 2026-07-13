@@ -18,33 +18,24 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.io;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A content-length-aware publisher that replays buffered data. Used by {@link ChecksumSubscriber} to replay the payload after
- * checksumming.
+ * Temporarily used for buffering all data into memory.
  */
 @SdkInternalApi
-public class InMemoryPublisher implements SdkHttpContentPublisher {
+public class InMemoryPublisher implements Publisher<ByteBuffer> {
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
     private final List<ByteBuffer> data;
-    private final long length;
 
-    public InMemoryPublisher(List<ByteBuffer> data, long length) {
+    public InMemoryPublisher(List<ByteBuffer> data) {
         this.data = new ArrayList<>(Validate.noNullElements(data, "Data must not contain null elements."));
-        this.length = length;
-    }
-
-    @Override
-    public Optional<Long> contentLength() {
-        return Optional.of(length);
     }
 
     @Override
