@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 
 /**
  * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpPrimeSelectiveTest}. Matches {@link SelectiveSyncClient} and
- * {@link SelectiveAsyncClient} and counts warms per transport; performs no I/O.
+ * {@link SelectiveAsyncClient} and counts warms per client type; performs no I/O.
  */
 public final class SelectiveWarmUpProvider implements SdkWarmUpProvider {
 

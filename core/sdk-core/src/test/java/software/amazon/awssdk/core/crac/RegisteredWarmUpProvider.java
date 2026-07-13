@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.ClientType;
  * java.util.ServiceLoader} discovers and instantiates it by name. Both static fields are static because the loader
  * builds its own instance. Must be public with a no-arg constructor for ServiceLoader.
  *
- * <p>{@code INVOCATIONS} counts full {@link #warmUp()} calls; {@code WARMED_CLIENTS} records the transports passed to
+ * <p>{@code INVOCATIONS} counts full {@link #warmUp()} calls; {@code WARMED_CLIENTS} records the client types passed to
  * {@link #warmUpClient(ClientType)}, so a test can tell the targeted path from the full one.
  */
 public final class RegisteredWarmUpProvider implements SdkWarmUpProvider {

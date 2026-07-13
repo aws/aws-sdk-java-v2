@@ -88,7 +88,7 @@ class SdkWarmUpTest {
     }
 
     @Test
-    void prime_withMatchingSyncClient_warmsSyncTransportThroughWarmUpClient() {
+    void prime_withMatchingSyncClient_warmsSyncClientTypeThroughWarmUpClient() {
         SdkWarmUp.prime(RegisteredSyncClient.class);
 
         // Targeted prime warms via warmUpClient() only; the full warmUp() path (counted by INVOCATIONS) must not run.
@@ -97,7 +97,7 @@ class SdkWarmUpTest {
     }
 
     @Test
-    void prime_withMatchingAsyncClient_warmsAsyncTransportThroughWarmUpClient() {
+    void prime_withMatchingAsyncClient_warmsAsyncClientTypeThroughWarmUpClient() {
         SdkWarmUp.prime(RegisteredAsyncClient.class);
 
         assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(0);

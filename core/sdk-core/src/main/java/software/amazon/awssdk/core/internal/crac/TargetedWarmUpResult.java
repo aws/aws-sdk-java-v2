@@ -19,27 +19,60 @@ import java.util.Collections;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.utils.ToString;
 
 /**
- * Outcome of a {@link TargetedWarmUpInvoker} run: the transports that matched and the client names that warmed
+ * Outcome of a {@link TargetedWarmUpInvoker} run: the client types that matched and the client names that warmed
  * successfully.
  */
 @SdkInternalApi
 public final class TargetedWarmUpResult {
 
-    private final Set<ClientType> matchedTransports;
+    private final Set<ClientType> matchedClientTypes;
     private final Set<String> warmedClientNames;
 
-    TargetedWarmUpResult(Set<ClientType> matchedTransports, Set<String> warmedClientNames) {
-        this.matchedTransports = Collections.unmodifiableSet(matchedTransports);
+    TargetedWarmUpResult(Set<ClientType> matchedClientTypes, Set<String> warmedClientNames) {
+        this.matchedClientTypes = Collections.unmodifiableSet(matchedClientTypes);
         this.warmedClientNames = Collections.unmodifiableSet(warmedClientNames);
     }
 
-    public Set<ClientType> matchedTransports() {
-        return matchedTransports;
+    public Set<ClientType> matchedClientTypes() {
+        return matchedClientTypes;
     }
 
     public Set<String> warmedClientNames() {
         return warmedClientNames;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        TargetedWarmUpResult that = (TargetedWarmUpResult) o;
+
+        if (!matchedClientTypes.equals(that.matchedClientTypes)) {
+            return false;
+        }
+        return warmedClientNames.equals(that.warmedClientNames);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = matchedClientTypes.hashCode();
+        result = 31 * result + warmedClientNames.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("TargetedWarmUpResult")
+                       .add("matchedClientTypes", matchedClientTypes)
+                       .add("warmedClientNames", warmedClientNames)
+                       .build();
     }
 }

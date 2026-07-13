@@ -70,6 +70,9 @@ public final class SdkWarmUp {
      * Discovers every {@link SdkWarmUpProvider} on the classpath and invokes {@link SdkWarmUpProvider#warmUp()}
      * on each, honoring the idempotency, per-provider resilience, and empty-classpath behavior described on
      * this class. Safe to call concurrently.
+     *
+     * <p>This method and {@link #prime(Class[])} track primed state independently: this method warms
+     * every provider and does not skip clients that were warmed by a targeted {@link #prime(Class[])} call.
      */
     public static void prime() {
         if (primed) {
@@ -88,12 +91,14 @@ public final class SdkWarmUp {
 
     /**
      * Primes only the given service clients, warming the sync path for a sync client and the async path for an async
-     * client. Best-effort and safe to call concurrently; a client already primed by a previous call is skipped.
+     * client. A client already primed by this method is skipped; a class matched by no provider, or whose warm-up
+     * fails, is logged at warn and retried on the next call.Best-effort and safe to call concurrently.
      *
-     * <p>A class matched by no provider, or whose warm-up fails, is logged at warn and retried by a later call.
+     * <p>This method and {@link #prime()} track primed state independently: this method does not skip
+     * clients that {@link #prime()} already warmed.
      *
-     * @param clients the service client classes to prime, for example {@code S3Client.class} or
-     *                {@code S3AsyncClient.class}.
+     * @param clients the service client classes to prime, for example {@code ServiceClient.class} or
+     *                {@code ServiceAsyncClient.class}.
      */
     @SafeVarargs
     public static void prime(Class<? extends SdkClient>... clients) {
@@ -115,10 +120,10 @@ public final class SdkWarmUp {
 
         // Racing calls may double-warm the same client; warming is idempotent, so that is harmless.
         TargetedWarmUpResult result = TargetedWarmUpInvoker.create().invoke(toPrime);
-        if (result.matchedTransports().contains(ClientType.SYNC)) {
+        if (result.matchedClientTypes().contains(ClientType.SYNC)) {
             SyncHttpClientWarmer.create().warmAll();
         }
-        if (result.matchedTransports().contains(ClientType.ASYNC)) {
+        if (result.matchedClientTypes().contains(ClientType.ASYNC)) {
             AsyncHttpClientWarmer.create().warmAll();
         }
 

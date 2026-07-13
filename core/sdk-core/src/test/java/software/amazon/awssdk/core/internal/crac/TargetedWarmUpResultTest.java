@@ -13,13 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.crac;
+package software.amazon.awssdk.core.internal.crac;
 
-import software.amazon.awssdk.core.SdkClient;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
 
-/**
- * Test-only client whose fully qualified name matches {@link RegisteredWarmUpProvider#syncClientClassName()}, so
- * {@code SdkWarmUp.prime(RegisteredSyncClient.class)} matches that provider's sync client type.
- */
-public interface RegisteredSyncClient extends SdkClient {
+public class TargetedWarmUpResultTest {
+
+    @Test
+    public void equalsHashCode() {
+        EqualsVerifier.forClass(TargetedWarmUpResult.class)
+                      .withNonnullFields("matchedClientTypes", "warmedClientNames")
+                      .verify();
+    }
 }

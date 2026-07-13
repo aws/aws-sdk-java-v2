@@ -50,7 +50,7 @@ class SdkWarmUpPrimeIdempotenceTest {
     void prime_sameClientTwice_warmsProviderExactlyOnce() {
         SdkWarmUp.prime(IdempotenceSyncClient.class);
         assertThat(IdempotenceWarmUpProvider.syncWarmCount())
-            .as("first prime warms the sync transport once")
+            .as("first prime warms the sync client type once")
             .isEqualTo(1);
 
         // Second call for the same client must be a no-op: it is already recorded as primed.
