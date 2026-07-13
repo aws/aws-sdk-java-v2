@@ -33,6 +33,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
@@ -612,11 +614,11 @@ public class AsyncSigningStageTest {
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 
-        software.amazon.awssdk.http.async.SdkHttpContentPublisher contentPublisher =
-            new software.amazon.awssdk.http.async.SdkHttpContentPublisher() {
+        SdkHttpContentPublisher contentPublisher =
+            new SdkHttpContentPublisher() {
                 @Override
-                public java.util.Optional<Long> contentLength() {
-                    return java.util.Optional.of(42L);
+                public Optional<Long> contentLength() {
+                    return Optional.of(42L);
                 }
 
                 @Override
