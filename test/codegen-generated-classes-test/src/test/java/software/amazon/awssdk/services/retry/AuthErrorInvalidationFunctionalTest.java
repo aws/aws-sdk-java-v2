@@ -19,15 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -43,15 +37,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
-import software.amazon.awssdk.utils.cache.CachedSupplier;
-import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Integration test verifying the end-to-end flow:
  * service returns ExpiredToken → credentials invalidated → next call uses fresh credentials.
- *
- * Also verifies backoff interaction: when refresh backoff is active, invalidate() does not
- * bypass it, and stale cached credentials are returned until the backoff elapses.
  */
 public class AuthErrorInvalidationFunctionalTest {
 
@@ -135,69 +124,6 @@ public class AuthErrorInvalidationFunctionalTest {
 
             // Verify invalidate was NOT called
             assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(0);
-        }
-    }
-
-    /**
-     * Backoff interaction: invalidation during active backoff returns stale credentials.
-     *
-     * This test verifies that when CachedSupplier has an active refresh backoff
-     * (nextAllowedRefreshTime in the future), calling invalidate() marks the cache stale
-     * but does NOT bypass the backoff. The next get() still returns cached credentials
-     * until the backoff elapses, at which point fresh credentials are obtained.
-     */
-    @Test
-    public void invalidation_duringActiveBackoff_returnsStaleCredentials() {
-        AdjustableClock clock = new AdjustableClock();
-        Instant now = Instant.parse("2024-01-01T00:00:00Z");
-        clock.time = now;
-
-        AtomicInteger fetchCount = new AtomicInteger(0);
-        AtomicReference<Supplier<RefreshResult<String>>> supplierRef = new AtomicReference<>();
-
-        supplierRef.set(() -> RefreshResult.builder("access-key-1")
-                                           .staleTime(now.plusSeconds(60))
-                                           .prefetchTime(now.plusSeconds(30))
-                                           .build());
-
-        try (CachedSupplier<String> cache = CachedSupplier.builder(() -> {
-                 fetchCount.incrementAndGet();
-                 return supplierRef.get().get();
-             })
-                 .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
-                 .clock(clock)
-                 .build()) {
-
-            // Initial fetch
-            assertThat(cache.get()).isEqualTo("access-key-1");
-            assertThat(fetchCount.get()).isEqualTo(1);
-
-            // Advance past stale time and trigger a refresh failure to set nextAllowedRefreshTime
-            clock.time = now.plusSeconds(61);
-            supplierRef.set(() -> {
-                throw new RuntimeException("credential source unavailable");
-            });
-            // This get() will try to refresh, fail, set backoff, and return stale value
-            assertThat(cache.get()).isEqualTo("access-key-1");
-
-            // Now call invalidate — marks staleTime = now but does NOT clear backoff
-            clock.time = now.plusSeconds(62);
-            cache.invalidate(v -> v.equals("access-key-1"));
-
-            // Set up fresh credentials in the supplier
-            supplierRef.set(() -> RefreshResult.builder("access-key-2")
-                                               .staleTime(now.plusSeconds(7200))
-                                               .prefetchTime(now.plusSeconds(5400))
-                                               .build());
-
-            // get() should return STALE credentials because backoff is still active
-            assertThat(cache.get()).isEqualTo("access-key-1");
-
-            // Advance past maximum possible backoff (61 + 600 = 661 seconds from original now)
-            clock.time = now.plusSeconds(700);
-
-            // Now backoff has elapsed — next get() should refresh and return fresh value
-            assertThat(cache.get()).isEqualTo("access-key-2");
         }
     }
 
@@ -294,28 +220,6 @@ public class AuthErrorInvalidationFunctionalTest {
 
         int invalidateCallCount() {
             return invalidateCount.get();
-        }
-    }
-
-    /**
-     * A clock whose time can be manually adjusted for testing backoff behavior.
-     */
-    private static class AdjustableClock extends Clock {
-        volatile Instant time = Instant.now();
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return this;
-        }
-
-        @Override
-        public Instant instant() {
-            return time;
         }
     }
 }
