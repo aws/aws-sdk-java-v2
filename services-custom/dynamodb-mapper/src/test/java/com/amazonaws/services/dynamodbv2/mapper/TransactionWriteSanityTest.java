@@ -39,8 +39,7 @@ import com.amazonaws.services.dynamodbv2.pojos.TestItem;
 import org.junit.Test;
 
 /**
- * Houses sanity integration tests as mentioned here:
- * https://w.amazon.com/bin/view/BigBird/Development/Transactions/SDK/TransactionsSupportInMapper/TestPlan/#HTransactionWrite
+ * Sanity integration tests for TransactionWrite operations.
  */
 public class TransactionWriteSanityTest extends TransactionsTestBase {
 

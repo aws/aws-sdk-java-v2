@@ -178,7 +178,7 @@ public class SimpleNumericAttributesIntegrationTest extends DynamoDBMapperIntegr
             
             NumberAttributeClass loadedObject = util.load(obj);
             
-            // The ignored attribute isn't handled by big bird, so we have to
+            // The ignored attribute isn't handled by the mapper, so we have to
             // set it manually here before doing the comparison.
             assertFalse(replacement.getIgnored().equals(loadedObject.getIgnored()));
             loadedObject.setIgnored(replacement.getIgnored());
@@ -205,7 +205,7 @@ public class SimpleNumericAttributesIntegrationTest extends DynamoDBMapperIntegr
             assertNotNull(obj.getKey());
             NumberAttributeClass loadedObject = util.load(obj);
             
-            // The ignored attribute isn't handled by big bird, so we have to
+            // The ignored attribute isn't handled by the mapper, so we have to
             // set it manually here before doing the comparison.
             assertFalse(obj.getIgnored().equals(loadedObject.getIgnored()));
             loadedObject.setIgnored(obj.getIgnored());

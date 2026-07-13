@@ -238,8 +238,8 @@ public class TransactionWriteConditionExpressionTest extends TransactionsTestBas
     @Test
     public void testMultipleOperationsWithMultipleOfEachHavingInvalidExpression() {
         /**
-         * TODO: This is currently failing on multi-table mode due to an issue with low level API.
-         *       Please flip this to multi-table mode once this issue is resolved: https://tt.amazon.com/0189188611
+         * TODO: This is currently failing on multi-table mode due to an issue with the low level API.
+         *       Please flip this to multi-table mode once this issue is resolved.
          */
         TransactionWriteTestRequest transactionWriteTestRequest = new TransactionWriteTestRequest()
                                                                           .withPutConditionExpressionMode(ConditionExpressionMode.MULTIPLE_INVALID_RETURN_VALUES_SET)
