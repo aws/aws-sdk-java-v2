@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Serverless",
-    "contributor": "",
-    "description": "Add support for preserving datasharing, zero-ETL and S3 event integrations on snapshot restore to serverless namespace."
-}

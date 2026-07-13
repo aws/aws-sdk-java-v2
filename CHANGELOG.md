@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.47.6__ __2026-07-13__
+## __AWS Common Runtime HTTP Client__
+  - ### Features
+    - Added tlsNegotiationTimeout(Duration) configuration to AwsCrtAsyncHttpClient and AwsCrtHttpClient builders, mirroring the option on the Netty client. Configures the maximum amount of time a TLS handshake may take, from CLIENT HELLO through key exchange. Defaults to 10 seconds, matching the underlying CRT runtime's native default.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Java 8, 11 and 17 on AL2023 (java8.al2023, java11.al2023, java17.al2023) support to AWS Lambda.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Adds support for the EngineMode and UseCase parameters on Amazon Elasticsearch Service domains, enabling GENERAL or OPTIMIZED engine modes and SEARCH, VECTOR, OBSERVABILITY, or MIXED usecases when creating and updating domain configurations.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers now includes fleet expiration for managed fleets. A managed fleet expires one year after creation, transitioning to EXPIRED status, emitting a FLEET EXPIRED event, and scaling to zero instances. Expired fleets cannot host new game sessions or increase capacity.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - GuardDuty AI Protection is now publicly available. Findings include Bedrock guardrail details, model details, observation numbers, and continuous scan details. GuardrailArn and GuardrailVersion are deprecated in favor of the guardrails list.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add support for preserving datasharing, zero-ETL and S3 event integrations on snapshot restore to serverless namespace.
+
 # __2.47.5__ __2026-07-10__
 ## __AWS Lambda__
   - ### Features
