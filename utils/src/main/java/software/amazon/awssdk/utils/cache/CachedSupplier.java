@@ -178,40 +178,40 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      *
      * <p>If there is no cached value, this method is a no-op — the predicate will not be called.
      *
+     * <p>If the lock is not immediately available, this method returns without invalidating.
+     * A held lock means either a refresh or another invalidation is already in progress.
+     * In either case it is safe to skip: a refresh will replace the cached value shortly,
+     * and a concurrent invalidation will mark it stale.
+     *
      * @param matchesCachedValue A predicate that returns true if the cached value
      *                           is the one that should be invalidated. The value passed
      *                           to the predicate is guaranteed to be non-null.
      */
     public void invalidate(Predicate<T> matchesCachedValue) {
+        if (!refreshLock.tryLock()) {
+            log.debug(() -> "(" + cachedValueName + ") Refresh lock held by another thread during invalidation; "
+                           + "skipping because either a refresh or another invalidation is already in progress.");
+            return;
+        }
         try {
-            boolean lockAcquired = refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
-            if (!lockAcquired) {
-                log.debug(() -> "(" + cachedValueName + ") Unable to acquire lock for invalidation; skipping.");
+            RefreshResult<T> currentCachedValue = this.cachedValue;
+            if (currentCachedValue == null || currentCachedValue.value() == null) {
                 return;
             }
-            try {
-                RefreshResult<T> currentCachedValue = this.cachedValue;
-                if (currentCachedValue == null || currentCachedValue.value() == null) {
-                    return;
-                }
-                if (!matchesCachedValue.test(currentCachedValue.value())) {
-                    return;
-                }
-                // Set staleTime = now, routing next get() through mandatory refresh
-                // (subject to nextAllowedRefreshTime gate)
-                Instant now = clock.instant();
-                this.cachedValue = currentCachedValue.toBuilder()
-                                                     .staleTime(now)
-                                                     .prefetchTime(now)
-                                                     .build();
-                log.debug(() -> "(" + cachedValueName + ") Cached value invalidated. "
-                               + "Next get() will attempt mandatory refresh.");
-            } finally {
-                refreshLock.unlock();
+            if (!matchesCachedValue.test(currentCachedValue.value())) {
+                return;
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.debug(() -> "(" + cachedValueName + ") Interrupted while invalidating cached value.");
+            // Set staleTime = now, routing next get() through mandatory refresh
+            // (subject to nextAllowedRefreshTime gate)
+            Instant now = clock.instant();
+            this.cachedValue = currentCachedValue.toBuilder()
+                                                 .staleTime(now)
+                                                 .prefetchTime(now)
+                                                 .build();
+            log.debug(() -> "(" + cachedValueName + ") Cached value invalidated. "
+                           + "Next get() will attempt mandatory refresh.");
+        } finally {
+            refreshLock.unlock();
         }
     }
 

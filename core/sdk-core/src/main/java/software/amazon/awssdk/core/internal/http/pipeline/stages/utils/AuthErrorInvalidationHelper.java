@@ -77,13 +77,21 @@ public final class AuthErrorInvalidationHelper {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Identity> void doInvalidate(SelectedAuthScheme<T> selectedAuthScheme) {
         T resolvedIdentity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
         IdentityProvider<T> provider = selectedAuthScheme.identityProvider();
+        // Invalidation is best-effort and must not block the request/retry path.
+        // Most CredentialProvider invalidation implementations invalidate synchronously and return instantly
+        // but handle the future here.
         try {
-            CompletableFutureUtils.joinLikeSync(provider.invalidate(resolvedIdentity));
-        } catch (Exception e) {
+            provider.invalidate(resolvedIdentity)
+                    .exceptionally(e -> {
+                        if (e != null) {
+                            LOG.debug(() -> "Failed to invalidate identity provider: " + e.getMessage(), e);
+                        }
+                        return null;
+                    });
+        } catch (RuntimeException e) {
             LOG.debug(() -> "Failed to invalidate identity provider: " + e.getMessage(), e);
         }
     }
