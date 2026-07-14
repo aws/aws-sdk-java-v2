@@ -22,12 +22,11 @@ import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestU
 import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.createRequest;
 
 import io.netty.handler.ssl.SslProvider;
-import java.io.IOException;
-import java.net.BindException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
@@ -35,7 +34,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
-import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class NettyClientAlpnTest {
@@ -51,18 +49,10 @@ public class NettyClientAlpnTest {
 
     private static void initServer(boolean useAlpn) throws Exception {
         mockServer = new MockH2Server(useAlpn);
-        try {
-            mockServer.start();
-        } catch (IOException e) {
-            // Jetty wraps BindException in a plain IOException; unwrap for @RetryableTest.
-            if (e.getCause() instanceof BindException) {
-                throw (BindException) e.getCause();
-            }
-            throw e;
-        }
+        mockServer.start();
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void alpnClientJdkProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
@@ -70,7 +60,7 @@ public class NettyClientAlpnTest {
         makeHttpsRequest();
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void alpnClientOpenSslProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.OPENSSL);
@@ -78,7 +68,7 @@ public class NettyClientAlpnTest {
         makeHttpsRequest();
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void alpnClient_serverWithoutAlpnSupport_throwsException() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
@@ -88,7 +78,7 @@ public class NettyClientAlpnTest {
         assertThat(e.getMessage()).contains("The server does not support ALPN with H2");
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void priorKnowledgeClient_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
@@ -96,7 +86,7 @@ public class NettyClientAlpnTest {
         makeHttpsRequest();
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void priorKnowledgeClient_serverWithoutAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
@@ -104,7 +94,7 @@ public class NettyClientAlpnTest {
         makeHttpsRequest();
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = BindException.class)
+    @Test
     @EnabledIf("alpnSupported")
     public void clientWithUserConfiguredAlpn_httpRequest_throwsException() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
