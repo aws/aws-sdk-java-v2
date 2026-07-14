@@ -18,13 +18,17 @@ package software.amazon.awssdk.core.spi.identity;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 /**
- * Callback interface for resolving auth scheme options from the request.
+ * Callback interface for resolving auth scheme options from the request and execution context.
  * <p>
  * This allows auth scheme resolution to happen after interceptors have modified the request,
  * ensuring that any request modifications affecting auth scheme selection are respected.
+ * <p>
+ * The execution attributes provide access to the operation name and other context needed for
+ * auth scheme resolution, eliminating the need to capture per-operation state in lambdas.
  */
 @FunctionalInterface
 @SdkProtectedApi
@@ -33,7 +37,8 @@ public interface AuthSchemeOptionsResolver {
      * Resolves auth scheme options for the given request.
      *
      * @param request The request (after interceptors have modified it)
+     * @param executionAttributes The execution attributes containing operation name, region, etc.
      * @return List of auth scheme options in priority order
      */
-    List<AuthSchemeOption> resolve(SdkRequest request);
+    List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes);
 }

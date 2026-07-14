@@ -114,7 +114,7 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         if (resolver == null) {
             return null;
         }
-        return resolver.resolve(request);
+        return resolver.resolve(request, executionAttributes);
     }
 
     /**

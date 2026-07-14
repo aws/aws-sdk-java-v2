@@ -61,6 +61,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
@@ -366,8 +367,10 @@ public final class ClientClassUtils {
                 .addModifiers(PRIVATE)
                 .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(AuthSchemeOption.class)))
                 .addParameter(SdkRequest.class, "request")
-                .addParameter(String.class, "operationName")
-                .addParameter(SdkClientConfiguration.class, "clientConfiguration");
+                .addParameter(ExecutionAttributes.class, "executionAttributes");
+
+        builder.addStatement("String operationName = executionAttributes.getAttribute($T.OPERATION_NAME)",
+                             SdkExecutionAttribute.class);
 
         ClassName providerInterface = authSchemeSpecUtils.providerInterfaceName();
 
@@ -444,24 +447,24 @@ public final class ClientClassUtils {
         ClassName sdkInternalExecutionAttribute = ClassName.get("software.amazon.awssdk.core.interceptor",
                                                                 "SdkInternalExecutionAttribute");
 
-        builder.addStatement("$T executionAttributes = new $T()", executionAttributesClass, executionAttributesClass);
-        builder.addStatement("executionAttributes.putAttribute($T.AWS_REGION, clientConfiguration.option($T.AWS_REGION))",
+        builder.addStatement("$T endpointAttrs = new $T()", executionAttributesClass, executionAttributesClass);
+        builder.addStatement("endpointAttrs.putAttribute($T.AWS_REGION, clientConfiguration.option($T.AWS_REGION))",
                              awsExecutionAttribute, awsClientOption);
-        builder.addStatement("executionAttributes.putAttribute($T.DUALSTACK_ENDPOINT_ENABLED, "
+        builder.addStatement("endpointAttrs.putAttribute($T.DUALSTACK_ENDPOINT_ENABLED, "
                              + "clientConfiguration.option($T.DUALSTACK_ENDPOINT_ENABLED))",
                              awsExecutionAttribute, awsClientOption);
-        builder.addStatement("executionAttributes.putAttribute($T.FIPS_ENDPOINT_ENABLED, "
+        builder.addStatement("endpointAttrs.putAttribute($T.FIPS_ENDPOINT_ENABLED, "
                              + "clientConfiguration.option($T.FIPS_ENDPOINT_ENABLED))",
                              awsExecutionAttribute, awsClientOption);
-        builder.addStatement("executionAttributes.putAttribute($T.OPERATION_NAME, operationName)", sdkExecutionAttribute);
-        builder.addStatement("executionAttributes.putAttribute($T.CLIENT_ENDPOINT_PROVIDER, "
+        builder.addStatement("endpointAttrs.putAttribute($T.OPERATION_NAME, operationName)", sdkExecutionAttribute);
+        builder.addStatement("endpointAttrs.putAttribute($T.CLIENT_ENDPOINT_PROVIDER, "
                              + "clientConfiguration.option($T.CLIENT_ENDPOINT_PROVIDER))",
                              sdkInternalExecutionAttribute, SdkClientOption.class);
-        builder.addStatement("executionAttributes.putAttribute($T.CLIENT_CONTEXT_PARAMS, "
+        builder.addStatement("endpointAttrs.putAttribute($T.CLIENT_CONTEXT_PARAMS, "
                              + "clientConfiguration.option($T.CLIENT_CONTEXT_PARAMS))",
                              sdkInternalExecutionAttribute, SdkClientOption.class);
 
-        builder.addStatement("$T endpointParams = $T.ruleParams(request, executionAttributes)",
+        builder.addStatement("$T endpointParams = $T.ruleParams(request, endpointAttrs)",
                              endpointParamsClass, endpointResolverUtils);
 
         builder.addStatement("$T.Builder paramsBuilder = $T.builder()", paramsInterface, paramsInterface);
@@ -520,9 +523,10 @@ public final class ClientClassUtils {
                          .addModifiers(PRIVATE)
                          .returns(Endpoint.class)
                          .addParameter(SdkRequest.class, "request")
-                         .addParameter(ExecutionAttributes.class, "executionAttributes")
-                         .addParameter(String.class, "operationName");
+                         .addParameter(ExecutionAttributes.class, "executionAttributes");
 
+        b.addStatement("String operationName = executionAttributes.getAttribute($T.OPERATION_NAME)",
+                       SdkExecutionAttribute.class);
         b.addStatement("$1T provider = ($1T) executionAttributes.getAttribute($2T.ENDPOINT_PROVIDER)",
                        providerInterface, SdkInternalExecutionAttribute.class);
 
