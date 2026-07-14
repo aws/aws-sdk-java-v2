@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Map",
+    "contributor": "",
+    "description": "Fixed Cloud Map endpoint resolution to correctly route to the dualstack endpoint when dualstack is enabled."
+}
