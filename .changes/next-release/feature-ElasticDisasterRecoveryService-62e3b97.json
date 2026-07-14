@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Disaster Recovery Service",
-    "contributor": "",
-    "description": "Fast recovery of EC2 based drs workloads by skipping the conversion step"
-}
