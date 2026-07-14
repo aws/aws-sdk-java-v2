@@ -130,9 +130,21 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     /**
      * Whether the endpoint on the request is the result of Endpoint Discovery.
+     *
+     * @deprecated This attribute is specific to the endpoint discovery feature and should not be used to skip endpoint
+     * resolution; use {@link #SKIP_ENDPOINT_RESOLUTION} instead.
      */
+    @Deprecated
     public static final ExecutionAttribute<Boolean> IS_DISCOVERED_ENDPOINT =
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
+
+    /**
+     * Whether endpoint resolution should be skipped for the current request. When set to {@code true}, the SDK will not
+     * invoke the endpoint provider and will use the endpoint already set on the request. This is used for pre-signed URL
+     * operations and other scenarios where the endpoint is already fully resolved.
+     */
+    public static final ExecutionAttribute<Boolean> SKIP_ENDPOINT_RESOLUTION =
+        new ExecutionAttribute<>("SkipEndpointResolution");
 
     /**
      * The nano time that the current API call attempt began.

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "description": "Add presigned URL download support to S3AsyncClient and S3 Transfer Manager. Customers can now download S3 objects using pre-signed URLs through the SDK's async client pipeline without needing AWS credentials configured.",
+    "contributor": ""
+}

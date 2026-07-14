@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestU
 import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.createRequest;
 
 import io.netty.handler.ssl.SslProvider;
+import java.io.IOException;
 import java.net.BindException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +51,15 @@ public class NettyClientAlpnTest {
 
     private static void initServer(boolean useAlpn) throws Exception {
         mockServer = new MockH2Server(useAlpn);
-        mockServer.start();
+        try {
+            mockServer.start();
+        } catch (IOException e) {
+            // Jetty wraps BindException in a plain IOException; unwrap for @RetryableTest.
+            if (e.getCause() instanceof BindException) {
+                throw (BindException) e.getCause();
+            }
+            throw e;
+        }
     }
 
     @RetryableTest(maxRetries = 3, retryableException = BindException.class)
