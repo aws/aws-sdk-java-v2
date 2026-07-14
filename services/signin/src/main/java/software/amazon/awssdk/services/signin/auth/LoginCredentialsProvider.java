@@ -174,8 +174,7 @@ public final class LoginCredentialsProvider implements
     private RefreshResult<AwsCredentials> refreshFromSigninService(LoginAccessToken tokenFromDisc) {
         log.debug(() -> "Credentials are near expiration/expired, refreshing from Signin service.");
 
-        try {
-            SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey());
+        try (SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey())) {
             CreateOAuth2TokenRequest refreshRequest =
                 CreateOAuth2TokenRequest
                     .builder()
