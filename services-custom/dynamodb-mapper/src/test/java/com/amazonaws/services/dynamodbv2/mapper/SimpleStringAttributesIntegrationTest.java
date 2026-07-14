@@ -26,12 +26,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.amazonaws.services.dynamodbv2.DynamoDBMapperIntegrationTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.ConsistentReads;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.SaveBehavior;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.pojos.StringAttributeClass;

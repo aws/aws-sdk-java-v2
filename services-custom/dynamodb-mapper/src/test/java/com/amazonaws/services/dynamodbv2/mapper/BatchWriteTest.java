@@ -20,8 +20,8 @@ import static org.junit.Assert.fail;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.LocalDynamoDBTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper.FailedBatch;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.pojos.BinaryAttributeByteBufferClass;
 import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;

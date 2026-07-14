@@ -15,7 +15,7 @@
  */
 package com.amazonaws.services.dynamodbv2.pojos;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBVersionAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
 
 public class MultiVersionRangeKeyClass extends RangeKeyClass {
 

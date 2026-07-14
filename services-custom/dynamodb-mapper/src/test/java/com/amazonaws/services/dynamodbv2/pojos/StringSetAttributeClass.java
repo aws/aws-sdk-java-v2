@@ -16,9 +16,9 @@ package com.amazonaws.services.dynamodbv2.pojos;
 
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 
 /**
  * Test domain class with a string set attribute and a string key

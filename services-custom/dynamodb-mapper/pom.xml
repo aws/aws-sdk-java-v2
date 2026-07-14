@@ -43,7 +43,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.dynamodb.mapper</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.mapper.dynamodb</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

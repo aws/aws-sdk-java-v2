@@ -15,12 +15,12 @@
  */
 package com.amazonaws.services.dynamodbv2.pojos;
 
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel.DynamoDBAttributeType;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 
 @DynamoDBTable(tableName = "custom-boolean-class")
 public class CustomBooleanClass {

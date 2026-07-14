@@ -27,7 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.amazonaws.services.dynamodbv2.DynamoDBMapperIntegrationTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;
