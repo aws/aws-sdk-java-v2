@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Event Notification",
+    "contributor": "",
+    "description": "Added `awsGeneratedTags` field to `S3Bucket` in the S3 Event Notifications module. Amazon S3 emits AWS-generated system tags on the `bucket` portion of event notifications when system tags are enabled on the source bucket. SDK consumers on the SNS/SQS/Lambda delivery paths can now access these tags via `S3Bucket#getAwsGeneratedTags()`."
+}
