@@ -42,7 +42,7 @@ import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.codegen.naming.ShapeContext;
+import software.amazon.awssdk.codegen.naming.ShapeInfo;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
@@ -159,8 +159,8 @@ abstract class AddShapes {
                                             Map<String, Shape> allC2jShapes) {
         String c2jShapeName = c2jMemberDefinition.getShape();
         Shape shape = allC2jShapes.get(c2jShapeName);
-        ShapeContext parentCtx = ShapeContext.ofC2j(parentShape, allC2jShapes);
-        ShapeContext shapeCtx = ShapeContext.ofC2j(shape, allC2jShapes);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(parentShape, allC2jShapes);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(shape, allC2jShapes);
         String variableName = getNamingStrategy().getVariableName(c2jMemberName, parentCtx);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
         String variableDeclarationType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);

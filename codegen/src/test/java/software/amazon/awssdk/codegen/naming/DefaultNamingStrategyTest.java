@@ -134,8 +134,8 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getEnumValues()).thenReturn(null);
         when(mockShape.getType()).thenReturn("foo");
 
-        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
-        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(mockParentShape, mockShapeMap);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(mockShape, mockShapeMap);
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
@@ -152,8 +152,8 @@ public class DefaultNamingStrategyTest {
 
         when(member.getShape()).thenReturn("MockStringShape");
 
-        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
-        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(mockParentShape, mockShapeMap);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(mockShape, mockShapeMap);
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
@@ -162,8 +162,8 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
         when(mockShape.getType()).thenReturn("foo");
 
-        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
-        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(mockParentShape, mockShapeMap);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(mockShape, mockShapeMap);
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo("awesomeMethod");
     }
 
@@ -180,8 +180,8 @@ public class DefaultNamingStrategyTest {
 
         when(member.getShape()).thenReturn("MockStringShape");
 
-        ShapeContext parentCtx = ShapeContext.ofC2j(mockParentShape, mockShapeMap);
-        ShapeContext shapeCtx = ShapeContext.ofC2j(mockShape, mockShapeMap);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(mockParentShape, mockShapeMap);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(mockShape, mockShapeMap);
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", parentCtx, shapeCtx)).isEqualTo(
             "awesomeMethodWithStrings");
     }
