@@ -31,14 +31,13 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
-import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -188,12 +187,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<EmptyInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<EmptyInputOutputRequest, EmptyInputOutputResponse>()
-                             .withOperationName("EmptyInputOutput").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("EmptyInputOutput")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new EmptyInputOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("EmptyInputOutput", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("EmptyInputOutput")).withInput(emptyInputOutputRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(emptyInputOutputRequest));
             CompletableFuture<EmptyInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -266,8 +270,8 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                                                                                      .withProtocolMetadata(protocolMetadata).withMarshaller(new Float16RequestMarshaller(protocolFactory))
                                                                                      .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                                                                      .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                                                                                     .withAuthSchemeOptionsResolver(authSchemeResolver("Float16", clientConfiguration))
-                                                                                     .withEndpointResolver(endpointResolver("Float16")).withInput(float16Request));
+                                                                                     .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                                                                     .withEndpointResolver(this::resolveEndpoint).withInput(float16Request));
             CompletableFuture<Float16Response> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -338,12 +342,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<FractionalSecondsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<FractionalSecondsRequest, FractionalSecondsResponse>()
-                             .withOperationName("FractionalSeconds").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("FractionalSeconds")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new FractionalSecondsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("FractionalSeconds", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("FractionalSeconds")).withInput(fractionalSecondsRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(fractionalSecondsRequest));
             CompletableFuture<FractionalSecondsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -416,12 +425,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<GreetingWithErrorsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GreetingWithErrorsRequest, GreetingWithErrorsResponse>()
-                             .withOperationName("GreetingWithErrors").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("GreetingWithErrors")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GreetingWithErrorsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("GreetingWithErrors", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("GreetingWithErrors")).withInput(greetingWithErrorsRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(greetingWithErrorsRequest));
             CompletableFuture<GreetingWithErrorsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -491,12 +505,16 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<NoInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<NoInputOutputRequest, NoInputOutputResponse>()
-                             .withOperationName("NoInputOutput").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("NoInputOutput")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new NoInputOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("NoInputOutput", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("NoInputOutput")).withInput(noInputOutputRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(noInputOutputRequest));
             CompletableFuture<NoInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -569,12 +587,16 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<OperationWithDefaultsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithDefaultsRequest, OperationWithDefaultsResponse>()
-                             .withOperationName("OperationWithDefaults").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("OperationWithDefaults")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithDefaults", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithDefaults"))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithDefaultsRequest));
             CompletableFuture<OperationWithDefaultsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -647,12 +669,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<OptionalInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OptionalInputOutputRequest, OptionalInputOutputResponse>()
-                             .withOperationName("OptionalInputOutput").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("OptionalInputOutput")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OptionalInputOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("OptionalInputOutput", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OptionalInputOutput")).withInput(optionalInputOutputRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(optionalInputOutputRequest));
             CompletableFuture<OptionalInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -723,12 +750,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<RecursiveShapesResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RecursiveShapesRequest, RecursiveShapesResponse>()
-                             .withOperationName("RecursiveShapes").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("RecursiveShapes")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new RecursiveShapesRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("RecursiveShapes", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("RecursiveShapes")).withInput(recursiveShapesRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(recursiveShapesRequest));
             CompletableFuture<RecursiveShapesResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -800,12 +832,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<RpcV2CborDenseMapsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborDenseMapsRequest, RpcV2CborDenseMapsResponse>()
-                             .withOperationName("RpcV2CborDenseMaps").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("RpcV2CborDenseMaps")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new RpcV2CborDenseMapsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborDenseMaps", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("RpcV2CborDenseMaps")).withInput(rpcV2CborDenseMapsRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(rpcV2CborDenseMapsRequest));
             CompletableFuture<RpcV2CborDenseMapsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -876,12 +913,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<RpcV2CborListsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborListsRequest, RpcV2CborListsResponse>()
-                             .withOperationName("RpcV2CborLists").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("RpcV2CborLists")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new RpcV2CborListsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborLists", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("RpcV2CborLists")).withInput(rpcV2CborListsRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(rpcV2CborListsRequest));
             CompletableFuture<RpcV2CborListsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -954,12 +996,17 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<RpcV2CborSparseMapsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborSparseMapsRequest, RpcV2CborSparseMapsResponse>()
-                             .withOperationName("RpcV2CborSparseMaps").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("RpcV2CborSparseMaps")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new RpcV2CborSparseMapsRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborSparseMaps", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("RpcV2CborSparseMaps")).withInput(rpcV2CborSparseMapsRequest));
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withInput(rpcV2CborSparseMapsRequest));
             CompletableFuture<RpcV2CborSparseMapsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -1031,12 +1078,16 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<SimpleScalarPropertiesResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SimpleScalarPropertiesRequest, SimpleScalarPropertiesResponse>()
-                             .withOperationName("SimpleScalarProperties").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("SimpleScalarProperties")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new SimpleScalarPropertiesRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("SimpleScalarProperties", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("SimpleScalarProperties"))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(simpleScalarPropertiesRequest));
             CompletableFuture<SimpleScalarPropertiesResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1109,12 +1160,16 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             CompletableFuture<SparseNullsOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SparseNullsOperationRequest, SparseNullsOperationResponse>()
-                             .withOperationName("SparseNullsOperation").withProtocolMetadata(protocolMetadata)
+                             .withOperationName("SparseNullsOperation")
+                             .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new SparseNullsOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("SparseNullsOperation", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("SparseNullsOperation"))
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(
+this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(sparseNullsOperationRequest));
             CompletableFuture<SparseNullsOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1158,8 +1213,9 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         SmithyRpcV2ProtocolAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
@@ -1176,7 +1232,8 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         SmithyRpcV2ProtocolEndpointProvider provider = (SmithyRpcV2ProtocolEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
@@ -1206,14 +1263,6 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
-    }
-
-    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
-        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
-    }
-
-    private EndpointResolver endpointResolver(String operationName) {
-        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
