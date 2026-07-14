@@ -98,7 +98,19 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("ListOthers").withOutput().withRequiredMembers(1))
                 .expect("ListOthers"),
 
-            // Preference 2: verified simple method. Both operations have output so tier 1 ties.
+            // Preference 2: is authenticated, so signing is primed too. Both operations have output so tier 1 ties.
+            scenario("authenticated_beatsNoAuth_whenOtherwiseEqual")
+                .operation(op("ListThings").withOutput())
+                .operation(op("ListOthers").withOutput().withNoAuth())
+                .expect("ListThings"),
+            scenario("authenticated_outranksVerifiedSimpleMethod")
+                .verifiedSimpleMethods("listOthers")
+                .operation(op("ListThings").withOutput())
+                .operation(op("ListOthers").withOutput().withNoAuth())
+                .expect("ListThings"),
+
+            // Preference 3: verified simple method. Both operations have output and are authenticated, so tiers
+            // 1-2 tie.
             scenario("verifiedSimpleMethod_beatsNonVerified_whenOtherwiseEqual")
                 .verifiedSimpleMethods("listThings")
                 .operation(op("ListThings").withOutput())
@@ -110,20 +122,21 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("ListOthers").withOutput())
                 .expect("ListThings"),
 
-            // Preference 3: accepts an empty request. Both operations have output and neither is verified simple.
+            // Preference 4: accepts an empty request. Both operations have output and are authenticated, and
+            // neither is verified simple, so tiers 1-3 tie.
             scenario("emptyRequest_beatsRequiredMembers")
                 .operation(op("ListThings").withOutput())
                 .operation(op("ListOthers").withOutput().withRequiredMembers(1))
                 .expect("ListThings"),
 
-            // Preference 4: fewest required input members. Both operations have output and require input, so
-            // tiers 1-3 tie.
+            // Preference 5: fewest required input members. Both operations have output and require input, so
+            // tiers 1-4 tie.
             scenario("fewerRequiredMembers_beatsMore_whenBothRequireInput")
                 .operation(op("ListThings").withOutput().withRequiredMembers(1))
                 .operation(op("ListOthers").withOutput().withRequiredMembers(2))
                 .expect("ListThings"),
 
-            // Preference 5: read-only verb, List > Describe > Get. Fixtures are chosen so the alphabetical
+            // Preference 6: read-only verb, List > Describe > Get. Fixtures are chosen so the alphabetical
             // tie-break would pick the loser.
             scenario("verb_listBeatsDescribe")
                 .operation(op("DescribeThings").withOutput())
@@ -142,13 +155,12 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("GetThings").withOutput())
                 .expect("DescribeThings"),
 
-            // Preference 6: alphabetical tie-break.
+            // Preference 7: alphabetical tie-break.
             scenario("fullyTiedOperations_areBrokenAlphabetically")
                 .operation(op("BravoOperation").withOutput())
                 .operation(op("AlphaOperation").withOutput())
                 .expect("AlphaOperation"),
 
-            // All four operations return output.
             scenario("dynamoDbWorkedExample_selectsListTables")
                 .verifiedSimpleMethods("listTables", "describeLimits")
                 .operation(op("ListTables").withOutput())
@@ -264,6 +276,11 @@ public class WarmUpOperationSelectorTest {
 
         private OperationBuilder deprecated() {
             operation.setDeprecated(true);
+            return this;
+        }
+
+        private OperationBuilder withNoAuth() {
+            operation.setIsAuthenticated(false);
             return this;
         }
 

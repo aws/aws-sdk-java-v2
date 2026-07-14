@@ -35,14 +35,17 @@ public final class WarmUpOperationSelector {
 
     private static final List<String> PREFERRED_VERBS = Arrays.asList("List", "Describe", "Get");
 
+    private static final Comparator<OperationModel> BY_HAS_OUTPUT_FIRST =
+        Comparator.comparing(op -> hasOutput(op) ? 0 : 1);
+
+    private static final Comparator<OperationModel> BY_AUTHENTICATED_FIRST =
+        Comparator.comparing(op -> op.isAuthenticated() ? 0 : 1);
+
     private static final Comparator<OperationModel> BY_EMPTY_REQUEST_FIRST =
-        Comparator.comparing(op -> !acceptsEmptyRequest(op));
+        Comparator.comparing(op -> acceptsEmptyRequest(op) ? 0 : 1);
 
     private static final Comparator<OperationModel> BY_FEWEST_REQUIRED_INPUTS =
         Comparator.comparingInt(WarmUpOperationSelector::requiredInputMemberCount);
-
-    private static final Comparator<OperationModel> BY_HAS_OUTPUT_FIRST =
-        Comparator.comparing(op -> !hasOutput(op));
 
     private static final Comparator<OperationModel> BY_PREFERRED_VERB =
         Comparator.comparingInt(WarmUpOperationSelector::verbRank);
@@ -67,20 +70,26 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * Preference order: returns output (so the unmarshaller is primed too), verified simple method, accepts an
-     * empty request, fewest required input members, read-only verb, then operation name as the deterministic
-     * tie-break.
+     * Preference order: returns output (so the unmarshaller is primed too), is authenticated (so signing is primed
+     * too; {@code noAuth} operations skip signing entirely), verified simple method, accepts an empty request,
+     * fewest required input members, read-only verb, then operation name as the deterministic tie-break.
      */
     private static Comparator<OperationModel> warmUpPreference(List<String> verifiedSimpleMethods) {
-        Comparator<OperationModel> byVerifiedSimpleFirst =
-            Comparator.comparing(op -> !verifiedSimpleMethods.contains(op.getMethodName()));
-
         return BY_HAS_OUTPUT_FIRST
-            .thenComparing(byVerifiedSimpleFirst)
+            .thenComparing(BY_AUTHENTICATED_FIRST)
+            .thenComparing(byVerifiedSimpleFirst(verifiedSimpleMethods))
             .thenComparing(BY_EMPTY_REQUEST_FIRST)
             .thenComparing(BY_FEWEST_REQUIRED_INPUTS)
             .thenComparing(BY_PREFERRED_VERB)
             .thenComparing(BY_NAME_ALPHABETICAL);
+    }
+
+    /**
+     * Unlike the other tiers, this one depends on the service's customization config, so it cannot be a static
+     * comparator constant.
+     */
+    private static Comparator<OperationModel> byVerifiedSimpleFirst(List<String> verifiedSimpleMethods) {
+        return Comparator.comparing(op -> verifiedSimpleMethods.contains(op.getMethodName()) ? 0 : 1);
     }
 
     private static boolean passesHardGates(OperationModel operation) {
