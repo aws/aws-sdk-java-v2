@@ -1,6 +1,6 @@
 [
   {
-    "name": "import software.amazon.awssdk.http.apache5.ApacheSdkHttpService",
+    "name": "software.amazon.awssdk.http.apache5.Apache5SdkHttpService",
     "methods": [
       {
         "name": "<init>",
@@ -31,5 +31,5 @@
   {
     "name":"org.apache.commons.logging.impl.WeakHashtable",
     "methods":[{"name":"<init>","parameterTypes":[] }]
-  }  
+  }
 ]

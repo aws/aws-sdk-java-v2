@@ -15,42 +15,18 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
-
 
 import java.time.Duration;
-import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-
-import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.Log;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.utils.AttributeMap;
 
-/**
- * Testing the scenario where h1 server sends 5xx errors.
- */
-public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
 
-    @BeforeAll
-    public static void beforeAll() {
-        System.setProperty("aws.crt.debugnative", "true");
-        Log.initLoggingToStdout(Log.LogLevel.Warn);
-    }
-
-    /**
-     * default value of connectionAcquisitionTimeout of 10 will fail validatesHttpsCertificateIssuer() test
-     * */
-    @Override
-    protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        boolean trustAllCerts = options.trustAll();
-        return AwsCrtHttpClient.builder()
-                               .connectionAcquisitionTimeout(Duration.ofSeconds(40))
-                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
-    }
+public class AwsCrtHttpClientTest extends AwsCrtHttpClientTestBase {
 
     @Test
     public void negativeConnectionAcquisitionTimeout_shouldFail() {
@@ -62,13 +38,40 @@ public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
         }).hasMessage("connectionAcquisitionTimeout must be positive");
     }
 
-    // Empty test; behavior not supported when using custom factory
-    @Override
-    public void testCustomTlsTrustManagerAndTrustAllFails() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidTlsNegotiationTimeouts")
+    void tlsNegotiationTimeout_invalidDuration_shouldThrowException(String description, Duration input,
+                                                                    String expectedMessageFragment) {
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().tlsNegotiationTimeout(input).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining(expectedMessageFragment);
     }
 
-    // Empty test; behavior not supported when using custom factory
-    @Override
-    public void testCustomTlsTrustManager() {
+    @Test
+    void syncBuilder_buildWithDefaults_serviceDefaultsLacksTlsNegotiationTimeout_resolvesToCrtDefault10s() {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().buildWithDefaults(AttributeMap.empty())) {
+            assertThat(((AwsCrtHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(CRT_DEFAULT);
+        }
+    }
+
+
+    @ParameterizedTest(name = "[sync] {0}")
+    @MethodSource("resolutionMatrix")
+    void syncBuilder_resolvedTlsNegotiationTimeout_matchesPathBPrecedence(String description, Duration customer,
+                                                                          Duration serviceDefault, Duration expected) {
+        AwsCrtHttpClient.Builder builder = AwsCrtHttpClient.builder();
+        if (customer != null) {
+            builder.tlsNegotiationTimeout(customer);
+        }
+
+        try (SdkHttpClient client = buildSync(builder, serviceDefault)) {
+            assertThat(((AwsCrtHttpClient) client).resolvedTlsNegotiationTimeout()).isEqualTo(expected);
+        }
+    }
+
+    private static SdkHttpClient buildSync(AwsCrtHttpClient.Builder builder, Duration serviceDefault) {
+        return serviceDefault == null
+               ? builder.build()
+               : builder.buildWithDefaults(serviceDefaultsMap(serviceDefault));
     }
 }

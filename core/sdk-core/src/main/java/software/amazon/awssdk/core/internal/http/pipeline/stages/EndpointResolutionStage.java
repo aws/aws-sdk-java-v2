@@ -23,11 +23,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -58,6 +58,10 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         ExecutionAttributes attrs = context.executionAttributes();
 
         if (Boolean.TRUE.equals(attrs.getAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT))) {
+            return request;
+        }
+
+        if (Boolean.TRUE.equals(attrs.getAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION))) {
             return request;
         }
 
