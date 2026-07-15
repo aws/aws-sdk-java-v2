@@ -128,7 +128,7 @@ public interface NamingStrategy {
      * @param parentShape The shape containing the member, used to check for shape-specific reserved names.
      * @return Appropriate name to use for a Java variable or field.
      */
-    String getVariableName(String name, ShapeContext parentShape);
+    String getVariableName(String name, ShapeInfo parentShape);
 
     /**
      * @param enumValue Enum value as defined in the service model used to derive the java name.
@@ -148,7 +148,7 @@ public interface NamingStrategy {
      * @param shape The shape associated with the member.
      * @return Name of the getter method for a model class member.
      */
-    String getFluentGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getFluentGetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * @param memberName The full member to get the name for.
@@ -156,25 +156,25 @@ public interface NamingStrategy {
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getFluentEnumGetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * @param memberName Member name to name getter for.
      * @return Name of the JavaBean getter method for model class member.
      */
-    String getBeanStyleGetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getBeanStyleGetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * @param memberName Member name to name setter for.
      * @return Name of the JavaBean setter method for model class member.
      */
-    String getBeanStyleSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getBeanStyleSetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * @param memberName Member name to name fluent setter for.
      * @return Appropriate name to use for fluent setter method (i.e. withFoo) for a model class member.
      */
-    String getFluentSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getFluentSetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * @param memberName The full member to get the name for.
@@ -182,7 +182,7 @@ public interface NamingStrategy {
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumSetterMethodName(String memberName, ShapeContext parentShape, ShapeContext shape);
+    String getFluentEnumSetterMethodName(String memberName, ShapeInfo parentShape, ShapeInfo shape);
 
     /**
      * Stuttering is intentional, returns the name of the {@link SdkField} field.
@@ -207,7 +207,7 @@ public interface NamingStrategy {
      * @param parentShape The shape containing the member.
      * @return Name of an existence check method.
      */
-    String getExistenceCheckMethodName(String memberName, ShapeContext parentShape);
+    String getExistenceCheckMethodName(String memberName, ShapeInfo parentShape);
 
     /**
      * Retrieve the service's signing name that should be used based on the model.
