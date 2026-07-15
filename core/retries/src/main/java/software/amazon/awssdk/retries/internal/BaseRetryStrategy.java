@@ -39,6 +39,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.ReleaseResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -86,7 +87,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#acquireInitialToken(AcquireInitialTokenRequest)
      */
     @Override
-    public final AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+    public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
         logAcquireInitialToken(request);
         DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
         return AcquireInitialTokenResponse.create(token, computeInitialBackoff(request));
@@ -98,7 +99,20 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
      * @see RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)
      */
     @Override
-    public final RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+    public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+        Pair<DefaultRetryToken, AcquireResponse> refreshedToken = refreshTokenOrThrow(request);
+        Duration backoff = computeBackoff(request, refreshedToken.left());
+
+        logRefreshTokenSuccess(refreshedToken.left(), refreshedToken.right(), backoff);
+        return RefreshRetryTokenResponseImpl.create(refreshedToken.left(), backoff);
+    }
+
+    /**
+     * Attempt to refresh the token for a retry or throws {@link TokenAcquisitionFailedException} if unable to do so.
+     *
+     * @return A pair of the refreshed token and the successful acquire response from the token bucket.
+     */
+    protected Pair<DefaultRetryToken, AcquireResponse> refreshTokenOrThrow(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
 
         // Check if we meet the preconditions needed for retrying. These will throw if the expected condition is not meet.
@@ -115,12 +129,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         // All the conditions required to retry were meet, update the internal state before retrying.
         updateStateForRetry(request);
 
-        // Refresh the retry token and compute the backoff delay.
-        DefaultRetryToken refreshedToken = refreshToken(request, acquireResponse);
-        Duration backoff = computeBackoff(request, refreshedToken);
-
-        logRefreshTokenSuccess(refreshedToken, acquireResponse, backoff);
-        return RefreshRetryTokenResponseImpl.create(refreshedToken, backoff);
+        // Refresh the retry token
+        return Pair.of(refreshToken(request, acquireResponse), acquireResponse);
     }
 
     /**
@@ -343,7 +353,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                                       tokenBucket.currentCapacity(), tokenBucket.maxCapacity()));
     }
 
-    private void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
+    protected void logRefreshTokenSuccess(DefaultRetryToken token, AcquireResponse acquireResponse, Duration delay) {
         log.debug(() -> String.format("Request attempt %d token acquired "
                                       + "(backoff: %dms, cost: %d, capacity: %d/%d)",
                                       token.attempt(), delay.toMillis(),

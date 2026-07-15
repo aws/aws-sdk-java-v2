@@ -18,27 +18,39 @@ package software.amazon.awssdk.retries.internal.ratelimiter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
 
 public class RateLimiterTokenBucketStoreTest {
     @Test
-    void close_closesScheduler() {
+    void close_schedulerProvided_schedulerNotClosed() {
         ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
         RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder()
                                                                        .clock(new SystemClock())
-                                                                       .executor(scheduler)
+                                                                       .scheduler(scheduler)
                                                                        .build();
 
         store.close();
 
-        verify(scheduler).shutdownNow();
+        verify(scheduler, never()).shutdownNow();
+        verify(scheduler, never()).shutdown();
+    }
+
+    @Test
+    void close_schedulerNotProvidedOnBuilder_schedulerClosed() {
+        RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder()
+                                                                       .clock(new SystemClock())
+                                                                       .build();
+
+        store.close();
+
+        assertThat(store.scheduler().isShutdown()).isTrue();
     }
 
     @Test
@@ -49,7 +61,7 @@ public class RateLimiterTokenBucketStoreTest {
         ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
         RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder()
                                                                        .clock(new SystemClock())
-                                                                       .executor(scheduler)
+                                                                       .scheduler(scheduler)
                                                                        .build();
 
         List<CompletableFuture<Void>> futures = new ArrayList<>(entries);

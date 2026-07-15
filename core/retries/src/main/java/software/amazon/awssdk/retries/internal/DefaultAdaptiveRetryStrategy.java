@@ -16,22 +16,27 @@
 package software.amazon.awssdk.retries.internal;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
+import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
+import software.amazon.awssdk.retries.internal.circuitbreaker.AcquireResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucket;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucketStore;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultAdaptiveRetryStrategy
     extends BaseRetryStrategy implements AdaptiveRetryStrategy {
-
     private static final Logger LOG = Logger.loggerFor(DefaultAdaptiveRetryStrategy.class);
     private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
@@ -42,13 +47,48 @@ public final class DefaultAdaptiveRetryStrategy
     }
 
     @Override
-    protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
-        throw new UnsupportedOperationException("TODO");
+    public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+        return CompletableFutureUtils.joinLikeSync(acquireInitialTokenAsync(request));
     }
 
     @Override
-    protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        throw new UnsupportedOperationException("TODO");
+    public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+        return CompletableFutureUtils.joinLikeSync(refreshRetryTokenAsync(request));
+    }
+
+    @Override
+    public CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(request.scope());
+        CompletableFuture<Void> acquireResult = bucket.acquireAsync();
+
+        return acquireResult.thenApply(r -> {
+            DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
+            return AcquireInitialTokenResponse.create(token, Duration.ZERO);
+        });
+    }
+
+    @Override
+    public CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
+        DefaultRetryToken token = (DefaultRetryToken) request.token();
+        Pair<DefaultRetryToken, AcquireResponse> refreshedToken;
+        try {
+            refreshedToken = refreshTokenOrThrow(request);
+        } catch (Throwable t) {
+            return CompletableFutureUtils.failedFuture(t);
+        }
+
+        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
+        CompletableFuture<Void> acquireResult = bucket.acquireAsync();
+        return acquireResult.thenApply(r -> {
+            Duration backoff = computeBackoff(request, refreshedToken.left());
+            logRefreshTokenSuccess(refreshedToken.left(), refreshedToken.right(), backoff);
+            return RefreshRetryTokenResponse.create(refreshedToken.left(), backoff);
+        });
+    }
+
+    @Override
+    public void close() {
+        rateLimiterTokenBucketStore.close();
     }
 
     @Override
