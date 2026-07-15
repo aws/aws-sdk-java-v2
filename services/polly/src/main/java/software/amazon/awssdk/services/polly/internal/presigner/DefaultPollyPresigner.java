@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -70,6 +71,7 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.polly.auth.scheme.PollyAuthSchemeProvider;
+import software.amazon.awssdk.services.polly.endpoints.PollyEndpointProvider;
 import software.amazon.awssdk.services.polly.internal.presigner.model.transform.SynthesizeSpeechRequestMarshaller;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
@@ -94,6 +96,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final URI endpointOverride;
     private final Boolean dualstackEnabled;
     private final Boolean fipsEnabled;
+    private final URI resolvedEndpoint;
 
     private DefaultPollyPresigner(BuilderImpl builder) {
         this.signingClock = builder.signingClock != null ? builder.signingClock
@@ -126,6 +129,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                             .build()
                                                                             .isFipsEnabled()
                                                                             .orElse(false);
+        this.resolvedEndpoint = resolveEndpoint();
     }
 
     IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
@@ -334,27 +338,28 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private void applyEndpoint(SdkHttpFullRequest.Builder httpRequestBuilder) {
-        URI uri = resolveEndpoint();
-        httpRequestBuilder.protocol(uri.getScheme())
-                          .host(uri.getHost())
-                          .port(uri.getPort());
+        httpRequestBuilder.protocol(resolvedEndpoint.getScheme())
+                          .host(resolvedEndpoint.getHost())
+                          .port(resolvedEndpoint.getPort());
     }
 
     private URI resolveEndpoint() {
-        return AwsClientEndpointProvider.builder()
-                                        .clientEndpointOverride(endpointOverride)
-                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_POLLY")
-                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
-                                        .serviceProfileProperty("polly")
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol("https")
-                                        .region(region)
-                                        .profileFile(profileFile)
-                                        .profileName(profileName)
-                                        .dualstackEnabled(dualstackEnabled)
-                                        .fipsEnabled(fipsEnabled)
-                                        .build()
-                                        .clientEndpoint();
+        Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                                                  .clientEndpointOverride(endpointOverride)
+                                                                  .serviceEndpointOverrideEnvironmentVariable(
+                                                                      "AWS_ENDPOINT_URL_POLLY")
+                                                                  .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
+                                                                  .serviceProfileProperty("polly")
+                                                                  .profileFile(profileFile)
+                                                                  .profileName(profileName)
+                                                                  .resolveFromOverrides();
+
+        return overrideEndpoint.orElseGet(() -> CompletableFutureUtils.joinLikeSync(
+            PollyEndpointProvider.defaultProvider()
+                                 .resolveEndpoint(p -> p.region(region)
+                                                        .useDualStack(dualstackEnabled)
+                                                        .useFips(fipsEnabled))
+        ).url());
     }
 
     public static class BuilderImpl implements PollyPresigner.Builder {

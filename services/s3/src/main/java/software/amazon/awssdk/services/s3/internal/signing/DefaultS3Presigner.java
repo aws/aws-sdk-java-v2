@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -251,28 +254,32 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        AwsClientEndpointProvider endpointProvider =
-            AwsClientEndpointProvider.builder()
-                                     .clientEndpointOverride(endpointOverride())
-                                     .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
-                                     .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
-                                     .serviceProfileProperty("s3")
-                                     .serviceEndpointPrefix(SERVICE_NAME)
-                                     .defaultProtocol("https")
-                                     .region(region())
-                                     .profileFile(profileFileSupplier())
-                                     .profileName(profileName())
-                                     .dualstackEnabled(serviceConfiguration.dualstackEnabled())
-                                     .fipsEnabled(fipsEnabled())
-                                     .build();
+        Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                             .clientEndpointOverride(endpointOverride())
+                                             .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                             .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                             .serviceProfileProperty("s3")
+                                             .profileFile(profileFileSupplier())
+                                             .profileName(profileName())
+                                             .resolveFromOverrides();
 
-        // Make sure the endpoint resolver can actually resolve an endpoint, so that we fail now instead of
-        // when a request is made.
-        endpointProvider.clientEndpoint();
+        ClientEndpointProvider endpointProvider;
+        if (overrideEndpoint.isPresent()) {
+            endpointProvider = ClientEndpointProvider.create(overrideEndpoint.get(), true);
+        } else {
+            // Validate region at construction time to fail fast for invalid regions (e.g., US_EAST_1 with underscores).
+            URI testEndpoint = URI.create("https://s3." + region().id() + ".amazonaws.com");
+            if (testEndpoint.getHost() == null) {
+                throw SdkClientException.create("Configured region (" + region() + ") resulted in an invalid URI: "
+                                                + testEndpoint + ". This is usually caused by an invalid region "
+                                                + "configuration.");
+            }
+            // Need an endpoint to marshall but this will be overwritten later with Endpoints 2.0 resolution
+            endpointProvider = ClientEndpointProvider.create(URI.create("https://localhost"), false);
+        }
 
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                             endpointProvider)
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, endpointProvider)
                                      .build();
     }
 
