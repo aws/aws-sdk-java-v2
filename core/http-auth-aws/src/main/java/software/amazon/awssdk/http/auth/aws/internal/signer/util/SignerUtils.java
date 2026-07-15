@@ -41,7 +41,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.cache.FifoCache;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -51,9 +50,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class SignerUtils {
 
     private static final Logger LOG = Logger.loggerFor(SignerUtils.class);
-
-    private static final FifoCache<SignerKey> SIGNER_CACHE =
-        new FifoCache<>(300);
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
         .ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
@@ -96,14 +92,19 @@ public final class SignerUtils {
     }
 
     /**
-     * Get the signing key based on the given credentials and a credential-scope
+     * Get the signing key based on the given credentials and a credential-scope.
+     *
+     * <p>Returns a {@code byte[]} owned by the shared cache. Callers must treat it as immutable; mutating it will
+     * corrupt any cached entry. The cache is keyed on (secretAccessKey, region, service) and entries are valid for
+     * one UTC day. The cache is shared with {@link FastV4HeaderSigner} so derivations made by either signing path
+     * are reused by the other.
      */
     public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, CredentialScope credentialScope) {
-        String cacheKey = createSigningCacheKeyName(credentials, credentialScope.getRegion(), credentialScope.getService());
-        SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
-
-        if (signerKey != null && signerKey.isValidForDate(credentialScope.getInstant())) {
-            return signerKey.getSigningKey();
+        V4SigningKeyCache.CacheKey cacheKey = new V4SigningKeyCache.CacheKey(
+            credentials.secretAccessKey(), credentialScope.getRegion(), credentialScope.getService());
+        byte[] cached = V4SigningKeyCache.sharedGet(cacheKey, credentialScope.getInstant());
+        if (cached != null) {
+            return cached;
         }
 
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
@@ -112,14 +113,8 @@ public final class SignerUtils {
                                           credentialScope.getDate(),
                                           credentialScope.getRegion(),
                                           credentialScope.getService());
-        SIGNER_CACHE.add(cacheKey, new SignerKey(credentialScope.getInstant(), signingKey));
+        V4SigningKeyCache.sharedPut(cacheKey, signingKey, credentialScope.getInstant());
         return signingKey;
-    }
-
-    private static String createSigningCacheKeyName(AwsCredentialsIdentity credentials,
-                                                    String regionName,
-                                                    String serviceName) {
-        return credentials.secretAccessKey() + "-" + regionName + "-" + serviceName;
     }
 
     private static byte[] newSigningKey(AwsCredentialsIdentity credentials,
