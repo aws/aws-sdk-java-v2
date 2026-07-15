@@ -14,7 +14,7 @@
  */
 package com.amazonaws.services.dynamodbv2.mapper;
 
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.ConsistentReads.CONSISTENT;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads.CONSISTENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -22,16 +22,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import com.amazonaws.services.dynamodbv2.DynamoDBMapperIntegrationTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDeleteExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.SaveBehavior;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBVersionAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;

@@ -16,9 +16,9 @@ package com.amazonaws.services.dynamodbv2;
 
 import static org.junit.Assert.assertNotEquals;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTableMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.pojos.GsiWithAlwaysUpdateTimestamp;

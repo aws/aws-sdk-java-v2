@@ -14,9 +14,9 @@
  */
 package com.amazonaws.services.dynamodbv2.pojos;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.S3Link;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.S3Link;
 
 /**
  * Test domain class with a single string key, and two S3Links

@@ -34,12 +34,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
 
 import com.amazonaws.services.dynamodbv2.DynamoDBMapperIntegrationTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConvertedJson;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverter;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedJson;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter;
 
 /**
  * Tests of the configuration object

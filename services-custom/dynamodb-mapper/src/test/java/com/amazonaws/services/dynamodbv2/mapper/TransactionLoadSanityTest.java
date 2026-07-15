@@ -21,7 +21,7 @@ import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getStringAttri
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.TransactionLoadTestData;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.TransactionLoadTestDataRequest;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
+import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
 import com.amazonaws.services.dynamodbv2.pojos.StringAttributeClass;
 import org.junit.Test;
 

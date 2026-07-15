@@ -15,16 +15,16 @@
 package com.amazonaws.services.dynamodbv2.mapper;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.datamodeling.ConversionSchema;
-import com.amazonaws.services.dynamodbv2.datamodeling.ConversionSchemas;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped;
+import software.amazon.awssdk.mapper.dynamodb.ConversionSchema;
+import software.amazon.awssdk.mapper.dynamodb.ConversionSchemas;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
@@ -125,7 +125,7 @@ public class V2CompatibleBooleansTest {
     }
 
     /**
-     * {@link com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBNativeBoolean} or {@link DynamoDBTyped} can force native
+     * {@link software.amazon.awssdk.mapper.dynamodb.DynamoDBNativeBoolean} or {@link DynamoDBTyped} can force native
      * boolean marshalling.
      */
     @Test

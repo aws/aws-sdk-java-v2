@@ -14,7 +14,7 @@
  */
 package com.amazonaws.services.dynamodbv2.pojos;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBDocument;
 
 import java.nio.ByteBuffer;
 

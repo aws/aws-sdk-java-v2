@@ -22,8 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.dynamodbv2.TestObjectCreator;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTransactionWriteExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
+import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
 import com.amazonaws.services.dynamodbv2.pojos.MultiVersionRangeKeyClass;
 import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;

@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.dynamodbv2.test.util.DynamoDBTestBase;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;

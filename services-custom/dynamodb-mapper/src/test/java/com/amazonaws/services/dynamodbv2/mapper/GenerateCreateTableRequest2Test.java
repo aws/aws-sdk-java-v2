@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.LocalDynamoDBTestBase;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;

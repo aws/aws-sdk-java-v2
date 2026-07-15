@@ -15,7 +15,7 @@
  */
 package com.amazonaws.services.dynamodbv2.mapper;
 
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.TableNameResolver;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameResolver;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.ConditionExpressionMode;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createMultipleObjectTestDataForTransactionWrite;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createStringHashKeyTable;
@@ -30,13 +30,13 @@ import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getTestItemObj
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTableMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTransactionWriteExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
+import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
+import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CancellationReason;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;

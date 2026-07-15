@@ -17,12 +17,12 @@ package com.amazonaws.services.dynamodbv2;
 
 import static com.amazonaws.services.dynamodbv2.pojos.CustomBooleanClass.CustomBoolean;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTransactionLoadExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTransactionWriteExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest.TransactionWriteOperation;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionLoadExpression;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
+import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
+import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
+import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.TransactionWriteOperation;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;

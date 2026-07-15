@@ -15,8 +15,8 @@
  */
 package com.amazonaws.services.dynamodbv2.mapper;
 
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.TableNameOverride;
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.TableNameResolver;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOverride;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameResolver;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createMultipleObjectTestDataForTransactionLoad;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createSdkRangeTestTable;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.deleteTestTable;
@@ -31,11 +31,11 @@ import static com.amazonaws.services.dynamodbv2.TestObjectCreator.ObjectSupplier
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTableMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
+import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
 import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;
 import com.amazonaws.services.dynamodbv2.pojos.SchemaViolatingTestItem;

@@ -15,9 +15,9 @@
  */
 package com.amazonaws.services.dynamodbv2.mapper;
 
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.TableNameOverride;
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.TableNameResolver;
-import static com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.ObjectTableNameResolver;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOverride;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameResolver;
+import static software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ObjectTableNameResolver;
 import static com.amazonaws.services.dynamodbv2.pojos.CustomBooleanClass.CustomBoolean;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createAllSupportedAnnotationsTable;
 import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createMultipleObjectTestDataForTransactionLoad;
@@ -39,13 +39,13 @@ import static com.amazonaws.services.dynamodbv2.TestObjectCreator.TransactionLoa
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverter;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverterFactory;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverterFactory;
+import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
 import com.amazonaws.services.dynamodbv2.pojos.AllSupportedAnnotationsClass;
 import com.amazonaws.services.dynamodbv2.pojos.AllSupportedDataTypesClass;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;

@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTransactionWriteExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
+import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
 import com.amazonaws.services.dynamodbv2.pojos.HashKeyRangeKeyClass;
 import com.amazonaws.services.dynamodbv2.pojos.StringAttributeClass;
