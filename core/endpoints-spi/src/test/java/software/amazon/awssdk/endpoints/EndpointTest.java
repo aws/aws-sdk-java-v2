@@ -88,4 +88,53 @@ public class EndpointTest {
 
         assertThat(original.attribute(TEST_STRING_ATTR)).isEqualTo("foo");
     }
+
+    // -----------------------------------------------------------------------
+    // Equality tests across construction paths (url(URI) vs endpointUrl(EndpointUrl))
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void equality_acrossConstructionPaths() {
+        URI uri = URI.create("https://[::1]:8080/path?key=value#frag");
+
+        Endpoint viaUri = Endpoint.builder().url(uri).build();
+        Endpoint viaFromString = Endpoint.builder()
+                                         .endpointUrl(EndpointUrl.fromString("https://[::1]:8080/path?key=value#frag"))
+                                         .build();
+        Endpoint viaFromComponents = Endpoint.builder()
+                                             .endpointUrl(EndpointUrl.fromComponents("https", "[::1]", 8080, "/path",
+                                                                                     "?key=value#frag"))
+                                             .build();
+
+        assertThat(viaUri).isEqualTo(viaFromString);
+        assertThat(viaUri).isEqualTo(viaFromComponents);
+        assertThat(viaUri.hashCode()).isEqualTo(viaFromString.hashCode());
+        assertThat(viaUri.hashCode()).isEqualTo(viaFromComponents.hashCode());
+    }
+
+    @Test
+    public void inequality_differentUrlComponents() {
+        Endpoint endpoint1 = Endpoint.builder()
+                                     .endpointUrl(EndpointUrl.fromString("https://example.com/path?key=value"))
+                                     .build();
+        Endpoint endpoint2 = Endpoint.builder()
+                                     .endpointUrl(EndpointUrl.fromString("https://example.com/path"))
+                                     .build();
+
+        assertThat(endpoint1).isNotEqualTo(endpoint2);
+    }
+
+    @Test
+    public void endpointUrlAccessor_returnsCorrectComponents() {
+        Endpoint endpoint = Endpoint.builder()
+                                    .url(URI.create("https://s3.us-east-1.amazonaws.com:443/bucket"))
+                                    .build();
+
+        EndpointUrl endpointUrl = endpoint.endpointUrl();
+        assertThat(endpointUrl.scheme()).isEqualTo("https");
+        assertThat(endpointUrl.host()).isEqualTo("s3.us-east-1.amazonaws.com");
+        assertThat(endpointUrl.port()).isEqualTo(443);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/bucket");
+        assertThat(endpointUrl.queryAndFragment()).isEmpty();
+    }
 }
