@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -100,7 +101,7 @@ class AuthSchemeResolutionStageTest {
     void execute_resolverReturnsEmpty_returnsRequestUnchanged() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> Collections.emptyList());
+            (AuthSchemeOptionsResolver) (req, attrs) -> Collections.emptyList());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
@@ -126,7 +127,7 @@ class AuthSchemeResolutionStageTest {
             .build();
 
         AuthSchemeOptionsResolver resolver = mock(AuthSchemeOptionsResolver.class);
-        doReturn(createAuthOptions()).when(resolver).resolve(modifiedRequest);
+        doReturn(createAuthOptions()).when(resolver).resolve(eq(modifiedRequest), any(ExecutionAttributes.class));
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER, resolver);
@@ -135,7 +136,7 @@ class AuthSchemeResolutionStageTest {
         stage.execute(httpRequestBuilder, context);
 
         // Verify resolver was called with the MODIFIED request, not originalRequest
-        verify(resolver).resolve(modifiedRequest);
+        verify(resolver).resolve(eq(modifiedRequest), any(ExecutionAttributes.class));
     }
 
     @Test
@@ -156,7 +157,7 @@ class AuthSchemeResolutionStageTest {
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+            (AuthSchemeOptionsResolver) (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, baseProviders);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER, resolver);
 
@@ -169,7 +170,7 @@ class AuthSchemeResolutionStageTest {
     void execute_withoutRequestIdentityProviderResolver_doesNotFail() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+            (AuthSchemeOptionsResolver) (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
         // No IDENTITY_PROVIDER_RESOLVER set
 
@@ -183,7 +184,7 @@ class AuthSchemeResolutionStageTest {
     void execute_happyPath_setsSelectedAuthScheme() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+            (AuthSchemeOptionsResolver) (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
@@ -240,7 +241,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, alreadyResolved);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+            (AuthSchemeOptionsResolver) (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
@@ -262,7 +263,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, unsetPlaceholder);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            (AuthSchemeOptionsResolver) req -> createAuthOptions());
+            (AuthSchemeOptionsResolver) (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         stage.execute(httpRequestBuilder, context);

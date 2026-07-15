@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.spi.identity;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
 /**
@@ -33,7 +34,8 @@ public interface AuthSchemeOptionsResolver {
      * Resolves auth scheme options for the given request.
      *
      * @param request The request (after interceptors have modified it)
+     * @param executionAttributes The execution attributes for the current request execution
      * @return List of auth scheme options in priority order
      */
-    List<AuthSchemeOption> resolve(SdkRequest request);
+    List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes);
 }
