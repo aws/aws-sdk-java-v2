@@ -373,7 +373,8 @@ public final class ClientClassUtils {
 
         ClassName providerInterface = authSchemeSpecUtils.providerInterfaceName();
 
-        builder.addStatement("String operationName = executionAttributes.getAttribute($T.OPERATION_NAME)", SdkExecutionAttribute.class);
+        builder.addStatement("String operationName = executionAttributes.getAttribute($T.OPERATION_NAME)",
+                             SdkExecutionAttribute.class);
 
         // Check for request-level authSchemeProvider override
         builder.addStatement("$T requestAuthSchemeProvider = request.overrideConfiguration()"
