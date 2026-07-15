@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.retries.api;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -40,9 +42,9 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @ThreadSafe
 @SdkPublicApi
-public interface RetryStrategy {
+public interface RetryStrategy extends SdkAutoCloseable {
     /**
-     * Invoked before the first request attempt.
+     * Acquire a retry token synchronously. Invoked before the first request attempt.
      *
      * <p>Callers MUST wait for the {@code delay} returned by this call before making the first attempt. Callers that wish to
      * retry a failed attempt MUST call {@link #refreshRetryToken} before doing so.
@@ -55,7 +57,23 @@ public interface RetryStrategy {
     AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request);
 
     /**
-     * Invoked before each subsequent (non-first) request attempt.
+     * Acquire a retry token asynchronously. Invoked before the first request attempt.
+     *
+     * <p>Callers MUST wait for the {@code delay} returned by this call before making the first attempt. Callers that wish to
+     * retry a failed attempt MUST call {@link #refreshRetryToken} before doing so.
+     *
+     * <p>If the attempt was successful, callers MUST call {@link #recordSuccess}.
+     *
+     * <p>The future is completed exceptionally with {@link NullPointerException} if a required parameter is {@code null}.
+     * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
+     */
+    default CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        AcquireInitialTokenResponse response = acquireInitialToken(request);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    /**
+     * Refresh a retry token synchronously. Invoked before each subsequent (non-first) request attempt.
      *
      * <p>Callers MUST wait for the {@code delay} returned by this call before making the next attempt. If the next attempt
      * fails, callers MUST re-call {@link #refreshRetryToken} before attempting another retry. This call invalidates the provided
@@ -69,6 +87,25 @@ public interface RetryStrategy {
      * @throws TokenAcquisitionFailedException if a token cannot be acquired
      */
     RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request);
+
+    /**
+     * Refresh a retry token asynchronously. Invoked before each subsequent (non-first) request attempt.
+     *
+     * <p>Callers MUST wait for the {@code delay} returned by this call before making the next attempt. If the next attempt
+     * fails, callers MUST re-call {@link #refreshRetryToken} before attempting another retry. This call invalidates the provided
+     * token, and returns a new one. Callers MUST use the new token.
+     *
+     * <p>If the attempt was successful, callers MUST call {@link #recordSuccess}.
+     *
+     * <p>The future is completed exceptionally with {@link NullPointerException} if a required parameter is not specified.
+     * <p>The future is completed exceptionally with {@link IllegalArgumentException} if the provided token was not issued by
+     * this strategy or the provided token was already used for a previous refresh or success call.
+     * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
+     */
+    default CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
+        RefreshRetryTokenResponse response = refreshRetryToken(request);
+        return CompletableFuture.completedFuture(response);
+    }
 
     /**
      * Invoked after an attempt succeeds.
@@ -101,6 +138,10 @@ public interface RetryStrategy {
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.
      */
     Builder<?, ?> toBuilder();
+
+    @Override
+    default void close() {
+    }
 
     /**
      * Builder to create immutable instances of {@link RetryStrategy}.
