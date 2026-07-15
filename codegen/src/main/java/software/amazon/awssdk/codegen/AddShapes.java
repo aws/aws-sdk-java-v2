@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.naming.ShapeInfo;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
@@ -158,7 +159,9 @@ abstract class AddShapes {
                                             Map<String, Shape> allC2jShapes) {
         String c2jShapeName = c2jMemberDefinition.getShape();
         Shape shape = allC2jShapes.get(c2jShapeName);
-        String variableName = getNamingStrategy().getVariableName(c2jMemberName, parentShape);
+        ShapeInfo parentCtx = ShapeInfo.ofC2j(parentShape, allC2jShapes);
+        ShapeInfo shapeCtx = ShapeInfo.ofC2j(shape, allC2jShapes);
+        String variableName = getNamingStrategy().getVariableName(c2jMemberName, parentCtx);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
         String variableDeclarationType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
 
@@ -187,13 +190,13 @@ abstract class AddShapes {
         memberModel.setDeprecatedMessage(c2jMemberDefinition.getDeprecatedMessage());
         memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
         memberModel
-                .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentShape, shape))
-                .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentShape, shape))
-                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, parentShape, shape))
-                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, parentShape, shape))
-                .withExistenceCheckMethodName(namingStrategy.getExistenceCheckMethodName(c2jMemberName, parentShape))
-                .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentShape, shape))
-                .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentShape, shape));
+                .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentCtx, shapeCtx))
+                .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentCtx, shapeCtx))
+                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, parentCtx, shapeCtx))
+                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, parentCtx, shapeCtx))
+                .withExistenceCheckMethodName(namingStrategy.getExistenceCheckMethodName(c2jMemberName, parentCtx))
+                .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentCtx, shapeCtx))
+                .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentCtx, shapeCtx));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
         memberModel.setEventPayload(c2jMemberDefinition.isEventpayload());
         memberModel.setEventHeader(c2jMemberDefinition.isEventheader());
@@ -229,11 +232,11 @@ abstract class AddShapes {
 
             memberModel.setDeprecatedName(deprecatedName);
             memberModel.setDeprecatedFluentGetterMethodName(
-                namingStrategy.getFluentGetterMethodName(deprecatedName, parentShape, shape));
+                namingStrategy.getFluentGetterMethodName(deprecatedName, parentCtx, shapeCtx));
             memberModel.setDeprecatedFluentSetterMethodName(
-                namingStrategy.getFluentSetterMethodName(deprecatedName, parentShape, shape));
+                namingStrategy.getFluentSetterMethodName(deprecatedName, parentCtx, shapeCtx));
             memberModel.setDeprecatedBeanStyleSetterMethodName(
-                namingStrategy.getBeanStyleSetterMethodName(deprecatedName, parentShape, shape));
+                namingStrategy.getBeanStyleSetterMethodName(deprecatedName, parentCtx, shapeCtx));
         }
 
         ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
