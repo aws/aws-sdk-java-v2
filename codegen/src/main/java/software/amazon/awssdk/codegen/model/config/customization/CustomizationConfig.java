@@ -373,33 +373,6 @@ public class CustomizationConfig {
      */
     private List<String> allowedUnderscoreNames = new ArrayList<>();
 
-    // Smithy-native counterparts to a subset of the C2J customization fields above.
-    // A field gets a smithy* counterpart only when the value format changes between
-    // C2J and Smithy (simple names -> ShapeIds, or C2J Shape objects -> Smithy JSON AST).
-    // Fields whose value format is unchanged (renameShapes, useLegacyEventGenerationScheme,
-    // etc.) are reused as-is without a counterpart.
-    //
-    // Only one of foo / smithyFoo should be set per service. Enforcement lives in the
-    // customization processor chain (added in a later PR).
-
-    /** Smithy-native equivalent of {@link #shapeModifiers}. */
-    private Map<String, SmithyShapeModifier> smithyShapeModifiers;
-
-    /** Smithy-native equivalent of {@link #shapeSubstitutions}. */
-    private Map<String, SmithyShapeSubstitution> smithyShapeSubstitutions;
-
-    /** Smithy-native equivalent of {@link #customSdkShapes}. */
-    private SmithyCustomSdkShapes smithyCustomSdkShapes;
-
-    /** Smithy-native equivalent of {@link #operationModifiers}. */
-    private Map<String, SmithyOperationModifier> smithyOperationModifiers;
-
-    /** Smithy-native equivalent of {@link #customServiceMetadata}. */
-    private SmithyMetadataConfig smithyCustomServiceMetadata;
-
-    /** Smithy-native equivalent of {@link #duplicateAndRenameSharedEvents}. */
-    private Map<String, Map<String, String>> smithyDuplicateAndRenameSharedEvents;
-
     private CustomizationConfig() {
     }
 
@@ -1003,54 +976,5 @@ public class CustomizationConfig {
 
     public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
         this.allowedUnderscoreNames = allowedUnderscoreNames;
-    }
-
-    public Map<String, SmithyShapeModifier> getSmithyShapeModifiers() {
-        return smithyShapeModifiers;
-    }
-
-    public void setSmithyShapeModifiers(Map<String, SmithyShapeModifier> smithyShapeModifiers) {
-        this.smithyShapeModifiers = smithyShapeModifiers;
-    }
-
-    public Map<String, SmithyShapeSubstitution> getSmithyShapeSubstitutions() {
-        return smithyShapeSubstitutions;
-    }
-
-    public void setSmithyShapeSubstitutions(Map<String, SmithyShapeSubstitution> smithyShapeSubstitutions) {
-        this.smithyShapeSubstitutions = smithyShapeSubstitutions;
-    }
-
-    public SmithyCustomSdkShapes getSmithyCustomSdkShapes() {
-        return smithyCustomSdkShapes;
-    }
-
-    public void setSmithyCustomSdkShapes(SmithyCustomSdkShapes smithyCustomSdkShapes) {
-        this.smithyCustomSdkShapes = smithyCustomSdkShapes;
-    }
-
-    public Map<String, SmithyOperationModifier> getSmithyOperationModifiers() {
-        return smithyOperationModifiers;
-    }
-
-    public void setSmithyOperationModifiers(Map<String, SmithyOperationModifier> smithyOperationModifiers) {
-        this.smithyOperationModifiers = smithyOperationModifiers;
-    }
-
-    public SmithyMetadataConfig getSmithyCustomServiceMetadata() {
-        return smithyCustomServiceMetadata;
-    }
-
-    public void setSmithyCustomServiceMetadata(SmithyMetadataConfig smithyCustomServiceMetadata) {
-        this.smithyCustomServiceMetadata = smithyCustomServiceMetadata;
-    }
-
-    public Map<String, Map<String, String>> getSmithyDuplicateAndRenameSharedEvents() {
-        return smithyDuplicateAndRenameSharedEvents;
-    }
-
-    public void setSmithyDuplicateAndRenameSharedEvents(
-            Map<String, Map<String, String>> smithyDuplicateAndRenameSharedEvents) {
-        this.smithyDuplicateAndRenameSharedEvents = smithyDuplicateAndRenameSharedEvents;
     }
 }
