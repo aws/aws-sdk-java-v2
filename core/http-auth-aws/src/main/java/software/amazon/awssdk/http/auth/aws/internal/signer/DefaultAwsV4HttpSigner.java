@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Checksum
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.isEventStreaming;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.isPayloadSigning;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.useChunkEncoding;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.isAnonymous;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
@@ -59,12 +60,74 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+        if (canUseFastPath(request)) {
+            return signFastPath(request);
+        }
+        return signLegacyPath(request);
+    }
+
+    /**
+     * Run the legacy Checksummer → V4RequestSigner → V4PayloadSigner pipeline. Visible to byte-equivalence tests and
+     * benchmarks that need to compare fast-path output against legacy-path output directly. Production callers
+     * always go through {@link #sign}, which dispatches to either path based on
+     * {@link #canUseFastPath(SignRequest)}.
+     */
+    public SignedRequest signLegacyPath(SignRequest<? extends AwsCredentialsIdentity> request) {
         Checksummer checksummer = checksummer(request, null, checksumStore(request));
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
 
         return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+    }
+
+    /**
+     * The fast path produces byte-identical output to {@link #signLegacyPath} for the cases it accepts. It bypasses
+     * the {@link Checksummer} / {@link V4RequestSigner} / {@link V4PayloadSigner} composition and runs the full
+     * SigV4 algorithm in one method using pooled scratch state. See {@link FastV4HeaderSigner}.
+     */
+    private SignedRequest signFastPath(SignRequest<? extends AwsCredentialsIdentity> request) {
+        AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
+        Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
+        String region = request.requireProperty(REGION_NAME);
+        String service = request.requireProperty(SERVICE_SIGNING_NAME);
+        boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = request.requireProperty(NORMALIZE_PATH, true);
+        boolean payloadSigning = isPayloadSigning(request);
+
+        return FastV4HeaderSigner.sign(request, credentials, region, service, signingClock,
+                                       doubleUrlEncode, normalizePath, payloadSigning);
+    }
+
+    /**
+     * Decide whether the fast path applies. Returns {@code false} for any signing request that needs query-string
+     * auth, presigning, anonymous credentials, event streaming, chunked transfer encoding, flexible-checksum
+     * computation, or aws-chunked trailers — all of which the legacy pipeline still owns.
+     */
+    private boolean canUseFastPath(SignRequest<? extends AwsCredentialsIdentity> request) {
+        if (isAnonymous(request.identity())) {
+            return false;
+        }
+        AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
+        if (authLocation != AuthLocation.HEADER) {
+            return false;
+        }
+        if (request.property(EXPIRATION_DURATION) != null) {
+            return false;
+        }
+        if (request.property(CHECKSUM_ALGORITHM) != null) {
+            return false;
+        }
+        if (request.requireProperty(CHUNK_ENCODING_ENABLED, false)) {
+            return false;
+        }
+        if (isEventStreaming(request.request())) {
+            return false;
+        }
+        if (request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent()) {
+            return false;
+        }
+        return true;
     }
 
     @Override
