@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Data Plane",
-    "contributor": "",
-    "description": "Adds support for UnionPay session key derivation to the GenerateAuthRequestCryptogram, VerifyAuthRequestCryptogram, GenerateMac, and VerifyMac APIs."
-}

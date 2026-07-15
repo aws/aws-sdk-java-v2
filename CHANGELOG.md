@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.48.1__ __2026-07-15__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where `ContainerCredentialsProvider` rejected the EKS Pod Identity IPv6 endpoint unless `AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE` was set to `IPv6`.
+        - Contributed by: [@jtuglu1](https://github.com/jtuglu1)
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Fix HarnessEndpointArn pattern to match the actual service-emitted ARN format ('harness-endpoint' instead of 'endpoint'). Add additionalParams to Gemini model configuration for passing provider-specific parameters through to the model unchanged.
+
+## __Amazon HealthLake__
+  - ### Features
+    - AWS HealthLake now offers data transformation in Preview to convert CSV and C-CDA data to FHIR R4. Customers can maintain reusable mapping profiles, run sync or async jobs with provenance tracking and drift detection, and use an AI agent to build and edit mapping logic from natural language.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for modifying EngineLifecycleSupport on DB instances and DB clusters through ModifyDBInstance and ModifyDBCluster.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for the IpAddressType field on SourceIpConfig, enabling Network Load Balancer listener rules to match traffic based on whether the source IP is IPv4 or IPv6.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adds support for UnionPay session key derivation to the GenerateAuthRequestCryptogram, VerifyAuthRequestCryptogram, GenerateMac, and VerifyMac APIs.
+
+## __S3 Event Notification__
+  - ### Features
+    - Added `awsGeneratedTags` field to `S3Bucket` in the S3 Event Notifications module. Amazon S3 emits AWS-generated system tags on the `bucket` portion of event notifications when system tags are enabled on the source bucket. SDK consumers on the SNS/SQS/Lambda delivery paths can now access these tags via `S3Bucket#getAwsGeneratedTags()`.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jtuglu1](https://github.com/jtuglu1)
 # __2.48.0__ __2026-07-14__
 ## __AWS Cloud Map__
   - ### Features
