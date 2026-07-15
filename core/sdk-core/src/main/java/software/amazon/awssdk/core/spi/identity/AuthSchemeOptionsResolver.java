@@ -27,7 +27,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
  * This allows auth scheme resolution to happen after interceptors have modified the request,
  * ensuring that any request modifications affecting auth scheme selection are respected.
  */
-@FunctionalInterface
 @SdkProtectedApi
 public interface AuthSchemeOptionsResolver {
     /**
