@@ -274,7 +274,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                 + testEndpoint + ". This is usually caused by an invalid region "
                                                 + "configuration.");
             }
-            // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
+            // Need an endpoint to marshall but this will be overwritten later with Endpoints 2.0 resolution
             endpointProvider = ClientEndpointProvider.create(URI.create("https://localhost"), false);
         }
 
