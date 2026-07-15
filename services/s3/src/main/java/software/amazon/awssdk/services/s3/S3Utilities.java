@@ -442,6 +442,7 @@ public final class S3Utilities {
 
         return resolvedOverride
             .map(uri -> ClientEndpointProvider.create(uri, true))
+            // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
             .orElseGet(() -> ClientEndpointProvider.create(URI.create("https://localhost"), false));
     }
 
