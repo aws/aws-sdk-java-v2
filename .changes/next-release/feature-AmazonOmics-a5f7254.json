@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Adds support for returning the task UUID (universally unique identifier) in GetRunTask and ListRunTasks responses"
+}
