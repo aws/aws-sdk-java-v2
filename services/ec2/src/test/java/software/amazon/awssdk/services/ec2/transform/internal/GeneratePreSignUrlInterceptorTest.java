@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -142,7 +143,7 @@ public class GeneratePreSignUrlInterceptorTest {
         attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
         attrs.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
         attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-                           (request, executionAttributes) -> Collections.singletonList(
+                           (AuthSchemeOptionsResolver) request -> Collections.singletonList(
                                software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption.builder()
                                    .schemeId(authScheme.schemeId())
                                    .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner
