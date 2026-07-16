@@ -329,9 +329,23 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        builder.add("$T.builder().endpointUrl($T.fromString(", Endpoint.class, EndpointUrl.class);
-        e.url().accept(this);
-        builder.add("))");
+
+        EndpointUrlCodegenAnalyzer.AnalysisResult analysis =
+            EndpointUrlCodegenAnalyzer.analyze(e.url());
+
+        if (analysis.isPreParseable()) {
+            // Emit EndpointUrl.fromComponents(scheme, hostExpr, port, path) — no runtime parsing
+            builder.add("$T.builder().endpointUrl($T.fromComponents($S, ",
+                         Endpoint.class, EndpointUrl.class, analysis.scheme());
+            analysis.hostExpr().accept(this);
+            builder.add(", $L, $S))", analysis.port(), analysis.encodedPath());
+        } else {
+            // Fallback: emit EndpointUrl.fromString(fullUrl) — lightweight runtime parsing
+            builder.add("$T.builder().endpointUrl($T.fromString(", Endpoint.class, EndpointUrl.class);
+            e.url().accept(this);
+            builder.add("))");
+        }
+
         e.headers().accept(this);
         e.properties().accept(this);
         builder.add(".build()");

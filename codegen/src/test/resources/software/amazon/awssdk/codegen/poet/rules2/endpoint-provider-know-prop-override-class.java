@@ -66,8 +66,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     if (parsedArn != null) {
                         return RuleResult.endpoint(Endpoint
                                 .builder()
-                                .endpointUrl(EndpointUrl.fromString("https://" + params.endpointId() + ".query."
-                                        + partitionResult.dualStackDnsSuffix()))
+                                .endpointUrl(
+                                        EndpointUrl.fromComponents("https",
+                                                params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""))
                                 .putAttribute(
                                         AwsEndpointAttribute.AUTH_SCHEMES,
                                         Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -87,7 +88,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
-                        .endpointUrl(EndpointUrl.fromString("https://" + params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix()))
+                        .endpointUrl(
+                                EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(),
+                                        -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -95,7 +98,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             }
             return RuleResult.endpoint(Endpoint
                     .builder()
-                    .endpointUrl(EndpointUrl.fromString("https://" + params.endpointId() + ".query." + partitionResult.dnsSuffix()))
+                    .endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, ""))
                     .putAttribute(
                             AwsEndpointAttribute.AUTH_SCHEMES,
                             Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*"))
@@ -109,7 +112,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             if (params.useFipsEndpoint() != null && params.useFipsEndpoint() && params.useDualStackEndpoint() == null) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
-                        .endpointUrl(EndpointUrl.fromString("https://query-fips." + region + "." + partitionResult.dnsSuffix()))
+                        .endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -118,7 +121,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             if (params.useDualStackEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint() == null) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
-                        .endpointUrl(EndpointUrl.fromString("https://query." + region + "." + partitionResult.dualStackDnsSuffix()))
+                        .endpointUrl(
+                                EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -129,14 +133,16 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                     && params.useFipsEndpoint()) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
-                        .endpointUrl(EndpointUrl.fromString("https://query-fips." + region + "." + partitionResult.dualStackDnsSuffix()))
+                        .endpointUrl(
+                                EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1,
+                                        ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
                                         .signingRegionSet(Arrays.asList("*")).build())).build());
             }
             return RuleResult.endpoint(Endpoint.builder()
-                    .endpointUrl(EndpointUrl.fromString("https://query." + region + "." + partitionResult.dnsSuffix())).build());
+                    .endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dnsSuffix(), -1, "")).build());
         }
         return RuleResult.carryOn();
     }
