@@ -110,6 +110,7 @@
         <jackson.databind.version>2.21.4</jackson.databind.version>
         <jacksonjr.version>2.21.4</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
+        <smithy.version>1.71.0</smithy.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
