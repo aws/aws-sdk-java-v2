@@ -95,7 +95,8 @@ public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onComplete() {
-        checksumming.complete(new InMemoryPublisher(bufferedPayload));
+        long totalBytes = bufferedPayload.stream().mapToLong(ByteBuffer::remaining).sum();
+        checksumming.complete(new InMemoryPublisher(bufferedPayload, totalBytes));
     }
 
     public CompletableFuture<Publisher<ByteBuffer>> completeFuture() {

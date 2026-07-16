@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -243,6 +244,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         if (request.method() == SdkHttpMethod.GET || request.method() == SdkHttpMethod.HEAD ||
             request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
+            return false;
+        }
+
+        if (request.firstMatchingHeader(TRANSFER_ENCODING).isPresent()) {
             return false;
         }
 

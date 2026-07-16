@@ -37,7 +37,7 @@ public class InMemoryPublisherTckTest extends PublisherVerification<ByteBuffer> 
         for (long i = 0; i < elements; i++) {
             data.add(ByteBuffer.wrap(new byte[]{(byte) (i % 127)}));
         }
-        return new InMemoryPublisher(data);
+        return new InMemoryPublisher(data, elements);
     }
 
     @Override
