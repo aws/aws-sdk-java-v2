@@ -48,7 +48,6 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
             <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -77,6 +76,18 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sts</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
