@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Documentation update for removing the 30 day minimum restriction for transition to Standard-IA or OneZone-IA storage classes"
+}
