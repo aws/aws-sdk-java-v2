@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.HostnameValidator;
@@ -101,11 +102,12 @@ public final class AwsEndpointProviderUtils {
             return endpoint;
         }
         validatePrefixIsHostNameCompliant(prefix);
-        URI originalUrl = endpoint.url();
-        String newHost = prefix + endpoint.url().getHost();
-        URI newUrl = invokeSafely(() -> new URI(originalUrl.getScheme(), null, newHost, originalUrl.getPort(),
-                originalUrl.getPath(), originalUrl.getQuery(), originalUrl.getFragment()));
-        return endpoint.toBuilder().url(newUrl).build();
+
+        EndpointUrl originalUrl = endpoint.endpointUrl();
+        String newHost = prefix + originalUrl.host();
+        EndpointUrl newUrl = EndpointUrl.fromComponents(originalUrl.scheme(), newHost, originalUrl.port(),
+                                                        originalUrl.encodedPath(), originalUrl.queryAndFragment());
+        return endpoint.toBuilder().endpointUrl(newUrl).build();
     }
 
     /**
