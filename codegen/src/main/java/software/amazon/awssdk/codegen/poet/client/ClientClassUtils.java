@@ -20,6 +20,7 @@ import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -384,8 +385,9 @@ public final class ClientClassUtils {
         builder.addStatement("$T authSchemeProvider = requestAuthSchemeProvider != null "
                              + "? requestAuthSchemeProvider "
                              + ": $T.isInstanceOf($T.class, "
-                             + "clientConfiguration.option($T.AUTH_SCHEME_PROVIDER), $S)",
-                             providerInterface, Validate.class, providerInterface, SdkClientOption.class,
+                             + "executionAttributes.getAttribute($T.AUTH_SCHEME_RESOLVER), $S)",
+                             providerInterface, Validate.class, providerInterface,
+                             SdkInternalExecutionAttribute.class,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
 
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
@@ -396,8 +398,8 @@ public final class ClientClassUtils {
 
         if (endpointRulesSpecUtils.isS3()) {
             ClassName sdkIdentityProperty = ClassName.get("software.amazon.awssdk.core.identity", "SdkIdentityProperty");
-            builder.addStatement("$T sdkClient = clientConfiguration.option($T.SDK_CLIENT)",
-                                 SdkClient.class, SdkClientOption.class);
+            builder.addStatement("$T sdkClient = executionAttributes.getAttribute($T.SDK_CLIENT)",
+                                 SdkClient.class, SdkInternalExecutionAttribute.class);
             builder.addStatement("return options.stream().map(o -> o.toBuilder()"
                                  + ".putIdentityProperty($T.SDK_CLIENT, sdkClient).build())"
                                  + ".collect($T.toList())",
@@ -412,19 +414,20 @@ public final class ClientClassUtils {
     private static void addSimpleAuthSchemeResolution(MethodSpec.Builder builder,
                                                       AuthSchemeSpecUtils authSchemeSpecUtils) {
         ClassName paramsInterface = authSchemeSpecUtils.parametersInterfaceName();
-        ClassName awsClientOption = ClassName.get("software.amazon.awssdk.awscore.client.config", "AwsClientOption");
+        ClassName awsExecutionAttribute = ClassName.get("software.amazon.awssdk.awscore", "AwsExecutionAttribute");
 
         builder.addStatement("$T.Builder paramsBuilder = $T.builder().operation(operationName)",
                              paramsInterface, paramsInterface);
 
         if (authSchemeSpecUtils.usesSigV4()) {
-            builder.addStatement("paramsBuilder.region(clientConfiguration.option($T.AWS_REGION))", awsClientOption);
+            builder.addStatement("paramsBuilder.region(executionAttributes.getAttribute($T.AWS_REGION))",
+                                 awsExecutionAttribute);
         }
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             ClassName regionSet = ClassName.get("software.amazon.awssdk.http.auth.aws.signer", "RegionSet");
-            builder.addStatement("$T<String> sigv4aRegionSet = clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET)",
-                                 ClassName.get(Set.class), awsClientOption);
+            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes.getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
+                                 ClassName.get(Set.class), awsExecutionAttribute);
             builder.beginControlFlow("if (!$T.isNullOrEmpty(sigv4aRegionSet))", CollectionUtils.class);
             builder.addStatement("paramsBuilder.regionSet($T.create(sigv4aRegionSet))", regionSet);
             builder.endControlFlow();
@@ -438,33 +441,13 @@ public final class ClientClassUtils {
                                                              AuthSchemeSpecUtils authSchemeSpecUtils,
                                                              EndpointRulesSpecUtils endpointRulesSpecUtils) {
         ClassName paramsInterface = authSchemeSpecUtils.parametersInterfaceName();
-        ClassName awsClientOption = ClassName.get("software.amazon.awssdk.awscore.client.config", "AwsClientOption");
+        ClassName awsExecutionAttribute = ClassName.get("software.amazon.awssdk.awscore", "AwsExecutionAttribute");
         ClassName endpointParamsClass = endpointRulesSpecUtils.parametersClassName();
         ClassName endpointResolverUtils = endpointRulesSpecUtils.endpointResolverUtilsName();
-        ClassName executionAttributesClass = ClassName.get("software.amazon.awssdk.core.interceptor", "ExecutionAttributes");
-        ClassName awsExecutionAttribute = ClassName.get("software.amazon.awssdk.awscore", "AwsExecutionAttribute");
-        ClassName sdkExecutionAttribute = ClassName.get("software.amazon.awssdk.core.interceptor", "SdkExecutionAttribute");
         ClassName sdkInternalExecutionAttribute = ClassName.get("software.amazon.awssdk.core.interceptor",
                                                                 "SdkInternalExecutionAttribute");
 
-        builder.addStatement("$T endpointAttrs = new $T()", executionAttributesClass, executionAttributesClass);
-        builder.addStatement("endpointAttrs.putAttribute($T.AWS_REGION, clientConfiguration.option($T.AWS_REGION))",
-                             awsExecutionAttribute, awsClientOption);
-        builder.addStatement("endpointAttrs.putAttribute($T.DUALSTACK_ENDPOINT_ENABLED, "
-                             + "clientConfiguration.option($T.DUALSTACK_ENDPOINT_ENABLED))",
-                             awsExecutionAttribute, awsClientOption);
-        builder.addStatement("endpointAttrs.putAttribute($T.FIPS_ENDPOINT_ENABLED, "
-                             + "clientConfiguration.option($T.FIPS_ENDPOINT_ENABLED))",
-                             awsExecutionAttribute, awsClientOption);
-        builder.addStatement("endpointAttrs.putAttribute($T.OPERATION_NAME, operationName)", sdkExecutionAttribute);
-        builder.addStatement("endpointAttrs.putAttribute($T.CLIENT_ENDPOINT_PROVIDER, "
-                             + "clientConfiguration.option($T.CLIENT_ENDPOINT_PROVIDER))",
-                             sdkInternalExecutionAttribute, SdkClientOption.class);
-        builder.addStatement("endpointAttrs.putAttribute($T.CLIENT_CONTEXT_PARAMS, "
-                             + "clientConfiguration.option($T.CLIENT_CONTEXT_PARAMS))",
-                             sdkInternalExecutionAttribute, SdkClientOption.class);
-
-        builder.addStatement("$T endpointParams = $T.ruleParams(request, endpointAttrs)",
+        builder.addStatement("$T endpointParams = $T.ruleParams(request, executionAttributes)",
                              endpointParamsClass, endpointResolverUtils);
 
         builder.addStatement("$T.Builder paramsBuilder = $T.builder()", paramsInterface, paramsInterface);
@@ -482,13 +465,14 @@ public final class ClientClassUtils {
         builder.addStatement("paramsBuilder.operation(operationName)");
 
         if (authSchemeSpecUtils.usesSigV4() && !regionIncluded) {
-            builder.addStatement("paramsBuilder.region(clientConfiguration.option($T.AWS_REGION))", awsClientOption);
+            builder.addStatement("paramsBuilder.region(executionAttributes.getAttribute($T.AWS_REGION))",
+                                 awsExecutionAttribute);
         }
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             ClassName regionSet = ClassName.get("software.amazon.awssdk.http.auth.aws.signer", "RegionSet");
-            builder.addStatement("$T<String> sigv4aRegionSet = clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET)",
-                                 ClassName.get(Set.class), awsClientOption);
+            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes.getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
+                                 ClassName.get(Set.class), awsExecutionAttribute);
             builder.beginControlFlow("if (!$T.isNullOrEmpty(sigv4aRegionSet))", CollectionUtils.class);
             builder.addStatement("paramsBuilder.regionSet($T.create(sigv4aRegionSet))", regionSet);
             builder.endControlFlow();
@@ -593,5 +577,50 @@ public final class ClientClassUtils {
         b.endControlFlow();
 
         return b.build();
+    }
+
+    static FieldSpec authSchemeOptionsResolverField() {
+        ClassName resolverType = ClassName.get("software.amazon.awssdk.core.spi.identity", "AuthSchemeOptionsResolver");
+        ClassName sdkRequest = ClassName.get(SdkRequest.class);
+        ClassName executionAttributes = ClassName.get(ExecutionAttributes.class);
+        ClassName authSchemeOption = ClassName.get(AuthSchemeOption.class);
+
+        return FieldSpec.builder(resolverType, "authSchemeOptionsResolver", PRIVATE, Modifier.FINAL)
+                        .initializer("new $T() {\n"
+                                     + "    @Override\n"
+                                     + "    public $T<$T> resolve($T request) {\n"
+                                     + "        throw new $T(\"Use resolve(SdkRequest, ExecutionAttributes) instead\");\n"
+                                     + "    }\n"
+                                     + "\n"
+                                     + "    @Override\n"
+                                     + "    public $T<$T> resolve($T request, $T executionAttributes) {\n"
+                                     + "        return resolveAuthSchemeOptions(request, executionAttributes);\n"
+                                     + "    }\n"
+                                     + "}",
+                                     resolverType,
+                                     ClassName.get(List.class), authSchemeOption, sdkRequest,
+                                     ClassName.get(UnsupportedOperationException.class),
+                                     ClassName.get(List.class), authSchemeOption,
+                                     sdkRequest, executionAttributes)
+                        .build();
+    }
+
+    static FieldSpec endpointResolverField() {
+        ClassName resolverType = ClassName.get("software.amazon.awssdk.core.endpoint", "EndpointResolver");
+        ClassName sdkRequest = ClassName.get(SdkRequest.class);
+        ClassName executionAttributes = ClassName.get(ExecutionAttributes.class);
+        ClassName endpoint = ClassName.get(Endpoint.class);
+
+        return FieldSpec.builder(resolverType, "endpointResolverInstance", PRIVATE, Modifier.FINAL)
+                        .initializer("new $T() {\n"
+                                     + "    @Override\n"
+                                     + "    public $T resolve($T request, $T executionAttributes) {\n"
+                                     + "        return resolveEndpoint(request, executionAttributes);\n"
+                                     + "    }\n"
+                                     + "}",
+                                     resolverType,
+                                     endpoint,
+                                     sdkRequest, executionAttributes)
+                        .build();
     }
 }

@@ -105,6 +105,11 @@
             <artifactId>s3</artifactId>
             <version>2.20.136</version> <!-- Pre-SRA version -->
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>polly</artifactId>
+            <version>2.48.0</version>
+        </dependency>
 
         <!-- Test Dependencies -->
         <dependency>
