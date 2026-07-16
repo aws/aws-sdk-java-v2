@@ -61,6 +61,7 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
@@ -303,10 +304,10 @@ class S3CrossRegionSyncClientTest {
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
         ArgumentCaptor<S3EndpointParams> collectionCaptor = ArgumentCaptor.forClass(S3EndpointParams.class);
         verify(mockEndpointProvider,  atLeastOnce()).resolveEndpoint(collectionCaptor.capture());
-        collectionCaptor.getAllValues().forEach(resolvedParams ->{
-            assertThat(resolvedParams.region()).isEqualTo(Region.US_EAST_1);
-            assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
-        });
+        S3EndpointParams lastResolvedParams = collectionCaptor.getAllValues()
+            .get(collectionCaptor.getAllValues().size() - 1);
+        assertThat(lastResolvedParams.region()).isEqualTo(Region.US_EAST_1);
+        assertThat(lastResolvedParams.useGlobalEndpoint()).isFalse();
     }
 
     private static GetObjectRequest.Builder getObjectBuilder() {
@@ -509,7 +510,9 @@ class S3CrossRegionSyncClientTest {
 
         @Override
         public void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
-            endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            if (!(context.request() instanceof HeadBucketRequest)) {
+                endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            }
         }
     }
 }

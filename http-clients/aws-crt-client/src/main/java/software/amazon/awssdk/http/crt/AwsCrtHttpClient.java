@@ -207,9 +207,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * then the connection is considered unhealthy and will be shut down.
          *
          * <p>
-         * If not explicitly configured, a default health configuration is applied with a minimum throughput of 1 byte per
-         * second and a throughput failure interval of 30 seconds. The failure interval is derived from the read/write timeout
-         * settings and will change if those are overridden by service specific defaults.
+         * Disabled by default.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
@@ -247,6 +245,17 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return this builder for method chaining.
          */
         AwsCrtHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
+
+        /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         *
+         * <p>By default, it's 10 seconds.
+         *
+         * @param tlsNegotiationTimeout the timeout duration; must be positive
+         * @return this builder for method chaining.
+         */
+        AwsCrtHttpClient.Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
 
         /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
@@ -307,6 +316,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         @Override
         public AwsCrtHttpClient build() {
             return new AwsCrtHttpClient(this, getAttributeMap().build()
+                                                         .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                          .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -314,6 +324,7 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         public AwsCrtHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtHttpClient(this, getAttributeMap().build()
                                                          .merge(serviceDefaults)
+                                                         .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                          .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
     }

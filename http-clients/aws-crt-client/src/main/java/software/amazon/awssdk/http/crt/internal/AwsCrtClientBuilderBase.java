@@ -106,6 +106,16 @@ public class AwsCrtClientBuilderBase<BuilderT> {
         return thisBuilder();
     }
 
+    public BuilderT tlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+        Validate.isPositive(tlsNegotiationTimeout, "tlsNegotiationTimeout");
+        standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, tlsNegotiationTimeout);
+        return thisBuilder();
+    }
+
+    public void setTlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+        tlsNegotiationTimeout(tlsNegotiationTimeout);
+    }
+
     public BuilderT tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
         this.tcpKeepAliveConfiguration = tcpKeepAliveConfiguration;
         return thisBuilder();

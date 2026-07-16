@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.ec2.transform.internal;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
@@ -32,6 +31,7 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -131,7 +131,7 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                     .build();
 
             URI presignedUrl =
-                sraPresignRequest(executionAttributes, requestForPresigning, sourceRegion);
+                sraPresignRequest(context.request(), executionAttributes, requestForPresigning, sourceRegion);
 
             return request.toBuilder()
                           .putRawQueryParameter("DestinationRegion", destinationRegion)
@@ -142,9 +142,14 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
         return request;
     }
 
-    private URI sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
-                                                 String signingRegion) {
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+    private SelectedAuthScheme<? extends Identity> resolveAuthScheme(SdkRequest request,
+                                                                     ExecutionAttributes executionAttributes) {
+        return AuthSchemeResolver.resolveAuthScheme(request, executionAttributes);
+    }
+
+    private URI sraPresignRequest(SdkRequest sdkRequest, ExecutionAttributes executionAttributes,
+                                  SdkHttpFullRequest request, String signingRegion) {
+        SelectedAuthScheme<?> selectedAuthScheme = resolveAuthScheme(sdkRequest, executionAttributes);
         Instant signingInstant;
         if (testClock != null) {
             signingInstant = testClock.instant();

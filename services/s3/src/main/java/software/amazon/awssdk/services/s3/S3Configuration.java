@@ -248,6 +248,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
      * reject the request before the client sends the full payload. Setting this to {@code false} disables this behavior.
      * <p>
+     * If enabling cross region access on the client, this setting has no effect as the client needs to set this header
+     * for correct redirect behavior.
+     * <p>
      * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
      * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully
      * suppress the header on the wire, you must also disable it on the Apache4 HTTP client builder using
@@ -267,6 +270,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * will not include the header.
      * <p>
      * The default value is 1048576 bytes (1 MB).
+     * <p>
+     * If enabling cross region access on the client, this setting has no effect as the client needs to set this header
+     * for correct redirect behavior.
      * <p>
      * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
      * {@code Expect: 100-continue} header by default without any threshold via its own {@code expectContinueEnabled}
