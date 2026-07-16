@@ -97,13 +97,13 @@ public class EndpointUrlTest {
 
     @ParameterizedTest
     @MethodSource("urls")
-    void parseToUriRoundTrip(String url) {
+    void fromStringToUriRoundTrip(String url) {
         assertThat(EndpointUrl.fromString(url).toUri()).isEqualTo(URI.create(url));
     }
 
     @ParameterizedTest
     @MethodSource("urls")
-    void toUriCaching_parse(String url) {
+    void toUriCaching_fromString(String url) {
         EndpointUrl endpointUrl = EndpointUrl.fromString(url);
         URI first = endpointUrl.toUri();
         URI second = endpointUrl.toUri();
@@ -111,7 +111,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void toUriCaching_of() {
+    void toUriCaching_fromComponents() {
         EndpointUrl endpointUrl = EndpointUrl.fromComponents("https", "s3.us-east-1.amazonaws.com", -1, "");
         URI first = endpointUrl.toUri();
         URI second = endpointUrl.toUri();
@@ -153,19 +153,19 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_noPath_encodedPathIsEmpty() {
+    void fromString_noPath_encodedPathIsEmpty() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://dynamodb.us-west-2.amazonaws.com");
         assertThat(endpointUrl.encodedPath()).isEmpty();
     }
 
     @Test
-    void parse_trailingSlash_encodedPathIsSlash() {
+    void fromString_trailingSlash_encodedPathIsSlash() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://s3.amazonaws.com/");
         assertThat(endpointUrl.encodedPath()).isEqualTo("/");
     }
 
     @Test
-    void parse_ipv6WithPort() {
+    void fromString_ipv6WithPort() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://[::1]:8080/path");
         assertThat(endpointUrl.host()).isEqualTo("[::1]");
         assertThat(endpointUrl.port()).isEqualTo(8080);
@@ -173,7 +173,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_ipv6WithoutPort() {
+    void fromString_ipv6WithoutPort() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://[::1]/path");
         assertThat(endpointUrl.host()).isEqualTo("[::1]");
         assertThat(endpointUrl.port()).isEqualTo(-1);
@@ -181,7 +181,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_explicitPort() {
+    void fromString_explicitPort() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://localhost:8080/path");
         assertThat(endpointUrl.scheme()).isEqualTo("https");
         assertThat(endpointUrl.host()).isEqualTo("localhost");
@@ -190,7 +190,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_noPort() {
+    void fromString_noPort() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://s3.us-east-1.amazonaws.com");
         assertThat(endpointUrl.port()).isEqualTo(-1);
     }
@@ -246,7 +246,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_withQueryOnly() {
+    void fromString_withQueryOnly() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com/path?key=value&foo=bar");
         assertThat(endpointUrl.scheme()).isEqualTo("https");
         assertThat(endpointUrl.host()).isEqualTo("example.com");
@@ -256,7 +256,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_withFragmentOnly() {
+    void fromString_withFragmentOnly() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com/path#section");
         assertThat(endpointUrl.scheme()).isEqualTo("https");
         assertThat(endpointUrl.host()).isEqualTo("example.com");
@@ -265,20 +265,20 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_withQueryAndFragment() {
+    void fromString_withQueryAndFragment() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com/path?key=value#section");
         assertThat(endpointUrl.encodedPath()).isEqualTo("/path");
         assertThat(endpointUrl.queryAndFragment()).isEqualTo("?key=value#section");
     }
 
     @Test
-    void parse_noQueryOrFragment() {
+    void fromString_noQueryOrFragment() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com/path");
         assertThat(endpointUrl.queryAndFragment()).isEmpty();
     }
 
     @Test
-    void parse_queryWithNoPath() {
+    void fromString_queryWithNoPath() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com?key=value");
         assertThat(endpointUrl.host()).isEqualTo("example.com");
         assertThat(endpointUrl.encodedPath()).isEmpty();
@@ -286,7 +286,7 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void parse_withQueryAndFragment_toUriRoundTrip() {
+    void fromString_withQueryAndFragment_toUriRoundTrip() {
         String url = "https://example.com/path?key=value#section";
         EndpointUrl endpointUrl = EndpointUrl.fromString(url);
         assertThat(endpointUrl.toUri()).isEqualTo(URI.create(url));
@@ -311,20 +311,20 @@ public class EndpointUrlTest {
     }
 
     @Test
-    void of_withQueryAndFragment_toUriIncludesThem() {
+    void fromComponents_withQueryAndFragment_toUriIncludesThem() {
         EndpointUrl endpointUrl = EndpointUrl.fromComponents("https", "example.com", -1, "/path", "?key=value#section");
         assertThat(endpointUrl.toUri()).isEqualTo(URI.create("https://example.com/path?key=value#section"));
     }
 
     @Test
-    void of_withQueryAndFragment_preservedInEquality() {
+    void fromComponents_withQueryAndFragment_preservedInEquality() {
         EndpointUrl with = EndpointUrl.fromComponents("https", "example.com", -1, "/path", "?key=value");
         EndpointUrl without = EndpointUrl.fromComponents("https", "example.com", -1, "/path");
         assertThat(with).isNotEqualTo(without);
     }
 
     @Test
-    void of_withEmptyQueryAndFragment_equalsOfWithoutIt() {
+    void fromComponents_withEmptyQueryAndFragment_equalsOfWithoutIt() {
         EndpointUrl withEmpty = EndpointUrl.fromComponents("https", "example.com", -1, "/path", "");
         EndpointUrl without = EndpointUrl.fromComponents("https", "example.com", -1, "/path");
         assertThat(withEmpty).isEqualTo(without);

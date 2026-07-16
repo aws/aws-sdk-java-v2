@@ -89,10 +89,6 @@ public class EndpointTest {
         assertThat(original.attribute(TEST_STRING_ATTR)).isEqualTo("foo");
     }
 
-    // -----------------------------------------------------------------------
-    // Equality tests across construction paths (url(URI) vs endpointUrl(EndpointUrl))
-    // -----------------------------------------------------------------------
-
     @Test
     public void equality_acrossConstructionPaths() {
         URI uri = URI.create("https://[::1]:8080/path?key=value#frag");
