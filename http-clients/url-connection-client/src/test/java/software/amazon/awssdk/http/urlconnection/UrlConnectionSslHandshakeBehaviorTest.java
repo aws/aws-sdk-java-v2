@@ -13,19 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.http.urlconnection;
 
-import java.time.Duration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientSslHandshakeBehaviorTestSuite;
 
-public class CrtSslHandshakeBehaviorTest extends SdkHttpClientSslHandshakeBehaviorTestSuite {
+public class UrlConnectionSslHandshakeBehaviorTest extends SdkHttpClientSslHandshakeBehaviorTestSuite {
     @Override
     protected SdkHttpClient createSdkHttpClient() {
-        // CRT negotiates TLS during connection acquisition; the default 10s acquisition timeout can
-        // expire first and surface an acquisition-timeout exception instead of SSLHandshakeException.
-        return AwsCrtHttpClient.builder()
-                               .connectionAcquisitionTimeout(Duration.ofSeconds(30))
-                               .build();
+        return UrlConnectionHttpClient.builder().build();
     }
 }

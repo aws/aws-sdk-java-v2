@@ -75,9 +75,8 @@ public class CrtUtilsTest {
     }
 
     /**
-     * Locks in that TLS negotiation failures surface as {@link SSLHandshakeException} with the original
-     * {@link HttpException} (which carries the CRT error code) chained as the cause, so that callers can
-     * differentiate transient handshake interruptions from persistent certificate failures.
+     * TLS negotiation failures must chain the original {@link HttpException} (with its CRT error code)
+     * as cause, so callers can differentiate transient from persistent failures.
      */
     @Test
     public void wrapCrtException_tlsNegotiationError_wrapsInSslHandshakeExceptionWithCause() {
@@ -88,11 +87,12 @@ public class CrtUtilsTest {
         assertThat(result).isInstanceOf(SSLHandshakeException.class)
                           .hasMessage(httpException.getMessage())
                           .hasCause(httpException);
+        assertThat(((HttpException) result.getCause()).getErrorCode())
+            .isEqualTo(CrtUtils.CRT_TLS_NEGOTIATION_ERROR_CODE);
     }
 
     /**
-     * Locks in that socket timeouts during connection acquisition surface as {@link ConnectException} with
-     * the original {@link HttpException} chained as the cause.
+     * Socket timeouts must chain the original {@link HttpException} as cause.
      */
     @Test
     public void wrapCrtException_socketTimeout_wrapsInConnectExceptionWithCause() {
@@ -103,5 +103,7 @@ public class CrtUtilsTest {
         assertThat(result).isInstanceOf(ConnectException.class)
                           .hasMessage(httpException.getMessage())
                           .hasCause(httpException);
+        assertThat(((HttpException) result.getCause()).getErrorCode())
+            .isEqualTo(CrtUtils.CRT_SOCKET_TIMEOUT);
     }
 }

@@ -19,26 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
  * Validates that a TLS handshake failure against an untrusted (self-signed) certificate surfaces as
  * {@link SSLHandshakeException} with a cause chain, so callers can differentiate transient
  * interruptions from persistent certificate failures.
  */
-public abstract class SdkHttpClientSslHandshakeBehaviorTestSuite {
+public abstract class SdkAsyncHttpClientSslHandshakeBehaviorTestSuite {
     private WireMockServer selfSignedServer;
 
-    /**
-     * Implemented by a child class to create an HTTP client to validate
-     */
-    protected abstract SdkHttpClient createSdkHttpClient();
+    protected abstract SdkAsyncHttpClient createSdkAsyncHttpClient();
 
     @BeforeEach
     public void setup() {
@@ -73,26 +69,10 @@ public abstract class SdkHttpClientSslHandshakeBehaviorTestSuite {
     }
 
     private Throwable executeRequestAgainstUntrustedServer() {
-        try (SdkHttpClient client = createSdkHttpClient()) {
-            SdkHttpFullRequest request = httpsRequest(selfSignedServer.httpsPort());
-            return catchThrowable(client.prepareRequest(HttpExecuteRequest.builder()
-                                                                          .request(request)
-                                                                          .contentStreamProvider(
-                                                                              request.contentStreamProvider().orElse(null))
-                                                                          .build())
-                                        ::call);
+        try (SdkAsyncHttpClient client = createSdkAsyncHttpClient()) {
+            Throwable thrown = catchThrowable(
+                () -> HttpTestUtils.sendGetRequest(selfSignedServer.httpsPort(), client, true).join());
+            return thrown instanceof CompletionException ? thrown.getCause() : thrown;
         }
-    }
-
-    private static SdkHttpFullRequest httpsRequest(int httpsPort) {
-        URI uri = URI.create("https://localhost:" + httpsPort);
-        byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
-        return SdkHttpFullRequest.builder()
-                                 .uri(uri)
-                                 .method(SdkHttpMethod.POST)
-                                 .putHeader("Host", uri.getHost())
-                                 .putHeader("Content-Length", Integer.toString(content.length))
-                                 .contentStreamProvider(() -> new ByteArrayInputStream(content))
-                                 .build();
     }
 }

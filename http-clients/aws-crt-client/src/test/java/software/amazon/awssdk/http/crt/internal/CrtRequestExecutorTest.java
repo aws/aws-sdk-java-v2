@@ -135,6 +135,7 @@ public class CrtRequestExecutorTest {
 
         CompletableFuture<SdkHttpFullResponse> executeFuture = requestExecutor.execute(context);
         assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(expectedExceptionClass)
+                                               .hasCauseInstanceOf(IOException.class)
                                                .hasRootCause(exception);
     }
 

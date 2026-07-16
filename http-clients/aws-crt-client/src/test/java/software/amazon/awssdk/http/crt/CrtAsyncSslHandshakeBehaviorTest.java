@@ -16,16 +16,16 @@
 package software.amazon.awssdk.http.crt;
 
 import java.time.Duration;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpClientSslHandshakeBehaviorTestSuite;
+import software.amazon.awssdk.http.SdkAsyncHttpClientSslHandshakeBehaviorTestSuite;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
-public class CrtSslHandshakeBehaviorTest extends SdkHttpClientSslHandshakeBehaviorTestSuite {
+public class CrtAsyncSslHandshakeBehaviorTest extends SdkAsyncHttpClientSslHandshakeBehaviorTestSuite {
     @Override
-    protected SdkHttpClient createSdkHttpClient() {
+    protected SdkAsyncHttpClient createSdkAsyncHttpClient() {
         // CRT negotiates TLS during connection acquisition; the default 10s acquisition timeout can
         // expire first and surface an acquisition-timeout exception instead of SSLHandshakeException.
-        return AwsCrtHttpClient.builder()
-                               .connectionAcquisitionTimeout(Duration.ofSeconds(30))
-                               .build();
+        return AwsCrtAsyncHttpClient.builder()
+                                    .connectionAcquisitionTimeout(Duration.ofSeconds(30))
+                                    .build();
     }
 }

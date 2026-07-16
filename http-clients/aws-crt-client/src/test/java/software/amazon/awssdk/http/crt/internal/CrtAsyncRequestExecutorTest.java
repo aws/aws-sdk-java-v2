@@ -185,6 +185,7 @@ public class CrtAsyncRequestExecutorTest {
 
         CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
         assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(expectedExceptionClass)
+                                               .hasCauseInstanceOf(IOException.class)
                                                .hasRootCause(exception);
     }
 
