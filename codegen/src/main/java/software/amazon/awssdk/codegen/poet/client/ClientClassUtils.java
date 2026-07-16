@@ -426,7 +426,8 @@ public final class ClientClassUtils {
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             ClassName regionSet = ClassName.get("software.amazon.awssdk.http.auth.aws.signer", "RegionSet");
-            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes.getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
+            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes"
+                                     + ".getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
                                  ClassName.get(Set.class), awsExecutionAttribute);
             builder.beginControlFlow("if (!$T.isNullOrEmpty(sigv4aRegionSet))", CollectionUtils.class);
             builder.addStatement("paramsBuilder.regionSet($T.create(sigv4aRegionSet))", regionSet);
@@ -471,7 +472,8 @@ public final class ClientClassUtils {
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             ClassName regionSet = ClassName.get("software.amazon.awssdk.http.auth.aws.signer", "RegionSet");
-            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes.getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
+            builder.addStatement("$T<String> sigv4aRegionSet = executionAttributes"
+                                     + ".getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)",
                                  ClassName.get(Set.class), awsExecutionAttribute);
             builder.beginControlFlow("if (!$T.isNullOrEmpty(sigv4aRegionSet))", CollectionUtils.class);
             builder.addStatement("paramsBuilder.regionSet($T.create(sigv4aRegionSet))", regionSet);
