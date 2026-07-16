@@ -34,10 +34,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class RateLimiterTokenBucketTest {
     private static final double EPSILON = 0.0001;
@@ -140,6 +142,31 @@ class RateLimiterTokenBucketTest {
         CompletableFuture<Void> future = tokenBucket.acquireAsync();
         assertThatThrownBy(future::join).hasRootCauseInstanceOf(RejectedExecutionException.class);
         assertThat(tokenBucket.waiting()).isEmpty();
+    }
+
+    @Test
+    void doNotify_rescheduleSucceeds_pushesCurrentFutureBackToFront() {
+        tokenBucket.updateRateAfterThrottling();
+
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        CompletableFuture<Void> first = tokenBucket.acquireAsync();
+        CompletableFuture<Void> second = tokenBucket.acquireAsync();
+
+        verify(scheduler).schedule(runnableCaptor.capture(), eq(0L), any(TimeUnit.class));
+
+        AtomicBoolean topIsSecondBeforeReschedule = new AtomicBoolean();
+        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS))).thenAnswer(i -> {
+            topIsSecondBeforeReschedule.set(tokenBucket.waiting().peek() == second);
+            return null;
+        });
+
+        runnableCaptor.getValue().run();
+
+        // At the point before notifier reschedules, the next waiting future should be the second acquire.
+        assertThat(topIsSecondBeforeReschedule).isTrue();
+        // After the schedule happens, the top future should be the first one again.
+        assertThat(tokenBucket.waiting().peek()).isSameAs(first);
     }
 
     @Test

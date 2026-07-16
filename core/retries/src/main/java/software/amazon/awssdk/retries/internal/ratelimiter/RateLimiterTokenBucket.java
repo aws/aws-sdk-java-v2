@@ -195,9 +195,8 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
      */
     private <T> StateUpdate<T> updateState(Function<TransientState, T> mutator) {
         synchronized (lock) {
-            T result;
             TransientState transientState = state.toTransient();
-            result = mutator.apply(transientState);
+            T result = mutator.apply(transientState);
             state = transientState.toPersistent();
             return new StateUpdate<>(state, result);
         }
