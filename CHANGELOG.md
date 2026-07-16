@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.48.2__ __2026-07-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Sustainability__
+  - ### Features
+    - Adds support for retrieving estimated water allocation data.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Marked CreateProxySession, DeleteProxySession, GetProxySession, ListProxySessions, UpdateProxySession, PutVoiceConnectorProxy, DeleteVoiceConnectorProxy, and GetVoiceConnectorProxy as deprecated.
+
+## __Amazon EMR__
+  - ### Features
+    - Amazon EMR updates the Session object returned by GetSession API
+
+## __Amazon Omics__
+  - ### Features
+    - Adds support for returning the task UUID (universally unique identifier) in GetRunTask and ListRunTasks responses
+
+## __Amazon Redshift__
+  - ### Features
+    - Amazon Redshift - Added support for rg.large and rg.12xlarge node types in CreateCluster, ModifyCluster, and ResizeCluster API operations.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for g7 instance type for SageMaker inference endpoints.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation update for removing the 30 day minimum restriction for transition to Standard-IA or OneZone-IA storage classes
+
 # __2.48.1__ __2026-07-15__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
