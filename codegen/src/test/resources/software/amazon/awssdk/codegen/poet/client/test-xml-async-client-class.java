@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -42,6 +42,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -129,6 +131,25 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final AuthSchemeOptionsResolver authSchemeOptionsResolver = new AuthSchemeOptionsResolver() {
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request) {
+            throw new UnsupportedOperationException("Use resolve(SdkRequest, ExecutionAttributes) instead");
+        }
+
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveAuthSchemeOptions(request, executionAttributes);
+        }
+    };
+
+    private final EndpointResolver endpointResolverInstance = new EndpointResolver() {
+        @Override
+        public Endpoint resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveEndpoint(request, executionAttributes);
+        }
+    };
+
     private final Executor executor;
 
     protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration) {
@@ -187,8 +208,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).hostPrefixExpression(resolvedHostExpression)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint).withInput(aPostOperationRequest));
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -248,8 +269,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -307,8 +328,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).credentialType(CredentialType.TOKEN)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint).withInput(bearerAuthOperationRequest));
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -382,8 +403,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
+                    .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance)
                     .withInput(eventStreamOperationRequest), restAsyncResponseTransformer);
             CompletableFuture<Void> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -449,8 +470,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
@@ -515,8 +536,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
@@ -574,8 +595,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -635,8 +656,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withInput(operationWithRequestCompressionRequest));
@@ -725,8 +746,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                     .withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
+                    .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance)
                     .putExecutionAttribute(
                         SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                         HttpChecksum
@@ -815,8 +836,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                                                 .asyncRequestBody(requestBody).build()).withCombinedResponseHandler(responseHandler)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint).withAsyncRequestBody(requestBody)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance).withAsyncRequestBody(requestBody)
                              .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -884,8 +905,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
+                    .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance)
                     .withAsyncResponseTransformer(asyncResponseTransformer).withInput(streamingOutputOperationRequest),
                 asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
@@ -950,10 +971,10 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                                  .map(p -> Validate.isInstanceOf(XmlAuthSchemeProvider.class, p, "Expected an instance of XmlAuthSchemeProvider"))
                                                                  .orElse(null);
         XmlAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(XmlAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(XmlAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of XmlAuthSchemeProvider");
         XmlAuthSchemeParams.Builder paramsBuilder = XmlAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }

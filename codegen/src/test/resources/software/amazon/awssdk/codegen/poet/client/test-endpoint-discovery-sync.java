@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -38,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -92,6 +95,25 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
     private final AwsJsonProtocolFactory protocolFactory;
 
     private final SdkClientConfiguration clientConfiguration;
+
+    private final AuthSchemeOptionsResolver authSchemeOptionsResolver = new AuthSchemeOptionsResolver() {
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request) {
+            throw new UnsupportedOperationException("Use resolve(SdkRequest, ExecutionAttributes) instead");
+        }
+
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveAuthSchemeOptions(request, executionAttributes);
+        }
+    };
+
+    private final EndpointResolver endpointResolverInstance = new EndpointResolver() {
+        @Override
+        public Endpoint resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveEndpoint(request, executionAttributes);
+        }
+    };
 
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
@@ -153,9 +175,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                                              .withOperationName("DescribeEndpoints").withProtocolMetadata(protocolMetadata)
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(describeEndpointsRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                                             .withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -229,16 +250,12 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
             return clientHandler
                 .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                             .withOperationName("TestDiscoveryIdentifiersRequired")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .discoveredEndpoint(cachedEndpoint)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(testDiscoveryIdentifiersRequiredRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withOperationName("TestDiscoveryIdentifiersRequired").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
+                             .withInput(testDiscoveryIdentifiersRequiredRequest).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -306,8 +323,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
                                              .withInput(testDiscoveryOptionalRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver).withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -383,8 +399,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .discoveredEndpoint(cachedEndpoint).withRequestConfiguration(clientConfiguration)
                                              .withInput(testDiscoveryRequiredRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver).withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -411,8 +426,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
-            ExecutionAttributes executionAttributes) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         EndpointDiscoveryTestAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
@@ -421,11 +435,11 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
                                             "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider")).orElse(null);
         EndpointDiscoveryTestAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
                                                                                                        : Validate.isInstanceOf(EndpointDiscoveryTestAuthSchemeProvider.class,
-                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider");
         EndpointDiscoveryTestAuthSchemeParams.Builder paramsBuilder = EndpointDiscoveryTestAuthSchemeParams.builder().operation(
             operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }

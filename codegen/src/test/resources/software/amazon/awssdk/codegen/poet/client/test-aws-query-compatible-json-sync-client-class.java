@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -78,6 +80,25 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     private final AwsJsonProtocolFactory protocolFactory;
 
     private final SdkClientConfiguration clientConfiguration;
+
+    private final AuthSchemeOptionsResolver authSchemeOptionsResolver = new AuthSchemeOptionsResolver() {
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request) {
+            throw new UnsupportedOperationException("Use resolve(SdkRequest, ExecutionAttributes) instead");
+        }
+
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveAuthSchemeOptions(request, executionAttributes);
+        }
+    };
+
+    private final EndpointResolver endpointResolverInstance = new EndpointResolver() {
+        @Override
+        public Endpoint resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveEndpoint(request, executionAttributes);
+        }
+    };
 
     protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
@@ -146,8 +167,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                                             .withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -184,11 +205,11 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                             "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider")).orElse(null);
         QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
                                                                                                        : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
-                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
         QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
             operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }

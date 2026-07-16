@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -123,6 +125,25 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final AuthSchemeOptionsResolver authSchemeOptionsResolver = new AuthSchemeOptionsResolver() {
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request) {
+            throw new UnsupportedOperationException("Use resolve(SdkRequest, ExecutionAttributes) instead");
+        }
+
+        @Override
+        public List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveAuthSchemeOptions(request, executionAttributes);
+        }
+    };
+
+    private final EndpointResolver endpointResolverInstance = new EndpointResolver() {
+        @Override
+        public Endpoint resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
+            return resolveEndpoint(request, executionAttributes);
+        }
+    };
+
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
@@ -190,8 +211,7 @@ final class DefaultJsonClient implements JsonClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver).withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -256,9 +276,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -318,8 +337,7 @@ final class DefaultJsonClient implements JsonClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
                                              .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver).withEndpointResolver(endpointResolverInstance)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -384,8 +402,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(getOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
@@ -455,9 +473,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withOperationName("GetWithoutRequiredMembers").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(getWithoutRequiredMembersRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -522,8 +539,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithChecksumRequiredRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
@@ -590,8 +607,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithRequestCompressionRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
@@ -651,15 +668,11 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithResultKey")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(paginatedOperationWithResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withOperationName("PaginatedOperationWithResultKey").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(paginatedOperationWithResultKeyRequest)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -717,15 +730,11 @@ final class DefaultJsonClient implements JsonClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithoutResultKey")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(paginatedOperationWithoutResultKeyRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withOperationName("PaginatedOperationWithoutResultKey").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(paginatedOperationWithoutResultKeyRequest)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -816,8 +825,8 @@ final class DefaultJsonClient implements JsonClient {
                     .withRequestConfiguration(clientConfiguration)
                     .withInput(putOperationWithChecksumRequest)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
+                    .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance)
                     .putExecutionAttribute(
                         SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                         HttpChecksum
@@ -912,8 +921,8 @@ final class DefaultJsonClient implements JsonClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(streamingInputOperationRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                             .withEndpointResolver(this::resolveEndpoint)
+                             .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                             .withEndpointResolver(endpointResolverInstance)
                              .withRequestBody(requestBody)
                              .withMarshaller(
                                  StreamingRequestMarshaller.builder()
@@ -1001,8 +1010,8 @@ final class DefaultJsonClient implements JsonClient {
                     .withRequestConfiguration(clientConfiguration)
                     .withInput(streamingInputOutputOperationRequest)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
+                    .withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance)
                     .withResponseTransformer(responseTransformer)
                     .withRequestBody(requestBody)
                     .withMarshaller(
@@ -1077,10 +1086,8 @@ final class DefaultJsonClient implements JsonClient {
                     .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
-                    .withEndpointResolver(this::resolveEndpoint)
-                    .withResponseTransformer(responseTransformer)
+                    .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(authSchemeOptionsResolver)
+                    .withEndpointResolver(endpointResolverInstance).withResponseTransformer(responseTransformer)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1115,8 +1122,7 @@ final class DefaultJsonClient implements JsonClient {
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
-            ExecutionAttributes executionAttributes) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         JsonAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
@@ -1125,10 +1131,11 @@ final class DefaultJsonClient implements JsonClient {
                 .isInstanceOf(JsonAuthSchemeProvider.class, p, "Expected an instance of JsonAuthSchemeProvider"))
             .orElse(null);
         JsonAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(JsonAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(JsonAuthSchemeProvider.class,
+                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of JsonAuthSchemeProvider");
         JsonAuthSchemeParams.Builder paramsBuilder = JsonAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
