@@ -39,6 +39,7 @@ import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +56,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -72,6 +74,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class DownloadDirectoryHelperTest {
     private static final String DIRECTORY_NAME = "test";
@@ -197,13 +200,21 @@ public class DownloadDirectoryHelperTest {
         CompletableFuture<CompletedFileDownload> future2 = new CompletableFuture<>();
         FileDownload fileDownload2 = newDownload(future2);
 
-        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+        AtomicInteger callCount = new AtomicInteger(0);
+        CountDownLatch bothStarted = new CountDownLatch(2);
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenAnswer(invocation -> {
+            bothStarted.countDown();
+            return callCount.incrementAndGet() == 1 ? fileDownload : fileDownload2;
+        });
 
         DirectoryDownload downloadDirectory =
             downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
                                                                               .destination(directory)
                                                                               .bucket("bucket")
                                                                               .build());
+
+        assertThat(bothStarted.await(5, TimeUnit.SECONDS)).isTrue();
+
         downloadDirectory.completionFuture().cancel(true);
 
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
@@ -565,6 +576,34 @@ public class DownloadDirectoryHelperTest {
         FileDownload fileDownload2 = newDownload(failedFuture);
         failedFuture.completeExceptionally(exception);
         return fileDownload2;
+    }
+
+    @Test
+    void downloadDirectory_cancelledFuture_shouldNotCreateDirectories() throws Exception {
+        SimplePublisher<S3Object> publisher = new SimplePublisher<>();
+        when(listObjectsHelper.listS3ObjectsRecursively(any(ListObjectsV2Request.class)))
+            .thenReturn(SdkPublisher.adapt(publisher));
+
+        DownloadDirectoryHelper helper = new DownloadDirectoryHelper(
+            TransferManagerConfiguration.builder().build(),
+            listObjectsHelper,
+            singleDownloadFunction);
+
+        DirectoryDownload directoryDownload = helper.downloadDirectory(
+            DownloadDirectoryRequest.builder()
+                                    .destination(directory)
+                                    .bucket("bucket")
+                                    .build());
+
+        directoryDownload.completionFuture().cancel(true);
+
+        publisher.send(S3Object.builder().key("subdir/file.txt").size(100L).build());
+        publisher.complete();
+
+        Thread.sleep(200);
+
+        Path subdir = directory.resolve("subdir");
+        assertThat(Files.exists(subdir)).isFalse();
     }
 
     private FileDownload newDownload(CompletableFuture<CompletedFileDownload> future) {

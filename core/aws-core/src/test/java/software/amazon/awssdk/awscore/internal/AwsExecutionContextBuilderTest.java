@@ -38,7 +38,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -66,15 +65,17 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -400,49 +401,6 @@ public class AwsExecutionContextBuilderTest {
     }
 
     @Test
-    public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviders() {
-        IdentityProvider<? extends AwsCredentialsIdentity> clientCredentialsProvider =
-            StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar"));
-        IdentityProvider<? extends TokenIdentity> clientTokenProvider = StaticTokenProvider.create(() -> "client-token");
-        IdentityProviders identityProviders =
-            IdentityProviders.builder()
-                             .putIdentityProvider(clientCredentialsProvider)
-                             .putIdentityProvider(clientTokenProvider)
-                             .build();
-        SdkClientConfiguration clientConfig = testClientConfiguration()
-            .option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders)
-            .build();
-
-        IdentityProvider<? extends AwsCredentialsIdentity> requestCredentialsProvider =
-            StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
-        IdentityProvider<? extends TokenIdentity> requestTokenProvider = StaticTokenProvider.create(() -> "request-token");
-        Optional overrideConfiguration =
-            Optional.of(AwsRequestOverrideConfiguration.builder()
-                                                       .credentialsProvider(requestCredentialsProvider)
-                                                       .tokenIdentityProvider(requestTokenProvider)
-                                                       .build());
-        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
-
-        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
-
-        ExecutionContext executionContext =
-            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
-
-        IdentityProviders actualIdentityProviders =
-            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
-
-        IdentityProvider<AwsCredentialsIdentity> actualIdentityProvider =
-            actualIdentityProviders.identityProvider(AwsCredentialsIdentity.class);
-
-        assertThat(actualIdentityProvider).isSameAs(requestCredentialsProvider);
-
-        IdentityProvider<TokenIdentity> actualTokenProvider =
-            actualIdentityProviders.identityProvider(TokenIdentity.class);
-
-        assertThat(actualTokenProvider).isSameAs(requestTokenProvider);
-    }
-
-    @Test
     public void invokeInterceptorsAndCreateExecutionContext_withRequestBody_addsUserAgentMetadata() throws IOException {
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
         File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
@@ -508,6 +466,158 @@ public class AwsExecutionContextBuilderTest {
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
             Collections.singletonList(AdditionalMetadata.builder().name("rt").value("f").build())
         );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withDefaultHttpClient_addsAutoFeatureId() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_AUTO)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AJ");
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClientInstance_addsExplicitInstanceFeatureId() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AK");
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withExplicitHttpClientFactory_addsExplicitFactoryFeatureId() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE, BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(businessMetrics.recordedMetrics()).contains("AL");
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withLongPollingOperation_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration().build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams().withLongPolling(true);
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)).isTrue();
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_newRetries2026EnabledConfig_setsCorrectAttributeValue() {
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.NEW_RETRIES_2026_ENABLED, true)
+            .build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        assertThat(executionContext.executionAttributes()
+                                   .getAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)).isTrue();
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_authSchemeProviderRequestOverride_usesRequestOverride() {
+        AuthSchemeProvider clientAuthSchemeProvider = mock(AuthSchemeProvider.class);
+        AuthSchemeProvider requestAuthSchemeProvider = mock(AuthSchemeProvider.class);
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, clientAuthSchemeProvider)
+            .build();
+
+        Optional overrideConfiguration =
+            Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                       .authSchemeProvider(requestAuthSchemeProvider)
+                                                       .build());
+        when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
+
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        AuthSchemeProvider actualProvider =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+
+        assertThat(actualProvider).isSameAs(requestAuthSchemeProvider);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_noAuthSchemeProviderRequestOverride_usesClientProvider() {
+        AuthSchemeProvider clientAuthSchemeProvider = mock(AuthSchemeProvider.class);
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, clientAuthSchemeProvider)
+            .build();
+
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        AuthSchemeProvider actualProvider =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
+
+        assertThat(actualProvider).isSameAs(clientAuthSchemeProvider);
+    }
+
+    /**
+     * Per-request credential override via AwsRequestOverrideConfiguration.credentialsProvider() must be
+     * reflected in IDENTITY_PROVIDERS even when AUTH_SCHEME_OPTIONS_RESOLVER is not set (old service client).
+     */
+    @Test
+    public void postSra_requestCredentialOverride_withoutAuthSchemeOptionsResolver_identityProvidersHasOverride() {
+        IdentityProvider<AwsCredentialsIdentity> requestCredsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("request-akid", "request-skid"));
+
+        SdkRequest request = NoopTestAwsRequest.builder()
+            .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                   .credentialsProvider(requestCredsProvider)
+                                                                   .build())
+            .build();
+
+        IdentityProviders clientIdentityProviders = IdentityProviders.builder()
+            .putIdentityProvider(defaultCredentialsProvider)
+            .build();
+
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.IDENTITY_PROVIDERS, clientIdentityProviders)
+            .option(SdkClientOption.EXECUTION_INTERCEPTORS, Collections.emptyList())
+            .build();
+
+        // No AUTH_SCHEME_OPTIONS_RESOLVER set — simulates old service client
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams(request);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        IdentityProviders resolvedProviders =
+            executionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS);
+
+        // The per-request credential override must be reflected in IDENTITY_PROVIDERS
+        IdentityProvider<AwsCredentialsIdentity> resolvedCredProvider =
+            resolvedProviders.identityProvider(AwsCredentialsIdentity.class);
+        assertThat(resolvedCredProvider).isSameAs(requestCredsProvider);
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

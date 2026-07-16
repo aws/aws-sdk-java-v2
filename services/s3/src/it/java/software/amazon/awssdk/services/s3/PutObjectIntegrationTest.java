@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -57,6 +58,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -92,6 +94,23 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
             Arguments.of(s3AsyncClientBuilder().requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED).build()),
             Arguments.of(s3AsyncClientBuilder().build()),
             Arguments.of(crtClientBuilder().build()));
+    }
+
+    @Test
+    public void crtAsyncClient_chunkedEncodingDisabled_shouldNotHang() throws Exception {
+        try (S3AsyncClient s3Async = S3AsyncClient.builder()
+                                                  .region(DEFAULT_REGION)
+                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                  .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                                  .serviceConfiguration(S3Configuration.builder()
+                                                                                       .chunkedEncodingEnabled(false)
+                                                                                       .build())
+                                                  .build()) {
+            PutObjectResponse response = s3Async.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
+                                                           AsyncRequestBody.fromString("TESTING"))
+                                                .get(30, TimeUnit.SECONDS);
+            assertThat(response.eTag()).isNotNull();
+        }
     }
 
     @Test
@@ -275,6 +294,23 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
         List<Double> writeThroughput = attemptMetrics.metricValues(CoreMetric.WRITE_THROUGHPUT);
         assertThat(writeThroughput).hasSize(1);
         assertThat(writeThroughput.get(0)).isGreaterThan(0);
+    }
+
+    @ParameterizedTest
+    @MethodSource("s3Clients")
+    public void putObject_fromInputStreamWithSdkManagedExecutor_shouldSucceed(S3AsyncClient client) {
+        String key = "sdk-managed-executor-" + ASYNC_KEY;
+        byte[] content = RandomStringUtils.randomAlphanumeric(1024).getBytes(StandardCharsets.UTF_8);
+
+        AsyncRequestBody body = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content), (long) content.length);
+        client.putObject(b -> b.bucket(BUCKET).key(key), body).join();
+
+        ResponseInputStream<GetObjectResponse> response =
+            client.getObject(b -> b.bucket(BUCKET).key(key), AsyncResponseTransformer.toBlockingInputStream()).join();
+
+        assertThat(response.response().contentLength()).isEqualTo(content.length);
+        byte[] downloaded = invokeSafely(() -> IoUtils.toByteArray(response));
+        assertThat(downloaded).isEqualTo(content);
     }
 
     private static class TestContentProvider implements ContentStreamProvider {

@@ -2639,7 +2639,7 @@
         },
         "TargetServerlessCacheSnapshotName":{
           "shape":"String",
-          "documentation":"<p>The identifier for the snapshot to be created. Available for Valkey, Redis OSS and Serverless Memcached only.</p>"
+          "documentation":"<p>The identifier for the snapshot to be created. Available for Valkey, Redis OSS and Serverless Memcached only. This value is stored as a lowercase string.</p>"
         },
         "KmsKeyId":{
           "shape":"String",
@@ -2673,7 +2673,7 @@
         },
         "TargetSnapshotName":{
           "shape":"String",
-          "documentation":"<p>A name for the snapshot copy. ElastiCache does not permit overwriting a snapshot, therefore this name must be unique within its context - ElastiCache or an Amazon S3 bucket if exporting.</p>"
+          "documentation":"<p>A name for the snapshot copy. ElastiCache does not permit overwriting a snapshot, therefore this name must be unique within its context - ElastiCache or an Amazon S3 bucket if exporting. This value is stored as a lowercase string.</p>"
         },
         "TargetBucket":{
           "shape":"String",
@@ -2839,7 +2839,7 @@
       "members":{
         "CacheParameterGroupName":{
           "shape":"String",
-          "documentation":"<p>A user-specified name for the cache parameter group.</p>"
+          "documentation":"<p>A user-specified name for the cache parameter group. This value is stored as a lowercase string.</p>"
         },
         "CacheParameterGroupFamily":{
           "shape":"String",
@@ -2940,7 +2940,7 @@
         },
         "PrimaryReplicationGroupId":{
           "shape":"String",
-          "documentation":"<p>The name of the primary cluster that accepts writes and will replicate updates to the secondary cluster.</p>"
+          "documentation":"<p>The name of the primary cluster that accepts writes and will replicate updates to the secondary cluster. This value is stored as a lowercase string.</p>"
         }
       }
     },
@@ -3075,7 +3075,7 @@
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables encryption at rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created. To enable encryption at rest on a replication group you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create the replication group. </p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using Valkey 7.2 and later, Redis OSS version <code>3.2.6</code>, or Redis OSS <code>4.x</code> and later.</p> <p>Default: <code>true</code> when using Valkey, <code>false</code> when using Redis OSS</p>"
+          "documentation":"<p>A flag that enables encryption at-rest on the replication group when set to <code>true</code>. In some cases, encryption at-rest may be enabled even when this value is false. Use <code>StorageEncryptionType</code> to view the effective encryption state of a cluster.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created.</p> <p>Default: <code>true</code> when using Valkey, <code>false</code> when using Redis OSS</p>"
         },
         "KmsKeyId":{
           "shape":"String",
@@ -3112,6 +3112,10 @@
         "ServerlessCacheSnapshotName":{
           "shape":"String",
           "documentation":"<p>The name of the snapshot used to create a replication group. Available for Valkey, Redis OSS only.</p>"
+        },
+        "Durability":{
+          "shape":"Durability",
+          "documentation":"<p>Specifies the durability setting for the replication group. When set to <code>default</code>, the service determines the effective durability based on the engine version, cluster mode, and other parameters. The resolved setting is reflected in the <code>EffectiveDurability</code> property of the replication group. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/durability.html\">Durability</a>.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateReplicationGroup</code> operation.</p>"
@@ -3175,11 +3179,15 @@
         },
         "SnapshotRetentionLimit":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of snapshots that will be retained for the serverless cache that is being created. As new snapshots beyond this limit are added, the oldest snapshots will be deleted on a rolling basis. Available for Valkey, Redis OSS and Serverless Memcached only.</p>"
+          "documentation":"<p>The number of days for which ElastiCache retains automatic snapshots before deleting them. Available for Valkey, Redis OSS and Serverless Memcached only. The maximum value allowed is 35 days.</p>"
         },
         "DailySnapshotTime":{
           "shape":"String",
           "documentation":"<p>The daily time that snapshots will be created from the new serverless cache. By default this number is populated with 0, i.e. no snapshots will be created on an automatic daily basis. Available for Valkey, Redis OSS and Serverless Memcached only.</p>"
+        },
+        "NetworkType":{
+          "shape":"NetworkType",
+          "documentation":"<p>The IP protocol version used by the serverless cache. Must be either <code>ipv4</code> | <code>ipv6</code> | <code>dual_stack</code>. <code>ipv6</code> is only supported with IPv6-only subnets. If not specified, defaults to <code>ipv4</code>, unless all provided subnets are IPv6-only, in which case it defaults to <code>ipv6</code>. </p>"
         }
       }
     },
@@ -3201,7 +3209,7 @@
       "members":{
         "ServerlessCacheSnapshotName":{
           "shape":"String",
-          "documentation":"<p>The name for the snapshot being created. Must be unique for the customer account. Available for Valkey, Redis OSS and Serverless Memcached only. Must be between 1 and 255 characters.</p>"
+          "documentation":"<p>The name for the snapshot being created. Must be unique for the customer account. Available for Valkey, Redis OSS and Serverless Memcached only. Must be between 1 and 255 characters. This value is stored as a lowercase string.</p>"
         },
         "ServerlessCacheName":{
           "shape":"String",
@@ -3240,7 +3248,7 @@
         },
         "SnapshotName":{
           "shape":"String",
-          "documentation":"<p>A name for the snapshot being created.</p>"
+          "documentation":"<p>A name for the snapshot being created. This value is stored as a lowercase string.</p>"
         },
         "KmsKeyId":{
           "shape":"String",
@@ -3268,7 +3276,7 @@
       "members":{
         "UserGroupId":{
           "shape":"String",
-          "documentation":"<p>The ID of the user group.</p>"
+          "documentation":"<p>The ID of the user group. This value is stored as a lowercase string.</p>"
         },
         "Engine":{
           "shape":"EngineType",
@@ -3295,7 +3303,7 @@
       "members":{
         "UserId":{
           "shape":"UserId",
-          "documentation":"<p>The ID of the user.</p>"
+          "documentation":"<p>The ID of the user. This value is stored as a lowercase string.</p>"
         },
         "UserName":{
           "shape":"UserName",
@@ -4276,6 +4284,15 @@
       },
       "exception":true
     },
+    "Durability":{
+      "type":"string",
+      "enum":[
+        "default",
+        "async",
+        "sync",
+        "disabled"
+      ]
+    },
     "EC2SecurityGroup":{
       "type":"structure",
       "members":{
@@ -4314,6 +4331,14 @@
         }
       },
       "documentation":"<p>The configuration for the number of ElastiCache Processing Units (ECPU) the cache can consume per second.</p>"
+    },
+    "EffectiveDurability":{
+      "type":"string",
+      "enum":[
+        "async",
+        "sync",
+        "disabled"
+      ]
     },
     "Endpoint":{
       "type":"structure",
@@ -5125,7 +5150,7 @@
         },
         "ApplyImmediately":{
           "shape":"Boolean",
-          "documentation":"<p>If <code>true</code>, this parameter causes the modifications in this request and any pending modifications to be applied, asynchronously and as soon as possible, regardless of the <code>PreferredMaintenanceWindow</code> setting for the cluster.</p> <p>If <code>false</code>, changes to the cluster are applied on the next maintenance reboot, or the next failure reboot, whichever occurs first.</p> <important> <p>If you perform a <code>ModifyCacheCluster</code> before a pending modification is applied, the pending modification is replaced by the newer modification.</p> </important> <p>Valid values: <code>true</code> | <code>false</code> </p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>If <code>true</code>, this parameter causes the modifications in this request and any pending modifications to be applied, asynchronously and as soon as possible, regardless of the <code>PreferredMaintenanceWindow</code> setting for the cluster.</p> <p>If <code>false</code>, changes to the cluster are applied on the next maintenance reboot, or the next failure reboot, whichever occurs first.</p> <important> <p>If you perform a <code>ModifyCacheCluster</code> before a pending modification is applied, the pending modification is replaced by the newer modification. However, a pending node-count increase on Memcached clusters cannot be superseded by a request to add fewer nodes. To change a pending node addition, first cancel it by setting <code>NumCacheNodes</code> equal to the current number of nodes in the cluster, then submit the new request. See the <code>NumCacheNodes</code> parameter for details on node scaling behavior.</p> </important> <p>Valid values: <code>true</code> | <code>false</code> </p> <p>Default: <code>false</code> </p>"
         },
         "Engine":{
           "shape":"String",
@@ -5244,7 +5269,7 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>Modifies the engine listed in a global replication group message. The options are redis, memcached or valkey.</p>"
+          "documentation":"<p>Modifies the engine listed in a global replication group message. The options are valkey, memcached or redis.</p>"
         },
         "EngineVersion":{
           "shape":"String",
@@ -5333,7 +5358,7 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>Modifies the engine listed in a replication group message. The options are redis, memcached or valkey.</p>"
+          "documentation":"<p>Modifies the engine listed in a replication group message. The options are valkey, memcached or redis.</p>"
         },
         "EngineVersion":{
           "shape":"String",
@@ -5394,6 +5419,10 @@
         "ClusterMode":{
           "shape":"ClusterMode",
           "documentation":"<p>Enabled or Disabled. To modify cluster mode from Disabled to Enabled, you must first set the cluster mode to Compatible. Compatible mode allows your Valkey or Redis OSS clients to connect using both cluster mode enabled and cluster mode disabled. After you migrate all Valkey or Redis OSS clients to use cluster mode enabled, you can then complete cluster mode configuration and set the cluster mode to Enabled.</p>"
+        },
+        "Durability":{
+          "shape":"Durability",
+          "documentation":"<p>Specifies the durability setting for the replication group. Use this parameter to change the durability mode of an existing replication group, for example from <code>sync</code> to <code>async</code> or vice versa. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/durability.html\">Durability</a>.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>ModifyReplicationGroups</code> operation.</p>"
@@ -5483,7 +5512,7 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>Modifies the engine listed in a serverless cache request. The options are redis, memcached or valkey.</p>"
+          "documentation":"<p>Modifies the engine listed in a serverless cache request. The options are valkey, memcached or redis.</p>"
         },
         "MajorEngineVersion":{
           "shape":"String",
@@ -6349,7 +6378,7 @@
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable encryption at-rest on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using Redis OSS version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables encryption at-rest on the cluster when set to <code>true</code>. In some cases, encryption at-rest may be enabled even when this value is false. Use <code>StorageEncryptionType</code> to view the effective encryption state of a cluster.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created.</p> <p>Default: <code>true</code> when using Valkey, <code>false</code> when using Redis OSS</p>"
         },
         "MemberClustersOutpostArns":{
           "shape":"ReplicationGroupOutpostArnList",
@@ -6358,6 +6387,10 @@
         "KmsKeyId":{
           "shape":"String",
           "documentation":"<p>The ID of the KMS key used to encrypt the disk in the cluster.</p>"
+        },
+        "StorageEncryptionType":{
+          "shape":"StorageEncryptionType",
+          "documentation":"<p>Indicates the type of encryption for data stored at rest in the replication group. The value is <code>none</code> if at-rest encryption is not enabled, <code>sse-elasticache</code> if an ElastiCache service-managed key is used, or <code>sse-kms</code> if a customer-managed KMS key is used.</p>"
         },
         "ARN":{
           "shape":"String",
@@ -6401,7 +6434,15 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>The engine used in a replication group. The options are redis, memcached or valkey.</p>"
+          "documentation":"<p>The engine used in a replication group. The options are valkey, memcached or redis.</p>"
+        },
+        "Durability":{
+          "shape":"Durability",
+          "documentation":"<p>The durability setting of the replication group. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/durability.html\">Durability</a>.</p>"
+        },
+        "EffectiveDurability":{
+          "shape":"EffectiveDurability",
+          "documentation":"<p>The effective durability of the replication group. When <code>Durability</code> is set to <code>default</code>, the service resolves the actual durability based on the engine version, cluster mode, and other parameters. This field reflects the resolved value. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Durability.Configuring.html\">Configuring Durability</a>.</p>"
         }
       },
       "documentation":"<p>Contains all of the attributes of a specific Valkey or Redis OSS replication group.</p>",
@@ -6867,6 +6908,10 @@
           "shape":"String",
           "documentation":"<p>The ID of the Amazon Web Services Key Management Service (KMS) key that is used to encrypt data at rest in the serverless cache.</p>"
         },
+        "StorageEncryptionType":{
+          "shape":"StorageEncryptionType",
+          "documentation":"<p>Indicates the type of encryption for data stored at rest in the serverless cache. Serverless caches are always encrypted at rest. The value is <code>sse-elasticache</code> if an ElastiCache service-managed key is used, or <code>sse-kms</code> if a customer-managed KMS key is used.</p>"
+        },
         "SecurityGroupIds":{
           "shape":"SecurityGroupIdsList",
           "documentation":"<p>The IDs of the EC2 security groups associated with the serverless cache.</p>"
@@ -6887,11 +6932,15 @@
         },
         "SnapshotRetentionLimit":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The current setting for the number of serverless cache snapshots the system will retain. Available for Valkey, Redis OSS and Serverless Memcached only.</p>"
+          "documentation":"<p>The number of days for which ElastiCache retains automatic snapshots before deleting them. Available for Valkey, Redis OSS and Serverless Memcached only. The maximum value allowed is 35 days.</p>"
         },
         "DailySnapshotTime":{
           "shape":"String",
           "documentation":"<p>The daily time that a cache snapshot will be created. Default is NULL, i.e. snapshots will not be created at a specific time on a daily basis. Available for Valkey, Redis OSS and Serverless Memcached only.</p>"
+        },
+        "NetworkType":{
+          "shape":"NetworkType",
+          "documentation":"<p>The type of IP address protocol used by the serverless cache. Must be either <code>ipv4</code> | <code>ipv6</code> | <code>dual_stack</code>. <code>ipv6</code> is only supported with IPv6-only subnets. If not specified, defaults to <code>ipv4</code>, unless all provided subnets are IPv6-only, in which case it defaults to <code>ipv6</code>.</p>"
         }
       },
       "documentation":"<p>The resource representing a serverless cache.</p>"
@@ -7287,6 +7336,10 @@
         "DataTiering":{
           "shape":"DataTieringStatus",
           "documentation":"<p>Enables data tiering. Data tiering is only supported for replication groups using the r6gd node type. This parameter must be set to true when using r6gd nodes. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/data-tiering.html\">Data tiering</a>.</p>"
+        },
+        "Durability":{
+          "shape":"Durability",
+          "documentation":"<p>The durability setting of the cluster when the snapshot was taken. When restoring from this snapshot, the cluster uses this durability setting unless overridden in the restore request. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/durability.html\">Durability</a>.</p>"
         }
       },
       "documentation":"<p>Represents a copy of an entire Valkey or Redis OSS cluster as of the time when the snapshot was taken.</p>",
@@ -7386,6 +7439,14 @@
       "members":{
         "ReplicationGroup":{"shape":"ReplicationGroup"}
       }
+    },
+    "StorageEncryptionType":{
+      "type":"string",
+      "enum":[
+        "none",
+        "sse-elasticache",
+        "sse-kms"
+      ]
     },
     "String":{"type":"string"},
     "Subnet":{

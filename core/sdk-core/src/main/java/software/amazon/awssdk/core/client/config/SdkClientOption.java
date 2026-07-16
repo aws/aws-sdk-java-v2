@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperti
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -197,6 +198,21 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(new UnsafeValueType(SdkAsyncHttpClient.Builder.class));
 
     /**
+     * The HTTP client configuration type indicating how the HTTP client was selected.
+     * <p>
+     * Possible values:
+     * <ul>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_AUTO} - HTTP client was auto-detected from the classpath</li>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_EXPLICIT_INSTANCE} - HTTP client was explicitly provided
+     *     via {@code httpClient()}</li>
+     *     <li>{@link BusinessMetricFeatureId#HTTP_CLIENT_EXPLICIT_FACTORY} - HTTP client factory was explicitly provided
+     *     via {@code httpClientBuilder()}</li>
+     * </ul>
+     */
+    public static final SdkClientOption<BusinessMetricFeatureId> HTTP_CLIENT_CONFIG_TYPE =
+        new SdkClientOption<>(BusinessMetricFeatureId.class);
+
+    /**
      * Configuration that should be used to build the {@link #SYNC_HTTP_CLIENT} or {@link #ASYNC_HTTP_CLIENT}.
      */
     public static final SdkClientOption<AttributeMap> HTTP_CLIENT_CONFIG = new SdkClientOption<>(AttributeMap.class);
@@ -289,6 +305,16 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see RetryMode.Resolver#defaultRetryMode(RetryMode)
      */
     public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
+
+    /**
+     * Option to specify the default for the {@code AWS_NEW_RETRIES_2026} feature gate for the SDK client.
+     */
+    public static final SdkClientOption<Boolean> DEFAULT_NEW_RETRIES_2026 = new SdkClientOption<>(Boolean.class);
+
+    /**
+     * Whether retries 2.1 behavior is enabled.
+     */
+    public static final SdkClientOption<Boolean> NEW_RETRIES_2026_ENABLED = new SdkClientOption<>(Boolean.class);
 
     /**
      * The {@link EndpointProvider} configured on the client.

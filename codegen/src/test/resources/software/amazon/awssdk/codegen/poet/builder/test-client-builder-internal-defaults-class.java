@@ -29,10 +29,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonPr
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
-import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
 
@@ -69,15 +66,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return config.merge(c -> {
             c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
             c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
+            c.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026, true);
         });
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new JsonAuthSchemeInterceptor());
-        endpointInterceptors.add(new JsonResolveEndpointInterceptor());
-        endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");

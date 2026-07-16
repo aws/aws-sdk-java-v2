@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -253,7 +254,9 @@ public class TransferProgressUpdater {
     private <ResultT> SdkPublisher<AsyncResponseTransformer<GetObjectResponse, ResultT>> wrapIndividualTransformer(
         SdkPublisher<AsyncResponseTransformer<GetObjectResponse, ResultT>> publisher, GetObjectRequest request) {
         // each of the individual transformer for multipart file download
-        return publisher.map(art -> AsyncResponseTransformerListener.wrap(
+        return publisher.map(art -> {
+            AtomicLong partBytesTransferred = new AtomicLong(0);
+            return AsyncResponseTransformerListener.wrap(
                 art,
                 new AsyncResponseTransformerListener<GetObjectResponse>() {
                     @Override
@@ -262,10 +265,20 @@ public class TransferProgressUpdater {
                     }
 
                     @Override
+                    public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                        long previousPartBytes = partBytesTransferred.getAndSet(0);
+                        if (previousPartBytes > 0) {
+                            progress.updateAndGet(b -> b.transferredBytes(b.getTransferredBytes() - previousPartBytes));
+                        }
+                    }
+
+                    @Override
                     public void subscriberOnNext(ByteBuffer byteBuffer) {
+                        partBytesTransferred.addAndGet(byteBuffer.limit());
                         incrementBytesTransferred(byteBuffer.limit());
                     }
-                }));
+                });
+        });
     }
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(

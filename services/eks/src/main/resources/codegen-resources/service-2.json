@@ -69,6 +69,26 @@
       ],
       "documentation":"<p>Associates an identity provider configuration to a cluster.</p> <p>If you want to authenticate identities using an identity provider, you can create an identity provider configuration and associate it to your cluster. After configuring authentication to your cluster you can create Kubernetes <code>Role</code> and <code>ClusterRole</code> objects, assign permissions to them, and then bind them to the identities using Kubernetes <code>RoleBinding</code> and <code>ClusterRoleBinding</code> objects. For more information see <a href=\"https://kubernetes.io/docs/reference/access-authn-authz/rbac/\">Using RBAC Authorization</a> in the Kubernetes documentation.</p>"
     },
+    "CancelUpdate":{
+      "name":"CancelUpdate",
+      "http":{
+        "method":"POST",
+        "requestUri":"/clusters/{name}/updates/{updateId}/cancel-update"
+      },
+      "input":{"shape":"CancelUpdateRequest"},
+      "output":{"shape":"CancelUpdateResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"ClientException"},
+        {"shape":"ServerException"},
+        {"shape":"ResourceInUseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InvalidStateException"}
+      ],
+      "documentation":"<p>Cancels an in-progress update to an Amazon EKS cluster on a best-effort basis. Cancellation is only performed if the update can be cancelled. Currently, this is supported for <code>VersionRollback</code> update types on EKS Auto Mode clusters when nodes are rolling back.</p> <p>A successful cancellation stops the node rollback. After cancellation, nodes converge to the current cluster version honoring configured disruption controls. If the control plane rollback has already begun, the cancellation request fails.</p>"
+    },
     "CreateAccessEntry":{
       "name":"CreateAccessEntry",
       "http":{
@@ -1830,6 +1850,63 @@
       "type":"integer",
       "box":true
     },
+    "CancelUpdateRequest":{
+      "type":"structure",
+      "required":[
+        "name",
+        "updateId"
+      ],
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the Amazon EKS cluster associated with the update.</p>",
+          "location":"uri",
+          "locationName":"name"
+        },
+        "updateId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the update to cancel.</p>",
+          "location":"uri",
+          "locationName":"updateId"
+        },
+        "clientRequestToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CancelUpdateResponse":{
+      "type":"structure",
+      "members":{
+        "update":{
+          "shape":"Update",
+          "documentation":"<p>The full description of the specified update.</p>"
+        }
+      }
+    },
+    "Cancellation":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"CancellationStatus",
+          "documentation":"<p>The current status of the cancellation. Valid values are <code>InProgress</code>, <code>Failed</code>, and <code>Successful</code>.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>A message providing additional details about the cancellation, such as the reason for the cancellation or failure details.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the latest cancellation of an update to an Amazon EKS cluster.</p>"
+    },
+    "CancellationStatus":{
+      "type":"string",
+      "enum":[
+        "InProgress",
+        "Failed",
+        "Successful"
+      ]
+    },
     "Capability":{
       "type":"structure",
       "members":{
@@ -2019,7 +2096,8 @@
       "type":"string",
       "enum":[
         "UPGRADE_READINESS",
-        "MISCONFIGURATION"
+        "MISCONFIGURATION",
+        "ROLLBACK_READINESS"
       ]
     },
     "CategoryList":{
@@ -2451,12 +2529,24 @@
       },
       "documentation":"<p>The full description of your connected cluster.</p>"
     },
+    "ControlPlaneEgressModeType":{
+      "type":"string",
+      "enum":[
+        "AWS_MANAGED",
+        "CUSTOMER_ROUTED",
+        "CUSTOMER_ISOLATED"
+      ]
+    },
     "ControlPlanePlacementRequest":{
       "type":"structure",
       "members":{
         "groupName":{
           "shape":"String",
           "documentation":"<p>The name of the placement group for the Kubernetes control plane instances. This setting can't be changed after cluster creation. </p>"
+        },
+        "spreadLevel":{
+          "shape":"SpreadLevel",
+          "documentation":"<p>Optional parameter to specify the placement group spread level for control plane instances. If not provided, Amazon EKS will deploy control plane instances without a placement group.</p>"
         }
       },
       "documentation":"<p>The placement configuration for all the control plane instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
@@ -2467,6 +2557,10 @@
         "groupName":{
           "shape":"String",
           "documentation":"<p>The name of the placement group for the Kubernetes control plane instances.</p>"
+        },
+        "spreadLevel":{
+          "shape":"SpreadLevel",
+          "documentation":"<p>The spread level used with the placement group for control plane instances on your local Amazon EKS cluster on Amazon Web Services Outposts.</p>"
         }
       },
       "documentation":"<p>The placement configuration for all the control plane instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
@@ -2932,6 +3026,10 @@
         "releaseVersion":{
           "shape":"String",
           "documentation":"<p>The AMI version of the Amazon EKS optimized AMI to use with your node group. By default, the latest available AMI version for the node group's current Kubernetes version is used. For information about Linux versions, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-linux-ami-versions.html\">Amazon EKS optimized Amazon Linux AMI versions</a> in the <i>Amazon EKS User Guide</i>. Amazon EKS managed node groups support the November 2022 and later releases of the Windows AMIs. For information about Windows versions, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-versions-windows.html\">Amazon EKS optimized Windows AMI versions</a> in the <i>Amazon EKS User Guide</i>.</p> <p>If you specify <code>launchTemplate</code>, and your launch template uses a custom AMI, then don't specify <code>releaseVersion</code>, or the node group deployment will fail. For more information about using launch templates with Amazon EKS, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html\">Customizing managed nodes with launch templates</a> in the <i>Amazon EKS User Guide</i>.</p>"
+        },
+        "warmPoolConfig":{
+          "shape":"WarmPoolConfig",
+          "documentation":"<p>The warm pool configuration for the node group. Warm pools maintain pre-initialized EC2 instances that can quickly join your cluster during scale-out events, improving application scaling performance and reducing costs.</p>"
         }
       }
     },
@@ -4052,6 +4150,26 @@
     "ErrorDetails":{
       "type":"list",
       "member":{"shape":"ErrorDetail"}
+    },
+    "EtcdPlacementRequest":{
+      "type":"structure",
+      "members":{
+        "spreadLevel":{
+          "shape":"SpreadLevel",
+          "documentation":"<p>Optional parameter to specify the placement group spread level for etcd instances. If not provided, Amazon EKS will deploy etcd instances without a placement group.</p>"
+        }
+      },
+      "documentation":"<p>The placement configuration for the etcd instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
+    },
+    "EtcdPlacementResponse":{
+      "type":"structure",
+      "members":{
+        "spreadLevel":{
+          "shape":"SpreadLevel",
+          "documentation":"<p>The spread level used with the placement group for etcd instances on your local Amazon EKS cluster on Amazon Web Services Outposts.</p>"
+        }
+      },
+      "documentation":"<p>The placement configuration for the etcd instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
     },
     "FargateProfile":{
       "type":"structure",
@@ -5417,6 +5535,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>Metadata that assists with categorization and organization. Each tag consists of a key and an optional value. You define both. Tags don't propagate to any other cluster or Amazon Web Services resources.</p>"
+        },
+        "warmPoolConfig":{
+          "shape":"WarmPoolConfig",
+          "documentation":"<p>The warm pool configuration attached to the node group. Amazon EKS manages warm pools throughout the node group lifecycle using the <code>AWSServiceRoleForAmazonEKSNodegroup</code> service-linked role to create, update, and delete warm pool resources.</p>"
         }
       },
       "documentation":"<p>An object representing an Amazon EKS managed node group.</p>"
@@ -5678,11 +5800,19 @@
         },
         "controlPlaneInstanceType":{
           "shape":"String",
-          "documentation":"<p>The Amazon EC2 instance type that you want to use for your local Amazon EKS cluster on Outposts. Choose an instance type based on the number of nodes that your cluster will have. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p> <p>The instance type that you specify is used for all Kubernetes control plane instances. The instance type can't be changed after cluster creation. The control plane is not automatically scaled by Amazon EKS.</p> <p> </p>"
+          "documentation":"<p>The Amazon EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on Amazon Web Services Outposts. This instance type applies to all control plane instances and cannot be changed after cluster creation.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p> <p> </p>"
         },
         "controlPlanePlacement":{
           "shape":"ControlPlanePlacementRequest",
           "documentation":"<p>An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
+        },
+        "etcdInstanceType":{
+          "shape":"String",
+          "documentation":"<p>The Amazon EC2 instance type for etcd instances of your local Amazon EKS cluster on Amazon Web Services Outposts. This instance type applies to all etcd instances and cannot be changed after cluster creation.</p>"
+        },
+        "etcdPlacement":{
+          "shape":"EtcdPlacementRequest",
+          "documentation":"<p>An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
         }
       },
       "documentation":"<p>The configuration of your local Amazon EKS cluster on an Amazon Web Services Outpost. Before creating a cluster on an Outpost, review <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-local-cluster-create.html\">Creating a local cluster on an Outpost</a> in the <i>Amazon EKS User Guide</i>. This API isn't available for Amazon EKS clusters on the Amazon Web Services cloud.</p>"
@@ -5700,11 +5830,19 @@
         },
         "controlPlaneInstanceType":{
           "shape":"String",
-          "documentation":"<p>The Amazon EC2 instance type used for the control plane. The instance type is the same for all control plane instances.</p>"
+          "documentation":"<p>The Amazon EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on Amazon Web Services Outposts. The instance type is the same for all control plane instances.</p>"
         },
         "controlPlanePlacement":{
           "shape":"ControlPlanePlacementResponse",
           "documentation":"<p>An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
+        },
+        "etcdInstanceType":{
+          "shape":"String",
+          "documentation":"<p>The Amazon EC2 instance type for etcd instances of your local Amazon EKS cluster on Amazon Web Services Outposts. The instance type is the same for all etcd instances.</p>"
+        },
+        "etcdPlacement":{
+          "shape":"EtcdPlacementResponse",
+          "documentation":"<p>An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an Amazon Web Services Outpost. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts-capacity-considerations.html\">Capacity considerations</a> in the <i>Amazon EKS User Guide</i>.</p>"
         }
       },
       "documentation":"<p>An object representing the configuration of your local Amazon EKS cluster on an Amazon Web Services Outpost. This API isn't available for Amazon EKS clusters on the Amazon Web Services cloud.</p>"
@@ -6048,6 +6186,16 @@
       "max":255,
       "min":1
     },
+    "RollbackConfig":{
+      "type":"structure",
+      "members":{
+        "timeoutMinutes":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The length of time in minutes to wait before cancelling the update. Timeout is a minimum-bound property, meaning the timeout occurs no sooner than the time you specify, but can occur shortly thereafter. This value can be between 120 (2 hours) and 10080 (7 days). Default: <code>720</code> (12 hours) if not specified.</p>"
+        }
+      },
+      "documentation":"<p>The rollback configuration for the cluster version rollback.</p>"
+    },
     "ServerException":{
       "type":"structure",
       "members":{
@@ -6089,6 +6237,13 @@
       "error":{"httpStatusCode":503},
       "exception":true,
       "fault":true
+    },
+    "SpreadLevel":{
+      "type":"string",
+      "enum":[
+        "host",
+        "rack"
+      ]
     },
     "SsoIdentity":{
       "type":"structure",
@@ -6339,6 +6494,10 @@
         "errors":{
           "shape":"ErrorDetails",
           "documentation":"<p>Any errors associated with a <code>Failed</code> update.</p>"
+        },
+        "cancellation":{
+          "shape":"Cancellation",
+          "documentation":"<p>The latest cancellation information for the update. This field is present only if any cancellation is attempted for the update.</p>"
         }
       },
       "documentation":"<p>An object representing an asynchronous update.</p>"
@@ -6526,7 +6685,10 @@
           "location":"uri",
           "locationName":"name"
         },
-        "resourcesVpcConfig":{"shape":"VpcConfigRequest"},
+        "resourcesVpcConfig":{
+          "shape":"VpcConfigRequest",
+          "documentation":"<p>An object representing the VPC configuration to use for the cluster update. You can use this parameter to update the control plane egress mode, the subnets used by the cluster, the security groups, and the endpoint access settings.</p>"
+        },
         "logging":{
           "shape":"Logging",
           "documentation":"<p>Enable or disable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs . By default, cluster control plane logs aren't exported to CloudWatch Logs . For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html\">Amazon EKS cluster control plane logs</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <note> <p>CloudWatch Logs ingestion, archive storage, and data scanning rates apply to exported control plane logs. For more information, see <a href=\"http://aws.amazon.com/cloudwatch/pricing/\">CloudWatch Pricing</a>.</p> </note>"
@@ -6598,7 +6760,11 @@
         },
         "force":{
           "shape":"Boolean",
-          "documentation":"<p>Set this value to <code>true</code> to override upgrade-blocking readiness checks when updating a cluster.</p>"
+          "documentation":"<p>Set this value to <code>true</code> to override upgrade-blocking or rollback-blocking readiness checks when updating a cluster.</p>"
+        },
+        "rollbackConfig":{
+          "shape":"RollbackConfig",
+          "documentation":"<p>The rollback configuration for the cluster version rollback.</p>"
         }
       }
     },
@@ -6696,6 +6862,10 @@
         "nodeRepairConfig":{
           "shape":"NodeRepairConfig",
           "documentation":"<p>The node auto repair configuration for the node group.</p>"
+        },
+        "warmPoolConfig":{
+          "shape":"WarmPoolConfig",
+          "documentation":"<p>The warm pool configuration to apply to the node group. You can use this to add a warm pool to an existing node group or modify the settings of an existing warm pool.</p>"
         },
         "clientRequestToken":{
           "shape":"String",
@@ -6813,8 +6983,19 @@
         "RemoteNetworkConfig",
         "DeletionProtection",
         "NodeRepairConfig",
+        "RoleArn",
+        "RoleMappingsToAddOrUpdate",
+        "RoleMappingsToRemove",
+        "NetworkAccess",
+        "VendedLogs",
         "UpdatedTier",
-        "PreviousTier"
+        "PreviousTier",
+        "WarmPoolEnabled",
+        "WarmPoolMaxGroupPreparedCapacity",
+        "WarmPoolMinSize",
+        "WarmPoolState",
+        "WarmPoolReuseOnScaleIn",
+        "ControlPlaneEgressMode"
       ]
     },
     "UpdateParams":{
@@ -6927,8 +7108,11 @@
         "AutoModeUpdate",
         "RemoteNetworkConfigUpdate",
         "DeletionProtectionUpdate",
+        "CapabilityUpdate",
         "ControlPlaneScalingConfigUpdate",
-        "VendedLogsUpdate"
+        "VendedLogsUpdate",
+        "ControlPlaneEgressUpdate",
+        "VersionRollback"
       ]
     },
     "UpgradePolicyRequest":{
@@ -6981,6 +7165,10 @@
         "publicAccessCidrs":{
           "shape":"StringList",
           "documentation":"<p>The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is <code>0.0.0.0/0</code> and additionally <code>::/0</code> for dual-stack `IPv6` clusters. If you've disabled private endpoint access, make sure that you specify the necessary CIDR blocks for every node and Fargate <code>Pod</code> in the cluster. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html\">Cluster API server endpoint</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>Note that the public endpoints are dual-stack for only <code>IPv6</code> clusters that are made after October 2024. You can't add <code>IPv6</code> CIDR blocks to <code>IPv4</code> clusters or <code>IPv6</code> clusters that were made before October 2024.</p>"
+        },
+        "controlPlaneEgressMode":{
+          "shape":"ControlPlaneEgressModeType",
+          "documentation":"<p>Specifies the control plane egress routing mode for the cluster. If the cluster is set to <code>AWS_MANAGED</code>, Amazon EKS manages the egress path from the control plane and you don't need to configure NAT gateways or other routing infrastructure for control plane traffic. If the cluster is set to <code>CUSTOMER_ROUTED</code>, you manage the egress path from the control plane in your VPC subnets. You are responsible for ensuring that the control plane can reach required endpoints such as webhook servers and OIDC providers. The default value is <code>AWS_MANAGED</code>. Once set to <code>CUSTOMER_ROUTED</code>, this setting cannot be changed back to <code>AWS_MANAGED</code> on the same cluster.</p> <p> <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/control-plane-egress.html\">Learn more about control plane egress routing in the <i>Amazon EKS User Guide</i>.</a> </p>"
         }
       },
       "documentation":"<p>An object representing the VPC configuration to use for an Amazon EKS cluster.</p>"
@@ -7015,9 +7203,47 @@
         "publicAccessCidrs":{
           "shape":"StringList",
           "documentation":"<p>The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is <code>0.0.0.0/0</code> and additionally <code>::/0</code> for dual-stack `IPv6` clusters. If you've disabled private endpoint access, make sure that you specify the necessary CIDR blocks for every node and Fargate <code>Pod</code> in the cluster. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html\">Cluster API server endpoint</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>Note that the public endpoints are dual-stack for only <code>IPv6</code> clusters that are made after October 2024. You can't add <code>IPv6</code> CIDR blocks to <code>IPv4</code> clusters or <code>IPv6</code> clusters that were made before October 2024.</p>"
+        },
+        "controlPlaneEgressMode":{
+          "shape":"ControlPlaneEgressModeType",
+          "documentation":"<p>The current control plane egress routing mode for the cluster. If the cluster is set to <code>AWS_MANAGED</code>, Amazon EKS manages the egress path from the control plane. If the cluster is set to <code>CUSTOMER_ROUTED</code>, you manage the egress path from the control plane in your VPC subnets.</p> <p> <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/control-plane-egress.html\">Learn more about control plane egress routing in the <i>Amazon EKS User Guide</i>.</a> </p>"
         }
       },
       "documentation":"<p>An object representing an Amazon EKS cluster VPC configuration response.</p>"
+    },
+    "WarmPoolConfig":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Specifies whether to attach warm pools on the managed node group. Set to <code>true</code> to enable the warm pool, or <code>false</code> to disable and remove it. If not specified during an update, the current value is preserved.</p>"
+        },
+        "minSize":{
+          "shape":"ZeroCapacity",
+          "documentation":"<p>The minimum number of instances to maintain in the warm pool. Default: <code>0</code>. Size your warm pool based on scaling patterns to balance cost and availability. Start with 10-20% of expected peak capacity.</p>"
+        },
+        "maxGroupPreparedCapacity":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum total number of instances across the warm pool and Auto Scaling group combined. This value controls the total prepared capacity available for your node group.</p>"
+        },
+        "poolState":{
+          "shape":"WarmPoolState",
+          "documentation":"<p>The desired state for warm pool instances. Default: <code>Stopped</code>. Valid values are <code>Stopped</code> (most cost-effective with EBS storage costs only), <code>Running</code> (fastest transition time with full EC2 costs), and <code>Hibernated</code> (balance between cost and speed, only supported on specific instance types). Warm pool instances in the <code>Hibernated</code> state are not supported with Bottlerocket AMIs.</p>"
+        },
+        "reuseOnScaleIn":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates whether instances should return to the warm pool during scale-in events instead of being terminated. Default: <code>false</code>. Enable this to reduce costs by reusing instances. This feature is not supported for Bottlerocket AMIs.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for an Amazon EC2 Auto Scaling warm pool attached to an Amazon EKS managed node group. Warm pools maintain pre-initialized EC2 instances alongside your Auto Scaling group that have already completed the bootup initialization process and can be kept in a <code>Stopped</code>, <code>Running</code>, or <code>Hibernated</code> state.</p>"
+    },
+    "WarmPoolState":{
+      "type":"string",
+      "enum":[
+        "STOPPED",
+        "RUNNING",
+        "HIBERNATED"
+      ]
     },
     "ZeroCapacity":{
       "type":"integer",

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
+import static java.util.Collections.unmodifiableSet;
 import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
@@ -25,57 +26,98 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CompletionException;
 import javax.net.ssl.SSLHandshakeException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.CRT;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public final class CrtUtils {
     public static final int CRT_TLS_NEGOTIATION_ERROR_CODE = 1029;
+    /**
+     * Corresponds to CRT error: AWS_IO_SOCKET_TIMEOUT
+     */
     public static final int CRT_SOCKET_TIMEOUT = 1048;
+
+    // HTTP error codes that the native CRT classifier (CRT.awsIsTransientError) does NOT mark as transient
+    // but that the SDK considers recoverable. See enum aws_http_errors in aws-c-http/include/aws/http/http.h
+    // for symbolic names.
+    private static final Set<Integer> ADDITIONAL_RETRYABLE_ERROR_CODES;
+
+    static {
+        Set<Integer> codes = new HashSet<>();
+        // AWS_ERROR_HTTP_CHANNEL_THROUGHPUT_FAILURE (health check failure)
+        codes.add(2073);
+        // AWS_ERROR_HTTP_GOAWAY_RECEIVED
+        codes.add(2076);
+        // AWS_ERROR_HTTP_MAX_CONCURRENT_STREAMS_EXCEEDED
+        codes.add(2085);
+        // AWS_ERROR_HTTP_STREAM_MANAGER_CONNECTION_ACQUIRE_FAILURE
+        codes.add(2087);
+        // AWS_ERROR_HTTP_RESPONSE_FIRST_BYTE_TIMEOUT
+        codes.add(2092);
+        // AWS_ERROR_HTTP_CONNECTION_MANAGER_ACQUISITION_TIMEOUT
+        codes.add(2093);
+        // AWS_ERROR_HTTP_CONNECTION_MANAGER_MAX_PENDING_ACQUISITIONS_EXCEEDED
+        codes.add(2094);
+        ADDITIONAL_RETRYABLE_ERROR_CODES = unmodifiableSet(codes);
+    }
+
 
     private CrtUtils() {
     }
 
     public static Throwable wrapWithIoExceptionIfRetryable(HttpException httpException) {
         Throwable toThrow = httpException;
+        int errorCode = httpException.getErrorCode();
 
-        if (HttpClientConnection.isErrorRetryable(httpException)) {
-            // IOExceptions get retried, and if the CRT says this error is retryable,
-            // it's semantically an IOException anyway.
+        if (CRT.awsIsTransientError(errorCode) ||
+            ADDITIONAL_RETRYABLE_ERROR_CODES.contains(errorCode)) {
             toThrow = new IOException(httpException);
         }
         return toThrow;
     }
 
-    public static Throwable wrapConnectionFailureException(Throwable throwable) {
-        Throwable toThrow = new IOException("An exception occurred when acquiring a connection", throwable);
+    public static Throwable wrapCrtException(Throwable throwable) {
+        if (throwable instanceof CompletionException) {
+            throwable = throwable.getCause();
+        }
         if (throwable instanceof HttpException) {
             HttpException httpException = (HttpException) throwable;
             int httpErrorCode = httpException.getErrorCode();
 
             if (httpErrorCode == CRT_TLS_NEGOTIATION_ERROR_CODE) {
-                toThrow = new SSLHandshakeException(httpException.getMessage());
-            } else if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
-                toThrow = new ConnectException(httpException.getMessage());
+                return new SSLHandshakeException(httpException.getMessage());
             }
+
+            if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
+                return new ConnectException(httpException.getMessage());
+            }
+
+            return wrapWithIoExceptionIfRetryable((HttpException) throwable);
         }
 
-        return toThrow;
+        if (throwable instanceof IllegalStateException || throwable instanceof CrtRuntimeException) {
+            // CRT throws IllegalStateException if the connection is closed
+            return new IOException("An exception occurred when making the request", throwable);
+        }
+
+        return throwable;
     }
 
-    public static void reportMetrics(HttpClientConnectionManager connManager, MetricCollector metricCollector,
-                                      long acquireStartTime) {
+    public static void reportMetrics(HttpStreamManager connManager, MetricCollector metricCollector,
+                                     long acquireStartTime) {
         long acquireCompletionTime = System.nanoTime();
         Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
         metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
         HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
-        // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
-        // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
         metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
         metricCollector.reportMetric(AVAILABLE_CONCURRENCY, saturatedCast(managerMetrics.getAvailableConcurrency()));
         metricCollector.reportMetric(LEASED_CONCURRENCY, saturatedCast(managerMetrics.getLeasedConcurrency()));

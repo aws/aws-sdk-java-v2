@@ -37,6 +37,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequest
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
+import software.amazon.awssdk.services.s3.internal.multipart.KnownContentLengthAsyncRequestBodySubscriber;
+import software.amazon.awssdk.services.s3.internal.multipart.UnknownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -54,7 +57,10 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
-                      ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class)));
+                      ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
+                      ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
+                      ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
+                      ArchUtils.classNameToPattern(CopyObjectHelper.class)));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(

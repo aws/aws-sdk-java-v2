@@ -29,7 +29,6 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -40,9 +39,6 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
-import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
-import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -59,6 +55,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultPresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -79,6 +76,9 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -334,7 +334,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+                                                Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
@@ -602,6 +602,78 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
+    public final PresignedFileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        Validate.paramNotNull(presignedDownloadFileRequest, "presignedDownloadFileRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            AsyncResponseTransformer.toFile(presignedDownloadFileRequest.destination(),
+                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadFileRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadFileRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<GetObjectResponse> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadFileRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              res -> CompletedFileDownload.builder()
+                                                                                          .response(res)
+                                                                                          .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultPresignedFileDownload(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final <ResultT> Download<ResultT> downloadWithPresignedUrl(
+        PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        Validate.paramNotNull(presignedDownloadRequest, "presignedDownloadRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer =
+            presignedDownloadRequest.responseTransformer();
+
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<ResultT> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder()
+                                                                                    .result(r)
+                                                                                    .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
     public final void close() {
         if (isDefaultS3AsyncClient) {
             IoUtils.closeQuietly(s3AsyncClient, log.logger());
@@ -622,27 +694,9 @@ class GenericS3TransferManager implements S3TransferManager {
             String error = String.format("%s does not support S3 Object Lambda resources", operation);
             throw new IllegalArgumentException(error);
         }
-
-        Arn arn = Arn.fromString(bucket);
-
-        if (isMrapArn(arn)) {
-            String error = String.format("%s does not support S3 multi-region access point ARN", operation);
-            throw new IllegalArgumentException(error);
-        }
     }
 
     private static boolean isObjectLambdaArn(String arn) {
         return arn.contains(":s3-object-lambda");
-    }
-
-    private static boolean isMrapArn(Arn arn) {
-        S3Resource s3Resource = S3ArnConverter.create().convertArn(arn);
-
-        S3AccessPointResource s3EndpointResource =
-            Validate.isInstanceOf(S3AccessPointResource.class, s3Resource,
-                                  "An ARN was passed as a bucket parameter to an S3 operation, however it does not "
-                                  + "appear to be a valid S3 access point ARN.");
-
-        return !s3EndpointResource.region().isPresent();
     }
 }

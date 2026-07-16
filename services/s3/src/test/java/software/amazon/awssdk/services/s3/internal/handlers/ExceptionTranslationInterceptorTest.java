@@ -98,6 +98,46 @@ public class ExceptionTranslationInterceptorTest {
         assertThat(interceptor.modifyException(failedExecution, new ExecutionAttributes())).isEqualTo(s3Exception);
     }
 
+    @Test
+    public void headObject503SlowDown_shouldBeThrottlingException() {
+        S3Exception s3Exception = create503ThrottlingException();
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadObjectRequest.builder().build());
+        S3Exception modifiedException = (S3Exception) interceptor.modifyException(failedExecution, new ExecutionAttributes());
+        assertThat(modifiedException.awsErrorDetails().errorCode()).isEqualTo("SlowDown");
+        assertThat(modifiedException.isThrottlingException()).isTrue();
+    }
+
+    @Test
+    public void headBucket503SlowDown_shouldBeThrottlingException() {
+        S3Exception s3Exception = create503ThrottlingException();
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadBucketRequest.builder().build());
+        S3Exception modifiedException = (S3Exception) interceptor.modifyException(failedExecution, new ExecutionAttributes());
+        assertThat(modifiedException.awsErrorDetails().errorCode()).isEqualTo("SlowDown");
+        assertThat(modifiedException.isThrottlingException()).isTrue();
+    }
+
+    @Test
+    public void headBucket503ServiceUnavailable_shouldNotBeThrottlingException() {
+        S3Exception s3Exception = create503NonThrottlingException();
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadBucketRequest.builder().build());
+        S3Exception modifiedException = (S3Exception) interceptor.modifyException(failedExecution, new ExecutionAttributes());
+        assertThat(modifiedException.awsErrorDetails().errorCode()).isNull();
+        assertThat(modifiedException.isThrottlingException()).isFalse();
+    }
+
+    @Test
+    public void headObject503ServiceUnavailable_shouldNotBeThrottlingException() {
+        S3Exception s3Exception = create503NonThrottlingException();
+        Context.FailedExecution failedExecution = getFailedExecution(s3Exception,
+                                                                     HeadObjectRequest.builder().build());
+        S3Exception modifiedException = (S3Exception) interceptor.modifyException(failedExecution, new ExecutionAttributes());
+        assertThat(modifiedException.awsErrorDetails().errorCode()).isNull();
+        assertThat(modifiedException.isThrottlingException()).isFalse();
+    }
+
     private S3Exception create404S3Exception() {
         return (S3Exception) S3Exception.builder()
                                         .awsErrorDetails(AwsErrorDetails.builder()
@@ -116,6 +156,29 @@ public class ExceptionTranslationInterceptorTest {
                                                                                                             .build())
                                                                         .build())
                                         .statusCode(403)
+                                        .build();
+    }
+
+    private S3Exception create503ThrottlingException() {
+        return (S3Exception) S3Exception.builder()
+                                        .awsErrorDetails(AwsErrorDetails.builder()
+                                                                        .sdkHttpResponse(SdkHttpFullResponse.builder()
+                                                                                                            .statusText(
+                                                                                                                "Slow Down")
+                                                                                                            .build())
+                                                                        .build())
+                                        .statusCode(503)
+                                        .build();
+    }
+
+    private S3Exception create503NonThrottlingException() {
+        return (S3Exception) S3Exception.builder()
+                                        .awsErrorDetails(AwsErrorDetails.builder()
+                                                                        .sdkHttpResponse(SdkHttpFullResponse.builder()
+                                                                                            .statusText("Service Unavailable")
+                                                                                            .build())
+                                                                        .build())
+                                        .statusCode(503)
                                         .build();
     }
 }

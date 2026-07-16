@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,7 +27,6 @@ import static software.amazon.awssdk.services.s3.internal.multipart.utils.Multip
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCreateMultipartCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulPutObjectCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulUploadPartCalls;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,6 +57,7 @@ import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -85,7 +86,7 @@ public class UploadWithUnknownContentLengthHelperTest {
     @BeforeEach
     public void beforeEach() {
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        helper = new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, PART_SIZE * 4);
+        helper = new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, PART_SIZE * 4, 50);
     }
 
     @Test
@@ -143,6 +144,37 @@ public class UploadWithUnknownContentLengthHelperTest {
         assertThat(putObjectRequest.bucket()).isEqualTo(BUCKET);
         assertThat(putObjectRequest.key()).isEqualTo(KEY);
         assertThat(actualRequestBodies.get(0).contentLength()).hasValue(0L);
+    }
+
+    @Test
+    void uploadObject_apiCallBufferSizeLessThanTwicePartSize_shouldFailFastWithoutSplitting() {
+        UploadWithUnknownContentLengthHelper helperWithSmallBuffer =
+            new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, 2 * PART_SIZE - 1, 50);
+
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+
+        CompletableFuture<PutObjectResponse> future =
+            helperWithSmallBuffer.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        verifyFailureWithMessage(future, "must be at least 2 x minimumPartSizeInBytes");
+
+        verify(asyncRequestBody, never()).splitCloseable(any(Consumer.class));
+    }
+
+    @Test
+    void uploadObject_apiCallBufferSizeEqualToTwicePartSize_shouldNotFailFast() {
+        UploadWithUnknownContentLengthHelper helperWithBoundaryBuffer =
+            new UploadWithUnknownContentLengthHelper(s3AsyncClient, PART_SIZE, PART_SIZE, 2 * PART_SIZE, 50);
+
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+        SdkPublisher<CloseableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitCloseable(any(Consumer.class))).thenReturn(mockPublisher);
+
+        CompletableFuture<PutObjectResponse> future =
+            helperWithBoundaryBuffer.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        assertThat(future).isNotCompleted();
+        verify(asyncRequestBody, times(1)).splitCloseable(any(Consumer.class));
     }
 
     @Test

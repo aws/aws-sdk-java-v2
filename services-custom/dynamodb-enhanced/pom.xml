@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services-custom</artifactId>
-        <version>2.42.20-SNAPSHOT</version>
+        <version>2.48.2-SNAPSHOT</version>
     </parent>
     <artifactId>dynamodb-enhanced</artifactId>
     <name>AWS Java SDK :: DynamoDB :: Enhanced Client</name>
@@ -213,6 +213,11 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>DynamoDBLocal</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

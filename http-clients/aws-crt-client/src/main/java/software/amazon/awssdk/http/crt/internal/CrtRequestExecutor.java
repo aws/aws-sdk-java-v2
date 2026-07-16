@@ -16,17 +16,14 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static software.amazon.awssdk.http.crt.internal.CrtUtils.reportMetrics;
-import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapConnectionFailureException;
-import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExceptionIfRetryable;
+import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapCrtException;
 
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.CrtRuntimeException;
-import software.amazon.awssdk.crt.http.HttpClientConnection;
-import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
+import software.amazon.awssdk.crt.http.HttpStreamBase;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
@@ -37,79 +34,63 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 public final class CrtRequestExecutor {
 
     public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
-        // go ahead and get a reference to the metricCollector since multiple futures will
-        // need it regardless.
+        CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
+
+        try {
+            doExecute(executionContext, requestFuture);
+        } catch (Throwable t) {
+            requestFuture.completeExceptionally(t);
+        }
+
+        return requestFuture;
+    }
+
+    private void doExecute(CrtRequestContext executionContext, CompletableFuture<SdkHttpFullResponse> requestFuture) {
         MetricCollector metricCollector = executionContext.metricCollector();
         boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
 
         long acquireStartTime = 0;
 
         if (shouldPublishMetrics) {
-            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
-            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
-            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
             acquireStartTime = System.nanoTime();
         }
 
-        CompletableFuture<SdkHttpFullResponse> requestFuture = new CompletableFuture<>();
+        InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
+            new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
 
-        // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-        CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
-            executionContext.crtConnPool().acquireConnection();
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+        HttpStreamManager streamManager = executionContext.streamManager();
+
+        CompletableFuture<HttpStreamBase> streamFuture =
+            streamManager.acquireStream(crtRequest, crtResponseHandler);
+
+        // Guard to ensure metrics are reported exactly once per request.
+        AtomicBoolean metricsReported = new AtomicBoolean(false);
 
         long finalAcquireStartTime = acquireStartTime;
 
-        httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
-            if (shouldPublishMetrics) {
-                reportMetrics(executionContext.crtConnPool(), metricCollector, finalAcquireStartTime);
+        // Evict the connection from the pool on failure so it is not reused.
+        // Also report metrics on failure — this ensures concurrency metrics
+        // are available during pool exhaustion timeouts.
+        requestFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                    reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+                }
+                crtResponseHandler.closeConnection();
             }
-
-            // If we didn't get a connection for some reason, fail the request
-            if (throwable != null) {
-                Throwable toThrow = wrapConnectionFailureException(throwable);
-                requestFuture.completeExceptionally(toThrow);
-                return;
-            }
-
-            executeRequest(executionContext, requestFuture, crtConn);
         });
 
-        return requestFuture;
-    }
+        streamFuture.whenComplete((streamBase, throwable) -> {
+            crtResponseHandler.onAcquireStream(streamBase);
+            if (shouldPublishMetrics && metricsReported.compareAndSet(false, true)) {
+                reportMetrics(streamManager, metricCollector, finalAcquireStartTime);
+            }
 
-    private void executeRequest(CrtRequestContext executionContext,
-                                CompletableFuture<SdkHttpFullResponse> requestFuture,
-                                HttpClientConnection crtConn) {
-        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
-
-        try {
-            HttpStreamResponseHandler crtResponseHandler = new InputStreamAdaptingHttpStreamResponseHandler(crtConn,
-                                                                                                            requestFuture);
-
-            // Submit the request on the connection
-            crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
-        } catch (Throwable throwable) {
-            handleException(requestFuture, crtConn, throwable);
-        }
-    }
-
-    private static void handleException(CompletableFuture<SdkHttpFullResponse> requestFuture, HttpClientConnection crtConn,
-                          Throwable throwable) {
-
-        crtConn.close();
-
-        if (throwable instanceof HttpException) {
-            Throwable toThrow = wrapWithIoExceptionIfRetryable((HttpException) throwable);
-            requestFuture.completeExceptionally(toThrow);
-            return;
-        }
-
-        if (throwable instanceof CrtRuntimeException || throwable instanceof IllegalStateException) {
-            // CRT throws IllegalStateException if the connection is closed
-            requestFuture.completeExceptionally(new IOException(throwable));
-            return;
-        }
-
-        requestFuture.completeExceptionally(throwable);
+            if (throwable != null) {
+                Throwable toThrow = wrapCrtException(throwable);
+                requestFuture.completeExceptionally(toThrow);
+            }
+        });
     }
 }

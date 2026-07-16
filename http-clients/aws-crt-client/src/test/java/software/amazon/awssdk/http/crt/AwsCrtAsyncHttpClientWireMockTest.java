@@ -29,6 +29,7 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.RecordingResponseHandler;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -48,7 +50,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 public class AwsCrtAsyncHttpClientWireMockTest {
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
-                                                          .dynamicPort());
+                                                          .dynamicPort()
+                                                          .dynamicHttpsPort());
 
     @BeforeClass
     public static void setup() {
@@ -62,15 +65,6 @@ public class AwsCrtAsyncHttpClientWireMockTest {
 
         client.close();
         assertThatThrownBy(() -> makeSimpleRequest(client)).hasMessageContaining("is closed");
-    }
-
-    @Test
-    public void invalidProtocol_shouldThrowException() {
-        AttributeMap attributeMap = AttributeMap.builder()
-                                                .put(PROTOCOL, Protocol.HTTP2)
-                                                .build();
-        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().buildWithDefaults(attributeMap))
-            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -97,6 +91,31 @@ public class AwsCrtAsyncHttpClientWireMockTest {
         try (SdkAsyncHttpClient anotherClient = AwsCrtAsyncHttpClient.create()) {
             makeSimpleRequest(anotherClient);
         }
+    }
+
+    @Test
+    public void tlsNegotiationTimeout_customValue_clientStartsSuccessfully() throws Exception {
+        AttributeMap defaults = AttributeMap.builder().put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true).build();
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder()
+                                                              .tlsNegotiationTimeout(Duration.ofSeconds(3))
+                                                              .buildWithDefaults(defaults)) {
+            makeSimpleHttpsRequest(client);
+        }
+    }
+
+    private RecordingResponseHandler makeSimpleHttpsRequest(SdkAsyncHttpClient client) throws Exception {
+        String body = randomAlphabetic(10);
+        URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
+        SdkHttpRequest request = createRequest(uri);
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+        client.execute(AsyncExecuteRequest.builder()
+                                          .request(request)
+                                          .requestContentPublisher(createProvider(""))
+                                          .responseHandler(recorder)
+                                          .build());
+        recorder.completeFuture().get(5, TimeUnit.SECONDS);
+        return recorder;
     }
 
     /**

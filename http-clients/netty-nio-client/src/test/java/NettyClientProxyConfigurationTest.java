@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-import java.net.ConnectException;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -43,6 +43,6 @@ public class NettyClientProxyConfigurationTest extends HttpClientDefaultProxyCon
 
     @Override
     protected Class<? extends Exception> getProxyFailedCauseExceptionType() {
-        return ConnectException.class;
+        return IOException.class;
     }
 }
