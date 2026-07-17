@@ -12,6 +12,7 @@ import software.amazon.awssdk.core.crac.http.CannedResponseAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
+import software.amazon.awssdk.services.query.model.GetOperationWithChecksumRequest;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -36,6 +37,7 @@ public final class QueryWarmUpProvider implements SdkWarmUpProvider {
             try (QueryAsyncClient asyncClient = QueryAsyncClient.builder().httpClient(asyncHttpClient)
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                asyncClient.getOperationWithChecksum(GetOperationWithChecksumRequest.builder().build()).join();
             }
         }
     }

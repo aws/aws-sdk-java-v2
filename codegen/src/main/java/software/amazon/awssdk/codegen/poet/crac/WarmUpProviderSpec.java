@@ -22,9 +22,11 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -38,10 +40,10 @@ import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
  * <p>The {@code warmUpClient(ClientType)} body instantiates and closes a synthetic sync client (when the service
  * generates one) and a synthetic async client, each guarded by the requested {@link ClientType} and wired to an
  * in-memory canned HTTP client, dummy credentials, a fixed region and a local {@code endpointOverride}. Building the
- * clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. The
- * {@code syncClientClassName()}/{@code asyncClientClassName()} strings let {@code SdkWarmUp.prime(Class...)} match a
- * requested client class to this provider without loading excluded client interfaces. The operation call that
- * exercises the marshal/unmarshal pipeline is added in a later stage.
+ * clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. Each client
+ * also invokes the operation chosen by {@link WarmUpOperationSelector}, if any, to prime the marshalling, signing and
+ * unmarshalling paths. The {@code syncClientClassName()}/{@code asyncClientClassName()} strings let
+ * {@code SdkWarmUp.prime(Class...)} match a requested client class to this provider.
  */
 public class WarmUpProviderSpec implements ClassSpec {
 
@@ -71,10 +73,12 @@ public class WarmUpProviderSpec implements ClassSpec {
 
     private final IntermediateModel model;
     private final PoetExtension poetExtensions;
+    private final Optional<OperationModel> warmUpOperation;
 
     public WarmUpProviderSpec(IntermediateModel model) {
         this.model = model;
         this.poetExtensions = new PoetExtension(model);
+        this.warmUpOperation = WarmUpOperationSelector.selectWarmUpOperation(model);
     }
 
     @Override
@@ -123,12 +127,12 @@ public class WarmUpProviderSpec implements ClassSpec {
         if (!model.getCustomizationConfig().isSkipSyncClientGeneration()) {
             body.beginControlFlow("if (clientType == $T.SYNC)", ClientType.class)
                 .add(clientBlock(syncClientClass(),
-                                 CANNED_RESPONSE_HTTP_CLIENT, SDK_HTTP_CLIENT, "httpClient", "client"))
+                                 CANNED_RESPONSE_HTTP_CLIENT, SDK_HTTP_CLIENT, "httpClient", "client", false))
                 .endControlFlow();
         }
         body.beginControlFlow("if (clientType == $T.ASYNC)", ClientType.class)
             .add(clientBlock(asyncClientClass(),
-                             CANNED_RESPONSE_ASYNC_HTTP_CLIENT, SDK_ASYNC_HTTP_CLIENT, "asyncHttpClient", "asyncClient"))
+                             CANNED_RESPONSE_ASYNC_HTTP_CLIENT, SDK_ASYNC_HTTP_CLIENT, "asyncHttpClient", "asyncClient", true))
             .endControlFlow();
 
         return MethodSpec.methodBuilder("warmUpClient")
@@ -148,31 +152,52 @@ public class WarmUpProviderSpec implements ClassSpec {
     }
 
     /**
-     * Emits a canned HTTP client plus a try-with-resources that builds and closes {@code clientType}. The sync and async
-     * paths differ only in these types and variable names, so they share this emitter.
+     * Emits a canned HTTP client plus a try-with-resources that builds {@code clientType}, calls the selected
+     * warm-up operation (if any) and closes the client. The sync and async paths differ only in these types, variable
+     * names and joining the async call, so they share this emitter.
      */
     private CodeBlock clientBlock(ClassName clientType, ClassName cannedHttpClientType, ClassName httpClientType,
-                                  String httpClientVar, String clientVar) {
+                                  String httpClientVar, String clientVar, boolean async) {
+        CodeBlock.Builder block = CodeBlock.builder()
+            .addStatement("$T $N = $T.builder().responseBody($L).statusCode($L).build()",
+                          httpClientType, httpClientVar, cannedHttpClientType, CANNED_RESPONSE_FIELD,
+                          SUCCESS_STATUS_CODE)
+            .beginControlFlow("try ($1T $2N = $1T.builder()\n"
+                              + ".httpClient($3N)\n"
+                              + ".credentialsProvider($4T.create($5T.create($6S, $7S)))\n"
+                              + ".region($8T.US_EAST_1)\n"
+                              + ".endpointOverride($9T.create($10S))\n"
+                              + ".build())",
+                              clientType,
+                              clientVar,
+                              httpClientVar,
+                              STATIC_CREDENTIALS_PROVIDER,
+                              AWS_BASIC_CREDENTIALS,
+                              DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY,
+                              REGION,
+                              URI.class,
+                              LOCAL_ENDPOINT);
+
+        warmUpOperation.ifPresent(op -> block.add(warmUpOperationCall(op, clientVar, async)));
+
+        return block.endControlFlow()
+                    .build();
+    }
+
+    /**
+     * Verified simple methods generate a no-arg overload on both clients, so the call uses it. Other operations pass
+     * an empty request.
+     */
+    private CodeBlock warmUpOperationCall(OperationModel operation, String clientVar, boolean async) {
+        String join = async ? ".join()" : "";
+        if (operation.getInputShape().isSimpleMethod()) {
+            return CodeBlock.builder()
+                            .addStatement("$N.$N()" + join, clientVar, operation.getMethodName())
+                            .build();
+        }
+        ClassName requestType = poetExtensions.getModelClass(operation.getInputShape().getShapeName());
         return CodeBlock.builder()
-                        .addStatement("$T $N = $T.builder().responseBody($L).statusCode($L).build()",
-                                      httpClientType, httpClientVar, cannedHttpClientType, CANNED_RESPONSE_FIELD,
-                                      SUCCESS_STATUS_CODE)
-                        .beginControlFlow("try ($1T $2N = $1T.builder()\n"
-                                          + ".httpClient($3N)\n"
-                                          + ".credentialsProvider($4T.create($5T.create($6S, $7S)))\n"
-                                          + ".region($8T.US_EAST_1)\n"
-                                          + ".endpointOverride($9T.create($10S))\n"
-                                          + ".build())",
-                                          clientType,
-                                          clientVar,
-                                          httpClientVar,
-                                          STATIC_CREDENTIALS_PROVIDER,
-                                          AWS_BASIC_CREDENTIALS,
-                                          DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY,
-                                          REGION,
-                                          URI.class,
-                                          LOCAL_ENDPOINT)
-                        .endControlFlow()
+                        .addStatement("$N.$N($T.builder().build())" + join, clientVar, operation.getMethodName(), requestType)
                         .build();
     }
 
