@@ -22,7 +22,9 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsConnectionOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
@@ -78,6 +80,23 @@ public final class AwsCrtConfigurationUtils {
                            + "Falling back to TLS_CIPHER_SYSTEM_DEFAULT.");
         }
         return TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
+    }
+
+    /**
+     * Translate the SDK-owned {@link TlsVersion} into the CRT-native {@link TlsContextOptions.TlsVersions}
+     */
+    public static TlsContextOptions.TlsVersions resolveMinTlsVersion(TlsVersion minTlsVersion) {
+        if (minTlsVersion == null) {
+            return TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS;
+        }
+        switch (minTlsVersion) {
+            case TLS_1_3:
+                return TlsContextOptions.TlsVersions.TLSv1_3;
+            case SYSTEM_DEFAULT:
+                return TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS;
+            default:
+                throw new IllegalArgumentException("Unsupported minTlsVersion: " + minTlsVersion);
+        }
     }
 
 }
