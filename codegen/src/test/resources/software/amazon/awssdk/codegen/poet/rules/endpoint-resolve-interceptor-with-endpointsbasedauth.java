@@ -50,7 +50,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
-        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.skipEndpointResolution(executionAttributes)) {
             return result;
         }
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
@@ -101,7 +101,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         Endpoint resolvedEndpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-        if (resolvedEndpoint.headers().isEmpty()) {
+        if (resolvedEndpoint == null || CollectionUtils.isNullOrEmpty(resolvedEndpoint.headers())) {
             return context.httpRequest();
         }
         SdkHttpRequest.Builder httpRequestBuilder = context.httpRequest().toBuilder();

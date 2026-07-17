@@ -26,12 +26,14 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -181,8 +183,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(emptyInputOutputRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "EmptyInputOutput", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "EmptyInputOutput"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("EmptyInputOutput", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("EmptyInputOutput"))
                                              .withMarshaller(new EmptyInputOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -246,8 +248,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withOperationName("Float16").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                              .withInput(float16Request).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "Float16", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "Float16"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("Float16", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("Float16"))
                                              .withMarshaller(new Float16RequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -313,8 +315,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(fractionalSecondsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "FractionalSeconds", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "FractionalSeconds"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("FractionalSeconds", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("FractionalSeconds"))
                                              .withMarshaller(new FractionalSecondsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -383,8 +385,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(greetingWithErrorsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "GreetingWithErrors", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GreetingWithErrors"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("GreetingWithErrors", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("GreetingWithErrors"))
                                              .withMarshaller(new GreetingWithErrorsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -449,8 +451,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(noInputOutputRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "NoInputOutput", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "NoInputOutput"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("NoInputOutput", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("NoInputOutput"))
                                              .withMarshaller(new NoInputOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -512,19 +514,14 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithDefaults");
 
-            return clientHandler
-                .execute(new ClientExecutionParams<OperationWithDefaultsRequest, OperationWithDefaultsResponse>()
-                             .withOperationName("OperationWithDefaults")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithDefaultsRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithDefaults", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithDefaults"))
-                             .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<OperationWithDefaultsRequest, OperationWithDefaultsResponse>()
+                                             .withOperationName("OperationWithDefaults").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(operationWithDefaultsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithDefaults", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("OperationWithDefaults"))
+                                             .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -589,8 +586,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(optionalInputOutputRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "OptionalInputOutput", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OptionalInputOutput"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("OptionalInputOutput", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("OptionalInputOutput"))
                                              .withMarshaller(new OptionalInputOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -656,8 +653,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(recursiveShapesRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "RecursiveShapes", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "RecursiveShapes"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("RecursiveShapes", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("RecursiveShapes"))
                                              .withMarshaller(new RecursiveShapesRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -724,8 +721,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborDenseMapsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "RpcV2CborDenseMaps", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "RpcV2CborDenseMaps"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborDenseMaps", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("RpcV2CborDenseMaps"))
                                              .withMarshaller(new RpcV2CborDenseMapsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -791,8 +788,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborListsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "RpcV2CborLists", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "RpcV2CborLists"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborLists", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("RpcV2CborLists"))
                                              .withMarshaller(new RpcV2CborListsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -859,8 +856,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborSparseMapsRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "RpcV2CborSparseMaps", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "RpcV2CborSparseMaps"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("RpcV2CborSparseMaps", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("RpcV2CborSparseMaps"))
                                              .withMarshaller(new RpcV2CborSparseMapsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -923,16 +920,12 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
             return clientHandler
                 .execute(new ClientExecutionParams<SimpleScalarPropertiesRequest, SimpleScalarPropertiesResponse>()
-                             .withOperationName("SimpleScalarProperties")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(simpleScalarPropertiesRequest)
+                             .withOperationName("SimpleScalarProperties").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(simpleScalarPropertiesRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "SimpleScalarProperties", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "SimpleScalarProperties"))
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("SimpleScalarProperties", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("SimpleScalarProperties"))
                              .withMarshaller(new SimpleScalarPropertiesRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -998,8 +991,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(sparseNullsOperationRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "SparseNullsOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "SparseNullsOperation"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("SparseNullsOperation", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("SparseNullsOperation"))
                                              .withMarshaller(new SparseNullsOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1074,6 +1067,14 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
+    }
+
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

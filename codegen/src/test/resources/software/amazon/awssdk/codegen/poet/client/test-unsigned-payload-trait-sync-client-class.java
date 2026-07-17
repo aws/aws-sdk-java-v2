@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
@@ -176,8 +178,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                              .withOperationName("DeleteRow").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                              .withInput(deleteRowRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "DeleteRow", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "DeleteRow"))
+                                             .withAuthSchemeOptionsResolver(authSchemeResolver("DeleteRow", clientConfiguration))
+                                             .withEndpointResolver(endpointResolver("DeleteRow"))
                                              .withMarshaller(new DeleteRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -239,8 +241,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                    .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                                                                                                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                                                                                    .withInput(getRowRequest).withMetricCollector(apiCallMetricCollector)
-                                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "GetRow", clientConfiguration))
-                                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetRow"))
+                                                                                                   .withAuthSchemeOptionsResolver(authSchemeResolver("GetRow", clientConfiguration))
+                                                                                                   .withEndpointResolver(endpointResolver("GetRow"))
                                                                                                    .withMarshaller(new GetRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -302,8 +304,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                    .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                                                                                                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                                                                                    .withInput(putRowRequest).withMetricCollector(apiCallMetricCollector)
-                                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "PutRow", clientConfiguration))
-                                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PutRow"))
+                                                                                                   .withAuthSchemeOptionsResolver(authSchemeResolver("PutRow", clientConfiguration))
+                                                                                                   .withEndpointResolver(endpointResolver("PutRow"))
                                                                                                    .withMarshaller(new PutRowRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -374,8 +376,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withInput(opWithSigv4AndSigv4AUnSignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4AndSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4AndSigv4aUnSignedPayload"))
+                                 authSchemeResolver("opWithSigv4AndSigv4aUnSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4AndSigv4aUnSignedPayload"))
                              .withMarshaller(new OpWithSigv4AndSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -437,16 +439,12 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4SignedPayloadRequest, OpWithSigv4SignedPayloadResponse>()
-                             .withOperationName("opWithSigv4SignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4SignedPayloadRequest)
+                             .withOperationName("opWithSigv4SignedPayload").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4SignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4SignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4SignedPayload"))
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4SignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4SignedPayload"))
                              .withMarshaller(new OpWithSigv4SignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -508,16 +506,12 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadRequest, OpWithSigv4UnSignedPayloadResponse>()
-                             .withOperationName("opWithSigv4UnSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4UnSignedPayloadRequest)
+                             .withOperationName("opWithSigv4UnSignedPayload").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4UnSignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayload"))
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4UnSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4UnSignedPayload"))
                              .withMarshaller(new OpWithSigv4UnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -599,9 +593,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withInput(opWithSigv4UnSignedPayloadAndStreamingRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayloadAndStreaming",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayloadAndStreaming"))
+                                 authSchemeResolver("opWithSigv4UnSignedPayloadAndStreaming", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4UnSignedPayloadAndStreaming"))
                              .withRequestBody(requestBody)
                              .withMarshaller(
                                  StreamingRequestMarshaller
@@ -669,16 +662,12 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4ASignedPayloadRequest, OpWithSigv4ASignedPayloadResponse>()
-                             .withOperationName("opWithSigv4aSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(opWithSigv4ASignedPayloadRequest)
+                             .withOperationName("opWithSigv4aSignedPayload").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(opWithSigv4ASignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aSignedPayload"))
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4aSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4aSignedPayload"))
                              .withMarshaller(new OpWithSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -747,9 +736,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(opWithSigv4AUnSignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aUnSignedPayload"))
+                             .withAuthSchemeOptionsResolver(authSchemeResolver("opWithSigv4aUnSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opWithSigv4aUnSignedPayload"))
                              .withMarshaller(new OpWithSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -820,8 +808,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withInput(opsWithSigv4AndSigv4ASignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opsWithSigv4andSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opsWithSigv4andSigv4aSignedPayload"))
+                                 authSchemeResolver("opsWithSigv4andSigv4aSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("opsWithSigv4andSigv4aSignedPayload"))
                              .withMarshaller(new OpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -892,9 +880,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withInput(secondOpsWithSigv4AndSigv4ASignedPayloadRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "secondOpsWithSigv4andSigv4aSignedPayload",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "secondOpsWithSigv4andSigv4aSignedPayload"))
+                                 authSchemeResolver("secondOpsWithSigv4andSigv4aSignedPayload", clientConfiguration))
+                             .withEndpointResolver(endpointResolver("secondOpsWithSigv4andSigv4aSignedPayload"))
                              .withMarshaller(new SecondOpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -978,6 +965,14 @@ final class DefaultDatabaseClient implements DatabaseClient {
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
+    }
+
+    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
+        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
+    }
+
+    private EndpointResolver endpointResolver(String operationName) {
+        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

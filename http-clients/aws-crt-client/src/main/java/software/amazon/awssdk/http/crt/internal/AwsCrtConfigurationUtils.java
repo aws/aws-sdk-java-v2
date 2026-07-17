@@ -20,6 +20,8 @@ import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.crt.io.TlsConnectionOptions;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
@@ -51,6 +53,18 @@ public final class AwsCrtConfigurationUtils {
         }
 
         return clientSocketOptions;
+    }
+
+    public static TlsConnectionOptions buildTlsConnectionOptions(TlsContext tlsContext, Duration tlsNegotiationTimeout,
+                                                                 String serverName) {
+        TlsConnectionOptions tlsConnectionOptions = new TlsConnectionOptions(tlsContext);
+        if (tlsNegotiationTimeout != null) {
+            tlsConnectionOptions.withTimeoutMs(NumericUtils.saturatedCast(tlsNegotiationTimeout.toMillis()));
+        }
+        if (serverName != null) {
+            tlsConnectionOptions.withServerName(serverName);
+        }
+        return tlsConnectionOptions;
     }
 
     public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {

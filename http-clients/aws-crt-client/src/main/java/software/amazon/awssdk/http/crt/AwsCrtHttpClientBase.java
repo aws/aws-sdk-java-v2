@@ -19,14 +19,17 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMo
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildTlsConnectionOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.Http2StreamManagerOptions;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
@@ -37,6 +40,7 @@ import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
 import software.amazon.awssdk.crt.http.HttpVersion;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
+import software.amazon.awssdk.crt.io.TlsConnectionOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.Protocol;
@@ -54,6 +58,14 @@ import software.amazon.awssdk.utils.uri.SdkUri;
  */
 @SdkProtectedApi
 abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
+    // TLS_NEGOTIATION_TIMEOUT diverges from the SDK global default (5s) for backwards compatibility:
+    // the underlying CRT has always applied a 10s handshake timeout, so adopting the 5s global would silently tighten the
+    // effective handshake timeout for existing CRT customers.
+    static final AttributeMap AWS_CRT_HTTP_DEFAULTS =
+        AttributeMap.builder()
+                    .put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, Duration.ofSeconds(10))
+                    .build();
+
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientBase.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
@@ -72,6 +84,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final int maxStreamsPerEndpoint;
     private final long connectionAcquisitionTimeout;
     private final TlsContextOptions tlsContextOptions;
+    private final Duration tlsNegotiationTimeout;
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
@@ -93,6 +106,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         this.bootstrap = registerOwnedResource(clientBootstrap);
         this.socketOptions = registerOwnedResource(clientSocketOptions);
         this.tlsContext = registerOwnedResource(clientTlsContext);
+        this.tlsNegotiationTimeout = config.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
         this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
                               DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
         this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
@@ -122,18 +136,27 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         return AWS_COMMON_RUNTIME;
     }
 
+    @SdkTestInternalApi
+    Duration resolvedTlsNegotiationTimeout() {
+        return tlsNegotiationTimeout;
+    }
+
     private HttpStreamManager createConnectionPool(URI uri) {
         log.debug(() ->
                       String.format("Creating ConnectionPool for: URI:%s, MaxConns: %d, MaxStreams: %d",
                                     uri, maxStreamsPerEndpoint, maxStreamsPerEndpoint));
 
         boolean isHttps = "https".equalsIgnoreCase(uri.getScheme());
-        TlsContext poolTlsContext = isHttps ? tlsContext : null;
+        TlsConnectionOptions poolTlsConnectionOptions = null;
+        if (isHttps) {
+            poolTlsConnectionOptions = registerOwnedResource(
+                buildTlsConnectionOptions(tlsContext, tlsNegotiationTimeout, uri.getHost()));
+        }
 
         HttpClientConnectionManagerOptions h1Options = new HttpClientConnectionManagerOptions()
                 .withClientBootstrap(bootstrap)
                 .withSocketOptions(socketOptions)
-                .withTlsContext(poolTlsContext)
+                .withTlsConnectionOptions(poolTlsConnectionOptions)
                 .withUri(uri)
                 .withWindowSize(readBufferSize)
                 .withMaxConnections(maxStreamsPerEndpoint)
