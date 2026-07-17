@@ -71,8 +71,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public class S3ExpressCreateSessionTest extends BaseRuleSetClientTest {
     private static final Logger log = Logger.loggerFor(S3ExpressCreateSessionTest.class);
 
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT =
+        wm -> URI.create("http://127.0.0.1:" + wm.getHttpPort());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT =
+        wm -> URI.create("https://127.0.0.1:" + wm.getHttpsPort());
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     private static final PathStyleEnforcingInterceptor PATH_STYLE_INTERCEPTOR = new PathStyleEnforcingInterceptor();
@@ -316,7 +318,11 @@ public class S3ExpressCreateSessionTest extends BaseRuleSetClientTest {
         public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             String host = sdkHttpRequest.host();
-            String bucket = host.substring(0, host.indexOf(".localhost"));
+            int idx = host.indexOf(".localhost");
+            if (idx < 0) {
+                return sdkHttpRequest;
+            }
+            String bucket = host.substring(0, idx);
 
             return sdkHttpRequest.toBuilder().host("localhost")
                                  .encodedPath(SdkHttpUtils.appendUri(bucket, sdkHttpRequest.encodedPath()))

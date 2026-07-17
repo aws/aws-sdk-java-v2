@@ -195,6 +195,17 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         *
+         * <p>By default, it's 10 seconds.
+         *
+         * @param tlsNegotiationTimeout the timeout duration; must be positive
+         * @return this builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
          * client.
          *
@@ -248,6 +259,28 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * @return The builder of the method chaining.
          */
         AwsCrtAsyncHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
+
+        /**
+         * Configure the minimum TLS protocol version the client will accept when negotiating
+         * a TLS connection. Handshakes that would negotiate a lower version will fail.
+         *
+         * <p>If not set, the platform + CRT default is used (equivalent to
+         * {@link TlsVersion#SYSTEM_DEFAULT}).
+         *
+         * <p>This option is mutually exclusive with {@link #postQuantumTlsEnabled(Boolean)
+         * postQuantumTlsEnabled(false)}. Attempting to set both will cause client construction
+         * to fail with an {@link IllegalStateException}.
+         *
+         * <p><b>macOS:</b> the default CRT TLS backend on macOS (Apple Secure Transport) does not
+         * support TLS 1.3. To use {@link TlsVersion#TLS_1_3} on macOS you must set the environment
+         * variable {@code AWS_CRT_USE_NON_FIPS_TLS_13} to any non-empty value at process startup so
+         * the CRT selects its s2n-tls backend. See {@link TlsVersion} for details.
+         *
+         * @param minTlsVersion the minimum acceptable TLS version; {@code null} clears
+         *                      the value and reverts to the platform default
+         * @return this builder for method chaining
+         */
+        AwsCrtAsyncHttpClient.Builder minTlsVersion(TlsVersion minTlsVersion);
     }
 
     /**
@@ -267,6 +300,7 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
+                                                                      .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                       .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -274,6 +308,7 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
                                                                     .merge(serviceDefaults)
+                                                                    .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                     .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 

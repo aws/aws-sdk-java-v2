@@ -37,11 +37,8 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonPr
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.h2.auth.scheme.H2AuthSchemeProvider;
-import software.amazon.awssdk.services.h2.auth.scheme.internal.H2AuthSchemeInterceptor;
 import software.amazon.awssdk.services.h2.endpoints.H2EndpointParams;
 import software.amazon.awssdk.services.h2.endpoints.H2EndpointProvider;
-import software.amazon.awssdk.services.h2.endpoints.internal.H2RequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.h2.endpoints.internal.H2ResolveEndpointInterceptor;
 import software.amazon.awssdk.services.h2.internal.H2ServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -78,9 +75,6 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new H2AuthSchemeInterceptor());
-        endpointInterceptors.add(new H2ResolveEndpointInterceptor());
-        endpointInterceptors.add(new H2RequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/h2/execution.interceptors");
@@ -102,10 +96,10 @@ abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> {
                 Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
-                                                                                                  .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_H2_SERVICE")
-                                                                                                  .serviceEndpointOverrideSystemProperty("aws.endpointUrlH2").serviceProfileProperty("h2_service")
-                                                                                                  .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                                                                                  .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                                                                          .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_H2_SERVICE")
+                                                                          .serviceEndpointOverrideSystemProperty("aws.endpointUrlH2").serviceProfileProperty("h2_service")
+                                                                          .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                          .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
                 if (overrideEndpoint.isPresent()) {
                     return ClientEndpointProvider.create(overrideEndpoint.get(), true);
                 }

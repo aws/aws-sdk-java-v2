@@ -138,6 +138,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
             .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+            .responseMapper(splitConfig.responseMapper())
             .resultFuture(future)
             .build();
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()

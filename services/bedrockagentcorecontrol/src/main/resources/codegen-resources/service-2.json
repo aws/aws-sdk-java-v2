@@ -2925,6 +2925,7 @@
       "input":{"shape":"UpdatePolicyRequest"},
       "output":{"shape":"UpdatePolicyResponse"},
       "errors":[
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
@@ -3151,6 +3152,14 @@
       "type":"structure",
       "members":{},
       "document":true
+    },
+    "AdvertisedScopeMappingType":{
+      "type":"map",
+      "key":{"shape":"AllowedScopeType"},
+      "value":{"shape":"AllowedScopeType"},
+      "documentation":"<p>Maps an originalScope (from allowedScopes) to an advertisedScope exposed in WWW-Authenticate / Protected Resource Metadata.</p>",
+      "max":50,
+      "min":1
     },
     "AgentCardDefinition":{
       "type":"structure",
@@ -7003,6 +7012,10 @@
         "allowedScopes":{
           "shape":"AllowedScopesType",
           "documentation":"<p>An array of scopes that are allowed to access the token.</p>"
+        },
+        "advertisedScopeMapping":{
+          "shape":"AdvertisedScopeMappingType",
+          "documentation":"<p>A map that associates each scope in <code>allowedScopes</code> with a corresponding advertised scope value. The advertised scope appears in OAuth protected resource metadata and <code>WWW-Authenticate</code> response headers. Use this parameter when the scope that clients request from your identity provider differs from the scope in the validated token. Each key is a scope from <code>allowedScopes</code> that the service uses for token validation. Each value is the corresponding scope that the service advertises to clients. Scopes without a mapping entry appear unchanged to clients.</p>"
         },
         "customClaims":{
           "shape":"CustomClaimValidationsType",
@@ -12096,7 +12109,7 @@
     },
     "HarnessEndpointArn":{
       "type":"string",
-      "pattern":"arn:([^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:harness/[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}/endpoint/[a-zA-Z][a-zA-Z0-9_]{0,47}"
+      "pattern":"arn:([^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:harness/[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}/harness-endpoint/[a-zA-Z][a-zA-Z0-9_]{0,47}"
     },
     "HarnessEndpointDescription":{
       "type":"string",
@@ -12202,6 +12215,10 @@
         "topK":{
           "shape":"TopK",
           "documentation":"<p>The topK set when calling the model.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the Gemini model provider unchanged.</p>"
         }
       },
       "documentation":"<p>Configuration for a Google Gemini model provider. Requires an API key stored in AgentCore Identity.</p>"
@@ -12499,11 +12516,13 @@
     },
     "HarnessSkillGitUrl":{
       "type":"string",
+      "max":16383,
       "min":8,
       "pattern":"https://[^#@]+"
     },
     "HarnessSkillPath":{
       "type":"string",
+      "max":4096,
       "min":1
     },
     "HarnessSkillS3Source":{
@@ -12519,6 +12538,7 @@
     },
     "HarnessSkillS3Uri":{
       "type":"string",
+      "max":16383,
       "min":5,
       "pattern":"s3://.*"
     },
@@ -16327,7 +16347,7 @@
         },
         "protocolType":{
           "shape":"PassthroughProtocolType",
-          "documentation":"<p>The application protocol the passthrough target implements. Required for passthrough targets.</p>"
+          "documentation":"<p>The application protocol that the passthrough target implements. This value is required for passthrough targets:</p> <ul> <li> <p> <code>MCP</code> - The Model Context Protocol.</p> </li> <li> <p> <code>A2A</code> - The Agent-to-Agent protocol.</p> </li> <li> <p> <code>INFERENCE</code> - The protocol for routing requests to a large language model (LLM) provider.</p> </li> <li> <p> <code>CUSTOM</code> - A custom application protocol.</p> </li> </ul>"
         },
         "schema":{
           "shape":"HttpApiSchemaConfiguration",

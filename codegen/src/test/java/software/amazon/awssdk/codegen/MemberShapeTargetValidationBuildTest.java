@@ -48,9 +48,9 @@ public class MemberShapeTargetValidationBuildTest {
 
         assertThatThrownBy(() -> new IntermediateModelBuilder(models).build())
             .isInstanceOf(ModelInvalidException.class)
-            .hasMessageContaining("GetRequestAuthorizationDetailsResponse")
-            .hasMessageContaining("AuthorizationDetails")
-            .hasMessageContaining("AuthDetailType")
+            .hasMessageContaining("GetRequestSignatureResponse")
+            .hasMessageContaining("Signature")
+            .hasMessageContaining("SignatureType")
             .matches(e -> {
                 ValidationEntry entry = ((ModelInvalidException) e).validationEntries().get(0);
                 return entry.getErrorId() == ValidationErrorId.UNKNOWN_SHAPE_MEMBER
