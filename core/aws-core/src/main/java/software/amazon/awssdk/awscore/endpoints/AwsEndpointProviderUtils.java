@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.HostnameValidator;
@@ -101,11 +102,12 @@ public final class AwsEndpointProviderUtils {
             return endpoint;
         }
         validatePrefixIsHostNameCompliant(prefix);
-        URI originalUrl = endpoint.url();
-        String newHost = prefix + endpoint.url().getHost();
-        URI newUrl = invokeSafely(() -> new URI(originalUrl.getScheme(), null, newHost, originalUrl.getPort(),
-                originalUrl.getPath(), originalUrl.getQuery(), originalUrl.getFragment()));
-        return endpoint.toBuilder().url(newUrl).build();
+
+        EndpointUrl originalUrl = endpoint.endpointUrl();
+        String newHost = prefix + originalUrl.host();
+        EndpointUrl newUrl = EndpointUrl.fromComponents(originalUrl.scheme(), newHost, originalUrl.port(),
+                                                        originalUrl.encodedPath(), originalUrl.queryAndFragment());
+        return endpoint.toBuilder().endpointUrl(newUrl).build();
     }
 
     /**
@@ -126,7 +128,11 @@ public final class AwsEndpointProviderUtils {
      * However, we also pass the endpoint to provider as a parameter, and the resolver returns
      * {@code https://example.com/a/b}. This method takes care of combining the paths correctly so that the resulting
      * path is {@code https://example.com/a/b/c}.
+     *
+     * @deprecated Use {@link #setUri(SdkHttpRequest, URI, EndpointUrl)} instead for better performance by avoiding
+     *             intermediate URI construction.
      */
+    @Deprecated
     public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, URI resolvedUri) {
         String clientEndpointPath = clientEndpoint.getRawPath();
         String requestPath = request.encodedPath();
@@ -138,6 +144,33 @@ public final class AwsEndpointProviderUtils {
         }
 
         return request.toBuilder().protocol(resolvedUri.getScheme()).host(resolvedUri.getHost()).port(resolvedUri.getPort())
+                .encodedPath(finalPath).build();
+    }
+
+    /**
+     * Sets the request URI to the resolved endpoint URL returned by the endpoint provider, reading URL components
+     * directly from the {@link EndpointUrl} without constructing an intermediate {@link URI}.
+     * <p>
+     * This overload has the same behavior as {@link #setUri(SdkHttpRequest, URI, URI)} but avoids the cost of
+     * {@link URI} construction, making it suitable for presigners and other code paths that resolve endpoints outside
+     * the main pipeline.
+     *
+     * @param request        the current HTTP request
+     * @param clientEndpoint the endpoint configured on the client (may include a path prefix from endpoint override)
+     * @param resolvedUrl    the resolved endpoint URL from the rules engine
+     * @return a new {@link SdkHttpRequest} with scheme, host, port, and path applied from the resolved URL
+     */
+    public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, EndpointUrl resolvedUrl) {
+        String clientEndpointPath = clientEndpoint.getRawPath();
+        String requestPath = request.encodedPath();
+        String resolvedUrlPath = resolvedUrl.encodedPath();
+
+        String finalPath = requestPath;
+        if (!resolvedUrlPath.equals(clientEndpointPath)) {
+            finalPath = combinePath(clientEndpointPath, requestPath, resolvedUrlPath);
+        }
+
+        return request.toBuilder().protocol(resolvedUrl.scheme()).host(resolvedUrl.host()).port(resolvedUrl.port())
                 .encodedPath(finalPath).build();
     }
 

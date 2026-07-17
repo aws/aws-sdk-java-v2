@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -215,6 +216,91 @@ class AwsEndpointProviderUtilsTest {
         SdkHttpRequest result = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri);
         assertThat(result.host()).isEqualTo("resolved.example.com");
         assertThat(result.encodedPath()).isEqualTo("/operation");
+    }
+
+    @Test
+    void setUri_endpointUrl_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        EndpointUrl resolvedUrl = EndpointUrl.fromString("https://override.example.com/a/b");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com/a/c"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl).getUri().toString())
+            .isEqualTo("https://override.example.com/a/b/c");
+    }
+
+    @Test
+    void setUri_endpointUrl_doubleSlash_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        EndpointUrl resolvedUrl = EndpointUrl.fromString("https://override.example.com/a/b");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com/a//c"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl).getUri().toString())
+            .isEqualTo("https://override.example.com/a/b//c");
+    }
+
+    @Test
+    void setUri_endpointUrl_withTrailingSlashNoPath_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/");
+        EndpointUrl resolvedUrl = EndpointUrl.fromString("https://override.example.com/");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com//a"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl).getUri().toString())
+            .isEqualTo("https://override.example.com//a");
+    }
+
+    @Test
+    void setUri_endpointUrl_noPathDifference_keepsRequestPath() {
+        URI clientEndpoint = URI.create("https://example.com");
+        EndpointUrl resolvedUrl = EndpointUrl.fromString("https://resolved.example.com");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://example.com/operation"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest result = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl);
+        assertThat(result.host()).isEqualTo("resolved.example.com");
+        assertThat(result.encodedPath()).isEqualTo("/operation");
+    }
+
+    @Test
+    void setUri_endpointUrl_withPort_setsPortCorrectly() {
+        URI clientEndpoint = URI.create("https://example.com:8080");
+        EndpointUrl resolvedUrl = EndpointUrl.fromString("https://resolved.example.com:9090/path");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://example.com:8080/operation"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest result = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl);
+        assertThat(result.host()).isEqualTo("resolved.example.com");
+        assertThat(result.port()).isEqualTo(9090);
+        assertThat(result.protocol()).isEqualTo("https");
+        assertThat(result.encodedPath()).isEqualTo("/path/operation");
+    }
+
+    @Test
+    void setUri_endpointUrl_producesIdenticalResultToUriOverload() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        URI resolvedUri = URI.create("https://override.example.com/a/b");
+        EndpointUrl resolvedUrl = EndpointUrl.fromUri(resolvedUri);
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(URI.create("https://override.example.com/a/c"))
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        SdkHttpRequest uriResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri);
+        SdkHttpRequest endpointUrlResult = AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUrl);
+
+        assertThat(endpointUrlResult.getUri()).isEqualTo(uriResult.getUri());
     }
 
     private static ClientEndpointProvider endpointProvider(boolean isEndpointOverridden) {
