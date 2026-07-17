@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildTlsConnectionOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMinTlsVersion;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
@@ -94,6 +95,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         TlsContextOptions clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
+                             .withMinimumTlsVersion(resolveMinTlsVersion(builder.getMinTlsVersion()))
                              .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
         this.protocol = config.get(PROTOCOL);
         if (protocol == Protocol.HTTP2) {

@@ -21,14 +21,17 @@ import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTE
 
 import java.time.Duration;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.AttributeMap;
 
 class AwsCrtConfigurationUtilsTest {
@@ -98,6 +101,25 @@ class AwsCrtConfigurationUtilsTest {
             )
         );
     }
+
+    @Test
+    void resolveMinTlsVersion_null_returnsSystemDefaults() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(null))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS);
+    }
+
+    @Test
+    void resolveMinTlsVersion_systemDefault_returnsSystemDefaults() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(TlsVersion.SYSTEM_DEFAULT))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS);
+    }
+
+    @Test
+    void resolveMinTlsVersion_tls13_returnsTLSv1_3() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(TlsVersion.TLS_1_3))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLSv1_3);
+    }
+
 
     private static Stream<Arguments> defaultConnectionHealthConfigurationCases() {
         return Stream.of(
