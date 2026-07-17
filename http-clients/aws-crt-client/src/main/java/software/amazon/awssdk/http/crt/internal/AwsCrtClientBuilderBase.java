@@ -22,6 +22,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
 import software.amazon.awssdk.http.crt.ProxyConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 
@@ -33,6 +34,7 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     private ConnectionHealthConfiguration connectionHealthConfiguration;
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;
+    private TlsVersion minTlsVersion;
 
     protected AwsCrtClientBuilderBase() {
     }
@@ -140,6 +142,15 @@ public class AwsCrtClientBuilderBase<BuilderT> {
 
     public Boolean getPostQuantumTlsEnabled() {
         return this.postQuantumTlsEnabled;
+    }
+
+    public BuilderT minTlsVersion(TlsVersion minTlsVersion) {
+        this.minTlsVersion = minTlsVersion;
+        return thisBuilder();
+    }
+
+    public TlsVersion getMinTlsVersion() {
+        return this.minTlsVersion;
     }
 
     public BuilderT proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {

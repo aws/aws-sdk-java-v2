@@ -16,15 +16,18 @@
 package software.amazon.awssdk.http.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.Duration;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -60,10 +63,57 @@ class AwsCrtAsyncHttpClientTest extends AwsCrtHttpClientTestBase {
         }
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("minTlsVersionInputs")
+    void asyncBuilder_minTlsVersion_buildSucceeds(String description, Consumer<AwsCrtAsyncHttpClient.Builder> configure) {
+        assertThatCode(() -> {
+            AwsCrtAsyncHttpClient.Builder builder = AwsCrtAsyncHttpClient.builder();
+            configure.accept(builder);
+            builder.build().close();
+        }).doesNotThrowAnyException();
+    }
+
+    @Test
+    void asyncBuilder_postQuantumTrueWithMinTls13_buildSucceeds() {
+        assertThatCode(() -> AwsCrtAsyncHttpClient.builder()
+                                                  .postQuantumTlsEnabled(true)
+                                                  .minTlsVersion(TlsVersion.TLS_1_3)
+                                                  .build()
+                                                  .close())
+            .doesNotThrowAnyException();
+    }
+
+    // CRT enforces mutual exclusivity between a non-default cipher preference and a non-default minimum TLS version
+    // (aws-crt-java TlsContextOptions#getNativeHandle throws IllegalStateException). This surfaces only on platforms
+    // where TLS_CIPHER_NON_PQ_DEFAULT is supported; elsewhere resolveCipherPreference(false) falls back to
+    // TLS_CIPHER_SYSTEM_DEFAULT (see AwsCrtConfigurationUtils) and CRT accepts the combination.
+    @Test
+    void asyncBuilder_postQuantumFalseWithMinTls13_failsWhenCrtEnforcesMutualExclusivity() {
+        assumeTrue(TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT.isSupported());
+        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder()
+                                                     .postQuantumTlsEnabled(false)
+                                                     .minTlsVersion(TlsVersion.TLS_1_3)
+                                                     .build())
+            .isInstanceOf(IllegalStateException.class);
+    }
+
+    static Stream<Arguments> minTlsVersionInputs() {
+        return Stream.of(
+            Arguments.of("unset -> build succeeds",
+                         (Consumer<AwsCrtAsyncHttpClient.Builder>) b -> { }),
+            Arguments.of("SYSTEM_DEFAULT -> build succeeds",
+                         (Consumer<AwsCrtAsyncHttpClient.Builder>) b -> b.minTlsVersion(TlsVersion.SYSTEM_DEFAULT)),
+            Arguments.of("TLS_1_3 -> build succeeds",
+                         (Consumer<AwsCrtAsyncHttpClient.Builder>) b -> b.minTlsVersion(TlsVersion.TLS_1_3)),
+            Arguments.of("TLS_1_3 then null -> build succeeds",
+                         (Consumer<AwsCrtAsyncHttpClient.Builder>) b ->
+                             b.minTlsVersion(TlsVersion.TLS_1_3).minTlsVersion(null))
+        );
+    }
+
     private static SdkAsyncHttpClient buildAsync(AwsCrtAsyncHttpClient.Builder builder, Duration serviceDefault) {
         return serviceDefault == null
                ? builder.build()
                : builder.buildWithDefaults(serviceDefaultsMap(serviceDefault));
     }
-
 }
