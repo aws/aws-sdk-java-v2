@@ -47,6 +47,7 @@ public final class RateLimiterTokenBucketStore
 
     @Override
     public void close() {
+        scopeToTokenBucket.evictAll();
         scheduler.shutdownNow();
     }
 

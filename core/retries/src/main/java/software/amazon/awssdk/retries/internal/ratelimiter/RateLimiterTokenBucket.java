@@ -106,7 +106,7 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
         }
     }
 
-    public void doNotify() {
+    private void doNotify() {
         synchronized (lock) {
             while (true) {
                 CompletableFuture<Void> w = waiting.poll();
