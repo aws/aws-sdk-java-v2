@@ -677,7 +677,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         ClientEndpointProvider clientEndpointProvider =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
         SdkHttpRequest updatedRequest = AwsEndpointProviderUtils.setUri(httpRequest,
-            clientEndpointProvider.clientEndpoint(), endpoint.url());
+            clientEndpointProvider.clientEndpoint(), endpoint.endpointUrl());
 
         if (!endpoint.headers().isEmpty()) {
             SdkHttpRequest.Builder requestBuilder = updatedRequest.toBuilder();
