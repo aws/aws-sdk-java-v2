@@ -20,6 +20,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 /**
  * A TLS protocol version that {@link AwsCrtHttpClient} and {@link AwsCrtAsyncHttpClient} uses.
  *
+ * <p><b>Mac-Only TLS Behavior:</b> the default CRT TLS backend on macOS (Apple Secure Transport) does not
+ * support TLS 1.3. To use {@link TlsVersion#TLS_1_3} on macOS you must set the environment variable
+ * {@code AWS_CRT_USE_NON_FIPS_TLS_13} to any non-empty value at process startup so the CRT selects its s2n-tls backend. See
+ * <a href="https://github.com/awslabs/aws-crt-java/blob/main/README.md">Mac-Only TLS Behavior</a> for more details.
+ *
  * @see AwsCrtHttpClient.Builder#minTlsVersion(TlsVersion)
  * @see AwsCrtAsyncHttpClient.Builder#minTlsVersion(TlsVersion)
  */
