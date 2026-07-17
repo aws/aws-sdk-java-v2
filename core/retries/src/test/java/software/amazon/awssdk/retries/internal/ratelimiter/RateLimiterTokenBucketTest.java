@@ -34,12 +34,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 class RateLimiterTokenBucketTest {
     private static final double EPSILON = 0.0001;
@@ -92,8 +90,34 @@ class RateLimiterTokenBucketTest {
         CompletableFuture<Void> f = tokenBucket.acquireAsync();
         assertThatThrownBy(f::join).satisfies(t -> {
             Throwable cause = t.getCause();
-            assertThat(cause).hasMessage("Unable to initiate token acquire");
+            assertThat(cause).hasMessage("Rate limiter bucket is closed");
         });
+    }
+
+    @Test
+    void acquireAsync_scheduleFails_futureNotInWaitingDeque() {
+        tokenBucket.updateRateAfterThrottling();
+
+        doThrow(new RejectedExecutionException("no")).when(scheduler).schedule(any(Runnable.class),
+                                                                               anyLong(),
+                                                                               any(TimeUnit.class));
+
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThat(f).isCompletedExceptionally();
+        assertThat(tokenBucket.waiting()).isEmpty();
+    }
+
+    @Test
+    void acquireAsync_scheduleFails_closesBucket() {
+        tokenBucket.updateRateAfterThrottling();
+
+        doThrow(new RejectedExecutionException("no")).when(scheduler).schedule(any(Runnable.class),
+                                                                               anyLong(),
+                                                                               any(TimeUnit.class));
+
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThat(f).isCompletedExceptionally();
+        assertThat(tokenBucket.isClosed()).isTrue();
     }
 
     @Test
@@ -139,34 +163,28 @@ class RateLimiterTokenBucketTest {
            return null;
         });
 
-        CompletableFuture<Void> future = tokenBucket.acquireAsync();
-        assertThatThrownBy(future::join).hasRootCauseInstanceOf(RejectedExecutionException.class);
-        assertThat(tokenBucket.waiting()).isEmpty();
+        tokenBucket.acquireAsync();
+        assertThat(tokenBucket.isClosed()).isTrue();
     }
 
     @Test
-    void doNotify_rescheduleSucceeds_pushesCurrentFutureBackToFront() {
+    void doNotify_scheduleRejected_closesBucket() {
         tokenBucket.updateRateAfterThrottling();
 
-        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+        // Empty bucket at default rate of 0.5 tokens per second should be 2seconds
+        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS)))
+            .thenThrow(new RejectedExecutionException("no"));
 
-        CompletableFuture<Void> first = tokenBucket.acquireAsync();
-        CompletableFuture<Void> second = tokenBucket.acquireAsync();
-
-        verify(scheduler).schedule(runnableCaptor.capture(), eq(0L), any(TimeUnit.class));
-
-        AtomicBoolean topIsSecondBeforeReschedule = new AtomicBoolean();
-        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS))).thenAnswer(i -> {
-            topIsSecondBeforeReschedule.set(tokenBucket.waiting().peek() == second);
+        // 0L is the initial schedule from acquireAsync, capture the doNotify schedule and execute that.
+        when(scheduler.schedule(any(Runnable.class), eq(0L), any(TimeUnit.class))).thenAnswer(i -> {
+            Runnable r = i.getArgument(0);
+            r.run();
             return null;
         });
 
-        runnableCaptor.getValue().run();
-
-        // At the point before notifier reschedules, the next waiting future should be the second acquire.
-        assertThat(topIsSecondBeforeReschedule).isTrue();
-        // After the schedule happens, the top future should be the first one again.
-        assertThat(tokenBucket.waiting().peek()).isSameAs(first);
+        CompletableFuture<Void> future = tokenBucket.acquireAsync();
+        assertThatThrownBy(future::join).hasRootCauseInstanceOf(RejectedExecutionException.class);
+        assertThat(tokenBucket.isClosed()).isTrue();
     }
 
     @Test

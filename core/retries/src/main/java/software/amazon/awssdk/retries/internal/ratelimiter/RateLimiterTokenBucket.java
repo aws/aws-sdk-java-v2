@@ -66,9 +66,13 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
 
     @Override
     public void close() {
+        doClose(null);
+    }
+
+    private void doClose(Throwable cause) {
         synchronized (lock) {
             open = false;
-            IllegalStateException closedException = new IllegalStateException("Rate limiter bucket is closed");
+            IllegalStateException closedException = new IllegalStateException("Rate limiter bucket is closed", cause);
             while (true) {
                 CompletableFuture<Void> w = waiting.poll();
                 if (w == null) {
@@ -98,18 +102,28 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
             CompletableFuture<Void> future = new CompletableFuture<>();
             waiting.add(future);
             if (!notifierRunning) {
-                if (scheduleOrFail(this::doNotify, Duration.ZERO, future)) {
-                    notifierRunning = true;
-                }
+                notifierRunning = scheduleOrClose(this::doNotify, Duration.ZERO);
             }
             return future;
         }
     }
 
+
+    @SdkTestInternalApi
+    Deque<CompletableFuture<Void>> waiting() {
+        return waiting;
+    }
+
+    @SdkTestInternalApi
+    boolean isClosed() {
+        return !open;
+    }
+
     private void doNotify() {
-        synchronized (lock) {
-            while (true) {
-                CompletableFuture<Void> w = waiting.poll();
+        while (true) {
+            CompletableFuture<Void> w;
+            synchronized (lock) {
+                w = waiting.poll();
                 if (w == null) {
                     notifierRunning = false;
                     return;
@@ -120,23 +134,15 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
                 // Not enough capacity. Try again later when enough time has
                 // passed to refill the bucket at the current rate.
                 if (!acquireResult.isSuccessful()) {
-                    if (scheduleOrFail(this::doNotify, acquireResult.refillWait(), w)) {
-                        waiting.push(w);
-                    } else {
-                        notifierRunning = false;
-                    }
+                    waiting.push(w);
+                    notifierRunning = scheduleOrClose(this::doNotify, acquireResult.refillWait());
                     return;
                 }
 
-                // Acquire was successful, signal the waiting thread.
-                w.complete(null);
             }
+            // Acquire was successful, signal the waiting thread.
+            w.complete(null);
         }
-    }
-
-    @SdkTestInternalApi
-    Deque<CompletableFuture<Void>> waiting() {
-        return waiting;
     }
 
     private void schedule(Runnable command, Duration d) {
@@ -144,15 +150,14 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
     }
 
     /**
-     * @return true if schedule was successful, false otherwise.
+     * @return true if schedule was successful, false otherwise. If the schedule failed, this bucket will be closed.
      */
-    private boolean scheduleOrFail(Runnable command, Duration d, CompletableFuture<?> future) {
+    private boolean scheduleOrClose(Runnable command, Duration d) {
         try {
             schedule(command, d);
             return true;
         } catch (Throwable t) {
-            RuntimeException e = new RuntimeException("Unable to initiate token acquire", t);
-            future.completeExceptionally(e);
+            doClose(t);
         }
         return false;
     }
@@ -282,11 +287,11 @@ public class RateLimiterTokenBucket implements SdkAutoCloseable {
                 this.refillWait = refillWait;
             }
 
-            public boolean isSuccessful() {
+            boolean isSuccessful() {
                 return successful;
             }
 
-            public Duration refillWait() {
+            Duration refillWait() {
                 return refillWait;
             }
         }
