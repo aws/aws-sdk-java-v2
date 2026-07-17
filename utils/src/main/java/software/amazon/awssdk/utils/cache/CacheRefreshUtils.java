@@ -41,7 +41,7 @@ public final class CacheRefreshUtils {
      * dynamically based on the credential's remaining lifetime so that longer-lived credentials begin refreshing
      * earlier and shorter-lived credentials do not attempt a refresh the moment they are issued.
      *
-     * <p>Dynamic window selection:</p>
+     * <p>Dynamic window selection:
      * <ul>
      *   <li>remaining lifetime &lt; 20 minutes → 5 minute window</li>
      *   <li>20 minutes ≤ remaining lifetime &lt; 90 minutes → 15 minute window</li>

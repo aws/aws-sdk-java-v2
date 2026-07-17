@@ -22,12 +22,14 @@ import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavi
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
@@ -99,7 +101,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
             CachedSupplier.builder(this::updateSsoCredentials)
                           .cachedValueName(toString())
                           .staleValueBehavior(ALLOW)
-                          .cacheInvalidatingPredicate(
+                          .nonRecoverableErrorPredicate(
                               e -> e instanceof ExpiredTokenException || e instanceof UnauthorizedException);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
@@ -166,6 +168,13 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialCache.get().sessionCredentials();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        credentialCache.invalidate(holder -> rejectedAccessKeyId.equals(holder.sessionCredentials().accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

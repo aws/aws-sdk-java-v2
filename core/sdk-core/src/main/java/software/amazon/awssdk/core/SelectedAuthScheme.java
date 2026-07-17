@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.Validate;
 
 
@@ -42,19 +43,33 @@ import software.amazon.awssdk.utils.Validate;
 ///             - identity: CompletableFuture<T>  ← the resolved identity!
 ///             - signer: HttpSigner<T>
 ///             - authSchemeOption: AuthSchemeOption
+///             - identityProvider: IdentityProvider<T>  ← the provider that resolved the identity
 /// ```
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
     private final CompletableFuture<? extends T> identity;
     private final HttpSigner<T> signer;
     private final AuthSchemeOption authSchemeOption;
+    private final IdentityProvider<T> identityProvider;
 
+    /**
+     * @deprecated Use {@link #builder()} instead.
+     */
+    @Deprecated
     public SelectedAuthScheme(CompletableFuture<? extends T> identity,
                               HttpSigner<T> signer,
                               AuthSchemeOption authSchemeOption) {
         this.identity = Validate.paramNotNull(identity, "identity");
         this.signer = Validate.paramNotNull(signer, "signer");
         this.authSchemeOption = Validate.paramNotNull(authSchemeOption, "authSchemeOption");
+        this.identityProvider = null;
+    }
+
+    private SelectedAuthScheme(BuilderImpl<T> builder) {
+        this.identity = Validate.paramNotNull(builder.identity, "identity");
+        this.signer = Validate.paramNotNull(builder.signer, "signer");
+        this.authSchemeOption = Validate.paramNotNull(builder.authSchemeOption, "authSchemeOption");
+        this.identityProvider = builder.identityProvider;
     }
 
     public CompletableFuture<? extends T> identity() {
@@ -67,5 +82,85 @@ public final class SelectedAuthScheme<T extends Identity> {
 
     public AuthSchemeOption authSchemeOption() {
         return authSchemeOption;
+    }
+
+    public IdentityProvider<T> identityProvider() {
+        return identityProvider;
+    }
+
+    /**
+     * Returns a builder initialized with the values from this instance, allowing modification
+     * of individual fields while preserving the rest.
+     */
+    public Builder<T> toBuilder() {
+        return new BuilderImpl<T>()
+            .identity(this.identity)
+            .signer(this.signer)
+            .authSchemeOption(this.authSchemeOption)
+            .identityProvider(this.identityProvider);
+    }
+
+    public static <T extends Identity> Builder<T> builder() {
+        return new BuilderImpl<>();
+    }
+
+    public interface Builder<T extends Identity> {
+        /**
+         * The resolved identity future for this auth scheme.
+         */
+        Builder<T> identity(CompletableFuture<? extends T> identity);
+
+        /**
+         * The signer to use for this auth scheme.
+         */
+        Builder<T> signer(HttpSigner<T> signer);
+
+        /**
+         * The auth scheme option containing signer and identity properties.
+         */
+        Builder<T> authSchemeOption(AuthSchemeOption authSchemeOption);
+
+        /**
+         * The identity provider that resolved the identity. Used for invalidation on auth errors.
+         */
+        Builder<T> identityProvider(IdentityProvider<T> identityProvider);
+
+        SelectedAuthScheme<T> build();
+    }
+
+    private static final class BuilderImpl<T extends Identity> implements Builder<T> {
+        private CompletableFuture<? extends T> identity;
+        private HttpSigner<T> signer;
+        private AuthSchemeOption authSchemeOption;
+        private IdentityProvider<T> identityProvider;
+
+        @Override
+        public Builder<T> identity(CompletableFuture<? extends T> identity) {
+            this.identity = identity;
+            return this;
+        }
+
+        @Override
+        public Builder<T> signer(HttpSigner<T> signer) {
+            this.signer = signer;
+            return this;
+        }
+
+        @Override
+        public Builder<T> authSchemeOption(AuthSchemeOption authSchemeOption) {
+            this.authSchemeOption = authSchemeOption;
+            return this;
+        }
+
+        @Override
+        public Builder<T> identityProvider(IdentityProvider<T> identityProvider) {
+            this.identityProvider = identityProvider;
+            return this;
+        }
+
+        @Override
+        public SelectedAuthScheme<T> build() {
+            return new SelectedAuthScheme<>(this);
+        }
     }
 }

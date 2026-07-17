@@ -20,11 +20,13 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -161,6 +163,14 @@ public class WebIdentityTokenFileCredentialsProvider
     @Override
     public void close() {
         IoUtils.closeIfCloseable(credentialsProvider, null);
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (credentialsProvider != null) {
+            return credentialsProvider.invalidate(identity);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**

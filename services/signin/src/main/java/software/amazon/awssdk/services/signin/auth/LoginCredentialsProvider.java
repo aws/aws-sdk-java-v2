@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
@@ -129,7 +131,7 @@ public final class LoginCredentialsProvider implements
             CachedSupplier.builder(this::updateSigninCredentials)
                           .cachedValueName(toString())
                           .staleValueBehavior(ALLOW)
-                          .cacheInvalidatingPredicate(LoginCredentialsProvider::isCacheInvalidating);
+                          .nonRecoverableErrorPredicate(LoginCredentialsProvider::isNonRecoverableError);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -172,8 +174,7 @@ public final class LoginCredentialsProvider implements
     private RefreshResult<AwsCredentials> refreshFromSigninService(LoginAccessToken tokenFromDisc) {
         log.debug(() -> "Credentials are near expiration/expired, refreshing from Signin service.");
 
-        try {
-            SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey());
+        try (SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey())) {
             CreateOAuth2TokenRequest refreshRequest =
                 CreateOAuth2TokenRequest
                     .builder()
@@ -217,11 +218,11 @@ public final class LoginCredentialsProvider implements
             switch (accessDeniedException.error()) {
                 case TOKEN_EXPIRED:
                 case USER_CREDENTIALS_CHANGED:
-                    // Let the original AccessDeniedException propagate — the cacheInvalidatingPredicate
+                    // Let the original AccessDeniedException propagate — the nonRecoverableErrorPredicate
                     // on CachedSupplier will identify it and bypass static stability.
                     throw accessDeniedException;
                 case INSUFFICIENT_PERMISSIONS:
-                    // Wrap with a helpful message, but still cache-invalidating — the predicate checks the cause.
+                    // Wrap with a helpful message, but still non-recoverable — the predicate checks the cause.
                     throw SdkClientException.create(
                         "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
                         + "for the 'CreateOAuth2Token' action.",
@@ -243,7 +244,7 @@ public final class LoginCredentialsProvider implements
      *       {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}, or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}</li>
      * </ul>
      */
-    private static boolean isCacheInvalidating(RuntimeException e) {
+    private static boolean isNonRecoverableError(RuntimeException e) {
         if (e instanceof InvalidTokenException) {
             return true;
         }
@@ -293,6 +294,13 @@ public final class LoginCredentialsProvider implements
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialCache.get();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        credentialCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

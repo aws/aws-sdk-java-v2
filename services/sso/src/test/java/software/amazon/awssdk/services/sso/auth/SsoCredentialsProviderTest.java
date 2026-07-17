@@ -27,9 +27,11 @@ import java.time.Instant;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsResponse;
@@ -204,6 +206,73 @@ public class SsoCredentialsProviderTest {
             assertThatThrownBy(credentialsProvider::resolveCredentials)
                 .isInstanceOf(SdkClientException.class)
                 .hasMessageContaining("SSO service unavailable");
+        }
+    }
+
+
+
+    @Test
+    public void invalidate_matchingAccessKeyId_causesRefresh() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                     .build();
+        RoleCredentials credentials2 = RoleCredentials.builder()
+                                                      .accessKeyId("x")
+                                                      .secretAccessKey("y")
+                                                      .sessionToken("z")
+                                                      .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                      .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenReturn(getResponse(credentials))
+            .thenReturn(getResponse(credentials2));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            AwsSessionCredentials first = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("a", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsSessionCredentials second = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("x");
+        }
+    }
+
+    @Test
+    public void invalidate_nonMatchingAccessKeyId_doesNotCauseRefresh() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                     .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get())).thenReturn(getResponse(credentials));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            AwsSessionCredentials first = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("different-key", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsSessionCredentials second = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("a");
+            callClient(verify(ssoClient, times(1)), Mockito.any());
         }
     }
 
